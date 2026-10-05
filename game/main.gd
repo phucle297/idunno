@@ -13,6 +13,7 @@ const PALETTE := {
 const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 
 @onready var match_manager: Node = $MatchManager
+@onready var meteor_shower: MeteorShower = $MeteorShower
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
@@ -29,6 +30,8 @@ func _ready() -> void:
 	$GrabManager.register_player(1, $Player)
 	match_manager.player_eliminated.connect(_on_player_eliminated)
 	match_manager.register_player(1, "Local Player")
+	meteor_shower.configure(match_manager)
+	meteor_shower.register_player(1, $Player)
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
@@ -41,12 +44,20 @@ func _ready() -> void:
 		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
 	if _has_argument("--grab-demo"):
 		$GrabManager.request_nearest_grab(1)
+	if _has_argument("--meteor-demo") or _has_argument("--meteor-impact-demo"):
+		meteor_shower.start_warning(Vector3(1.5, 0.06, 5.0))
+		if _has_argument("--meteor-demo"):
+			meteor_shower.set_process(false)
+			meteor_shower.tick(2.3)
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
 		$Player/CameraPivot.rotation = Vector3(-0.14, 0.35 if _has_argument("--grab-demo") else 0.0, 0.0)
-		capture_after_frames(capture_path, 20)
+		if _has_argument("--meteor-impact-demo"):
+			capture_after_meteor_impact(capture_path)
+		else:
+			capture_after_frames(capture_path, 5)
 
 
 func _process(delta: float) -> void:
@@ -57,6 +68,11 @@ func _process(delta: float) -> void:
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
 	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "ENTER TO REMATCH"
 	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
+	$Interface/MeteorWarning.visible = meteor_shower.phase != MeteorShower.Phase.IDLE
+	if meteor_shower.phase == MeteorShower.Phase.WARNING:
+		$Interface/MeteorWarning.text = "WARNING — METEOR IMPACT IN %d" % maxi(1, ceili(meteor_shower.warning_remaining))
+	elif meteor_shower.phase == MeteorShower.Phase.IMPACT:
+		$Interface/MeteorWarning.text = "METEOR IMPACT!"
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -71,6 +87,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func restart_local_match() -> bool:
 	if not match_manager.reset_to_lobby():
 		return false
+	meteor_shower.cleanup()
 	spectator_controller.stop()
 	$Interface/Spectating.visible = false
 	_reset_sandbox()
@@ -211,6 +228,17 @@ func _has_argument(expected: String) -> bool:
 func capture_after_frames(path: String, frames: int) -> void:
 	for index in frames:
 		await get_tree().process_frame
+	_save_capture(path)
+
+
+func capture_after_meteor_impact(path: String) -> void:
+	if meteor_shower.phase == MeteorShower.Phase.WARNING:
+		await meteor_shower.impacted
+	await get_tree().create_timer(0.4).timeout
+	_save_capture(path)
+
+
+func _save_capture(path: String) -> void:
 	var image := get_viewport().get_texture().get_image()
 	var absolute_path := ProjectSettings.globalize_path(path)
 	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())

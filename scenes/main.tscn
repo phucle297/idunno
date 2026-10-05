@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://game/match_manager.gd" id="3_match"]
 [ext_resource type="Script" path="res://game/grab_manager.gd" id="4_grab"]
+[ext_resource type="Script" path="res://game/meteor_shower.gd" id="5_meteor"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -24,6 +25,9 @@ script = ExtResource("3_match")
 
 [node name="GrabManager" type="Node" parent="."]
 script = ExtResource("4_grab")
+
+[node name="MeteorShower" type="Node3D" parent="."]
+script = ExtResource("5_meteor")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 
@@ -65,6 +69,19 @@ offset_bottom = 84.0
 theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
 theme_override_font_sizes/font_size = 16
 text = "SURVIVE"
+horizontal_alignment = 1
+
+[node name="MeteorWarning" type="Label" parent="Interface"]
+visible = false
+offset_left = 352.0
+offset_top = 104.0
+offset_right = 928.0
+offset_bottom = 150.0
+theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
+theme_override_colors/font_outline_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 28
+text = "WARNING — METEOR IMPACT IN 3"
 horizontal_alignment = 1
 
 [node name="Alive" type="Label" parent="Interface"]

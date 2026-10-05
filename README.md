@@ -26,6 +26,7 @@ godot --headless --path . --script res://tests/test_match_manager.gd
 godot --headless --path . --script res://tests/test_rematch_integration.gd
 godot --headless --path . --script res://tests/test_spectator_controller.gd
 godot --headless --path . --script res://tests/test_grab_manager.gd
+godot --headless --path . --script res://tests/test_meteor_shower.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.

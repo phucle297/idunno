@@ -3,6 +3,7 @@ extends SceneTree
 const TIMEOUT_MSEC := 5000
 const ManagerScript = preload("res://game/match_manager.gd")
 const GrabManagerScript = preload("res://game/grab_manager.gd")
+const MeteorScript = preload("res://game/meteor_shower.gd")
 
 var role := ""
 var port := 29720
@@ -94,6 +95,9 @@ func _check_authority_matrix(
 	var manager := ManagerScript.new()
 	host.add_child(manager)
 	var match_mutation_result: bool = manager.register_player(99, "Authority Probe")
+	if role == "server":
+		manager.set_player_ready(99, true)
+		manager.start_match()
 	var grab_manager := GrabManagerScript.new()
 	host.add_child(grab_manager)
 	var grab_player := server_player if role == "server" else client_player
@@ -103,6 +107,11 @@ func _check_authority_matrix(
 	body.position = Vector3(0.0, 0.4, -1.0)
 	host.add_child(body)
 	var grab_mutation_result: bool = grab_manager.request_grab(root.multiplayer.get_unique_id(), body)
+	var meteor := MeteorScript.new()
+	host.add_child(meteor)
+	meteor.configure(manager)
+	var meteor_registration_result: bool = meteor.register_player(99, grab_player)
+	var meteor_mutation_result: bool = meteor.start_warning(Vector3.ZERO)
 	var expected_match_mutation := role == "server"
 	var passed := (
 		server_result == expected_server_player
@@ -110,11 +119,13 @@ func _check_authority_matrix(
 		and match_mutation_result == expected_match_mutation
 		and grab_registration_result == expected_match_mutation
 		and grab_mutation_result == expected_match_mutation
+		and meteor_registration_result == expected_match_mutation
+		and meteor_mutation_result == expected_match_mutation
 	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s" % [
-				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result
 			]
 		)
 	host.queue_free()

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T22:04:12+07:00",
+  "updated_at": "2026-10-05T22:51:24+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_3_slice_disasters",
@@ -40,7 +40,7 @@
     "phase_3_slice_disasters": {
       "status": "in_progress",
       "acceptance": {
-        "meteor_shower": "not_started",
+        "meteor_shower": "passed_server_authority_warning_damage_bounded_player_and_prop_impulses_ragdoll_cleanup_and_visual_checks",
         "flood": "not_started",
         "tornado": "not_started"
       }
@@ -133,6 +133,21 @@
       "result": "passed",
       "check": "Orb toolchain setup",
       "evidence": ".agents/setup downloaded checksum-verified Godot 4.7.2, warm setup completed in 0.32 s twice, resume completed in 0.01 s, and all six headless checks plus the ENet authority-peer check passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 authoritative Meteor Shower",
+      "evidence": "METEOR_SHOWER_OK checks=30 impacts=1: 2.5 s warning boundary, lethal direct core, nonlethal near damage, unaffected out-of-radius targets, one-shot impact, capped player and prop impulses, ragdoll, survival credit, reuse, and cleanup passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 Meteor authority and rematch cleanup",
+      "evidence": "NETWORK_AUTHORITY_PEERS_OK from separate ENet processes rejected client Meteor registration and warning mutation; REMATCH_INTEGRATION_OK cycles=5 checks=65 sandbox_children=14 removed active Meteor state/effects every cycle"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 Meteor rendered visual gate",
+      "evidence": ".amp/in/artifacts/phase3-meteor-warning.png and phase3-meteor-impact.png rendered with Godot Compatibility via Xvfb and inspected: aligned amber footprint/countdown, complete slate meteor with orange core/short trail, readable warning UI, localized impact ring, and displaced multi-body ragdoll passed"
     }
   ],
   "blockers": [
@@ -157,6 +172,7 @@
     "game/cosmetic_ragdoll.gd",
     "game/match_manager.gd",
     "game/grab_manager.gd",
+    "game/meteor_shower.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
     "game/asset_validation.gd",
@@ -173,9 +189,10 @@
     "tests/test_rematch_integration.gd",
     "tests/test_spectator_controller.gd",
     "tests/test_grab_manager.gd",
+    "tests/test_meteor_shower.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement and independently validate server-authoritative Meteor Shower warning, impact damage, bounded radial impulse, ragdoll trigger, and cleanup."
+  "next_action": "Implement and independently validate server-authoritative Flood water level, breathing grace, damage, bounded buoyancy/current, and cleanup."
 }
