@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T02:00:00+07:00",
+  "updated_at": "2026-10-05T18:53:51+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_2_match",
@@ -33,7 +33,7 @@
         "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
         "winner_rules": "passed_last_survivor_simultaneous_elimination_timeout_and_solo_exception",
         "spectating": "not_started",
-        "rematch_cleanup": "not_started"
+        "rematch_cleanup": "passed_five_consecutive_scene_resets_with_stable_physics_body_count"
       }
     },
     "phase_3_slice_disasters": { "status": "blocked_by_phase_2" },
@@ -100,6 +100,11 @@
       "result": "passed",
       "check": "Phase 2 active and lethal visual states",
       "evidence": ".amp/in/artifacts/phase2-active.png and phase2-lethal.png inspected: consistent HP, alive count, timer, state, controls, and player visibility"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 repeated rematch cleanup",
+      "evidence": "MATCH_MANAGER_OK checks=36 and REMATCH_INTEGRATION_OK cycles=5 checks=35 sandbox_children=14: state, health, player visibility, collider, and sandbox physics reset without accumulation"
     }
   ],
   "blockers": [
@@ -132,9 +137,10 @@
     "tests/test_player_integration.gd",
     "tests/network_authority_peer.gd",
     "tests/test_match_manager.gd",
+    "tests/test_rematch_integration.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Add spectator target cycling for eliminated players, then implement and repeatedly verify rematch cleanup."
+  "next_action": "Add and validate spectator target cycling for eliminated players to complete Phase 2."
 }

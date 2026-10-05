@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-The project is currently in Phase 1: the core sandbox.
+The project is currently in Phase 2: authoritative match flow, spectating, and rematch cleanup.
 
 ## Local development
 
@@ -23,6 +23,7 @@ godot --headless --path . --script res://tools/asset_generation/generate_assets.
 godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
+godot --headless --path . --script res://tests/test_rematch_integration.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.
@@ -32,4 +33,4 @@ godot --path .
 godot --path . res://scenes/asset_validation.tscn
 ```
 
-Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, mouse to orbit the camera, and R to trigger the current bounded knockdown/recovery prototype.
+Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, mouse to orbit the camera, R to trigger the current bounded knockdown/recovery prototype, and Enter to rematch from results.

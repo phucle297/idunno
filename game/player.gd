@@ -114,6 +114,22 @@ func set_eliminated(eliminated: bool) -> void:
 	collider.set_deferred("disabled", eliminated)
 
 
+func reset_for_match(spawn_position: Vector3) -> void:
+	if is_instance_valid(_ragdoll):
+		_ragdoll.queue_free()
+		_ragdoll = null
+	_knockdown_remaining = 0.0
+	_is_crouched = false
+	_is_eliminated = false
+	position = spawn_position
+	velocity = Vector3.ZERO
+	visual.visible = true
+	visual.rotation = Vector3.ZERO
+	visual.scale = Vector3.ONE
+	collider.set_deferred("disabled", false)
+	_update_capsule(false)
+
+
 func ragdoll_body_count() -> int:
 	return _ragdoll.body_count() if is_instance_valid(_ragdoll) else 0
 

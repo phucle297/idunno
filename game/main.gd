@@ -40,8 +40,22 @@ func _process(delta: float) -> void:
 	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
-	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "MATCH OVER"
+	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "ENTER TO REMATCH"
 	$Interface/Help.visible = match_manager.state == 1
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_accept") and match_manager.state == 2:
+		restart_local_match()
+
+
+func restart_local_match() -> bool:
+	if not match_manager.reset_to_lobby():
+		return false
+	_reset_sandbox()
+	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
+	match_manager.set_player_ready(1, true)
+	return match_manager.start_match()
 
 
 func _on_player_eliminated(peer_id: int, _cause: String) -> void:
@@ -75,6 +89,12 @@ func _build_sandbox() -> void:
 
 	for position in [Vector3(-3.0, 0.4, 3.0), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
 		_add_physics_crate(position)
+
+
+func _reset_sandbox() -> void:
+	for child in $Sandbox.get_children():
+		child.free()
+	_build_sandbox()
 
 
 func _add_static_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> void:

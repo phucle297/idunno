@@ -15,6 +15,7 @@ func _run() -> void:
 	_test_multiplayer_winner()
 	_test_simultaneous_elimination()
 	_test_timeout_ranking_and_tie()
+	_test_five_rematches()
 	if failures.is_empty():
 		print("MATCH_MANAGER_OK checks=%d" % checks)
 		quit(0)
@@ -81,6 +82,19 @@ func _test_timeout_ranking_and_tie() -> void:
 	_expect(manager.reset_to_lobby(), "Results must reset to lobby")
 	_expect(manager.state == ManagerScript.MatchState.LOBBY, "Reset must restore lobby state")
 	_expect(not manager.players[6].ready, "Reset must clear ready state")
+	manager.free()
+
+
+func _test_five_rematches() -> void:
+	var manager := ManagerScript.new()
+	root.add_child(manager)
+	manager.register_player(1, "Solo")
+	for match_index in 5:
+		manager.set_player_ready(1, true)
+		_expect(manager.start_match(), "Rematch %d must start" % (match_index + 1))
+		manager.apply_damage(1, 100.0, "Test")
+		_expect(manager.state == ManagerScript.MatchState.RESULTS, "Rematch %d must reach results" % (match_index + 1))
+		_expect(manager.reset_to_lobby(), "Rematch %d must cleanly reset" % (match_index + 1))
 	manager.free()
 
 
