@@ -61,6 +61,8 @@ func _check_scenes() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	_expect(main.has_node("Player/CameraPivot/SpringArm3D/Camera3D"), "Third-person camera hierarchy missing")
 	_expect(main.get_node("Player").get_script() != null, "Instantiated player must retain its script")
+	_expect(main.has_node("MatchManager"), "Main scene must own the authoritative match state")
+	_expect(main.has_node("Interface/Health"), "Main scene must expose health in its HUD")
 	main.free()
 
 

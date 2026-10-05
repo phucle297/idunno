@@ -22,6 +22,7 @@ godot --headless --path . --script res://tools/asset_generation/generate_assets.
 # Run the current automated checks.
 godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
+godot --headless --path . --script res://tests/test_match_manager.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.

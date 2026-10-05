@@ -1,6 +1,7 @@
 extends SceneTree
 
 const TIMEOUT_MSEC := 5000
+const ManagerScript = preload("res://game/match_manager.gd")
 
 var role := ""
 var port := 29720
@@ -89,11 +90,19 @@ func _check_authority_matrix(
 	client_player.set_physics_process(false)
 	var server_result: bool = server_player.accepts_local_input()
 	var client_result: bool = client_player.accepts_local_input()
-	var passed := server_result == expected_server_player and client_result == expected_client_player
+	var manager := ManagerScript.new()
+	host.add_child(manager)
+	var match_mutation_result: bool = manager.register_player(99, "Authority Probe")
+	var expected_match_mutation := role == "server"
+	var passed := (
+		server_result == expected_server_player
+		and client_result == expected_client_player
+		and match_mutation_result == expected_match_mutation
+	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s" % [
-				role, server_result, client_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result
 			]
 		)
 	host.queue_free()

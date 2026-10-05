@@ -26,7 +26,16 @@
         "visual_review": "asset_reference_and_gameplay_camera_passed"
       }
     },
-    "phase_2_match": { "status": "ready" },
+    "phase_2_match": {
+      "status": "in_progress",
+      "acceptance": {
+        "lobby_readiness": "passed_offline_authority_contract",
+        "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
+        "winner_rules": "passed_last_survivor_simultaneous_elimination_timeout_and_solo_exception",
+        "spectating": "not_started",
+        "rematch_cleanup": "not_started"
+      }
+    },
     "phase_3_slice_disasters": { "status": "blocked_by_phase_2" },
     "phase_4_director_overlap": { "status": "blocked_by_phase_3" },
     "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
@@ -80,7 +89,17 @@
     {
       "result": "passed",
       "check": "separate-peer ENet authority boundary",
-      "evidence": "NETWORK_AUTHORITY_SERVER_OK and NETWORK_AUTHORITY_CLIENT_OK from separate Godot processes; each peer accepted only its authoritative player"
+      "evidence": "NETWORK_AUTHORITY_SERVER_OK and NETWORK_AUTHORITY_CLIENT_OK from separate Godot processes; each peer accepted only its authoritative player and only the server accepted match-state mutation"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 match-state rules",
+      "evidence": "MATCH_MANAGER_OK checks=21: lobby readiness, solo exception, damage, death cause, winner, simultaneous elimination, timeout tie, and lobby reset"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 active and lethal visual states",
+      "evidence": ".amp/in/artifacts/phase2-active.png and phase2-lethal.png inspected: consistent HP, alive count, timer, state, controls, and player visibility"
     }
   ],
   "blockers": [
@@ -102,6 +121,7 @@
     "game/player_tuning.gd",
     "game/player.gd",
     "game/cosmetic_ragdoll.gd",
+    "game/match_manager.gd",
     "game/main.gd",
     "game/asset_validation.gd",
     "scenes/player.tscn",
@@ -111,9 +131,10 @@
     "tests/test_phase1.gd",
     "tests/test_player_integration.gd",
     "tests/network_authority_peer.gd",
+    "tests/test_match_manager.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Begin Phase 2 with the smallest server-authoritative health, death, and solo-safe match-state slice."
+  "next_action": "Add spectator target cycling for eliminated players, then implement and repeatedly verify rematch cleanup."
 }

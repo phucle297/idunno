@@ -11,16 +11,42 @@ const PALETTE := {
 	"orange": Color("f06438")
 }
 
+@onready var match_manager: Node = $MatchManager
+
 
 func _ready() -> void:
 	_build_lighting()
 	_build_sandbox()
 	$Player.position = Vector3(0.0, 0.05, 7.0)
+	match_manager.player_eliminated.connect(_on_player_eliminated)
+	match_manager.register_player(1, "Local Player")
+	match_manager.set_player_ready(1, true)
+	match_manager.start_match()
+	if _has_argument("--lethal"):
+		match_manager.apply_damage(1, 100.0, "Meteor")
 	if _has_argument("--knockdown"):
 		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
+		$Player.set_physics_process(false)
+		$Player.set_process_unhandled_input(false)
+		$Player/CameraPivot.rotation = Vector3(-0.14, 0.0, 0.0)
 		capture_after_frames(capture_path, 20)
+
+
+func _process(delta: float) -> void:
+	match_manager.tick_match(delta)
+	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(1))
+	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
+	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
+	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
+	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "MATCH OVER"
+	$Interface/Help.visible = match_manager.state == 1
+
+
+func _on_player_eliminated(peer_id: int, _cause: String) -> void:
+	if peer_id == 1:
+		$Player.set_eliminated(true)
 
 
 func _build_lighting() -> void:

@@ -13,3 +13,10 @@ This checklist executes the existing plan in `PROMPT.md` and `DESIGN.md`; it doe
 - [x] Run automated checks and visually inspect the playable sandbox.
 
 Later phases remain governed by section 17 of `DESIGN.md` and must not begin until Phase 1 passes.
+
+## Phase 2 — Match
+
+- [x] Add authoritative lobby readiness, health, damage, death causes, winner rules, timeout ties, and solo-safe match state.
+- [x] Connect the local sandbox to HP, alive count, timer, active state, and lethal results presentation.
+- [ ] Add spectator target cycling after death.
+- [ ] Add restart cleanup and verify repeated rematches.

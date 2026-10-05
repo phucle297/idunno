@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://game/match_manager.gd" id="3_match"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -16,6 +17,9 @@ shadow_enabled = true
 directional_shadow_max_distance = 80.0
 
 [node name="Sandbox" type="Node3D" parent="."]
+
+[node name="MatchManager" type="Node" parent="."]
+script = ExtResource("3_match")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 
@@ -38,3 +42,42 @@ offset_bottom = 88.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 16
 text = "WASD move  •  Shift sprint  •  Space jump  •  C crouch  •  R knockdown test"
+
+[node name="Timer" type="Label" parent="Interface"]
+offset_left = 596.0
+offset_top = 20.0
+offset_right = 684.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 26
+text = "10:00"
+horizontal_alignment = 1
+
+[node name="State" type="Label" parent="Interface"]
+offset_left = 574.0
+offset_top = 56.0
+offset_right = 706.0
+offset_bottom = 84.0
+theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
+theme_override_font_sizes/font_size = 16
+text = "SURVIVE"
+horizontal_alignment = 1
+
+[node name="Alive" type="Label" parent="Interface"]
+offset_left = 1100.0
+offset_top = 24.0
+offset_right = 1254.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 18
+text = "ALIVE  1 / 1"
+horizontal_alignment = 2
+
+[node name="Health" type="Label" parent="Interface"]
+offset_left = 24.0
+offset_top = 654.0
+offset_right = 170.0
+offset_bottom = 696.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 28
+text = "HP  100"

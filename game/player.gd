@@ -15,6 +15,7 @@ var _is_crouched := false
 var _camera_yaw := 0.0
 var _camera_pitch := -0.14
 var _ragdoll: Node3D
+var _is_eliminated := false
 
 
 func _ready() -> void:
@@ -34,7 +35,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not accepts_local_input():
+	if _is_eliminated or not accepts_local_input():
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
@@ -105,6 +106,12 @@ func apply_knockdown(impulse: Vector3) -> void:
 
 func is_knocked_down() -> bool:
 	return _knockdown_remaining > 0.0
+
+
+func set_eliminated(eliminated: bool) -> void:
+	_is_eliminated = eliminated
+	visual.visible = not eliminated
+	collider.set_deferred("disabled", eliminated)
 
 
 func ragdoll_body_count() -> int:
