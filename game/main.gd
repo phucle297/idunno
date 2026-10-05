@@ -10,19 +10,31 @@ const PALETTE := {
 	"amber": Color("ffbf3f"),
 	"orange": Color("f06438")
 }
+const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 
 @onready var match_manager: Node = $MatchManager
+
+var spectator_controller: Node
+var _player_nodes: Dictionary = {}
 
 
 func _ready() -> void:
 	_build_lighting()
 	_build_sandbox()
 	$Player.position = Vector3(0.0, 0.05, 7.0)
+	spectator_controller = SpectatorControllerScript.new()
+	add_child(spectator_controller)
+	spectator_controller.target_changed.connect(_on_spectator_target_changed)
+	_player_nodes[1] = $Player
 	match_manager.player_eliminated.connect(_on_player_eliminated)
 	match_manager.register_player(1, "Local Player")
-	match_manager.set_player_ready(1, true)
+	if _has_argument("--spectator-demo"):
+		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
+		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
+	for peer_id: int in match_manager.players:
+		match_manager.set_player_ready(peer_id, true)
 	match_manager.start_match()
-	if _has_argument("--lethal"):
+	if _has_argument("--lethal") or _has_argument("--spectator-demo"):
 		match_manager.apply_damage(1, 100.0, "Meteor")
 	if _has_argument("--knockdown"):
 		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
@@ -41,17 +53,23 @@ func _process(delta: float) -> void:
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
 	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "ENTER TO REMATCH"
-	$Interface/Help.visible = match_manager.state == 1
+	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept") and match_manager.state == 2:
 		restart_local_match()
+	elif event.is_action_pressed("spectate_previous"):
+		spectator_controller.cycle(-1)
+	elif event.is_action_pressed("spectate_next"):
+		spectator_controller.cycle(1)
 
 
 func restart_local_match() -> bool:
 	if not match_manager.reset_to_lobby():
 		return false
+	spectator_controller.stop()
+	$Interface/Spectating.visible = false
 	_reset_sandbox()
 	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
 	match_manager.set_player_ready(1, true)
@@ -61,6 +79,35 @@ func restart_local_match() -> bool:
 func _on_player_eliminated(peer_id: int, _cause: String) -> void:
 	if peer_id == 1:
 		$Player.set_eliminated(true)
+		spectator_controller.begin($Player/CameraPivot, _living_spectator_targets())
+		$Interface/Spectating.visible = true
+	else:
+		spectator_controller.set_targets(_living_spectator_targets())
+
+
+func _living_spectator_targets() -> Dictionary:
+	var targets := {}
+	for peer_id: int in _player_nodes:
+		if peer_id != 1 and match_manager.is_player_alive(peer_id):
+			targets[peer_id] = _player_nodes[peer_id]
+	return targets
+
+
+func _on_spectator_target_changed(peer_id: int) -> void:
+	if peer_id == 0:
+		$Interface/Spectating.text = "NO SURVIVORS TO SPECTATE"
+	else:
+		$Interface/Spectating.text = "SPECTATING  %s   •   Q / E cycle" % match_manager.players[peer_id].name
+
+
+func _add_spectator_demo_player(peer_id: int, player_name: String, spawn_position: Vector3) -> void:
+	var target := Node3D.new()
+	target.name = "SpectatorTarget%d" % peer_id
+	target.position = spawn_position
+	target.add_child(preload("res://assets/generated/CHR_Base_v001.tscn").instantiate())
+	add_child(target)
+	_player_nodes[peer_id] = target
+	match_manager.register_player(peer_id, player_name)
 
 
 func _build_lighting() -> void:

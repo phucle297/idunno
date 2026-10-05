@@ -102,13 +102,14 @@ func apply_damage_batch(events: Array[Dictionary]) -> bool:
 		player.health -= applied
 		player.damage_taken += applied
 		changed = true
-		health_changed.emit(peer_id, player.health)
 		if player.health <= 0.0:
 			player.alive = false
 			player.elimination_time = elapsed_time
 			player.cause_of_death = String(event.get("cause", "Unknown"))
-			player_eliminated.emit(peer_id, player.cause_of_death)
 		players[peer_id] = player
+		health_changed.emit(peer_id, player.health)
+		if not player.alive:
+			player_eliminated.emit(peer_id, player.cause_of_death)
 	if changed:
 		_evaluate_eliminations()
 	return changed

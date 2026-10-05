@@ -13,6 +13,7 @@ func _initialize() -> void:
 func _run() -> void:
 	_test_lobby_and_solo_exception()
 	_test_multiplayer_winner()
+	_test_elimination_signal_observes_death()
 	_test_simultaneous_elimination()
 	_test_timeout_ranking_and_tie()
 	_test_five_rematches()
@@ -51,6 +52,17 @@ func _test_multiplayer_winner() -> void:
 	manager.apply_damage(2, 100.0, "Tornado")
 	_expect(manager.state == ManagerScript.MatchState.RESULTS, "Match must end with one survivor")
 	_expect(manager.winner_ids == [3], "The final living player must win")
+	manager.free()
+
+
+func _test_elimination_signal_observes_death() -> void:
+	var manager = _ready_manager([10, 11, 12])
+	var alive_during_signal := [true]
+	manager.player_eliminated.connect(func(peer_id: int, _cause: String) -> void:
+		alive_during_signal[0] = manager.is_player_alive(peer_id)
+	)
+	manager.apply_damage(10, 100.0, "Meteor")
+	_expect(not alive_during_signal[0], "Elimination listeners must observe the authoritative death immediately")
 	manager.free()
 
 

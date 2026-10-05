@@ -18,5 +18,6 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 
 - [x] Add authoritative lobby readiness, health, damage, death causes, winner rules, timeout ties, and solo-safe match state.
 - [x] Connect the local sandbox to HP, alive count, timer, active state, and lethal results presentation.
-- [ ] Add spectator target cycling after death.
+- [x] Add deterministic spectator target cycling after death and inspect the rendered state.
 - [x] Add restart cleanup and verify five consecutive rematches without leaked sandbox physics bodies.
+- [ ] Add server-arbitrated object grabbing, one-owner contention, bounded spring holding, and forced release.

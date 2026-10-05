@@ -24,6 +24,7 @@ godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
 godot --headless --path . --script res://tests/test_rematch_integration.gd
+godot --headless --path . --script res://tests/test_spectator_controller.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.
@@ -33,4 +34,4 @@ godot --path .
 godot --path . res://scenes/asset_validation.tscn
 ```
 
-Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, mouse to orbit the camera, R to trigger the current bounded knockdown/recovery prototype, and Enter to rematch from results.
+Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, mouse to orbit the camera, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to rematch from results.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T18:53:51+07:00",
+  "updated_at": "2026-10-05T19:11:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_2_match",
@@ -32,7 +32,8 @@
         "lobby_readiness": "passed_offline_authority_contract",
         "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
         "winner_rules": "passed_last_survivor_simultaneous_elimination_timeout_and_solo_exception",
-        "spectating": "not_started",
+        "spectating": "passed_local_camera_follow_deterministic_wraparound_target_cycling_and_visual_check",
+        "grabbing": "not_started",
         "rematch_cleanup": "passed_five_consecutive_scene_resets_with_stable_physics_body_count"
       }
     },
@@ -104,7 +105,12 @@
     {
       "result": "passed",
       "check": "Phase 2 repeated rematch cleanup",
-      "evidence": "MATCH_MANAGER_OK checks=36 and REMATCH_INTEGRATION_OK cycles=5 checks=35 sandbox_children=14: state, health, player visibility, collider, and sandbox physics reset without accumulation"
+      "evidence": "MATCH_MANAGER_OK checks=37 and REMATCH_INTEGRATION_OK cycles=5 checks=35 sandbox_children=14: state, health, player visibility, collider, and sandbox physics reset without accumulation"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 local spectator presentation",
+      "evidence": "SPECTATOR_CONTROLLER_OK checks=12 and .amp/in/artifacts/phase2-spectating.png inspected: deterministic wraparound cycling, survivor follow, eliminated avatar hidden, HP 0, alive 2/3, and legible Q/E instruction"
     }
   ],
   "blockers": [
@@ -127,6 +133,7 @@
     "game/player.gd",
     "game/cosmetic_ragdoll.gd",
     "game/match_manager.gd",
+    "game/spectator_controller.gd",
     "game/main.gd",
     "game/asset_validation.gd",
     "scenes/player.tscn",
@@ -138,9 +145,10 @@
     "tests/network_authority_peer.gd",
     "tests/test_match_manager.gd",
     "tests/test_rematch_integration.gd",
+    "tests/test_spectator_controller.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Add and validate spectator target cycling for eliminated players to complete Phase 2."
+  "next_action": "Implement server-arbitrated bounded-spring grabbing with one-owner contention and forced release checks to complete Phase 2."
 }
