@@ -53,11 +53,14 @@ func _check_tuning() -> void:
 
 
 func _check_scenes() -> void:
+	_expect(load("res://game/player.gd") != null, "Player script must compile")
+	_expect(load("res://game/cosmetic_ragdoll.gd") != null, "Cosmetic ragdoll script must compile")
 	_expect(ResourceLoader.exists("res://scenes/player.tscn"), "Player scene missing")
 	_expect(ResourceLoader.exists("res://scenes/main.tscn"), "Main scene missing")
 	_expect(ResourceLoader.exists("res://scenes/asset_validation.tscn"), "Asset validation scene missing")
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	_expect(main.has_node("Player/CameraPivot/SpringArm3D/Camera3D"), "Third-person camera hierarchy missing")
+	_expect(main.get_node("Player").get_script() != null, "Instantiated player must retain its script")
 	main.free()
 
 

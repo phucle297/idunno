@@ -21,7 +21,7 @@
         "asset_validation_scene": "passed",
         "controller_and_camera": "passed_automated_movement_jump_crouch_and_camera_visual_checks",
         "greybox_traversal": "passed_physical_ramp_ascent_and_visual_checks",
-        "ragdoll_recovery": "implemented_not_executed",
+        "ragdoll_recovery": "passed_11_body_10_joint_55kg_simulation_cleanup_and_visual_checks",
         "network_authority_boundary": "deterministic_command_seam_and_local_input_gate_implemented_peer_test_not_run",
         "visual_review": "asset_reference_and_gameplay_camera_passed"
       }
@@ -70,14 +70,18 @@
     {
       "result": "passed",
       "check": "controller and traversal integration",
-      "evidence": "PLAYER_INTEGRATION_OK checks=15: walk, sprint, crouch, jump apex/landing, ramp ascent, knockdown timing and upright recovery"
+      "evidence": "PLAYER_INTEGRATION_OK checks=21: walk, sprint, crouch, jump apex/landing, ramp ascent, 11-body ragdoll constraints, stability, cleanup and upright recovery"
+    },
+    {
+      "result": "passed",
+      "check": "cosmetic ragdoll visual gate",
+      "evidence": ".amp/in/artifacts/phase1-ragdoll.png inspected: connected toy body, no explosive separation, missing regions, duplicate upright visual, or inconsistent materials"
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
     "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
     "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
-    "A bounded knockdown is tested, but it is not yet the design-bible 8–12 body cosmetic ragdoll.",
     "The input authority seam has not yet been tested with separate local ENet peers."
   ],
   "changed_files": [
@@ -93,6 +97,7 @@
     "project.godot",
     "game/player_tuning.gd",
     "game/player.gd",
+    "game/cosmetic_ragdoll.gd",
     "game/main.gd",
     "game/asset_validation.gd",
     "scenes/player.tscn",
@@ -103,5 +108,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Replace the visual-tilt knockdown with an 8–12 body cosmetic ragdoll and execute recovery checks."
+  "next_action": "Run separate local ENet server and client peers to verify only the authoritative player accepts movement input."
 }

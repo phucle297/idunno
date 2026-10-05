@@ -21,7 +21,7 @@ func _run() -> void:
 	_test_crouch()
 	_test_jump_arc()
 	_test_ramp_traversal()
-	_test_knockdown_recovery()
+	await _test_knockdown_recovery()
 	if failures.is_empty():
 		print("PLAYER_INTEGRATION_OK checks=%d" % checks)
 		quit(0)
@@ -121,11 +121,19 @@ func _test_knockdown_recovery() -> void:
 	_settle_player()
 	player.apply_knockdown(Vector3(4.0, 1.0, 0.0))
 	_expect(player.is_knocked_down(), "Impact must enter knockdown")
-	_expect(absf(player.get_node("Visual").rotation.z) > 1.0, "Knockdown must visibly tip the character")
+	_expect(player.ragdoll_body_count() == 11, "Knockdown must create an 8–12 body cosmetic ragdoll")
+	_expect(player.ragdoll_joint_count() == 10, "Ragdoll bodies must be connected by 10 constrained joints")
+	_expect(is_equal_approx(player.ragdoll_total_mass(), 55.0), "Ragdoll mass distribution must total the 55 kg reference mass")
+	_expect(player.ragdoll_adjacent_exclusions_are_configured(), "Adjacent ragdoll bodies must exclude mutual collision")
+	_expect(not player.get_node("Visual").visible, "Knockdown must hide the upright visual")
 	for index in 100:
 		player.apply_movement_input(Vector2(0.0, -1.0), true, false, false, DELTA)
+		await physics_frame
+		if index == 30:
+			_expect(player.ragdoll_maximum_body_separation() < 3.0, "Ragdoll joints must not explosively separate")
 	_expect(not player.is_knocked_down(), "Knockdown must recover after the bounded duration")
-	_expect(is_zero_approx(player.get_node("Visual").rotation.z), "Recovery must restore the upright visual")
+	_expect(player.ragdoll_body_count() == 0, "Recovery must clean up the cosmetic ragdoll")
+	_expect(player.get_node("Visual").visible, "Recovery must restore the upright visual")
 
 
 func _expect(condition: bool, message: String) -> void:

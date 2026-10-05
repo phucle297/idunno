@@ -16,9 +16,11 @@ func _ready() -> void:
 	_build_lighting()
 	_build_sandbox()
 	$Player.position = Vector3(0.0, 0.05, 7.0)
+	if _has_argument("--knockdown"):
+		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
-		capture_after_frames(capture_path, 8)
+		capture_after_frames(capture_path, 20)
 
 
 func _build_lighting() -> void:
@@ -102,6 +104,10 @@ func _argument_value(prefix: String) -> String:
 		if argument.begins_with(prefix):
 			return argument.trim_prefix(prefix)
 	return ""
+
+
+func _has_argument(expected: String) -> bool:
+	return expected in OS.get_cmdline_user_args()
 
 
 func capture_after_frames(path: String, frames: int) -> void:

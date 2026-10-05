@@ -2,6 +2,7 @@ class_name PartyPlayer
 extends CharacterBody3D
 
 const Tuning = preload("res://game/player_tuning.gd")
+const RagdollScene = preload("res://game/cosmetic_ragdoll.gd")
 
 @onready var visual: Node3D = $Visual
 @onready var collider: CollisionShape3D = $CollisionShape3D
@@ -13,6 +14,7 @@ var _knockdown_remaining := 0.0
 var _is_crouched := false
 var _camera_yaw := 0.0
 var _camera_pitch := -0.14
+var _ragdoll: Node3D
 
 
 func _ready() -> void:
@@ -94,11 +96,35 @@ func apply_knockdown(impulse: Vector3) -> void:
 		return
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
-	visual.rotation.z = deg_to_rad(78.0)
+	_ragdoll = RagdollScene.new()
+	get_parent().add_child(_ragdoll)
+	_ragdoll.global_transform = global_transform
+	_ragdoll.activate(velocity, impulse)
+	visual.visible = false
 
 
 func is_knocked_down() -> bool:
 	return _knockdown_remaining > 0.0
+
+
+func ragdoll_body_count() -> int:
+	return _ragdoll.body_count() if is_instance_valid(_ragdoll) else 0
+
+
+func ragdoll_joint_count() -> int:
+	return _ragdoll.joint_count() if is_instance_valid(_ragdoll) else 0
+
+
+func ragdoll_total_mass() -> float:
+	return _ragdoll.total_mass() if is_instance_valid(_ragdoll) else 0.0
+
+
+func ragdoll_adjacent_exclusions_are_configured() -> bool:
+	return _ragdoll.adjacent_exclusions_are_configured() if is_instance_valid(_ragdoll) else false
+
+
+func ragdoll_maximum_body_separation() -> float:
+	return _ragdoll.maximum_body_separation() if is_instance_valid(_ragdoll) else 0.0
 
 
 func _process_knockdown(delta: float) -> void:
@@ -108,7 +134,10 @@ func _process_knockdown(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, 5.0 * delta)
 	move_and_slide()
 	if _knockdown_remaining <= 0.0 and is_on_floor():
-		visual.rotation.z = 0.0
+		if is_instance_valid(_ragdoll):
+			_ragdoll.queue_free()
+			_ragdoll = null
+		visual.visible = true
 		_update_capsule(false)
 
 
