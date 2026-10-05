@@ -3,7 +3,7 @@
   "updated_at": "2026-10-05T02:00:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_1_core_sandbox",
+  "current_phase": "phase_2_match",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -14,7 +14,7 @@
   },
   "phases": {
     "phase_1_core_sandbox": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "engine_launch": "passed",
         "generated_asset_import": "passed",
@@ -22,11 +22,11 @@
         "controller_and_camera": "passed_automated_movement_jump_crouch_and_camera_visual_checks",
         "greybox_traversal": "passed_physical_ramp_ascent_and_visual_checks",
         "ragdoll_recovery": "passed_11_body_10_joint_55kg_simulation_cleanup_and_visual_checks",
-        "network_authority_boundary": "deterministic_command_seam_and_local_input_gate_implemented_peer_test_not_run",
+        "network_authority_boundary": "passed_separate_local_enet_server_and_client_ownership_matrix",
         "visual_review": "asset_reference_and_gameplay_camera_passed"
       }
     },
-    "phase_2_match": { "status": "blocked_by_phase_1" },
+    "phase_2_match": { "status": "ready" },
     "phase_3_slice_disasters": { "status": "blocked_by_phase_2" },
     "phase_4_director_overlap": { "status": "blocked_by_phase_3" },
     "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
@@ -76,13 +76,17 @@
       "result": "passed",
       "check": "cosmetic ragdoll visual gate",
       "evidence": ".amp/in/artifacts/phase1-ragdoll.png inspected: connected toy body, no explosive separation, missing regions, duplicate upright visual, or inconsistent materials"
+    },
+    {
+      "result": "passed",
+      "check": "separate-peer ENet authority boundary",
+      "evidence": "NETWORK_AUTHORITY_SERVER_OK and NETWORK_AUTHORITY_CLIENT_OK from separate Godot processes; each peer accepted only its authoritative player"
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
     "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
-    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
-    "The input authority seam has not yet been tested with separate local ENet peers."
+    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver."
   ],
   "changed_files": [
     "AGENTS.md",
@@ -105,8 +109,11 @@
     "scenes/asset_validation.tscn",
     "tools/asset_generation/generate_assets.gd",
     "tests/test_phase1.gd",
+    "tests/test_player_integration.gd",
+    "tests/network_authority_peer.gd",
+    "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Run separate local ENet server and client peers to verify only the authoritative player accepts movement input."
+  "next_action": "Begin Phase 2 with the smallest server-authoritative health, death, and solo-safe match-state slice."
 }

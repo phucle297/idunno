@@ -25,7 +25,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and _accepts_local_input():
+	if event is InputEventMouseMotion and accepts_local_input():
 		_camera_yaw -= event.relative.x * 0.0025
 		_camera_pitch = clampf(_camera_pitch - event.relative.y * 0.0025, -1.1, 0.35)
 		camera_pivot.rotation = Vector3(_camera_pitch, _camera_yaw, 0.0)
@@ -34,7 +34,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not _accepts_local_input():
+	if not accepts_local_input():
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
@@ -149,5 +149,5 @@ func _update_capsule(crouched: bool) -> void:
 	visual.scale.y = 0.72 if crouched else 1.0
 
 
-func _accepts_local_input() -> bool:
+func accepts_local_input() -> bool:
 	return not multiplayer.has_multiplayer_peer() or is_multiplayer_authority()
