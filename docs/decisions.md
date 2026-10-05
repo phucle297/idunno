@@ -38,3 +38,9 @@
 - **Decision:** One server-owned `DisasterDirector` selects registered disasters through their shared metadata/start/active/cleanup contract. It uses a per-match random seed, rejects immediate repeats and incompatible pairs, and caps the slice at two simultaneous disasters.
 - **Pacing:** Intensity rises at 2, 5, 8, and 9 minutes. Tornado unlocks after 2 minutes; overlap unlocks at 5 minutes and only after both involved disasters have completed solo. Recovery delays separate completed hazards and overlap replacements.
 - **Reason:** A thin director preserves independently validated hazard components while centralizing the server-owned randomness, fairness gates, and overlap budget required by the design bible.
+
+## 2026-10-06 — Phase 5 validation boundary
+
+- **Decision:** Use a dedicated ENet harness with one authoritative server and four separate client processes to validate ready state, active match state, four-player health/alive data, server-applied damage, and simultaneous Flood + Tornado state.
+- **Boundary:** This proves the existing authority contracts and snapshot consistency under five separate processes. It does not claim that the playable scene has production lobby, spawning, movement replication, or client-side disaster presentation.
+- **Profiling:** Keep performance output descriptive. The orb's Mesa llvmpipe software renderer is valid for repeatable scene measurements but cannot pass or fail the Windows hardware target by itself.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T00:10:21+07:00",
+  "updated_at": "2026-10-06T00:35:07+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_5_polish_validation",
@@ -52,7 +52,14 @@
         "two_disaster_overlap": "passed_solo_first_gate_intensity_three_unlock_two_hazard_cap_authority_cleanup_and_visual_check"
       }
     },
-    "phase_5_polish_validation": { "status": "not_started" }
+    "phase_5_polish_validation": {
+      "status": "in_progress",
+      "acceptance": {
+        "four_client_match_snapshot": "passed_one_authoritative_server_and_four_separate_clients_with_consistent_ready_active_health_alive_damage_and_overlap_state",
+        "overlap_ui_readability": "passed_rendered_four_player_hud_two_named_hazards_flood_tornado_refuge_and_player_silhouette",
+        "representative_overlap_profile": "measured_1280x720_llvmpipe_600_frames_target_not_met_hardware_accelerated_windows_validation_required"
+      }
+    }
   },
   "asset_intake": {
     "quaternius_universal_animation_library": "official_archive_blocked_by_cloudflare; third_party_standard_fbx_imported_in_scratch_and_45_clips_enumerated_as_secondary_evidence",
@@ -204,12 +211,28 @@
       "result": "passed",
       "check": "Phase 4 rendered overlap visual gate",
       "evidence": ".amp/in/artifacts/phase4-overlap.png rendered with Godot Compatibility via Xvfb and inspected: Flood and Tornado visuals, dry elevated refuge, and two unclipped named HUD lines passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 5 four-client authoritative match snapshot",
+      "evidence": "FOUR_CLIENT_MATCH_PEERS_OK clients=4 from one ENet server plus four separate Godot client processes; every client validated ACTIVE, ALIVE 4/4, 75 HP server damage, and simultaneous Flood + Tornado state; this is a validation harness, not production playable-scene replication"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 5 four-player overlap UI readability",
+      "evidence": ".amp/in/artifacts/phase5-four-player-overlap.png rendered at 1280x720 with Godot Compatibility and inspected: ALIVE 4/4, unclipped Flood and Tornado instructions, flood surface, tornado funnel/footprint, dry refuge, and player silhouette passed"
+    },
+    {
+      "result": "blocked",
+      "check": "Phase 5 60 FPS performance target",
+      "evidence": "Mesa llvmpipe software renderer on 4-vCPU Intel Xeon orb, 1280x720 Compatibility, four players plus Flood + Tornado: 600 measured frames after 120 warmup, p50 31.60 ms, p95 36.57 ms, p95 physics 5.91 ms, 64 draw calls, 153 nodes, target_60fps_met=false; requires hardware-accelerated Windows target measurement"
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
     "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
-    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver."
+    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
+    "The orb exposes only Mesa llvmpipe software rendering, so the 60 FPS Windows target cannot be validated here."
   ],
   "changed_files": [
     "README.md",
@@ -253,8 +276,12 @@
     "tests/test_tornado.gd",
     "tests/test_disaster_director.gd",
     "tests/run_network_authority_test.sh",
+    "tests/four_client_match_probe.gd",
+    "tests/four_client_match_peer.gd",
+    "tests/run_four_client_match_test.sh",
+    "tests/profile_overlap.gd",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Begin Phase 5 by profiling a representative two-disaster scene and validating UI readability and match behavior with four separate local clients."
+  "next_action": "Run the 1280x720 four-player Flood + Tornado profile on hardware-accelerated Windows target hardware and tune only if p95 frame time exceeds 16.67 ms."
 }

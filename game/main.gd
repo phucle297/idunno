@@ -48,6 +48,10 @@ func _ready() -> void:
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
+	if _has_argument("--four-player-demo"):
+		_add_gameplay_demo_player(2, "Teal Player", Vector3(-5.0, 1.65, -3.0))
+		_add_gameplay_demo_player(3, "Coral Player", Vector3(4.0, 2.35, -5.0))
+		_add_gameplay_demo_player(4, "Amber Player", Vector3(10.0, 2.35, -5.0))
 	for peer_id: int in match_manager.players:
 		match_manager.set_player_ready(peer_id, true)
 	match_manager.start_match()
@@ -184,6 +188,23 @@ func _add_spectator_demo_player(peer_id: int, player_name: String, spawn_positio
 	add_child(target)
 	_player_nodes[peer_id] = target
 	match_manager.register_player(peer_id, player_name)
+
+
+func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position: Vector3) -> void:
+	var player := (load("res://scenes/player.tscn") as PackedScene).instantiate() as PartyPlayer
+	player.name = "DemoPlayer%d" % peer_id
+	player.position = spawn_position
+	player.set_physics_process(false)
+	player.set_process_unhandled_input(false)
+	add_child(player)
+	player.get_node("CameraPivot/SpringArm3D/Camera3D").current = false
+	$Player/CameraPivot/SpringArm3D/Camera3D.current = true
+	_player_nodes[peer_id] = player
+	match_manager.register_player(peer_id, player_name)
+	$GrabManager.register_player(peer_id, player)
+	meteor_shower.register_player(peer_id, player)
+	flood.register_player(peer_id, player)
+	tornado.register_player(peer_id, player)
 
 
 func _build_lighting() -> void:

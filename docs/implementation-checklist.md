@@ -36,3 +36,10 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Escalate intensity from solo opening hazards to a hard cap of two simultaneous disasters.
 - [x] Require each hazard to complete solo before it can participate in an overlap.
 - [x] Validate overlap behavior, separate-peer authority, five-rematch cleanup, and the rendered multi-hazard HUD.
+
+## Phase 5 — Polish and validation
+
+- [x] Validate one authoritative server plus four separate local clients against the same active Flood + Tornado match snapshot.
+- [x] Render and inspect a four-player overlap HUD with both hazards, readable danger geometry, and a dry refuge.
+- [x] Profile 600 representative overlap frames at 1280 × 720 and record renderer, CPU, draw calls, node count, frame time, and physics time.
+- [ ] Validate the 60 FPS target on hardware-accelerated Windows target hardware; the orb's llvmpipe profile is not representative GPU evidence.
