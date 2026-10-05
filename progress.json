@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T00:00:00+07:00",
+  "updated_at": "2026-10-05T01:00:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_1_core_sandbox",
@@ -8,22 +8,22 @@
     "name": "Godot",
     "version": "4.7.2-stable",
     "language": "GDScript",
-    "renderer": "Forward+",
+    "renderer": "Compatibility",
     "target": "Windows PC",
-    "status": "selected_not_yet_executed"
+    "status": "installed_locally_and_executed"
   },
   "phases": {
     "phase_1_core_sandbox": {
       "status": "in_progress",
       "acceptance": {
-        "engine_launch": "not_run",
-        "generated_asset_import": "not_run",
-        "asset_validation_scene": "not_run",
-        "controller_and_camera": "not_run",
-        "greybox_traversal": "not_run",
-        "ragdoll_recovery": "not_run",
-        "network_authority_boundary": "not_run",
-        "visual_review": "not_run"
+        "engine_launch": "passed",
+        "generated_asset_import": "passed",
+        "asset_validation_scene": "passed",
+        "controller_and_camera": "implemented_runtime_start_passed_input_not_automated",
+        "greybox_traversal": "rendered_not_traversal_tested",
+        "ragdoll_recovery": "implemented_not_executed",
+        "network_authority_boundary": "local_input_gate_implemented_peer_test_not_run",
+        "visual_review": "asset_reference_passed_gameplay_composition_needs_iteration"
       }
     },
     "phase_2_match": { "status": "blocked_by_phase_1" },
@@ -33,13 +33,41 @@
   },
   "asset_intake": {
     "quaternius_universal_animation_library": "archive_not_downloaded_clips_unverified",
-    "kenney_city_kit_suburban": "candidate_verified_not_imported",
-    "kenney_particle_pack": "candidate_verified_not_imported"
+    "kenney_city_kit_suburban": "archive_license_and_40_glb_files_verified_not_imported",
+    "kenney_particle_pack": "archive_license_and_80_transparent_png_files_verified_not_imported"
   },
-  "validation_log": [],
+  "validation_log": [
+    {
+      "result": "passed",
+      "check": "Godot executable",
+      "evidence": "Godot 4.7.2.stable.official.ed1daf0bf --headless --version"
+    },
+    {
+      "result": "passed",
+      "check": "deterministic asset generation",
+      "evidence": "ASSET_GENERATION_OK seed=297 assets=4 materials=10"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 1 structural tests",
+      "evidence": "PHASE1_TESTS_OK checks=17"
+    },
+    {
+      "result": "passed",
+      "check": "reference asset visual gate",
+      "evidence": ".amp/in/artifacts/asset-validation.png inspected: four coherent readable assets, no missing geometry"
+    },
+    {
+      "result": "partial",
+      "check": "gameplay sandbox visual gate",
+      "evidence": ".amp/in/artifacts/phase1-sandbox.png inspected: runtime rendered, camera framing and crate readability need iteration"
+    }
+  ],
   "blockers": [
-    "Blender is not installed; use deterministic Godot resources for the first import proof.",
-    "Quaternius free archive contents and animation clips have not yet been inspected."
+    "Blender is not installed; deterministic Godot resources are used for the first import proof.",
+    "Quaternius free archive contents and animation clips have not yet been inspected.",
+    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
+    "Controller traversal and knockdown recovery still need executed interaction checks."
   ],
   "changed_files": [
     "AGENTS.md",
@@ -49,7 +77,19 @@
     "docs/decisions.md",
     "assets/manifest.json",
     "assets/THIRD_PARTY.md",
-    "progress.json"
+    "progress.json",
+    "project.godot",
+    "game/player_tuning.gd",
+    "game/player.gd",
+    "game/main.gd",
+    "game/asset_validation.gd",
+    "scenes/player.tscn",
+    "scenes/main.tscn",
+    "scenes/asset_validation.tscn",
+    "tools/asset_generation/generate_assets.gd",
+    "tests/test_phase1.gd",
+    "assets/generated/",
+    "assets/materials/"
   ],
-  "next_action": "Install the selected portable Godot build, execute it headlessly, and create the Phase 1 project plus asset validation scene."
+  "next_action": "Execute automated controller movement, jump, crouch, and knockdown recovery checks, then recapture the tuned gameplay camera."
 }

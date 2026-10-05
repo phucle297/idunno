@@ -1,0 +1,114 @@
+extends Node3D
+
+const PALETTE := {
+	"cream": Color("f4e6c8"),
+	"sand": Color("d9b77e"),
+	"slate": Color("49566a"),
+	"teal": Color("73b7ad"),
+	"coral": Color("d98d7d"),
+	"grass": Color("86a968"),
+	"amber": Color("ffbf3f"),
+	"orange": Color("f06438")
+}
+
+
+func _ready() -> void:
+	_build_lighting()
+	_build_sandbox()
+	$Player.position = Vector3(0.0, 0.05, 7.0)
+	var capture_path := _argument_value("--capture=")
+	if not capture_path.is_empty():
+		capture_after_frames(capture_path, 8)
+
+
+func _build_lighting() -> void:
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color("9fc8df")
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color("a9c8df")
+	environment.ambient_light_energy = 0.65
+	$WorldEnvironment.environment = environment
+
+
+func _build_sandbox() -> void:
+	_add_static_box("Ground", Vector3(64.0, 0.4, 64.0), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
+	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
+	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
+	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
+
+	_add_static_box("Shop", Vector3(10.0, 4.5, 8.0), Vector3(-16.0, 2.25, -13.0), PALETTE.coral)
+	_add_static_box("ShopRoof", Vector3(11.0, 0.35, 9.0), Vector3(-16.0, 4.68, -13.0), PALETTE.cream)
+	_add_static_box("Hall", Vector3(10.0, 4.5, 10.0), Vector3(16.0, 2.25, -13.0), PALETTE.teal)
+	_add_static_box("HallRoof", Vector3(11.0, 0.35, 11.0), Vector3(16.0, 4.68, -13.0), PALETTE.cream)
+	_add_static_box("RaisedRoute", Vector3(9.0, 2.0, 7.0), Vector3(14.0, 1.0, 14.0), PALETTE.cream)
+	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.5, 1.0, 14.0), deg_to_rad(-11.5))
+
+	for position in [Vector3(-3.0, 0.4, 3.0), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
+		_add_physics_crate(position)
+
+
+func _add_static_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.position = position
+	var mesh_instance := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = _material(color)
+	mesh_instance.mesh = mesh
+	body.add_child(mesh_instance)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	$Sandbox.add_child(body)
+
+
+func _add_ramp(node_name: String, size: Vector3, position: Vector3, angle: float) -> void:
+	_add_static_box(node_name, size, position, PALETTE.cream)
+	$Sandbox.get_node(node_name).rotation.x = angle
+
+
+func _add_physics_crate(position: Vector3) -> void:
+	var body := RigidBody3D.new()
+	body.name = "PhysicsCrate"
+	body.position = position
+	body.mass = 12.0
+	body.collision_layer = 4
+	var visual := preload("res://assets/generated/PROP_Crate_Small_v001.tscn").instantiate()
+	body.add_child(visual)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.6, 0.6, 0.6)
+	collision.shape = shape
+	collision.position.y = 0.3
+	body.add_child(collision)
+	$Sandbox.add_child(body)
+
+
+func _material(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.metallic = 0.0
+	material.roughness = 0.78
+	return material
+
+
+func _argument_value(prefix: String) -> String:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with(prefix):
+			return argument.trim_prefix(prefix)
+	return ""
+
+
+func capture_after_frames(path: String, frames: int) -> void:
+	for index in frames:
+		await get_tree().process_frame
+	var image := get_viewport().get_texture().get_image()
+	var absolute_path := ProjectSettings.globalize_path(path)
+	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())
+	var error := image.save_png(absolute_path)
+	print("CAPTURE_RESULT path=%s error=%s" % [absolute_path, error])
+	get_tree().quit(0 if error == OK else 1)

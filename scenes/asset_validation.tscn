@@ -1,0 +1,88 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://game/asset_validation.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/generated/CHR_Base_v001.tscn" id="2_character"]
+[ext_resource type="PackedScene" path="res://assets/generated/ENV_Wall_2m_v001.tscn" id="3_wall"]
+[ext_resource type="PackedScene" path="res://assets/generated/PROP_Crate_Small_v001.tscn" id="4_crate"]
+[ext_resource type="PackedScene" path="res://assets/generated/VFX_MeteorTelegraph_v001.tscn" id="5_meteor"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.52549, 0.662745, 0.407843, 1)
+roughness = 0.86
+
+[sub_resource type="BoxMesh" id="Mesh_floor"]
+material = SubResource("Material_floor")
+size = Vector3(11, 0.15, 5)
+
+[sub_resource type="StandardMaterial3D" id="Material_plinth"]
+albedo_color = Color(0.286275, 0.337255, 0.415686, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_plinth"]
+material = SubResource("Material_plinth")
+size = Vector3(1.2, 0.15, 1.2)
+
+[node name="AssetValidation" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-48, 150, 0)
+light_color = Color(1, 0.9, 0.78, 1)
+light_energy = 1.15
+shadow_enabled = true
+
+[node name="CameraFill" type="OmniLight3D" parent="."]
+position = Vector3(-2, 3.5, -3)
+light_color = Color(0.9, 0.95, 1, 1)
+light_energy = 0.8
+omni_range = 10.0
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.075, 0)
+mesh = SubResource("Mesh_floor")
+
+[node name="Wall" parent="." instance=ExtResource("3_wall")]
+position = Vector3(-3.25, 0, 0.8)
+
+[node name="CharacterPlinth" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 0.075, 0)
+mesh = SubResource("Mesh_plinth")
+
+[node name="Character" parent="." instance=ExtResource("2_character")]
+position = Vector3(-0.9, 0.15, 0)
+
+[node name="CratePlinth" type="MeshInstance3D" parent="."]
+position = Vector3(0.9, 0.075, 0)
+mesh = SubResource("Mesh_plinth")
+
+[node name="Crate" parent="." instance=ExtResource("4_crate")]
+position = Vector3(0.9, 0.15, 0)
+
+[node name="Meteor" parent="." instance=ExtResource("5_meteor")]
+position = Vector3(2.8, 0.08, 0.35)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 46.0
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="Interface"]
+offset_left = 30.0
+offset_top = 24.0
+offset_right = 520.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 26
+text = "PHASE 1 — ASSET VALIDATION"
+
+[node name="Caption" type="Label" parent="Interface"]
+offset_left = 31.0
+offset_top = 62.0
+offset_right = 640.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 16
+text = "2 m wall  •  1.60 m character  •  0.60 m crate  •  3 m meteor warning"

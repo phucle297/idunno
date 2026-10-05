@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, -32, 0)
+light_color = Color(1, 0.882353, 0.721569, 1)
+light_energy = 1.25
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+
+[node name="Sandbox" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="Interface"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 470.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 24
+text = "DISASTER PARTY — CORE SANDBOX"
+
+[node name="Help" type="Label" parent="Interface"]
+offset_left = 24.0
+offset_top = 56.0
+offset_right = 650.0
+offset_bottom = 88.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 16
+text = "WASD move  •  Shift sprint  •  Space jump  •  C crouch  •  R knockdown test"

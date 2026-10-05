@@ -9,4 +9,24 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-The project is currently in Phase 1: the core sandbox. Run and build instructions will be added after the selected engine and initial project launch are validated locally.
+The project is currently in Phase 1: the core sandbox.
+
+## Local development
+
+Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the portable binary.
+
+```bash
+# Regenerate the deterministic Phase 1 reference assets.
+godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
+
+# Run the current automated checks.
+godot --headless --path . --script res://tests/test_phase1.gd
+
+# Play the core sandbox.
+godot --path .
+
+# Inspect the reference assets together.
+godot --path . res://scenes/asset_validation.tscn
+```
+
+Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, mouse to orbit the camera, and R to trigger the current bounded knockdown/recovery prototype.
