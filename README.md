@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-The project is currently in Phase 3: implementing the first independently validated slice disasters.
+The project is currently in Phase 4: implementing randomized disaster direction and overlap after independently validating Meteor, Flood, and Tornado.
 
 ## Local development
 
@@ -27,6 +27,8 @@ godot --headless --path . --script res://tests/test_rematch_integration.gd
 godot --headless --path . --script res://tests/test_spectator_controller.gd
 godot --headless --path . --script res://tests/test_grab_manager.gd
 godot --headless --path . --script res://tests/test_meteor_shower.gd
+godot --headless --path . --script res://tests/test_flood.gd
+godot --headless --path . --script res://tests/test_tornado.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.

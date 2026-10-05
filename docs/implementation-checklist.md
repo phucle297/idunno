@@ -25,6 +25,6 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 ## Phase 3 — Slice disasters
 
 - [x] Implement Meteor Shower with an authoritative warning, impact damage, bounded impulse, ragdoll trigger, and cleanup.
-- [ ] Implement Flood with authoritative water level, breathing grace, damage, buoyancy, and cleanup.
-- [ ] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
-- [ ] Validate each disaster independently before enabling director selection or overlap.
+- [x] Implement Flood with authoritative water level, breathing grace, damage, buoyancy, and cleanup.
+- [x] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
+- [x] Validate each disaster independently before enabling director selection or overlap.

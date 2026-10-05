@@ -20,3 +20,15 @@
 - **Decision:** One server-owned `MeteorShower` component controls the complete strike lifecycle: warning target and countdown, one damage batch, bounded player and prop impulses, ragdoll trigger, survival credit, and cleanup.
 - **Reason:** Keeping selection and gameplay outcomes in one authoritative component prevents clients from creating damage or force while allowing its telegraph and short impact effect to remain presentation-only children.
 - **Physics constraint:** The initial strike uses a 3 m radius, 0.75 m lethal core, distance-scaled near-hit damage, an 8 m/s-equivalent player impulse cap, and an 18 N·s prop impulse cap. It never creates a persistent dynamic meteor body.
+
+## 2026-10-05 — Flood and Tornado authority
+
+- **Decision:** Flood and Tornado are independent server-owned lifecycle components registered against authoritative match players, matching Meteor's existing ownership boundary.
+- **Flood:** A uniform water level provides a 6 s warning, rises from −0.5 m to 3.5 m over 35 s, measures head submersion with a 2 s breathing grace, applies 12 HP/s afterward, and gives loose props bounded buoyancy, drag, and a 1.5 m/s current target. Water-level crossings account for only the submerged fraction of a simulation step.
+- **Tornado:** A visible tornado follows a server-selected linear path at 2 m/s with an 8 m influence radius and 2 m core. Pull, lift, one-shot throw velocity, and prop forces are capped; authored indoor `AABB` cover volumes reduce player pull to 25% and prevent core throws.
+- **Cleanup:** Both disasters remove effects and transient exposure state during completion and rematch. Director selection and overlap remain Phase 4 work.
+
+## 2026-10-05 — Deterministic Godot scene serialization
+
+- **Decision:** The asset generator removes Godot's runtime-generated node `unique_id` fields after saving generated `.tscn` files.
+- **Reason:** Phase 1 re-audit proved that identical seed runs produced identical geometry but different bytes because `PackedScene` assigned random node IDs. Canonicalizing those editor-only IDs makes generated scene checksums reproducible without changing runtime content.

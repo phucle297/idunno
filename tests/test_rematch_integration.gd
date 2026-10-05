@@ -18,11 +18,17 @@ func _run() -> void:
 	var manager = main.get_node("MatchManager")
 	var grab_manager = main.get_node("GrabManager")
 	var meteor = main.get_node("MeteorShower")
+	var flood = main.get_node("Flood")
+	var tornado = main.get_node("Tornado")
 	var player = main.get_node("Player")
 	var expected_sandbox_children := main.get_node("Sandbox").get_child_count()
 	for match_index in 5:
 		_expect(meteor.start_warning(Vector3(8.0, 0.0, 8.0)), "Cycle %d must start a representative Meteor warning" % (match_index + 1))
 		_expect(meteor.active_effect_count() == 1, "Cycle %d must own one Meteor effect before reset" % (match_index + 1))
+		_expect(flood.start_warning(), "Cycle %d must start a representative Flood warning" % (match_index + 1))
+		_expect(flood.active_effect_count() == 1, "Cycle %d must own one Flood effect before reset" % (match_index + 1))
+		_expect(tornado.start_warning(Vector3(-8.0, 0.0, 0.0), Vector3(8.0, 0.0, 0.0)), "Cycle %d must start a representative Tornado warning" % (match_index + 1))
+		_expect(tornado.active_effect_count() == 1, "Cycle %d must own one Tornado effect before reset" % (match_index + 1))
 		var crate := main.get_tree().get_first_node_in_group("grabbable") as RigidBody3D
 		crate.freeze = true
 		crate.global_position = player.get_grab_origin() + Vector3(0.0, -0.5, -1.0)
@@ -41,6 +47,8 @@ func _run() -> void:
 		_expect(main.get_node("Sandbox").get_child_count() == expected_sandbox_children, "Cycle %d must not leak sandbox bodies" % (match_index + 1))
 		_expect(grab_manager.get_held_body(1) == null, "Cycle %d reset must not retain stale ownership" % (match_index + 1))
 		_expect(meteor.phase == 0 and meteor.active_effect_count() == 0, "Cycle %d reset must clean Meteor state and effects" % (match_index + 1))
+		_expect(flood.phase == 0 and flood.active_effect_count() == 0, "Cycle %d reset must clean Flood state and effects" % (match_index + 1))
+		_expect(tornado.phase == 0 and tornado.active_effect_count() == 0, "Cycle %d reset must clean Tornado state and effects" % (match_index + 1))
 	if failures.is_empty():
 		print("REMATCH_INTEGRATION_OK cycles=5 checks=%d sandbox_children=%d" % [checks, expected_sandbox_children])
 		quit(0)

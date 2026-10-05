@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "1",
+    "version": "2",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,7 +14,7 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "1",
+      "generator_version": "2",
       "intended_dimensions_m": [0.56, 1.6, 0.48],
       "triangle_count": 1728,
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
@@ -24,7 +24,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "54ec745e8f5b9ed3322ef0fd139e99ebda9521f173f449f54635dbe0b44f715d",
+      "sha256": "8ab7a677365b6322d2da9be0c55c5d837d95495f46133fc56607fcefa14e2944",
       "validation_status": "reference_dimensions_and_visual_passed; rig_and_animation_not_started"
     },
     {
@@ -34,7 +34,7 @@
       "export_path": "assets/generated/ENV_Wall_2m_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "1",
+      "generator_version": "2",
       "intended_dimensions_m": [2.0, 2.5, 0.24],
       "triangle_count": 24,
       "material_ids": ["MAT_Cream_v001", "MAT_Teal_v001"],
@@ -44,7 +44,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "ddb3f28f1557038546e4401f85ed08786915c15712f688b92836d8764d2627a7",
+      "sha256": "046e4525d7240bb9af31b88c61e6c611b4b791eaea54c3a940f9de5dd9c7aa2b",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {
@@ -54,7 +54,7 @@
       "export_path": "assets/generated/PROP_Crate_Small_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "1",
+      "generator_version": "2",
       "intended_dimensions_m": [0.64, 0.6, 0.64],
       "triangle_count": 24,
       "material_ids": ["MAT_Sand_v001", "MAT_Slate_v001"],
@@ -64,7 +64,7 @@
       "animation_list": [],
       "gameplay_tags": ["Grabbable"],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "06836eeb2ae0de8278d9454a5d3c1a7b2206c9f3fb44699fdda07821483a12b0",
+      "sha256": "9c8aace19d98770b53495d4678dff29420bb8d4f1820593c43124117b01eb3c1",
       "validation_status": "reference_dimensions_visual_and_runtime_rigidbody_passed"
     },
     {
@@ -74,7 +74,7 @@
       "export_path": "assets/generated/VFX_MeteorTelegraph_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "1",
+      "generator_version": "2",
       "intended_dimensions_m": [3.0, 2.82, 3.0],
       "triangle_count": 592,
       "material_ids": ["MAT_Amber_v001", "MAT_Orange_v001"],
@@ -84,7 +84,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "bb661af19268fa288c8da6de19d98096ee7e7173a3c914a3eb9c159e5e51f20b",
+      "sha256": "523ae2f2d4643632cf03c31c14e4835c452ceede383ca9203ad315e13e4d69bc",
       "validation_status": "reference_dimensions_and_visual_passed"
     }
   ]

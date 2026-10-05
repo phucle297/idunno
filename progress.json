@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T22:51:24+07:00",
+  "updated_at": "2026-10-05T23:31:37+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_3_slice_disasters",
+  "current_phase": "phase_4_director_overlap",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -38,14 +38,20 @@
       }
     },
     "phase_3_slice_disasters": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "meteor_shower": "passed_server_authority_warning_damage_bounded_player_and_prop_impulses_ragdoll_cleanup_and_visual_checks",
-        "flood": "not_started",
-        "tornado": "not_started"
+        "flood": "passed_server_authority_warning_level_crossing_grace_damage_bounded_buoyancy_current_cleanup_and_visual_checks",
+        "tornado": "passed_server_authority_path_bounded_pull_lift_single_throw_prop_force_cover_cleanup_and_visual_checks"
       }
     },
-    "phase_4_director_overlap": { "status": "blocked_by_phase_3" },
+    "phase_4_director_overlap": {
+      "status": "in_progress",
+      "acceptance": {
+        "randomized_selection": "not_started",
+        "two_disaster_overlap": "not_started"
+      }
+    },
     "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
   },
   "asset_intake": {
@@ -148,6 +154,41 @@
       "result": "passed",
       "check": "Phase 3 Meteor rendered visual gate",
       "evidence": ".amp/in/artifacts/phase3-meteor-warning.png and phase3-meteor-impact.png rendered with Godot Compatibility via Xvfb and inspected: aligned amber footprint/countdown, complete slate meteor with orange core/short trail, readable warning UI, localized impact ring, and displaced multi-body ragdoll passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 authoritative Flood",
+      "evidence": "FLOOD_OK checks=24: 6 s warning boundary, 3.5 m level, fractional water-crossing exposure, 2 s breathing grace, 12 HP/s damage, safe high ground, grace reset, bounded buoyancy/current, reuse, and cleanup passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 authoritative Tornado",
+      "evidence": "TORNADO_OK checks=30 throws=1: valid moving path, 3 s warning, 8 m influence boundary, core ragdoll, capped player/prop forces, 25% cover pull, one-shot throw, reuse, and cleanup passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 authority and rematch cleanup",
+      "evidence": "NETWORK_AUTHORITY_PEERS_OK rejected client Flood/Tornado registration and lifecycle mutation; REMATCH_INTEGRATION_OK cycles=5 checks=95 sandbox_children=14 removed Meteor, Flood, and Tornado state/effects every cycle"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 3 Flood and Tornado rendered visual gate",
+      "evidence": ".amp/in/artifacts/phase3-flood.png and phase3-tornado.png rendered with Godot Compatibility via Xvfb and inspected: dry rooftop over readable translucent flood/ripple state and coherent dark funnel with amber influence/orange core footprints passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 1 deterministic asset generation re-audit",
+      "evidence": "Fixed random PackedScene node unique_id serialization; two consecutive seed=297 runs produced byte-identical SHA-256 values for all 14 generated scene/material files (DETERMINISTIC_ASSETS_OK files=14)"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 1 and Phase 2 full behavior re-audit",
+      "evidence": "PHASE1_TESTS_OK checks=22; PLAYER_INTEGRATION_OK checks=21; MATCH_MANAGER_OK checks=37; SPECTATOR_CONTROLLER_OK checks=12; GRAB_MANAGER_OK checks=19; REMATCH_INTEGRATION_OK cycles=5 checks=95; NETWORK_AUTHORITY_PEERS_OK"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 1 and Phase 2 rendered visual re-audit",
+      "evidence": ".amp/in/artifacts/phase1-assets-recheck.png, phase1-sandbox-recheck.png, phase1-ragdoll-recheck.png, phase2-grabbing-recheck.png, and phase2-spectating-recheck.png inspected: generated imports, map, connected ragdoll, non-intersecting held crate, and spectator UI passed"
     }
   ],
   "blockers": [
@@ -173,6 +214,8 @@
     "game/match_manager.gd",
     "game/grab_manager.gd",
     "game/meteor_shower.gd",
+    "game/flood.gd",
+    "game/tornado.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
     "game/asset_validation.gd",
@@ -190,9 +233,11 @@
     "tests/test_spectator_controller.gd",
     "tests/test_grab_manager.gd",
     "tests/test_meteor_shower.gd",
+    "tests/test_flood.gd",
+    "tests/test_tornado.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement and independently validate server-authoritative Flood water level, breathing grace, damage, bounded buoyancy/current, and cleanup."
+  "next_action": "Implement and validate a server-authoritative Disaster Director with randomized non-repeating selection, compatibility checks, escalating intensity, and two-disaster overlap."
 }

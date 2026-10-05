@@ -11,13 +11,14 @@ size = Vector3(2, 2.5, 0.2)
 material = ExtResource("2_ut6fg")
 size = Vector3(2, 0.12, 0.24)
 
-[node name="ENV_Wall_2m_v001" type="Node3D" unique_id=429225576]
+[node name="ENV_Wall_2m_v001" type="Node3D"]
 metadata/generator_seed = 297
+metadata/generator_version = 2
 
-[node name="Wall" type="MeshInstance3D" parent="." unique_id=1185359720]
+[node name="Wall" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 mesh = SubResource("BoxMesh_hcrjd")
 
-[node name="Trim" type="MeshInstance3D" parent="." unique_id=1761398607]
+[node name="Trim" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, -0.01)
 mesh = SubResource("BoxMesh_7257s")

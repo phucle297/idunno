@@ -109,6 +109,11 @@ func apply_knockdown(impulse: Vector3) -> void:
 	visual.visible = false
 
 
+func apply_hazard_velocity(velocity_change: Vector3, speed_cap: float) -> void:
+	release_held_object()
+	velocity = (velocity + velocity_change).limit_length(maxf(speed_cap, 0.0))
+
+
 func is_knocked_down() -> bool:
 	return _knockdown_remaining > 0.0
 

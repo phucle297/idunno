@@ -2,6 +2,7 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
+const GENERATOR_VERSION := 2
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),
 	"teal": Color("73b7ad"), "coral": Color("d98d7d"), "grass": Color("86a968"),
@@ -47,6 +48,7 @@ func _generate_character(materials: Dictionary) -> void:
 	var root := Node3D.new()
 	root.name = "CHR_Base_v001"
 	root.set_meta("generator_seed", seed_value)
+	root.set_meta("generator_version", GENERATOR_VERSION)
 	_add_sphere(root, "Head", 0.24, 0.43, Vector3(0.0, 1.385, 0.0), materials.cream)
 	_add_box(root, "Torso", Vector3(0.43, 0.52, 0.28), Vector3(0.0, 0.96, 0.0), materials.cyan)
 	_add_capsule(root, "LeftArm", 0.09, 0.48, Vector3(-0.19, 0.94, 0.0), materials.cyan)
@@ -65,6 +67,7 @@ func _generate_wall(materials: Dictionary) -> void:
 	var root := Node3D.new()
 	root.name = "ENV_Wall_2m_v001"
 	root.set_meta("generator_seed", seed_value)
+	root.set_meta("generator_version", GENERATOR_VERSION)
 	_add_box(root, "Wall", Vector3(2.0, 2.5, 0.20), Vector3(0.0, 1.25, 0.0), materials.cream)
 	_add_box(root, "Trim", Vector3(2.0, 0.12, 0.24), Vector3(0.0, 2.40, -0.01), materials.teal)
 	_save_scene(root, "%s/ENV_Wall_2m_v001.tscn" % OUTPUT_DIR)
@@ -74,6 +77,7 @@ func _generate_crate(materials: Dictionary) -> void:
 	var root := Node3D.new()
 	root.name = "PROP_Crate_Small_v001"
 	root.set_meta("generator_seed", seed_value)
+	root.set_meta("generator_version", GENERATOR_VERSION)
 	_add_box(root, "Body", Vector3(0.6, 0.6, 0.6), Vector3(0.0, 0.3, 0.0), materials.sand)
 	_add_box(root, "Band", Vector3(0.64, 0.10, 0.64), Vector3(0.0, 0.3, 0.0), materials.slate)
 	_save_scene(root, "%s/PROP_Crate_Small_v001.tscn" % OUTPUT_DIR)
@@ -83,6 +87,7 @@ func _generate_meteor_proxy(materials: Dictionary) -> void:
 	var root := Node3D.new()
 	root.name = "VFX_MeteorTelegraph_v001"
 	root.set_meta("generator_seed", seed_value)
+	root.set_meta("generator_version", GENERATOR_VERSION)
 	var ring := MeshInstance3D.new()
 	ring.name = "WarningFootprint"
 	var torus := TorusMesh.new()
@@ -144,5 +149,12 @@ func _add_sphere(parent: Node, node_name: String, radius: float, height: float, 
 func _save_scene(root: Node, path: String) -> void:
 	var scene := PackedScene.new()
 	assert(scene.pack(root) == OK)
-	assert(ResourceSaver.save(scene, path) == OK)
+	assert(ResourceSaver.save(scene, path, ResourceSaver.FLAG_OMIT_EDITOR_PROPERTIES) == OK)
+	var generated_text := FileAccess.get_file_as_string(path)
+	var unique_ids := RegEx.new()
+	assert(unique_ids.compile("\\sunique_id=\\d+") == OK)
+	generated_text = unique_ids.sub(generated_text, "", true)
+	var output := FileAccess.open(path, FileAccess.WRITE)
+	assert(output != null)
+	output.store_string(generated_text)
 	root.free()

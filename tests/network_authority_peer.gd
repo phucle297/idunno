@@ -4,6 +4,8 @@ const TIMEOUT_MSEC := 5000
 const ManagerScript = preload("res://game/match_manager.gd")
 const GrabManagerScript = preload("res://game/grab_manager.gd")
 const MeteorScript = preload("res://game/meteor_shower.gd")
+const FloodScript = preload("res://game/flood.gd")
+const TornadoScript = preload("res://game/tornado.gd")
 
 var role := ""
 var port := 29720
@@ -112,6 +114,16 @@ func _check_authority_matrix(
 	meteor.configure(manager)
 	var meteor_registration_result: bool = meteor.register_player(99, grab_player)
 	var meteor_mutation_result: bool = meteor.start_warning(Vector3.ZERO)
+	var flood := FloodScript.new()
+	host.add_child(flood)
+	flood.configure(manager)
+	var flood_registration_result: bool = flood.register_player(99, grab_player)
+	var flood_mutation_result: bool = flood.start_warning()
+	var tornado := TornadoScript.new()
+	host.add_child(tornado)
+	tornado.configure(manager)
+	var tornado_registration_result: bool = tornado.register_player(99, grab_player)
+	var tornado_mutation_result: bool = tornado.start_warning(Vector3.ZERO, Vector3.RIGHT * 4.0)
 	var expected_match_mutation := role == "server"
 	var passed := (
 		server_result == expected_server_player
@@ -121,11 +133,15 @@ func _check_authority_matrix(
 		and grab_mutation_result == expected_match_mutation
 		and meteor_registration_result == expected_match_mutation
 		and meteor_mutation_result == expected_match_mutation
+		and flood_registration_result == expected_match_mutation
+		and flood_mutation_result == expected_match_mutation
+		and tornado_registration_result == expected_match_mutation
+		and tornado_mutation_result == expected_match_mutation
 	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s" % [
-				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s flood_registration=%s flood_mutation=%s tornado_registration=%s tornado_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result, flood_registration_result, flood_mutation_result, tornado_registration_result, tornado_mutation_result
 			]
 		)
 	host.queue_free()
