@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T20:19:25+07:00",
+  "updated_at": "2026-10-05T22:04:12+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_3_slice_disasters",
@@ -128,6 +128,11 @@
       "result": "passed",
       "check": "Phase 2 grabbing visual gate",
       "evidence": ".amp/in/artifacts/phase2-grabbing.png inspected: held crate visibly suspended without intersection, player and toy-town remain readable, and two-line controls do not overlap match UI"
+    },
+    {
+      "result": "passed",
+      "check": "Orb toolchain setup",
+      "evidence": ".agents/setup downloaded checksum-verified Godot 4.7.2, warm setup completed in 0.32 s twice, resume completed in 0.01 s, and all six headless checks plus the ENet authority-peer check passed"
     }
   ],
   "blockers": [
@@ -159,6 +164,8 @@
     "scenes/main.tscn",
     "scenes/asset_validation.tscn",
     "tools/asset_generation/generate_assets.gd",
+    ".agents/setup",
+    ".agents/resume",
     "tests/test_phase1.gd",
     "tests/test_player_integration.gd",
     "tests/network_authority_peer.gd",
