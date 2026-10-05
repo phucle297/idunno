@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T00:51:33+07:00",
+  "updated_at": "2026-10-06T01:10:35+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_5_polish_validation",
+  "current_phase": "phase_6_multiplayer_stabilization",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -58,6 +58,13 @@
         "four_client_match_snapshot": "passed_one_authoritative_server_and_four_separate_clients_with_consistent_ready_active_health_alive_damage_and_overlap_state",
         "overlap_ui_readability": "passed_rendered_four_player_hud_two_named_hazards_flood_tornado_refuge_and_player_silhouette",
         "representative_overlap_profile": "measured_1280x720_llvmpipe_600_frames_target_not_met_hardware_accelerated_windows_validation_required"
+      }
+    },
+    "phase_6_multiplayer_stabilization": {
+      "status": "in_progress",
+      "acceptance": {
+        "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
+        "playable_scene_networking": "not_implemented_create_join_spawning_disconnect_movement_and_disaster_presentation_replication_required"
       }
     }
   },
@@ -231,6 +238,11 @@
       "result": "passed",
       "check": "Five-phase clean-workspace re-audit",
       "evidence": "A clean .godot directory exposed that the old setup command did not register global class_name types and test_phase1 could print success despite main.gd parse errors. Setup now runs a headless editor import and Phase 1 asserts that the main script remains attached. After bootstrapping, deterministic assets (14 files), all ten behavior suites, five rematch cycles (110 checks), NETWORK_AUTHORITY_PEERS_OK, and FOUR_CLIENT_MATCH_PEERS_OK clients=4 passed. .amp/in/artifacts/phase5-five-phase-reaudit.png was regenerated at 1280x720 and inspected: ALIVE 4/4, both named hazard instructions, flood and tornado geometry, dry elevation, and player silhouette remain readable. Phase 5 remains in progress only for hardware-accelerated Windows profiling."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 separate-peer multiplayer state matrix",
+      "evidence": "MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 from one authoritative ENet server plus separate Godot client processes at each count; all peers validated ready/ACTIVE, complete ALIVE and health state, 75 HP server damage, client mutation rejection, and simultaneous Flood + Tornado. This does not validate playable-scene replication."
     }
   ],
   "blockers": [
@@ -288,5 +300,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Run the 1280x720 four-player Flood + Tornado profile on hardware-accelerated Windows target hardware and tune only if p95 frame time exceeds 16.67 ms."
+  "next_action": "Connect the playable scene to ENet create/join and authoritative player spawning with disconnect cleanup, then validate it with two separate peers before adding movement replication."
 }

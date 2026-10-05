@@ -44,3 +44,9 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Render and inspect a four-player overlap HUD with both hazards, readable danger geometry, and a dry refuge.
 - [x] Profile 600 representative overlap frames at 1280 × 720 and record renderer, CPU, draw calls, node count, frame time, and physics time.
 - [ ] Validate the 60 FPS target on hardware-accelerated Windows target hardware; the orb's llvmpipe profile is not representative GPU evidence.
+
+## Phase 6 — Multiplayer stabilization
+
+- [x] Validate authoritative ready, match, health, alive, damage, and overlapping-disaster snapshots with 2, 4, 8, and 20 separate clients.
+- [ ] Connect the playable scene to ENet create/join, authoritative player spawning, and disconnect cleanup.
+- [ ] Replicate playable movement and disaster presentation, then validate representative 2/4/8/20-player sessions rather than state-only probes.

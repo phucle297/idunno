@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-Phase 4 is complete: a server-authoritative Disaster Director now randomizes Meteor, Flood, and Tornado, escalates intensity, and permits fair two-disaster overlap after solo introductions. Phase 5 polish and validation is in progress; four-client snapshot consistency and overlap UI readability pass, while hardware-accelerated Windows profiling remains open.
+Phase 4 is complete: a server-authoritative Disaster Director now randomizes Meteor, Flood, and Tornado, escalates intensity, and permits fair two-disaster overlap after solo introductions. Phase 6 multiplayer stabilization is in progress; authoritative state snapshots pass with 2, 4, 8, and 20 separate clients, while playable-scene lobby, spawning, movement, and presentation replication remain open. Hardware-accelerated Windows profiling also remains open.
 
 ## Local development
 
@@ -31,6 +31,7 @@ godot --headless --path . --script res://tests/test_flood.gd
 godot --headless --path . --script res://tests/test_tornado.gd
 godot --headless --path . --script res://tests/test_disaster_director.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
+# Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh
 
 # Profile a rendered four-player Flood + Tornado overlap (requires an X display).

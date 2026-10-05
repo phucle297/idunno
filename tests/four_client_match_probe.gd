@@ -3,13 +3,13 @@ extends Node
 
 signal client_validated
 
-const EXPECTED_CLIENTS := 4
 const ManagerScript = preload("res://game/match_manager.gd")
 const FloodScript = preload("res://game/flood.gd")
 const TornadoScript = preload("res://game/tornado.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
 
 var role := ""
+var expected_clients := 4
 var manager: Node
 var flood: Node3D
 var tornado: Node3D
@@ -19,8 +19,9 @@ var validated_clients: Dictionary = {}
 var _snapshot_sent := false
 
 
-func configure(peer_role: String) -> void:
+func configure(peer_role: String, client_count: int) -> void:
 	role = peer_role
+	expected_clients = client_count
 
 
 func create_server_state() -> void:
@@ -66,7 +67,7 @@ func submit_ready() -> void:
 
 
 func _try_start_match() -> void:
-	if _snapshot_sent or ready_clients.size() != EXPECTED_CLIENTS or manager.players.size() != EXPECTED_CLIENTS:
+	if _snapshot_sent or ready_clients.size() != expected_clients or manager.players.size() != expected_clients:
 		return
 	if not manager.start_match():
 		return
@@ -77,7 +78,7 @@ func _try_start_match() -> void:
 	tornado.tick(tornado.warning_duration)
 	tornado.tick(1.6)
 	var damaged_peer: int = manager.players.keys()[0]
-	manager.apply_damage(damaged_peer, 25.0, "Four-client probe")
+	manager.apply_damage(damaged_peer, 25.0, "Multiplayer stabilization probe")
 	_snapshot_sent = true
 	receive_snapshot.rpc(_build_snapshot(damaged_peer))
 
@@ -109,10 +110,10 @@ func receive_snapshot(snapshot: Dictionary) -> void:
 	var damaged_peer: int = snapshot.get("damaged_peer", 0)
 	client_passed = (
 		int(snapshot.get("state", -1)) == 1
-		and int(snapshot.get("players", 0)) == EXPECTED_CLIENTS
-		and int(snapshot.get("alive", 0)) == EXPECTED_CLIENTS
+		and int(snapshot.get("players", 0)) == expected_clients
+		and int(snapshot.get("alive", 0)) == expected_clients
 		and local_id in peer_ids
-		and health.size() == EXPECTED_CLIENTS
+		and health.size() == expected_clients
 		and is_equal_approx(float(health.get(damaged_peer, -1.0)), 75.0)
 		and int(snapshot.get("flood_phase", -1)) == 2
 		and int(snapshot.get("tornado_phase", -1)) == 2
@@ -132,7 +133,7 @@ func acknowledge_snapshot(passed: bool) -> void:
 
 
 func all_clients_validated() -> bool:
-	if validated_clients.size() != EXPECTED_CLIENTS:
+	if validated_clients.size() != expected_clients:
 		return false
 	for passed: bool in validated_clients.values():
 		if not passed:

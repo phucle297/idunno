@@ -44,3 +44,9 @@
 - **Decision:** Use a dedicated ENet harness with one authoritative server and four separate client processes to validate ready state, active match state, four-player health/alive data, server-applied damage, and simultaneous Flood + Tornado state.
 - **Boundary:** This proves the existing authority contracts and snapshot consistency under five separate processes. It does not claim that the playable scene has production lobby, spawning, movement replication, or client-side disaster presentation.
 - **Profiling:** Keep performance output descriptive. The orb's Mesa llvmpipe software renderer is valid for repeatable scene measurements but cannot pass or fail the Windows hardware target by itself.
+
+## 2026-10-06 — Phase 6 multiplayer scale gate
+
+- **Decision:** Parameterize the existing separate-process ENet harness and run the roadmap's 2, 4, 8, and 20-client counts against one authoritative server.
+- **Evidence boundary:** Each count validates ready submission, active match state, complete player/health snapshots, server-applied damage, client mutation rejection, and simultaneous Flood + Tornado state. It is a state-contract and connection-scale gate, not proof of playable movement or presentation replication.
+- **Next boundary:** Production networking belongs in the playable scene: create/join, authoritative spawning, disconnect cleanup, movement state, and disaster presentation must pass representative sessions before Phase 6 can complete.
