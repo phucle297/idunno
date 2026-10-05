@@ -28,7 +28,7 @@ shape = SubResource("CapsuleShape_player")
 
 [node name="CameraPivot" type="Node3D" parent="."]
 position = Vector3(0, 1.2, 0)
-rotation = Vector3(-0.24, 0, 0)
+rotation = Vector3(-0.14, 0, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
 spring_length = 5.5

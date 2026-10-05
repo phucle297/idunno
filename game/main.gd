@@ -41,8 +41,9 @@ func _build_sandbox() -> void:
 	_add_static_box("ShopRoof", Vector3(11.0, 0.35, 9.0), Vector3(-16.0, 4.68, -13.0), PALETTE.cream)
 	_add_static_box("Hall", Vector3(10.0, 4.5, 10.0), Vector3(16.0, 2.25, -13.0), PALETTE.teal)
 	_add_static_box("HallRoof", Vector3(11.0, 0.35, 11.0), Vector3(16.0, 4.68, -13.0), PALETTE.cream)
-	_add_static_box("RaisedRoute", Vector3(9.0, 2.0, 7.0), Vector3(14.0, 1.0, 14.0), PALETTE.cream)
-	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.5, 1.0, 14.0), deg_to_rad(-11.5))
+	_add_static_box("RaisedRouteBase", Vector3(9.0, 2.0, 7.0), Vector3(7.0, 1.0, -5.0), PALETTE.teal)
+	_add_static_box("RaisedRouteTop", Vector3(9.0, 0.18, 7.0), Vector3(7.0, 2.09, -5.0), PALETTE.cream)
+	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.0, 0.83, 3.25), deg_to_rad(11.5))
 
 	for position in [Vector3(-3.0, 0.4, 3.0), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
 		_add_physics_crate(position)

@@ -12,7 +12,7 @@ var _jump_buffer_remaining := 0.0
 var _knockdown_remaining := 0.0
 var _is_crouched := false
 var _camera_yaw := 0.0
-var _camera_pitch := -0.24
+var _camera_pitch := -0.14
 
 
 func _ready() -> void:
@@ -36,25 +36,37 @@ func _physics_process(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
+	apply_movement_input(
+		Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
+		Input.is_action_pressed("sprint"),
+		Input.is_action_pressed("crouch"),
+		Input.is_action_just_pressed("jump"),
+		delta
+	)
+
+
+func apply_movement_input(
+	input_2d: Vector2,
+	sprinting: bool,
+	crouched: bool,
+	jump_pressed: bool,
+	delta: float
+) -> void:
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
-	_process_movement(delta)
-
-
-func _process_movement(delta: float) -> void:
 	if is_on_floor():
 		_coyote_remaining = Tuning.COYOTE_TIME
 	else:
 		_coyote_remaining = maxf(0.0, _coyote_remaining - delta)
 		velocity.y -= Tuning.GRAVITY * delta
 
-	if Input.is_action_just_pressed("jump"):
+	if jump_pressed:
 		_jump_buffer_remaining = Tuning.JUMP_BUFFER_TIME
 	else:
 		_jump_buffer_remaining = maxf(0.0, _jump_buffer_remaining - delta)
 
-	_is_crouched = Input.is_action_pressed("crouch")
+	_is_crouched = crouched
 	_update_capsule(_is_crouched)
 
 	if _jump_buffer_remaining > 0.0 and _coyote_remaining > 0.0 and not _is_crouched:
@@ -62,11 +74,10 @@ func _process_movement(delta: float) -> void:
 		_jump_buffer_remaining = 0.0
 		_coyote_remaining = 0.0
 
-	var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var camera_basis := Basis(Vector3.UP, _camera_yaw)
 	var wish_direction := (camera_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 	var target_speed := Tuning.CROUCH_SPEED if _is_crouched else (
-		Tuning.SPRINT_SPEED if Input.is_action_pressed("sprint") else Tuning.WALK_SPEED
+		Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
 	)
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if is_on_floor() else Tuning.AIR_ACCELERATION
@@ -84,6 +95,10 @@ func apply_knockdown(impulse: Vector3) -> void:
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
 	visual.rotation.z = deg_to_rad(78.0)
+
+
+func is_knocked_down() -> bool:
+	return _knockdown_remaining > 0.0
 
 
 func _process_knockdown(delta: float) -> void:

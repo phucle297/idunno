@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T01:00:00+07:00",
+  "updated_at": "2026-10-05T02:00:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_1_core_sandbox",
@@ -19,11 +19,11 @@
         "engine_launch": "passed",
         "generated_asset_import": "passed",
         "asset_validation_scene": "passed",
-        "controller_and_camera": "implemented_runtime_start_passed_input_not_automated",
-        "greybox_traversal": "rendered_not_traversal_tested",
+        "controller_and_camera": "passed_automated_movement_jump_crouch_and_camera_visual_checks",
+        "greybox_traversal": "passed_physical_ramp_ascent_and_visual_checks",
         "ragdoll_recovery": "implemented_not_executed",
-        "network_authority_boundary": "local_input_gate_implemented_peer_test_not_run",
-        "visual_review": "asset_reference_passed_gameplay_composition_needs_iteration"
+        "network_authority_boundary": "deterministic_command_seam_and_local_input_gate_implemented_peer_test_not_run",
+        "visual_review": "asset_reference_and_gameplay_camera_passed"
       }
     },
     "phase_2_match": { "status": "blocked_by_phase_1" },
@@ -58,21 +58,27 @@
       "evidence": ".amp/in/artifacts/asset-validation.png inspected: four coherent readable assets, no missing geometry"
     },
     {
-      "result": "partial",
+      "result": "passed",
       "check": "gameplay sandbox visual gate",
-      "evidence": ".amp/in/artifacts/phase1-sandbox.png inspected: runtime rendered, camera framing and crate readability need iteration"
+      "evidence": ".amp/in/artifacts/phase1-sandbox-final.png inspected: character, crates, landmarks, roads, raised route, flush ramp, palette, and UI readable"
     },
     {
       "result": "partial",
       "check": "Quaternius Standard animation inventory",
       "evidence": "Third-party UAL1_Standard.fbx imported in Godot and exposed 45 named clips; official itch.io archive remains blocked and mirror provenance is insufficient"
+    },
+    {
+      "result": "passed",
+      "check": "controller and traversal integration",
+      "evidence": "PLAYER_INTEGRATION_OK checks=15: walk, sprint, crouch, jump apex/landing, ramp ascent, knockdown timing and upright recovery"
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
     "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
     "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
-    "Controller traversal and knockdown recovery still need executed interaction checks."
+    "A bounded knockdown is tested, but it is not yet the design-bible 8–12 body cosmetic ragdoll.",
+    "The input authority seam has not yet been tested with separate local ENet peers."
   ],
   "changed_files": [
     "AGENTS.md",
@@ -97,5 +103,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Execute automated controller movement, jump, crouch, and knockdown recovery checks, then recapture the tuned gameplay camera."
+  "next_action": "Replace the visual-tilt knockdown with an 8–12 body cosmetic ragdoll and execute recovery checks."
 }
