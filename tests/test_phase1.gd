@@ -59,6 +59,7 @@ func _check_scenes() -> void:
 	_expect(ResourceLoader.exists("res://scenes/main.tscn"), "Main scene missing")
 	_expect(ResourceLoader.exists("res://scenes/asset_validation.tscn"), "Asset validation scene missing")
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	_expect(main.get_script() != null, "Instantiated main scene must retain its script")
 	_expect(main.has_node("Player/CameraPivot/SpringArm3D/Camera3D"), "Third-person camera hierarchy missing")
 	_expect(main.get_node("Player").get_script() != null, "Instantiated player must retain its script")
 	_expect(main.has_node("MatchManager"), "Main scene must own the authoritative match state")

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T00:35:07+07:00",
+  "updated_at": "2026-10-06T00:51:33+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_5_polish_validation",
@@ -226,6 +226,11 @@
       "result": "blocked",
       "check": "Phase 5 60 FPS performance target",
       "evidence": "Mesa llvmpipe software renderer on 4-vCPU Intel Xeon orb, 1280x720 Compatibility, four players plus Flood + Tornado: 600 measured frames after 120 warmup, p50 31.60 ms, p95 36.57 ms, p95 physics 5.91 ms, 64 draw calls, 153 nodes, target_60fps_met=false; requires hardware-accelerated Windows target measurement"
+    },
+    {
+      "result": "passed",
+      "check": "Five-phase clean-workspace re-audit",
+      "evidence": "A clean .godot directory exposed that the old setup command did not register global class_name types and test_phase1 could print success despite main.gd parse errors. Setup now runs a headless editor import and Phase 1 asserts that the main script remains attached. After bootstrapping, deterministic assets (14 files), all ten behavior suites, five rematch cycles (110 checks), NETWORK_AUTHORITY_PEERS_OK, and FOUR_CLIENT_MATCH_PEERS_OK clients=4 passed. .amp/in/artifacts/phase5-five-phase-reaudit.png was regenerated at 1280x720 and inspected: ALIVE 4/4, both named hazard instructions, flood and tornado geometry, dry elevation, and player silhouette remain readable. Phase 5 remains in progress only for hardware-accelerated Windows profiling."
     }
   ],
   "blockers": [

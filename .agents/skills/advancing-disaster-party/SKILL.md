@@ -11,7 +11,7 @@ Deliver the smallest playable improvement in the current phase without expanding
 
 1. Read `PROMPT.md`, `DESIGN.md`, and `progress.json` in that order.
 2. Confirm the `current_phase`, its acceptance checks, blockers, and `next_action` from `progress.json`.
-3. Inspect the current code and local tools. Do not rely on a previous session's claim when an executable check is available.
+3. Inspect the current code and local tools. On a fresh checkout or missing `.godot` directory, run `godot --headless --editor --path . --quit` before script-mode checks so Godot registers global `class_name` types. Do not substitute `godot --headless --path . --quit`; it can load the main scene before creating the class cache and emit misleading parse failures.
 4. Implement only the next coherent slice. Keep server authority explicit for movement inputs, health, hazards, important physics outcomes, and match state.
 5. Run the narrowest meaningful automated check, then launch or render representative gameplay when visuals or interactions changed.
 6. Record commands and honest results in `progress.json`. Mark a check `passed` only after executing it; use `failed`, `blocked`, or `not_run` otherwise.

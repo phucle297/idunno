@@ -62,7 +62,7 @@ step "Checking system prerequisites"
 install_prerequisites
 step "Installing the pinned Godot toolchain"
 install_godot
-step "Verifying the project opens headlessly"
-"$godot_path" --headless --path "$repo_root" --quit
+step "Importing the project and registering global script classes"
+"$godot_path" --headless --editor --path "$repo_root" --quit
 
 echo "Orb setup complete."

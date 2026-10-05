@@ -5,6 +5,7 @@ This checklist executes the existing plan in `PROMPT.md` and `DESIGN.md`; it doe
 ## Phase 1 — Core sandbox
 
 - [x] Inspect local tools and select an engine/export pipeline.
+- [x] Bootstrap fresh checkouts with a headless editor import so global script classes exist before script-mode validation.
 - [x] Launch the selected engine and import one deterministic generated asset.
 - [x] Validate the shared palette, base character proxy, wall, prop, and disaster-effect proxy together.
 - [x] Implement an authority-ready third-person controller, camera, jump, sprint, and crouch.
