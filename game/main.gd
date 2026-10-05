@@ -11,6 +11,9 @@ const PALETTE := {
 	"orange": Color("f06438")
 }
 const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
+const PlayerScene = preload("res://scenes/player.tscn")
+const DEFAULT_NETWORK_PORT := 29730
+const MAX_NETWORK_PLAYERS := 20
 
 @onready var match_manager: Node = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -20,6 +23,8 @@ const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
+var _network_mode := false
+var _network_role := "offline"
 
 
 func _ready() -> void:
@@ -29,22 +34,23 @@ func _ready() -> void:
 	spectator_controller = SpectatorControllerScript.new()
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)
-	_player_nodes[1] = $Player
-	$GrabManager.register_player(1, $Player)
 	match_manager.player_eliminated.connect(_on_player_eliminated)
-	match_manager.register_player(1, "Local Player")
 	meteor_shower.configure(match_manager)
-	meteor_shower.register_player(1, $Player)
 	flood.configure(match_manager)
-	flood.register_player(1, $Player)
 	tornado.configure(match_manager)
-	tornado.register_player(1, $Player)
 	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
 	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
 	disaster_director.configure(match_manager)
 	disaster_director.register_disaster(meteor_shower)
 	disaster_director.register_disaster(flood)
 	disaster_director.register_disaster(tornado)
+	var network_error := _start_requested_network_session()
+	if network_error != ERR_SKIP:
+		if network_error != OK:
+			push_error("Unable to start requested network session: %s" % error_string(network_error))
+		return
+	_player_nodes[1] = $Player
+	_register_server_gameplay_player(1, $Player, "Local Player")
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
@@ -101,6 +107,175 @@ func _ready() -> void:
 			capture_after_meteor_impact(capture_path)
 		else:
 			capture_after_frames(capture_path, 5)
+
+
+func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_PLAYERS) -> Error:
+	if _network_mode:
+		return ERR_ALREADY_IN_USE
+	var peer := ENetMultiplayerPeer.new()
+	var error := peer.create_server(port, maxi(max_players - 1, 1))
+	if error != OK:
+		return error
+	multiplayer.multiplayer_peer = peer
+	_network_mode = true
+	_network_role = "host"
+	multiplayer.peer_connected.connect(_on_network_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_network_peer_disconnected)
+	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
+	_player_nodes[1] = $Player
+	if not _register_server_gameplay_player(1, $Player, "Host"):
+		multiplayer.multiplayer_peer = null
+		_network_mode = false
+		_network_role = "offline"
+		_player_nodes.clear()
+		return FAILED
+	return OK
+
+
+func join_game(address: String, port: int = DEFAULT_NETWORK_PORT) -> Error:
+	if _network_mode:
+		return ERR_ALREADY_IN_USE
+	var peer := ENetMultiplayerPeer.new()
+	var error := peer.create_client(address, port)
+	if error != OK:
+		return error
+	multiplayer.multiplayer_peer = peer
+	_network_mode = true
+	_network_role = "client"
+	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
+	_player_nodes[1] = $Player
+	return OK
+
+
+func is_network_session() -> bool:
+	return _network_mode
+
+
+func get_network_role() -> String:
+	return _network_role
+
+
+func get_network_player_ids() -> Array[int]:
+	var peer_ids: Array[int] = []
+	for peer_id: int in _player_nodes:
+		peer_ids.append(peer_id)
+	peer_ids.sort()
+	return peer_ids
+
+
+func _start_requested_network_session() -> Error:
+	var host_port := _argument_value("--host-port=")
+	if not host_port.is_empty():
+		return host_game(host_port.to_int())
+	var join_address := _argument_value("--join-address=")
+	if not join_address.is_empty():
+		var join_port := _argument_value("--join-port=")
+		return join_game(join_address, join_port.to_int() if not join_port.is_empty() else DEFAULT_NETWORK_PORT)
+	return ERR_SKIP
+
+
+func _on_network_peer_connected(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	for existing_peer_id: int in _player_nodes:
+		var existing_player := _player_nodes[existing_peer_id] as PartyPlayer
+		_spawn_network_player.rpc_id(
+			peer_id,
+			existing_peer_id,
+			String(match_manager.players[existing_peer_id].name),
+			existing_player.position
+		)
+	var spawn_position := _network_spawn_position(_player_nodes.size())
+	var player_name := "Player %d" % peer_id
+	if not _spawn_server_network_player(peer_id, player_name, spawn_position):
+		push_error("Unable to register connected peer %d" % peer_id)
+		return
+	_spawn_network_player.rpc(peer_id, player_name, spawn_position)
+
+
+func _on_network_peer_disconnected(peer_id: int) -> void:
+	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
+		return
+	$GrabManager.unregister_player(peer_id)
+	meteor_shower.unregister_player(peer_id)
+	flood.unregister_player(peer_id)
+	tornado.unregister_player(peer_id)
+	match_manager.unregister_player(peer_id)
+	_remove_network_player(peer_id)
+	_remove_network_player_remote.rpc(peer_id)
+
+
+func _on_server_disconnected() -> void:
+	for peer_id: int in _player_nodes.keys():
+		if peer_id != 1:
+			_remove_network_player(peer_id)
+	_network_mode = false
+	_network_role = "offline"
+
+
+func _spawn_server_network_player(peer_id: int, player_name: String, spawn_position: Vector3) -> bool:
+	if _player_nodes.has(peer_id):
+		return false
+	var player := PlayerScene.instantiate() as PartyPlayer
+	player.name = "NetworkPlayer%d" % peer_id
+	player.set_multiplayer_authority(peer_id)
+	add_child(player)
+	_configure_network_player(player, peer_id, spawn_position)
+	_player_nodes[peer_id] = player
+	if _register_server_gameplay_player(peer_id, player, player_name):
+		return true
+	_player_nodes.erase(peer_id)
+	player.queue_free()
+	return false
+
+
+@rpc("authority", "call_remote", "reliable")
+func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3) -> void:
+	if _player_nodes.has(peer_id):
+		_configure_network_player(_player_nodes[peer_id] as PartyPlayer, peer_id, spawn_position)
+		return
+	var player := PlayerScene.instantiate() as PartyPlayer
+	player.name = "NetworkPlayer%d" % peer_id
+	player.set_multiplayer_authority(peer_id)
+	add_child(player)
+	_configure_network_player(player, peer_id, spawn_position)
+	_player_nodes[peer_id] = player
+
+
+@rpc("authority", "call_remote", "reliable")
+func _remove_network_player_remote(peer_id: int) -> void:
+	_remove_network_player(peer_id)
+
+
+func _remove_network_player(peer_id: int) -> void:
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	_player_nodes.erase(peer_id)
+	if is_instance_valid(player) and player != $Player:
+		player.queue_free()
+
+
+func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
+	player.set_multiplayer_authority(peer_id)
+	player.position = spawn_position
+	var camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
+	camera.current = peer_id == multiplayer.get_unique_id()
+
+
+func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
+	return (
+		match_manager.register_player(peer_id, player_name)
+		and $GrabManager.register_player(peer_id, player)
+		and meteor_shower.register_player(peer_id, player)
+		and flood.register_player(peer_id, player)
+		and tornado.register_player(peer_id, player)
+	)
+
+
+func _network_spawn_position(index: int) -> Vector3:
+	var column := index % 5
+	var row := index / 5
+	return Vector3((column - 2) * 1.5, 0.05, 7.0 + row * 1.5)
 
 
 func _process(delta: float) -> void:

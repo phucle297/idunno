@@ -50,3 +50,9 @@
 - **Decision:** Parameterize the existing separate-process ENet harness and run the roadmap's 2, 4, 8, and 20-client counts against one authoritative server.
 - **Evidence boundary:** Each count validates ready submission, active match state, complete player/health snapshots, server-applied damage, client mutation rejection, and simultaneous Flood + Tornado state. It is a state-contract and connection-scale gate, not proof of playable movement or presentation replication.
 - **Next boundary:** Production networking belongs in the playable scene: create/join, authoritative spawning, disconnect cleanup, movement state, and disaster presentation must pass representative sessions before Phase 6 can complete.
+
+## 2026-10-06 — Playable-scene ENet session boundary
+
+- **Decision:** Keep ENet session orchestration in `main.gd`, which already owns playable player registration across match, grabbing, and disaster systems. Preserve the offline path and activate host/join only through explicit methods or command-line arguments.
+- **Spawning:** The host owns the canonical peer roster, creates each authoritative player, and reliably sends spawn/remove records to clients. Each client enables only its own player camera. The default limit is 20 total players: one host plus 19 remote clients.
+- **Cleanup:** A disconnect removes the player from the scene and from MatchManager, GrabManager, Meteor, Flood, and Tornado registries. Movement, match-state, health, and disaster presentation replication remain separate Phase 6 work.

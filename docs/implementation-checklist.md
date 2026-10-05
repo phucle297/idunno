@@ -48,5 +48,5 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 ## Phase 6 — Multiplayer stabilization
 
 - [x] Validate authoritative ready, match, health, alive, damage, and overlapping-disaster snapshots with 2, 4, 8, and 20 separate clients.
-- [ ] Connect the playable scene to ENet create/join, authoritative player spawning, and disconnect cleanup.
+- [x] Connect the playable scene to ENet create/join, authoritative player spawning, local camera ownership, and disconnect cleanup.
 - [ ] Replicate playable movement and disaster presentation, then validate representative 2/4/8/20-player sessions rather than state-only probes.

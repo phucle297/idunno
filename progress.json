@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T01:10:35+07:00",
+  "updated_at": "2026-10-06T01:33:45+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -64,7 +64,8 @@
       "status": "in_progress",
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
-        "playable_scene_networking": "not_implemented_create_join_spawning_disconnect_movement_and_disaster_presentation_replication_required"
+        "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
+        "playable_scene_replication": "not_implemented_movement_match_health_and_disaster_presentation_replication_required"
       }
     }
   },
@@ -243,6 +244,11 @@
       "result": "passed",
       "check": "Phase 6 separate-peer multiplayer state matrix",
       "evidence": "MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 from one authoritative ENet server plus separate Godot client processes at each count; all peers validated ready/ACTIVE, complete ALIVE and health state, 75 HP server damage, client mutation rejection, and simultaneous Flood + Tornado. This does not validate playable-scene replication."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 playable-scene ENet session",
+      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disconnect_cleanup=passed from two processes loading scenes/main.tscn; host/join, authoritative spawn IDs, per-peer authority, local camera ownership, and removal from scene plus match/grab/Meteor/Flood/Tornado registries passed. All ten gameplay suites, five rematch cycles, and NETWORK_AUTHORITY_PEERS_OK also passed. Movement and presentation replication remain unimplemented."
     }
   ],
   "blockers": [
@@ -296,9 +302,11 @@
     "tests/four_client_match_probe.gd",
     "tests/four_client_match_peer.gd",
     "tests/run_four_client_match_test.sh",
+    "tests/playable_scene_network_peer.gd",
+    "tests/run_playable_scene_network_test.sh",
     "tests/profile_overlap.gd",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Connect the playable scene to ENet create/join and authoritative player spawning with disconnect cleanup, then validate it with two separate peers before adding movement replication."
+  "next_action": "Add client input submission and server-authoritative movement snapshots for playable-scene players, then validate divergent two-peer movement and remote observation."
 }
