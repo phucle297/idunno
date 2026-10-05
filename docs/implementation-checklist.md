@@ -20,4 +20,11 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Connect the local sandbox to HP, alive count, timer, active state, and lethal results presentation.
 - [x] Add deterministic spectator target cycling after death and inspect the rendered state.
 - [x] Add restart cleanup and verify five consecutive rematches without leaked sandbox physics bodies.
-- [ ] Add server-arbitrated object grabbing, one-owner contention, bounded spring holding, and forced release.
+- [x] Add server-arbitrated object grabbing, one-owner contention, bounded spring holding, and forced release.
+
+## Phase 3 — Slice disasters
+
+- [ ] Implement Meteor Shower with an authoritative warning, impact damage, bounded impulse, and cleanup.
+- [ ] Implement Flood with authoritative water level, breathing grace, damage, buoyancy, and cleanup.
+- [ ] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
+- [ ] Validate each disaster independently before enabling director selection or overlap.

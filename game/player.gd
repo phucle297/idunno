@@ -16,6 +16,8 @@ var _camera_yaw := 0.0
 var _camera_pitch := -0.14
 var _ragdoll: Node3D
 var _is_eliminated := false
+var _grab_manager: Node
+var _peer_id := 1
 
 
 func _ready() -> void:
@@ -39,6 +41,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
+	if Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
+		_grab_manager.request_local_toggle(_peer_id)
 	apply_movement_input(
 		Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
 		Input.is_action_pressed("sprint"),
@@ -95,6 +99,7 @@ func apply_movement_input(
 func apply_knockdown(impulse: Vector3) -> void:
 	if _knockdown_remaining > 0.0:
 		return
+	release_held_object()
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
 	_ragdoll = RagdollScene.new()
@@ -109,12 +114,15 @@ func is_knocked_down() -> bool:
 
 
 func set_eliminated(eliminated: bool) -> void:
+	if eliminated:
+		release_held_object()
 	_is_eliminated = eliminated
 	visual.visible = not eliminated
 	collider.set_deferred("disabled", eliminated)
 
 
 func reset_for_match(spawn_position: Vector3) -> void:
+	release_held_object()
 	if is_instance_valid(_ragdoll):
 		_ragdoll.queue_free()
 		_ragdoll = null
@@ -128,6 +136,32 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	visual.scale = Vector3.ONE
 	collider.set_deferred("disabled", false)
 	_update_capsule(false)
+
+
+func configure_grabbing(manager: Node, peer_id: int) -> void:
+	_grab_manager = manager
+	_peer_id = peer_id
+
+
+func release_held_object() -> void:
+	if is_instance_valid(_grab_manager):
+		_grab_manager.release_grab(_peer_id)
+
+
+func can_grab_objects() -> bool:
+	return not _is_eliminated and _knockdown_remaining <= 0.0
+
+
+func get_grab_origin() -> Vector3:
+	return global_position + Vector3.UP * 0.9
+
+
+func get_grab_direction() -> Vector3:
+	return Basis(Vector3.UP, _camera_yaw) * Vector3.FORWARD
+
+
+func get_hold_position() -> Vector3:
+	return get_grab_origin() + get_grab_direction() * Tuning.GRAB_HOLD_DISTANCE
 
 
 func ragdoll_body_count() -> int:

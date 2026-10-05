@@ -26,6 +26,7 @@ func _ready() -> void:
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)
 	_player_nodes[1] = $Player
+	$GrabManager.register_player(1, $Player)
 	match_manager.player_eliminated.connect(_on_player_eliminated)
 	match_manager.register_player(1, "Local Player")
 	if _has_argument("--spectator-demo"):
@@ -38,11 +39,13 @@ func _ready() -> void:
 		match_manager.apply_damage(1, 100.0, "Meteor")
 	if _has_argument("--knockdown"):
 		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
+	if _has_argument("--grab-demo"):
+		$GrabManager.request_nearest_grab(1)
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
-		$Player/CameraPivot.rotation = Vector3(-0.14, 0.0, 0.0)
+		$Player/CameraPivot.rotation = Vector3(-0.14, 0.35 if _has_argument("--grab-demo") else 0.0, 0.0)
 		capture_after_frames(capture_path, 20)
 
 
@@ -134,11 +137,12 @@ func _build_sandbox() -> void:
 	_add_static_box("RaisedRouteTop", Vector3(9.0, 0.18, 7.0), Vector3(7.0, 2.09, -5.0), PALETTE.cream)
 	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.0, 0.83, 3.25), deg_to_rad(11.5))
 
-	for position in [Vector3(-3.0, 0.4, 3.0), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
+	for position in [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
 		_add_physics_crate(position)
 
 
 func _reset_sandbox() -> void:
+	$GrabManager.release_all()
 	for child in $Sandbox.get_children():
 		child.free()
 	_build_sandbox()
@@ -170,6 +174,7 @@ func _add_ramp(node_name: String, size: Vector3, position: Vector3, angle: float
 func _add_physics_crate(position: Vector3) -> void:
 	var body := RigidBody3D.new()
 	body.name = "PhysicsCrate"
+	body.add_to_group("grabbable")
 	body.position = position
 	body.mass = 12.0
 	body.collision_layer = 4

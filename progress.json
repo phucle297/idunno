@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T19:11:00+07:00",
+  "updated_at": "2026-10-05T20:19:25+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_2_match",
+  "current_phase": "phase_3_slice_disasters",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -27,17 +27,24 @@
       }
     },
     "phase_2_match": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "lobby_readiness": "passed_offline_authority_contract",
         "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
         "winner_rules": "passed_last_survivor_simultaneous_elimination_timeout_and_solo_exception",
         "spectating": "passed_local_camera_follow_deterministic_wraparound_target_cycling_and_visual_check",
-        "grabbing": "not_started",
+        "grabbing": "passed_server_arbitration_one_owner_bounded_spring_forced_release_rematch_and_visual_checks",
         "rematch_cleanup": "passed_five_consecutive_scene_resets_with_stable_physics_body_count"
       }
     },
-    "phase_3_slice_disasters": { "status": "blocked_by_phase_2" },
+    "phase_3_slice_disasters": {
+      "status": "in_progress",
+      "acceptance": {
+        "meteor_shower": "not_started",
+        "flood": "not_started",
+        "tornado": "not_started"
+      }
+    },
     "phase_4_director_overlap": { "status": "blocked_by_phase_3" },
     "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
   },
@@ -111,6 +118,16 @@
       "result": "passed",
       "check": "Phase 2 local spectator presentation",
       "evidence": "SPECTATOR_CONTROLLER_OK checks=12 and .amp/in/artifacts/phase2-spectating.png inspected: deterministic wraparound cycling, survivor follow, eliminated avatar hidden, HP 0, alive 2/3, and legible Q/E instruction"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 authoritative prop grabbing",
+      "evidence": "GRAB_MANAGER_OK checks=19, REMATCH_INTEGRATION_OK cycles=5 checks=50, and separate-process NETWORK_AUTHORITY_PEERS_OK: 1.5 m range, one-owner contention, non-teleport bounded spring, knockdown/death/separation/disconnect release, and stale-ownership cleanup passed"
+    },
+    {
+      "result": "passed",
+      "check": "Phase 2 grabbing visual gate",
+      "evidence": ".amp/in/artifacts/phase2-grabbing.png inspected: held crate visibly suspended without intersection, player and toy-town remain readable, and two-line controls do not overlap match UI"
     }
   ],
   "blockers": [
@@ -119,6 +136,7 @@
     "This WSL environment has no audio device, so Godot falls back to the dummy audio driver."
   ],
   "changed_files": [
+    "README.md",
     "AGENTS.md",
     ".agents/skills/advancing-disaster-party/SKILL.md",
     ".agents/skills/validating-game-assets/SKILL.md",
@@ -133,6 +151,7 @@
     "game/player.gd",
     "game/cosmetic_ragdoll.gd",
     "game/match_manager.gd",
+    "game/grab_manager.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
     "game/asset_validation.gd",
@@ -146,9 +165,10 @@
     "tests/test_match_manager.gd",
     "tests/test_rematch_integration.gd",
     "tests/test_spectator_controller.gd",
+    "tests/test_grab_manager.gd",
     "tests/run_network_authority_test.sh",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement server-arbitrated bounded-spring grabbing with one-owner contention and forced release checks to complete Phase 2."
+  "next_action": "Implement and independently validate server-authoritative Meteor Shower warning, impact damage, bounded radial impulse, ragdoll trigger, and cleanup."
 }

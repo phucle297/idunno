@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://game/match_manager.gd" id="3_match"]
+[ext_resource type="Script" path="res://game/grab_manager.gd" id="4_grab"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -21,6 +22,9 @@ directional_shadow_max_distance = 80.0
 [node name="MatchManager" type="Node" parent="."]
 script = ExtResource("3_match")
 
+[node name="GrabManager" type="Node" parent="."]
+script = ExtResource("4_grab")
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 
 [node name="Interface" type="CanvasLayer" parent="."]
@@ -37,11 +41,11 @@ text = "DISASTER PARTY — CORE SANDBOX"
 [node name="Help" type="Label" parent="Interface"]
 offset_left = 24.0
 offset_top = 56.0
-offset_right = 650.0
-offset_bottom = 88.0
+offset_right = 570.0
+offset_bottom = 98.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 16
-text = "WASD move  •  Shift sprint  •  Space jump  •  C crouch  •  R knockdown test"
+theme_override_font_sizes/font_size = 15
+text = "WASD move  •  Shift sprint  •  Space jump  •  C crouch\nF grab / release  •  R knockdown"
 
 [node name="Timer" type="Label" parent="Interface"]
 offset_left = 596.0

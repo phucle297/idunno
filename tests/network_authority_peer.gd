@@ -2,6 +2,7 @@ extends SceneTree
 
 const TIMEOUT_MSEC := 5000
 const ManagerScript = preload("res://game/match_manager.gd")
+const GrabManagerScript = preload("res://game/grab_manager.gd")
 
 var role := ""
 var port := 29720
@@ -93,16 +94,27 @@ func _check_authority_matrix(
 	var manager := ManagerScript.new()
 	host.add_child(manager)
 	var match_mutation_result: bool = manager.register_player(99, "Authority Probe")
+	var grab_manager := GrabManagerScript.new()
+	host.add_child(grab_manager)
+	var grab_player := server_player if role == "server" else client_player
+	var grab_registration_result: bool = grab_manager.register_player(root.multiplayer.get_unique_id(), grab_player)
+	var body := RigidBody3D.new()
+	body.add_to_group("grabbable")
+	body.position = Vector3(0.0, 0.4, -1.0)
+	host.add_child(body)
+	var grab_mutation_result: bool = grab_manager.request_grab(root.multiplayer.get_unique_id(), body)
 	var expected_match_mutation := role == "server"
 	var passed := (
 		server_result == expected_server_player
 		and client_result == expected_client_player
 		and match_mutation_result == expected_match_mutation
+		and grab_registration_result == expected_match_mutation
+		and grab_mutation_result == expected_match_mutation
 	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s" % [
-				role, server_result, client_result, match_mutation_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result
 			]
 		)
 	host.queue_free()
