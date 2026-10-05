@@ -32,7 +32,7 @@
     "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
   },
   "asset_intake": {
-    "quaternius_universal_animation_library": "archive_not_downloaded_clips_unverified",
+    "quaternius_universal_animation_library": "official_archive_blocked_by_cloudflare; third_party_standard_fbx_imported_in_scratch_and_45_clips_enumerated_as_secondary_evidence",
     "kenney_city_kit_suburban": "archive_license_and_40_glb_files_verified_not_imported",
     "kenney_particle_pack": "archive_license_and_80_transparent_png_files_verified_not_imported"
   },
@@ -61,11 +61,16 @@
       "result": "partial",
       "check": "gameplay sandbox visual gate",
       "evidence": ".amp/in/artifacts/phase1-sandbox.png inspected: runtime rendered, camera framing and crate readability need iteration"
+    },
+    {
+      "result": "partial",
+      "check": "Quaternius Standard animation inventory",
+      "evidence": "Third-party UAL1_Standard.fbx imported in Godot and exposed 45 named clips; official itch.io archive remains blocked and mirror provenance is insufficient"
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
-    "Quaternius free archive contents and animation clips have not yet been inspected.",
+    "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
     "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
     "Controller traversal and knockdown recovery still need executed interaction checks."
   ],
@@ -75,6 +80,7 @@
     ".agents/skills/validating-game-assets/SKILL.md",
     "docs/implementation-checklist.md",
     "docs/decisions.md",
+    "docs/animation-clip-inventory.md",
     "assets/manifest.json",
     "assets/THIRD_PARTY.md",
     "progress.json",
