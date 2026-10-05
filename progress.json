@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-05T00:00:00+07:00",
+  "project": "Disaster Party",
+  "source_of_truth": true,
+  "current_phase": "phase_1_core_sandbox",
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Forward+",
+    "target": "Windows PC",
+    "status": "selected_not_yet_executed"
+  },
+  "phases": {
+    "phase_1_core_sandbox": {
+      "status": "in_progress",
+      "acceptance": {
+        "engine_launch": "not_run",
+        "generated_asset_import": "not_run",
+        "asset_validation_scene": "not_run",
+        "controller_and_camera": "not_run",
+        "greybox_traversal": "not_run",
+        "ragdoll_recovery": "not_run",
+        "network_authority_boundary": "not_run",
+        "visual_review": "not_run"
+      }
+    },
+    "phase_2_match": { "status": "blocked_by_phase_1" },
+    "phase_3_slice_disasters": { "status": "blocked_by_phase_2" },
+    "phase_4_director_overlap": { "status": "blocked_by_phase_3" },
+    "phase_5_polish_validation": { "status": "blocked_by_phase_4" }
+  },
+  "asset_intake": {
+    "quaternius_universal_animation_library": "archive_not_downloaded_clips_unverified",
+    "kenney_city_kit_suburban": "candidate_verified_not_imported",
+    "kenney_particle_pack": "candidate_verified_not_imported"
+  },
+  "validation_log": [],
+  "blockers": [
+    "Blender is not installed; use deterministic Godot resources for the first import proof.",
+    "Quaternius free archive contents and animation clips have not yet been inspected."
+  ],
+  "changed_files": [
+    "AGENTS.md",
+    ".agents/skills/advancing-disaster-party/SKILL.md",
+    ".agents/skills/validating-game-assets/SKILL.md",
+    "docs/implementation-checklist.md",
+    "docs/decisions.md",
+    "assets/manifest.json",
+    "assets/THIRD_PARTY.md",
+    "progress.json"
+  ],
+  "next_action": "Install the selected portable Godot build, execute it headlessly, and create the Phase 1 project plus asset validation scene."
+}
