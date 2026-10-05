@@ -16,6 +16,7 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	var manager = main.get_node("MatchManager")
+	var director = main.get_node("DisasterDirector")
 	var grab_manager = main.get_node("GrabManager")
 	var meteor = main.get_node("MeteorShower")
 	var flood = main.get_node("Flood")
@@ -49,6 +50,9 @@ func _run() -> void:
 		_expect(meteor.phase == 0 and meteor.active_effect_count() == 0, "Cycle %d reset must clean Meteor state and effects" % (match_index + 1))
 		_expect(flood.phase == 0 and flood.active_effect_count() == 0, "Cycle %d reset must clean Flood state and effects" % (match_index + 1))
 		_expect(tornado.phase == 0 and tornado.active_effect_count() == 0, "Cycle %d reset must clean Tornado state and effects" % (match_index + 1))
+		_expect(director.running, "Cycle %d reset must restart director scheduling" % (match_index + 1))
+		_expect(director.selection_history.is_empty(), "Cycle %d reset must clear director history" % (match_index + 1))
+		_expect(director.get_active_disaster_names().is_empty(), "Cycle %d reset must clear director active state" % (match_index + 1))
 	if failures.is_empty():
 		print("REMATCH_INTEGRATION_OK cycles=5 checks=%d sandbox_children=%d" % [checks, expected_sandbox_children])
 		quit(0)

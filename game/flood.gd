@@ -14,6 +14,7 @@ enum Phase {
 }
 
 const DAMAGE_CAUSE := "Flood"
+const DISASTER_NAME := "Flood"
 
 @export var warning_duration := 6.0
 @export var start_level := -0.5
@@ -41,6 +42,24 @@ var _surface: MeshInstance3D
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func get_disaster_metadata() -> Dictionary:
+	return {
+		"name": DISASTER_NAME,
+		"difficulty": 1,
+		"minimum_match_time": 0.0,
+		"incompatible_disasters": [],
+		"combination_tags": ["water", "low_ground"]
+	}
+
+
+func start_disaster(_rng: RandomNumberGenerator) -> bool:
+	return start_warning()
+
+
+func is_active() -> bool:
+	return phase != Phase.IDLE
 
 
 func register_player(peer_id: int, player: Node3D) -> bool:

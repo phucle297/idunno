@@ -13,6 +13,7 @@ const PALETTE := {
 const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 
 @onready var match_manager: Node = $MatchManager
+@onready var disaster_director: DisasterDirector = $DisasterDirector
 @onready var meteor_shower: MeteorShower = $MeteorShower
 @onready var flood: Flood = $Flood
 @onready var tornado: Tornado = $Tornado
@@ -40,12 +41,18 @@ func _ready() -> void:
 	tornado.register_player(1, $Player)
 	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
 	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
+	disaster_director.configure(match_manager)
+	disaster_director.register_disaster(meteor_shower)
+	disaster_director.register_disaster(flood)
+	disaster_director.register_disaster(tornado)
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
 	for peer_id: int in match_manager.players:
 		match_manager.set_player_ready(peer_id, true)
 	match_manager.start_match()
+	if not _has_disaster_demo_argument():
+		disaster_director.start_directing()
 	if _has_argument("--lethal") or _has_argument("--spectator-demo"):
 		match_manager.apply_damage(1, 100.0, "Meteor")
 	if _has_argument("--knockdown"):
@@ -68,12 +75,23 @@ func _ready() -> void:
 		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
 		tornado.tick(tornado.warning_duration)
 		tornado.tick(1.6)
+	if _has_argument("--overlap-demo"):
+		$Player.position = Vector3(16.0, 4.95, -13.0)
+		flood.set_process(false)
+		tornado.set_process(false)
+		flood.start_warning()
+		flood.tick(flood.warning_duration)
+		flood.tick(flood.rise_duration * 0.45)
+		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
+		tornado.tick(tornado.warning_duration)
+		tornado.tick(1.6)
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
-		var capture_yaw := 2.25 if _has_argument("--flood-demo") else (0.35 if _has_argument("--grab-demo") else 0.0)
-		var capture_pitch := -0.42 if _has_argument("--flood-demo") else -0.14
+		var flood_view := _has_argument("--flood-demo") or _has_argument("--overlap-demo")
+		var capture_yaw := 2.25 if flood_view else (0.35 if _has_argument("--grab-demo") else 0.0)
+		var capture_pitch := -0.42 if flood_view else -0.14
 		$Player/CameraPivot.rotation = Vector3(capture_pitch, capture_yaw, 0.0)
 		if _has_argument("--meteor-impact-demo"):
 			capture_after_meteor_impact(capture_path)
@@ -89,23 +107,26 @@ func _process(delta: float) -> void:
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
 	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "ENTER TO REMATCH"
 	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
-	$Interface/MeteorWarning.visible = (
-		meteor_shower.phase != MeteorShower.Phase.IDLE
-		or flood.phase != Flood.Phase.IDLE
-		or tornado.phase != Tornado.Phase.IDLE
-	)
+	var disaster_lines := _active_disaster_lines()
+	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
+	$Interface/MeteorWarning.text = "\n".join(disaster_lines)
+
+
+func _active_disaster_lines() -> Array[String]:
+	var lines: Array[String] = []
 	if meteor_shower.phase == MeteorShower.Phase.WARNING:
-		$Interface/MeteorWarning.text = "WARNING — METEOR IMPACT IN %d" % maxi(1, ceili(meteor_shower.warning_remaining))
+		lines.append("WARNING — METEOR IMPACT IN %d" % maxi(1, ceili(meteor_shower.warning_remaining)))
 	elif meteor_shower.phase == MeteorShower.Phase.IMPACT:
-		$Interface/MeteorWarning.text = "METEOR IMPACT!"
-	elif flood.phase == Flood.Phase.WARNING:
-		$Interface/MeteorWarning.text = "WARNING — FLOOD IN %d" % maxi(1, ceili(flood.warning_remaining))
+		lines.append("METEOR IMPACT!")
+	if flood.phase == Flood.Phase.WARNING:
+		lines.append("WARNING — FLOOD IN %d" % maxi(1, ceili(flood.warning_remaining)))
 	elif flood.phase != Flood.Phase.IDLE:
-		$Interface/MeteorWarning.text = "FLOOD — REACH HIGH GROUND"
-	elif tornado.phase == Tornado.Phase.WARNING:
-		$Interface/MeteorWarning.text = "WARNING — TORNADO IN %d" % maxi(1, ceili(tornado.warning_remaining))
+		lines.append("FLOOD — REACH HIGH GROUND")
+	if tornado.phase == Tornado.Phase.WARNING:
+		lines.append("WARNING — TORNADO IN %d" % maxi(1, ceili(tornado.warning_remaining)))
 	elif tornado.phase == Tornado.Phase.ACTIVE:
-		$Interface/MeteorWarning.text = "TORNADO — FIND COVER"
+		lines.append("TORNADO — FIND COVER")
+	return lines
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -120,15 +141,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func restart_local_match() -> bool:
 	if not match_manager.reset_to_lobby():
 		return false
-	meteor_shower.cleanup()
-	flood.cleanup()
-	tornado.cleanup()
+	disaster_director.cleanup()
 	spectator_controller.stop()
 	$Interface/Spectating.visible = false
 	_reset_sandbox()
 	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
 	match_manager.set_player_ready(1, true)
-	return match_manager.start_match()
+	if not match_manager.start_match():
+		return false
+	return disaster_director.start_directing()
 
 
 func _on_player_eliminated(peer_id: int, _cause: String) -> void:
@@ -258,6 +279,16 @@ func _argument_value(prefix: String) -> String:
 
 func _has_argument(expected: String) -> bool:
 	return expected in OS.get_cmdline_user_args()
+
+
+func _has_disaster_demo_argument() -> bool:
+	return (
+		_has_argument("--meteor-demo")
+		or _has_argument("--meteor-impact-demo")
+		or _has_argument("--flood-demo")
+		or _has_argument("--tornado-demo")
+		or _has_argument("--overlap-demo")
+	)
 
 
 func capture_after_frames(path: String, frames: int) -> void:

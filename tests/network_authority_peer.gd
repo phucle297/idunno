@@ -6,6 +6,7 @@ const GrabManagerScript = preload("res://game/grab_manager.gd")
 const MeteorScript = preload("res://game/meteor_shower.gd")
 const FloodScript = preload("res://game/flood.gd")
 const TornadoScript = preload("res://game/tornado.gd")
+const DirectorScript = preload("res://game/disaster_director.gd")
 
 var role := ""
 var port := 29720
@@ -124,6 +125,11 @@ func _check_authority_matrix(
 	tornado.configure(manager)
 	var tornado_registration_result: bool = tornado.register_player(99, grab_player)
 	var tornado_mutation_result: bool = tornado.start_warning(Vector3.ZERO, Vector3.RIGHT * 4.0)
+	var director := DirectorScript.new()
+	host.add_child(director)
+	var director_configuration_result: bool = director.configure(manager)
+	var director_registration_result: bool = director.register_disaster(meteor)
+	var director_mutation_result: bool = director.start_directing(297)
 	var expected_match_mutation := role == "server"
 	var passed := (
 		server_result == expected_server_player
@@ -137,11 +143,14 @@ func _check_authority_matrix(
 		and flood_mutation_result == expected_match_mutation
 		and tornado_registration_result == expected_match_mutation
 		and tornado_mutation_result == expected_match_mutation
+		and director_configuration_result == expected_match_mutation
+		and director_registration_result == expected_match_mutation
+		and director_mutation_result == expected_match_mutation
 	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s flood_registration=%s flood_mutation=%s tornado_registration=%s tornado_mutation=%s" % [
-				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result, flood_registration_result, flood_mutation_result, tornado_registration_result, tornado_mutation_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s flood_registration=%s flood_mutation=%s tornado_registration=%s tornado_mutation=%s director_configuration=%s director_registration=%s director_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result, flood_registration_result, flood_mutation_result, tornado_registration_result, tornado_mutation_result, director_configuration_result, director_registration_result, director_mutation_result
 			]
 		)
 	host.queue_free()

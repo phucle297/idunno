@@ -11,6 +11,8 @@ enum Phase {
 	ACTIVE
 }
 
+const DISASTER_NAME := "Tornado"
+
 @export var warning_duration := 3.0
 @export var influence_radius := 8.0
 @export var core_radius := 2.0
@@ -40,6 +42,31 @@ var _effect: Node3D
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func get_disaster_metadata() -> Dictionary:
+	return {
+		"name": DISASTER_NAME,
+		"difficulty": 2,
+		"minimum_match_time": 120.0,
+		"incompatible_disasters": [],
+		"combination_tags": ["wind", "debris"]
+	}
+
+
+func start_disaster(rng: RandomNumberGenerator) -> bool:
+	var paths := [
+		[Vector3(-24.0, 0.0, -12.0), Vector3(24.0, 0.0, 12.0)],
+		[Vector3(24.0, 0.0, -12.0), Vector3(-24.0, 0.0, 12.0)],
+		[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
+		[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)]
+	]
+	var path: Array = paths[rng.randi_range(0, paths.size() - 1)]
+	return start_warning(path[0], path[1])
+
+
+func is_active() -> bool:
+	return phase != Phase.IDLE
 
 
 func register_player(peer_id: int, player: Node3D) -> bool:

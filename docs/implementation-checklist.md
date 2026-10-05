@@ -28,3 +28,11 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Implement Flood with authoritative water level, breathing grace, damage, buoyancy, and cleanup.
 - [x] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
 - [x] Validate each disaster independently before enabling director selection or overlap.
+
+## Phase 4 — Director and overlap
+
+- [x] Add a server-owned Disaster Director with randomized selection and immediate-repeat suppression.
+- [x] Add disaster metadata, minimum-time/difficulty gates, and symmetric compatibility checks.
+- [x] Escalate intensity from solo opening hazards to a hard cap of two simultaneous disasters.
+- [x] Require each hazard to complete solo before it can participate in an overlap.
+- [x] Validate overlap behavior, separate-peer authority, five-rematch cleanup, and the rendered multi-hazard HUD.

@@ -13,6 +13,7 @@ enum Phase {
 
 const TelegraphScene = preload("res://assets/generated/VFX_MeteorTelegraph_v001.tscn")
 const IMPACT_CAUSE := "Meteor"
+const DISASTER_NAME := "Meteor Shower"
 
 @export var warning_duration := 2.5
 @export var impact_radius := 3.0
@@ -36,6 +37,24 @@ var _countdown: Label3D
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func get_disaster_metadata() -> Dictionary:
+	return {
+		"name": DISASTER_NAME,
+		"difficulty": 1,
+		"minimum_match_time": 0.0,
+		"incompatible_disasters": [],
+		"combination_tags": ["explosion", "debris"]
+	}
+
+
+func start_disaster(rng: RandomNumberGenerator) -> bool:
+	return start_warning(Vector3(rng.randf_range(-18.0, 18.0), 0.06, rng.randf_range(-18.0, 18.0)))
+
+
+func is_active() -> bool:
+	return phase != Phase.IDLE
 
 
 func register_player(peer_id: int, player: Node3D) -> bool:

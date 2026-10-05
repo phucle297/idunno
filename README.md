@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-The project is currently in Phase 4: implementing randomized disaster direction and overlap after independently validating Meteor, Flood, and Tornado.
+Phase 4 is complete: a server-authoritative Disaster Director now randomizes Meteor, Flood, and Tornado, escalates intensity, and permits fair two-disaster overlap after solo introductions. Phase 5 polish and validation is next.
 
 ## Local development
 
@@ -29,6 +29,7 @@ godot --headless --path . --script res://tests/test_grab_manager.gd
 godot --headless --path . --script res://tests/test_meteor_shower.gd
 godot --headless --path . --script res://tests/test_flood.gd
 godot --headless --path . --script res://tests/test_tornado.gd
+godot --headless --path . --script res://tests/test_disaster_director.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 
 # Play the core sandbox.

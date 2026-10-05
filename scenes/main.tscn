@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://game/meteor_shower.gd" id="5_meteor"]
 [ext_resource type="Script" path="res://game/flood.gd" id="6_flood"]
 [ext_resource type="Script" path="res://game/tornado.gd" id="7_tornado"]
+[ext_resource type="Script" path="res://game/disaster_director.gd" id="8_director"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -24,6 +25,9 @@ directional_shadow_max_distance = 80.0
 
 [node name="MatchManager" type="Node" parent="."]
 script = ExtResource("3_match")
+
+[node name="DisasterDirector" type="Node" parent="."]
+script = ExtResource("8_director")
 
 [node name="GrabManager" type="Node" parent="."]
 script = ExtResource("4_grab")
@@ -84,7 +88,7 @@ visible = false
 offset_left = 352.0
 offset_top = 104.0
 offset_right = 928.0
-offset_bottom = 150.0
+offset_bottom = 188.0
 theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
 theme_override_colors/font_outline_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_constants/outline_size = 8
