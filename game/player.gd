@@ -239,3 +239,11 @@ func get_camera_yaw() -> float:
 func set_camera_yaw(yaw: float) -> void:
 	_camera_yaw = wrapf(yaw, -PI, PI)
 	camera_pivot.rotation.y = _camera_yaw
+
+
+func get_visual_yaw() -> float:
+	return visual.rotation.y
+
+
+func set_visual_yaw(yaw: float) -> void:
+	visual.rotation.y = wrapf(yaw, -PI, PI)

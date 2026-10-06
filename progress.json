@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T13:31:00+07:00",
+  "updated_at": "2026-10-06T14:36:27+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_6_multiplayer_stabilization",
+  "current_phase": "phase_7_polish",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -76,11 +76,11 @@
       }
     },
     "phase_6_multiplayer_stabilization": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
         "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "partial_two_peer_server_authoritative_movement_match_health_hud_elimination_spectating_all_six_disasters_and_two_combination_presentations_passed_playable_4_8_20_sessions_required"
+        "playable_scene_replication": "passed_4_8_20_total_player_main_scene_sessions_with_authoritative_movement_remote_facing_match_health_hud_meteor_warning_and_disconnect_cleanup"
       }
     },
     "phase_7_polish": {
@@ -99,7 +99,7 @@
     "phase_3_first_disasters": "completed_meteor_flood_tornado",
     "phase_4_additional_disasters": "completed_earthquake_lightning_fire",
     "phase_5_disaster_combinations": "completed_flood_lightning_and_tornado_fire",
-    "phase_6_multiplayer_stabilization": "in_progress_two_peer_playable_replication_and_2_4_8_20_state_matrix_passed_playable_4_8_20_sessions_missing",
+    "phase_6_multiplayer_stabilization": "completed_playable_4_8_20_sessions_and_transport_safe_packed_replication",
     "phase_7_polish": "partial_out_of_order_baseline_hud_and_vfx_exist_audio_results_screen_network_rematch_and_final_feedback_missing"
   },
   "asset_intake": {
@@ -362,6 +362,11 @@
       "result": "passed",
       "check": "Phase 5 behavior-changing disaster combinations",
       "evidence": "DISASTER_COMBINATIONS_OK checks=20 validates named-signal orchestration, connected-water queries, three-second Flood electrification, separate 25 HP/s electric damage, high-ground safety, expiry, Tornado-driven half-interval Fire propagation, exactly one tagged burning debris body, physical carriage, compact presentation snapshots, completion, and cleanup. NETWORK_AUTHORITY_PEERS_OK rejects client interaction mutation, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 observes both replicated interaction states. .amp/in/artifacts/phase5-electric-flood-final-v2.png and phase5-fire-tornado-v3.png were rendered and inspected: explicit non-color-only HUD labels, violet water ripples, raised refuge, Tornado, Fire, and visibly flaming carried debris passed."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 production playable-scene scale matrix",
+      "evidence": "PLAYABLE_SCALE_MATRIX_OK players=4,8,20 from actual scenes/main.tscn host and client processes. Every peer validated the complete authoritative roster and ownership, host-simulated local and remote movement, replicated visual facing, ACTIVE match with local 75 HP and correct alive HUD, and replicated Meteor warning. The server validated host HUD, all remote damage, and cleanup from player scene plus match, movement, grab, and all six disaster registries. Packed movement and match snapshots eliminated ENet MTU warnings at 20 players. PLAYER_INTEGRATION_OK checks=29, MATCH_MANAGER_OK checks=37, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2, and NETWORK_AUTHORITY_PEERS_OK also passed."
     }
   ],
   "blockers": [
@@ -425,9 +430,12 @@
     "tests/run_four_client_match_test.sh",
     "tests/playable_scene_network_peer.gd",
     "tests/run_playable_scene_network_test.sh",
+    "tests/playable_scale_probe.gd",
+    "tests/playable_scale_peer.gd",
+    "tests/run_playable_scale_test.sh",
     "tests/profile_overlap.gd",
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Complete Phase 6 with representative production playable-scene sessions at 4, 8, and 20 players, including movement, match/HUD state, disaster presentation, and disconnect cleanup."
+  "next_action": "Implement Phase 7 gameplay audio with overlap-priority validation, then complete results summary, network rematch, and final UI/VFX/feedback tuning."
 }

@@ -142,11 +142,40 @@ func get_alive_count() -> int:
 
 
 func create_authoritative_snapshot() -> Dictionary:
+	var peer_ids: Array[int] = []
+	for peer_id: int in players:
+		peer_ids.append(peer_id)
+	peer_ids.sort()
+	var ids := PackedInt32Array()
+	var ready := PackedByteArray()
+	var health := PackedFloat32Array()
+	var alive := PackedByteArray()
+	var damage_taken := PackedFloat32Array()
+	var elimination_time := PackedFloat32Array()
+	var causes := PackedStringArray()
+	var disasters_survived := PackedInt32Array()
+	for peer_id: int in peer_ids:
+		var player: Dictionary = players[peer_id]
+		ids.append(peer_id)
+		ready.append(1 if bool(player.ready) else 0)
+		health.append(float(player.health))
+		alive.append(1 if bool(player.alive) else 0)
+		damage_taken.append(float(player.damage_taken))
+		elimination_time.append(float(player.elimination_time))
+		causes.append(String(player.cause_of_death))
+		disasters_survived.append(int(player.disasters_survived))
 	return {
 		"state": int(state),
 		"elapsed_time": elapsed_time,
 		"match_duration": match_duration,
-		"players": players.duplicate(true),
+		"player_ids": ids,
+		"player_ready": ready,
+		"player_health": health,
+		"player_alive": alive,
+		"player_damage": damage_taken,
+		"player_elimination_time": elimination_time,
+		"player_causes": causes,
+		"player_disasters_survived": disasters_survived,
 		"winner_ids": winner_ids.duplicate(),
 	}
 
@@ -154,12 +183,43 @@ func create_authoritative_snapshot() -> Dictionary:
 func apply_authoritative_snapshot(snapshot: Dictionary) -> bool:
 	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
 		return false
+	var ids: PackedInt32Array = snapshot.get("player_ids", PackedInt32Array())
+	var ready: PackedByteArray = snapshot.get("player_ready", PackedByteArray())
+	var health: PackedFloat32Array = snapshot.get("player_health", PackedFloat32Array())
+	var alive: PackedByteArray = snapshot.get("player_alive", PackedByteArray())
+	var damage_taken: PackedFloat32Array = snapshot.get("player_damage", PackedFloat32Array())
+	var elimination_time: PackedFloat32Array = snapshot.get("player_elimination_time", PackedFloat32Array())
+	var causes: PackedStringArray = snapshot.get("player_causes", PackedStringArray())
+	var disasters_survived: PackedInt32Array = snapshot.get("player_disasters_survived", PackedInt32Array())
+	var player_count := ids.size()
+	if (
+		ready.size() != player_count
+		or health.size() != player_count
+		or alive.size() != player_count
+		or damage_taken.size() != player_count
+		or elimination_time.size() != player_count
+		or causes.size() != player_count
+		or disasters_survived.size() != player_count
+	):
+		return false
 	var previous_state := state
 	var previous_players := players
 	state = clampi(int(snapshot.get("state", MatchState.LOBBY)), MatchState.LOBBY, MatchState.RESULTS)
 	elapsed_time = clampf(float(snapshot.get("elapsed_time", 0.0)), 0.0, float(snapshot.get("match_duration", match_duration)))
 	match_duration = maxf(float(snapshot.get("match_duration", match_duration)), 0.0)
-	players = (snapshot.get("players", {}) as Dictionary).duplicate(true)
+	players = {}
+	for index: int in player_count:
+		var peer_id := ids[index]
+		players[peer_id] = {
+			"name": "Host" if peer_id == 1 else "Player %d" % peer_id,
+			"ready": ready[index] != 0,
+			"health": health[index],
+			"alive": alive[index] != 0,
+			"damage_taken": damage_taken[index],
+			"elimination_time": elimination_time[index],
+			"cause_of_death": causes[index],
+			"disasters_survived": disasters_survived[index],
+		}
 	winner_ids.clear()
 	for winner_id: Variant in snapshot.get("winner_ids", []):
 		winner_ids.append(int(winner_id))

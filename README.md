@@ -37,6 +37,8 @@ godot --headless --path . --script res://tests/test_disaster_director.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh
+# Run production main.tscn sessions with 4, 8, and 20 total players.
+GODOT_BIN=/path/to/godot tests/run_playable_scale_test.sh
 # Load the real playable scene as one host and one client, including disconnect cleanup.
 GODOT_BIN=/path/to/godot tests/run_playable_scene_network_test.sh
 

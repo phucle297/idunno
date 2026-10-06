@@ -66,7 +66,7 @@ Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior
 - [x] Submit playable client input to the host, simulate movement authoritatively, and batch player snapshots back to clients.
 - [x] Replicate playable match state, health, elimination, alive count, local HUD, and spectating.
 - [x] Replicate Meteor, Flood, and Tornado presentation into a two-peer playable session.
-- [ ] Validate representative playable 4/8/20-player sessions rather than state-only probes.
+- [x] Validate representative playable 4/8/20-player sessions rather than state-only probes.
 
 ## Phase 7 — Polish
 

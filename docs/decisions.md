@@ -105,3 +105,9 @@
 - **Decision:** `main.gd` orchestrates cross-disaster behavior through named signals rather than giving hazards direct references to each other. Lightning's `struck` event asks Flood to electrify connected water; Tornado activation/completion toggles Fire wind state, including the case where Fire begins during an active Tornado.
 - **Flood + Lightning:** A strike below the active water surface electrifies the connected flood for three seconds. Players standing in water take a separate authoritative 25 HP/s electric hazard while high ground remains safe. Violet concentric ripples and explicit HUD text replicate to clients; electrification expires and never makes water permanently lethal.
 - **Tornado + Fire:** Wind halves Fire's graph-propagation interval and creates at most one tagged, flaming 5 kg debris body. Tornado's existing bounded prop-force path carries it without a special force implementation. Clients receive only its active flag and authoritative position for presentation, and cleanup removes both wind state and debris.
+
+## 2026-10-06 — Phase 6 playable scale transport
+
+- **Decision:** Replicate player movement and match state in packed, stable-order arrays instead of one dictionary per player. Movement includes position, velocity, camera yaw, and visual-facing yaw; match state includes health, alive state, damage, elimination, survival count, and result data.
+- **Reason:** The dictionary snapshots exceeded ENet's 1,392-byte MTU with only four match players and twenty movement players. Packed snapshots completed playable 4-, 8-, and 20-player sessions without MTU warnings while preserving authoritative movement, HUD, damage, disaster presentation, and remote facing.
+- **Disconnects:** Clients reconcile player nodes from the authoritative match roster. This avoids broadcasting a removal RPC through channels that are closing and keeps all gameplay registries clean after sequential disconnects.

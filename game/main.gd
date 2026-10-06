@@ -261,7 +261,6 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	fire.unregister_player(peer_id)
 	match_manager.unregister_player(peer_id)
 	_remove_network_player(peer_id)
-	_remove_network_player_remote.rpc(peer_id)
 
 
 func _on_server_disconnected() -> void:
@@ -301,11 +300,6 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 	_player_nodes[peer_id] = player
 
 
-@rpc("authority", "call_remote", "reliable")
-func _remove_network_player_remote(peer_id: int) -> void:
-	_remove_network_player(peer_id)
-
-
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	_player_nodes.erase(peer_id)
@@ -336,7 +330,11 @@ func _physics_process(delta: float) -> void:
 			submit_local_movement_input(input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw())
 	if not multiplayer.is_server():
 		return
-	var snapshots: Array[Dictionary] = []
+	var peer_ids := PackedInt32Array()
+	var positions := PackedVector3Array()
+	var velocities := PackedVector3Array()
+	var camera_yaws := PackedFloat32Array()
+	var visual_yaws := PackedFloat32Array()
 	for peer_id: int in _player_nodes:
 		var player := _player_nodes[peer_id] as PartyPlayer
 		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
@@ -352,13 +350,12 @@ func _physics_process(delta: float) -> void:
 		)
 		movement_input.jump_pressed = false
 		_movement_inputs[peer_id] = movement_input
-		snapshots.append({
-			"peer_id": peer_id,
-			"transform": player.global_transform,
-			"velocity": player.velocity,
-			"yaw": player.get_camera_yaw(),
-		})
-	_apply_movement_snapshots.rpc(snapshots)
+		peer_ids.append(peer_id)
+		positions.append(player.global_position)
+		velocities.append(player.velocity)
+		camera_yaws.append(player.get_camera_yaw())
+		visual_yaws.append(player.get_visual_yaw())
+	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws)
 
 
 func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
@@ -379,17 +376,27 @@ func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, 
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 1)
-func _apply_movement_snapshots(snapshots: Array[Dictionary]) -> void:
+func _apply_movement_snapshots(
+	peer_ids: PackedInt32Array,
+	positions: PackedVector3Array,
+	velocities: PackedVector3Array,
+	camera_yaws: PackedFloat32Array,
+	visual_yaws: PackedFloat32Array
+) -> void:
 	if multiplayer.is_server():
 		return
-	for snapshot: Dictionary in snapshots:
-		var peer_id := int(snapshot.peer_id)
+	var player_count := peer_ids.size()
+	if positions.size() != player_count or velocities.size() != player_count or camera_yaws.size() != player_count or visual_yaws.size() != player_count:
+		return
+	for index: int in player_count:
+		var peer_id := peer_ids[index]
 		if not _player_nodes.has(peer_id):
 			continue
 		var player := _player_nodes[peer_id] as PartyPlayer
-		player.global_transform = snapshot.transform
-		player.velocity = snapshot.velocity
-		player.set_camera_yaw(float(snapshot.yaw))
+		player.global_position = positions[index]
+		player.velocity = velocities[index]
+		player.set_camera_yaw(camera_yaws[index])
+		player.set_visual_yaw(visual_yaws[index])
 
 
 func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
@@ -459,6 +466,10 @@ func _process(delta: float) -> void:
 
 @rpc("authority", "call_remote", "unreliable_ordered", 2)
 func _apply_match_snapshot(snapshot: Dictionary) -> void:
+	var snapshot_peer_ids: PackedInt32Array = snapshot.get("player_ids", PackedInt32Array())
+	for peer_id: int in _player_nodes.keys():
+		if peer_id not in snapshot_peer_ids:
+			_remove_network_player(peer_id)
 	match_manager.apply_authoritative_snapshot(snapshot)
 	var disasters: Dictionary = snapshot.get("disasters", {})
 	meteor_shower.apply_presentation_snapshot(disasters.get("meteor", {}))
