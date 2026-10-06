@@ -63,7 +63,7 @@ Reverified after Task 1.2.1: `tests/test_milestone_1_1.gd` checks theme sharing,
 
 - [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
 - [x] Task 1.2.2: Add compact active-hazard and combination chips for persistent context; six vector identities and paired interaction chips validated at 720p/1080p without repeating major-warning instructions.
-- [ ] Task 1.2.3: Merge Flood breathing/drowning copy into one prioritized personal-danger channel so instructions do not compete.
+- [x] Task 1.2.3: Merge Flood wading/breathing/drowning into one bottom-anchored personal-danger card; competing warning actions and interaction prompts yield until safe, with no full-screen tint or health flashing.
 - [ ] Task 1.2.4: Add restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice.
 
 Acceptance: hazard identity is never color-only; at most one full warning and one personal-danger banner compete for attention; every incoming disaster shows icon, name, countdown, and action; overlap remains readable.

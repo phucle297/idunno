@@ -178,3 +178,9 @@
 - **Identity:** Reuse the six deterministic vector symbols at 24 px with cream ink beside compact hazard names. Warning phases keep identity in the tray, but countdowns and escape instructions appear only in the major banner.
 - **Interactions:** Electrified Flood water and active wind-driven Fire replace their constituent chips with one paired-icon chip naming the implemented interaction. Interaction chips precede ordinary hazards so the two-chip cap cannot hide them. Electrified water remains visible after the Lightning flash ends; warned Fire does not claim spreading flames before activation.
 - **Boundary:** Continue using the existing read-only hazard-line contract and replicated disaster state. No hazard timing, selection, damage, networking, or gameplay authority changes. No generic overlap is labeled as an implemented combination.
+
+## 2026-10-06 — Unified personal Flood danger
+
+- **Presentation:** One bottom-anchored slate/amber card replaces the floating Flood label, full-screen tint, and flashing health number. Wading, breathing grace, and drowning replace the same status row; a single action row instructs the player to keep or get their head above water. Text communicates urgency without color or animation dependence.
+- **Priority:** Local exposure takes instruction priority over the major warning action and grab/release prompt. Incoming hazard identity/countdown and persistent chips remain visible. Safety clears the card and restores the current warning action and interaction prompt; no control or gameplay ability is disabled by the presentation.
+- **Authority and lifecycle:** Read existing per-player exposure and damage-rate state without altering the two-second grace boundary or health rules. Suppress local danger outside ACTIVE play, in the lobby, and during spectating. Additional warning motion remains Task 1.2.4.

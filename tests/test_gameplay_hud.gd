@@ -133,14 +133,38 @@ func _run() -> void:
 	hud.present_context_action("")
 	_expect(not hud.context_prompt.visible, "No available interaction must hide the contextual action")
 
+	var flood_before: Dictionary = main._create_playable_snapshot().duplicate(true)
+	hud.present_hazards(["FLOOD", "METEOR"])
+	hud.present_major_warning("meteor", 1.5)
+	hud.present_context_action("RELEASE OBJECT")
+	_expect(not hud.has_node("FloodOverlay") and not hud.has_node("FloodDanger"), "The single danger channel must replace floating copy and the full-screen tint")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.WADING)
-	_expect((hud.get_node("FloodDanger") as Label).visible and not (hud.get_node("FloodOverlay") as ColorRect).visible, "Wading must warn without implying head submersion")
+	_expect(hud.personal_danger.visible and hud.danger_status.text == "IN FLOODWATER", "Wading must warn without implying head submersion")
+	_expect(hud.danger_action.text == "KEEP YOUR HEAD ABOVE WATER", "Wading must give one local escape instruction")
+	await _capture("personal-wading")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.SUBMERGED, 1.3)
-	_expect((hud.get_node("FloodOverlay") as ColorRect).visible and "1.3 s" in (hud.get_node("FloodDanger") as Label).text, "Submersion must show the breathing grace")
+	_expect(hud.personal_danger.visible and hud.danger_status.text == "HOLD BREATH — 1.3 s", "Submersion must show the breathing grace in the same card")
+	await _capture("personal-breathing")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
-	_expect("-12 HP/s" in (hud.get_node("FloodDanger") as Label).text, "Drowning must show the damage rate")
+	_expect(hud.danger_status.text == "DROWNING — -12 HP/s" and hud.danger_action.text == "GET YOUR HEAD ABOVE WATER", "Drowning must replace grace with damage and one action")
+	hud.present_major_warning("lightning", 2.0)
+	hud.present_context_action("GRAB OBJECT")
+	_expect(hud.warning_banner.visible and hud.warning_countdown.text == "2 s" and not hud.warning_action.visible, "Personal danger must override competing warning instructions without hiding incoming identity or timing")
+	_expect(not hud.context_prompt.visible, "Interaction prompts must yield to immediate personal danger regardless of call order")
+	_expect(hud.health_label.modulate == Color.WHITE, "Drowning must not flash the health number or obscure the world")
+	await _capture("personal-drowning")
+	var environment: Environment = main.get_node("WorldEnvironment").environment
+	environment.background_color = Color("202a38")
+	environment.ambient_light_energy = 0.1
+	main.get_node("Sun").light_energy = 0.1
+	await _capture("personal-drowning-dark")
+	hud.present_flood_exposure(GameplayHud.FloodExposure.SUBMERGED, 0.8)
+	_expect(hud.danger_status.text == "HOLD BREATH — 0.8 s", "A recovered breathing grace must clear stale damage copy")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
-	_expect(not (hud.get_node("FloodDanger") as Label).visible and not (hud.get_node("FloodOverlay") as ColorRect).visible, "Safe exposure must clear all flood feedback")
+	_expect(not hud.personal_danger.visible and hud.danger_status.text.is_empty() and hud.danger_action.text.is_empty(), "Safe exposure must clear all danger copy")
+	_expect(hud.warning_action.visible and hud.context_prompt.visible, "Safety must restore current warning instructions and contextual action")
+	_expect(main._create_playable_snapshot() == flood_before, "All danger presentation transitions must leave authoritative state unchanged")
+	await _capture("personal-safe")
 
 	hud.present_spectator_target("Teal Player")
 	_expect("Teal Player" in (hud.get_node("Spectating") as Label).text, "Spectator presentation must name the selected player")
@@ -174,5 +198,11 @@ func _capture(state: String) -> void:
 			for chip: PanelContainer in root.get_node("Main/Interface").hazard_chips:
 				if chip.visible:
 					_expect(chip.get_global_rect().encloses(chip.get_node("Content").get_global_rect()), "Chip icons and copy must fit inside their panel")
+			var hud: GameplayHud = root.get_node("Main/Interface")
+			if hud.personal_danger.visible:
+				_expect(Rect2(24, 24, 1232, 672).encloses(hud.personal_danger.get_global_rect()), "Personal danger must fit within the safe area")
+				_expect(hud.personal_danger.get_global_rect().encloses(hud.danger_action.get_global_rect()), "Personal danger instructions must fit the card")
+				for panel: Control in [hud.health_card, hud.timer_card, hud.hazard_tray, hud.warning_banner]:
+					_expect(not hud.personal_danger.get_global_rect().intersects(panel.get_global_rect()), "Personal danger must not overlap other HUD cards")
 			var path := argument.trim_prefix("--capture-dir=").path_join("warning-%s-%dx%d.png" % [state, root.size.x, root.size.y])
 			_expect(root.get_texture().get_image().save_png(path) == OK, "The warning review capture must save successfully")

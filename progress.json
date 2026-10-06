@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T19:19:45+07:00",
+  "updated_at": "2026-10-06T19:47:43+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_2_warning_and_personal_danger",
-    "task": "task_1_2_3_unified_flood_danger_channel"
+    "task": "task_1_2_4_warning_motion_and_audio_feedback"
   },
   "engine": {
     "name": "Godot",
@@ -74,13 +74,13 @@
         "tasks": {
           "task_1_2_1_major_warning_banner": "completed",
           "task_1_2_2_hazard_and_combination_chips": "completed",
-          "task_1_2_3_unified_flood_danger_channel": "planned",
+          "task_1_2_3_unified_flood_danger_channel": "completed",
           "task_1_2_4_warning_motion_and_audio_feedback": "planned"
         },
         "gates": {
           "icon_name_countdown_and_action": "passed",
           "non_color_only_identity": "passed",
-          "bounded_warning_priority": "not_run",
+          "bounded_warning_priority": "passed",
           "overlap_readability": "not_run"
         }
       },
@@ -176,6 +176,11 @@
       "result": "passed",
       "check": "Task 1.2.2 compact active-hazard and combination chips",
       "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=71 covers six chip icons/names, two-chip cap, compact incoming identity, interaction priority and constituent deduplication, electrification after flash expiry, expiry to one icon, warning-only Fire versus active wind interaction, and presentation snapshot immutability. Display-backed runs with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=93 each including content containment and captures. Inspected all six 720p warning/chip icons, electric combination at both resolutions, wind combination with banner at 720p and without banner at 1080p, and dark-world 720p chips: legible paired icons/copy, no clipping or player occlusion. DISASTER_COMBINATIONS_OK checks=20, UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. Initial Milestone 1.1 layout regression emitted missing-node errors because chip labels moved into Content; fixed paths and compact fixtures, then MILESTONE_1_1_OK checks=79 headless and checks=84 display-backed at 720p passed cleanly. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including combination replication, five rematches and disconnect cleanup. Existing HUD/combination resource diagnostics persist on successful exit. Rendering uses WSL llvmpipe/Dummy audio; not native Windows performance evidence. Remaining milestone gates await personal-danger and motion work."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.3 unified personal Flood danger channel",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=79 validates one wading/grace/drowning card, exact copy, authoritative snapshot immutability, no tint/health flashing, warning instruction and context-prompt priority in both call orders, and restoration/clearing on safety. PLAYER_INTEGRATION_OK checks=50 validates actual Flood exposure, exact two-second grace boundary then damage, lobby/results/open-lobby/spectator suppression, resumed exposure and dry-ground clearing. FLOOD_OK checks=29, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=140 each including safe-area, content containment, and no card overlaps. Inspected personal-wading, personal-breathing, personal-drowning and personal-safe at 720p plus personal-drowning-dark at 1080p: legible one-card instructions, unobscured player, preserved incoming identity/countdown, restored safe-state action/prompt. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Existing intermittent successful-exit HUD resource diagnostics remain. Captures use deterministic presentation fixtures with WSL llvmpipe/Dummy audio; actual exposure/damage is exercised separately by integration/Flood tests. Final motion/overlap gate remains Task 1.2.4."
     }
   ],
   "blockers": [],
@@ -200,5 +205,5 @@
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.2.3 by merging Flood breathing and drowning feedback into one prioritized personal-danger channel without competing instructions."
+  "next_action": "Implement Phase 1 Task 1.2.4 with restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice, then validate the remaining Milestone 1.2 overlap gate."
 }

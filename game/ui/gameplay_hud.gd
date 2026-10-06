@@ -32,8 +32,9 @@ const WARNING_COPY := {
 ]
 @onready var context_prompt: PanelContainer = $ContextPrompt
 @onready var context_action_label: Label = $ContextPrompt/Content/Action
-@onready var flood_overlay: ColorRect = $FloodOverlay
-@onready var flood_danger_label: Label = $FloodDanger
+@onready var personal_danger: PanelContainer = $PersonalDanger
+@onready var danger_status: Label = $PersonalDanger/Content/Status
+@onready var danger_action: Label = $PersonalDanger/Content/Action
 @onready var spectating_label: Label = $Spectating
 @onready var warning_banner: PanelContainer = $MajorWarning
 @onready var warning_icon: Control = $MajorWarning/Content/Icon
@@ -83,7 +84,7 @@ func present_hazards(lines: Array[String]) -> void:
 
 func present_context_action(action: String) -> void:
 	_presented_context_action = action
-	context_prompt.visible = not action.is_empty()
+	context_prompt.visible = not action.is_empty() and not personal_danger.visible
 	context_action_label.text = action
 
 
@@ -103,22 +104,21 @@ func present_major_warning(disaster_id: String, remaining_seconds: float = 0.0) 
 
 
 func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.0, damage_per_second: float = 0.0) -> void:
-	var submerged := exposure == FloodExposure.SUBMERGED or exposure == FloodExposure.DROWNING
-	flood_overlay.visible = submerged
-	flood_danger_label.visible = exposure != FloodExposure.SAFE
-	health_label.modulate = Color.WHITE
-
+	personal_danger.visible = exposure != FloodExposure.SAFE
+	warning_action.visible = not personal_danger.visible
+	context_prompt.visible = not _presented_context_action.is_empty() and not personal_danger.visible
+	danger_status.text = ""
+	danger_action.text = ""
 	match exposure:
 		FloodExposure.WADING:
-			flood_danger_label.text = "IN FLOODWATER  •  KEEP YOUR HEAD ABOVE WATER"
+			danger_status.text = "IN FLOODWATER"
+			danger_action.text = "KEEP YOUR HEAD ABOVE WATER"
 		FloodExposure.SUBMERGED:
-			flood_danger_label.text = "HOLD BREATH — %.1f s  •  REACH HIGH GROUND" % grace_remaining
-			flood_overlay.color.a = 0.12
+			danger_status.text = "HOLD BREATH — %.1f s" % maxf(0.0, grace_remaining)
+			danger_action.text = "GET YOUR HEAD ABOVE WATER"
 		FloodExposure.DROWNING:
-			flood_danger_label.text = "DROWNING  •  -%d HP/s  •  GET ABOVE WATER" % int(damage_per_second)
-			var pulse := 0.72 + sin(Time.get_ticks_msec() * 0.012) * 0.18
-			health_label.modulate = Color(1.0, pulse, pulse)
-			flood_overlay.color.a = 0.18 + sin(Time.get_ticks_msec() * 0.01) * 0.04
+			danger_status.text = "DROWNING — -%d HP/s" % int(damage_per_second)
+			danger_action.text = "GET YOUR HEAD ABOVE WATER"
 
 
 func set_spectating_visible(visible: bool) -> void:

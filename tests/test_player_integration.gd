@@ -230,11 +230,33 @@ func _test_default_scene_offline_input() -> void:
 	flood.phase = Flood.Phase.HOLDING
 	flood.tick(1.0)
 	main._process(0.0)
-	_expect((main.get_node("Interface/FloodOverlay") as ColorRect).visible and "HOLD BREATH" in (main.get_node("Interface/FloodDanger") as Label).text, "Head submersion must immediately show breathing-grace feedback")
-	flood.tick(1.5)
+	_expect(main.gameplay_hud.personal_danger.visible and "HOLD BREATH" in main.gameplay_hud.danger_status.text, "Head submersion must immediately show breathing-grace feedback")
+	flood.tick(1.0)
+	main._process(0.0)
+	_expect(main.gameplay_hud.danger_status.text == "HOLD BREATH — 0.0 s", "The exact breathing-grace boundary must not announce damage early")
+	flood.tick(0.5)
 	main._process(0.0)
 	_expect((main.get_node("MatchManager") as MatchManager).get_health(1) < 100.0, "Flood must reduce HP after the breathing grace expires")
-	_expect((main.get_node("Interface/FloodOverlay") as ColorRect).visible and "DROWNING" in (main.get_node("Interface/FloodDanger") as Label).text, "Active Flood damage must show a visible drowning effect and damage rate")
+	_expect(main.gameplay_hud.personal_danger.visible and main.gameplay_hud.danger_status.text == "DROWNING — -12 HP/s", "Active Flood damage must replace breathing copy with the authoritative damage rate")
+	for state: int in [MatchManager.MatchState.LOBBY, MatchManager.MatchState.RESULTS]:
+		main.match_manager.state = state
+		main._update_flood_feedback(1)
+		_expect(not main.gameplay_hud.personal_danger.visible, "Non-active match states must suppress personal danger despite lingering water")
+	main.match_manager.state = MatchManager.MatchState.ACTIVE
+	main.get_node("Interface/LobbyPanel").show()
+	main._update_flood_feedback(1)
+	_expect(not main.gameplay_hud.personal_danger.visible, "The open lobby must suppress personal danger")
+	main.get_node("Interface/LobbyPanel").hide()
+	main.spectator_controller.active = true
+	main._update_flood_feedback(1)
+	_expect(not main.gameplay_hud.personal_danger.visible, "Spectators must not inherit the submerged player's danger")
+	main.spectator_controller.active = false
+	main._update_flood_feedback(1)
+	_expect(main.gameplay_hud.personal_danger.visible, "Returning to active local play must restore current exposure")
+	playable_player.position.y = 5.0
+	flood.tick(0.1)
+	main._update_flood_feedback(1)
+	_expect(not main.gameplay_hud.personal_danger.visible and main.gameplay_hud.danger_status.text.is_empty(), "Surfacing onto dry ground must clear stale personal danger")
 	main.queue_free()
 	await process_frame
 

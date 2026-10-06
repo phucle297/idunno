@@ -647,6 +647,9 @@ func _match_state_text() -> String:
 
 
 func _update_flood_feedback(local_peer_id: int) -> void:
+	if match_manager.state != MatchManager.MatchState.ACTIVE or spectator_controller.active or $Interface/LobbyPanel.visible:
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
+		return
 	var player := _player_nodes.get(local_peer_id) as PartyPlayer
 	var active := flood.phase >= Flood.Phase.RISING and match_manager.is_player_alive(local_peer_id) and is_instance_valid(player)
 	var feet_flooded := active and flood.is_position_flooded(player.global_position + Vector3.UP * 0.05)
