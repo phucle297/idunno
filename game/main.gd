@@ -28,6 +28,7 @@ const PROP_SNAPSHOT_INTERVAL := 0.1
 @onready var lightning: Lightning = $Lightning
 @onready var fire: Fire = $Fire
 @onready var gameplay_audio: GameplayAudioController = $GameplayAudio
+@onready var gameplay_hud: GameplayHud = $Interface
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
@@ -584,18 +585,16 @@ func _process(delta: float) -> void:
 			_match_snapshot_remaining = MATCH_SNAPSHOT_INTERVAL
 			_apply_match_snapshot.rpc(_create_playable_snapshot())
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
-	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(local_peer_id))
+	gameplay_hud.present_vitals(match_manager.get_health(local_peer_id), match_manager.get_alive_count(), match_manager.players.size())
 	_update_flood_feedback(local_peer_id)
-	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
-	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
-	$Interface/State.text = _match_state_text()
-	$Interface/Timer.visible = match_manager.state != MatchManager.MatchState.RESULTS
-	$Interface/State.visible = match_manager.state != MatchManager.MatchState.RESULTS
-	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
-	var disaster_lines := _active_disaster_lines()
-	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
-	$Interface/MeteorWarning.text = "\n".join(disaster_lines)
+	gameplay_hud.present_match_status(
+		remaining,
+		_match_state_text(),
+		match_manager.state == MatchManager.MatchState.RESULTS,
+		match_manager.state == MatchManager.MatchState.ACTIVE and not spectator_controller.active
+	)
+	gameplay_hud.present_hazards(_active_disaster_lines())
 	_update_lobby_ui()
 
 
@@ -647,30 +646,21 @@ func _match_state_text() -> String:
 
 
 func _update_flood_feedback(local_peer_id: int) -> void:
-	var overlay := $Interface/FloodOverlay as ColorRect
-	var danger := $Interface/FloodDanger as Label
-	var health := $Interface/Health as Label
 	var player := _player_nodes.get(local_peer_id) as PartyPlayer
 	var active := flood.phase >= Flood.Phase.RISING and match_manager.is_player_alive(local_peer_id) and is_instance_valid(player)
 	var feet_flooded := active and flood.is_position_flooded(player.global_position + Vector3.UP * 0.05)
 	var submerged_time := flood.get_submerged_time(local_peer_id) if active else 0.0
 	var submerged := submerged_time > 0.0
-	overlay.visible = submerged
-	danger.visible = feet_flooded
-	health.modulate = Color.WHITE
 	if not feet_flooded:
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
 		return
 	if submerged_time > flood.breathing_grace:
-		danger.text = "DROWNING  •  -%d HP/s  •  GET ABOVE WATER" % int(flood.damage_per_second)
-		var pulse := 0.72 + sin(Time.get_ticks_msec() * 0.012) * 0.18
-		health.modulate = Color(1.0, pulse, pulse)
-		overlay.color.a = 0.18 + sin(Time.get_ticks_msec() * 0.01) * 0.04
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, flood.damage_per_second)
 	elif submerged:
 		var grace_remaining := maxf(flood.breathing_grace - submerged_time, 0.0)
-		danger.text = "HOLD BREATH — %.1f s  •  REACH HIGH GROUND" % grace_remaining
-		overlay.color.a = 0.12
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SUBMERGED, grace_remaining)
 	else:
-		danger.text = "IN FLOODWATER  •  KEEP YOUR HEAD ABOVE WATER"
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.WADING)
 
 
 func _active_disaster_lines() -> Array[String]:
@@ -868,7 +858,7 @@ func _restart_authoritative_match() -> bool:
 		return false
 	disaster_director.cleanup()
 	spectator_controller.stop()
-	$Interface/Spectating.visible = false
+	gameplay_hud.set_spectating_visible(false)
 	$Interface/ResultsPanel.visible = false
 	gameplay_audio.reset_for_match()
 	_reset_sandbox()
@@ -946,7 +936,7 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	if not _network_mode or multiplayer.is_server():
 		return
 	spectator_controller.stop()
-	$Interface/Spectating.visible = false
+	gameplay_hud.set_spectating_visible(false)
 	gameplay_audio.reset_for_match()
 	for player_node: PartyPlayer in _player_nodes.values():
 		player_node.reset_for_match(player_node.global_position)
@@ -959,7 +949,7 @@ func _on_player_eliminated(peer_id: int, _cause: String) -> void:
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	if peer_id == local_peer_id and is_instance_valid(eliminated_player):
 		spectator_controller.begin(eliminated_player.get_node("CameraPivot"), _living_spectator_targets())
-		$Interface/Spectating.visible = true
+		gameplay_hud.set_spectating_visible(true)
 	else:
 		spectator_controller.set_targets(_living_spectator_targets())
 
@@ -974,10 +964,8 @@ func _living_spectator_targets() -> Dictionary:
 
 
 func _on_spectator_target_changed(peer_id: int) -> void:
-	if peer_id == 0:
-		$Interface/Spectating.text = "NO SURVIVORS TO SPECTATE"
-	else:
-		$Interface/Spectating.text = "SPECTATING  %s   •   Q / E cycle" % match_manager.players[peer_id].name
+	var player_name := "" if peer_id == 0 else String(match_manager.players[peer_id].name)
+	gameplay_hud.present_spectator_target(player_name)
 
 
 func _add_spectator_demo_player(peer_id: int, player_name: String, spawn_position: Vector3) -> void:

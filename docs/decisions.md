@@ -148,3 +148,9 @@
 - **Decision:** `game/ui/ui_tokens.gd` is the single code-owned source for Toy Broadcast colors, typography, spacing, safe margins, radii, focus width, and shared Godot control styles. `main.gd` applies one generated `Theme` resource to the current top-level interface controls until later tasks extract dedicated HUD scenes.
 - **Reason:** The existing UI mixed engine-default controls, scene-local panel styling, and per-label overrides. Central tokens create a stable visual contract without coupling presentation to authoritative match state or prematurely restructuring every screen.
 - **Accessibility:** Keyboard focus uses a three-pixel warning-amber ring, disabled controls retain readable ink text, and neutral lobby status does not use the danger color.
+
+## 2026-10-06 — Semantic gameplay HUD boundary
+
+- **Decision:** The existing `Interface` canvas is a typed `GameplayHud` presenter. `main.gd` supplies semantic values such as health, survivor counts, match status, hazard lines, Flood exposure, and spectator target; only the presenter formats and mutates their controls.
+- **Authority:** The HUD remains presentation-only. `MatchManager`, disaster components, and server snapshots continue to own gameplay state, while the presenter has no references back to those systems.
+- **Migration:** Preserve existing node names and visual layout until Task 1.1.3 replaces the raw labels with responsive components, keeping established integration and network contracts stable during the refactor.

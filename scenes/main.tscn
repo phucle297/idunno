@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://game/lightning.gd" id="10_lightning"]
 [ext_resource type="Script" path="res://game/fire.gd" id="11_fire"]
 [ext_resource type="Script" path="res://game/gameplay_audio_controller.gd" id="12_audio"]
+[ext_resource type="Script" path="res://game/ui/gameplay_hud.gd" id="13_hud"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -60,6 +61,7 @@ script = ExtResource("12_audio")
 [node name="Player" parent="." instance=ExtResource("2_player")]
 
 [node name="Interface" type="CanvasLayer" parent="."]
+script = ExtResource("13_hud")
 
 [node name="FloodOverlay" type="ColorRect" parent="Interface"]
 visible = false

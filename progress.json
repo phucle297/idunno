@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:02:23+07:00",
+  "updated_at": "2026-10-06T18:09:55+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_1_theme_hud_and_components",
-    "task": "task_1_1_2_extract_semantic_hud_components"
+    "task": "task_1_1_3_build_health_timer_alive_and_hazard_components"
   },
   "engine": {
     "name": "Godot",
@@ -57,7 +57,7 @@
         "status": "in_progress",
         "tasks": {
           "task_1_1_1_define_ui_tokens": "completed",
-          "task_1_1_2_extract_semantic_hud_components": "planned",
+          "task_1_1_2_extract_semantic_hud_components": "completed",
           "task_1_1_3_build_health_timer_alive_and_hazard_components": "planned",
           "task_1_1_4_remove_permanent_debug_copy": "planned"
         },
@@ -65,7 +65,7 @@
           "shared_theme": "passed",
           "responsive_1280x720_and_1920x1080": "not_run",
           "light_and_dark_world_readability": "not_run",
-          "no_authority_regression": "not_run"
+          "no_authority_regression": "passed"
         }
       },
       "milestone_1_2_warning_and_personal_danger": {
@@ -146,6 +146,11 @@
       "result": "passed",
       "check": "Task 1.1.1 shared Toy Broadcast UI tokens and theme",
       "evidence": "UI_THEME_OK checks=15 validated design-bible colors, typography, spacing, 24 px safe margin, rounded panel/button/field styles, visible focus treatment, shared theme inheritance, and automatic lobby focus. PHASE1_TESTS_OK checks=29 and PLAYER_INTEGRATION_OK checks=41 passed. PHASE7_POLISH_OK checks=31 passed; its existing dummy-audio shutdown emitted AudioStreamWAV/playback leak diagnostics unrelated to the UI resources. Rendered 1280x720 captures phase1-ui-theme-lobby-v3.png and phase1-ui-theme-results.png were inspected: shared cream/slate styling, amber field focus, readable disabled state, neutral lobby status, four-player results, and no clipping or overlap passed."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.2 semantic gameplay HUD presentation boundary",
+      "evidence": "GAMEPLAY_HUD_OK checks=16 validated asymmetric vitals, clock and state visibility, hazard lines, all Flood exposure states, and spectator target copy through GameplayHud. UI_THEME_OK checks=15, PHASE1_TESTS_OK checks=29, PLAYER_INTEGRATION_OK checks=41, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed authoritative movement, replicated match health HUD and disasters, elimination/spectating, results, five rematches, and disconnect cleanup. The polish test retained its known successful-exit dummy-audio resource diagnostics."
     }
   ],
   "blockers": [],
@@ -154,10 +159,12 @@
     "docs/decisions.md",
     "docs/implementation-checklist.md",
     "game/main.gd",
+    "game/ui/gameplay_hud.gd",
     "game/ui/ui_tokens.gd",
     "progress.json",
     "scenes/main.tscn",
+    "tests/test_gameplay_hud.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.1.2 by extracting semantic HUD presentation methods from raw label mutation in game/main.gd without changing authoritative gameplay state."
+  "next_action": "Implement Phase 1 Task 1.1.3 by replacing the raw health, timer, alive-count, and hazard labels with responsive semantic HUD components, limiting the active-hazard tray to two entries."
 }
