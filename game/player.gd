@@ -19,6 +19,7 @@ var _ragdoll: Node3D
 var _is_eliminated := false
 var _grab_manager: Node
 var _peer_id := 1
+var local_input_blocked := false
 
 
 func _ready() -> void:
@@ -45,7 +46,7 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not accepts_local_input():
+	if not accepts_local_input() or local_input_blocked:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -67,17 +68,17 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if _is_eliminated or not accepts_local_input():
 		return
-	if Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
+	if not local_input_blocked and Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
 		_grab_manager.request_local_toggle(_peer_id)
 	if _has_active_network_session():
 		return
-	if Input.is_action_just_pressed("knockdown_test"):
+	if not local_input_blocked and Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
 	apply_movement_input(
-		Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
-		Input.is_action_pressed("sprint"),
-		Input.is_action_pressed("crouch"),
-		Input.is_action_just_pressed("jump"),
+		Vector2.ZERO if local_input_blocked else Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
+		not local_input_blocked and Input.is_action_pressed("sprint"),
+		not local_input_blocked and Input.is_action_pressed("crouch"),
+		not local_input_blocked and Input.is_action_just_pressed("jump"),
 		delta
 	)
 

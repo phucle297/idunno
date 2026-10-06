@@ -53,6 +53,8 @@ var _warning_id := ""
 var _warning_seconds := 0
 var _warning_tween: Tween
 var _countdown_tween: Tween
+var _lobby_open := false
+var _results_visible := false
 var reduced_motion := false:
 	set(value):
 		reduced_motion = value
@@ -71,7 +73,8 @@ func present_vitals(health: float, alive_count: int, player_count: int) -> void:
 func present_match_status(remaining_seconds: int, state_text: String, results_visible: bool) -> void:
 	timer_label.text = "%02d:%02d" % [remaining_seconds / 60, remaining_seconds % 60]
 	state_label.text = state_text
-	timer_card.visible = not results_visible
+	_results_visible = results_visible
+	timer_card.visible = not results_visible and not _lobby_open
 
 
 func present_hazards(lines: Array[String]) -> void:
@@ -91,7 +94,7 @@ func present_hazards(lines: Array[String]) -> void:
 			var second_icon: Control = chip.get_node("Content/SecondIcon")
 			second_icon.visible = names.size() == 2
 			second_icon.disaster_id = names[1].to_lower() if second_icon.visible else ""
-	hazard_tray.visible = not _presented_hazards.is_empty()
+	hazard_tray.visible = not _presented_hazards.is_empty() and not _lobby_open
 
 
 func present_context_action(action: String) -> void:
@@ -168,6 +171,18 @@ func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.
 
 func set_spectating_visible(visible: bool) -> void:
 	spectating_label.visible = visible
+
+
+func present_lobby_overlay(open: bool) -> void:
+	_lobby_open = open
+	health_card.visible = not open
+	$AlivePill.visible = not open
+	timer_card.visible = not open and not _results_visible
+	hazard_tray.visible = not open and not _presented_hazards.is_empty()
+	if open:
+		present_major_warning("")
+		present_context_action("")
+		present_flood_exposure(FloodExposure.SAFE)
 
 
 func present_spectator_target(player_name: String) -> void:

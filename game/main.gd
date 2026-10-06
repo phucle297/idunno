@@ -39,6 +39,7 @@ var _local_movement_sequence := 0
 var _match_snapshot_remaining := 0.0
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
+var _lobby_focus_ids: Array[int] = []
 
 
 func _ready() -> void:
@@ -409,10 +410,11 @@ func _physics_process(delta: float) -> void:
 	var local_peer_id := multiplayer.get_unique_id()
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-		var sprinting := Input.is_action_pressed("sprint")
-		var crouched := Input.is_action_pressed("crouch")
-		var jump_pressed := Input.is_action_just_pressed("jump")
+		var input_allowed: bool = not $Interface/LobbyPanel.visible and match_manager.is_player_alive(local_peer_id)
+		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
+		var sprinting := input_allowed and Input.is_action_pressed("sprint")
+		var crouched := input_allowed and Input.is_action_pressed("crouch")
+		var jump_pressed := input_allowed and Input.is_action_just_pressed("jump")
 		if jump_pressed:
 			gameplay_audio.play_jump()
 		if multiplayer.is_server():
@@ -831,6 +833,7 @@ func _configure_lobby_ui() -> void:
 	$Interface/LobbyToggle.pressed.connect(func() -> void: _set_lobby_visible(not $Interface/LobbyPanel.visible))
 	$Interface/LobbyPanel/Host.pressed.connect(_on_lobby_host_pressed)
 	$Interface/LobbyPanel/Join.pressed.connect(_on_lobby_join_pressed)
+	$Interface/LobbyPanel/Close.pressed.connect(func() -> void: _set_lobby_visible(false))
 	$Interface/LobbyPanel/Ready.pressed.connect(_on_lobby_ready_pressed)
 	$Interface/LobbyPanel/Start.pressed.connect(func() -> void: start_network_match())
 
@@ -838,28 +841,103 @@ func _configure_lobby_ui() -> void:
 func _set_lobby_visible(visible: bool) -> void:
 	$Interface/LobbyPanel.visible = visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
+	$Player.local_input_blocked = visible
+	_update_lobby_ui()
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	_update_flood_feedback(local_peer_id)
+	_update_major_warning()
+	_update_context_prompt(local_peer_id)
 	if visible:
-		$Interface/LobbyPanel/Address.call_deferred("grab_focus")
+		_focus_lobby_first.call_deferred()
+	else:
+		var focus := get_viewport().gui_get_focus_owner()
+		if focus != null:
+			focus.release_focus()
+
+
+func _input(event: InputEvent) -> void:
+	if $Interface/LobbyPanel.visible and event.is_action_pressed("ui_cancel"):
+		_set_lobby_visible(false)
+		get_viewport().set_input_as_handled()
+	elif $Interface/LobbyPanel.visible and (event is InputEventJoypadButton or event is InputEventJoypadMotion):
+		var focus := get_viewport().gui_get_focus_owner()
+		if focus is LineEdit:
+			if event.is_action_pressed("ui_down") or event.is_action_pressed("ui_right"):
+				focus.get_node(focus.focus_next).grab_focus()
+				get_viewport().set_input_as_handled()
+			elif event.is_action_pressed("ui_up") or event.is_action_pressed("ui_left"):
+				focus.get_node(focus.focus_previous).grab_focus()
+				get_viewport().set_input_as_handled()
+
+
+func _lobby_focus_controls() -> Array[Control]:
+	var controls: Array[Control] = []
+	for node_name: String in ["Address", "Port", "Host", "Join", "Ready", "Start", "PlayerList", "Close"]:
+		var control: Control = $Interface/LobbyPanel.get_node(node_name)
+		if control.visible and control.focus_mode != Control.FOCUS_NONE and not (control is Button and control.disabled):
+			controls.append(control)
+	return controls
+
+
+func _focus_lobby_first() -> void:
+	if $Interface/LobbyPanel.visible:
+		_lobby_focus_controls()[0].grab_focus()
+
+
+func _refresh_lobby_focus() -> void:
+	var controls := _lobby_focus_controls()
+	var ids: Array[int] = []
+	for control: Control in controls:
+		ids.append(control.get_instance_id())
+	if ids != _lobby_focus_ids:
+		_lobby_focus_ids = ids
+		for index: int in controls.size():
+			var control := controls[index]
+			var previous := control.get_path_to(controls[wrapi(index - 1, 0, controls.size())])
+			var next := control.get_path_to(controls[(index + 1) % controls.size()])
+			control.focus_previous = previous
+			control.focus_next = next
+			control.focus_neighbor_left = previous
+			control.focus_neighbor_top = previous
+			control.focus_neighbor_right = next
+			control.focus_neighbor_bottom = next
+	if $Interface/LobbyPanel.visible and get_viewport().gui_get_focus_owner() not in controls:
+		_focus_lobby_first()
 
 
 func _on_lobby_host_pressed() -> void:
-	if _network_mode:
+	if _network_mode or not _validate_lobby_fields(false):
 		return
 	disaster_director.cleanup()
 	match_manager.prepare_lobby()
-	var port := maxi(($Interface/LobbyPanel/Port as LineEdit).text.to_int(), 1)
+	var port := ($Interface/LobbyPanel/Port as LineEdit).text.to_int()
 	var error := host_game(port)
 	$Interface/LobbyPanel/Status.text = "Hosting UDP %d" % port if error == OK else "Host failed: %s" % error_string(error)
 
 
 func _on_lobby_join_pressed() -> void:
-	if _network_mode:
+	if _network_mode or not _validate_lobby_fields(true):
 		return
 	_prepare_offline_player_for_join()
 	var address := ($Interface/LobbyPanel/Address as LineEdit).text.strip_edges()
-	var port := maxi(($Interface/LobbyPanel/Port as LineEdit).text.to_int(), 1)
+	var port := ($Interface/LobbyPanel/Port as LineEdit).text.to_int()
 	var error := join_game(address, port)
+	if error != OK:
+		_register_server_gameplay_player(1, $Player, "Local Player")
 	$Interface/LobbyPanel/Status.text = "Joining %s:%d" % [address, port] if error == OK else "Join failed: %s" % error_string(error)
+
+
+func _validate_lobby_fields(joining: bool) -> bool:
+	var port: String = $Interface/LobbyPanel/Port.text
+	if not port.is_valid_int() or port.to_int() < 1 or port.to_int() > 65535:
+		$Interface/LobbyPanel/Status.text = "Enter a valid UDP port (1–65535)"
+		$Interface/LobbyPanel/Port.grab_focus()
+		return false
+	if joining and $Interface/LobbyPanel/Address.text.strip_edges().is_empty():
+		$Interface/LobbyPanel/Status.text = "Enter the host IP address"
+		$Interface/LobbyPanel/Address.grab_focus()
+		return false
+	return true
 
 
 func _on_lobby_ready_pressed() -> void:
@@ -878,29 +956,49 @@ func _prepare_offline_player_for_join() -> void:
 	fire.unregister_player(1)
 	match_manager.unregister_player(1)
 	match_manager.prepare_lobby()
+	# Removing the last offline participant can finish that match before joining.
+	$Interface/ResultsPanel.visible = false
+	spectator_controller.stop()
+	gameplay_hud.set_spectating_visible(false)
 
 
 func _update_lobby_ui() -> void:
 	$Interface/LobbyToggle.visible = match_manager.state != MatchManager.MatchState.RESULTS
 	var panel: Panel = $Interface/LobbyPanel
 	var in_lobby: bool = match_manager.state == MatchManager.MatchState.LOBBY
+	panel.get_node("Address").editable = not _network_mode
+	panel.get_node("Port").editable = not _network_mode
+	for field: String in ["Address", "Port"]:
+		panel.get_node(field).focus_mode = Control.FOCUS_NONE if _network_mode else Control.FOCUS_ALL
 	panel.get_node("Host").visible = not _network_mode
 	panel.get_node("Join").visible = not _network_mode
 	var lobby_demo := _has_argument("--lobby-demo")
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
+	panel.get_node("Ready").disabled = not connected and not lobby_demo
 	panel.get_node("Start").visible = ((_network_mode and multiplayer.is_server()) or lobby_demo) and in_lobby
 	panel.get_node("Start").disabled = not match_manager.can_start_match() or match_manager.players.size() < 2
-	panel.get_node("PlayerList").present_players(match_manager.players, multiplayer.get_unique_id() if _network_mode else 1)
-	if _network_mode and in_lobby:
-		var local_peer_id := multiplayer.get_unique_id()
-		panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY"
+	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id)
+	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"
 	if in_lobby and (_network_mode or lobby_demo):
 		var acting_as_host := lobby_demo or multiplayer.is_server()
-		if acting_as_host:
-			panel.get_node("Status").text = "All ready — start match" if match_manager.can_start_match() and match_manager.players.size() >= 2 else "Waiting for all players"
+		if not connected and not lobby_demo:
+			panel.get_node("Status").text = "Joining — waiting for server roster"
+		elif acting_as_host:
+			panel.get_node("Status").text = (
+				"Need at least 2 players to start" if match_manager.players.size() < 2
+				else ("All ready — host can start" if match_manager.can_start_match() else "Waiting for all players to ready up")
+			)
 		else:
-			var local_peer_id := multiplayer.get_unique_id()
-			panel.get_node("Status").text = "Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Select READY when prepared"
+			panel.get_node("Status").text = "Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the host can start"
+	panel.get_node("Status").tooltip_text = panel.get_node("Status").text
+	$Interface/LobbyBackdrop.visible = panel.visible
+	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
+	if is_instance_valid(local_player):
+		local_player.local_input_blocked = panel.visible
+	gameplay_hud.present_lobby_overlay(panel.visible)
+	_refresh_lobby_focus()
 
 
 func restart_local_match() -> bool:
@@ -992,8 +1090,11 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	if state == MatchManager.MatchState.RESULTS:
+		_set_lobby_visible(false)
 	if state != MatchManager.MatchState.ACTIVE:
 		return
+	_set_lobby_visible(false)
 	$Interface/ResultsPanel.visible = false
 	if not _network_mode or multiplayer.is_server():
 		return

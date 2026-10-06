@@ -50,6 +50,7 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		spawn_passed = spawn_passed and is_instance_valid(player) and player.get_multiplayer_authority() == peer_id
 		if is_instance_valid(player):
 			start_positions[peer_id] = player.global_position
+	main._set_lobby_visible(false)
 	Input.action_press("move_left")
 	probe.begin_movement.rpc()
 	await create_timer(1.5).timeout
@@ -115,6 +116,7 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	var host_player := _player_for_peer(main, 1)
 	var local_start := local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO
 	var host_start := host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO
+	main._set_lobby_visible(false)
 	Input.action_press("move_right")
 	await create_timer(1.5).timeout
 	Input.action_release("move_right")

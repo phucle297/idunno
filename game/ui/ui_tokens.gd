@@ -106,6 +106,7 @@ static func _set_button_theme(theme: Theme) -> void:
 	theme.set_stylebox("pressed", "Button", _control_style(WARNING, INK))
 	theme.set_stylebox("disabled", "Button", _control_style(Color(SAND, 0.68), Color(SLATE, 0.38)))
 	theme.set_stylebox("focus", "Button", _focus_style())
+	theme.set_stylebox("focus", "ScrollContainer", _focus_style())
 
 
 static func _set_line_edit_theme(theme: Theme) -> void:

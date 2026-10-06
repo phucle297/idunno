@@ -11,6 +11,13 @@ func _ready() -> void:
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", UITokens.SPACE_SM)
 	add_child(list)
+	get_v_scroll_bar().focus_mode = Control.FOCUS_NONE
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_down") or event.is_action_pressed("ui_up"):
+		scroll_vertical += 64 if event.is_action_pressed("ui_down") else -64
+		accept_event()
 
 
 func present_players(players: Dictionary, local_peer_id: int) -> void:

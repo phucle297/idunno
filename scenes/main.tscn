@@ -345,6 +345,15 @@ offset_right = 206.0
 offset_bottom = 142.0
 text = "MULTIPLAYER LOBBY [L]"
 
+[node name="LobbyBackdrop" type="ColorRect" parent="Interface"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12549, 0.164706, 0.219608, 0.6)
+
 [node name="LobbyPanel" type="Panel" parent="Interface"]
 visible = false
 offset_left = 24.0
@@ -354,27 +363,43 @@ offset_bottom = 696.0
 
 [node name="Title" type="Label" parent="Interface/LobbyPanel"]
 offset_left = 20.0
-offset_top = 14.0
+offset_top = 8.0
 offset_right = 360.0
-offset_bottom = 48.0
+offset_bottom = 38.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 22
 text = "DIRECT-IP LOBBY"
 horizontal_alignment = 1
 
+[node name="AddressLabel" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 42.0
+offset_right = 244.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 14
+text = "HOST IP ADDRESS"
+
+[node name="PortLabel" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 252.0
+offset_top = 42.0
+offset_right = 360.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 14
+text = "UDP PORT"
+
 [node name="Address" type="LineEdit" parent="Interface/LobbyPanel"]
 offset_left = 20.0
-offset_top = 60.0
+offset_top = 64.0
 offset_right = 244.0
-offset_bottom = 96.0
+offset_bottom = 100.0
 text = "127.0.0.1"
 placeholder_text = "Host IP address"
 
 [node name="Port" type="LineEdit" parent="Interface/LobbyPanel"]
 offset_left = 252.0
-offset_top = 60.0
+offset_top = 64.0
 offset_right = 360.0
-offset_bottom = 96.0
+offset_bottom = 100.0
 text = "29730"
 placeholder_text = "Port"
 
@@ -391,6 +416,13 @@ offset_top = 108.0
 offset_right = 240.0
 offset_bottom = 146.0
 text = "JOIN"
+
+[node name="Close" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 252.0
+offset_top = 108.0
+offset_right = 360.0
+offset_bottom = 146.0
+text = "CLOSE"
 
 [node name="Ready" type="Button" parent="Interface/LobbyPanel"]
 offset_left = 20.0
@@ -418,6 +450,7 @@ offset_left = 20.0
 offset_top = 238.0
 offset_right = 360.0
 offset_bottom = 488.0
+focus_mode = 2
 script = ExtResource("15_roster")
 
 [node name="Status" type="Label" parent="Interface/LobbyPanel"]
@@ -425,6 +458,8 @@ offset_left = 20.0
 offset_top = 500.0
 offset_right = 360.0
 offset_bottom = 528.0
+theme_override_font_sizes/font_size = 14
+text_overrun_behavior = 3
 text = "Create or join a LAN lobby"
 horizontal_alignment = 1
 

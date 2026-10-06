@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T20:28:28+07:00",
+  "updated_at": "2026-10-06T20:53:42+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_3_lobby_and_spectator",
-    "task": "task_1_3_2_connection_status_focus_and_hud_suppression"
+    "task": "task_1_3_3_elimination_and_spectator_card"
   },
   "engine": {
     "name": "Godot",
@@ -89,7 +89,7 @@
         "status": "in_progress",
         "tasks": {
           "task_1_3_1_structured_player_rows": "completed",
-          "task_1_3_2_connection_status_focus_and_hud_suppression": "planned",
+          "task_1_3_2_connection_status_focus_and_hud_suppression": "completed",
           "task_1_3_3_elimination_and_spectator_card": "planned"
         },
         "gates": {
@@ -206,6 +206,16 @@
       "result": "passed",
       "check": "Task 1.3.1 structured lobby player rows",
       "evidence": "godot --headless --path . --script res://tests/test_lobby_roster.gd: LOBBY_ROSTER_OK checks=122. Covers numeric ordering, distinct remote host/local client markers, combined local-host markers, asymmetric readiness, name updates, row reuse, disconnect/empty cleanup, long-name containment, four fully visible rows, twenty rows with vertical scrolling and fully reachable player 20, and unchanged authoritative snapshots. xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_lobby_roster.gd -- --capture-dir=.amp/in/artifacts: checks=125 each. Inspected revised four-client 720p, twenty-top 1080p and twenty-bottom 720p captures: readable markers/badges, long-name ellipsis, contained footer, final local player visible. Initial four-row render clipped its fourth row; reduced row padding and increased roster height, added full-row containment assertions and reran. UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=78, PHASE1_TESTS_OK checks=31 and SESSION_LIFECYCLE_OK checks=46 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches/disconnect cleanup. Phase1 suite retains existing successful-exit resource warnings; roster/lifecycle suites exit cleanly. Renders use Linux orb Xvfb/llvmpipe and Dummy audio, not Windows performance evidence. Backdrop/HUD suppression and controller focus remain Task 1.3.2; no milestone-wide authority/focus gate claimed yet."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.2 connection status, focus and lobby suppression",
+      "evidence": "godot --headless --path . --script res://tests/test_lobby_presentation.gd: LOBBY_PRESENTATION_OK checks=35. xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts: checks=39 each. Exercises real Tab and joypad D-pad/A GUI input, wrapped focus skipping hidden/disabled controls, labeled fields, invalid port/empty-address rejection before gameplay reset, solo/partial/all-ready host gating, authoritative ready/start, neutral local movement without simulation pause, Escape/Close cursor recovery and immediate HUD suppression/restoration. A failing controller-confirm test showed default ui_accept lacked a joypad event; explicit A/B confirm/cancel mappings fixed it. Initial GDScript inference failure fixed with an explicit bool. SESSION_LIFECYCLE_OK checks=53 display-backed verifies Joining/disabled Ready and failed retry with restored editable controls; inspected joining/failure, 720p host-ready and 1080p host-waiting renders confirm labels, status, dim backdrop, hidden gameplay metrics and readable four-player rows. UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=79, LOBBY_ROSTER_OK checks=122 passed. Updated playable fixtures to close lobby before movement checks. tests/run_playable_scene_network_test.sh passed NETWORK_HOST_LOBBY_OK and NETWORK_CLIENT_LOBBY_OK, actual local/host markers, rejected client start, readiness plus five rematches/disconnect cleanup. Linux Xvfb/llvmpipe/Dummy audio, not physical controller or Windows performance evidence. Milestone-wide focus/state gates await spectator work and final re-verification."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.2 final joining render correction",
+      "evidence": "First joining screenshot exposed a pre-existing NO SURVIVORS panel over the lobby: removing the last offline participant in _prepare_offline_player_for_join finishes the solo match. Cleared results/spectator presentation after preparing the join lobby and added a lifecycle assertion. Re-ran xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_session_lifecycle.gd -- --capture-dir=.amp/in/artifacts: SESSION_LIFECYCLE_OK checks=54. Inspected replacement lobby-joining-1280x720.png: unobscured labeled fields and pending status, disabled Ready, no client Start or stale results overlay."
     }
   ],
   "blockers": [],
@@ -217,18 +227,21 @@
     "game/gameplay_audio_controller.gd",
     "game/grab_manager.gd",
     "game/main.gd",
+    "game/player.gd",
     "game/ui/disaster_icon.gd",
     "game/ui/gameplay_hud.gd",
     "game/ui/lobby_roster.gd",
     "game/ui/lobby_roster.gd.uid",
     "game/ui/ui_tokens.gd",
     "progress.json",
+    "project.godot",
     "scenes/main.tscn",
     "tests/playable_scale_peer.gd",
     "tests/playable_scene_network_peer.gd",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
     "tests/test_lobby_roster.gd",
+    "tests/test_lobby_presentation.gd",
     "tests/test_milestone_1_1.gd",
     "tests/test_phase1.gd",
     "tests/test_phase7_polish.gd",
@@ -236,5 +249,5 @@
     "tests/test_session_lifecycle.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.3.2: labeled connection fields and inline status/errors, authority-aware ready/start gating, keyboard/controller focus, backdrop dimming, and gameplay-HUD suppression while the lobby is open."
+  "next_action": "Implement Task 1.3.3 elimination transition and compact spectator target card with previous/next controls, then re-verify all Milestone 1.3 gates as requested."
 }

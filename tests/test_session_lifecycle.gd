@@ -23,6 +23,11 @@ func _run() -> void:
 	server_api.multiplayer_peer = server
 	main._prepare_offline_player_for_join()
 	_expect(main.join_game("127.0.0.1", port) == OK, "Client join must start")
+	main._update_lobby_ui()
+	_expect(main.get_node("Interface/LobbyPanel/Ready").disabled and not main.get_node("Interface/LobbyPanel/Start").visible, "Joining must not enable readiness or expose host start")
+	_expect("Joining" in main.get_node("Interface/LobbyPanel/Status").text, "Pending connection must retain a joining status rather than claiming readiness")
+	_expect(not main.get_node("Interface/ResultsPanel").visible, "Joining from solo play must clear the results caused by removing the last offline participant")
+	await _capture("joining")
 	var deadline := Time.get_ticks_msec() + 5000
 	while main.multiplayer.multiplayer_peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -46,6 +51,7 @@ func _run() -> void:
 		await process_frame
 	_check_offline_lobby(main, "connection failure")
 	_expect("Connection failed" in main.get_node("Interface/LobbyPanel/Status").text, "A failed join must leave an actionable error")
+	await _capture("connection-failed")
 	_expect(server.create_server(0) == OK, "Fixture server must restart for a successful retry")
 	server_api.multiplayer_peer = server
 	main._prepare_offline_player_for_join()
@@ -86,7 +92,18 @@ func _check_offline_lobby(main: Node, context: String) -> void:
 		_expect(component._players.keys() == [1] and component._can_mutate(), "%s must restore offline registry/authority for %s" % [context, component.name])
 	_expect(main.get_node("Player").accepts_local_input(), "%s must restore local input authority" % context)
 	_expect(main.get_node("Interface/LobbyPanel").visible, "%s must leave recovery controls accessible" % context)
+	main._update_lobby_ui()
+	_expect(main.get_node("Interface/LobbyPanel/Address").editable and main.get_node("Interface/LobbyPanel/Join").visible, "%s must restore editable fields and retry controls" % context)
 	_expect(not main.disaster_director.running and main.flood.phase == Flood.Phase.IDLE, "%s must not continue stale server hazards" % context)
+
+
+func _capture(state: String) -> void:
+	for argument: String in OS.get_cmdline_user_args():
+		if argument.begins_with("--capture-dir="):
+			await process_frame
+			await RenderingServer.frame_post_draw
+			var path := argument.trim_prefix("--capture-dir=").path_join("lobby-%s-%dx%d.png" % [state, root.size.x, root.size.y])
+			_expect(root.get_texture().get_image().save_png(path) == OK, "Lifecycle review capture must save")
 
 
 func _expect(condition: bool, message: String) -> void:

@@ -53,6 +53,10 @@ func _run_server(main: Node) -> void:
 	)
 	var host_spawn := host_player.global_position
 	var client_spawn := client_player.global_position if is_instance_valid(client_player) else Vector3.ZERO
+	main._update_lobby_ui()
+	var lobby: Panel = main.get_node("Interface/LobbyPanel")
+	var lobby_passed: bool = lobby.visible and lobby.get_node("Start").visible and lobby.get_node("Start").disabled and not main.gameplay_hud.health_card.visible
+	main._set_lobby_visible(false)
 	Input.action_press("move_left")
 	while (
 		is_instance_valid(client_player)
@@ -75,6 +79,8 @@ func _run_server(main: Node) -> void:
 	main.set_local_ready(true)
 	while not manager.can_start_match() and Time.get_ticks_msec() < deadline:
 		await process_frame
+	main._update_lobby_ui()
+	lobby_passed = lobby_passed and not lobby.get_node("Start").disabled and "host can start" in lobby.get_node("Status").text
 	var start_event := InputEventAction.new()
 	start_event.action = "ui_accept"
 	start_event.pressed = true
@@ -201,8 +207,9 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and lethal_passed and rematch_passed and cleanup_passed
+	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and lethal_passed and rematch_passed and cleanup_passed
 	if passed:
+		print("NETWORK_HOST_LOBBY_OK start_gating=passed readiness=passed hud_suppression=passed")
 		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d" % client_id)
 	else:
 		push_error("Playable server validation failed spawn=%s movement=%s active=%s props=%s ragdoll=%s disasters=%s nonlethal=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
@@ -232,6 +239,15 @@ func _run_client(main: Node) -> void:
 	)
 	var host_spawn := host_player.global_position
 	var local_spawn := local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO
+	var manager := main.get_node("MatchManager") as MatchManager
+	while not manager.players.has(local_id) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	main._update_lobby_ui()
+	var lobby: Panel = main.get_node("Interface/LobbyPanel")
+	var before: Dictionary = main._create_playable_snapshot().duplicate(true)
+	var lobby_passed: bool = lobby.visible and not lobby.get_node("Start").visible and not lobby.get_node("Ready").disabled and "only the host" in lobby.get_node("Status").text and not main.start_network_match() and main._create_playable_snapshot() == before
+	lobby_passed = lobby_passed and lobby.get_node("PlayerList").rows[local_id].get_node("Content/Identity/Markers").text == "YOU" and lobby.get_node("PlayerList").rows[1].get_node("Content/Identity/Markers").text == "HOST"
+	main._set_lobby_visible(false)
 	Input.action_press("move_right")
 	while (
 		is_instance_valid(local_player)
@@ -248,7 +264,6 @@ func _run_client(main: Node) -> void:
 		and (local_player.global_position - local_spawn).length() >= 1.0
 		and (host_player.global_position - host_spawn).length() >= 1.0
 	)
-	var manager := main.get_node("MatchManager") as MatchManager
 	main.set_local_ready(true)
 	while (
 		(manager.state != MatchManager.MatchState.ACTIVE or manager.get_health(local_id) != 100.0)
@@ -383,8 +398,9 @@ func _run_client(main: Node) -> void:
 			and (main.get_node("Interface/ResultsPanel") as Panel).visible
 			and "Network rematch %d" % (rematch_index + 1) in rematch_summary
 		)
-	var passed: bool = spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
+	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
 	if passed:
+		print("NETWORK_CLIENT_LOBBY_OK local_host_markers=passed client_start_rejected=passed readiness=passed")
 		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5" % local_id)
 	else:
 		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
