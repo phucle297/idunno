@@ -81,3 +81,9 @@
 - **Decision:** Keep disaster gameplay simulation server-only. Clients apply presentation snapshots containing lifecycle phase and the minimum state required to recreate Meteor, Flood, and Tornado effects; snapshots never invoke damage or force logic on clients.
 - **Match start:** In direct-IP sessions, the host explicitly starts a match with Enter after at least two peers connect. This replaces a nonexistent lobby-ready UI without adding a second lobby system.
 - **Validation:** A rendered client displayed replicated Flood + Tornado world effects, both named warning lines, HP 100, ALIVE 2/2, timer, and two readable players. Separate-process checks also validated replicated Meteor warning presentation.
+
+## 2026-10-06 — Earthquake and predefined structure state
+
+- **Decision:** Earthquake owns warning and pulse timing, while six map-owned `BreakableStructure` sections own stable piece IDs and intact/damaged/broken presentation. Each active pulse applies one authoritative damage batch plus bounded player and prop disturbance, then advances at most one section.
+- **Route budget:** At most two sections may break during one Earthquake. A broken section creates at most one authoritative debris body, preserving the 32-body global budget and preventing every elevation route from disappearing.
+- **Replication:** Playable snapshots send the six states as a stable-order `PackedByteArray`; clients recreate structure and hazard presentation only. The compact encoding keeps the complete 10 Hz snapshot below the ENet MTU.

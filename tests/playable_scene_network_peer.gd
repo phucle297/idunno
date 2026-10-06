@@ -98,13 +98,19 @@ func _run_server(main: Node) -> void:
 	var tornado_started := tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
 	tornado.tick(tornado.warning_duration)
 	tornado.tick(1.6)
+	var earthquake := main.get_node("Earthquake") as Earthquake
+	earthquake.set_process(false)
+	var earthquake_started := earthquake.start_warning()
+	earthquake.tick(earthquake.warning_duration)
 	await create_timer(0.5).timeout
 	var disasters_passed := (
 		meteor_started
 		and flood_started
 		and tornado_started
+		and earthquake_started
 		and flood.phase == Flood.Phase.RISING
 		and tornado.phase == Tornado.Phase.ACTIVE
+		and earthquake.phase == Earthquake.Phase.ACTIVE
 	)
 	var nonlethal_passed := manager.apply_damage(client_id, 25.0, "Network test")
 	await create_timer(0.5).timeout
@@ -190,8 +196,9 @@ func _run_client(main: Node) -> void:
 	)
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
+	var earthquake := main.get_node("Earthquake") as Earthquake
 	while (
-		(flood.phase != Flood.Phase.RISING or tornado.phase != Tornado.Phase.ACTIVE)
+		(flood.phase != Flood.Phase.RISING or tornado.phase != Tornado.Phase.ACTIVE or earthquake.phase != Earthquake.Phase.ACTIVE)
 		and Time.get_ticks_msec() < deadline
 	):
 		await process_frame
@@ -200,10 +207,13 @@ func _run_client(main: Node) -> void:
 	var overlap_passed := (
 		flood.phase == Flood.Phase.RISING
 		and tornado.phase == Tornado.Phase.ACTIVE
+		and earthquake.phase == Earthquake.Phase.ACTIVE
 		and flood.active_effect_count() == 1
 		and tornado.active_effect_count() == 1
+		and earthquake.active_effect_count() == 1
 		and "FLOOD" in overlap_text
 		and "TORNADO" in overlap_text
+		and "EARTHQUAKE" in overlap_text
 	)
 	if overlap_passed and not capture_path.is_empty():
 		await process_frame
@@ -249,17 +259,20 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
+	var earthquake := main.get_node("Earthquake") as Earthquake
 	var passed: bool = (
 		manager.register_player(peer_id, "Cleanup Probe")
 		and grab_manager.register_player(peer_id, replacement)
 		and meteor.register_player(peer_id, replacement)
 		and flood.register_player(peer_id, replacement)
 		and tornado.register_player(peer_id, replacement)
+		and earthquake.register_player(peer_id, replacement)
 	)
 	grab_manager.unregister_player(peer_id)
 	meteor.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
 	tornado.unregister_player(peer_id)
+	earthquake.unregister_player(peer_id)
 	manager.unregister_player(peer_id)
 	replacement.queue_free()
 	return passed

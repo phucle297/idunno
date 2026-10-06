@@ -22,6 +22,7 @@ const MATCH_SNAPSHOT_INTERVAL := 0.1
 @onready var meteor_shower: MeteorShower = $MeteorShower
 @onready var flood: Flood = $Flood
 @onready var tornado: Tornado = $Tornado
+@onready var earthquake: Earthquake = $Earthquake
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
@@ -43,12 +44,14 @@ func _ready() -> void:
 	meteor_shower.configure(match_manager)
 	flood.configure(match_manager)
 	tornado.configure(match_manager)
+	earthquake.configure(match_manager)
 	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
 	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
 	disaster_director.configure(match_manager)
 	disaster_director.register_disaster(meteor_shower)
 	disaster_director.register_disaster(flood)
 	disaster_director.register_disaster(tornado)
+	disaster_director.register_disaster(earthquake)
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
 		if network_error != OK:
@@ -90,6 +93,11 @@ func _ready() -> void:
 		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
 		tornado.tick(tornado.warning_duration)
 		tornado.tick(1.6)
+	if _has_argument("--earthquake-demo"):
+		earthquake.set_process(false)
+		earthquake.start_warning()
+		earthquake.tick(earthquake.warning_duration)
+		earthquake.tick(3.8)
 	if _has_argument("--overlap-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
@@ -207,6 +215,7 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	meteor_shower.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
 	tornado.unregister_player(peer_id)
+	earthquake.unregister_player(peer_id)
 	match_manager.unregister_player(peer_id)
 	_remove_network_player(peer_id)
 	_remove_network_player_remote.rpc(peer_id)
@@ -374,6 +383,7 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 		and meteor_shower.register_player(peer_id, player)
 		and flood.register_player(peer_id, player)
 		and tornado.register_player(peer_id, player)
+		and earthquake.register_player(peer_id, player)
 	)
 
 
@@ -409,6 +419,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	meteor_shower.apply_presentation_snapshot(disasters.get("meteor", {}))
 	flood.apply_presentation_snapshot(disasters.get("flood", {}))
 	tornado.apply_presentation_snapshot(disasters.get("tornado", {}))
+	earthquake.apply_presentation_snapshot(disasters.get("earthquake", {}))
 
 
 func _create_playable_snapshot() -> Dictionary:
@@ -417,6 +428,7 @@ func _create_playable_snapshot() -> Dictionary:
 		"meteor": meteor_shower.create_presentation_snapshot(),
 		"flood": flood.create_presentation_snapshot(),
 		"tornado": tornado.create_presentation_snapshot(),
+		"earthquake": earthquake.create_presentation_snapshot(),
 	}
 	return snapshot
 
@@ -443,6 +455,10 @@ func _active_disaster_lines() -> Array[String]:
 		lines.append("WARNING — TORNADO IN %d" % maxi(1, ceili(tornado.warning_remaining)))
 	elif tornado.phase == Tornado.Phase.ACTIVE:
 		lines.append("TORNADO — FIND COVER")
+	if earthquake.phase == Earthquake.Phase.WARNING:
+		lines.append("WARNING — EARTHQUAKE IN %d" % maxi(1, ceili(earthquake.warning_remaining)))
+	elif earthquake.phase == Earthquake.Phase.ACTIVE:
+		lines.append("EARTHQUAKE — AVOID BREAKING STRUCTURES")
 	return lines
 
 
@@ -538,6 +554,7 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	meteor_shower.register_player(peer_id, player)
 	flood.register_player(peer_id, player)
 	tornado.register_player(peer_id, player)
+	earthquake.register_player(peer_id, player)
 
 
 func _build_lighting() -> void:
@@ -563,6 +580,12 @@ func _build_sandbox() -> void:
 	_add_static_box("RaisedRouteBase", Vector3(9.0, 2.0, 7.0), Vector3(7.0, 1.0, -5.0), PALETTE.teal)
 	_add_static_box("RaisedRouteTop", Vector3(9.0, 0.18, 7.0), Vector3(7.0, 2.09, -5.0), PALETTE.cream)
 	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.0, 0.83, 3.25), deg_to_rad(11.5))
+	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.98, -13.0), PALETTE.cream)
+	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.98, -13.0), PALETTE.cream)
+	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal)
+	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal)
+	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
+	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
 
 	for position in [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
 		_add_physics_crate(position)
@@ -596,6 +619,15 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 func _add_ramp(node_name: String, size: Vector3, position: Vector3, angle: float) -> void:
 	_add_static_box(node_name, size, position, PALETTE.cream)
 	$Sandbox.get_node(node_name).rotation.x = angle
+
+
+func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
+	var structure := BreakableStructure.new()
+	structure.name = node_name
+	structure.position = position
+	structure.add_to_group("breakable_structure")
+	$Sandbox.add_child(structure)
+	structure.configure(piece_id, size, color)
 
 
 func _add_physics_crate(position: Vector3) -> void:
@@ -641,6 +673,7 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--meteor-impact-demo")
 		or _has_argument("--flood-demo")
 		or _has_argument("--tornado-demo")
+		or _has_argument("--earthquake-demo")
 		or _has_argument("--overlap-demo")
 	)
 

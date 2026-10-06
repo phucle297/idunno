@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T12:43:28+07:00",
+  "updated_at": "2026-10-06T13:32:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_4_additional_disasters",
@@ -46,9 +46,9 @@
       }
     },
     "phase_4_additional_disasters": {
-      "status": "not_started",
+      "status": "in_progress",
       "acceptance": {
-        "earthquake": "not_implemented",
+        "earthquake": "passed_authority_warning_pulses_bounded_damage_force_six_stable_breakable_sections_debris_reset_replication_and_visual_gate",
         "lightning": "not_implemented",
         "fire": "not_implemented"
       }
@@ -97,7 +97,7 @@
     "phase_1_core_sandbox": "completed",
     "phase_2_match": "completed",
     "phase_3_first_disasters": "completed_meteor_flood_tornado",
-    "phase_4_additional_disasters": "not_started_earthquake_lightning_fire_missing",
+    "phase_4_additional_disasters": "in_progress_earthquake_complete_lightning_and_fire_missing",
     "phase_5_disaster_combinations": "not_started_only_simultaneous_coexistence_is_implemented",
     "phase_6_multiplayer_stabilization": "in_progress_two_peer_playable_replication_and_2_4_8_20_state_matrix_passed_playable_4_8_20_sessions_missing",
     "phase_7_polish": "partial_out_of_order_baseline_hud_and_vfx_exist_audio_results_screen_network_rematch_and_final_feedback_missing"
@@ -342,6 +342,11 @@
       "result": "passed",
       "check": "Player visual movement facing",
       "evidence": "Corrected visual yaw from a +Z-forward assumption to Godot's -Z forward convention. PLAYER_INTEGRATION_OK checks=29 independently verifies forward and left movement facing vectors. .amp/in/artifacts/movement-facing-forward.png and movement-facing-left.png were rendered and inspected: forward movement shows the character facing away from the follow camera, and left movement shows the face oriented left rather than right. All ten gameplay suites, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 4 authoritative Earthquake",
+      "evidence": "EARTHQUAKE_OK checks=25 validates a 4 s fair warning, bounded server damage/player velocity/prop impulse, six stable predefined intact/damaged/broken sections, a two-section destruction cap, one gameplay debris body per broken section, survival credit, cleanup, reset, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=135 sandbox_children=20, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Earthquake presentation passed. Compact PackedByteArray structure state kept the 10 Hz unreliable snapshot below ENet MTU. .amp/in/artifacts/phase4-earthquake-v2.png was rendered and inspected: active HUD, high-contrast cracks/dust, changed structures, player silhouette, and routes passed."
     }
   ],
   "blockers": [
@@ -370,6 +375,8 @@
     "game/meteor_shower.gd",
     "game/flood.gd",
     "game/tornado.gd",
+    "game/breakable_structure.gd",
+    "game/earthquake.gd",
     "game/disaster_director.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
@@ -390,6 +397,7 @@
     "tests/test_meteor_shower.gd",
     "tests/test_flood.gd",
     "tests/test_tornado.gd",
+    "tests/test_earthquake.gd",
     "tests/test_disaster_director.gd",
     "tests/run_network_authority_test.sh",
     "tests/four_client_match_probe.gd",
@@ -401,5 +409,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement and validate authoritative Earthquake as the first missing Phase 4 disaster, including predefined breakage, warning presentation, cleanup, and multiplayer presentation state."
+  "next_action": "Implement and validate authoritative Lightning with fair telegraphs, bounded strikes, multiplayer presentation, and the named strike event needed for Flood interaction in Phase 5."
 }
