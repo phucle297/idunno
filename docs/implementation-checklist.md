@@ -84,11 +84,11 @@ Milestone 1.3 complete and freshly reverified: headless behavior/regression suit
 
 - [x] Task 1.4.1: Reusable ranking rows with explicit rank/player/time/disasters/damage/outcome columns, long-text ellipsis/tooltips and scrollable twenty-player results; headless, inspected 720p/1080p and five ENet rematches pass.
 - [x] Task 1.4.2: Static winner emphasis, capped 0.405s opacity reveal with immediate reduced-motion cancellation, and optional/shared Most disasters survived award from existing records; inspected 720p/1080p, timing/lifecycle and five ENet rematches pass.
-- [ ] Task 1.4.3: Present host Rematch and client waiting states clearly; add Return to Lobby and Settings only where authority allows them.
+- [x] Task 1.4.3: Host/solo Rematch and Return to Lobby actions, client waiting state, wrapped keyboard/controller focus, cursor recovery and complete results HUD/input suppression. Settings entry is deferred until the real screen exists in Milestone 1.5.
 
 Acceptance: 4- and 20-player results remain legible; all peers show identical authoritative rankings; five network rematches remain green; gameplay HUD is hidden beneath results.
 
-Remaining overlay gate: actual results still show health/survivor cards outside the panel; suppress them during Task 1.4.3 and reverify lifecycle restoration. Full cross-peer ranking coverage remains for milestone verification.
+Milestone 1.4 complete: all 24 headless suites pass, 720p/1080p results and action captures were inspected, five real ENet rematches pass, and 4/8/20-player sessions verify exact authoritative rankings/cells, client authority rejection and connected lobby return. Lobby/results snapshots are reliable and sequence-ordered against live packets; final network logs have no errors or oversized-unreliable-packet warnings. Existing successful-exit audio/font resource diagnostics remain in some headless suites. Next is Milestone 1.7 map safety, not settings.
 
 ### Milestone 1.7 — Map boundary and out-of-bounds safety
 
@@ -106,6 +106,7 @@ Scope: safety and boundary readability only. Enlarging the footprint and adding 
 
 - [ ] Task 1.5.1: Add an online-safe pause overlay that releases local input without pausing server simulation.
 - [ ] Task 1.5.2: Persist master/effects/warning volume, mouse sensitivity, invert-Y, camera-shake level, fullscreen/windowed mode, and reduced motion.
+- [ ] Expose local Settings from results for every peer once the settings screen exists; opening settings must not grant session authority or pause online simulation.
 - [ ] Task 1.5.3: Add a small pooled UI sound set for focus, confirm, back, error, ready, countdown, and results reveal.
 
 Acceptance: settings survive restart; warning volume remains independently controllable; reduced motion removes scale/pulse dependence; input focus and cursor capture recover correctly; online pause never stops authority.

@@ -44,6 +44,7 @@ godot --headless --path . --script res://tests/test_lobby_roster.gd
 godot --headless --path . --script res://tests/test_lobby_presentation.gd
 godot --headless --path . --script res://tests/test_spectator_presentation.gd
 godot --headless --path . --script res://tests/test_results_table.gd
+godot --headless --path . --script res://tests/test_results_actions.gd
 # Repeat the milestone HUD/focus captures at 1280x720 and 1920x1080 (requires a display).
 # Use an existing ignored output directory for --capture-dir.
 godot --path . --audio-driver Dummy --resolution 1280x720 \

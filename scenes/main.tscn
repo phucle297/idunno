@@ -535,15 +535,31 @@ horizontal_alignment = 1
 offset_left = 34.0
 offset_top = 76.0
 offset_right = 766.0
-offset_bottom = 506.0
+offset_bottom = 470.0
 script = ExtResource("16_results")
 
 [node name="Prompt" type="Label" parent="Interface/ResultsPanel"]
 offset_left = 32.0
-offset_top = 518.0
+offset_top = 478.0
 offset_right = 768.0
-offset_bottom = 552.0
+offset_bottom = 504.0
 theme_override_colors/font_color = Color(0.286275, 0.337255, 0.415686, 1)
 theme_override_font_sizes/font_size = 17
 text = "PRESS ENTER TO REMATCH"
 horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="Interface/ResultsPanel"]
+offset_left = 32.0
+offset_top = 514.0
+offset_right = 768.0
+offset_bottom = 554.0
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Rematch" type="Button" parent="Interface/ResultsPanel/Actions"]
+custom_minimum_size = Vector2(180, 40)
+text = "REMATCH"
+
+[node name="Lobby" type="Button" parent="Interface/ResultsPanel/Actions"]
+custom_minimum_size = Vector2(220, 40)
+text = "RETURN TO LOBBY"

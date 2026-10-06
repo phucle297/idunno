@@ -37,6 +37,8 @@ var _network_role := "offline"
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
 var _match_snapshot_remaining := 0.0
+var _match_snapshot_sequence := 0
+var _last_match_snapshot_sequence := 0
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
@@ -256,6 +258,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT) -> Error:
 	multiplayer.multiplayer_peer = peer
 	_network_mode = true
 	_network_role = "client"
+	_last_match_snapshot_sequence = 0
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
@@ -411,7 +414,7 @@ func _physics_process(delta: float) -> void:
 	var local_peer_id := multiplayer.get_unique_id()
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		var input_allowed: bool = not $Interface/LobbyPanel.visible and match_manager.is_player_alive(local_peer_id)
+		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
 		var crouched := input_allowed and Input.is_action_pressed("crouch")
@@ -617,7 +620,13 @@ func _process(delta: float) -> void:
 		_match_snapshot_remaining -= delta
 		if _match_snapshot_remaining <= 0.0:
 			_match_snapshot_remaining = MATCH_SNAPSHOT_INTERVAL
-			_apply_match_snapshot.rpc(_create_playable_snapshot())
+			_match_snapshot_sequence += 1
+			var snapshot := _create_playable_snapshot()
+			snapshot.match_sequence = _match_snapshot_sequence
+			if match_manager.state == MatchManager.MatchState.ACTIVE:
+				_apply_match_snapshot.rpc(snapshot)
+			else:
+				_apply_session_snapshot.rpc(snapshot)
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	gameplay_hud.present_vitals(match_manager.get_health(local_peer_id), match_manager.get_alive_count(), match_manager.players.size())
 	_update_flood_feedback(local_peer_id)
@@ -634,8 +643,19 @@ func _process(delta: float) -> void:
 	_update_lobby_ui()
 
 
+@rpc("authority", "call_remote", "reliable", 2)
+func _apply_session_snapshot(snapshot: Dictionary) -> void:
+	_apply_match_snapshot(snapshot)
+
+
 @rpc("authority", "call_remote", "unreliable_ordered", 2)
 func _apply_match_snapshot(snapshot: Dictionary) -> void:
+	# Reliable lobby/results and live snapshots may arrive out of order.
+	if snapshot.has("match_sequence"):
+		var sequence := int(snapshot.match_sequence)
+		if sequence <= _last_match_snapshot_sequence:
+			return
+		_last_match_snapshot_sequence = sequence
 	var snapshot_peer_ids: PackedInt32Array = snapshot.get("player_ids", PackedInt32Array())
 	for peer_id: int in _player_nodes.keys():
 		if peer_id not in snapshot_peer_ids:
@@ -791,6 +811,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_accept"):
 		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and multiplayer.is_server():
 			start_network_match()
+		elif match_manager.state == MatchManager.MatchState.LOBBY and not _network_mode:
+			start_local_match()
 		elif match_manager.state == MatchManager.MatchState.RESULTS:
 			if _network_mode and multiplayer.is_server():
 				restart_network_match()
@@ -842,12 +864,25 @@ func _configure_lobby_ui() -> void:
 	$Interface/LobbyPanel/Join.pressed.connect(_on_lobby_join_pressed)
 	$Interface/LobbyPanel/Close.pressed.connect(func() -> void: _set_lobby_visible(false))
 	$Interface/LobbyPanel/Ready.pressed.connect(_on_lobby_ready_pressed)
-	$Interface/LobbyPanel/Start.pressed.connect(func() -> void: start_network_match())
+	$Interface/LobbyPanel/Start.pressed.connect(func() -> void:
+		if _network_mode:
+			start_network_match()
+		else:
+			start_local_match()
+	)
+	$Interface/ResultsPanel/Actions/Rematch.pressed.connect(func() -> void:
+		if _network_mode:
+			restart_network_match()
+		else:
+			restart_local_match()
+	)
+	$Interface/ResultsPanel/Actions/Lobby.pressed.connect(func() -> void: return_to_lobby())
 
 
 func _set_lobby_visible(visible: bool) -> void:
+	visible = visible and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyPanel.visible = visible
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or spectator_controller.active else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
 	$Player.local_input_blocked = visible
 	_update_lobby_ui()
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
@@ -984,8 +1019,8 @@ func _update_lobby_ui() -> void:
 	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
 	panel.get_node("Ready").disabled = not connected and not lobby_demo
-	panel.get_node("Start").visible = ((_network_mode and multiplayer.is_server()) or lobby_demo) and in_lobby
-	panel.get_node("Start").disabled = not match_manager.can_start_match() or match_manager.players.size() < 2
+	panel.get_node("Start").visible = (not _network_mode or multiplayer.is_server()) and in_lobby
+	panel.get_node("Start").disabled = (not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false
 	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id)
 	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"
 	if in_lobby and (_network_mode or lobby_demo):
@@ -1003,7 +1038,7 @@ func _update_lobby_ui() -> void:
 	$Interface/LobbyBackdrop.visible = panel.visible
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		local_player.local_input_blocked = panel.visible
+		local_player.local_input_blocked = panel.visible or match_manager.state == MatchManager.MatchState.RESULTS
 	gameplay_hud.present_lobby_overlay(panel.visible)
 	_refresh_lobby_focus()
 
@@ -1020,8 +1055,15 @@ func restart_network_match() -> bool:
 	return _restart_authoritative_match()
 
 
-func _restart_authoritative_match() -> bool:
-	if not match_manager.reset_to_lobby():
+func start_local_match() -> bool:
+	if _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	match_manager.set_player_ready(1, true)
+	return match_manager.start_match() and disaster_director.start_directing()
+
+
+func return_to_lobby() -> bool:
+	if match_manager.state != MatchManager.MatchState.RESULTS or (_network_mode and not multiplayer.is_server()):
 		return false
 	disaster_director.cleanup()
 	spectator_controller.stop()
@@ -1029,6 +1071,7 @@ func _restart_authoritative_match() -> bool:
 	$Interface/ResultsPanel.visible = false
 	gameplay_audio.reset_for_match()
 	_reset_sandbox()
+	match_manager.prepare_lobby()
 	var peer_ids: Array[int] = get_network_player_ids()
 	if not _network_mode:
 		peer_ids = [1]
@@ -1039,6 +1082,16 @@ func _restart_authoritative_match() -> bool:
 			return false
 		var spawn_position := Vector3(0.0, 0.05, 7.0) if peer_id == 1 else _network_spawn_position(index)
 		player.reset_for_match(spawn_position)
+	_set_lobby_visible(true)
+	if not _network_mode:
+		$Interface/LobbyPanel/Status.text = "Start solo play or create/join a LAN lobby"
+	return true
+
+
+func _restart_authoritative_match() -> bool:
+	if not return_to_lobby():
+		return false
+	for peer_id: int in match_manager.players:
 		if not match_manager.set_player_ready(peer_id, true):
 			return false
 	if not match_manager.start_match():
@@ -1063,19 +1116,33 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		"PRESS ENTER TO REMATCH" if not _network_mode or multiplayer.is_server()
 		else "WAITING FOR HOST TO START REMATCH"
 	)
+	var can_act := not _network_mode or multiplayer.is_server()
+	$Interface/ResultsPanel/Actions/Rematch.visible = can_act
+	$Interface/ResultsPanel/Actions/Lobby.visible = can_act
+	var controls: Array[Control] = [$Interface/ResultsPanel/Table.scroll]
+	if can_act:
+		controls.append($Interface/ResultsPanel/Actions/Rematch)
+		controls.append($Interface/ResultsPanel/Actions/Lobby)
+	for index: int in controls.size():
+		var control := controls[index]
+		control.focus_previous = control.get_path_to(controls[wrapi(index - 1, 0, controls.size())])
+		control.focus_next = control.get_path_to(controls[(index + 1) % controls.size()])
+		control.focus_neighbor_right = control.focus_next
+		control.focus_neighbor_left = control.focus_previous
 	$Interface/ResultsPanel.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	$Interface/ResultsPanel/Table.scroll.grab_focus()
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	gameplay_hud.present_match_status(ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0)), _match_state_text(), state == MatchManager.MatchState.RESULTS)
 	if state == MatchManager.MatchState.RESULTS:
 		_set_lobby_visible(false)
-	if state != MatchManager.MatchState.ACTIVE:
 		return
 	spectator_controller.stop()
 	gameplay_hud.set_spectating_visible(false)
-	_set_lobby_visible(false)
 	$Interface/ResultsPanel.visible = false
+	_set_lobby_visible(state == MatchManager.MatchState.LOBBY)
 	if not _network_mode or multiplayer.is_server():
 		return
 	gameplay_audio.reset_for_match()

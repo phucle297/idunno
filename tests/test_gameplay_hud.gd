@@ -27,6 +27,18 @@ func _run() -> void:
 	_expect(hud.state_label.text == "SURVIVE", "Match status must present semantic state copy")
 	hud.present_match_status(0, "ENTER TO REMATCH", true)
 	_expect(not hud.timer_card.visible, "Results must suppress the complete timer card")
+	hud.present_hazards(["FLOOD"])
+	hud.present_major_warning("flood", 2.0)
+	hud.present_context_action("GRAB OBJECT")
+	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
+	hud.set_spectating_visible(true)
+	for control: Control in [hud.health_card, hud.get_node("AlivePill"), hud.timer_card, hud.hazard_tray, hud.warning_banner, hud.personal_danger, hud.context_prompt, hud.spectator_card]:
+		_expect(not control.visible, "Later presenter calls must not re-enable gameplay UI beneath results: %s" % control.name)
+	hud.set_spectating_visible(false)
+	hud.present_match_status(125, "SURVIVE", false)
+	hud.present_major_warning("")
+	hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
+	hud.present_context_action("")
 
 	hud.present_hazards(["FLOOD", "TORNADO", "FIRE"])
 	_expect(hud.hazard_tray.visible, "Active hazards must show the hazard tray")

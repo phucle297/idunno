@@ -91,9 +91,10 @@ func _run() -> void:
 	main._update_lobby_ui()
 	# Expose the disabled start control only to inspect its shared-theme style offline.
 	var start_button := main.get_node("Interface/LobbyPanel/Start") as Button
-	start_button.show()
-	_expect(start_button.disabled, "The unready lobby fixture must show the disabled button style")
 	main._set_lobby_visible(true)
+	start_button.show()
+	start_button.disabled = true
+	_expect(start_button.disabled, "The explicit disabled fixture must show the shared button style; solo Start is normally enabled")
 	await process_frame
 	_expect(root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/Address"), "Lobby opening must provide keyboard field focus")
 	await _capture("lobby-focus")

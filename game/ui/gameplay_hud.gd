@@ -105,7 +105,7 @@ func present_match_status(remaining_seconds: int, state_text: String, results_vi
 	timer_label.text = "%02d:%02d" % [remaining_seconds / 60, remaining_seconds % 60]
 	state_label.text = state_text
 	_results_visible = results_visible
-	timer_card.visible = not results_visible and not _lobby_open
+	present_lobby_overlay(_lobby_open)
 
 
 func present_hazards(lines: Array[String]) -> void:
@@ -125,12 +125,12 @@ func present_hazards(lines: Array[String]) -> void:
 			var second_icon: Control = chip.get_node("Content/SecondIcon")
 			second_icon.visible = names.size() == 2
 			second_icon.disaster_id = names[1].to_lower() if second_icon.visible else ""
-	hazard_tray.visible = not _presented_hazards.is_empty() and not _lobby_open
+	hazard_tray.visible = not _presented_hazards.is_empty() and not _lobby_open and not _results_visible
 
 
 func present_context_action(action: String) -> void:
 	_presented_context_action = action
-	context_prompt.visible = not action.is_empty() and not personal_danger.visible
+	context_prompt.visible = not action.is_empty() and not personal_danger.visible and not _lobby_open and not _results_visible
 	context_action_label.text = action
 
 
@@ -141,7 +141,7 @@ func present_major_warning(disaster_id: String, remaining_seconds: float = 0.0) 
 	_warning_id = disaster_id
 	# Snapshot corrections may increase the display, but must not replay an already heard tick.
 	_warning_seconds = seconds if changed else mini(_warning_seconds, seconds)
-	warning_banner.visible = not disaster_id.is_empty()
+	warning_banner.visible = not disaster_id.is_empty() and not _lobby_open and not _results_visible
 	hazard_tray.offset_top = 220.0 if warning_banner.visible else 120.0
 	hazard_tray.offset_bottom = hazard_tray.offset_top + (88.0 if warning_banner.visible else 104.0)
 	for chip: PanelContainer in hazard_chips:
@@ -180,9 +180,9 @@ func _clear_warning_motion() -> void:
 
 
 func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.0, damage_per_second: float = 0.0) -> void:
-	personal_danger.visible = exposure != FloodExposure.SAFE
+	personal_danger.visible = exposure != FloodExposure.SAFE and not _lobby_open and not _results_visible
 	warning_action.visible = not personal_danger.visible
-	context_prompt.visible = not _presented_context_action.is_empty() and not personal_danger.visible
+	context_prompt.visible = not _presented_context_action.is_empty() and not personal_danger.visible and not _lobby_open and not _results_visible
 	danger_status.text = ""
 	danger_action.text = ""
 	match exposure:
@@ -202,8 +202,8 @@ func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.
 
 func set_spectating_visible(visible: bool) -> void:
 	_spectating = visible
-	spectator_card.visible = visible and not _lobby_open
-	health_card.visible = not visible and not _lobby_open
+	spectator_card.visible = visible and not _lobby_open and not _results_visible
+	health_card.visible = not visible and not _lobby_open and not _results_visible
 	if not visible:
 		_elimination_remaining = 0.0
 		elimination_label.hide()
@@ -232,12 +232,12 @@ func _clear_spectator_motion() -> void:
 
 func present_lobby_overlay(open: bool) -> void:
 	_lobby_open = open
-	health_card.visible = not open and not _spectating
-	spectator_card.visible = not open and _spectating
-	$AlivePill.visible = not open
+	health_card.visible = not open and not _spectating and not _results_visible
+	spectator_card.visible = not open and _spectating and not _results_visible
+	$AlivePill.visible = not open and not _results_visible
 	timer_card.visible = not open and not _results_visible
-	hazard_tray.visible = not open and not _presented_hazards.is_empty()
-	if open:
+	hazard_tray.visible = not open and not _presented_hazards.is_empty() and not _results_visible
+	if open or _results_visible:
 		present_major_warning("")
 		present_context_action("")
 		present_flood_exposure(FloodExposure.SAFE)

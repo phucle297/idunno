@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T17:24:02+00:00",
+  "updated_at": "2026-10-06T17:51:25+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,8 +33,8 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_4_structured_results",
-    "task": "task_1_4_3_authority_aware_results_actions"
+    "milestone": "milestone_1_7_map_boundary_and_out_of_bounds_safety",
+    "task": null
   },
   "engine": {
     "name": "Godot",
@@ -101,17 +101,17 @@
       },
       "milestone_1_4_structured_results": {
         "title": "Structured Results",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_1_4_1_ranking_rows_and_columns": "completed",
           "task_1_4_2_winner_reveal_and_one_existing_data_award": "completed",
-          "task_1_4_3_authority_aware_results_actions": "planned"
+          "task_1_4_3_authority_aware_results_actions": "completed"
         },
         "gates": {
           "legible_4_and_20_player_results": "passed",
-          "identical_authoritative_rankings": "not_run",
+          "identical_authoritative_rankings": "passed",
           "five_network_rematches": "passed",
-          "gameplay_hud_hidden": "failed"
+          "gameplay_hud_hidden": "passed"
         }
       },
       "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
@@ -157,6 +157,11 @@
     }
   },
   "validation_log": [
+    {
+      "result": "passed",
+      "check": "Milestone 1.4 completion: authority-aware results actions and all acceptance gates",
+      "evidence": "TDD results-actions checks first exposed missing actions, HUD leakage, lost names, surviving-winner input and snapshot ordering. Final 24 headless suites pass, including RESULTS_ACTIONS_OK=33, GAMEPLAY_HUD_OK=105, RESULTS_TABLE_OK=482 and REMATCH_INTEGRATION_OK cycles=5 checks=165. Rendered X11/Dummy results_actions=35 and results_table=487 each at 1280x720 and 1920x1080; inspected four-player host, client waiting and twenty-player bottom captures confirm contained controls/rows, readable rankings and no gameplay HUD. GODOT_BIN=$(command -v godot) PORT=29830 tests/run_playable_scene_network_test.sh passes five real ENet rematches. GODOT_BIN=$(command -v godot) PORT=29840 tests/run_playable_scale_test.sh passes 4/8/20-player exact authoritative ranking/cell comparisons, independent death-time order, client action rejection and connected lobby return/reset. Final network logs have no ERROR/SCRIPT ERROR or oversized unreliable snapshot warnings. One initial twenty-player movement-only failure did not recur in isolated and repeated full matrices; no movement cause/fix claimed. Compact default names and reliable sequence-ordered lobby/results snapshots remove reproduced MTU warnings; regressions cover both stale-packet directions. git diff --check and bash -n tests/run_playable_scale_test.sh pass. Some successful-exit headless suites retain audio/font resource diagnostics; verbose actions inspection identifies WAV/playback resources, not UI nodes. WSL llvmpipe, Dummy audio and synthetic joypad input do not verify native Windows performance, physical controllers or audio. Settings entry is deferred to its real screen in Milestone 1.5. Map safety remains unimplemented and next in Milestone 1.7."
+    },
     {
       "result": "passed",
       "check": "Task 1.1.1 shared Toy Broadcast UI tokens and theme",
@@ -270,6 +275,7 @@
   ],
   "blockers": [],
   "changed_files": [
+    "GUIDE.md",
     "README.md",
     "assets/manifest.json",
     "docs/decisions.md",
@@ -277,6 +283,7 @@
     "game/gameplay_audio_controller.gd",
     "game/grab_manager.gd",
     "game/main.gd",
+    "game/match_manager.gd",
     "game/player.gd",
     "game/spectator_controller.gd",
     "game/ui/disaster_icon.gd",
@@ -291,6 +298,7 @@
     "tests/playable_scale_peer.gd",
     "tests/playable_scale_probe.gd",
     "tests/playable_scene_network_peer.gd",
+    "tests/run_playable_scale_test.sh",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
     "tests/test_lobby_roster.gd",
@@ -299,10 +307,11 @@
     "tests/test_phase1.gd",
     "tests/test_phase7_polish.gd",
     "tests/test_player_integration.gd",
+    "tests/test_results_actions.gd",
     "tests/test_results_table.gd",
     "tests/test_session_lifecycle.gd",
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Task 1.4.3 authority-aware results actions and full gameplay HUD suppression, then reverify all Milestone 1.4 gates."
+  "next_action": "Implement and validate Milestone 1.7 map boundary and authoritative out-of-bounds elimination for the current town, including rendered boundary/death feedback and five network rematches."
 }

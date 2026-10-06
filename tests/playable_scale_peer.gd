@@ -97,6 +97,27 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	while probe.spectator_results.size() < player_count - 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var spectators_passed := probe.spectator_results.size() == player_count - 1 and not probe.spectator_results.values().has(false)
+	main.disaster_director.cleanup()
+	manager.players[1].name = "Named host, not a client-side default"
+	for index: int in range(peer_ids.size() - 1, 1, -1):
+		manager.players[peer_ids[index]].name = "Toy %02d" % index
+		manager.tick_match(1.0)
+		manager.apply_damage(peer_ids[index], 100.0, "Ranked result %d" % index)
+	main._process(0.0)
+	var table: VBoxContainer = main.get_node("Interface/ResultsPanel/Table")
+	var expected_order: Array = [1]
+	expected_order.append_array(peer_ids.slice(2))
+	expected_order.append(spectator_id)
+	var results_passed: bool = table.list.get_children().map(func(row: Node) -> int: return int(row.name)) == expected_order
+	results_passed = results_passed and not main.gameplay_hud.health_card.visible and not main.gameplay_hud.get_node("AlivePill").visible and main.get_node("Interface/ResultsPanel/Actions/Rematch").visible and main.get_node("Interface/ResultsPanel/Actions/Lobby").visible
+	probe.compare_results.rpc(_result_cells(main))
+	while probe.results_checks.size() < player_count - 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	results_passed = results_passed and probe.results_checks.size() == player_count - 1 and not probe.results_checks.values().has(false)
+	var lobby_return_passed: bool = main.return_to_lobby()
+	while probe.lobby_checks.size() < player_count - 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	lobby_return_passed = lobby_return_passed and probe.lobby_checks.size() == player_count - 1 and not probe.lobby_checks.values().has(false) and manager.state == MatchManager.MatchState.LOBBY and not manager.can_start_match()
 	main.set_process(false)
 	main.set_physics_process(false)
 	for peer_id: int in peer_ids:
@@ -107,8 +128,9 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 			await process_frame
 	await process_frame
 	var cleanup_passed := _disconnected_registries_are_clean(main, peer_ids)
-	var passed := spectators_passed and spawn_passed and movement_passed and match_passed and disaster_passed and damage_passed and hud_passed and clients_passed and cleanup_passed
+	var passed := results_passed and lobby_return_passed and spectators_passed and spawn_passed and movement_passed and match_passed and disaster_passed and damage_passed and hud_passed and clients_passed and cleanup_passed
 	if passed:
+		print("NETWORK_RESULTS_SCALE_OK players=%d exact_rankings_and_cells=passed host_actions=passed client_authority=passed lobby_return=passed" % player_count)
 		print("NETWORK_SPECTATOR_SCALE_OK players=%d eliminated_client=passed living_clients=passed presentation_authority=passed" % player_count)
 		print("PLAYABLE_SCALE_SERVER_OK players=%d movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" % player_count)
 	else:
@@ -187,6 +209,20 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		spectator_passed = spectator_passed and not hud.spectator_card.visible and hud.health_card.visible and is_equal_approx(manager.get_health(local_id), 75.0)
 	passed = passed and spectator_passed
 	probe.acknowledge_spectator.rpc_id(1, spectator_passed)
+	while (probe.expected_results.is_empty() or manager.state != MatchManager.MatchState.RESULTS) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var before: Dictionary = manager.create_authoritative_snapshot().duplicate(true)
+	var results_passed: bool = _result_cells(main) == probe.expected_results and not hud.health_card.visible and not hud.get_node("AlivePill").visible and not main.get_node("Interface/ResultsPanel/Actions/Rematch").visible and not main.get_node("Interface/ResultsPanel/Actions/Lobby").visible
+	results_passed = results_passed and not main.restart_network_match() and not main.return_to_lobby() and manager.create_authoritative_snapshot() == before
+	passed = passed and results_passed
+	probe.acknowledge_results.rpc_id(1, results_passed)
+	while manager.state != MatchManager.MatchState.LOBBY and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var lobby_return_passed: bool = manager.state == MatchManager.MatchState.LOBBY and main.get_node("Interface/LobbyPanel").visible and not main.get_node("Interface/ResultsPanel").visible and not main.spectator_controller.active and local_player.visual.visible and manager.get_health(local_id) == 100.0 and not manager.is_player_ready(local_id) and not main.disaster_director.running
+	passed = passed and lobby_return_passed
+	probe.acknowledge_lobby.rpc_id(1, lobby_return_passed)
 	while not probe.finish_received and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if passed and probe.finish_received:
@@ -203,6 +239,16 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 
 func _player_for_peer(main: Node, peer_id: int) -> PartyPlayer:
 	return main.get_node_or_null("Player" if peer_id == 1 else "NetworkPlayer%d" % peer_id) as PartyPlayer
+
+
+func _result_cells(main: Node) -> Array:
+	var result: Array = []
+	for row: Control in main.get_node("Interface/ResultsPanel/Table").list.get_children():
+		var cells: Array = [int(row.name)]
+		for cell: Label in row.get_children():
+			cells.append(cell.text)
+		result.append(cells)
+	return result
 
 
 func _disconnected_registries_are_clean(main: Node, original_peer_ids: Array[int]) -> bool:

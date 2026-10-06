@@ -73,7 +73,9 @@ For two processes on one development PC, join `127.0.0.1` instead.
 
 The HUD shows health at bottom-left, match time at top-center, and alive players at top-right. Large centered text names active disaster warnings.
 
-When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. The host presses **Enter** to start a rematch; clients remain connected and display **WAITING FOR HOST TO START REMATCH** until the new round begins.
+When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
+
+The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **START MATCH** to resume solo play. Settings are planned in Milestone 1.5 and are not yet available.
 
 Warnings, impacts, jumping, death, and victory have synthesized placeholder audio. Flood, Meteor, and Tornado use distinct warning cues. Warning audio has a reserved voice so overlapping impact effects cannot silence it.
 

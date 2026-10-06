@@ -173,6 +173,7 @@ func create_authoritative_snapshot() -> Dictionary:
 		peer_ids.append(peer_id)
 	peer_ids.sort()
 	var ids := PackedInt32Array()
+	var names := PackedStringArray()
 	var ready := PackedByteArray()
 	var health := PackedFloat32Array()
 	var alive := PackedByteArray()
@@ -183,6 +184,8 @@ func create_authoritative_snapshot() -> Dictionary:
 	for peer_id: int in peer_ids:
 		var player: Dictionary = players[peer_id]
 		ids.append(peer_id)
+		var default_name := "Host" if peer_id == 1 else "Player %d" % peer_id
+		names.append("" if String(player.name) == default_name else String(player.name))
 		ready.append(1 if bool(player.ready) else 0)
 		health.append(float(player.health))
 		alive.append(1 if bool(player.alive) else 0)
@@ -190,11 +193,14 @@ func create_authoritative_snapshot() -> Dictionary:
 		elimination_time.append(float(player.elimination_time))
 		causes.append(String(player.cause_of_death))
 		disasters_survived.append(int(player.disasters_survived))
+	if names.count("") == names.size():
+		names.clear()
 	return {
 		"state": int(state),
 		"elapsed_time": elapsed_time,
 		"match_duration": match_duration,
 		"player_ids": ids,
+		"player_names": names,
 		"player_ready": ready,
 		"player_health": health,
 		"player_alive": alive,
@@ -210,6 +216,7 @@ func apply_authoritative_snapshot(snapshot: Dictionary) -> bool:
 	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
 		return false
 	var ids: PackedInt32Array = snapshot.get("player_ids", PackedInt32Array())
+	var names: PackedStringArray = snapshot.get("player_names", PackedStringArray())
 	var ready: PackedByteArray = snapshot.get("player_ready", PackedByteArray())
 	var health: PackedFloat32Array = snapshot.get("player_health", PackedFloat32Array())
 	var alive: PackedByteArray = snapshot.get("player_alive", PackedByteArray())
@@ -219,7 +226,8 @@ func apply_authoritative_snapshot(snapshot: Dictionary) -> bool:
 	var disasters_survived: PackedInt32Array = snapshot.get("player_disasters_survived", PackedInt32Array())
 	var player_count := ids.size()
 	if (
-		ready.size() != player_count
+		(not names.is_empty() and names.size() != player_count)
+		or ready.size() != player_count
 		or health.size() != player_count
 		or alive.size() != player_count
 		or damage_taken.size() != player_count
@@ -237,7 +245,7 @@ func apply_authoritative_snapshot(snapshot: Dictionary) -> bool:
 	for index: int in player_count:
 		var peer_id := ids[index]
 		players[peer_id] = {
-			"name": "Host" if peer_id == 1 else "Player %d" % peer_id,
+			"name": names[index] if not names.is_empty() and not names[index].is_empty() else ("Host" if peer_id == 1 else "Player %d" % peer_id),
 			"ready": ready[index] != 0,
 			"health": health[index],
 			"alive": alive[index] != 0,
