@@ -63,12 +63,12 @@ Reverified after Task 1.2.1: `tests/test_milestone_1_1.gd` checks theme sharing,
 
 - [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
 - [x] Task 1.2.2: Add compact active-hazard and combination chips for persistent context; six vector identities and paired interaction chips validated at 720p/1080p without repeating major-warning instructions.
-- [ ] Task 1.2.3: Reopened on review: the unified personal-danger card must prioritize leaving electrified water, not keeping the head above water, and cover simultaneous electric/drowning damage. Ordinary Flood states and instruction suppression are implemented.
+- [x] Task 1.2.3: Unified personal danger prioritizes LEAVE THE WATER during electrical exposure, including combined drowning damage and shallow contact; expiry restores ordinary Flood states. Combined damage/presentation regressions pass.
 - [x] Task 1.2.4: Add bounded opacity/countdown feedback, a reduced-motion presenter switch, and quiet final-three-second cues through the existing effect pool without replacing the dedicated warning voice.
 
 Acceptance: hazard identity is never color-only; at most one full warning and one personal-danger banner compete for attention; every incoming disaster shows icon, name, countdown, and action; overlap remains readable.
 
-Milestone 1.2 reopened: review reproduced electrical HP loss while the local card incorrectly recommends keeping the head above water. Timing, lifecycle, bounded audio, rendered layout, five network rematches, and local 4/8/20-peer regression passed; combined electrical damage/personal-instruction coverage is missing. Settings persistence and physical audio review remain later work.
+Milestone 1.2 complete after review remediation: combined electrical damage/personal-instruction coverage and 720p/1080p renders pass; timing, bounded audio, five network rematches, and local 4/8/20-peer regressions remain green. `test_session_lifecycle.gd` also verifies ENet disconnect/failure/retry restores a valid offline peer before authority checks, removing inactive-peer error spam. Settings persistence and physical audio review remain later work.
 
 ### Milestone 1.3 — Lobby and spectator presentation
 

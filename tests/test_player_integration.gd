@@ -257,8 +257,38 @@ func _test_default_scene_offline_input() -> void:
 	flood.tick(0.1)
 	main._update_flood_feedback(1)
 	_expect(not main.gameplay_hud.personal_danger.visible and main.gameplay_hud.danger_status.text.is_empty(), "Surfacing onto dry ground must clear stale personal danger")
+	_test_electrified_flood_feedback(main, playable_player, flood)
 	main.queue_free()
 	await process_frame
+
+
+func _test_electrified_flood_feedback(main: Node, local_player: PartyPlayer, flood: Flood) -> void:
+	var hud := main.gameplay_hud as GameplayHud
+	# Shallow contact (only 2 cm above feet), breathing grace, and existing drowning.
+	for entry: Array in [[0.12, 0.0, 25, "IN FLOODWATER"], [2.0, 0.5, 25, "HOLD BREATH"], [2.0, 2.5, 37, "DROWNING"]]:
+		flood.cleanup()
+		main.match_manager.prepare_lobby()
+		main.match_manager.set_player_ready(1, true)
+		main.match_manager.start_match()
+		local_player.position = Vector3(0, 0.1, 0)
+		flood.start_warning()
+		flood.tick(flood.warning_duration)
+		flood.phase = Flood.Phase.HOLDING
+		flood._set_water_level(entry[0])
+		flood.tick(entry[1])
+		_expect(flood.electrify_at(Vector3(0, entry[0], 0)), "Flood must electrify for the combined feedback fixture")
+		var before := main.match_manager.get_health(1) as float
+		flood.tick(0.1)
+		main._update_flood_feedback(1)
+		_expect(is_equal_approx(main.match_manager.get_health(1), before - entry[2] * 0.1), "Combined electric/drowning HP loss must match independently expected damage")
+		_expect(hud.danger_status.text == "ELECTRIFIED WATER — -%d HP/s" % entry[2] and hud.danger_action.text == "LEAVE THE WATER", "Electrical exposure must override wading/grace/drowning instructions and include all active damage")
+		flood.electrified_remaining = 0.0
+		main._update_flood_feedback(1)
+		_expect(hud.danger_status.text.begins_with(entry[3]), "Electrical expiry must restore the correct remaining Flood exposure")
+		local_player.position.y = 3.0
+		main._update_flood_feedback(1)
+		_expect(not hud.personal_danger.visible, "Leaving water must clear personal danger immediately")
+	flood.cleanup()
 
 
 func _expect(condition: bool, message: String) -> void:

@@ -23,6 +23,7 @@ godot --headless --path . --script res://tools/asset_generation/generate_assets.
 # Run the current automated checks.
 godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
+godot --headless --path . --script res://tests/test_session_lifecycle.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
 godot --headless --path . --script res://tests/test_rematch_integration.gd
 godot --headless --path . --script res://tests/test_spectator_controller.gd

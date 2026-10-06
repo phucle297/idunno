@@ -158,6 +158,13 @@ func _run() -> void:
 	environment.ambient_light_energy = 0.1
 	main.get_node("Sun").light_energy = 0.1
 	await _capture("personal-drowning-dark")
+	hud.present_hazards(["FLOOD + LIGHTNING — ELECTRIFIED WATER"])
+	hud.present_flood_exposure(GameplayHud.FloodExposure.ELECTRIFIED, 0.0, 25.0)
+	_expect(hud.danger_status.text == "ELECTRIFIED WATER — -25 HP/s" and hud.danger_action.text == "LEAVE THE WATER", "Electrical danger must name its damage and instruct leaving water")
+	await _capture("personal-electric")
+	hud.present_flood_exposure(GameplayHud.FloodExposure.ELECTRIFIED, 0.0, 37.0)
+	_expect(hud.danger_status.text == "ELECTRIFIED WATER — -37 HP/s" and not hud.warning_action.visible, "Combined electrical/drowning damage must retain one prioritized escape action")
+	await _capture("personal-electric-drowning")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.SUBMERGED, 0.8)
 	_expect(hud.danger_status.text == "HOLD BREATH — 0.8 s", "A recovered breathing grace must clear stale damage copy")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)

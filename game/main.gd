@@ -255,6 +255,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT) -> Error:
 	_network_mode = true
 	_network_role = "client"
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	multiplayer.connection_failed.connect(_on_connection_failed)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
 	_player_nodes[1] = $Player
 	_set_lobby_visible(true)
@@ -323,11 +324,40 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 
 
 func _on_server_disconnected() -> void:
-	for peer_id: int in _player_nodes.keys():
-		if peer_id != 1:
-			_remove_network_player(peer_id)
+	# Clear ENet before any gameplay authority checks; a closed peer still counts as installed.
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	_network_mode = false
 	_network_role = "offline"
+	multiplayer.server_disconnected.disconnect(_on_server_disconnected)
+	multiplayer.connection_failed.disconnect(_on_connection_failed)
+	disaster_director.cleanup()
+	spectator_controller.stop()
+	gameplay_hud.set_spectating_visible(false)
+	gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
+	gameplay_hud.present_major_warning("")
+	gameplay_hud.present_hazards([])
+	gameplay_audio.reset_for_match()
+	match_manager.prepare_lobby()
+	for peer_id: int in match_manager.players.keys():
+		for component: Node in [$GrabManager, meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
+			component.unregister_player(peer_id)
+	for peer_id: int in _player_nodes.keys():
+		_remove_network_player(peer_id)
+	_movement_inputs.clear()
+	_reset_sandbox()
+	$Player.set_multiplayer_authority(1)
+	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
+	_configure_network_player($Player, 1, $Player.position)
+	_player_nodes[1] = $Player
+	_register_server_gameplay_player(1, $Player, "Local Player")
+	$Interface/ResultsPanel.visible = false
+	_set_lobby_visible(true)
+	$Interface/LobbyPanel/Status.text = "Server disconnected — create or join a lobby"
+
+
+func _on_connection_failed() -> void:
+	_on_server_disconnected()
+	$Interface/LobbyPanel/Status.text = "Connection failed — check address and retry"
 
 
 func _spawn_server_network_player(peer_id: int, player_name: String, spawn_position: Vector3) -> bool:
@@ -653,11 +683,17 @@ func _update_flood_feedback(local_peer_id: int) -> void:
 		return
 	var player := _player_nodes.get(local_peer_id) as PartyPlayer
 	var active := flood.phase >= Flood.Phase.RISING and match_manager.is_player_alive(local_peer_id) and is_instance_valid(player)
-	var feet_flooded := active and flood.is_position_flooded(player.global_position + Vector3.UP * 0.05)
+	var feet_flooded := active and flood.is_position_flooded(player.global_position)
 	var submerged_time := flood.get_submerged_time(local_peer_id) if active else 0.0
 	var submerged := submerged_time > 0.0
 	if not feet_flooded:
 		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SAFE)
+		return
+	if flood.electrified_remaining > 0.0:
+		var damage_rate := flood.electrified_damage_per_second
+		if submerged_time > flood.breathing_grace:
+			damage_rate += flood.damage_per_second
+		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.ELECTRIFIED, 0.0, damage_rate)
 		return
 	if submerged_time > flood.breathing_grace:
 		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, flood.damage_per_second)

@@ -8,6 +8,7 @@ enum FloodExposure {
 	WADING,
 	SUBMERGED,
 	DROWNING,
+	ELECTRIFIED,
 }
 
 const MAX_HAZARD_CHIPS := 2
@@ -160,6 +161,9 @@ func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.
 		FloodExposure.DROWNING:
 			danger_status.text = "DROWNING — -%d HP/s" % int(damage_per_second)
 			danger_action.text = "GET YOUR HEAD ABOVE WATER"
+		FloodExposure.ELECTRIFIED:
+			danger_status.text = "ELECTRIFIED WATER — -%d HP/s" % int(damage_per_second)
+			danger_action.text = "LEAVE THE WATER"
 
 
 func set_spectating_visible(visible: bool) -> void:
