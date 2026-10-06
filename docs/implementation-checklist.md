@@ -46,11 +46,11 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 
 ## Phase 5 — Disaster combinations
 
-- [ ] Add named cross-disaster events and shared hazard queries.
-- [ ] Implement Flood + Lightning electrified water.
-- [ ] Implement at least one additional physical interaction such as Tornado + Fire or Earthquake + Flood.
+- [x] Add named cross-disaster events and shared hazard queries.
+- [x] Implement Flood + Lightning electrified water.
+- [x] Implement Tornado + Fire wind-driven propagation and tagged burning debris carriage.
 
-Current Flood + Tornado validation proves simultaneous coexistence and readable presentation, not a true cross-disaster interaction.
+Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior and replicate compact presentation state to playable clients.
 
 ## Slice polish and validation completed ahead of Phase 7
 

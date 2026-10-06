@@ -72,11 +72,16 @@ The HUD shows health at bottom-left, match time at top-center, and alive players
 
 - About **0:10**: the first Meteor or Flood warning can begin.
 - Before **2:00**: one Meteor or Flood runs at a time.
-- At **2:00**: Tornado becomes eligible.
+- At **2:00**: Tornado, Earthquake, and Lightning become eligible.
 - At **5:00**: two compatible disasters can overlap, but only after both have completed alone at least once.
 - At most two disasters overlap in the current prototype.
 
-Implemented disasters are **Meteor Shower, Flood, and Tornado**. Earthquake, Lightning, Fire, and true cross-disaster interactions are not implemented yet. Current overlap means two disasters coexist; it does not yet include effects such as electrified floodwater.
+Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, and Fire**.
+
+- **Flood + Lightning:** a strike in active floodwater electrifies the connected water for three seconds. Violet ripples and the `ELECTRIFIED WATER` warning identify it. Get onto raised ground immediately.
+- **Tornado + Fire:** Tornado wind doubles Fire's spread frequency and carries one visibly flaming debris body. Keep away from both the funnel and orange Fire-zone rings.
+
+Earthquake, Lightning, and Tornado become eligible as intensity rises after 2:00. Fire and two-disaster overlaps unlock at 5:00. A disaster must complete alone before the director can use it in an overlap.
 
 To inspect the implemented visuals immediately without waiting for normal match timing, launch one of these local demo states:
 
@@ -84,6 +89,11 @@ To inspect the implemented visuals immediately without waiting for normal match 
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --meteor-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --flood-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --tornado-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --earthquake-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --lightning-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --fire-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --electric-flood-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --fire-tornado-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --overlap-demo
 ```
 

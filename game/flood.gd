@@ -3,6 +3,7 @@ extends Node3D
 
 signal warning_started(duration: float)
 signal water_level_changed(level: float)
+signal electrified(target: Vector3, duration: float)
 signal finished
 
 enum Phase {
@@ -14,6 +15,7 @@ enum Phase {
 }
 
 const DAMAGE_CAUSE := "Flood"
+const ELECTRIC_DAMAGE_CAUSE := "Electrified Flood"
 const DISASTER_NAME := "Flood"
 
 @export var warning_duration := 6.0
@@ -28,16 +30,23 @@ const DISASTER_NAME := "Flood"
 @export var buoyancy_force_max := 180.0
 @export var drag_force_max := 90.0
 @export var current_speed := 1.5
+@export var electrified_duration := 3.0
+@export var electrified_damage_per_second := 25.0
 
 var phase := Phase.IDLE
 var warning_remaining := 0.0
 var water_level := -0.5
+var electrified_remaining := 0.0
+var electrified_target := Vector3.ZERO
 
 var _phase_elapsed := 0.0
 var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _submerged_time: Dictionary = {}
 var _surface: MeshInstance3D
+var _water_material: StandardMaterial3D
+var _ripple_material: StandardMaterial3D
+var _electric_material: StandardMaterial3D
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -99,6 +108,7 @@ func tick(delta: float) -> void:
 	if not _can_mutate() or phase == Phase.IDLE:
 		return
 	var safe_delta := maxf(delta, 0.0)
+	var electrified_delta := minf(safe_delta, electrified_remaining)
 	match phase:
 		Phase.WARNING:
 			warning_remaining = maxf(warning_remaining - safe_delta, 0.0)
@@ -109,13 +119,13 @@ func tick(delta: float) -> void:
 			var previous_level := water_level
 			_phase_elapsed = minf(_phase_elapsed + safe_delta, rise_duration)
 			_set_water_level(lerpf(start_level, target_level, _phase_elapsed / maxf(rise_duration, 0.001)))
-			_apply_water_effects(safe_delta, previous_level)
+			_apply_water_effects(safe_delta, previous_level, electrified_delta)
 			if _phase_elapsed >= rise_duration:
 				phase = Phase.HOLDING
 				_phase_elapsed = 0.0
 		Phase.HOLDING:
 			_phase_elapsed = minf(_phase_elapsed + safe_delta, hold_duration)
-			_apply_water_effects(safe_delta, water_level)
+			_apply_water_effects(safe_delta, water_level, electrified_delta)
 			if _phase_elapsed >= hold_duration:
 				phase = Phase.DRAINING
 				_phase_elapsed = 0.0
@@ -123,9 +133,25 @@ func tick(delta: float) -> void:
 			var previous_level := water_level
 			_phase_elapsed = minf(_phase_elapsed + safe_delta, drain_duration)
 			_set_water_level(lerpf(target_level, start_level, _phase_elapsed / maxf(drain_duration, 0.001)))
-			_apply_water_effects(safe_delta, previous_level)
+			_apply_water_effects(safe_delta, previous_level, electrified_delta)
 			if _phase_elapsed >= drain_duration:
 				_finish()
+	electrified_remaining = maxf(electrified_remaining - safe_delta, 0.0)
+	_update_electric_visual()
+
+
+func electrify_at(target: Vector3) -> bool:
+	if not _can_mutate() or phase < Phase.RISING or not is_position_flooded(target):
+		return false
+	electrified_target = target
+	electrified_remaining = electrified_duration
+	_update_electric_visual()
+	electrified.emit(target, electrified_duration)
+	return true
+
+
+func is_position_flooded(position: Vector3) -> bool:
+	return phase >= Phase.RISING and water_level >= position.y
 
 
 func cleanup() -> void:
@@ -135,8 +161,13 @@ func cleanup() -> void:
 	phase = Phase.IDLE
 	warning_remaining = 0.0
 	water_level = start_level
+	electrified_remaining = 0.0
+	electrified_target = Vector3.ZERO
 	_phase_elapsed = 0.0
 	_submerged_time.clear()
+	_water_material = null
+	_ripple_material = null
+	_electric_material = null
 
 
 func active_effect_count() -> int:
@@ -148,6 +179,8 @@ func create_presentation_snapshot() -> Dictionary:
 		"phase": int(phase),
 		"warning_remaining": warning_remaining,
 		"water_level": water_level,
+		"electrified_remaining": electrified_remaining,
+		"electrified_target": electrified_target,
 	}
 
 
@@ -160,9 +193,12 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 		return true
 	phase = next_phase
 	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
+	electrified_remaining = maxf(float(snapshot.get("electrified_remaining", 0.0)), 0.0)
+	electrified_target = snapshot.get("electrified_target", Vector3.ZERO)
 	if not is_instance_valid(_surface):
 		_spawn_surface()
 	_set_water_level(float(snapshot.get("water_level", start_level)))
+	_update_electric_visual()
 	return true
 
 
@@ -174,7 +210,7 @@ func _process(delta: float) -> void:
 	tick(delta)
 
 
-func _apply_water_effects(delta: float, previous_water_level: float) -> void:
+func _apply_water_effects(delta: float, previous_water_level: float, electrified_delta: float) -> void:
 	var damage_events: Array[Dictionary] = []
 	for peer_id: int in _players:
 		var player := _players[peer_id] as Node3D
@@ -199,6 +235,8 @@ func _apply_water_effects(delta: float, previous_water_level: float) -> void:
 				damage_events.append({"peer_id": peer_id, "amount": damage_per_second * damaging_time, "cause": DAMAGE_CAUSE})
 		if not is_submerged:
 			_submerged_time[peer_id] = 0.0
+		if electrified_delta > 0.0 and is_position_flooded(player.global_position):
+			damage_events.append({"peer_id": peer_id, "amount": electrified_damage_per_second * electrified_delta, "cause": ELECTRIC_DAMAGE_CAUSE})
 	if not damage_events.is_empty():
 		_match_manager.apply_damage_batch(damage_events)
 
@@ -220,19 +258,23 @@ func _spawn_surface() -> void:
 	_surface.name = "FloodSurface"
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(64.0, 0.08, 64.0)
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.2588, 0.7216, 0.9098, 0.68)
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.roughness = 0.2
-	material.metallic = 0.0
-	mesh.material = material
+	_water_material = StandardMaterial3D.new()
+	_water_material.albedo_color = Color(0.2588, 0.7216, 0.9098, 0.68)
+	_water_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_water_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_water_material.roughness = 0.2
+	_water_material.metallic = 0.0
+	mesh.material = _water_material
 	_surface.mesh = mesh
 	add_child(_surface)
-	var ripple_material := StandardMaterial3D.new()
-	ripple_material.albedo_color = Color(0.9569, 0.902, 0.7843, 0.75)
-	ripple_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	ripple_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ripple_material = StandardMaterial3D.new()
+	_ripple_material.albedo_color = Color(0.9569, 0.902, 0.7843, 0.75)
+	_ripple_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ripple_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_electric_material = StandardMaterial3D.new()
+	_electric_material.albedo_color = Color(0.694, 0.235, 1.0, 0.94)
+	_electric_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_electric_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for ripple_data in [[Vector3(-8.0, 0.08, 4.0), 2.0], [Vector3(10.0, 0.08, -7.0), 3.0], [Vector3(2.0, 0.08, 12.0), 1.5]]:
 		var ripple := MeshInstance3D.new()
 		var ripple_mesh := TorusMesh.new()
@@ -240,11 +282,39 @@ func _spawn_surface() -> void:
 		ripple_mesh.outer_radius = ripple_data[1] + 0.12
 		ripple_mesh.rings = 32
 		ripple_mesh.ring_segments = 6
-		ripple_mesh.material = ripple_material
+		ripple_mesh.material = _ripple_material
 		ripple.mesh = ripple_mesh
 		ripple.position = ripple_data[0]
 		_surface.add_child(ripple)
+	for index in 3:
+		var electric_ripple := MeshInstance3D.new()
+		electric_ripple.name = "ElectricStrikeRipple%d" % index
+		var electric_mesh := TorusMesh.new()
+		electric_mesh.inner_radius = 1.2 + index * 1.1
+		electric_mesh.outer_radius = electric_mesh.inner_radius + 0.28
+		electric_mesh.rings = 40
+		electric_mesh.ring_segments = 8
+		electric_mesh.material = _electric_material
+		electric_ripple.mesh = electric_mesh
+		electric_ripple.visible = false
+		_surface.add_child(electric_ripple)
 	_set_water_level(start_level)
+	_update_electric_visual()
+
+
+func _update_electric_visual() -> void:
+	if not is_instance_valid(_surface):
+		return
+	var active := electrified_remaining > 0.0
+	for ripple in _surface.get_children():
+		var ripple_mesh := ripple as MeshInstance3D
+		ripple_mesh.material_override = _electric_material if active else _ripple_material
+	for index in 3:
+		var strike_ripple := _surface.get_node("ElectricStrikeRipple%d" % index) as MeshInstance3D
+		strike_ripple.visible = active
+		strike_ripple.position = Vector3(electrified_target.x, 0.1, electrified_target.z)
+		var pulse := 1.0 + sin(electrified_remaining * TAU * 2.0 + index) * 0.08
+		strike_ripple.scale = Vector3(pulse, 1.0, pulse)
 
 
 func _set_water_level(level: float) -> void:

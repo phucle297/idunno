@@ -65,6 +65,8 @@ var _effect: Node3D
 var _warning_material: StandardMaterial3D
 var _fire_material: StandardMaterial3D
 var _amber_material: StandardMaterial3D
+var _burning_debris: RigidBody3D
+var _burning_debris_visual: MeshInstance3D
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -126,6 +128,7 @@ func set_wind_active(active: bool) -> bool:
 	if not _can_mutate() or wind_active == active:
 		return false
 	wind_active = active
+	_sync_wind_debris()
 	wind_state_changed.emit(active)
 	return true
 
@@ -161,6 +164,12 @@ func cleanup() -> void:
 	_warning_material = null
 	_fire_material = null
 	_amber_material = null
+	if is_instance_valid(_burning_debris):
+		_burning_debris.queue_free()
+	_burning_debris = null
+	if is_instance_valid(_burning_debris_visual):
+		_burning_debris_visual.queue_free()
+	_burning_debris_visual = null
 	phase = Phase.IDLE
 	warning_remaining = 0.0
 	active_remaining = 0.0
@@ -186,6 +195,10 @@ func get_burning_zone_ids() -> Array[int]:
 	return result
 
 
+func burning_debris_count() -> int:
+	return 1 if is_instance_valid(_burning_debris) or is_instance_valid(_burning_debris_visual) else 0
+
+
 func create_presentation_snapshot() -> Dictionary:
 	return {
 		"phase": int(phase),
@@ -194,6 +207,8 @@ func create_presentation_snapshot() -> Dictionary:
 		"propagation": propagation_remaining,
 		"wind": wind_active,
 		"zones": _zone_states,
+		"debris_active": is_instance_valid(_burning_debris),
+		"debris_position": _burning_debris.global_position if is_instance_valid(_burning_debris) else Vector3.ZERO,
 	}
 
 
@@ -213,6 +228,7 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	if not is_instance_valid(_effect):
 		_spawn_effect()
 	_update_effect()
+	_apply_debris_presentation(bool(snapshot.get("debris_active", false)), snapshot.get("debris_position", Vector3.ZERO))
 	return true
 
 
@@ -255,6 +271,7 @@ func _ignite_pending_zone() -> void:
 	_zone_states[_pending_zone] = ZoneState.BURNING
 	zone_ignited.emit(_pending_zone, ZONE_POSITIONS[_pending_zone])
 	_pending_zone = -1
+	_sync_wind_debris()
 
 
 func _current_propagation_interval() -> float:
@@ -265,6 +282,70 @@ func _reset_zone_states() -> void:
 	_zone_states = PackedByteArray()
 	_zone_states.resize(ZONE_POSITIONS.size())
 	_zone_states.fill(ZoneState.SAFE)
+
+
+func _sync_wind_debris() -> void:
+	if not wind_active or phase != Phase.ACTIVE:
+		if is_instance_valid(_burning_debris):
+			_burning_debris.queue_free()
+		_burning_debris = null
+		return
+	if is_instance_valid(_burning_debris):
+		return
+	var burning_zones := get_burning_zone_ids()
+	if burning_zones.is_empty():
+		return
+	_burning_debris = RigidBody3D.new()
+	_burning_debris.name = "BurningDebris"
+	_burning_debris.mass = 5.0
+	_burning_debris.collision_layer = 4
+	_burning_debris.add_to_group("grabbable")
+	_burning_debris.add_to_group("burning_debris")
+	_burning_debris.position = ZONE_POSITIONS[burning_zones[0]] + Vector3.UP * 0.55
+	_burning_debris.add_child(_create_burning_debris_visual())
+	var collision := CollisionShape3D.new()
+	var shape := SphereShape3D.new()
+	shape.radius = 0.55
+	collision.shape = shape
+	_burning_debris.add_child(collision)
+	add_child(_burning_debris)
+
+
+func _apply_debris_presentation(active: bool, position: Vector3) -> void:
+	if not active:
+		if is_instance_valid(_burning_debris_visual):
+			_burning_debris_visual.queue_free()
+		_burning_debris_visual = null
+		return
+	if not is_instance_valid(_burning_debris_visual):
+		_burning_debris_visual = _create_burning_debris_visual()
+		_burning_debris_visual.name = "BurningDebrisVisual"
+		add_child(_burning_debris_visual)
+	_burning_debris_visual.global_position = position
+
+
+func _create_burning_debris_visual() -> MeshInstance3D:
+	var visual := MeshInstance3D.new()
+	var core_mesh := SphereMesh.new()
+	core_mesh.radius = 0.65
+	core_mesh.height = 1.3
+	core_mesh.radial_segments = 8
+	core_mesh.rings = 4
+	core_mesh.material = _zone_material(Color("49566a"), 1.0)
+	visual.mesh = core_mesh
+	for index in 3:
+		var flame := MeshInstance3D.new()
+		flame.name = "DebrisFlame%d" % index
+		var flame_mesh := SphereMesh.new()
+		flame_mesh.radius = 0.28 - index * 0.04
+		flame_mesh.height = 0.75 - index * 0.08
+		flame_mesh.radial_segments = 8
+		flame_mesh.rings = 4
+		flame_mesh.material = _fire_material if index % 2 == 0 else _amber_material
+		flame.mesh = flame_mesh
+		flame.position = Vector3(-0.28 + index * 0.28, 0.55 + index * 0.18, 0.0)
+		visual.add_child(flame)
+	return visual
 
 
 func _spawn_effect() -> void:

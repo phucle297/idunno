@@ -49,6 +49,10 @@ func _ready() -> void:
 	earthquake.configure(match_manager)
 	lightning.configure(match_manager)
 	fire.configure(match_manager)
+	lightning.struck.connect(_on_lightning_struck)
+	tornado.activated.connect(_on_tornado_activated)
+	tornado.finished.connect(_on_tornado_finished)
+	fire.warning_started.connect(_on_fire_warning_started)
 	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
 	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
 	disaster_director.configure(match_manager)
@@ -113,6 +117,28 @@ func _ready() -> void:
 		fire.start_warning(6)
 		fire.tick(fire.warning_duration)
 		fire.tick(3.0)
+	if _has_argument("--electric-flood-demo"):
+		$Player.position = Vector3(7.0, 2.35, 3.0)
+		$Sun.shadow_enabled = false
+		for prop in get_tree().get_nodes_in_group("grabbable"):
+			prop.queue_free()
+		$Sandbox/SignHall.visible = false
+		flood.set_process(false)
+		flood.start_warning()
+		flood.tick(flood.warning_duration)
+		flood.tick(flood.rise_duration * 0.45)
+		flood.electrify_at(Vector3(-5.0, 0.06, -5.0))
+	if _has_argument("--fire-tornado-demo"):
+		fire.set_process(false)
+		tornado.set_process(false)
+		fire.start_warning(6)
+		fire.tick(fire.warning_duration)
+		tornado.start_warning(Vector3(-7.0, 0.0, 5.0), Vector3(9.0, 0.0, 5.0))
+		tornado.tick(tornado.warning_duration)
+		tornado.tick(1.6)
+		var burning_debris := get_tree().get_first_node_in_group("burning_debris") as RigidBody3D
+		if is_instance_valid(burning_debris):
+			burning_debris.global_position = tornado.global_position + Vector3(1.4, 2.6, 0.0)
 	if _has_argument("--overlap-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
@@ -479,7 +505,7 @@ func _active_disaster_lines() -> Array[String]:
 	if flood.phase == Flood.Phase.WARNING:
 		lines.append("WARNING — FLOOD IN %d" % maxi(1, ceili(flood.warning_remaining)))
 	elif flood.phase != Flood.Phase.IDLE:
-		lines.append("FLOOD — REACH HIGH GROUND")
+		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER" if flood.electrified_remaining > 0.0 else "FLOOD — REACH HIGH GROUND")
 	if tornado.phase == Tornado.Phase.WARNING:
 		lines.append("WARNING — TORNADO IN %d" % maxi(1, ceili(tornado.warning_remaining)))
 	elif tornado.phase == Tornado.Phase.ACTIVE:
@@ -497,6 +523,25 @@ func _active_disaster_lines() -> Array[String]:
 	elif fire.phase == Fire.Phase.ACTIVE:
 		lines.append("FIRE — WIND IS SPREADING FLAMES" if fire.wind_active else "FIRE — AVOID BURNING ZONES")
 	return lines
+
+
+func _on_lightning_struck(target: Vector3) -> void:
+	flood.electrify_at(target)
+
+
+func _on_tornado_activated() -> void:
+	if fire.is_active():
+		fire.set_wind_active(true)
+
+
+func _on_tornado_finished() -> void:
+	if fire.is_active():
+		fire.set_wind_active(false)
+
+
+func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
+	if tornado.phase == Tornado.Phase.ACTIVE:
+		fire.set_wind_active(true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -715,6 +760,8 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--earthquake-demo")
 		or _has_argument("--lightning-demo")
 		or _has_argument("--fire-demo")
+		or _has_argument("--electric-flood-demo")
+		or _has_argument("--fire-tornado-demo")
 		or _has_argument("--overlap-demo")
 	)
 

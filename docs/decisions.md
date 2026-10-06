@@ -99,3 +99,9 @@
 - **Decision:** Fire owns eight fixed world zones arranged as a 2 × 4 neighbor graph. It begins with a 3.5 s warning, burns for 24 s, applies 12 HP/s inside burning zones, and can ignite only graph-adjacent zones after a separate 1.5 s propagation warning.
 - **Combination hook:** `set_wind_active()` halves the propagation interval and emits a named wind-state event. This behavior is independently validated now, but Tornado does not activate it until the Phase 5 interaction is wired.
 - **Replication:** Zone states travel as a stable-order `PackedByteArray`; clients rebuild rings and flame presentation without running authoritative damage or propagation.
+
+## 2026-10-06 — Phase 5 interaction ownership
+
+- **Decision:** `main.gd` orchestrates cross-disaster behavior through named signals rather than giving hazards direct references to each other. Lightning's `struck` event asks Flood to electrify connected water; Tornado activation/completion toggles Fire wind state, including the case where Fire begins during an active Tornado.
+- **Flood + Lightning:** A strike below the active water surface electrifies the connected flood for three seconds. Players standing in water take a separate authoritative 25 HP/s electric hazard while high ground remains safe. Violet concentric ripples and explicit HUD text replicate to clients; electrification expires and never makes water permanently lethal.
+- **Tornado + Fire:** Wind halves Fire's graph-propagation interval and creates at most one tagged, flaming 5 kg debris body. Tornado's existing bounded prop-force path carries it without a special force implementation. Clients receive only its active flag and authoritative position for presentation, and cleanup removes both wind state and debris.

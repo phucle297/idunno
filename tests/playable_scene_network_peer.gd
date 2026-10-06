@@ -107,9 +107,23 @@ func _run_server(main: Node) -> void:
 	var flood_started := flood.start_warning()
 	flood.tick(flood.warning_duration)
 	flood.tick(flood.rise_duration * 0.45)
-	var tornado_started := tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
+	var electric_lightning_started := lightning.start_warning(Vector3(0.0, 0.06, 0.0))
+	lightning.tick(lightning.warning_duration)
+	var electric_combination_passed := flood.electrified_remaining > 0.0
+	await create_timer(0.5).timeout
+	lightning.cleanup()
+	flood.cleanup()
+	await create_timer(0.3).timeout
+	var combination_fire_started := fire.start_warning(6)
+	fire.tick(fire.warning_duration)
+	var tornado_started := tornado.start_warning(Vector3(-7.0, 0.0, 5.0), Vector3(9.0, 0.0, 5.0))
 	tornado.tick(tornado.warning_duration)
 	tornado.tick(1.6)
+	var wind_combination_passed := fire.wind_active and fire.burning_debris_count() == 1
+	await create_timer(0.5).timeout
+	fire.cleanup()
+	tornado.cleanup()
+	await create_timer(0.3).timeout
 	var earthquake := main.get_node("Earthquake") as Earthquake
 	earthquake.set_process(false)
 	var earthquake_started := earthquake.start_warning()
@@ -120,10 +134,12 @@ func _run_server(main: Node) -> void:
 		and lightning_started
 		and fire_started
 		and flood_started
+		and electric_lightning_started
+		and electric_combination_passed
+		and combination_fire_started
 		and tornado_started
+		and wind_combination_passed
 		and earthquake_started
-		and flood.phase == Flood.Phase.RISING
-		and tornado.phase == Tornado.Phase.ACTIVE
 		and earthquake.phase == Earthquake.Phase.ACTIVE
 	)
 	var nonlethal_passed := manager.apply_damage(client_id, 25.0, "Network test")
@@ -228,30 +244,43 @@ func _run_client(main: Node) -> void:
 	)
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
-	var earthquake := main.get_node("Earthquake") as Earthquake
-	while (
-		(flood.phase != Flood.Phase.RISING or tornado.phase != Tornado.Phase.ACTIVE or earthquake.phase != Earthquake.Phase.ACTIVE)
-		and Time.get_ticks_msec() < deadline
-	):
+	while flood.electrified_remaining <= 0.0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var overlap_text := (main.get_node("Interface/MeteorWarning") as Label).text
-	var overlap_passed := (
+	var electric_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var electric_combination_passed := (
 		flood.phase == Flood.Phase.RISING
-		and tornado.phase == Tornado.Phase.ACTIVE
-		and earthquake.phase == Earthquake.Phase.ACTIVE
+		and flood.electrified_remaining > 0.0
 		and flood.active_effect_count() == 1
-		and tornado.active_effect_count() == 1
-		and earthquake.active_effect_count() == 1
-		and "FLOOD" in overlap_text
-		and "TORNADO" in overlap_text
-		and "EARTHQUAKE" in overlap_text
+		and "ELECTRIFIED WATER" in electric_text
 	)
-	if overlap_passed and not capture_path.is_empty():
+	while (fire.phase != Fire.Phase.ACTIVE or tornado.phase != Tornado.Phase.ACTIVE) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var wind_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var wind_combination_passed := (
+		fire.phase == Fire.Phase.ACTIVE
+		and fire.wind_active
+		and fire.burning_debris_count() == 1
+		and tornado.phase == Tornado.Phase.ACTIVE
+		and "WIND IS SPREADING FLAMES" in wind_text
+		and "TORNADO" in wind_text
+	)
+	if wind_combination_passed and not capture_path.is_empty():
 		await process_frame
 		var image := root.get_viewport().get_texture().get_image()
 		var capture_error := image.save_png(capture_path)
-		overlap_passed = capture_error == OK
+		wind_combination_passed = capture_error == OK
+	var earthquake := main.get_node("Earthquake") as Earthquake
+	while earthquake.phase != Earthquake.Phase.ACTIVE and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var earthquake_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var earthquake_passed := (
+		earthquake.phase == Earthquake.Phase.ACTIVE
+		and earthquake.active_effect_count() == 1
+		and "EARTHQUAKE" in earthquake_text
+	)
 	while manager.get_health(local_id) != 75.0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
@@ -273,11 +302,11 @@ func _run_client(main: Node) -> void:
 		and (main.get_node("Interface/Health") as Label).text == "HP  0"
 		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and fire_passed and overlap_passed and nonlethal_passed and lethal_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed
 	if passed:
 		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s overlap=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, overlap_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	quit(0 if passed else 1)
 
