@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:09:36+00:00",
+  "updated_at": "2026-10-06T18:24:26+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -134,18 +134,18 @@
       },
       "milestone_1_6_regression_and_rendered_review": {
         "title": "UI Regression and Rendered Review",
-        "status": "planned",
+        "status": "completed",
         "gates": {
-          "phase_0_regression": "not_run",
-          "all_representative_ui_states_rendered_and_inspected": "not_run",
-          "representative_performance_budget": "not_run"
+          "phase_0_regression": "passed",
+          "all_representative_ui_states_rendered_and_inspected": "passed",
+          "representative_performance_budget": "passed"
         }
       },
       "milestone_1_7_map_boundary_and_out_of_bounds_safety": {
         "title": "Map Boundary and Out-of-Bounds Safety",
         "status": "planned",
         "dependencies": ["milestone_1_4_structured_results"],
-        "execution_order": "After Milestone 1.4, before Milestone 1.5; existing IDs retained.",
+        "execution_order": "Earlier order superseded by explicit user instruction: complete and commit 1.5, then 1.6, then reverify 1.1-1.6 before resuming pending 1.7.",
         "scope": "Readable continuous perimeter for the current 64 x 64 m block and server-authoritative out-of-bounds elimination with explicit cause, prop release, spectator/results transition and rematch cleanup. No competitive respawn. Larger/richer map work is recorded in the Phase 4 roadmap.",
         "gates": {
           "perimeter_edges_and_corners_block_traversal": "not_run",
@@ -158,6 +158,11 @@
     }
   },
   "validation_log": [
+    {
+      "result": "passed",
+      "check": "Milestone 1.6 full regression, rendered review and native Windows throughput",
+      "evidence": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh: UI_REGRESSION_OK suites=25 matrices=4 persistence_restart=passed, including all Phase 0 suites, five ENet rematches, four-client match, authority and 4/8/20-player rankings/spectator/lobby-return matrices. Runner requires positive markers and rejects parser/runtime/assertion/font-RID errors; reports known shutdown-only audio resource diagnostics separately. New orphan-count regression first failed: results_table/lobby_roster allocated unattached children in member initializers and freeing an unmounted scene leaked ten CanvasItems/font resources. Allocation moved into _ready; PHASE1_TESTS_OK=32 exits cleanly. A deferred-test experiment did not fix the cause and was removed. All eight render suites pass at 720p/1080p: milestone1_1=85, HUD=201, roster=127, lobby=39, spectator=79 before added visible-capture assertions, table=487, actions=35, settings=38. Inspected default HUD, Meteor warning, Tornado/Flood/drowning overlap, 20-row scrolled lobby, host-ready, spectator notice/fallback, results with Settings and 1080p dark HUD/drowning/spectator/client results/settings: legible hierarchy, contained controls and no unwanted HUD. Initial fallback failures measured hidden stale-result geometry; reset presentation state and added actual visibility assertion. Checksum-verified native Windows Godot 4.7.2 through WSL UNC checkout, Compatibility, Ryzen AI 7 H 350 / AMD Radeon 860M driver 25.20.24.03.251024, 1280x720, four demo players, staged Flood/Tornado, 120 warmup/600 samples: two explicitly V-Sync-disabled runs p50 0.67/0.68 ms, p95 1.08/1.08 ms, 128 draw calls, 532 nodes, target_60fps_met=true, ui_nodes_stable=true. Profile now exits nonzero for failed budget or rebuilt UI. Default-V-Sync runs p95 24.09/24.65 ms remain a separate frame-pacing limitation, not claimed fixed gameplay; removing the limiter without explicit V-Sync disable did not establish uncapped throughput. Synthetic joypad/Dummy audio still do not verify physical hardware or multi-PC playtesting."
+    },
     {
       "result": "passed",
       "check": "Milestone 1.5 local pause, persistent settings and bounded UI audio",
@@ -281,6 +286,7 @@
   ],
   "blockers": [],
   "changed_files": [
+    ".agents/skills/advancing-disaster-party/SKILL.md",
     "GUIDE.md",
     "README.md",
     "assets/manifest.json",
@@ -306,6 +312,8 @@
     "tests/playable_scale_probe.gd",
     "tests/playable_scene_network_peer.gd",
     "tests/run_playable_scale_test.sh",
+    "tests/run_ui_regression.sh",
+    "tests/profile_overlap.gd",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
     "tests/test_lobby_roster.gd",
@@ -321,5 +329,5 @@
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Complete Milestone 1.6 with all Phase 0 regressions, multiplayer matrices, inspected representative renders and a fresh target-platform overlap profile, then commit before the requested 1.1-1.6 re-verification."
+  "next_action": "After committing Milestone 1.6, freshly reverify 1.1-1.6 together and fix any reproduced regressions before resuming pending Milestone 1.7."
 }

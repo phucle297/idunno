@@ -103,12 +103,14 @@ Milestone 1.5 complete: dedicated behavior/render checks, a two-process persiste
 
 ### Milestone 1.6 — UI regression and rendered review
 
-- [ ] Update exact-string tests toward semantic component state without weakening behavior assertions.
-- [ ] Run all Phase 0 regressions and multiplayer matrices.
-- [ ] Render and inspect lobby, default HUD, single warning, overlap, drowning, spectating, results, pause, and settings at 1280×720; inspect core states at 1920×1080.
-- [ ] Re-profile representative overlap and reject unbounded per-frame UI allocation or scene rebuilding.
+- [x] Audit semantic component-state tests (vitals, visibility, focus, authority and geometry); retain exact hazard/action copy assertions where wording is a required behavior. Add unmounted-scene orphan-count and visible-capture regressions.
+- [x] Run all Phase 0 regressions and multiplayer matrices with `GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh` (25 suites, four matrices, separate-process persistence).
+- [x] Render and inspect lobby, default HUD, single warning, overlap, drowning, spectating, results, pause, and settings at 1280×720; inspect core states at 1920×1080.
+- [x] Re-profile representative overlap and reject UI scene rebuilding; native Windows, AMD Radeon 860M, Compatibility, 1280×720, four demo players, 120 warmup/600 samples, two uncapped p95 1.08 ms runs with stable UI node identities.
 
 Acceptance: all prior functional gates pass; inspected captures meet hierarchy, consistency, accessibility, and no-clipping requirements; representative performance remains within the validated target budget.
+
+Milestone 1.6 complete. Fixed the reproduced orphaned UI children/font-RID leak by allocating children in `_ready`, not unparented member initializers. Visibility assertions caught fallback captures still suppressed by results state; reset the presentation fixture before rendering. Uncapped throughput passes, but default-V-Sync p95 24.09/24.65 ms is a separate frame-pacing limitation, not claimed fixed gameplay. Some Dummy-audio shutdown diagnostics remain. See the advancing skill's recovery guidance; do not suppress font/RID or script errors in the runner.
 
 ### Milestone 1.7 — Map boundary and out-of-bounds safety
 

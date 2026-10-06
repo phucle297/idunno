@@ -45,6 +45,13 @@ After every required milestone and gate passes:
 - Keep tunable movement and physics values centralized.
 - Load the `validating-game-assets` skill for all asset work.
 
+## UI Regression Recovery
+
+- Run `GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh` for the headless suites, persistence restart and all four network matrices. Require positive suite markers and reject script/runtime errors; report shutdown-only audio diagnostics separately.
+- If unmounted scene checks leak CanvasItems/fonts, inspect `var child = Control.new()` initializers: unattached children survive when `_ready` never runs. Allocate and attach them in `_ready`. `test_phase1.gd` compares orphan counts before instantiation and after freeing to prevent recurrence. Do not hide font/RID errors in the runner.
+- Captures must assert actual visibility as well as geometry. Hiding ResultsPanel alone does not clear the HUD's results suppression; explicit presentation-only fallback fixtures must reset that state and clear stale elimination notice first.
+- For native Windows throughput profiles, explicitly disable V-Sync in the profiler. Omitted `--max-fps` is not sufficient: refresh scheduling can produce false budget failures. Record resolution, renderer/GPU, player count, 120 warmup/600 samples, p95 and stable UI node identity; distinguish uncapped throughput from default-V-Sync frame pacing.
+
 ## Session Handoff
 
 Before stopping, ensure root `progress.json` names active-phase changed files, validation evidence, unresolved blockers, and the next action. Keep entries concise so the active file remains operational rather than becoming a cross-phase diary.

@@ -11,10 +11,10 @@ const COLUMNS := {
 }
 
 var rows: Dictionary = {}
-var header := HBoxContainer.new()
-var scroll := ScrollContainer.new()
-var list := VBoxContainer.new()
-var award := Label.new()
+var header: HBoxContainer
+var scroll: ScrollContainer
+var list: VBoxContainer
+var award: Label
 var _last_results: Dictionary = {}
 var _reveal_tween: Tween
 var reduced_motion := false:
@@ -25,6 +25,10 @@ var reduced_motion := false:
 
 
 func _ready() -> void:
+	header = HBoxContainer.new()
+	scroll = ScrollContainer.new()
+	list = VBoxContainer.new()
+	award = Label.new()
 	add_theme_constant_override("separation", UITokens.SPACE_MD)
 	_build_cells(header)
 	add_child(header)

@@ -3,10 +3,11 @@ extends ScrollContainer
 const UITokens = preload("res://game/ui/ui_tokens.gd")
 
 var rows: Dictionary = {}
-var list := VBoxContainer.new()
+var list: VBoxContainer
 
 
 func _ready() -> void:
+	list = VBoxContainer.new()
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", UITokens.SPACE_SM)

@@ -21,6 +21,8 @@ Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the 
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
 
 # Run the current automated checks.
+# Or run all 25 suites, persistence restart and four network matrices together:
+GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh
 godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
 godot --headless --path . --script res://tests/test_session_lifecycle.gd
@@ -71,8 +73,10 @@ GODOT_BIN=/path/to/godot tests/run_playable_scene_network_test.sh
 # Regenerate the deterministic synthesized gameplay audio.
 godot --headless --path . --script res://tools/audio_generation/generate_audio.gd
 
-# Profile a rendered four-player Flood + Tornado overlap (requires an X display).
-godot --path . --rendering-method gl_compatibility --max-fps 60 \
+# Profile uncapped rendered throughput (requires a display/GPU).
+# The profiler disables V-Sync and fails if p95 > 16.67 ms or UI nodes rebuild.
+# Use native Windows Godot for the target-platform gate; llvmpipe is software rendering.
+godot --path . --rendering-method gl_compatibility --resolution 1280x720 \
   --script res://tests/profile_overlap.gd -- --four-player-demo --overlap-demo
 
 # Play the core sandbox.

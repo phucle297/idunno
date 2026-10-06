@@ -64,6 +64,7 @@ func _check_scenes() -> void:
 	_expect(ResourceLoader.exists("res://scenes/player.tscn"), "Player scene missing")
 	_expect(ResourceLoader.exists("res://scenes/main.tscn"), "Main scene missing")
 	_expect(ResourceLoader.exists("res://scenes/asset_validation.tscn"), "Asset validation scene missing")
+	var orphans_before := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	_expect(main.get_script() != null, "Instantiated main scene must retain its script")
 	_expect(main.has_node("Player/CameraPivot/SpringArm3D/Camera3D"), "Third-person camera hierarchy missing")
@@ -73,6 +74,7 @@ func _check_scenes() -> void:
 	_expect(not main.has_node("Interface/Title") and not main.has_node("Interface/Help"), "Main scene must not retain permanent prototype title or control copy")
 	_expect(main.has_node("Interface/ContextPrompt/Content/Action"), "Main scene must expose a contextual interaction prompt")
 	main.free()
+	_expect(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)) == orphans_before, "Freeing an unmounted scene must not orphan preallocated UI children")
 
 
 func _expect(condition: bool, message: String) -> void:

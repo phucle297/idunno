@@ -105,6 +105,8 @@ func _run() -> void:
 	_expect(main.match_manager.state == MatchManager.MatchState.RESULTS and not hud.spectator_card.visible and not hud.elimination_label.visible, "Final eliminations/results must suppress and clear stale spectator notice")
 	# Explicit presentation fallbacks; an actual no-survivor match correctly shows results instead.
 	main.get_node("Interface/ResultsPanel").hide()
+	hud.set_spectating_visible(false)
+	hud.present_match_status(0, "SURVIVE", false)
 	hud.set_spectating_visible(true)
 	hud.present_vitals(0, 1, 3)
 	hud.present_spectator_target("Last Survivor", 1)
@@ -179,11 +181,12 @@ func _capture(state: String, hud: GameplayHud) -> void:
 		if argument.begins_with("--capture-dir="):
 			await _settle()
 			await RenderingServer.frame_post_draw
+			_expect(hud.spectator_card.is_visible_in_tree(), "Spectator %s capture must render the card, not only test hidden geometry" % state)
 			var card := hud.spectator_card.get_global_rect()
 			var design_rect := Rect2(24, 24, 1232, 672)
 			_expect(design_rect.encloses(card), "Spectator card must stay in the 720p design safe area")
 			for control: Control in [hud.spectator_previous, hud.spectator_next, hud.spectating_label, hud.spectator_survivors]:
-				_expect(card.encloses(control.get_global_rect()), "Spectator card contents must not clip")
+				_expect(card.encloses(control.get_global_rect()), "Spectator %s %s rect=%s must fit card=%s" % [state, control.name, control.get_global_rect(), card])
 			_expect(not hud.spectating_label.get_global_rect().intersects(hud.spectator_next.get_global_rect()), "Long names must not overlap cycle controls")
 			var path := argument.trim_prefix("--capture-dir=").path_join("spectator-%s-%dx%d.png" % [state, root.size.x, root.size.y])
 			_expect(root.get_texture().get_image().save_png(path) == OK, "Spectator review capture must save")
