@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://game/fire.gd" id="11_fire"]
 [ext_resource type="Script" path="res://game/gameplay_audio_controller.gd" id="12_audio"]
 [ext_resource type="Script" path="res://game/ui/gameplay_hud.gd" id="13_hud"]
+[ext_resource type="Script" path="res://game/ui/disaster_icon.gd" id="14_icon"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -160,6 +161,44 @@ layout_mode = 2
 theme_type_variation = &"HudHealthBar"
 value = 100.0
 show_percentage = false
+
+[node name="MajorWarning" type="PanelContainer" parent="Interface"]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 112.0
+offset_right = 300.0
+offset_bottom = 208.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"MajorWarning"
+
+[node name="Content" type="HBoxContainer" parent="Interface/MajorWarning"]
+theme_override_constants/separation = 16
+
+[node name="Icon" type="Control" parent="Interface/MajorWarning/Content"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("14_icon")
+
+[node name="Copy" type="VBoxContainer" parent="Interface/MajorWarning/Content"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Name" type="Label" parent="Interface/MajorWarning/Content/Copy"]
+theme_override_font_sizes/font_size = 24
+
+[node name="Action" type="Label" parent="Interface/MajorWarning/Content/Copy"]
+theme_override_font_sizes/font_size = 16
+
+[node name="Countdown" type="Label" parent="Interface/MajorWarning/Content"]
+custom_minimum_size = Vector2(64, 0)
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="HazardTray" type="VBoxContainer" parent="Interface"]
 visible = false

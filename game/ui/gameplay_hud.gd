@@ -9,6 +9,14 @@ enum FloodExposure {
 }
 
 const MAX_HAZARD_CHIPS := 2
+const WARNING_COPY := {
+	"meteor": ["METEOR INCOMING", "MOVE OUT OF THE IMPACT RING"],
+	"flood": ["FLOOD INCOMING", "REACH HIGH GROUND"],
+	"tornado": ["TORNADO INCOMING", "FIND INDOOR COVER"],
+	"earthquake": ["EARTHQUAKE INCOMING", "AVOID BREAKING STRUCTURES"],
+	"lightning": ["LIGHTNING INCOMING", "LEAVE THE RING AND WATER"],
+	"fire": ["FIRE INCOMING", "AVOID BURNING ZONES"],
+}
 
 @onready var health_card: PanelContainer = $HealthCard
 @onready var health_label: Label = $HealthCard/Content/MetricRow/Health
@@ -27,6 +35,11 @@ const MAX_HAZARD_CHIPS := 2
 @onready var flood_overlay: ColorRect = $FloodOverlay
 @onready var flood_danger_label: Label = $FloodDanger
 @onready var spectating_label: Label = $Spectating
+@onready var warning_banner: PanelContainer = $MajorWarning
+@onready var warning_icon: Control = $MajorWarning/Content/Icon
+@onready var warning_name: Label = $MajorWarning/Content/Copy/Name
+@onready var warning_action: Label = $MajorWarning/Content/Copy/Action
+@onready var warning_countdown: Label = $MajorWarning/Content/Countdown
 
 var _presented_health := 0
 var _presented_alive_counts := Vector2i.ZERO
@@ -65,6 +78,21 @@ func present_context_action(action: String) -> void:
 	_presented_context_action = action
 	context_prompt.visible = not action.is_empty()
 	context_action_label.text = action
+
+
+func present_major_warning(disaster_id: String, remaining_seconds: float = 0.0) -> void:
+	warning_banner.visible = not disaster_id.is_empty()
+	hazard_tray.offset_top = 220.0 if warning_banner.visible else 120.0
+	hazard_tray.offset_bottom = hazard_tray.offset_top + (88.0 if warning_banner.visible else 104.0)
+	for chip: PanelContainer in hazard_chips:
+		chip.custom_minimum_size.y = 40.0 if warning_banner.visible else 48.0
+	if disaster_id.is_empty():
+		return
+	if warning_icon.disaster_id != disaster_id:
+		warning_icon.disaster_id = disaster_id
+	warning_name.text = WARNING_COPY[disaster_id][0]
+	warning_action.text = WARNING_COPY[disaster_id][1]
+	warning_countdown.text = "%d s" % maxi(1, ceili(remaining_seconds))
 
 
 func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.0, damage_per_second: float = 0.0) -> void:

@@ -144,6 +144,12 @@ static func _set_panel_theme(theme: Theme) -> void:
 	var hazard_chip := _control_style(Color(SLATE, 0.96), WARNING, 3)
 	theme.set_stylebox("panel", "HazardChip", hazard_chip)
 
+	theme.set_type_variation("MajorWarning", "PanelContainer")
+	var warning := panel.duplicate() as StyleBoxFlat
+	warning.bg_color = WARNING
+	warning.border_color = INK
+	theme.set_stylebox("panel", "MajorWarning", warning)
+
 	var health_background := _control_style(Color(SLATE, 0.28), Color(SLATE, 0.6), 2)
 	var health_fill := _control_style(TEAL, SLATE, 2)
 	theme.set_stylebox("background", "HudHealthBar", health_background)

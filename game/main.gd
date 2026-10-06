@@ -594,6 +594,7 @@ func _process(delta: float) -> void:
 		match_manager.state == MatchManager.MatchState.RESULTS
 	)
 	gameplay_hud.present_hazards(_active_disaster_lines())
+	_update_major_warning()
 	_update_context_prompt(local_peer_id)
 	_update_lobby_ui()
 
@@ -678,6 +679,25 @@ func _update_context_prompt(local_peer_id: int) -> void:
 		gameplay_hud.present_context_action("GRAB OBJECT")
 	else:
 		gameplay_hud.present_context_action("")
+
+
+func _update_major_warning() -> void:
+	var selected_id := ""
+	var soonest := INF
+	if match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible:
+		# Stable disaster order breaks equal-countdown ties; only the nearest warning is promoted.
+		for entry: Array in [
+			["meteor", meteor_shower, MeteorShower.Phase.WARNING],
+			["flood", flood, Flood.Phase.WARNING],
+			["tornado", tornado, Tornado.Phase.WARNING],
+			["earthquake", earthquake, Earthquake.Phase.WARNING],
+			["lightning", lightning, Lightning.Phase.WARNING],
+			["fire", fire, Fire.Phase.WARNING],
+		]:
+			if entry[1].phase == entry[2] and entry[1].warning_remaining < soonest:
+				selected_id = entry[0]
+				soonest = entry[1].warning_remaining
+	gameplay_hud.present_major_warning(selected_id, soonest)
 
 
 func _active_disaster_lines() -> Array[String]:

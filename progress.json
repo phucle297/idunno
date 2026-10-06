@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:31:03+07:00",
+  "updated_at": "2026-10-06T18:43:43+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_2_warning_and_personal_danger",
-    "task": "task_1_2_1_major_warning_banner"
+    "task": "task_1_2_2_hazard_and_combination_chips"
   },
   "engine": {
     "name": "Godot",
@@ -72,13 +72,13 @@
         "title": "Warning and Personal-Danger Hierarchy",
         "status": "in_progress",
         "tasks": {
-          "task_1_2_1_major_warning_banner": "planned",
+          "task_1_2_1_major_warning_banner": "completed",
           "task_1_2_2_hazard_and_combination_chips": "planned",
           "task_1_2_3_unified_flood_danger_channel": "planned",
           "task_1_2_4_warning_motion_and_audio_feedback": "planned"
         },
         "gates": {
-          "icon_name_countdown_and_action": "not_run",
+          "icon_name_countdown_and_action": "passed",
           "non_color_only_identity": "not_run",
           "bounded_warning_priority": "not_run",
           "overlap_readability": "not_run"
@@ -161,15 +161,22 @@
       "result": "passed",
       "check": "Task 1.1.4 contextual interaction prompt and Milestone 1.1 completion",
       "evidence": "GAMEPLAY_HUD_OK checks=21 verified permanent prototype copy is absent and the contextual prompt is bottom-anchored and hidden without an action. GRAB_MANAGER_OK checks=22 validated candidate range, shared nearest selection, and owned-prop rejection. PLAYER_INTEGRATION_OK checks=43 validated GRAB OBJECT to RELEASE OBJECT transitions; PHASE1_TESTS_OK checks=31, UI_THEME_OK checks=18, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed authority, presentation, five rematches, and disconnect cleanup. Inspected context-prompt-visible-1280x720.png and context-prompt-hidden-1280x720.png confirmed the title/control legend is absent, the release prompt is readable and non-overlapping, and no prompt remains without an interaction. Display capture retained the known WSL dummy-audio fallback."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.1 reusable major-warning banner",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=49 covers all six icons/names/actions, fractional and exact countdown boundaries, minimum one second, nearest-deadline priority, stable ties, handoff, no stale warning, lobby/results suppression, and non-overlapping tray placement. UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Display-backed runs of test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts passed checks=56 each. All six 720p icon states and revised overlap at both resolutions were inspected; the initial 720p player-head occlusion was fixed by tightening banner/tray spacing and chip height. WSL llvmpipe and Dummy audio were used; some runs emitted intermittent successful-exit resource diagnostics. Remaining milestone gates require later chip, personal-danger, and motion tasks."
     }
   ],
   "blockers": [],
   "changed_files": [
     "README.md",
+    "assets/manifest.json",
     "docs/decisions.md",
     "docs/implementation-checklist.md",
     "game/grab_manager.gd",
     "game/main.gd",
+    "game/ui/disaster_icon.gd",
     "game/ui/gameplay_hud.gd",
     "game/ui/ui_tokens.gd",
     "progress.json",
@@ -182,5 +189,5 @@
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.2.1 by adding one reusable major-warning banner with a disaster icon, name, countdown, and concise action."
+  "next_action": "Implement Phase 1 Task 1.2.2 by giving persistent active-hazard and combination chips compact icon/name presentation without duplicating the major warning."
 }

@@ -59,7 +59,7 @@ Acceptance: one shared theme; no permanent debug copy; no clipping at 1280×720 
 
 ### Milestone 1.2 — Warning and personal-danger hierarchy
 
-- [ ] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
+- [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
 - [ ] Task 1.2.2: Add compact active-hazard and combination chips for persistent context.
 - [ ] Task 1.2.3: Merge Flood breathing/drowning copy into one prioritized personal-danger channel so instructions do not compete.
 - [ ] Task 1.2.4: Add restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice.

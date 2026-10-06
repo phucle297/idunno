@@ -166,3 +166,9 @@
 - **Decision:** Remove the permanent prototype title and keyboard legend. Show one bottom-center `[F]` action only when the local player can grab an unowned prop or release their held prop; ordinary movement controls remain discoverable outside the gameplay HUD.
 - **Eligibility:** `GrabManager.get_interaction_candidate()` is the shared read-only source for range, facing, player-state, and ownership eligibility. It reuses the same candidate in authoritative grab requests and reads replicated owner metadata on clients without granting mutation authority.
 - **Suppression:** Hide the prompt outside ACTIVE play, while spectating, while the lobby is open, when eliminated, and when no eligible prop exists.
+
+## 2026-10-06 — Major-warning hierarchy
+
+- **Presentation:** One amber banner presents a deterministic vector icon, explicit disaster name, rounded-up countdown, and concise escape action for each of the six existing disasters. No gameplay state or warning timing is changed.
+- **Priority:** Promote the warning with the shortest remaining time. Stable disaster order breaks ties; clearing that phase hands off to the next warning. Hide the banner outside ACTIVE play and while the lobby is open.
+- **Readability:** Keep the existing maximum-two tray below the banner with compact 40 px chips while a warning is visible. The inspected 720p capture exposed player-head occlusion in the first layout; the revised stack ends above the representative player's silhouette at both supported resolutions. Persistent chip identity and combination presentation remain Task 1.2.2.
