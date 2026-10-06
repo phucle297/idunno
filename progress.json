@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T10:33:01+07:00",
+  "updated_at": "2026-10-06T10:40:40+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -65,7 +65,7 @@
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
         "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "not_implemented_movement_match_health_and_disaster_presentation_replication_required"
+        "playable_scene_replication": "partial_server_authoritative_movement_and_batched_snapshots_passed_match_health_and_disaster_presentation_required"
       }
     }
   },
@@ -269,6 +269,11 @@
       "result": "passed",
       "check": "Playable camera cursor capture",
       "evidence": "Player input now captures the cursor at startup, releases it with Escape, recaptures it with left click, and ignores camera motion while the cursor is visible. PLAYER_INTEGRATION_OK checks=23 passed headless; the cursor release/visible-motion/recapture/captured-motion assertions also passed with both WSLg Linux Godot and native Windows Godot display drivers. PHASE1_TESTS_OK checks=23 and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disconnect_cleanup=passed. The broader rendered integration runs separately exposed the existing timing-sensitive sprint-speed assertion, while the standard headless integration suite remained green."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 playable-scene authoritative movement",
+      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed disconnect_cleanup=passed from separate host and client processes loading scenes/main.tscn. The peers supplied divergent movement input; the host advanced both CharacterBody3D players and the client observed both batched authoritative snapshots. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Match, health, and disaster presentation replication remain unimplemented."
     }
   ],
   "blockers": [
@@ -327,5 +332,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Add client input submission and server-authoritative movement snapshots for playable-scene players, then validate divergent two-peer movement and remote observation."
+  "next_action": "Replicate authoritative match state and per-player health into playable clients, then validate two-peer damage, elimination, alive count, and HUD consistency."
 }

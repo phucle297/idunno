@@ -37,6 +37,7 @@ func _run_server(main: Node) -> void:
 	var peer_ids: Array[int] = main.get_network_player_ids()
 	var client_id := _non_server_peer_id(peer_ids)
 	var client_player := main.get_node_or_null("NetworkPlayer%d" % client_id) as PartyPlayer
+	var host_player := main.get_node("Player") as PartyPlayer
 	var manager := main.get_node("MatchManager") as MatchManager
 	var spawn_passed: bool = (
 		main.is_network_session()
@@ -46,6 +47,27 @@ func _run_server(main: Node) -> void:
 		and manager.players.has(client_id)
 		and is_instance_valid(client_player)
 		and client_player.get_multiplayer_authority() == client_id
+	)
+	var host_spawn := host_player.global_position
+	var client_spawn := client_player.global_position if is_instance_valid(client_player) else Vector3.ZERO
+	Input.action_press("move_left")
+	while (
+		is_instance_valid(client_player)
+		and (host_player.global_position - host_spawn).length() < 1.0
+		and Time.get_ticks_msec() < deadline
+	):
+		await physics_frame
+	Input.action_release("move_left")
+	while (
+		is_instance_valid(client_player)
+		and (client_player.global_position - client_spawn).length() < 1.0
+		and Time.get_ticks_msec() < deadline
+	):
+		await physics_frame
+	var movement_passed: bool = (
+		(host_player.global_position - host_spawn).length() >= 1.0
+		and is_instance_valid(client_player)
+		and (client_player.global_position - client_spawn).length() >= 1.0
 	)
 	while main.get_network_player_ids().size() != 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -57,11 +79,11 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and cleanup_passed
+	var passed: bool = spawn_passed and movement_passed and cleanup_passed
 	if passed:
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed remaining=1 disconnected_peer=%d" % client_id)
 	else:
-		push_error("Playable server spawn or disconnect cleanup failed ids=%s players=%s" % [main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	quit(0 if passed else 1)
 
 
@@ -72,7 +94,7 @@ func _run_client(main: Node) -> void:
 	var local_id: int = root.multiplayer.get_unique_id()
 	var local_player := main.get_node_or_null("NetworkPlayer%d" % local_id) as PartyPlayer
 	var host_player := main.get_node("Player") as PartyPlayer
-	var passed: bool = (
+	var spawn_passed: bool = (
 		main.is_network_session()
 		and main.get_network_role() == "client"
 		and local_id > 1
@@ -83,10 +105,29 @@ func _run_client(main: Node) -> void:
 		and not (host_player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D).current
 		and (local_player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D).current
 	)
+	var host_spawn := host_player.global_position
+	var local_spawn := local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO
+	Input.action_press("move_right")
+	while (
+		is_instance_valid(local_player)
+		and (
+			(local_player.global_position - local_spawn).length() < 1.0
+			or (host_player.global_position - host_spawn).length() < 1.0
+		)
+		and Time.get_ticks_msec() < deadline
+	):
+		await physics_frame
+	Input.action_release("move_right")
+	var movement_passed: bool = (
+		is_instance_valid(local_player)
+		and (local_player.global_position - local_spawn).length() >= 1.0
+		and (host_player.global_position - host_spawn).length() >= 1.0
+	)
+	var passed := spawn_passed and movement_passed
 	if passed:
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed" % local_id)
 	else:
-		push_error("Playable client spawn or authority validation failed local=%d ids=%s" % [local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s local=%d ids=%s" % [spawn_passed, movement_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	quit(0 if passed else 1)
 

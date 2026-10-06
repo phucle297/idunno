@@ -48,7 +48,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _is_eliminated or not accepts_local_input():
+	if _is_eliminated or multiplayer.has_multiplayer_peer() or not accepts_local_input():
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
@@ -224,3 +224,12 @@ func _update_capsule(crouched: bool) -> void:
 
 func accepts_local_input() -> bool:
 	return not multiplayer.has_multiplayer_peer() or is_multiplayer_authority()
+
+
+func get_camera_yaw() -> float:
+	return _camera_yaw
+
+
+func set_camera_yaw(yaw: float) -> void:
+	_camera_yaw = wrapf(yaw, -PI, PI)
+	camera_pivot.rotation.y = _camera_yaw

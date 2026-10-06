@@ -56,3 +56,9 @@
 - **Decision:** Keep ENet session orchestration in `main.gd`, which already owns playable player registration across match, grabbing, and disaster systems. Preserve the offline path and activate host/join only through explicit methods or command-line arguments.
 - **Spawning:** The host owns the canonical peer roster, creates each authoritative player, and reliably sends spawn/remove records to clients. Each client enables only its own player camera. The default limit is 20 total players: one host plus 19 remote clients.
 - **Cleanup:** A disconnect removes the player from the scene and from MatchManager, GrabManager, Meteor, Flood, and Tornado registries. Movement, match-state, health, and disaster presentation replication remain separate Phase 6 work.
+
+## 2026-10-06 — Server-authoritative playable movement
+
+- **Decision:** During ENet sessions, clients submit normalized movement controls and camera yaw to the host; only the host advances `CharacterBody3D` movement. Client-owned players no longer simulate their own transforms.
+- **Snapshots:** The host sends one unreliable ordered batch containing every player transform and velocity per physics tick. Batching avoids one broadcast per player and keeps snapshot dispatch linear at the 20-player target.
+- **Validation boundary:** A two-process playable-scene test drives host and client in opposite directions and verifies that the host simulates both while the client observes both authoritative results. Prediction, interpolation, match/health replication, and disaster presentation remain later Phase 6 slices.

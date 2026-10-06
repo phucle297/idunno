@@ -14,6 +14,7 @@ const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
 const DEFAULT_NETWORK_PORT := 29730
 const MAX_NETWORK_PLAYERS := 20
+const MOVEMENT_INPUT_LIMIT := 1.0
 
 @onready var match_manager: Node = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -25,6 +26,8 @@ var spectator_controller: Node
 var _player_nodes: Dictionary = {}
 var _network_mode := false
 var _network_role := "offline"
+var _movement_inputs: Dictionary = {}
+var _local_movement_sequence := 0
 
 
 func _ready() -> void:
@@ -197,6 +200,7 @@ func _on_network_peer_connected(peer_id: int) -> void:
 func _on_network_peer_disconnected(peer_id: int) -> void:
 	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
 		return
+	_movement_inputs.erase(peer_id)
 	$GrabManager.unregister_player(peer_id)
 	meteor_shower.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
@@ -260,6 +264,105 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 	player.position = spawn_position
 	var camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
 	camera.current = peer_id == multiplayer.get_unique_id()
+
+
+func _physics_process(delta: float) -> void:
+	if not _network_mode:
+		return
+	var local_peer_id := multiplayer.get_unique_id()
+	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
+	if is_instance_valid(local_player):
+		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+		var sprinting := Input.is_action_pressed("sprint")
+		var crouched := Input.is_action_pressed("crouch")
+		var jump_pressed := Input.is_action_just_pressed("jump")
+		if multiplayer.is_server():
+			_store_movement_input(local_peer_id, input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw(), _local_movement_sequence)
+		else:
+			submit_local_movement_input(input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw())
+	if not multiplayer.is_server():
+		return
+	var snapshots: Array[Dictionary] = []
+	for peer_id: int in _player_nodes:
+		var player := _player_nodes[peer_id] as PartyPlayer
+		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
+		if movement_input.is_empty():
+			movement_input = _empty_movement_input()
+		player.set_camera_yaw(float(movement_input.yaw))
+		player.apply_movement_input(
+			movement_input.direction,
+			movement_input.sprinting,
+			movement_input.crouched,
+			movement_input.jump_pressed,
+			delta
+		)
+		movement_input.jump_pressed = false
+		_movement_inputs[peer_id] = movement_input
+		snapshots.append({
+			"peer_id": peer_id,
+			"transform": player.global_transform,
+			"velocity": player.velocity,
+			"yaw": player.get_camera_yaw(),
+		})
+	_apply_movement_snapshots.rpc(snapshots)
+
+
+func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
+	if not _network_mode or multiplayer.is_server():
+		return
+	_local_movement_sequence += 1
+	_submit_movement_input.rpc_id(1, input_2d, sprinting, crouched, jump_pressed, camera_yaw, _local_movement_sequence)
+
+
+@rpc("any_peer", "call_remote", "unreliable_ordered")
+func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id <= 1 or not _player_nodes.has(sender_id):
+		return
+	_store_movement_input(sender_id, input_2d, sprinting, crouched, jump_pressed, camera_yaw, sequence)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered")
+func _apply_movement_snapshots(snapshots: Array[Dictionary]) -> void:
+	if multiplayer.is_server():
+		return
+	for snapshot: Dictionary in snapshots:
+		var peer_id := int(snapshot.peer_id)
+		if not _player_nodes.has(peer_id):
+			continue
+		var player := _player_nodes[peer_id] as PartyPlayer
+		player.global_transform = snapshot.transform
+		player.velocity = snapshot.velocity
+		player.set_camera_yaw(float(snapshot.yaw))
+
+
+func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
+	var previous: Dictionary = _movement_inputs.get(peer_id, {})
+	if not previous.is_empty() and sequence < int(previous.sequence):
+		return
+	var safe_input := input_2d if input_2d.is_finite() else Vector2.ZERO
+	var safe_yaw := camera_yaw if is_finite(camera_yaw) else 0.0
+	_movement_inputs[peer_id] = {
+		"direction": safe_input.limit_length(MOVEMENT_INPUT_LIMIT),
+		"sprinting": sprinting,
+		"crouched": crouched,
+		"jump_pressed": jump_pressed or (not previous.is_empty() and bool(previous.jump_pressed)),
+		"yaw": wrapf(safe_yaw, -PI, PI),
+		"sequence": sequence,
+	}
+
+
+func _empty_movement_input() -> Dictionary:
+	return {
+		"direction": Vector2.ZERO,
+		"sprinting": false,
+		"crouched": false,
+		"jump_pressed": false,
+		"yaw": 0.0,
+		"sequence": 0,
+	}
 
 
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
