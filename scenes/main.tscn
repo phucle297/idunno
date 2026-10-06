@@ -73,6 +73,16 @@ script = ExtResource("12_audio")
 
 [node name="Interface" type="CanvasLayer" parent="."]
 
+[node name="FloodOverlay" type="ColorRect" parent="Interface"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.258824, 0.721569, 0.909804, 0.14)
+
 [node name="Title" type="Label" parent="Interface"]
 offset_left = 24.0
 offset_top = 20.0
@@ -142,6 +152,19 @@ offset_bottom = 696.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 28
 text = "HP  100"
+
+[node name="FloodDanger" type="Label" parent="Interface"]
+visible = false
+offset_left = 280.0
+offset_top = 592.0
+offset_right = 1000.0
+offset_bottom = 634.0
+theme_override_colors/font_color = Color(0.956863, 0.901961, 0.784314, 1)
+theme_override_colors/font_outline_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 24
+text = "HOLD BREATH — 2.0 s  •  REACH HIGH GROUND"
+horizontal_alignment = 1
 
 [node name="Spectating" type="Label" parent="Interface"]
 visible = false

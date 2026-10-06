@@ -225,6 +225,11 @@ func get_hold_position() -> Vector3:
 	return get_grab_origin() + get_grab_direction() * Tuning.GRAB_HOLD_DISTANCE
 
 
+func get_head_sample_position() -> Vector3:
+	var body_height := Tuning.CROUCHED_HEIGHT if _is_crouched else Tuning.STANDING_HEIGHT
+	return global_position + Vector3.UP * (body_height - 0.15)
+
+
 func ragdoll_body_count() -> int:
 	return _ragdoll.body_count() if is_instance_valid(_ragdoll) else 0
 

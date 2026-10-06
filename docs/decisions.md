@@ -124,3 +124,8 @@
 - **Lobby and disconnects:** The existing `main.gd` session owner also owns a compact direct-IP panel for create/join, player readiness, roster status, and host start. The server starts only when every connected player is ready. Removing a player during ACTIVE immediately re-runs the same winner-resolution rule as damage, so one remaining survivor ends the match.
 - **Prop and ragdoll transport:** Keep high-rate player transforms on channel 1 and match state on channel 2. A separate 10 Hz unreliable-ordered channel 3 carries stable prop IDs, transforms, velocities, and grab owners. Player snapshots add only a knockdown bit; clients create the existing 11-body cosmetic ragdoll locally and clear it on authoritative recovery.
 - **Windows audio gate:** Validate the actual target backend rather than extrapolating from WSL's dummy driver. Native Windows Godot selected WASAPI and sustained the reserved warning voice together with eight effect plays; physical loudness and taste remain human playtest judgments, not automated correctness claims.
+
+## 2026-10-06 — Flood submersion feedback
+
+- **Authority:** Derive the Flood head sample from the player's current authoritative capsule height. Standing remains sampled at 1.35 m, while crouching lowers the sample with the 0.95 m capsule, so presentation and damage agree.
+- **Feedback:** Replicate compact per-player submersion times in the existing Flood snapshot. The local HUD distinguishes water below the head, the two-second breathing grace, and active 12 HP/s drowning with a blue overlay and explicit text; damage remains server-owned.

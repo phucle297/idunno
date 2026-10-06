@@ -121,6 +121,16 @@ func _ready() -> void:
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
 		flood.tick(flood.rise_duration * 0.45)
+	if _has_argument("--flood-grace-demo") or _has_argument("--flood-damage-demo"):
+		disaster_director.cleanup()
+		$Player.set_physics_process(false)
+		$Player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
+		flood.set_process(false)
+		flood.start_warning()
+		flood.tick(flood.warning_duration)
+		flood._set_water_level(1.0)
+		flood.phase = Flood.Phase.HOLDING
+		flood.tick(1.0 if _has_argument("--flood-grace-demo") else flood.breathing_grace + 0.5)
 	if _has_argument("--tornado-demo"):
 		tornado.set_process(false)
 		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
@@ -187,7 +197,7 @@ func _ready() -> void:
 	if not capture_path.is_empty():
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
-		var flood_view := _has_argument("--flood-demo") or _has_argument("--overlap-demo")
+		var flood_view := _has_argument("--flood-demo") or _has_argument("--flood-grace-demo") or _has_argument("--flood-damage-demo") or _has_argument("--overlap-demo")
 		var capture_yaw := 2.25 if flood_view else (0.35 if _has_argument("--grab-demo") else 0.0)
 		var capture_pitch := -0.42 if flood_view else (-0.34 if _has_argument("--map-demo") else -0.14)
 		$Player/CameraPivot.rotation = Vector3(capture_pitch, capture_yaw, 0.0)
@@ -564,6 +574,7 @@ func _process(delta: float) -> void:
 			_apply_match_snapshot.rpc(_create_playable_snapshot())
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(local_peer_id))
+	_update_flood_feedback(local_peer_id)
 	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
@@ -622,6 +633,33 @@ func _match_state_text() -> String:
 	if match_manager.state == MatchManager.MatchState.RESULTS and _network_mode and not multiplayer.is_server():
 		return "WAITING FOR HOST"
 	return "ENTER TO REMATCH"
+
+
+func _update_flood_feedback(local_peer_id: int) -> void:
+	var overlay := $Interface/FloodOverlay as ColorRect
+	var danger := $Interface/FloodDanger as Label
+	var health := $Interface/Health as Label
+	var player := _player_nodes.get(local_peer_id) as PartyPlayer
+	var active := flood.phase >= Flood.Phase.RISING and match_manager.is_player_alive(local_peer_id) and is_instance_valid(player)
+	var feet_flooded := active and flood.is_position_flooded(player.global_position + Vector3.UP * 0.05)
+	var submerged_time := flood.get_submerged_time(local_peer_id) if active else 0.0
+	var submerged := submerged_time > 0.0
+	overlay.visible = submerged
+	danger.visible = feet_flooded
+	health.modulate = Color.WHITE
+	if not feet_flooded:
+		return
+	if submerged_time > flood.breathing_grace:
+		danger.text = "DROWNING  •  -%d HP/s  •  GET ABOVE WATER" % int(flood.damage_per_second)
+		var pulse := 0.72 + sin(Time.get_ticks_msec() * 0.012) * 0.18
+		health.modulate = Color(1.0, pulse, pulse)
+		overlay.color.a = 0.18 + sin(Time.get_ticks_msec() * 0.01) * 0.04
+	elif submerged:
+		var grace_remaining := maxf(flood.breathing_grace - submerged_time, 0.0)
+		danger.text = "HOLD BREATH — %.1f s  •  REACH HIGH GROUND" % grace_remaining
+		overlay.color.a = 0.12
+	else:
+		danger.text = "IN FLOODWATER  •  KEEP YOUR HEAD ABOVE WATER"
 
 
 func _active_disaster_lines() -> Array[String]:
@@ -1226,6 +1264,8 @@ func _has_disaster_demo_argument() -> bool:
 		_has_argument("--meteor-demo")
 		or _has_argument("--meteor-impact-demo")
 		or _has_argument("--flood-demo")
+		or _has_argument("--flood-grace-demo")
+		or _has_argument("--flood-damage-demo")
 		or _has_argument("--tornado-demo")
 		or _has_argument("--earthquake-demo")
 		or _has_argument("--lightning-demo")

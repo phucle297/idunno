@@ -215,6 +215,22 @@ func _test_default_scene_offline_input() -> void:
 	_expect(not main.is_network_session(), "Default scene must launch in offline mode")
 	_expect(playable_player.accepts_local_input(), "Default-scene player must accept local input")
 	_expect(playable_player.global_position.distance_to(start) > 0.5, "Default-scene offline input must move the player")
+	var flood := main.get_node("Flood") as Flood
+	(main.get_node("DisasterDirector") as DisasterDirector).cleanup()
+	flood.set_process(false)
+	playable_player.set_physics_process(false)
+	playable_player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
+	_expect(flood.start_warning(), "Default scene must start a representative Flood for feedback validation")
+	flood.tick(flood.warning_duration)
+	flood._set_water_level(1.0)
+	flood.phase = Flood.Phase.HOLDING
+	flood.tick(1.0)
+	main._process(0.0)
+	_expect((main.get_node("Interface/FloodOverlay") as ColorRect).visible and "HOLD BREATH" in (main.get_node("Interface/FloodDanger") as Label).text, "Head submersion must immediately show breathing-grace feedback")
+	flood.tick(1.5)
+	main._process(0.0)
+	_expect((main.get_node("MatchManager") as MatchManager).get_health(1) < 100.0, "Flood must reduce HP after the breathing grace expires")
+	_expect((main.get_node("Interface/FloodOverlay") as ColorRect).visible and "DROWNING" in (main.get_node("Interface/FloodDanger") as Label).text, "Active Flood damage must show a visible drowning effect and damage rate")
 	main.queue_free()
 	await process_frame
 

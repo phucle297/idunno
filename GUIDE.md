@@ -87,6 +87,7 @@ Warnings, impacts, jumping, death, and victory have synthesized placeholder audi
 
 Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, and Fire**.
 
+- **Flood:** water is safe while your head remains above the surface. Once submerged, the screen turns blue and a two-second `HOLD BREATH` countdown appears; after that, `DROWNING` displays the 12 HP/s damage rate until you surface.
 - **Flood + Lightning:** a strike in active floodwater electrifies the connected water for three seconds. Violet ripples and the `ELECTRIFIED WATER` warning identify it. Get onto raised ground immediately.
 - **Tornado + Fire:** Tornado wind doubles Fire's spread frequency and carries one visibly flaming debris body. Keep away from both the funnel and orange Fire-zone rings.
 
@@ -97,6 +98,8 @@ To inspect the implemented visuals immediately without waiting for normal match 
 ```powershell
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --meteor-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --flood-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --flood-grace-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --flood-damage-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --tornado-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --earthquake-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --lightning-demo

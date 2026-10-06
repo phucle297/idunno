@@ -175,12 +175,23 @@ func active_effect_count() -> int:
 
 
 func create_presentation_snapshot() -> Dictionary:
+	var peer_ids: Array[int] = []
+	for peer_id: int in _submerged_time:
+		peer_ids.append(peer_id)
+	peer_ids.sort()
+	var submerged_peer_ids := PackedInt32Array()
+	var submerged_times := PackedFloat32Array()
+	for peer_id: int in peer_ids:
+		submerged_peer_ids.append(peer_id)
+		submerged_times.append(float(_submerged_time[peer_id]))
 	return {
 		"phase": int(phase),
 		"warning_remaining": warning_remaining,
 		"water_level": water_level,
 		"electrified_remaining": electrified_remaining,
 		"electrified_target": electrified_target,
+		"submerged_peer_ids": submerged_peer_ids,
+		"submerged_times": submerged_times,
 	}
 
 
@@ -195,6 +206,12 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
 	electrified_remaining = maxf(float(snapshot.get("electrified_remaining", 0.0)), 0.0)
 	electrified_target = snapshot.get("electrified_target", Vector3.ZERO)
+	var submerged_peer_ids: PackedInt32Array = snapshot.get("submerged_peer_ids", PackedInt32Array())
+	var submerged_times: PackedFloat32Array = snapshot.get("submerged_times", PackedFloat32Array())
+	_submerged_time.clear()
+	if submerged_peer_ids.size() == submerged_times.size():
+		for index: int in submerged_peer_ids.size():
+			_submerged_time[submerged_peer_ids[index]] = maxf(submerged_times[index], 0.0)
 	if not is_instance_valid(_surface):
 		_spawn_surface()
 	_set_water_level(float(snapshot.get("water_level", start_level)))
@@ -216,7 +233,7 @@ func _apply_water_effects(delta: float, previous_water_level: float, electrified
 		var player := _players[peer_id] as Node3D
 		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
 			continue
-		var head_height := player.global_position.y + 1.35
+		var head_height := _player_head_height(player)
 		var was_submerged := previous_water_level >= head_height
 		var is_submerged := water_level >= head_height
 		var submerged_delta := 0.0
@@ -251,6 +268,12 @@ func _apply_water_effects(delta: float, previous_water_level: float, electrified
 		var drag := (desired_current - Vector3(body.linear_velocity.x, 0.0, body.linear_velocity.z)) * body.mass
 		var damping := -body.linear_velocity * body.mass * 0.35
 		body.apply_central_force(Vector3.UP * lift + drag.limit_length(drag_force_max) + damping.limit_length(drag_force_max))
+
+
+func _player_head_height(player: Node3D) -> float:
+	if player.has_method("get_head_sample_position"):
+		return float(player.call("get_head_sample_position").y)
+	return player.global_position.y + 1.35
 
 
 func _spawn_surface() -> void:

@@ -40,6 +40,26 @@ func _run() -> void:
 	_expect(flood.phase == FloodScript.Phase.WARNING, "Flood must not rise before the six-second warning completes")
 	flood.tick(0.02)
 	_expect(flood.phase == FloodScript.Phase.RISING, "Flood must rise after the warning")
+	low_player.position.y = 0.0
+	_expect(is_equal_approx(low_player.get_head_sample_position().y, 1.35), "Standing must retain the 1.35 m authoritative head sample")
+	flood._set_water_level(1.0)
+	flood._apply_water_effects(2.5, 1.0, 0.0)
+	_expect(is_equal_approx(manager.get_health(1), 100.0), "Water below a standing player's head must not deal drowning damage")
+	low_player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
+	_expect(low_player.get_head_sample_position().y < 1.0, "Crouching must lower the authoritative head sample with the capsule")
+	flood._apply_water_effects(2.5, 1.0, 0.0)
+	_expect(is_equal_approx(manager.get_health(1), 94.0), "Water covering a crouched player's head must deal damage after breathing grace")
+	var exposure_snapshot := flood.create_presentation_snapshot()
+	_expect(exposure_snapshot.submerged_peer_ids == PackedInt32Array([1, 2]) and is_equal_approx(exposure_snapshot.submerged_times[0], 2.5), "Flood snapshots must carry per-player breathing exposure for client feedback")
+	low_player.position.y = 4.5
+	low_player.apply_movement_input(Vector2.ZERO, false, false, false, 0.0)
+	flood._apply_water_effects(0.1, 1.0, 0.0)
+	var low_state: Dictionary = manager.players[1]
+	low_state.health = 100.0
+	low_state.damage_taken = 0.0
+	manager.players[1] = low_state
+	flood._set_water_level(flood.start_level)
+	flood._phase_elapsed = 0.0
 	flood.tick(1.0)
 	_expect(is_equal_approx(flood.water_level, flood.target_level), "Flood must reach the configured 3.5 m target")
 	_expect(is_equal_approx(manager.get_health(1), 100.0), "A player above rising water must not take damage")

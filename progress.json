@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T16:28:26+07:00",
+  "updated_at": "2026-10-06T17:13:52+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_7_polish",
@@ -42,7 +42,7 @@
       "status": "completed",
       "acceptance": {
         "meteor_shower": "passed_server_authority_warning_damage_bounded_player_and_prop_impulses_ragdoll_cleanup_and_visual_checks",
-        "flood": "passed_server_authority_warning_level_crossing_grace_damage_bounded_buoyancy_current_cleanup_and_visual_checks",
+        "flood": "passed_server_authority_posture_aware_head_submersion_warning_grace_damage_feedback_bounded_buoyancy_current_cleanup_and_visual_checks",
         "tornado": "passed_server_authority_path_bounded_pull_lift_single_throw_prop_force_cover_cleanup_and_visual_checks"
       }
     },
@@ -408,6 +408,11 @@
       "result": "passed",
       "check": "All-phase remediation regression",
       "evidence": "All 15 headless suites passed: PHASE1 29, PLAYER 37, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 24, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. Explicit audio stream release plus bounded audio-thread drains removed the prior ObjectDB/resource warnings from rematch, combination, polish, two-peer playable, and playable 4/8/20 harnesses."
+    },
+    {
+      "result": "passed",
+      "check": "Flood crouch damage and feedback regression",
+      "evidence": "FLOOD_OK checks=29 proves a 1.0 m water surface remains safe below the standing 1.35 m head sample, covers the crouched 0.80 m sample, preserves the two-second breathing grace, then applies 12 HP/s; PLAYER_INTEGRATION_OK checks=41 proves HOLD BREATH feedback appears immediately and DROWNING feedback accompanies decreasing HP. Per-player exposure is included in compact Flood presentation snapshots. PLAYABLE_SCENE_NETWORK_PEERS_OK and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed after the snapshot change. .amp/in/artifacts/flood-breathing-grace-feedback.png and flood-damage-feedback.png were rendered and inspected: HP 100 with a one-second HOLD BREATH warning transitions to HP 94 with DROWNING, -12 HP/s, a blue overlay, and an escape instruction; both states passed without overlap."
     }
   ],
   "blockers": [],
