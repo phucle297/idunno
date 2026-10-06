@@ -188,6 +188,21 @@ func _test_default_scene_offline_input() -> void:
 	root.add_child(main)
 	await process_frame
 	var playable_player := main.get_node("Player") as PartyPlayer
+	_expect(main.get_tree().get_nodes_in_group("landmark").size() >= 4, "Toy Town must expose at least three distinct landmarks plus the pocket park")
+	_expect(main.get_tree().get_nodes_in_group("shelter").size() >= 3, "Toy Town must provide accessible indoor and covered shelter")
+	_expect(main.get_tree().get_nodes_in_group("elevation_route").size() >= 4, "Toy Town must provide four routes to elevation")
+	_expect(main.get_tree().get_nodes_in_group("map_prop").size() >= 10, "Toy Town must include readable trees, cars, fences, bench, and sign props")
+	_expect(playable_player.character.get_skeleton_bone_count() == 18, "Playable character must instantiate the canonical skeleton")
+	_expect(playable_player.character.play_clip("run"), "Playable character must play a required locomotion clip")
+	var lobby_event := InputEventAction.new()
+	lobby_event.action = "toggle_lobby"
+	lobby_event.pressed = true
+	main._unhandled_input(lobby_event)
+	_expect((main.get_node("Interface/LobbyPanel") as Panel).visible and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Opening the lobby must expose its mouse controls")
+	main._unhandled_input(lobby_event)
+	_expect(not (main.get_node("Interface/LobbyPanel") as Panel).visible, "Closing the lobby must hide its controls")
+	if DisplayServer.get_name() != "headless":
+		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Closing the lobby must restore camera input")
 	var start := playable_player.global_position
 	Input.action_press("grab")
 	playable_player._physics_process(DELTA)

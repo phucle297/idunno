@@ -79,7 +79,7 @@
 ## 2026-10-06 — Playable disaster presentation replication
 
 - **Decision:** Keep disaster gameplay simulation server-only. Clients apply presentation snapshots containing lifecycle phase and the minimum state required to recreate Meteor, Flood, and Tornado effects; snapshots never invoke damage or force logic on clients.
-- **Match start:** In direct-IP sessions, the host explicitly starts a match with Enter after at least two peers connect. This replaces a nonexistent lobby-ready UI without adding a second lobby system.
+- **Match start (superseded by audit remediation):** Direct-IP sessions originally let the host start with Enter after two peers connected. The later audit added the required lobby-ready UI and all-ready gate.
 - **Validation:** A rendered client displayed replicated Flood + Tornado world effects, both named warning lines, HP 100, ALIVE 2/2, timer, and two readable players. Separate-process checks also validated replicated Meteor warning presentation.
 
 ## 2026-10-06 — Earthquake and predefined structure state
@@ -116,4 +116,11 @@
 
 - **Audio:** Eight mono 22.05 kHz PCM cues are deterministically synthesized from seed 297. One dedicated warning voice is separate from a four-voice round-robin effect pool, so overlapping impacts cannot take the active warning channel. WSL's dummy audio driver validates import/playback state but not physical speaker output.
 - **Results:** The replicated match snapshot already contains winner IDs, names, survival/elimination time, disasters survived, damage, and death cause. Every peer builds the same ranked cream/slate results panel locally from that authoritative data.
-- **Rematch:** Enter remains the only required action. Offline play restarts locally; in direct-IP sessions only the host can restart. The host resets lobby/match, players, spectator state, sandbox, hazards, director, results, and audio, while clients restore presentation when the replicated state returns to ACTIVE.
+- **Rematch:** Enter remains the only required rematch action. Offline play restarts locally; in direct-IP sessions only the host can restart. The host resets lobby/match, players, spectator state, sandbox, hazards, director, results, and audio, while clients restore presentation when the replicated state returns to ACTIVE.
+
+## 2026-10-06 — Audit remediation boundaries
+
+- **Toy Town and character gate:** Keep Phase 1 content deterministic and generated inside Godot. The map now provides open Shop and Town Hall interiors, Parking Garage and Pocket Park landmarks, four tagged elevation routes, shelters, cars, trees, fences, signs, and benches. The generated character has a stable 18-bone contract, all 11 required named clips, six suit colors, and plain/cap/hardhat/backpack variants without introducing an unverifiable third-party dependency.
+- **Lobby and disconnects:** The existing `main.gd` session owner also owns a compact direct-IP panel for create/join, player readiness, roster status, and host start. The server starts only when every connected player is ready. Removing a player during ACTIVE immediately re-runs the same winner-resolution rule as damage, so one remaining survivor ends the match.
+- **Prop and ragdoll transport:** Keep high-rate player transforms on channel 1 and match state on channel 2. A separate 10 Hz unreliable-ordered channel 3 carries stable prop IDs, transforms, velocities, and grab owners. Player snapshots add only a knockdown bit; clients create the existing 11-body cosmetic ragdoll locally and clear it on authoritative recovery.
+- **Windows audio gate:** Validate the actual target backend rather than extrapolating from WSL's dummy driver. Native Windows Godot selected WASAPI and sustained the reserved warning voice together with eight effect plays; physical loudness and taste remain human playtest judgments, not automated correctness claims.

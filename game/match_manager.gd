@@ -34,6 +34,28 @@ func unregister_player(peer_id: int) -> bool:
 	if not _can_mutate() or not players.has(peer_id):
 		return false
 	players.erase(peer_id)
+	if state == MatchState.ACTIVE:
+		_evaluate_eliminations()
+	return true
+
+
+func prepare_lobby() -> bool:
+	if not _can_mutate():
+		return false
+	elapsed_time = 0.0
+	winner_ids.clear()
+	_participants_at_start = 0
+	for peer_id: int in players:
+		var player: Dictionary = players[peer_id]
+		player.ready = false
+		player.health = STARTING_HEALTH
+		player.alive = true
+		player.damage_taken = 0.0
+		player.elimination_time = -1.0
+		player.cause_of_death = ""
+		player.disasters_survived = 0
+		players[peer_id] = player
+	_set_state(MatchState.LOBBY)
 	return true
 
 
@@ -131,6 +153,10 @@ func get_health(peer_id: int) -> float:
 
 func is_player_alive(peer_id: int) -> bool:
 	return players[peer_id].alive if players.has(peer_id) else false
+
+
+func is_player_ready(peer_id: int) -> bool:
+	return bool(players[peer_id].ready) if players.has(peer_id) else false
 
 
 func get_cause_of_death(peer_id: int) -> String:

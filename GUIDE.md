@@ -29,7 +29,13 @@ ipconfig
 
 Use the address shown for the active Ethernet or Wi-Fi adapter, such as `192.168.1.25`. Do not give another PC `127.0.0.1`; that address only works when both processes run on the same PC.
 
-### 2. Start the host
+### 2. Start or join in game
+
+Press **L** (or select **LOBBY**) to open the direct-IP panel. The host leaves the default UDP port or enters another port and selects **CREATE**. Each other player enters the host's LAN IPv4 address and the same port, then selects **JOIN**.
+
+Each connected player selects **READY**. The panel lists every player as ready or waiting. When at least two players are connected and all are ready, the host selects **START MATCH** or presses **Enter**.
+
+You can also launch directly from PowerShell. To host:
 
 From the repository directory in PowerShell:
 
@@ -37,9 +43,7 @@ From the repository directory in PowerShell:
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --host-port=29730
 ```
 
-The host screen displays **ENTER TO START**. Wait until the top-right alive count includes everyone, then press **Enter**. At least one other player must be connected.
-
-### 3. Join from each member's PC
+The host still uses the in-game lobby to mark ready and start the match.
 
 Replace the sample address with the host's LAN IPv4 address:
 
@@ -47,7 +51,7 @@ Replace the sample address with the host's LAN IPv4 address:
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --join-address=192.168.1.25 --join-port=29730
 ```
 
-The client screen displays **WAITING FOR HOST** until the host starts the match.
+The client marks ready in the in-game lobby and waits for the host to start the match.
 
 For two processes on one development PC, join `127.0.0.1` instead.
 
@@ -61,6 +65,7 @@ For two processes on one development PC, join `127.0.0.1` instead.
 | Space | Jump |
 | C | Crouch |
 | F | Grab or release a nearby physics crate |
+| L | Toggle the direct-IP lobby panel |
 | R | Trigger the current knockdown test |
 | Escape | Release the cursor |
 | Left click | Recapture the cursor |
@@ -108,13 +113,13 @@ These are presentation/debug launches, not accelerated competitive matches.
 
 - LAN and same-PC direct-IP sessions are validated. Internet play requires router/firewall UDP forwarding and is not validated.
 - The host owns match state, health, movement, disasters, and winner decisions.
-- There is no in-game lobby browser, ready button, Steam integration, or packaged Windows build.
-- Only the host can initiate a network rematch; individual client ready voting is not part of this prototype.
+- There is no public lobby browser, Steam integration, NAT traversal, or packaged Windows build; create/join uses direct IP.
+- Only the host can initiate a network rematch; readiness is required before the initial network match, not between rematches.
 - Audio is synthesized placeholder content rather than final authored sound design.
 
 ## Troubleshooting
 
-- **Can connect but match does not start:** the host must press Enter after at least two players are present.
+- **Can connect but match does not start:** every player must select **READY**, then the host selects **START MATCH** or presses Enter.
 - **Cannot connect:** verify the host IP, UDP port `29730`, matching commits, and Windows Firewall permissions.
 - **No disaster yet:** wait at least 10 seconds after the host starts the match. Overlap intentionally does not unlock until 5 minutes.
 - **Mouse does not rotate the camera:** left-click the game window to capture the cursor.

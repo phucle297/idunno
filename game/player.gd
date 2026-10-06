@@ -7,6 +7,7 @@ const RagdollScene = preload("res://game/cosmetic_ragdoll.gd")
 @onready var visual: Node3D = $Visual
 @onready var collider: CollisionShape3D = $CollisionShape3D
 @onready var camera_pivot: Node3D = $CameraPivot
+@onready var character: ToyCharacterVisual = $Visual/Character
 
 var _coyote_remaining := 0.0
 var _jump_buffer_remaining := 0.0
@@ -25,6 +26,22 @@ func _ready() -> void:
 	_update_capsule(false)
 	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		$CameraPivot/SpringArm3D/Camera3D.current = false
+
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(character) or _is_eliminated or is_knocked_down():
+		return
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	if not is_on_floor():
+		character.play_clip("jump_takeoff" if velocity.y > 0.0 else "falling")
+	elif _is_crouched:
+		character.play_clip("crouch_walk" if horizontal_speed > 0.2 else "crouch_idle")
+	elif horizontal_speed > Tuning.WALK_SPEED + 0.5:
+		character.play_clip("run")
+	elif horizontal_speed > 0.2:
+		character.play_clip("walk")
+	else:
+		character.play_clip("idle")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -115,11 +132,35 @@ func apply_knockdown(impulse: Vector3) -> void:
 	release_held_object()
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
+	_spawn_cosmetic_ragdoll(velocity, impulse)
+
+
+func set_network_knockdown(active: bool) -> void:
+	if active and _knockdown_remaining <= 0.0:
+		_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
+		_spawn_cosmetic_ragdoll(velocity, Vector3.ZERO)
+	elif not active and _knockdown_remaining > 0.0:
+		_knockdown_remaining = 0.0
+		_clear_cosmetic_ragdoll()
+
+
+func _spawn_cosmetic_ragdoll(initial_velocity: Vector3, impulse: Vector3) -> void:
+	if is_instance_valid(_ragdoll):
+		return
 	_ragdoll = RagdollScene.new()
 	get_parent().add_child(_ragdoll)
 	_ragdoll.global_transform = global_transform
-	_ragdoll.activate(velocity, impulse)
+	_ragdoll.activate(initial_velocity, impulse)
 	visual.visible = false
+
+
+func _clear_cosmetic_ragdoll() -> void:
+	if is_instance_valid(_ragdoll):
+		_ragdoll.queue_free()
+		_ragdoll = null
+	visual.visible = not _is_eliminated
+	if not _is_eliminated:
+		character.play_clip("get_up")
 
 
 func apply_hazard_velocity(velocity_change: Vector3, speed_cap: float) -> void:
@@ -159,6 +200,8 @@ func reset_for_match(spawn_position: Vector3) -> void:
 func configure_grabbing(manager: Node, peer_id: int) -> void:
 	_grab_manager = manager
 	_peer_id = peer_id
+	character.set_cosmetic_variant((peer_id - 1) % 4)
+	character.set_player_color(peer_id - 1)
 
 
 func release_held_object() -> void:
@@ -209,10 +252,7 @@ func _process_knockdown(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, 5.0 * delta)
 	move_and_slide()
 	if _knockdown_remaining <= 0.0 and is_on_floor():
-		if is_instance_valid(_ragdoll):
-			_ragdoll.queue_free()
-			_ragdoll = null
-		visual.visible = true
+		_clear_cosmetic_ragdoll()
 		_update_capsule(false)
 
 

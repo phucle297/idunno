@@ -58,6 +58,9 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	for peer_id: int in peer_ids:
 		var player := _player_for_peer(main, peer_id)
 		movement_passed = movement_passed and is_instance_valid(player) and player.global_position.distance_to(start_positions.get(peer_id, player.global_position)) >= 0.5
+	main.set_local_ready(true)
+	while not manager.can_start_match() and Time.get_ticks_msec() < deadline:
+		await process_frame
 	var start_event := InputEventAction.new()
 	start_event.action = "ui_accept"
 	start_event.pressed = true
@@ -120,6 +123,7 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		and host_player.global_position.distance_to(host_start) >= 0.5
 	)
 	var manager := main.get_node("MatchManager") as MatchManager
+	main.set_local_ready(true)
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	while (
 		(manager.state != MatchManager.MatchState.ACTIVE or manager.get_health(local_id) != 75.0 or meteor.phase != MeteorShower.Phase.WARNING)

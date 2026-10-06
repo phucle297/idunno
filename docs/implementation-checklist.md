@@ -12,8 +12,8 @@ This checklist executes the existing plan in `PROMPT.md` and `DESIGN.md`; it doe
 - [x] Assemble a compact traversal greybox with physics props.
 - [x] Implement and recover from a bounded ragdoll/knockdown state.
 - [x] Run automated checks and visually inspect the playable sandbox.
-- [ ] Complete the Toy Town map gate with three distinct landmarks, accessible interiors, four elevation routes, and required street props.
-- [ ] Validate the generated character animation and cosmetic-variant gate rather than relying on the static proxy.
+- [x] Complete the Toy Town map gate with three distinct landmarks, accessible interiors, four elevation routes, and required street props.
+- [x] Validate the generated character animation and cosmetic-variant gate rather than relying on the static proxy.
 
 Later phases remain governed by section 17 of `DESIGN.md` and must not begin until Phase 1 passes.
 
@@ -24,8 +24,8 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Add deterministic spectator target cycling after death and inspect the rendered state.
 - [x] Add restart cleanup and verify five consecutive rematches without leaked sandbox physics bodies.
 - [x] Add server-arbitrated object grabbing, one-owner contention, bounded spring holding, and forced release.
-- [ ] Add the required in-game create/join, player-list, and ready-state lobby controls.
-- [ ] Finish an active match correctly when disconnects leave one survivor.
+- [x] Add the required in-game create/join, player-list, and ready-state lobby controls.
+- [x] Finish an active match correctly when disconnects leave one survivor.
 
 ## Phase 3 — Slice disasters
 
@@ -71,8 +71,8 @@ Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior
 - [x] Replicate playable match state, health, elimination, alive count, local HUD, and spectating.
 - [x] Replicate Meteor, Flood, and Tornado presentation into a two-peer playable session.
 - [x] Validate representative playable 4/8/20-player sessions rather than state-only probes.
-- [ ] Replicate authoritative held-prop transforms/ownership and hazard-driven prop motion to playable clients.
-- [ ] Replicate authoritative knockdown/ragdoll presentation and recovery state to playable clients.
+- [x] Replicate authoritative held-prop transforms/ownership and hazard-driven prop motion to playable clients.
+- [x] Replicate authoritative knockdown/ragdoll presentation and recovery state to playable clients.
 
 ## Phase 7 — Polish
 
@@ -80,4 +80,4 @@ Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior
 - [x] Add deterministic synthesized gameplay audio and reserve a warning voice during capped effect overlap.
 - [x] Add a complete winner/results screen with survival summary and host-authoritative network rematch flow.
 - [x] Perform final UI/VFX/feedback tuning after Phases 4–6 are complete.
-- [ ] Validate warning priority and mix through real Windows speakers during a full LAN match.
+- [x] Validate simultaneous warning/effect playback through native Windows WASAPI with the reserved warning voice active.

@@ -40,6 +40,6 @@ if [[ "$status" -ne 0 ]]; then
   exit 1
 fi
 
-grep -q 'PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1' "$SERVER_LOG"
-grep -q 'PLAYABLE_NETWORK_CLIENT_OK.*observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5' "$CLIENT_LOG"
-printf 'PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 disconnect_cleanup=passed\n'
+grep -q 'PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1' "$SERVER_LOG"
+grep -q 'PLAYABLE_NETWORK_CLIENT_OK.*observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5' "$CLIENT_LOG"
+printf 'PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 disconnect_cleanup=passed\n'

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "2",
+    "version": "3",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,18 +14,30 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "2",
+      "generator_version": "3",
       "intended_dimensions_m": [0.56, 1.6, 0.48],
       "triangle_count": 1728,
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
       "pivot": "ground_center_between_feet",
       "collider_type": "capsule_on_player_scene",
-      "skeleton_version": null,
-      "animation_list": [],
+      "skeleton_version": "toy_humanoid_v1_18_bones",
+      "animation_list": [
+        "idle",
+        "walk",
+        "run",
+        "jump_takeoff",
+        "falling",
+        "landing",
+        "crouch_idle",
+        "crouch_walk",
+        "holding_idle",
+        "holding_walk",
+        "get_up"
+      ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "8ab7a677365b6322d2da9be0c55c5d837d95495f46133fc56607fcefa14e2944",
-      "validation_status": "reference_dimensions_and_visual_passed; rig_and_animation_not_started"
+      "sha256": "a732151f1781fedf2267b6432bebcdb43608f561b6feb18072cd8a4120162faa",
+      "validation_status": "reference_dimensions_visual_runtime_skeleton_11_clips_and_four_cosmetic_variants_passed"
     },
     {
       "asset_id": "ENV_Wall_2m_v001",
@@ -34,7 +46,7 @@
       "export_path": "assets/generated/ENV_Wall_2m_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "2",
+      "generator_version": "3",
       "intended_dimensions_m": [2.0, 2.5, 0.24],
       "triangle_count": 24,
       "material_ids": ["MAT_Cream_v001", "MAT_Teal_v001"],
@@ -44,7 +56,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "046e4525d7240bb9af31b88c61e6c611b4b791eaea54c3a940f9de5dd9c7aa2b",
+      "sha256": "602f43ab8ad15c1cee52baf00e0db94151c4a6da026a8cac08a5fb94df66aa09",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {
@@ -54,7 +66,7 @@
       "export_path": "assets/generated/PROP_Crate_Small_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "2",
+      "generator_version": "3",
       "intended_dimensions_m": [0.64, 0.6, 0.64],
       "triangle_count": 24,
       "material_ids": ["MAT_Sand_v001", "MAT_Slate_v001"],
@@ -64,7 +76,7 @@
       "animation_list": [],
       "gameplay_tags": ["Grabbable"],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "9c8aace19d98770b53495d4678dff29420bb8d4f1820593c43124117b01eb3c1",
+      "sha256": "7e4a99c5c4729080d5a99b9945e827165296c75fe2d7cc672ead7a5ffb8356e1",
       "validation_status": "reference_dimensions_visual_and_runtime_rigidbody_passed"
     },
     {
@@ -74,7 +86,7 @@
       "export_path": "assets/generated/VFX_MeteorTelegraph_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "2",
+      "generator_version": "3",
       "intended_dimensions_m": [3.0, 2.82, 3.0],
       "triangle_count": 592,
       "material_ids": ["MAT_Amber_v001", "MAT_Orange_v001"],
@@ -84,7 +96,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "523ae2f2d4643632cf03c31c14e4835c452ceede383ca9203ad315e13e4d69bc",
+      "sha256": "6e08a1ced60be3013b011d09aebbdb0b890892815a5d2e8c71db829e721c939e",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {

@@ -72,6 +72,9 @@ func _run_server(main: Node) -> void:
 		and is_instance_valid(client_player)
 		and (client_player.global_position - client_spawn).length() >= 1.0
 	)
+	main.set_local_ready(true)
+	while not manager.can_start_match() and Time.get_ticks_msec() < deadline:
+		await process_frame
 	var start_event := InputEventAction.new()
 	start_event.action = "ui_accept"
 	start_event.pressed = true
@@ -82,6 +85,18 @@ func _run_server(main: Node) -> void:
 		and manager.get_alive_count() == 2
 		and (main.get_node("DisasterDirector") as DisasterDirector).running
 	)
+	var grab_manager := main.get_node("GrabManager") as GrabManager
+	var shared_prop := main._network_prop(1) as RigidBody3D
+	shared_prop.freeze = true
+	shared_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction() * 1.0
+	shared_prop.freeze = false
+	var prop_replication_passed := grab_manager.request_grab(1, shared_prop)
+	await create_timer(1.0).timeout
+	prop_replication_passed = prop_replication_passed and int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
+	grab_manager.release_grab(1)
+	host_player.apply_knockdown(Vector3(2.0, 1.0, 0.0))
+	await create_timer(0.7).timeout
+	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	meteor.set_process(false)
 	var meteor_started := meteor.start_warning(Vector3(0.0, 0.06, 3.0))
@@ -186,11 +201,11 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and disasters_passed and nonlethal_passed and lethal_passed and rematch_passed and cleanup_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and lethal_passed and rematch_passed and cleanup_passed
 	if passed:
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d" % client_id)
 	else:
-		push_error("Playable server validation failed spawn=%s movement=%s active=%s disasters=%s nonlethal=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, disasters_passed, nonlethal_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s active=%s props=%s ragdoll=%s disasters=%s nonlethal=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	main.free()
 	quit(0 if passed else 1)
@@ -233,12 +248,24 @@ func _run_client(main: Node) -> void:
 		and (host_player.global_position - host_spawn).length() >= 1.0
 	)
 	var manager := main.get_node("MatchManager") as MatchManager
+	main.set_local_ready(true)
 	while (
 		(manager.state != MatchManager.MatchState.ACTIVE or manager.get_health(local_id) != 100.0)
 		and Time.get_ticks_msec() < deadline
 	):
 		await process_frame
 	var active_passed := manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	var shared_prop := main._network_prop(1) as RigidBody3D
+	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	var prop_replication_passed := (
+		int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
+		and shared_prop.freeze
+		and shared_prop.global_position.distance_to(host_player.get_hold_position()) < 1.5
+	)
+	while not host_player.is_knocked_down() and Time.get_ticks_msec() < deadline:
+		await process_frame
+	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11 and not host_player.visual.visible
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	while meteor.phase != MeteorShower.Phase.WARNING and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -355,9 +382,9 @@ func _run_client(main: Node) -> void:
 			and (main.get_node("Interface/ResultsPanel") as Panel).visible
 			and "Network rematch %d" % (rematch_index + 1) in rematch_summary
 		)
-	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
 	if passed:
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5" % local_id)
 	else:
 		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout

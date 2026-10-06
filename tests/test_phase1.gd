@@ -34,12 +34,18 @@ func _check_assets() -> void:
 		_expect(ResourceLoader.exists(path), "Generated asset missing: %s" % path)
 	var character_scene := load("res://assets/generated/CHR_Base_v001.tscn") as PackedScene
 	var character := character_scene.instantiate()
+	root.add_child(character)
 	_expect(character.get_meta("generator_seed") == 297, "Character generation seed drifted")
 	var head := character.get_node("Head") as MeshInstance3D
 	_expect(is_equal_approx((head.mesh as SphereMesh).radius * 2.0, 0.48), "Character head width must be 0.48 m")
 	var right_arm := character.get_node("RightArm") as MeshInstance3D
 	_expect(is_equal_approx((right_arm.position.x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 0.56), "Character shoulder width must be 0.56 m")
 	_expect(character.get_node("Head").position.y + 0.215 <= 1.605, "Character exceeds 1.60 m tolerance")
+	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
+	_expect((character as ToyCharacterVisual).get_animation_names().size() == 11, "Character must provide all 11 required animation clips")
+	for variant in 4:
+		(character as ToyCharacterVisual).set_cosmetic_variant(variant)
+		_expect((character as ToyCharacterVisual).cosmetic_variant == variant, "Character cosmetic variant %d must be selectable" % variant)
 	character.free()
 	var meteor := (load("res://assets/generated/VFX_MeteorTelegraph_v001.tscn") as PackedScene).instantiate()
 	_expect(meteor.has_node("WarningFootprint"), "Packed meteor proxy must include its warning footprint")

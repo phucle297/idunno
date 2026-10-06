@@ -2,7 +2,8 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
-const GENERATOR_VERSION := 2
+const GENERATOR_VERSION := 3
+const CharacterVisualScript = preload("res://game/toy_character_visual.gd")
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),
 	"teal": Color("73b7ad"), "coral": Color("d98d7d"), "grass": Color("86a968"),
@@ -47,6 +48,7 @@ func _generate_materials() -> Dictionary:
 func _generate_character(materials: Dictionary) -> void:
 	var root := Node3D.new()
 	root.name = "CHR_Base_v001"
+	root.set_script(CharacterVisualScript)
 	root.set_meta("generator_seed", seed_value)
 	root.set_meta("generator_version", GENERATOR_VERSION)
 	_add_sphere(root, "Head", 0.24, 0.43, Vector3(0.0, 1.385, 0.0), materials.cream)

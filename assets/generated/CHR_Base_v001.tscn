@@ -1,119 +1,121 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/MAT_Cream_v001.tres" id="1_oe18s"]
-[ext_resource type="Material" path="res://assets/materials/MAT_Cyan_v001.tres" id="2_loqi5"]
-[ext_resource type="Material" path="res://assets/materials/MAT_Slate_v001.tres" id="3_x1c73"]
-[ext_resource type="Material" path="res://assets/materials/MAT_Ink_v001.tres" id="4_bfjj2"]
+[ext_resource type="Script" path="res://game/toy_character_visual.gd" id="1_loqi5"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Cream_v001.tres" id="2_x1c73"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Cyan_v001.tres" id="3_bfjj2"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Slate_v001.tres" id="4_nn63l"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Ink_v001.tres" id="5_ph8gc"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_nn63l"]
-material = ExtResource("1_oe18s")
+[sub_resource type="SphereMesh" id="SphereMesh_omqrs"]
+material = ExtResource("2_x1c73")
 radius = 0.24
 height = 0.43
 radial_segments = 8
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_ph8gc"]
-material = ExtResource("2_loqi5")
+[sub_resource type="BoxMesh" id="BoxMesh_jy7im"]
+material = ExtResource("3_bfjj2")
 size = Vector3(0.43, 0.52, 0.28)
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_omqrs"]
-material = ExtResource("2_loqi5")
-radius = 0.09
-height = 0.48
-radial_segments = 12
-rings = 4
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_jy7im"]
-material = ExtResource("2_loqi5")
-radius = 0.09
-height = 0.48
-radial_segments = 12
-rings = 4
-
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6wst3"]
-material = ExtResource("2_loqi5")
-radius = 0.1
-height = 0.5
+material = ExtResource("3_bfjj2")
+radius = 0.09
+height = 0.48
 radial_segments = 12
 rings = 4
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_80txc"]
-material = ExtResource("2_loqi5")
+material = ExtResource("3_bfjj2")
+radius = 0.09
+height = 0.48
+radial_segments = 12
+rings = 4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_g7n46"]
+material = ExtResource("3_bfjj2")
 radius = 0.1
 height = 0.5
 radial_segments = 12
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_g7n46"]
-material = ExtResource("3_x1c73")
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_fg08o"]
+material = ExtResource("3_bfjj2")
+radius = 0.1
+height = 0.5
+radial_segments = 12
+rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_sytos"]
+material = ExtResource("4_nn63l")
 size = Vector3(0.2, 0.16, 0.24)
 
-[sub_resource type="BoxMesh" id="BoxMesh_fg08o"]
-material = ExtResource("3_x1c73")
+[sub_resource type="BoxMesh" id="BoxMesh_rb77b"]
+material = ExtResource("4_nn63l")
 size = Vector3(0.2, 0.16, 0.24)
 
-[sub_resource type="SphereMesh" id="SphereMesh_sytos"]
-material = ExtResource("4_bfjj2")
+[sub_resource type="SphereMesh" id="SphereMesh_jy6dd"]
+material = ExtResource("5_ph8gc")
 radius = 0.035
 height = 0.07
 radial_segments = 8
 rings = 4
 
-[sub_resource type="SphereMesh" id="SphereMesh_rb77b"]
-material = ExtResource("4_bfjj2")
+[sub_resource type="SphereMesh" id="SphereMesh_vprjr"]
+material = ExtResource("5_ph8gc")
 radius = 0.035
 height = 0.07
 radial_segments = 8
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_jy6dd"]
-material = ExtResource("4_bfjj2")
+[sub_resource type="BoxMesh" id="BoxMesh_l6jc8"]
+material = ExtResource("5_ph8gc")
 size = Vector3(0.09, 0.025, 0.018)
 
 [node name="CHR_Base_v001" type="Node3D"]
+script = ExtResource("1_loqi5")
 metadata/generator_seed = 297
-metadata/generator_version = 2
+metadata/generator_version = 3
 
 [node name="Head" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.385, 0)
-mesh = SubResource("SphereMesh_nn63l")
+mesh = SubResource("SphereMesh_omqrs")
 
 [node name="Torso" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
-mesh = SubResource("BoxMesh_ph8gc")
+mesh = SubResource("BoxMesh_jy7im")
 
 [node name="LeftArm" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.94, 0)
-mesh = SubResource("CapsuleMesh_omqrs")
+mesh = SubResource("CapsuleMesh_6wst3")
 
 [node name="RightArm" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 0.94, 0)
-mesh = SubResource("CapsuleMesh_jy7im")
+mesh = SubResource("CapsuleMesh_80txc")
 
 [node name="LeftLeg" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.42, 0)
-mesh = SubResource("CapsuleMesh_6wst3")
+mesh = SubResource("CapsuleMesh_g7n46")
 
 [node name="RightLeg" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.42, 0)
-mesh = SubResource("CapsuleMesh_80txc")
+mesh = SubResource("CapsuleMesh_fg08o")
 
 [node name="LeftShoe" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.1, -0.025)
-mesh = SubResource("BoxMesh_g7n46")
+mesh = SubResource("BoxMesh_sytos")
 
 [node name="RightShoe" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.1, -0.025)
-mesh = SubResource("BoxMesh_fg08o")
+mesh = SubResource("BoxMesh_rb77b")
 
 [node name="LeftEye" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 1.43, -0.215)
-mesh = SubResource("SphereMesh_sytos")
+mesh = SubResource("SphereMesh_jy6dd")
 
 [node name="RightEye" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 1.43, -0.215)
-mesh = SubResource("SphereMesh_rb77b")
+mesh = SubResource("SphereMesh_vprjr")
 
 [node name="Mouth" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.32, -0.229)
-mesh = SubResource("BoxMesh_jy6dd")
+mesh = SubResource("BoxMesh_l6jc8")

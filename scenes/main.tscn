@@ -154,6 +154,93 @@ theme_override_font_sizes/font_size = 20
 text = "SPECTATING"
 horizontal_alignment = 1
 
+[node name="LobbyToggle" type="Button" parent="Interface"]
+offset_left = 24.0
+offset_top = 108.0
+offset_right = 206.0
+offset_bottom = 142.0
+text = "MULTIPLAYER LOBBY [L]"
+
+[node name="LobbyPanel" type="Panel" parent="Interface"]
+visible = false
+offset_left = 24.0
+offset_top = 150.0
+offset_right = 404.0
+offset_bottom = 522.0
+theme_override_styles/panel = SubResource("StyleBox_results")
+
+[node name="Title" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 360.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+text = "DIRECT-IP LOBBY"
+horizontal_alignment = 1
+
+[node name="Address" type="LineEdit" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 244.0
+offset_bottom = 96.0
+text = "127.0.0.1"
+placeholder_text = "Host IP address"
+
+[node name="Port" type="LineEdit" parent="Interface/LobbyPanel"]
+offset_left = 252.0
+offset_top = 60.0
+offset_right = 360.0
+offset_bottom = 96.0
+text = "29730"
+placeholder_text = "Port"
+
+[node name="Host" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 108.0
+offset_right = 124.0
+offset_bottom = 146.0
+text = "CREATE"
+
+[node name="Join" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 136.0
+offset_top = 108.0
+offset_right = 240.0
+offset_bottom = 146.0
+text = "JOIN"
+
+[node name="Ready" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 158.0
+offset_right = 180.0
+offset_bottom = 196.0
+text = "READY"
+
+[node name="Start" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 192.0
+offset_top = 158.0
+offset_right = 360.0
+offset_bottom = 196.0
+text = "START MATCH"
+
+[node name="PlayerList" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 208.0
+offset_right = 360.0
+offset_bottom = 318.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 16
+text = "PLAYERS"
+
+[node name="Status" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 326.0
+offset_right = 360.0
+offset_bottom = 354.0
+theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
+text = "Create or join a LAN lobby"
+horizontal_alignment = 1
+
 [node name="ResultsPanel" type="Panel" parent="Interface"]
 visible = false
 offset_left = 240.0

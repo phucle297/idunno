@@ -16,6 +16,7 @@ func _run() -> void:
 	_test_elimination_signal_observes_death()
 	_test_simultaneous_elimination()
 	_test_timeout_ranking_and_tie()
+	_test_disconnect_winner()
 	_test_five_rematches()
 	if failures.is_empty():
 		print("MATCH_MANAGER_OK checks=%d" % checks)
@@ -94,6 +95,14 @@ func _test_timeout_ranking_and_tie() -> void:
 	_expect(manager.reset_to_lobby(), "Results must reset to lobby")
 	_expect(manager.state == ManagerScript.MatchState.LOBBY, "Reset must restore lobby state")
 	_expect(not manager.players[6].ready, "Reset must clear ready state")
+	manager.free()
+
+
+func _test_disconnect_winner() -> void:
+	var manager = _ready_manager([21, 22])
+	_expect(manager.unregister_player(22), "An active disconnected player must unregister")
+	_expect(manager.state == ManagerScript.MatchState.RESULTS, "A disconnect leaving one survivor must end the match")
+	_expect(manager.winner_ids == [21], "The remaining connected survivor must win")
 	manager.free()
 
 

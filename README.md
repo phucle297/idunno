@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-The three-disaster vertical slice has passed four-player state and native Windows performance checks. Multiplayer stabilization is in progress: the playable scene supports ENet host/join, authoritative spawning and movement, match/health replication, and Meteor/Flood/Tornado presentation. See `GUIDE.md` for direct-IP play instructions and current limitations.
+The seven-phase vertical slice is implemented and validated through 20-player playable-scene sessions and native Windows performance/audio checks. The playable scene includes an in-game direct-IP lobby, authoritative movement and match state, all six disasters and both combinations, shared prop and knockdown presentation, results, and host-controlled rematches. See `GUIDE.md` for play instructions and current limitations.
 
 ## Local development
 
@@ -61,4 +61,4 @@ godot --path . -- --join-address=127.0.0.1 --join-port=29730
 godot --path . res://scenes/asset_validation.tscn
 ```
 
-Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to rematch from results.
+Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results.

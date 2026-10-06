@@ -16,8 +16,9 @@ const DEFAULT_NETWORK_PORT := 29730
 const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
 const MATCH_SNAPSHOT_INTERVAL := 0.1
+const PROP_SNAPSHOT_INTERVAL := 0.1
 
-@onready var match_manager: Node = $MatchManager
+@onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
 @onready var meteor_shower: MeteorShower = $MeteorShower
 @onready var flood: Flood = $Flood
@@ -34,6 +35,7 @@ var _network_role := "offline"
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
 var _match_snapshot_remaining := 0.0
+var _prop_snapshot_remaining := 0.0
 
 
 func _ready() -> void:
@@ -73,6 +75,7 @@ func _ready() -> void:
 		"lightning": lightning,
 		"fire": fire,
 	})
+	_configure_lobby_ui()
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
 		if network_error != OK:
@@ -169,13 +172,24 @@ func _ready() -> void:
 		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
 		tornado.tick(tornado.warning_duration)
 		tornado.tick(1.6)
+	if _has_argument("--map-demo"):
+		$Player.position = Vector3(0.0, 9.0, 31.0)
+		$Player/CameraPivot/SpringArm3D/Camera3D.fov = 72.0
+	if _has_argument("--lobby-demo"):
+		disaster_director.cleanup()
+		match_manager.prepare_lobby()
+		match_manager.register_player(2, "Teal Player")
+		match_manager.register_player(3, "Coral Player")
+		match_manager.set_player_ready(1, true)
+		match_manager.set_player_ready(2, true)
+		_set_lobby_visible(true)
 	var capture_path := _argument_value("--capture=")
 	if not capture_path.is_empty():
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
 		var flood_view := _has_argument("--flood-demo") or _has_argument("--overlap-demo")
 		var capture_yaw := 2.25 if flood_view else (0.35 if _has_argument("--grab-demo") else 0.0)
-		var capture_pitch := -0.42 if flood_view else -0.14
+		var capture_pitch := -0.42 if flood_view else (-0.34 if _has_argument("--map-demo") else -0.14)
 		$Player/CameraPivot.rotation = Vector3(capture_pitch, capture_yaw, 0.0)
 		if _has_argument("--meteor-impact-demo"):
 			capture_after_meteor_impact(capture_path)
@@ -197,12 +211,13 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 	multiplayer.peer_disconnected.connect(_on_network_peer_disconnected)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
 	_player_nodes[1] = $Player
-	if not _register_server_gameplay_player(1, $Player, "Host"):
+	if not match_manager.players.has(1) and not _register_server_gameplay_player(1, $Player, "Host"):
 		multiplayer.multiplayer_peer = null
 		_network_mode = false
 		_network_role = "offline"
 		_player_nodes.clear()
 		return FAILED
+	_set_lobby_visible(true)
 	return OK
 
 
@@ -219,6 +234,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT) -> Error:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
 	_player_nodes[1] = $Player
+	_set_lobby_visible(true)
 	return OK
 
 
@@ -357,6 +373,7 @@ func _physics_process(delta: float) -> void:
 	var velocities := PackedVector3Array()
 	var camera_yaws := PackedFloat32Array()
 	var visual_yaws := PackedFloat32Array()
+	var knockdowns := PackedByteArray()
 	for peer_id: int in _player_nodes:
 		var player := _player_nodes[peer_id] as PartyPlayer
 		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
@@ -377,7 +394,12 @@ func _physics_process(delta: float) -> void:
 		velocities.append(player.velocity)
 		camera_yaws.append(player.get_camera_yaw())
 		visual_yaws.append(player.get_visual_yaw())
-	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws)
+		knockdowns.append(1 if player.is_knocked_down() else 0)
+	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns)
+	_prop_snapshot_remaining -= delta
+	if _prop_snapshot_remaining <= 0.0:
+		_prop_snapshot_remaining = PROP_SNAPSHOT_INTERVAL
+		_broadcast_prop_snapshots()
 
 
 func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
@@ -403,12 +425,13 @@ func _apply_movement_snapshots(
 	positions: PackedVector3Array,
 	velocities: PackedVector3Array,
 	camera_yaws: PackedFloat32Array,
-	visual_yaws: PackedFloat32Array
+	visual_yaws: PackedFloat32Array,
+	knockdowns: PackedByteArray
 ) -> void:
 	if multiplayer.is_server():
 		return
 	var player_count := peer_ids.size()
-	if positions.size() != player_count or velocities.size() != player_count or camera_yaws.size() != player_count or visual_yaws.size() != player_count:
+	if positions.size() != player_count or velocities.size() != player_count or camera_yaws.size() != player_count or visual_yaws.size() != player_count or knockdowns.size() != player_count:
 		return
 	for index: int in player_count:
 		var peer_id := peer_ids[index]
@@ -419,6 +442,69 @@ func _apply_movement_snapshots(
 		player.velocity = velocities[index]
 		player.set_camera_yaw(camera_yaws[index])
 		player.set_visual_yaw(visual_yaws[index])
+		player.set_network_knockdown(knockdowns[index] != 0)
+
+
+func _broadcast_prop_snapshots() -> void:
+	var prop_ids := PackedInt32Array()
+	var positions := PackedVector3Array()
+	var rotations := PackedVector4Array()
+	var linear_velocities := PackedVector3Array()
+	var angular_velocities := PackedVector3Array()
+	var owner_ids := PackedInt32Array()
+	var props := get_tree().get_nodes_in_group("network_prop")
+	props.sort_custom(func(first: Node, second: Node) -> bool:
+		return int(first.get_meta("network_prop_id", 0)) < int(second.get_meta("network_prop_id", 0))
+	)
+	for candidate in props:
+		var body := candidate as RigidBody3D
+		if not is_instance_valid(body):
+			continue
+		var quaternion := body.global_transform.basis.get_rotation_quaternion()
+		prop_ids.append(int(body.get_meta("network_prop_id", 0)))
+		positions.append(body.global_position)
+		rotations.append(Vector4(quaternion.x, quaternion.y, quaternion.z, quaternion.w))
+		linear_velocities.append(body.linear_velocity)
+		angular_velocities.append(body.angular_velocity)
+		owner_ids.append(int(body.get_meta("grab_owner_peer_id", 0)))
+	_apply_prop_snapshots.rpc(prop_ids, positions, rotations, linear_velocities, angular_velocities, owner_ids)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered", 3)
+func _apply_prop_snapshots(
+	prop_ids: PackedInt32Array,
+	positions: PackedVector3Array,
+	rotations: PackedVector4Array,
+	linear_velocities: PackedVector3Array,
+	angular_velocities: PackedVector3Array,
+	owner_ids: PackedInt32Array
+) -> void:
+	if multiplayer.is_server():
+		return
+	var prop_count := prop_ids.size()
+	if positions.size() != prop_count or rotations.size() != prop_count or linear_velocities.size() != prop_count or angular_velocities.size() != prop_count or owner_ids.size() != prop_count:
+		return
+	for index in prop_count:
+		var body := _network_prop(prop_ids[index])
+		if not is_instance_valid(body):
+			continue
+		var rotation := rotations[index]
+		body.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+		body.freeze = true
+		body.global_transform = Transform3D(Basis(Quaternion(rotation.x, rotation.y, rotation.z, rotation.w).normalized()), positions[index])
+		body.linear_velocity = linear_velocities[index]
+		body.angular_velocity = angular_velocities[index]
+		if owner_ids[index] > 0:
+			body.set_meta("grab_owner_peer_id", owner_ids[index])
+		else:
+			body.remove_meta("grab_owner_peer_id")
+
+
+func _network_prop(prop_id: int) -> RigidBody3D:
+	for candidate in get_tree().get_nodes_in_group("network_prop"):
+		if int(candidate.get_meta("network_prop_id", 0)) == prop_id:
+			return candidate as RigidBody3D
+	return null
 
 
 func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
@@ -488,6 +574,7 @@ func _process(delta: float) -> void:
 	var disaster_lines := _active_disaster_lines()
 	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
 	$Interface/MeteorWarning.text = "\n".join(disaster_lines)
+	_update_lobby_ui()
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 2)
@@ -529,7 +616,9 @@ func _match_state_text() -> String:
 	if match_manager.state == MatchManager.MatchState.ACTIVE:
 		return "SURVIVE"
 	if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode:
-		return "ENTER TO START" if multiplayer.is_server() else "WAITING FOR HOST"
+		if match_manager.can_start_match() and match_manager.players.size() >= 2:
+			return "ENTER TO START" if multiplayer.is_server() else "WAITING FOR HOST"
+		return "WAITING FOR READY" if multiplayer.is_server() else "READY UP"
 	if match_manager.state == MatchManager.MatchState.RESULTS and _network_mode and not multiplayer.is_server():
 		return "WAITING FOR HOST"
 	return "ENTER TO REMATCH"
@@ -584,7 +673,9 @@ func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept"):
+	if event.is_action_pressed("toggle_lobby"):
+		_set_lobby_visible(not $Interface/LobbyPanel.visible)
+	elif event.is_action_pressed("ui_accept"):
 		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and multiplayer.is_server():
 			start_network_match()
 		elif match_manager.state == MatchManager.MatchState.RESULTS:
@@ -603,12 +694,110 @@ func start_network_match() -> bool:
 		return false
 	if match_manager.players.size() < 2:
 		return false
-	for peer_id: int in match_manager.players:
-		if not match_manager.set_player_ready(peer_id, true):
-			return false
+	if not match_manager.can_start_match():
+		return false
 	if not match_manager.start_match():
 		return false
+	_set_lobby_visible(false)
 	return disaster_director.start_directing()
+
+
+func set_local_ready(ready: bool) -> bool:
+	if not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	if multiplayer.is_server():
+		return match_manager.set_player_ready(multiplayer.get_unique_id(), ready)
+	_request_ready.rpc_id(1, ready)
+	return true
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_ready(ready: bool) -> void:
+	if not multiplayer.is_server() or match_manager.state != MatchManager.MatchState.LOBBY:
+		return
+	match_manager.set_player_ready(multiplayer.get_remote_sender_id(), ready)
+
+
+func _configure_lobby_ui() -> void:
+	$Interface/LobbyToggle.pressed.connect(func() -> void: _set_lobby_visible(not $Interface/LobbyPanel.visible))
+	$Interface/LobbyPanel/Host.pressed.connect(_on_lobby_host_pressed)
+	$Interface/LobbyPanel/Join.pressed.connect(_on_lobby_join_pressed)
+	$Interface/LobbyPanel/Ready.pressed.connect(_on_lobby_ready_pressed)
+	$Interface/LobbyPanel/Start.pressed.connect(func() -> void: start_network_match())
+
+
+func _set_lobby_visible(visible: bool) -> void:
+	$Interface/LobbyPanel.visible = visible
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
+
+
+func _on_lobby_host_pressed() -> void:
+	if _network_mode:
+		return
+	disaster_director.cleanup()
+	match_manager.prepare_lobby()
+	var port := maxi(($Interface/LobbyPanel/Port as LineEdit).text.to_int(), 1)
+	var error := host_game(port)
+	$Interface/LobbyPanel/Status.text = "Hosting UDP %d" % port if error == OK else "Host failed: %s" % error_string(error)
+
+
+func _on_lobby_join_pressed() -> void:
+	if _network_mode:
+		return
+	_prepare_offline_player_for_join()
+	var address := ($Interface/LobbyPanel/Address as LineEdit).text.strip_edges()
+	var port := maxi(($Interface/LobbyPanel/Port as LineEdit).text.to_int(), 1)
+	var error := join_game(address, port)
+	$Interface/LobbyPanel/Status.text = "Joining %s:%d" % [address, port] if error == OK else "Join failed: %s" % error_string(error)
+
+
+func _on_lobby_ready_pressed() -> void:
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	set_local_ready(not match_manager.is_player_ready(local_peer_id))
+
+
+func _prepare_offline_player_for_join() -> void:
+	disaster_director.cleanup()
+	$GrabManager.unregister_player(1)
+	meteor_shower.unregister_player(1)
+	flood.unregister_player(1)
+	tornado.unregister_player(1)
+	earthquake.unregister_player(1)
+	lightning.unregister_player(1)
+	fire.unregister_player(1)
+	match_manager.unregister_player(1)
+	match_manager.prepare_lobby()
+
+
+func _update_lobby_ui() -> void:
+	$Interface/LobbyToggle.visible = match_manager.state != MatchManager.MatchState.RESULTS
+	var panel: Panel = $Interface/LobbyPanel
+	var in_lobby: bool = match_manager.state == MatchManager.MatchState.LOBBY
+	panel.get_node("Host").visible = not _network_mode
+	panel.get_node("Join").visible = not _network_mode
+	var lobby_demo := _has_argument("--lobby-demo")
+	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
+	panel.get_node("Start").visible = ((_network_mode and multiplayer.is_server()) or lobby_demo) and in_lobby
+	panel.get_node("Start").disabled = not match_manager.can_start_match() or match_manager.players.size() < 2
+	var lines: Array[String] = ["PLAYERS"]
+	var peer_ids: Array[int] = []
+	for peer_id: int in match_manager.players:
+		peer_ids.append(peer_id)
+	peer_ids.sort()
+	for peer_id: int in peer_ids:
+		var player: Dictionary = match_manager.players[peer_id]
+		lines.append("%s  %s" % ["READY" if bool(player.ready) else "WAIT", String(player.name)])
+	panel.get_node("PlayerList").text = "\n".join(lines)
+	if _network_mode and in_lobby:
+		var local_peer_id := multiplayer.get_unique_id()
+		panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY"
+	if in_lobby and (_network_mode or lobby_demo):
+		var acting_as_host := lobby_demo or multiplayer.is_server()
+		if acting_as_host:
+			panel.get_node("Status").text = "All ready — start match" if match_manager.can_start_match() and match_manager.players.size() >= 2 else "Waiting for all players"
+		else:
+			var local_peer_id := multiplayer.get_unique_id()
+			panel.get_node("Status").text = "Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Select READY when prepared"
 
 
 func restart_local_match() -> bool:
@@ -776,8 +965,9 @@ func _build_lighting() -> void:
 	environment.background_color = Color("9fc8df")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("a9c8df")
-	environment.ambient_light_energy = 0.65
+	environment.ambient_light_energy = 0.5
 	$WorldEnvironment.environment = environment
+	$Sun.light_energy = 1.0
 
 
 func _build_sandbox() -> void:
@@ -786,22 +976,31 @@ func _build_sandbox() -> void:
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
 
-	_add_static_box("Shop", Vector3(10.0, 4.5, 8.0), Vector3(-16.0, 2.25, -13.0), PALETTE.coral)
-	_add_static_box("ShopRoof", Vector3(11.0, 0.35, 9.0), Vector3(-16.0, 4.68, -13.0), PALETTE.cream)
-	_add_static_box("Hall", Vector3(10.0, 4.5, 10.0), Vector3(16.0, 2.25, -13.0), PALETTE.teal)
-	_add_static_box("HallRoof", Vector3(11.0, 0.35, 11.0), Vector3(16.0, 4.68, -13.0), PALETTE.cream)
-	_add_static_box("RaisedRouteBase", Vector3(9.0, 2.0, 7.0), Vector3(7.0, 1.0, -5.0), PALETTE.teal)
-	_add_static_box("RaisedRouteTop", Vector3(9.0, 0.18, 7.0), Vector3(7.0, 2.09, -5.0), PALETTE.cream)
-	_add_ramp("Ramp", Vector3(4.0, 0.35, 10.0), Vector3(7.0, 0.83, 3.25), deg_to_rad(11.5))
+	_add_open_building("Shop", Vector3(-16.0, 0.0, -13.0), Vector2(12.0, 10.0), 4.5, PALETTE.coral)
+	_add_open_building("Hall", Vector3(16.0, 0.0, -13.0), Vector2(12.0, 12.0), 4.5, PALETTE.teal)
+	_add_parking_garage()
+	_add_static_box("PocketParkPlatform", Vector3(10.0, 2.2, 8.0), Vector3(15.0, 1.1, 14.0), PALETTE.teal)
+	$Sandbox/PocketParkPlatform.add_to_group("landmark")
+	_add_world_label("PocketParkLabel", "POCKET PARK", Vector3(15.0, 3.0, 18.2), PALETTE.cream)
+	_add_ramp("ShopRoofRamp", Vector3(3.0, 0.35, 13.0), Vector3(-9.7, 2.35, -13.0), deg_to_rad(20.0))
+	_add_ramp("HallRoofRamp", Vector3(3.0, 0.35, 13.0), Vector3(9.7, 2.35, -13.0), deg_to_rad(-20.0))
+	_add_ramp("GarageRamp", Vector3(4.0, 0.35, 12.0), Vector3(-15.0, 1.15, 7.0), deg_to_rad(11.0))
+	_add_ramp("ParkRamp", Vector3(3.0, 0.35, 10.0), Vector3(15.0, 1.05, 5.0), deg_to_rad(12.0))
+	_add_world_label("ShopRouteLabel", "ROOF ACCESS", Vector3(-9.7, 1.0, -6.3), PALETTE.amber)
+	_add_world_label("HallRouteLabel", "ROOF ACCESS", Vector3(9.7, 1.0, -6.3), PALETTE.amber)
+	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, 1.0), PALETTE.amber)
+	_add_world_label("ParkRouteLabel", "UP", Vector3(15.0, 0.8, 0.0), PALETTE.amber)
 	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.98, -13.0), PALETTE.cream)
 	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.98, -13.0), PALETTE.cream)
 	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal)
 	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal)
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
+	_add_town_props()
 
-	for position in [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]:
-		_add_physics_crate(position)
+	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]
+	for index in crate_positions.size():
+		_add_physics_crate(crate_positions[index], index + 1)
 
 
 func _reset_sandbox() -> void:
@@ -832,6 +1031,146 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 func _add_ramp(node_name: String, size: Vector3, position: Vector3, angle: float) -> void:
 	_add_static_box(node_name, size, position, PALETTE.cream)
 	$Sandbox.get_node(node_name).rotation.x = angle
+	$Sandbox.get_node(node_name).add_to_group("elevation_route")
+
+
+func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, height: float, color: Color) -> void:
+	var root := Node3D.new()
+	root.name = node_name
+	root.position = center
+	root.add_to_group("landmark")
+	root.add_to_group("shelter")
+	$Sandbox.add_child(root)
+	var wall_height := height
+	var door_width := 2.4
+	var side_segment := (footprint.x - door_width) * 0.5
+	_add_box_to(root, "NorthWestWall", Vector3(side_segment, wall_height, 0.3), Vector3(-(door_width + side_segment) * 0.5, wall_height * 0.5, -footprint.y * 0.5), color)
+	_add_box_to(root, "NorthEastWall", Vector3(side_segment, wall_height, 0.3), Vector3((door_width + side_segment) * 0.5, wall_height * 0.5, -footprint.y * 0.5), color)
+	_add_box_to(root, "SouthWestWall", Vector3(side_segment, wall_height, 0.3), Vector3(-(door_width + side_segment) * 0.5, wall_height * 0.5, footprint.y * 0.5), color)
+	_add_box_to(root, "SouthEastWall", Vector3(side_segment, wall_height, 0.3), Vector3((door_width + side_segment) * 0.5, wall_height * 0.5, footprint.y * 0.5), color)
+	_add_box_to(root, "WestWall", Vector3(0.3, wall_height, footprint.y), Vector3(-footprint.x * 0.5, wall_height * 0.5, 0.0), color)
+	_add_box_to(root, "EastWall", Vector3(0.3, wall_height, footprint.y), Vector3(footprint.x * 0.5, wall_height * 0.5, 0.0), color)
+	_add_box_to(root, "Roof", Vector3(footprint.x + 0.6, 0.35, footprint.y + 0.6), Vector3(0.0, height + 0.18, 0.0), PALETTE.cream)
+	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
+	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
+	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
+
+
+func _add_parking_garage() -> void:
+	var root := Node3D.new()
+	root.name = "ParkingGarage"
+	root.position = Vector3(-15.0, 0.0, 15.0)
+	root.add_to_group("landmark")
+	root.add_to_group("shelter")
+	$Sandbox.add_child(root)
+	_add_box_to(root, "Deck", Vector3(14.0, 0.35, 12.0), Vector3(0.0, 2.4, 0.0), PALETTE.cream)
+	for x in [-5.5, 5.5]:
+		for z in [-4.5, 4.5]:
+			_add_box_to(root, "Pillar_%s_%s" % [x, z], Vector3(0.7, 4.8, 0.7), Vector3(x, 2.4, z), PALETTE.slate)
+	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 4.8, 0.0), PALETTE.coral)
+	_add_label_to(root, "GarageLabel", "PARKING", Vector3(0.0, 3.4, 6.15), PALETTE.cream)
+
+
+func _add_town_props() -> void:
+	_add_tree("TreeWest", Vector3(-26.0, 0.0, 3.0))
+	_add_tree("TreeEast", Vector3(25.0, 0.0, 8.0))
+	_add_tree("TreePark", Vector3(18.0, 2.2, 15.0))
+	_add_car("ToyCarWest", Vector3(-12.0, 0.0, 1.5), PALETTE.coral)
+	_add_car("ToyCarEast", Vector3(13.0, 0.0, -1.5), PALETTE.teal)
+	_add_bench("ParkBench", Vector3(12.0, 2.2, 15.5))
+	_add_static_box("TownSign", Vector3(2.8, 2.4, 0.3), Vector3(-5.5, 1.2, -4.8), PALETTE.amber)
+	$Sandbox/TownSign.add_to_group("map_prop")
+	for index in 5:
+		_add_static_box("FenceNorth%d" % index, Vector3(4.0, 1.1, 0.2), Vector3(-20.0 + index * 10.0, 0.55, -30.0), PALETTE.cream)
+		$Sandbox.get_node("FenceNorth%d" % index).add_to_group("map_prop")
+
+
+func _add_tree(node_name: String, position: Vector3) -> void:
+	var root := Node3D.new()
+	root.name = node_name
+	root.position = position
+	root.add_to_group("map_prop")
+	$Sandbox.add_child(root)
+	_add_box_to(root, "Trunk", Vector3(0.7, 2.4, 0.7), Vector3(0.0, 1.2, 0.0), PALETTE.sand)
+	for offset in [Vector3(0.0, 2.8, 0.0), Vector3(-0.7, 2.5, 0.0), Vector3(0.7, 2.5, 0.0)]:
+		var crown := MeshInstance3D.new()
+		var mesh := SphereMesh.new()
+		mesh.radius = 1.15
+		mesh.height = 2.0
+		mesh.radial_segments = 8
+		mesh.rings = 4
+		mesh.material = _material(PALETTE.grass)
+		crown.mesh = mesh
+		crown.position = offset
+		root.add_child(crown)
+
+
+func _add_car(node_name: String, position: Vector3, color: Color) -> void:
+	var root := Node3D.new()
+	root.name = node_name
+	root.position = position
+	root.add_to_group("map_prop")
+	$Sandbox.add_child(root)
+	_add_box_to(root, "Body", Vector3(3.2, 0.8, 1.7), Vector3(0.0, 0.5, 0.0), color)
+	_add_box_to(root, "Cab", Vector3(1.6, 0.65, 1.45), Vector3(-0.2, 1.15, 0.0), PALETTE.cream)
+	for wheel_position in [Vector3(-1.0, 0.2, -0.78), Vector3(1.0, 0.2, -0.78), Vector3(-1.0, 0.2, 0.78), Vector3(1.0, 0.2, 0.78)]:
+		_add_box_to(root, "Wheel%s" % wheel_position, Vector3(0.45, 0.45, 0.22), wheel_position, PALETTE.slate)
+
+
+func _add_bench(node_name: String, position: Vector3) -> void:
+	var root := Node3D.new()
+	root.name = node_name
+	root.position = position
+	root.add_to_group("map_prop")
+	$Sandbox.add_child(root)
+	_add_box_to(root, "Seat", Vector3(2.4, 0.18, 0.7), Vector3(0.0, 0.75, 0.0), PALETTE.sand)
+	_add_box_to(root, "Back", Vector3(2.4, 0.8, 0.16), Vector3(0.0, 1.15, 0.28), PALETTE.sand)
+	_add_box_to(root, "LeftLeg", Vector3(0.18, 0.75, 0.55), Vector3(-0.85, 0.38, 0.0), PALETTE.slate)
+	_add_box_to(root, "RightLeg", Vector3(0.18, 0.75, 0.55), Vector3(0.85, 0.38, 0.0), PALETTE.slate)
+
+
+func _add_world_label(node_name: String, text: String, position: Vector3, color: Color) -> void:
+	var label := Label3D.new()
+	label.name = node_name
+	label.text = text
+	label.position = position
+	label.modulate = color
+	label.outline_modulate = PALETTE.slate
+	label.outline_size = 12
+	label.font_size = 48
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	$Sandbox.add_child(label)
+
+
+func _add_label_to(parent: Node3D, node_name: String, text: String, position: Vector3, color: Color) -> void:
+	var label := Label3D.new()
+	label.name = node_name
+	label.text = text
+	label.position = position
+	label.modulate = color
+	label.outline_modulate = PALETTE.slate
+	label.outline_size = 12
+	label.font_size = 56
+	parent.add_child(label)
+
+
+func _add_box_to(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.position = position
+	var mesh_instance := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = _material(color)
+	mesh_instance.mesh = mesh
+	body.add_child(mesh_instance)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	parent.add_child(body)
+	return body
 
 
 func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
@@ -843,10 +1182,12 @@ func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3
 	structure.configure(piece_id, size, color)
 
 
-func _add_physics_crate(position: Vector3) -> void:
+func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
 	var body := RigidBody3D.new()
 	body.name = "PhysicsCrate"
 	body.add_to_group("grabbable")
+	body.add_to_group("network_prop")
+	body.set_meta("network_prop_id", network_prop_id)
 	body.position = position
 	body.mass = 12.0
 	body.collision_layer = 4
@@ -893,6 +1234,8 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--fire-tornado-demo")
 		or _has_argument("--overlap-demo")
 		or _has_argument("--results-demo")
+		or _has_argument("--map-demo")
+		or _has_argument("--lobby-demo")
 	)
 
 
