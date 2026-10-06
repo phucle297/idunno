@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T11:32:51+07:00",
+  "updated_at": "2026-10-06T12:34:15+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_6_multiplayer_stabilization",
+  "current_phase": "phase_4_additional_disasters",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -45,14 +45,29 @@
         "tornado": "passed_server_authority_path_bounded_pull_lift_single_throw_prop_force_cover_cleanup_and_visual_checks"
       }
     },
-    "phase_4_director_overlap": {
+    "phase_4_additional_disasters": {
+      "status": "not_started",
+      "acceptance": {
+        "earthquake": "not_implemented",
+        "lightning": "not_implemented",
+        "fire": "not_implemented"
+      }
+    },
+    "slice_director_overlap": {
       "status": "completed",
       "acceptance": {
         "randomized_selection": "passed_seeded_random_selection_no_immediate_repeat_minimum_time_difficulty_and_compatibility_checks",
         "two_disaster_overlap": "passed_solo_first_gate_intensity_three_unlock_two_hazard_cap_authority_cleanup_and_visual_check"
       }
     },
-    "phase_5_polish_validation": {
+    "phase_5_disaster_combinations": {
+      "status": "not_started",
+      "acceptance": {
+        "cross_disaster_events": "not_implemented",
+        "behavior_changing_interaction": "not_implemented"
+      }
+    },
+    "slice_polish_validation": {
       "status": "completed",
       "acceptance": {
         "four_client_match_snapshot": "passed_one_authoritative_server_and_four_separate_clients_with_consistent_ready_active_health_alive_damage_and_overlap_state",
@@ -65,9 +80,27 @@
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
         "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "partial_server_authoritative_movement_match_health_hud_elimination_and_spectating_passed_disaster_presentation_required"
+        "playable_scene_replication": "partial_two_peer_server_authoritative_movement_match_health_hud_elimination_spectating_and_three_disaster_presentation_passed_playable_4_8_20_sessions_required"
+      }
+    },
+    "phase_7_polish": {
+      "status": "partial_out_of_order",
+      "acceptance": {
+        "baseline_hud_and_vfx": "passed_for_meteor_flood_tornado",
+        "audio": "not_implemented",
+        "complete_results_screen": "not_implemented",
+        "network_rematch": "not_implemented"
       }
     }
+  },
+  "original_roadmap_audit": {
+    "phase_1_core_sandbox": "completed",
+    "phase_2_match": "completed",
+    "phase_3_first_disasters": "completed_meteor_flood_tornado",
+    "phase_4_additional_disasters": "not_started_earthquake_lightning_fire_missing",
+    "phase_5_disaster_combinations": "not_started_only_simultaneous_coexistence_is_implemented",
+    "phase_6_multiplayer_stabilization": "in_progress_two_peer_playable_replication_and_2_4_8_20_state_matrix_passed_playable_4_8_20_sessions_missing",
+    "phase_7_polish": "partial_out_of_order_baseline_hud_and_vfx_exist_audio_results_screen_network_rematch_and_final_feedback_missing"
   },
   "asset_intake": {
     "quaternius_universal_animation_library": "official_archive_blocked_by_cloudflare; third_party_standard_fbx_imported_in_scratch_and_45_clips_enumerated_as_secondary_evidence",
@@ -284,6 +317,26 @@
       "result": "passed",
       "check": "Default-scene offline input regression",
       "evidence": "The authoritative-movement change incorrectly treated Godot's default OfflineMultiplayerPeer as an active network session, causing PartyPlayer._physics_process to return before offline movement and interaction. The controller now bypasses local movement only for a non-offline multiplayer peer while still routing grab input in network sessions. PLAYER_INTEGRATION_OK checks=27 validates default main.tscn movement and grab input. All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 and NETWORK_AUTHORITY_PEERS_OK."
+    },
+    {
+      "result": "passed",
+      "check": "Default HUD and first-disaster timing",
+      "evidence": "Rendered 1280x720 default scene inspection showed HP 100 bottom-left, ALIVE 1/1 top-right, timer and controls readable. An executed 11-second default-session probe confirmed director running=true, selection_history=[Meteor Shower], active=[Meteor Shower], and rendered WARNING — METEOR IMPACT IN 2. The absence of overlap at launch is intentional: Tornado unlocks at 2:00 and overlap at 5:00 after solo completions."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 playable disaster presentation",
+      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disaster_presentation=passed from separate playable host/client processes. The client validated Meteor warning effect and text, then simultaneous Flood + Tornado effects and both named HUD lines. .amp/in/artifacts/playable-client-overlap.png was captured from the rendered client and inspected: flood surface, tornado funnel/footprints, HP 100, ALIVE 2/2, 09:59 timer, and two player silhouettes were readable."
+    },
+    {
+      "result": "audit",
+      "check": "Original seven-phase roadmap",
+      "evidence": "Phases 1-3 are complete. Phase 4 is not started because Earthquake, Lightning, and Fire do not exist. Phase 5 is not started because current overlap is coexistence without cross-disaster behavior. Phase 6 remains in progress because playable 4/8/20 sessions are unverified. Phase 7 is partial out of order: baseline HUD/VFX exist, but audio, complete results, network rematch, and final feedback are missing."
+    },
+    {
+      "result": "passed",
+      "check": "Seven-phase audit regression verification",
+      "evidence": "All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37). NETWORK_AUTHORITY_PEERS_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed with host Enter start, authoritative movement, match/health HUD, Meteor/Flood/Tornado presentation, elimination, spectating, and disconnect cleanup. MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed the state-contract matrix; this is not full playable 4/8/20 validation."
     }
   ],
   "blockers": [
@@ -293,6 +346,7 @@
   ],
   "changed_files": [
     "README.md",
+    "GUIDE.md",
     "AGENTS.md",
     ".agents/skills/advancing-disaster-party/SKILL.md",
     ".agents/skills/validating-game-assets/SKILL.md",
@@ -342,5 +396,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Replicate Meteor, Flood, and Tornado lifecycle and presentation state into playable clients, then validate a readable two-peer overlapping-disaster session."
+  "next_action": "Implement and validate authoritative Earthquake as the first missing Phase 4 disaster, including predefined breakage, warning presentation, cleanup, and multiplayer presentation state."
 }

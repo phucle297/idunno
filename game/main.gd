@@ -389,13 +389,13 @@ func _process(delta: float) -> void:
 		_match_snapshot_remaining -= delta
 		if _match_snapshot_remaining <= 0.0:
 			_match_snapshot_remaining = MATCH_SNAPSHOT_INTERVAL
-			_apply_match_snapshot.rpc(match_manager.create_authoritative_snapshot())
+			_apply_match_snapshot.rpc(_create_playable_snapshot())
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(local_peer_id))
 	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
-	$Interface/State.text = "SURVIVE" if match_manager.state == 1 else "ENTER TO REMATCH"
+	$Interface/State.text = _match_state_text()
 	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
 	var disaster_lines := _active_disaster_lines()
 	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
@@ -405,6 +405,28 @@ func _process(delta: float) -> void:
 @rpc("authority", "call_remote", "unreliable_ordered", 2)
 func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	match_manager.apply_authoritative_snapshot(snapshot)
+	var disasters: Dictionary = snapshot.get("disasters", {})
+	meteor_shower.apply_presentation_snapshot(disasters.get("meteor", {}))
+	flood.apply_presentation_snapshot(disasters.get("flood", {}))
+	tornado.apply_presentation_snapshot(disasters.get("tornado", {}))
+
+
+func _create_playable_snapshot() -> Dictionary:
+	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
+	snapshot.disasters = {
+		"meteor": meteor_shower.create_presentation_snapshot(),
+		"flood": flood.create_presentation_snapshot(),
+		"tornado": tornado.create_presentation_snapshot(),
+	}
+	return snapshot
+
+
+func _match_state_text() -> String:
+	if match_manager.state == MatchManager.MatchState.ACTIVE:
+		return "SURVIVE"
+	if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode:
+		return "ENTER TO START" if multiplayer.is_server() else "WAITING FOR HOST"
+	return "ENTER TO REMATCH"
 
 
 func _active_disaster_lines() -> Array[String]:
@@ -425,12 +447,28 @@ func _active_disaster_lines() -> Array[String]:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept") and match_manager.state == 2:
-		restart_local_match()
+	if event.is_action_pressed("ui_accept"):
+		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and multiplayer.is_server():
+			start_network_match()
+		elif match_manager.state == MatchManager.MatchState.RESULTS and not _network_mode:
+			restart_local_match()
 	elif event.is_action_pressed("spectate_previous"):
 		spectator_controller.cycle(-1)
 	elif event.is_action_pressed("spectate_next"):
 		spectator_controller.cycle(1)
+
+
+func start_network_match() -> bool:
+	if not _network_mode or not multiplayer.is_server() or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	if match_manager.players.size() < 2:
+		return false
+	for peer_id: int in match_manager.players:
+		if not match_manager.set_player_ready(peer_id, true):
+			return false
+	if not match_manager.start_match():
+		return false
+	return disaster_director.start_directing()
 
 
 func restart_local_match() -> bool:

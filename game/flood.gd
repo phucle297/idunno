@@ -143,6 +143,29 @@ func active_effect_count() -> int:
 	return 1 if is_instance_valid(_surface) else 0
 
 
+func create_presentation_snapshot() -> Dictionary:
+	return {
+		"phase": int(phase),
+		"warning_remaining": warning_remaining,
+		"water_level": water_level,
+	}
+
+
+func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
+	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
+		return false
+	var next_phase := clampi(int(snapshot.get("phase", Phase.IDLE)), Phase.IDLE, Phase.DRAINING)
+	if next_phase == Phase.IDLE:
+		cleanup()
+		return true
+	phase = next_phase
+	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
+	if not is_instance_valid(_surface):
+		_spawn_surface()
+	_set_water_level(float(snapshot.get("water_level", start_level)))
+	return true
+
+
 func get_submerged_time(peer_id: int) -> float:
 	return float(_submerged_time.get(peer_id, 0.0))
 

@@ -114,6 +114,38 @@ func active_effect_count() -> int:
 	return 1 if is_instance_valid(_effect) else 0
 
 
+func create_presentation_snapshot() -> Dictionary:
+	return {
+		"phase": int(phase),
+		"warning_remaining": warning_remaining,
+		"target_position": target_position,
+		"impact_remaining": _impact_remaining,
+	}
+
+
+func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
+	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
+		return false
+	var next_phase := clampi(int(snapshot.get("phase", Phase.IDLE)), Phase.IDLE, Phase.IMPACT)
+	if next_phase == Phase.IDLE:
+		cleanup()
+		return true
+	var previous_phase := phase
+	target_position = snapshot.get("target_position", Vector3.ZERO)
+	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
+	_impact_remaining = maxf(float(snapshot.get("impact_remaining", 0.0)), 0.0)
+	if not is_instance_valid(_effect):
+		_spawn_telegraph()
+	phase = next_phase
+	if phase == Phase.WARNING:
+		_update_warning_visual()
+	elif phase == Phase.IMPACT:
+		if previous_phase != Phase.IMPACT or _effect.get_node_or_null("ImpactFlash") == null:
+			_show_impact_visual()
+		_update_impact_visual()
+	return true
+
+
 func _process(delta: float) -> void:
 	tick(delta)
 

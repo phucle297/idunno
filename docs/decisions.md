@@ -69,3 +69,15 @@
 - **Presentation:** Playable HUD and spectating resolve the local ENet peer instead of assuming peer 1. Replicated elimination hides the corresponding avatar on every peer and starts spectating only for the eliminated local player.
 - **Channels:** Movement uses unreliable-ordered channel 1 and match state uses channel 2 so frequent movement packets cannot supersede health or elimination snapshots.
 - **Validation boundary:** The separate client observed ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2 and local spectating after server-owned damage. Disaster lifecycle and visual-state replication remain separate Phase 6 work.
+
+## 2026-10-06 — Seven-phase roadmap correction
+
+- **Decision:** Track the original seven phases from `PROMPT.md` separately from completed slice-validation milestones. The next ordered phase is Phase 4 because Earthquake, Lightning, and Fire are absent.
+- **Combination boundary:** Simultaneous Flood + Tornado proves scheduling, coexistence, and readability. It is not a Phase 5 cross-disaster interaction; no disaster currently changes another disaster's behavior.
+- **Polish boundary:** Baseline HUD and Meteor/Flood/Tornado VFX exist, but Phase 7 remains incomplete without audio, a complete results screen, network rematch, and final feedback tuning.
+
+## 2026-10-06 — Playable disaster presentation replication
+
+- **Decision:** Keep disaster gameplay simulation server-only. Clients apply presentation snapshots containing lifecycle phase and the minimum state required to recreate Meteor, Flood, and Tornado effects; snapshots never invoke damage or force logic on clients.
+- **Match start:** In direct-IP sessions, the host explicitly starts a match with Enter after at least two peers connect. This replaces a nonexistent lobby-ready UI without adding a second lobby system.
+- **Validation:** A rendered client displayed replicated Flood + Tornado world effects, both named warning lines, HP 100, ALIVE 2/2, timer, and two readable players. Separate-process checks also validated replicated Meteor warning presentation.

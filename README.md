@@ -9,7 +9,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for implementation and validation state across sessions.
 - `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
 
-Phase 5 is complete: the four-player Flood + Tornado overlap passes the native Windows 60 FPS target on Intel UHD 630 hardware. Phase 6 multiplayer stabilization is in progress; authoritative state snapshots pass with 2, 4, 8, and 20 separate clients, and the playable scene now supports ENet host/join, authoritative spawning, and disconnect cleanup. Movement and disaster presentation replication remain open.
+The three-disaster vertical slice has passed four-player state and native Windows performance checks. Multiplayer stabilization is in progress: the playable scene supports ENet host/join, authoritative spawning and movement, match/health replication, and Meteor/Flood/Tornado presentation. See `GUIDE.md` for direct-IP play instructions and current limitations.
 
 ## Local development
 

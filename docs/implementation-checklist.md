@@ -30,7 +30,13 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
 - [x] Validate each disaster independently before enabling director selection or overlap.
 
-## Phase 4 — Director and overlap
+## Phase 4 — Additional disasters
+
+- [ ] Implement Earthquake with predefined breakable structures and debris.
+- [ ] Implement Lightning with fair telegraphs and authoritative strikes.
+- [ ] Implement Fire with predefined zone/neighbor propagation.
+
+## Director and overlap groundwork completed ahead of Phase 5
 
 - [x] Add a server-owned Disaster Director with randomized selection and immediate-repeat suppression.
 - [x] Add disaster metadata, minimum-time/difficulty gates, and symmetric compatibility checks.
@@ -38,7 +44,15 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Require each hazard to complete solo before it can participate in an overlap.
 - [x] Validate overlap behavior, separate-peer authority, five-rematch cleanup, and the rendered multi-hazard HUD.
 
-## Phase 5 — Polish and validation
+## Phase 5 — Disaster combinations
+
+- [ ] Add named cross-disaster events and shared hazard queries.
+- [ ] Implement Flood + Lightning electrified water.
+- [ ] Implement at least one additional physical interaction such as Tornado + Fire or Earthquake + Flood.
+
+Current Flood + Tornado validation proves simultaneous coexistence and readable presentation, not a true cross-disaster interaction.
+
+## Slice polish and validation completed ahead of Phase 7
 
 - [x] Validate one authoritative server plus four separate local clients against the same active Flood + Tornado match snapshot.
 - [x] Render and inspect a four-player overlap HUD with both hazards, readable danger geometry, and a dry refuge.
@@ -51,4 +65,12 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Connect the playable scene to ENet create/join, authoritative player spawning, local camera ownership, and disconnect cleanup.
 - [x] Submit playable client input to the host, simulate movement authoritatively, and batch player snapshots back to clients.
 - [x] Replicate playable match state, health, elimination, alive count, local HUD, and spectating.
-- [ ] Replicate playable disaster presentation, then validate representative 2/4/8/20-player sessions rather than state-only probes.
+- [x] Replicate Meteor, Flood, and Tornado presentation into a two-peer playable session.
+- [ ] Validate representative playable 4/8/20-player sessions rather than state-only probes.
+
+## Phase 7 — Polish
+
+- [x] Present HP, alive count, timer, active-disaster names, warnings, and baseline disaster VFX.
+- [ ] Add gameplay audio and verify warnings remain audible during overlap.
+- [ ] Add a complete winner/results screen with survival summary and network rematch flow.
+- [ ] Perform final UI/VFX/feedback tuning after Phases 4–6 are complete.

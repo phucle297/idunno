@@ -145,6 +145,41 @@ func active_effect_count() -> int:
 	return 1 if is_instance_valid(_effect) else 0
 
 
+func create_presentation_snapshot() -> Dictionary:
+	return {
+		"phase": int(phase),
+		"warning_remaining": warning_remaining,
+		"start_position": start_position,
+		"end_position": end_position,
+		"active_duration": active_duration,
+		"active_elapsed": active_elapsed,
+		"position": global_position,
+	}
+
+
+func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
+	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
+		return false
+	var next_phase := clampi(int(snapshot.get("phase", Phase.IDLE)), Phase.IDLE, Phase.ACTIVE)
+	if next_phase == Phase.IDLE:
+		cleanup()
+		return true
+	phase = next_phase
+	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
+	start_position = snapshot.get("start_position", Vector3.ZERO)
+	end_position = snapshot.get("end_position", Vector3.ZERO)
+	active_duration = maxf(float(snapshot.get("active_duration", 0.0)), 0.0)
+	active_elapsed = clampf(float(snapshot.get("active_elapsed", 0.0)), 0.0, active_duration)
+	if not is_instance_valid(_effect):
+		_spawn_effect()
+	global_position = snapshot.get("position", start_position)
+	if phase == Phase.WARNING:
+		_update_warning_visual()
+	else:
+		_update_active_visual(0.1)
+	return true
+
+
 func is_position_covered(position: Vector3) -> bool:
 	for volume in _cover_volumes:
 		if volume.has_point(position):

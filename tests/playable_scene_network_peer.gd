@@ -5,6 +5,7 @@ const PlayerScene = preload("res://scenes/player.tscn")
 
 var role := ""
 var port := 29730
+var capture_path := ""
 
 
 func _initialize() -> void:
@@ -13,6 +14,8 @@ func _initialize() -> void:
 			role = argument.trim_prefix("--role=")
 		elif argument.begins_with("--port="):
 			port = argument.trim_prefix("--port=").to_int()
+		elif argument.begins_with("--capture="):
+			capture_path = argument.trim_prefix("--capture=")
 	_run.call_deferred()
 
 
@@ -69,11 +72,40 @@ func _run_server(main: Node) -> void:
 		and is_instance_valid(client_player)
 		and (client_player.global_position - client_spawn).length() >= 1.0
 	)
-	for peer_id: int in peer_ids:
-		manager.set_player_ready(peer_id, true)
-	var match_started := manager.start_match()
+	var start_event := InputEventAction.new()
+	start_event.action = "ui_accept"
+	start_event.pressed = true
+	main._unhandled_input(start_event)
 	await create_timer(0.4).timeout
-	var active_passed := match_started and manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	var active_passed := (
+		manager.state == MatchManager.MatchState.ACTIVE
+		and manager.get_alive_count() == 2
+		and (main.get_node("DisasterDirector") as DisasterDirector).running
+	)
+	var meteor := main.get_node("MeteorShower") as MeteorShower
+	meteor.set_process(false)
+	var meteor_started := meteor.start_warning(Vector3(0.0, 0.06, 3.0))
+	await create_timer(0.4).timeout
+	meteor.cleanup()
+	await create_timer(0.3).timeout
+	var flood := main.get_node("Flood") as Flood
+	var tornado := main.get_node("Tornado") as Tornado
+	flood.set_process(false)
+	tornado.set_process(false)
+	var flood_started := flood.start_warning()
+	flood.tick(flood.warning_duration)
+	flood.tick(flood.rise_duration * 0.45)
+	var tornado_started := tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
+	tornado.tick(tornado.warning_duration)
+	tornado.tick(1.6)
+	await create_timer(0.5).timeout
+	var disasters_passed := (
+		meteor_started
+		and flood_started
+		and tornado_started
+		and flood.phase == Flood.Phase.RISING
+		and tornado.phase == Tornado.Phase.ACTIVE
+	)
 	var nonlethal_passed := manager.apply_damage(client_id, 25.0, "Network test")
 	await create_timer(0.5).timeout
 	nonlethal_passed = nonlethal_passed and is_equal_approx(manager.get_health(client_id), 75.0) and manager.get_alive_count() == 2
@@ -96,11 +128,11 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and nonlethal_passed and lethal_passed and cleanup_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and disasters_passed and nonlethal_passed and lethal_passed and cleanup_passed
 	if passed:
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed elimination=passed remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed disaster_presentation=passed elimination=passed remaining=1 disconnected_peer=%d" % client_id)
 	else:
-		push_error("Playable server validation failed spawn=%s movement=%s active=%s nonlethal=%s lethal=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, nonlethal_passed, lethal_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s active=%s disasters=%s nonlethal=%s lethal=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, disasters_passed, nonlethal_passed, lethal_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	quit(0 if passed else 1)
 
 
@@ -147,6 +179,37 @@ func _run_client(main: Node) -> void:
 	):
 		await process_frame
 	var active_passed := manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	var meteor := main.get_node("MeteorShower") as MeteorShower
+	while meteor.phase != MeteorShower.Phase.WARNING and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var meteor_passed := (
+		meteor.phase == MeteorShower.Phase.WARNING
+		and meteor.active_effect_count() == 1
+		and "METEOR" in (main.get_node("Interface/MeteorWarning") as Label).text
+	)
+	var flood := main.get_node("Flood") as Flood
+	var tornado := main.get_node("Tornado") as Tornado
+	while (
+		(flood.phase != Flood.Phase.RISING or tornado.phase != Tornado.Phase.ACTIVE)
+		and Time.get_ticks_msec() < deadline
+	):
+		await process_frame
+	await process_frame
+	var overlap_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var overlap_passed := (
+		flood.phase == Flood.Phase.RISING
+		and tornado.phase == Tornado.Phase.ACTIVE
+		and flood.active_effect_count() == 1
+		and tornado.active_effect_count() == 1
+		and "FLOOD" in overlap_text
+		and "TORNADO" in overlap_text
+	)
+	if overlap_passed and not capture_path.is_empty():
+		await process_frame
+		var image := root.get_viewport().get_texture().get_image()
+		var capture_error := image.save_png(capture_path)
+		overlap_passed = capture_error == OK
 	while manager.get_health(local_id) != 75.0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
@@ -168,11 +231,11 @@ func _run_client(main: Node) -> void:
 		and (main.get_node("Interface/Health") as Label).text == "HP  0"
 		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and nonlethal_passed and lethal_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and overlap_passed and nonlethal_passed and lethal_passed
 	if passed:
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed elimination_spectating=passed" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s active=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s overlap=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, overlap_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	quit(0 if passed else 1)
 
