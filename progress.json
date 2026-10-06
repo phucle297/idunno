@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T15:00:15+07:00",
+  "updated_at": "2026-10-06T15:30:19+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_7_polish",
+  "current_phase": "phase_1_core_sandbox",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -14,24 +14,24 @@
   },
   "phases": {
     "phase_1_core_sandbox": {
-      "status": "completed",
+      "status": "in_progress",
       "acceptance": {
         "engine_launch": "passed",
         "generated_asset_import": "passed",
         "asset_validation_scene": "passed",
         "controller_and_camera": "passed_automated_movement_jump_crouch_and_camera_visual_checks",
-        "greybox_traversal": "passed_physical_ramp_ascent_and_visual_checks",
+        "greybox_traversal": "partial_one_ramp_passed_but_design_map_gate_lacks_four_elevation_routes_accessible_interiors_distinct_landmarks_and_required_prop_coverage",
         "ragdoll_recovery": "passed_11_body_10_joint_55kg_simulation_cleanup_and_visual_checks",
         "network_authority_boundary": "passed_separate_local_enet_server_and_client_ownership_matrix",
         "visual_review": "asset_reference_and_gameplay_camera_passed"
       }
     },
     "phase_2_match": {
-      "status": "completed",
+      "status": "in_progress",
       "acceptance": {
-        "lobby_readiness": "passed_offline_authority_contract",
+        "lobby_readiness": "partial_authority_contract_and_host_start_passed_but_in_game_create_join_player_list_and_ready_controls_are_missing",
         "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
-        "winner_rules": "passed_last_survivor_simultaneous_elimination_timeout_and_solo_exception",
+        "winner_rules": "partial_damage_elimination_timeout_and_solo_rules_passed_but_active_match_disconnect_does_not_award_the_remaining_player",
         "spectating": "passed_local_camera_follow_deterministic_wraparound_target_cycling_and_visual_check",
         "grabbing": "passed_server_arbitration_one_owner_bounded_spring_forced_release_rematch_and_visual_checks",
         "rematch_cleanup": "passed_five_consecutive_scene_resets_with_stable_physics_body_count"
@@ -76,31 +76,31 @@
       }
     },
     "phase_6_multiplayer_stabilization": {
-      "status": "completed",
+      "status": "in_progress",
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
         "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "passed_4_8_20_total_player_main_scene_sessions_with_authoritative_movement_remote_facing_match_health_hud_meteor_warning_and_disconnect_cleanup"
+        "playable_scene_replication": "partial_4_8_20_roster_movement_facing_match_health_hud_meteor_and_registry_cleanup_passed_but_grabbed_prop_and_knockdown_ragdoll_state_are_not_replicated"
       }
     },
     "phase_7_polish": {
-      "status": "completed",
+      "status": "in_progress",
       "acceptance": {
         "baseline_hud_and_vfx": "passed_for_all_six_disasters_and_two_combinations",
-        "audio": "passed_eight_deterministic_imported_pcm_cues_with_one_reserved_warning_voice_and_four_capped_effect_voices_physical_speaker_output_unverified_due_dummy_audio_driver",
+        "audio": "partial_eight_deterministic_imported_pcm_cues_with_reserved_warning_voice_passed_but_physical_speaker_output_and_mix_remain_unverified_due_dummy_audio_driver",
         "complete_results_screen": "passed_winner_ranking_survival_duration_disasters_survived_damage_death_cause_and_rendered_visual_gate",
         "network_rematch": "passed_host_authoritative_five_cycle_playable_peer_flow_with_results_spectating_player_hazard_director_and_sandbox_reset"
       }
     }
   },
   "original_roadmap_audit": {
-    "phase_1_core_sandbox": "completed",
-    "phase_2_match": "completed",
+    "phase_1_core_sandbox": "in_progress_map_and_character_asset_validation_gates_incomplete",
+    "phase_2_match": "in_progress_lobby_ui_and_disconnect_winner_resolution_incomplete",
     "phase_3_first_disasters": "completed_meteor_flood_tornado",
     "phase_4_additional_disasters": "completed_earthquake_lightning_fire",
     "phase_5_disaster_combinations": "completed_flood_lightning_and_tornado_fire",
-    "phase_6_multiplayer_stabilization": "completed_playable_4_8_20_sessions_and_transport_safe_packed_replication",
-    "phase_7_polish": "completed_audio_results_network_rematch_and_final_rendered_feedback_gate"
+    "phase_6_multiplayer_stabilization": "in_progress_playable_4_8_20_core_state_passed_but_prop_and_ragdoll_replication_missing",
+    "phase_7_polish": "in_progress_results_network_rematch_and_rendered_feedback_passed_but_speaker_audio_mix_unverified"
   },
   "asset_intake": {
     "quaternius_universal_animation_library": "official_archive_blocked_by_cloudflare; third_party_standard_fbx_imported_in_scratch_and_45_clips_enumerated_as_secondary_evidence",
@@ -377,6 +377,11 @@
       "result": "passed",
       "check": "Phase 7 results, network rematch, and visual feedback",
       "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 validated identical authoritative winner/results data, elimination/spectating, five consecutive host-controlled network rematches, restored health/avatars/HUD/director, and disconnect cleanup. The full behavior regression passed: PHASE1 23, PLAYER 29, MATCH 37, REMATCH 5 cycles/165, Meteor 30, Flood 24, Tornado 30, Earthquake 25, Lightning 24, Fire 26, combinations 20, director 37, and authority peers. .amp/in/artifacts/phase7-results-final.png was rendered at 1280x720 and inspected: centered coherent panel, winner, four unclipped ranked rows, survival duration, disaster count, damage, death causes, and one rematch prompt passed."
+    },
+    {
+      "result": "audit",
+      "check": "All-phase completion review",
+      "evidence": "Re-ran all 15 headless suites, PLAYABLE_SCENE_NETWORK_PEERS_OK, and PLAYABLE_SCALE_MATRIX_OK players=4,8,20; all passed with existing ObjectDB/resource leak warnings. Direct inspection found no prop transform/ownership or knockdown/ragdoll fields in playable snapshots. A focused MatchManager execution reproduced active disconnect leaving state=ACTIVE, alive=1, winners=[] instead of finishing. Phase 1 sandbox render inspection found one visible elevation ramp with no accessible interiors, four-route coverage, or full landmark/prop gate. Phase 7 results render passed; physical audio remains unverified."
     }
   ],
   "blockers": [
@@ -451,5 +456,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Run a manual Windows LAN playtest with real speakers to assess audio mix, controller feel, full-match pacing, and internet/firewall behavior; record any tuning findings without reopening completed automated gates unless behavior changes."
+  "next_action": "Complete and validate the Phase 1 Toy Town map gate: three distinct landmarks, accessible indoor shelter, four routes to elevation, and the required readable street props."
 }
