@@ -67,6 +67,9 @@ func _run() -> void:
 		_expect(director.running, "Cycle %d reset must restart director scheduling" % (match_index + 1))
 		_expect(director.selection_history.is_empty(), "Cycle %d reset must clear director history" % (match_index + 1))
 		_expect(director.get_active_disaster_names().is_empty(), "Cycle %d reset must clear director active state" % (match_index + 1))
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	main.free()
+	await process_frame
 	if failures.is_empty():
 		print("REMATCH_INTEGRATION_OK cycles=5 checks=%d sandbox_children=%d" % [checks, expected_sandbox_children])
 		quit(0)

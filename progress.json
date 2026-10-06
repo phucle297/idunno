@@ -407,7 +407,7 @@
     {
       "result": "passed",
       "check": "All-phase remediation regression",
-      "evidence": "All 15 headless suites passed: PHASE1 29, PLAYER 37, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 24, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. Script-mode teardown still emits known ObjectDB/resource-cache diagnostics in combination, polish, and playable-peer harnesses; explicit scene cleanup and extra frame drains did not change their counts, while gameplay cleanup invariants pass."
+      "evidence": "All 15 headless suites passed: PHASE1 29, PLAYER 37, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 24, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. Explicit audio stream release plus bounded audio-thread drains removed the prior ObjectDB/resource warnings from rematch, combination, polish, two-peer playable, and playable 4/8/20 harnesses."
     }
   ],
   "blockers": [],

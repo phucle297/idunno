@@ -97,8 +97,10 @@ func warning_voice_is_reserved() -> bool:
 func reset_for_match() -> void:
 	active_warning_name = ""
 	_warning_voice.stop()
+	_warning_voice.stream = null
 	for voice: AudioStreamPlayer in _effect_voices:
 		voice.stop()
+		voice.stream = null
 	for disaster_name: String in _disasters:
 		_last_phases[disaster_name] = int(_disasters[disaster_name].phase)
 

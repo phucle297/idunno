@@ -101,6 +101,8 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		print("PLAYABLE_SCALE_SERVER_OK players=%d movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" % player_count)
 	else:
 		push_error("Playable scale server failed players=%d spawn=%s movement=%s match=%s disaster=%s damage=%s hud=%s clients=%s cleanup=%s ids=%s" % [player_count, spawn_passed, movement_passed, match_passed, disaster_passed, damage_passed, hud_passed, clients_passed, cleanup_passed, main.get_network_player_ids()])
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	await create_timer(0.1).timeout
 	quit(0 if passed else 1)
 
 
@@ -163,6 +165,8 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		push_error("Playable scale client failed players=%d peer=%d roster=%s ownership=%s movement=%s match=%s disaster=%s finish=%s" % [player_count, local_id, roster_passed, ownership_passed, movement_passed, match_passed, disaster_passed, probe.finish_received])
 	main.set_process(false)
 	main.set_physics_process(false)
+	await create_timer(0.1).timeout
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	await create_timer(0.1).timeout
 	quit(0 if passed and probe.finish_received else 1)
 

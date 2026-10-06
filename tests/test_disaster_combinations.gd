@@ -77,6 +77,9 @@ func _run() -> void:
 	fire.cleanup()
 	await process_frame
 	_expect(get_nodes_in_group("burning_debris").is_empty(), "Combination cleanup must not leak dynamic burning debris")
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	main.free()
+	await process_frame
 
 	if failures.is_empty():
 		print("DISASTER_COMBINATIONS_OK checks=%d" % checks)

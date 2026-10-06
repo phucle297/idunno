@@ -207,6 +207,7 @@ func _run_server(main: Node) -> void:
 	else:
 		push_error("Playable server validation failed spawn=%s movement=%s active=%s props=%s ragdoll=%s disasters=%s nonlethal=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	await create_timer(0.1).timeout
 	main.free()
 	quit(0 if passed else 1)
 
@@ -389,6 +390,7 @@ func _run_client(main: Node) -> void:
 		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	await create_timer(0.1).timeout
 	main.free()
 	quit(0 if passed else 1)
 
