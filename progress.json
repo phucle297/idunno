@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T11:27:19+07:00",
+  "updated_at": "2026-10-06T11:32:51+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -279,6 +279,11 @@
       "result": "passed",
       "check": "Phase 6 playable-scene match and health replication",
       "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 match_health_hud=passed elimination_spectating=passed from separate host and client processes. The client observed authoritative ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2; its eliminated avatar was hidden and spectator follow activated. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Disaster presentation replication remains unimplemented."
+    },
+    {
+      "result": "passed",
+      "check": "Default-scene offline input regression",
+      "evidence": "The authoritative-movement change incorrectly treated Godot's default OfflineMultiplayerPeer as an active network session, causing PartyPlayer._physics_process to return before offline movement and interaction. The controller now bypasses local movement only for a non-offline multiplayer peer while still routing grab input in network sessions. PLAYER_INTEGRATION_OK checks=27 validates default main.tscn movement and grab input. All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 and NETWORK_AUTHORITY_PEERS_OK."
     }
   ],
   "blockers": [

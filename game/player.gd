@@ -48,12 +48,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _is_eliminated or multiplayer.has_multiplayer_peer() or not accepts_local_input():
+	if _is_eliminated or not accepts_local_input():
+		return
+	if Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
+		_grab_manager.request_local_toggle(_peer_id)
+	if _has_active_network_session():
 		return
 	if Input.is_action_just_pressed("knockdown_test"):
 		apply_knockdown(Vector3.RIGHT * 4.0)
-	if Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
-		_grab_manager.request_local_toggle(_peer_id)
 	apply_movement_input(
 		Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
 		Input.is_action_pressed("sprint"),
@@ -224,6 +226,10 @@ func _update_capsule(crouched: bool) -> void:
 
 func accepts_local_input() -> bool:
 	return not multiplayer.has_multiplayer_peer() or is_multiplayer_authority()
+
+
+func _has_active_network_session() -> bool:
+	return multiplayer.has_multiplayer_peer() and not multiplayer.multiplayer_peer is OfflineMultiplayerPeer
 
 
 func get_camera_yaw() -> float:

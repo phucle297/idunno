@@ -23,6 +23,7 @@ func _run() -> void:
 	_test_jump_arc()
 	_test_ramp_traversal()
 	await _test_knockdown_recovery()
+	await _test_default_scene_offline_input()
 	if failures.is_empty():
 		print("PLAYER_INTEGRATION_OK checks=%d" % checks)
 		quit(0)
@@ -159,6 +160,27 @@ func _test_knockdown_recovery() -> void:
 	_expect(not player.is_knocked_down(), "Knockdown must recover after the bounded duration")
 	_expect(player.ragdoll_body_count() == 0, "Recovery must clean up the cosmetic ragdoll")
 	_expect(player.get_node("Visual").visible, "Recovery must restore the upright visual")
+
+
+func _test_default_scene_offline_input() -> void:
+	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	root.add_child(main)
+	await process_frame
+	var playable_player := main.get_node("Player") as PartyPlayer
+	var start := playable_player.global_position
+	Input.action_press("grab")
+	playable_player._physics_process(DELTA)
+	Input.action_release("grab")
+	_expect(is_instance_valid((main.get_node("GrabManager") as GrabManager).get_held_body(1)), "Default-scene offline grab input must reach GrabManager")
+	Input.action_press("move_forward")
+	for _frame in 30:
+		await physics_frame
+	Input.action_release("move_forward")
+	_expect(not main.is_network_session(), "Default scene must launch in offline mode")
+	_expect(playable_player.accepts_local_input(), "Default-scene player must accept local input")
+	_expect(playable_player.global_position.distance_to(start) > 0.5, "Default-scene offline input must move the player")
+	main.queue_free()
+	await process_frame
 
 
 func _expect(condition: bool, message: String) -> void:
