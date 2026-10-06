@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T17:51:25+00:00",
+  "updated_at": "2026-10-06T18:09:36+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,7 +33,7 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_7_map_boundary_and_out_of_bounds_safety",
+    "milestone": "milestone_1_6_regression_and_rendered_review",
     "task": null
   },
   "engine": {
@@ -116,19 +116,20 @@
       },
       "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
         "title": "Pause, Settings, Accessibility, and UI Audio",
-        "status": "planned",
-        "dependencies": ["milestone_1_7_map_boundary_and_out_of_bounds_safety"],
+        "status": "completed",
+        "dependencies": ["milestone_1_4_structured_results"],
+        "execution_order": "Explicit user instruction: complete 1.5, commit, then 1.6, commit, then reverify 1.1-1.6; 1.7 remains pending.",
         "tasks": {
-          "task_1_5_1_online_safe_pause": "planned",
-          "task_1_5_2_persistent_input_display_motion_and_audio_settings": "planned",
-          "task_1_5_3_bounded_ui_audio_pool": "planned"
+          "task_1_5_1_online_safe_pause": "completed",
+          "task_1_5_2_persistent_input_display_motion_and_audio_settings": "completed",
+          "task_1_5_3_bounded_ui_audio_pool": "completed"
         },
         "gates": {
-          "settings_persist": "not_run",
-          "independent_warning_volume": "not_run",
-          "reduced_motion": "not_run",
-          "cursor_and_focus_recovery": "not_run",
-          "online_authority_never_pauses": "not_run"
+          "settings_persist": "passed",
+          "independent_warning_volume": "passed",
+          "reduced_motion": "passed",
+          "cursor_and_focus_recovery": "passed",
+          "online_authority_never_pauses": "passed"
         }
       },
       "milestone_1_6_regression_and_rendered_review": {
@@ -157,6 +158,11 @@
     }
   },
   "validation_log": [
+    {
+      "result": "passed",
+      "check": "Milestone 1.5 local pause, persistent settings and bounded UI audio",
+      "evidence": "TDD test_pause_settings.gd first failed for missing overlay. Final headless checks=22, separate --save-for-restart and --verify-restart processes checks=22/2, rendered checks=38 each at 1280x720/1920x1080 with Dummy audio. Covers local input blocking without tree/timer pause, Tab/controller focus, cursor recovery, actual asymmetric mouse sensitivity/inversion, fullscreen/windowed transition, reduced motion/shake, independent Effects/Warnings gains, countdown routing/restoration, bounded four-effect pool with reserved warning, results settings and match completion underneath menu. Inspected corrected cream pause and settings captures: compact padded panel, explicit values/states, amber slider focus ring and no clipped controls. Initial render exposed missing dynamic theme inheritance and native HSlider lacks focus StyleBox; set shared theme before insertion and draw shared focus ring explicitly. UI_THEME_OK=18, MILESTONE_1_1_OK=80, GAMEPLAY_HUD_OK=105, RESULTS_ACTIONS_OK=33, PHASE7_POLISH_OK=34, LOBBY_PRESENTATION_OK=35. GODOT_BIN=$(command -v godot) PORT=29850 tests/run_playable_scene_network_test.sh passed real host/client pause with timer advancement, host neutral movement, five rematches and disconnect cleanup. Verbose shutdown diagnostics identify only WAV/playback resources, no UI nodes; some successful runs retain these existing audio diagnostics. WSL llvmpipe/Dummy audio and synthetic joypad events do not verify physical audio/controller or Windows performance. User explicitly reordered work; 1.7 is still required and unimplemented."
+    },
     {
       "result": "passed",
       "check": "Milestone 1.4 completion: authority-aware results actions and all acceptance gates",
@@ -290,6 +296,7 @@
     "game/ui/gameplay_hud.gd",
     "game/ui/lobby_roster.gd",
     "game/ui/lobby_roster.gd.uid",
+    "game/ui/pause_settings.gd",
     "game/ui/results_table.gd",
     "game/ui/ui_tokens.gd",
     "progress.json",
@@ -307,11 +314,12 @@
     "tests/test_phase1.gd",
     "tests/test_phase7_polish.gd",
     "tests/test_player_integration.gd",
+    "tests/test_pause_settings.gd",
     "tests/test_results_actions.gd",
     "tests/test_results_table.gd",
     "tests/test_session_lifecycle.gd",
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement and validate Milestone 1.7 map boundary and authoritative out-of-bounds elimination for the current town, including rendered boundary/death feedback and five network rematches."
+  "next_action": "Complete Milestone 1.6 with all Phase 0 regressions, multiplayer matrices, inspected representative renders and a fresh target-platform overlap profile, then commit before the requested 1.1-1.6 re-verification."
 }

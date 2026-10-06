@@ -91,6 +91,14 @@ func _run_server(main: Node) -> void:
 		and manager.get_alive_count() == 2
 		and (main.get_node("DisasterDirector") as DisasterDirector).running
 	)
+	var pause_time: float = manager.elapsed_time
+	main.pause_settings.open_pause()
+	Input.action_press("move_right")
+	await create_timer(0.35).timeout
+	Input.action_release("move_right")
+	active_passed = active_passed and not paused and manager.elapsed_time > pause_time + 0.2 and main._movement_inputs[1].direction == Vector2.ZERO and host_player.local_input_blocked
+	main.pause_settings.back()
+	print("NETWORK_HOST_PAUSE_OK=%s" % active_passed)
 	var grab_manager := main.get_node("GrabManager") as GrabManager
 	var shared_prop := main._network_prop(1) as RigidBody3D
 	shared_prop.freeze = true
@@ -271,6 +279,14 @@ func _run_client(main: Node) -> void:
 	):
 		await process_frame
 	var active_passed := manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	var pause_time: float = manager.elapsed_time
+	main.pause_settings.open_pause()
+	Input.action_press("move_right")
+	await create_timer(0.25).timeout
+	Input.action_release("move_right")
+	active_passed = active_passed and not paused and manager.elapsed_time > pause_time and local_player.local_input_blocked
+	main.pause_settings.back()
+	print("NETWORK_CLIENT_PAUSE_OK=%s" % active_passed)
 	var shared_prop := main._network_prop(1) as RigidBody3D
 	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
 		await process_frame

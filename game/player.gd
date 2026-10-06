@@ -20,6 +20,9 @@ var _is_eliminated := false
 var _grab_manager: Node
 var _peer_id := 1
 var local_input_blocked := false
+var mouse_sensitivity := 1.0
+var invert_y := false
+var camera_shake_level := 1.0
 
 
 func _ready() -> void:
@@ -30,6 +33,10 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# Cosmetic, bounded knockdown feedback; never alters body or aiming rotation.
+	var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
+	var shake := minf(_knockdown_remaining, 0.25) * camera_shake_level if camera.current else 0.0
+	camera.h_offset = sin(_knockdown_remaining * 80.0) * shake * 0.12
 	if not is_instance_valid(character) or _is_eliminated or is_knocked_down():
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
@@ -60,8 +67,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_camera_yaw -= event.relative.x * 0.0025
-		_camera_pitch = clampf(_camera_pitch - event.relative.y * 0.0025, -1.1, 0.35)
+		_camera_yaw -= event.relative.x * 0.0025 * mouse_sensitivity
+		_camera_pitch = clampf(_camera_pitch - event.relative.y * 0.0025 * mouse_sensitivity * (-1.0 if invert_y else 1.0), -1.1, 0.35)
 		camera_pivot.rotation = Vector3(_camera_pitch, _camera_yaw, 0.0)
 
 

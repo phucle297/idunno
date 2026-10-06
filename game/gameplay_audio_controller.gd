@@ -23,8 +23,14 @@ var _last_phases: Dictionary = {}
 
 
 func _ready() -> void:
+	for bus: String in ["Effects", "Warnings"]:
+		if AudioServer.get_bus_index(bus) == -1:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus)
+			AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
 	_warning_voice = AudioStreamPlayer.new()
 	_warning_voice.name = "WarningVoice"
+	_warning_voice.bus = "Warnings"
 	_warning_voice.volume_db = -4.0
 	add_child(_warning_voice)
 	for index: int in EFFECT_VOICE_COUNT:
@@ -79,14 +85,24 @@ func play_jump() -> void:
 
 func play_warning_countdown() -> void:
 	# Reuse the short synthesized cue quietly; never replace the reserved warning stream.
-	play_effect(JumpSound, -16.0)
+	play_effect(JumpSound, -16.0, "Warnings")
 
 
-func play_effect(stream: AudioStream, volume_db: float = -7.0) -> void:
+func play_ui(cue: String) -> void:
+	match cue:
+		"focus": play_effect(JumpSound, -22.0)
+		"confirm", "ready": play_effect(JumpSound, -16.0)
+		"back": play_effect(ImpactSound, -22.0)
+		"error": play_effect(DeathSound, -18.0)
+		"results": play_effect(VictorySound, -12.0)
+
+
+func play_effect(stream: AudioStream, volume_db: float = -7.0, bus: String = "Effects") -> void:
 	if _effect_voices.is_empty():
 		return
 	var voice := _effect_voices[_next_effect_voice]
 	_next_effect_voice = (_next_effect_voice + 1) % _effect_voices.size()
+	voice.bus = bus
 	voice.volume_db = volume_db
 	voice.stream = stream
 	voice.play()
@@ -116,4 +132,4 @@ func _on_player_eliminated(_peer_id: int, _cause: String) -> void:
 
 
 func _on_match_finished(_winner_ids: Array[int]) -> void:
-	play_effect(VictorySound)
+	play_ui("results")

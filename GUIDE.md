@@ -67,7 +67,7 @@ For two processes on one development PC, join `127.0.0.1` instead.
 | F | Grab or release a nearby physics crate |
 | L | Toggle the direct-IP lobby panel |
 | R | Trigger the current knockdown test |
-| Escape | Release the cursor |
+| Escape / controller B | Open local pause; Back from settings; Resume from pause (match keeps running) |
 | Left click | Recapture the cursor |
 | Q / E | Previous/next spectator target after death |
 
@@ -75,7 +75,7 @@ The HUD shows health at bottom-left, match time at top-center, and alive players
 
 When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
 
-The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **START MATCH** to resume solo play. Settings are planned in Milestone 1.5 and are not yet available.
+The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **START MATCH** to resume solo play. Every peer can open **SETTINGS** from results or the local pause menu. Master, effects and warning volume, mouse sensitivity, invert-Y, camera shake, fullscreen and reduced motion save automatically across restarts. Opening the menu blocks only your input: hazards, networking and the match timer keep running. Reduced motion disables UI transitions and camera shake; warning identity and audio remain available.
 
 Warnings, impacts, jumping, death, and victory have synthesized placeholder audio. Flood, Meteor, and Tornado use distinct warning cues. Warning audio has a reserved voice so overlapping impact effects cannot silence it.
 

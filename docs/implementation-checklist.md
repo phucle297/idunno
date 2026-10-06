@@ -92,12 +92,14 @@ Milestone 1.4 complete: all 24 headless suites pass, 720p/1080p results and acti
 
 ### Milestone 1.5 — Pause, settings, accessibility, and UI audio
 
-- [ ] Task 1.5.1: Add an online-safe pause overlay that releases local input without pausing server simulation.
-- [ ] Task 1.5.2: Persist master/effects/warning volume, mouse sensitivity, invert-Y, camera-shake level, fullscreen/windowed mode, and reduced motion.
-- [ ] Expose local Settings from results for every peer once the settings screen exists; opening settings must not grant session authority or pause online simulation.
-- [ ] Task 1.5.3: Add a small pooled UI sound set for focus, confirm, back, error, ready, countdown, and results reveal.
+- [x] Task 1.5.1: Add an online-safe pause overlay that releases local input without pausing server simulation.
+- [x] Task 1.5.2: Persist master/effects/warning volume, mouse sensitivity, invert-Y, camera-shake level, fullscreen/windowed mode, and reduced motion.
+- [x] Expose local Settings from results for every peer; opening settings does not grant session authority or pause online simulation.
+- [x] Task 1.5.3: Reuse generated cues in the four-voice pool for focus, confirm, back, error, ready, countdown, and results reveal.
 
 Acceptance: settings survive restart; warning volume remains independently controllable; reduced motion removes scale/pulse dependence; input focus and cursor capture recover correctly; online pause never stops authority.
+
+Milestone 1.5 complete: dedicated behavior/render checks, a two-process persistence check and actual ENet host/client pause plus five rematches pass. Settings applies eight preferences immediately, draws explicit slider focus, and preserves menu focus when the match ends underneath it. Existing intermittent WAV/playback shutdown diagnostics remain. Per the latest user instruction, 1.5 and 1.6 precede the still-required 1.7; do not close Phase 1 without map safety.
 
 ### Milestone 1.6 — UI regression and rendered review
 

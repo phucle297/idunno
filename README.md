@@ -45,6 +45,10 @@ godot --headless --path . --script res://tests/test_lobby_presentation.gd
 godot --headless --path . --script res://tests/test_spectator_presentation.gd
 godot --headless --path . --script res://tests/test_results_table.gd
 godot --headless --path . --script res://tests/test_results_actions.gd
+godot --headless --path . --script res://tests/test_pause_settings.gd -- --settings-path=user://test-milestone-1-5.cfg
+# Verify persisted settings in two separate processes (isolated from player preferences).
+godot --headless --path . --script res://tests/test_pause_settings.gd -- --settings-path=user://test-milestone-1-5.cfg --save-for-restart
+godot --headless --path . --script res://tests/test_pause_settings.gd -- --settings-path=user://test-milestone-1-5.cfg --verify-restart
 # Repeat the milestone HUD/focus captures at 1280x720 and 1920x1080 (requires a display).
 # Use an existing ignored output directory for --capture-dir.
 godot --path . --audio-driver Dummy --resolution 1280x720 \

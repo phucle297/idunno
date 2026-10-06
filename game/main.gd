@@ -42,6 +42,7 @@ var _last_match_snapshot_sequence := 0
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
+var pause_settings: Control
 
 
 func _ready() -> void:
@@ -85,6 +86,11 @@ func _ready() -> void:
 	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
 	gameplay_hud.spectator_cycle_requested.connect(_cycle_spectator)
 	_configure_lobby_ui()
+	pause_settings = preload("res://game/ui/pause_settings.gd").new()
+	pause_settings.name = "PauseSettings"
+	pause_settings.theme = _ui_theme
+	$Interface.add_child(pause_settings)
+	_connect_ui_audio($Interface)
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
 		if network_error != OK:
@@ -404,6 +410,7 @@ func _remove_network_player(peer_id: int) -> void:
 func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
+	pause_settings.apply_player_preferences(player)
 	var camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
 	camera.current = peer_id == multiplayer.get_unique_id()
 
@@ -414,7 +421,7 @@ func _physics_process(delta: float) -> void:
 	var local_peer_id := multiplayer.get_unique_id()
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and match_manager.is_player_alive(local_peer_id)
+		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
 		var crouched := input_allowed and Input.is_action_pressed("crouch")
@@ -806,6 +813,8 @@ func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if pause_settings.visible:
+		return
 	if event.is_action_pressed("toggle_lobby"):
 		_set_lobby_visible(not $Interface/LobbyPanel.visible)
 	elif event.is_action_pressed("ui_accept"):
@@ -825,7 +834,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _cycle_spectator(direction: int) -> void:
-	if spectator_controller.active and match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible:
+	if spectator_controller.active and match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible and not pause_settings.visible:
 		spectator_controller.cycle(direction)
 
 
@@ -877,12 +886,27 @@ func _configure_lobby_ui() -> void:
 			restart_local_match()
 	)
 	$Interface/ResultsPanel/Actions/Lobby.pressed.connect(func() -> void: return_to_lobby())
+	var settings := Button.new()
+	settings.name = "Settings"
+	settings.text = "SETTINGS"
+	settings.custom_minimum_size = Vector2(150, 40)
+	$Interface/ResultsPanel/Actions.add_child(settings)
+	settings.pressed.connect(func() -> void: pause_settings.show_settings())
+
+
+func _connect_ui_audio(node: Node) -> void:
+	if node is Control and node.focus_mode != Control.FOCUS_NONE:
+		node.focus_entered.connect(func() -> void: gameplay_audio.play_ui("focus"))
+	if node is Button:
+		node.pressed.connect(func() -> void: gameplay_audio.play_ui("ready" if node.name == "Ready" else "confirm"))
+	for child: Node in node.get_children():
+		_connect_ui_audio(child)
 
 
 func _set_lobby_visible(visible: bool) -> void:
 	visible = visible and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyPanel.visible = visible
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or (is_instance_valid(pause_settings) and pause_settings.visible) or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
 	$Player.local_input_blocked = visible
 	_update_lobby_ui()
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
@@ -891,15 +915,23 @@ func _set_lobby_visible(visible: bool) -> void:
 	_update_context_prompt(local_peer_id)
 	if visible:
 		_focus_lobby_first.call_deferred()
-	else:
+	elif not pause_settings.visible:
 		var focus := get_viewport().gui_get_focus_owner()
 		if focus != null:
 			focus.release_focus()
 
 
 func _input(event: InputEvent) -> void:
-	if $Interface/LobbyPanel.visible and event.is_action_pressed("ui_cancel"):
+	if event.is_action_pressed("ui_cancel") and pause_settings.visible:
+		pause_settings.back()
+		get_viewport().set_input_as_handled()
+	elif $Interface/LobbyPanel.visible and event.is_action_pressed("ui_cancel"):
 		_set_lobby_visible(false)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel"):
+		pause_settings.open_pause()
+		get_viewport().set_input_as_handled()
+	elif pause_settings.visible and event.is_action_pressed("toggle_lobby"):
 		get_viewport().set_input_as_handled()
 	elif $Interface/LobbyPanel.visible and (event is InputEventJoypadButton or event is InputEventJoypadMotion):
 		var focus := get_viewport().gui_get_focus_owner()
@@ -922,7 +954,7 @@ func _lobby_focus_controls() -> Array[Control]:
 
 
 func _focus_lobby_first() -> void:
-	if $Interface/LobbyPanel.visible:
+	if $Interface/LobbyPanel.visible and not pause_settings.visible:
 		_lobby_focus_controls()[0].grab_focus()
 
 
@@ -943,7 +975,7 @@ func _refresh_lobby_focus() -> void:
 			control.focus_neighbor_top = previous
 			control.focus_neighbor_right = next
 			control.focus_neighbor_bottom = next
-	if $Interface/LobbyPanel.visible and get_viewport().gui_get_focus_owner() not in controls:
+	if $Interface/LobbyPanel.visible and not pause_settings.visible and get_viewport().gui_get_focus_owner() not in controls:
 		_focus_lobby_first()
 
 
@@ -972,10 +1004,12 @@ func _on_lobby_join_pressed() -> void:
 func _validate_lobby_fields(joining: bool) -> bool:
 	var port: String = $Interface/LobbyPanel/Port.text
 	if not port.is_valid_int() or port.to_int() < 1 or port.to_int() > 65535:
+		gameplay_audio.play_ui("error")
 		$Interface/LobbyPanel/Status.text = "Enter a valid UDP port (1–65535)"
 		$Interface/LobbyPanel/Port.grab_focus()
 		return false
 	if joining and $Interface/LobbyPanel/Address.text.strip_edges().is_empty():
+		gameplay_audio.play_ui("error")
 		$Interface/LobbyPanel/Status.text = "Enter the host IP address"
 		$Interface/LobbyPanel/Address.grab_focus()
 		return false
@@ -1038,7 +1072,7 @@ func _update_lobby_ui() -> void:
 	$Interface/LobbyBackdrop.visible = panel.visible
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		local_player.local_input_blocked = panel.visible or match_manager.state == MatchManager.MatchState.RESULTS
+		local_player.local_input_blocked = panel.visible or (is_instance_valid(pause_settings) and pause_settings.visible) or match_manager.state == MatchManager.MatchState.RESULTS
 	gameplay_hud.present_lobby_overlay(panel.visible)
 	_refresh_lobby_focus()
 
@@ -1123,6 +1157,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 	if can_act:
 		controls.append($Interface/ResultsPanel/Actions/Rematch)
 		controls.append($Interface/ResultsPanel/Actions/Lobby)
+	controls.append($Interface/ResultsPanel/Actions/Settings)
 	for index: int in controls.size():
 		var control := controls[index]
 		control.focus_previous = control.get_path_to(controls[wrapi(index - 1, 0, controls.size())])
@@ -1131,7 +1166,8 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		control.focus_neighbor_left = control.focus_previous
 	$Interface/ResultsPanel.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	$Interface/ResultsPanel/Table.scroll.grab_focus()
+	if not pause_settings.visible:
+		$Interface/ResultsPanel/Table.scroll.grab_focus()
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
@@ -1161,7 +1197,7 @@ func _on_player_eliminated(peer_id: int, cause: String) -> void:
 		gameplay_hud.present_elimination(cause, float(match_manager.players[peer_id].elimination_time))
 		_update_spectator_ui()
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		if gameplay_hud.spectator_card.visible and not gameplay_hud.spectator_previous.disabled:
+		if gameplay_hud.spectator_card.visible and not gameplay_hud.spectator_previous.disabled and not pause_settings.visible:
 			gameplay_hud.spectator_previous.grab_focus()
 	else:
 		spectator_controller.set_targets(_living_spectator_targets())

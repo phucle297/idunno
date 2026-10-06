@@ -107,6 +107,15 @@ static func _set_button_theme(theme: Theme) -> void:
 	theme.set_stylebox("disabled", "Button", _control_style(Color(SAND, 0.68), Color(SLATE, 0.38)))
 	theme.set_stylebox("focus", "Button", _focus_style())
 	theme.set_stylebox("focus", "ScrollContainer", _focus_style())
+	theme.set_color("font_color", "CheckButton", INK)
+	theme.set_color("font_focus_color", "CheckButton", INK)
+	theme.set_stylebox("focus", "CheckButton", _focus_style())
+	var track := _control_style(SLATE, SLATE, 1)
+	track.content_margin_top = 4
+	track.content_margin_bottom = 4
+	theme.set_stylebox("slider", "HSlider", track)
+	theme.set_stylebox("grabber_area", "HSlider", _control_style(TEAL, SLATE, 1))
+	theme.set_stylebox("grabber_area_highlight", "HSlider", _control_style(WARNING, SLATE, 1))
 
 
 static func _set_line_edit_theme(theme: Theme) -> void:
