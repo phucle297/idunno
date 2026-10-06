@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T10:22:30+07:00",
+  "updated_at": "2026-10-06T10:28:05+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -53,11 +53,11 @@
       }
     },
     "phase_5_polish_validation": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "four_client_match_snapshot": "passed_one_authoritative_server_and_four_separate_clients_with_consistent_ready_active_health_alive_damage_and_overlap_state",
         "overlap_ui_readability": "passed_rendered_four_player_hud_two_named_hazards_flood_tornado_refuge_and_player_silhouette",
-        "representative_overlap_profile": "measured_1280x720_llvmpipe_600_frames_target_not_met_hardware_accelerated_windows_validation_required"
+        "representative_overlap_profile": "passed_native_windows_godot_intel_uhd_630_1280x720_compatibility_two_uncapped_600_frame_runs_p95_11_74ms_and_11_37ms"
       }
     },
     "phase_6_multiplayer_stabilization": {
@@ -259,13 +259,17 @@
       "result": "partial",
       "check": "Local six-phase verification continuation",
       "evidence": "From a deleted .godot cache, .agents/setup completed a fresh Godot 4.7.2 editor import; two seed=297 generations produced 14 byte-identical files; all ten behavior suites passed (PHASE1 23, player 21, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37); NETWORK_AUTHORITY_PEERS_OK, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2, and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed. .amp/in/artifacts/six-phase-verification-local.png rendered at 1280x720 and was inspected: ALIVE 4/4, both named hazard instructions, flood, tornado, danger footprint, dry elevated refuge, and the local player silhouette were readable; not all four avatars were individually readable because distant players were small or occluded. Mesa llvmpipe profiling completed with four players plus Flood and Tornado at p50 21.59 ms, p95 29.19 ms, p95 process 33.51 ms, p95 physics 2.23 ms, 64 draw calls, 153 nodes, target_60fps_met=false. Phases 1-4 remain verified complete; Phase 5 still requires hardware-accelerated Windows profiling; Phase 6 still lacks playable-scene movement, match, health, and disaster-presentation replication."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 5 native Windows 60 FPS target",
+      "evidence": "Official checksum-verified Godot 4.7.2 Windows executable launched through WSL interop and selected OpenGL Compatibility on Intel UHD Graphics 630 driver 31.0.101.2140. The four-player Flood + Tornado profile ran for 120 warmup plus 600 measured frames at 1280x720. A 60 FPS-capped diagnostic measured p50 16.66 ms and p95 17.50 ms while engine process time was p95 5.28 ms, showing frame-limiter scheduling jitter. Two uncapped runs independently passed the actual 16.67 ms budget: p50/p95 9.98/11.74 ms and 10.01/11.37 ms, equivalent to at least 85 FPS at p95. Phase 5 is complete."
     }
   ],
   "blockers": [
     "Blender is not installed; deterministic Godot resources are used for the first import proof.",
     "The official Quaternius archive is blocked by an itch.io Cloudflare challenge; the 45-clip third-party mirror inventory is secondary evidence only.",
-    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver.",
-    "Available Linux verification environments expose only Mesa llvmpipe software rendering, so the 60 FPS Windows target cannot be validated here."
+    "This WSL environment has no audio device, so Godot falls back to the dummy audio driver."
   ],
   "changed_files": [
     "README.md",

@@ -43,7 +43,7 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Validate one authoritative server plus four separate local clients against the same active Flood + Tornado match snapshot.
 - [x] Render and inspect a four-player overlap HUD with both hazards, readable danger geometry, and a dry refuge.
 - [x] Profile 600 representative overlap frames at 1280 × 720 and record renderer, CPU, draw calls, node count, frame time, and physics time.
-- [ ] Validate the 60 FPS target on hardware-accelerated Windows target hardware; the orb's llvmpipe profile is not representative GPU evidence.
+- [x] Validate the 60 FPS target with native Windows Godot on Intel UHD 630 hardware; two uncapped 600-frame runs measured p95 frame times of 11.74 ms and 11.37 ms.
 
 ## Phase 6 — Multiplayer stabilization
 
