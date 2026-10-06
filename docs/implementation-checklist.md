@@ -83,7 +83,7 @@ Milestone 1.3 complete and freshly reverified: headless behavior/regression suit
 ### Milestone 1.4 — Structured results
 
 - [x] Task 1.4.1: Reusable ranking rows with explicit rank/player/time/disasters/damage/outcome columns, long-text ellipsis/tooltips and scrollable twenty-player results; headless, inspected 720p/1080p and five ENet rematches pass.
-- [ ] Task 1.4.2: Add winner emphasis, restrained row reveal, and one optional award derived from existing result data.
+- [x] Task 1.4.2: Static winner emphasis, capped 0.405s opacity reveal with immediate reduced-motion cancellation, and optional/shared Most disasters survived award from existing records; inspected 720p/1080p, timing/lifecycle and five ENet rematches pass.
 - [ ] Task 1.4.3: Present host Rematch and client waiting states clearly; add Return to Lobby and Settings only where authority allows them.
 
 Acceptance: 4- and 20-player results remain legible; all peers show identical authoritative rankings; five network rematches remain green; gameplay HUD is hidden beneath results.

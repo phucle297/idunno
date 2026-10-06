@@ -67,6 +67,8 @@ var _spectator_tween: Tween
 var reduced_motion := false:
 	set(value):
 		reduced_motion = value
+		if is_node_ready():
+			$ResultsPanel/Table.reduced_motion = value
 		if value and is_node_ready():
 			_clear_warning_motion()
 			_clear_spectator_motion()

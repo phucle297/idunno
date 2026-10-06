@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T15:53:14+00:00",
+  "updated_at": "2026-10-06T16:10:12+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_4_structured_results",
-    "task": "task_1_4_2_winner_reveal_and_one_existing_data_award"
+    "task": "task_1_4_3_authority_aware_results_actions"
   },
   "engine": {
     "name": "Godot",
@@ -104,7 +104,7 @@
         "status": "in_progress",
         "tasks": {
           "task_1_4_1_ranking_rows_and_columns": "completed",
-          "task_1_4_2_winner_reveal_and_one_existing_data_award": "planned",
+          "task_1_4_2_winner_reveal_and_one_existing_data_award": "completed",
           "task_1_4_3_authority_aware_results_actions": "planned"
         },
         "gates": {
@@ -246,6 +246,11 @@
       "result": "failed",
       "check": "Milestone 1.4 results HUD suppression remains incomplete",
       "evidence": "Corrected actual-RESULTS-state 720p capture and game/ui/gameplay_hud.gd inspection confirm the timer/context prompt clear but HEALTH and SURVIVORS remain visible outside the panel. Recorded failed gameplay_hud_hidden gate for remaining results-overlay work in Task 1.4.3; no unrelated HUD behavior changed in the ranking-row task."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.2 winner emphasis, bounded row reveal and existing-data award",
+      "evidence": "TDD: new test_results_table.gd assertions first failed for absent award, then for uncontained winner title; implemented static 18px coral rank/name emphasis with existing stars, title ellipsis/full tooltip, one parallel tween fading rows 85% -> 100% over 0.16s with capped 0.245s stagger, and optional Most disasters survived award. Initial Tween.custom_step return-value assertions disagreed with fully opaque output; replaced them with independent per-row opacity checks after deterministic stepping. Tests pause before frame waits, prove stagger at 0.05s and full opacity by 0.5s including twenty players, no duplicate replay, hidden-round reset, immediate shared reduced-motion cancellation and zero-count/empty clearing. Award tests distinguish winner/rank from max count, positive shared ties in numeric peer order, and put count before ellipsized names; the count-first assertion failed before the copy correction. Final godot --headless --path . --script res://tests/test_results_table.gd: RESULTS_TABLE_OK checks=482. godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_results_table.gd -- --capture-dir=.amp/in/artifacts: checks=487 each. Inspected final four-player 720p, twenty-top 720p, shared-reduced 1080p and paused-reveal 720p: contained headings, emphasized authoritative winners, count-first award/long-name ellipsis, no column/award/footer overlap. GAMEPLAY_HUD_OK=97, PHASE7_POLISH_OK=34, SPECTATOR_PRESENTATION_OK=29, UI_THEME_OK=18, MILESTONE_1_1_OK=79 and REMATCH_INTEGRATION_OK cycles=5 checks=165 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five real ENet rematches/disconnect cleanup with no ERROR/SCRIPT ERROR in network logs. Final result tests exited cleanly except unsupported V-Sync during renders; some earlier/headless regression runs retain audio shutdown diagnostics, verbose polish inspection identified only WAV/playback resources. WSL llvmpipe/Dummy audio and synthetic joypad input do not establish native Windows performance or physical input/audio. No gameplay scoring, winner selection, snapshot or audio changes. Task 1.4.3 and full ranking-matrix/HUD gates remain."
     }
   ],
   "blockers": [],
@@ -284,5 +289,5 @@
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Task 1.4.2 winner emphasis, reduced-motion-aware bounded row reveal, and one award derived only from existing authoritative result data."
+  "next_action": "Implement Task 1.4.3 authority-aware results actions and full gameplay HUD suppression, then reverify all Milestone 1.4 gates."
 }

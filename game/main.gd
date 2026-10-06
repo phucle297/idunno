@@ -1056,6 +1056,8 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		"NO SURVIVORS" if winner_names.is_empty()
 		else ("%s WINS!" % winner_names[0].to_upper() if winner_names.size() == 1 else "SHARED WINNERS — %s" % ", ".join(winner_names))
 	)
+	$Interface/ResultsPanel/Title.tooltip_text = $Interface/ResultsPanel/Title.text
+	$Interface/ResultsPanel/Table.reduced_motion = gameplay_hud.reduced_motion
 	$Interface/ResultsPanel/Table.present_results(match_manager.players, winner_ids, match_manager.elapsed_time)
 	$Interface/ResultsPanel/Prompt.text = (
 		"PRESS ENTER TO REMATCH" if not _network_mode or multiplayer.is_server()

@@ -14,6 +14,14 @@ var rows: Dictionary = {}
 var header := HBoxContainer.new()
 var scroll := ScrollContainer.new()
 var list := VBoxContainer.new()
+var award := Label.new()
+var _last_results: Dictionary = {}
+var _reveal_tween: Tween
+var reduced_motion := false:
+	set(value):
+		reduced_motion = value
+		if value:
+			_clear_reveal()
 
 
 func _ready() -> void:
@@ -32,6 +40,14 @@ func _ready() -> void:
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", UITokens.SPACE_SM)
 	scroll.add_child(list)
+	award.name = "Award"
+	award.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	award.mouse_filter = Control.MOUSE_FILTER_PASS
+	award.add_theme_font_size_override("font_size", UITokens.FONT_CAPTION)
+	award.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	award.hide()
+	add_child(award)
+	visibility_changed.connect(_on_visibility_changed)
 
 
 func _scroll_input(event: InputEvent) -> void:
@@ -41,6 +57,11 @@ func _scroll_input(event: InputEvent) -> void:
 
 
 func present_results(players: Dictionary, winner_ids: Array, elapsed_time: float) -> void:
+	var results := {"players": players, "winners": winner_ids, "time": elapsed_time}
+	if results == _last_results:
+		return
+	_clear_reveal()
+	_last_results = results.duplicate(true)
 	for peer_id: int in rows.keys():
 		if not players.has(peer_id):
 			rows[peer_id].free()
@@ -81,9 +102,51 @@ func present_results(players: Dictionary, winner_ids: Array, elapsed_time: float
 		var outcome := "SURVIVED" if bool(player.alive) else String(player.cause_of_death)
 		row.get_node("Outcome").text = outcome
 		row.get_node("Outcome").tooltip_text = outcome
+		for column: String in ["Rank", "Name"]:
+			var cell: Label = row.get_node(column)
+			var winner := peer_id in winner_ids
+			cell.add_theme_font_size_override("font_size", UITokens.FONT_BODY + 2 if winner else UITokens.FONT_BODY)
+			cell.add_theme_color_override("font_color", UITokens.DANGER if winner else UITokens.INK)
+	_present_award(players)
+	if not reduced_motion and not rows.is_empty():
+		_reveal_tween = create_tween().set_parallel(true)
+		for index: int in ranked_ids.size():
+			var row: Control = rows[ranked_ids[index]]
+			row.modulate.a = 0.85
+			_reveal_tween.tween_property(row, "modulate:a", 1.0, 0.16).set_delay(mini(index, 7) * 0.035)
 	scroll.scroll_vertical = 0
 	if is_visible_in_tree():
 		scroll.grab_focus()
+
+
+func _present_award(players: Dictionary) -> void:
+	var best_count := 0
+	var leaders: Array[String] = []
+	var peer_ids: Array = players.keys()
+	peer_ids.sort()
+	for peer_id: int in peer_ids:
+		var count := int(players[peer_id].disasters_survived)
+		if count > best_count:
+			best_count = count
+			leaders.clear()
+		if count == best_count and count > 0:
+			leaders.append(String(players[peer_id].name))
+	award.text = "MOST DISASTERS SURVIVED · %d — %s" % [best_count, ", ".join(leaders)] if best_count > 0 else ""
+	award.tooltip_text = award.text
+	award.visible = best_count > 0
+
+
+func _clear_reveal() -> void:
+	if _reveal_tween != null and _reveal_tween.is_valid():
+		_reveal_tween.kill()
+	for row: Control in rows.values():
+		row.modulate.a = 1.0
+
+
+func _on_visibility_changed() -> void:
+	if not is_visible_in_tree():
+		_clear_reveal()
+		_last_results.clear()
 
 
 func _build_cells(container: HBoxContainer) -> void:
