@@ -93,3 +93,9 @@
 - **Decision:** Lightning is a short server-owned lifecycle with a 2 s violet radius ring and targeting column, followed by one distance-scaled damage batch and bounded knockdown. The component emits a named `struck(target)` event after authoritative damage.
 - **Combination boundary:** The event exists now so Flood can subscribe without Lightning knowing about Flood. Electrified water remains Phase 5 until Flood implements the behavior-changing interaction.
 - **Transport:** Main snapshots now include only active disasters. Missing entries explicitly clean client presentation, keeping packet size below ENet MTU as the disaster roster grows.
+
+## 2026-10-06 — Fire zone graph and wind hook
+
+- **Decision:** Fire owns eight fixed world zones arranged as a 2 × 4 neighbor graph. It begins with a 3.5 s warning, burns for 24 s, applies 12 HP/s inside burning zones, and can ignite only graph-adjacent zones after a separate 1.5 s propagation warning.
+- **Combination hook:** `set_wind_active()` halves the propagation interval and emits a named wind-state event. This behavior is independently validated now, but Tornado does not activate it until the Phase 5 interaction is wired.
+- **Replication:** Zone states travel as a stable-order `PackedByteArray`; clients rebuild rings and flame presentation without running authoritative damage or propagation.

@@ -23,6 +23,7 @@ func _run() -> void:
 	var tornado = main.get_node("Tornado")
 	var earthquake = main.get_node("Earthquake")
 	var lightning = main.get_node("Lightning")
+	var fire = main.get_node("Fire")
 	var player = main.get_node("Player")
 	var expected_sandbox_children := main.get_node("Sandbox").get_child_count()
 	for match_index in 5:
@@ -36,6 +37,8 @@ func _run() -> void:
 		_expect(earthquake.active_effect_count() == 1, "Cycle %d must own one Earthquake effect before reset" % (match_index + 1))
 		_expect(lightning.start_warning(Vector3(12.0, 0.0, 12.0)), "Cycle %d must start a representative Lightning warning" % (match_index + 1))
 		_expect(lightning.active_effect_count() == 1, "Cycle %d must own one Lightning effect before reset" % (match_index + 1))
+		_expect(fire.start_warning(7), "Cycle %d must start a representative Fire warning" % (match_index + 1))
+		_expect(fire.active_effect_count() == 1, "Cycle %d must own one Fire effect before reset" % (match_index + 1))
 		var crate := main.get_tree().get_first_node_in_group("grabbable") as RigidBody3D
 		crate.freeze = true
 		crate.global_position = player.get_grab_origin() + Vector3(0.0, -0.5, -1.0)
@@ -58,6 +61,7 @@ func _run() -> void:
 		_expect(tornado.phase == 0 and tornado.active_effect_count() == 0, "Cycle %d reset must clean Tornado state and effects" % (match_index + 1))
 		_expect(earthquake.phase == 0 and earthquake.active_effect_count() == 0, "Cycle %d reset must clean Earthquake state and effects" % (match_index + 1))
 		_expect(lightning.phase == 0 and lightning.active_effect_count() == 0, "Cycle %d reset must clean Lightning state and effects" % (match_index + 1))
+		_expect(fire.phase == 0 and fire.active_effect_count() == 0 and fire.get_burning_zone_ids().is_empty(), "Cycle %d reset must clean Fire zones and effects" % (match_index + 1))
 		_expect(main.get_tree().get_nodes_in_group("breakable_structure").size() == 6, "Cycle %d reset must restore six breakable sections" % (match_index + 1))
 		_expect(main.get_tree().get_nodes_in_group("earthquake_debris").is_empty(), "Cycle %d reset must remove Earthquake debris" % (match_index + 1))
 		_expect(director.running, "Cycle %d reset must restart director scheduling" % (match_index + 1))

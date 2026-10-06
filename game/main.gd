@@ -24,6 +24,7 @@ const MATCH_SNAPSHOT_INTERVAL := 0.1
 @onready var tornado: Tornado = $Tornado
 @onready var earthquake: Earthquake = $Earthquake
 @onready var lightning: Lightning = $Lightning
+@onready var fire: Fire = $Fire
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
@@ -47,6 +48,7 @@ func _ready() -> void:
 	tornado.configure(match_manager)
 	earthquake.configure(match_manager)
 	lightning.configure(match_manager)
+	fire.configure(match_manager)
 	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
 	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
 	disaster_director.configure(match_manager)
@@ -55,6 +57,7 @@ func _ready() -> void:
 	disaster_director.register_disaster(tornado)
 	disaster_director.register_disaster(earthquake)
 	disaster_director.register_disaster(lightning)
+	disaster_director.register_disaster(fire)
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
 		if network_error != OK:
@@ -105,6 +108,11 @@ func _ready() -> void:
 		lightning.set_process(false)
 		lightning.start_warning(Vector3(1.5, 0.06, 5.0))
 		lightning.tick(lightning.warning_duration * 0.72)
+	if _has_argument("--fire-demo"):
+		fire.set_process(false)
+		fire.start_warning(6)
+		fire.tick(fire.warning_duration)
+		fire.tick(3.0)
 	if _has_argument("--overlap-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
@@ -224,6 +232,7 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	tornado.unregister_player(peer_id)
 	earthquake.unregister_player(peer_id)
 	lightning.unregister_player(peer_id)
+	fire.unregister_player(peer_id)
 	match_manager.unregister_player(peer_id)
 	_remove_network_player(peer_id)
 	_remove_network_player_remote.rpc(peer_id)
@@ -393,6 +402,7 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 		and tornado.register_player(peer_id, player)
 		and earthquake.register_player(peer_id, player)
 		and lightning.register_player(peer_id, player)
+		and fire.register_player(peer_id, player)
 	)
 
 
@@ -430,6 +440,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	tornado.apply_presentation_snapshot(disasters.get("tornado", {}))
 	earthquake.apply_presentation_snapshot(disasters.get("earthquake", {}))
 	lightning.apply_presentation_snapshot(disasters.get("lightning", {}))
+	fire.apply_presentation_snapshot(disasters.get("fire", {}))
 
 
 func _create_playable_snapshot() -> Dictionary:
@@ -445,6 +456,8 @@ func _create_playable_snapshot() -> Dictionary:
 		disasters.earthquake = earthquake.create_presentation_snapshot()
 	if lightning.is_active():
 		disasters.lightning = lightning.create_presentation_snapshot()
+	if fire.is_active():
+		disasters.fire = fire.create_presentation_snapshot()
 	snapshot.disasters = disasters
 	return snapshot
 
@@ -479,6 +492,10 @@ func _active_disaster_lines() -> Array[String]:
 		lines.append("WARNING — LIGHTNING IN %d" % maxi(1, ceili(lightning.warning_remaining)))
 	elif lightning.phase == Lightning.Phase.FLASH:
 		lines.append("LIGHTNING STRIKE!")
+	if fire.phase == Fire.Phase.WARNING:
+		lines.append("WARNING — FIRE IN %d" % maxi(1, ceili(fire.warning_remaining)))
+	elif fire.phase == Fire.Phase.ACTIVE:
+		lines.append("FIRE — WIND IS SPREADING FLAMES" if fire.wind_active else "FIRE — AVOID BURNING ZONES")
 	return lines
 
 
@@ -576,6 +593,7 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	tornado.register_player(peer_id, player)
 	earthquake.register_player(peer_id, player)
 	lightning.register_player(peer_id, player)
+	fire.register_player(peer_id, player)
 
 
 func _build_lighting() -> void:
@@ -696,6 +714,7 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--tornado-demo")
 		or _has_argument("--earthquake-demo")
 		or _has_argument("--lightning-demo")
+		or _has_argument("--fire-demo")
 		or _has_argument("--overlap-demo")
 	)
 

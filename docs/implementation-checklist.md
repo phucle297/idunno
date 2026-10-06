@@ -34,7 +34,7 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 
 - [x] Implement Earthquake with predefined breakable structures and debris.
 - [x] Implement Lightning with fair telegraphs and authoritative strikes.
-- [ ] Implement Fire with predefined zone/neighbor propagation.
+- [x] Implement Fire with predefined zone/neighbor propagation.
 
 ## Director and overlap groundwork completed ahead of Phase 5
 

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T13:55:00+07:00",
+  "updated_at": "2026-10-06T13:18:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_4_additional_disasters",
+  "current_phase": "phase_5_disaster_combinations",
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -46,11 +46,11 @@
       }
     },
     "phase_4_additional_disasters": {
-      "status": "in_progress",
+      "status": "completed",
       "acceptance": {
         "earthquake": "passed_authority_warning_pulses_bounded_damage_force_six_stable_breakable_sections_debris_reset_replication_and_visual_gate",
         "lightning": "passed_authority_fair_telegraph_bounded_damage_knockdown_named_strike_event_replication_cleanup_and_visual_gate",
-        "fire": "not_implemented"
+        "fire": "passed_authority_fixed_zone_graph_warning_damage_neighbor_propagation_wind_hook_replication_cleanup_and_visual_gate"
       }
     },
     "slice_director_overlap": {
@@ -97,7 +97,7 @@
     "phase_1_core_sandbox": "completed",
     "phase_2_match": "completed",
     "phase_3_first_disasters": "completed_meteor_flood_tornado",
-    "phase_4_additional_disasters": "in_progress_earthquake_complete_lightning_and_fire_missing",
+    "phase_4_additional_disasters": "completed_earthquake_lightning_fire",
     "phase_5_disaster_combinations": "not_started_only_simultaneous_coexistence_is_implemented",
     "phase_6_multiplayer_stabilization": "in_progress_two_peer_playable_replication_and_2_4_8_20_state_matrix_passed_playable_4_8_20_sessions_missing",
     "phase_7_polish": "partial_out_of_order_baseline_hud_and_vfx_exist_audio_results_screen_network_rematch_and_final_feedback_missing"
@@ -352,6 +352,11 @@
       "result": "passed",
       "check": "Phase 4 authoritative Lightning",
       "evidence": "LIGHTNING_OK checks=24 validates a 2 s warning boundary, one authoritative distance-scaled strike, unaffected out-of-radius player, bounded knockdown, named struck event, one-shot damage, survival credit, cleanup, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=150, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Lightning presentation passed. Active-only disaster snapshots remained below ENet MTU. .amp/in/artifacts/phase4-lightning.png was rendered and inspected: violet radius ring, targeting column, warning text, player, and world all passed."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 4 authoritative Fire",
+      "evidence": "FIRE_OK checks=26 validates eight fixed zones, a 3.5 s warning, authoritative 12 HP/s damage, graph-neighbor-only propagation, a distinct 1.5 s propagation warning, named ignition/warning/wind events, doubled propagation frequency under wind, compact presentation snapshots, cleanup, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=165 sandbox_children=20, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Fire warning presentation passed. .amp/in/artifacts/phase4-fire.png was rendered and inspected: burning zone, distinct propagation ring, HUD, player, and traversal readability passed."
     }
   ],
   "blockers": [
@@ -383,6 +388,7 @@
     "game/breakable_structure.gd",
     "game/earthquake.gd",
     "game/lightning.gd",
+    "game/fire.gd",
     "game/disaster_director.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
@@ -405,6 +411,7 @@
     "tests/test_tornado.gd",
     "tests/test_earthquake.gd",
     "tests/test_lightning.gd",
+    "tests/test_fire.gd",
     "tests/test_disaster_director.gd",
     "tests/run_network_authority_test.sh",
     "tests/four_client_match_probe.gd",
@@ -416,5 +423,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement and validate authoritative Fire with a fixed zone graph, readable propagation warnings, multiplayer presentation, and an event hook for Tornado interaction."
+  "next_action": "Implement and validate Phase 5 Flood + Lightning electrified water and Tornado + Fire wind-driven propagation through named cross-disaster events."
 }
