@@ -70,6 +70,8 @@ func _check_scenes() -> void:
 	_expect(main.get_node("Player").get_script() != null, "Instantiated player must retain its script")
 	_expect(main.has_node("MatchManager"), "Main scene must own the authoritative match state")
 	_expect(main.has_node("Interface/HealthCard/Content/HealthBar"), "Main scene must expose a semantic health display in its HUD")
+	_expect(not main.has_node("Interface/Title") and not main.has_node("Interface/Help"), "Main scene must not retain permanent prototype title or control copy")
+	_expect(main.has_node("Interface/ContextPrompt/Content/Action"), "Main scene must expose a contextual interaction prompt")
 	main.free()
 
 

@@ -17,12 +17,13 @@ const MAX_HAZARD_CHIPS := 2
 @onready var timer_card: PanelContainer = $TimerCard
 @onready var timer_label: Label = $TimerCard/Content/Timer
 @onready var state_label: Label = $TimerCard/Content/State
-@onready var help_label: Label = $Help
 @onready var hazard_tray: VBoxContainer = $HazardTray
 @onready var hazard_chips: Array[PanelContainer] = [
 	$HazardTray/HazardChip1,
 	$HazardTray/HazardChip2,
 ]
+@onready var context_prompt: PanelContainer = $ContextPrompt
+@onready var context_action_label: Label = $ContextPrompt/Content/Action
 @onready var flood_overlay: ColorRect = $FloodOverlay
 @onready var flood_danger_label: Label = $FloodDanger
 @onready var spectating_label: Label = $Spectating
@@ -30,6 +31,7 @@ const MAX_HAZARD_CHIPS := 2
 var _presented_health := 0
 var _presented_alive_counts := Vector2i.ZERO
 var _presented_hazards: Array[String] = []
+var _presented_context_action := ""
 
 
 func present_vitals(health: float, alive_count: int, player_count: int) -> void:
@@ -40,11 +42,10 @@ func present_vitals(health: float, alive_count: int, player_count: int) -> void:
 	alive_label.text = "%d / %d" % [alive_count, player_count]
 
 
-func present_match_status(remaining_seconds: int, state_text: String, results_visible: bool, controls_visible: bool) -> void:
+func present_match_status(remaining_seconds: int, state_text: String, results_visible: bool) -> void:
 	timer_label.text = "%02d:%02d" % [remaining_seconds / 60, remaining_seconds % 60]
 	state_label.text = state_text
 	timer_card.visible = not results_visible
-	help_label.visible = controls_visible
 
 
 func present_hazards(lines: Array[String]) -> void:
@@ -58,6 +59,12 @@ func present_hazards(lines: Array[String]) -> void:
 		if chip_visible:
 			(chip.get_node("Text") as Label).text = _presented_hazards[index]
 	hazard_tray.visible = not _presented_hazards.is_empty()
+
+
+func present_context_action(action: String) -> void:
+	_presented_context_action = action
+	context_prompt.visible = not action.is_empty()
+	context_action_label.text = action
 
 
 func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.0, damage_per_second: float = 0.0) -> void:
@@ -100,3 +107,7 @@ func get_presented_alive_counts() -> Vector2i:
 
 func get_presented_hazards() -> Array[String]:
 	return _presented_hazards.duplicate()
+
+
+func get_presented_context_action() -> String:
+	return _presented_context_action

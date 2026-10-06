@@ -13,6 +13,7 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	var hud := main.get_node("Interface") as GameplayHud
+	_expect(not hud.has_node("Title") and not hud.has_node("Help"), "The gameplay HUD must not retain permanent prototype title or control copy")
 
 	hud.present_vitals(73.9, 3, 8)
 	_expect(hud.get_presented_health() == 73, "Vitals must retain authoritative health through the HUD boundary")
@@ -20,13 +21,11 @@ func _run() -> void:
 	_expect(hud.health_bar.value == 73.9, "The health display must visualize fractional authoritative health")
 	_expect(hud.health_card.anchor_top == 1.0 and hud.health_card.offset_bottom == -24.0, "The health card must remain anchored to the safe bottom edge")
 
-	hud.present_match_status(125, "SURVIVE", false, true)
+	hud.present_match_status(125, "SURVIVE", false)
 	_expect(hud.timer_label.text == "02:05", "Match status must format the remaining clock")
 	_expect(hud.state_label.text == "SURVIVE", "Match status must present semantic state copy")
-	_expect((hud.get_node("Help") as Label).visible, "Active-player controls must remain visible when requested")
-	hud.present_match_status(0, "ENTER TO REMATCH", true, false)
+	hud.present_match_status(0, "ENTER TO REMATCH", true)
 	_expect(not hud.timer_card.visible, "Results must suppress the complete timer card")
-	_expect(not (hud.get_node("Help") as Label).visible, "Non-gameplay states must suppress controls")
 
 	hud.present_hazards(["FLOOD — REACH HIGH GROUND", "TORNADO — FIND COVER", "FIRE — AVOID BURNING ZONES"])
 	_expect(hud.hazard_tray.visible, "Active hazards must show the hazard tray")
@@ -34,6 +33,12 @@ func _run() -> void:
 	_expect(hud.hazard_chips[0].visible and hud.hazard_chips[1].visible, "Two active hazards must use two separate chips")
 	hud.present_hazards([])
 	_expect(not hud.hazard_tray.visible, "An empty hazard list must hide the hazard tray")
+
+	hud.present_context_action("GRAB OBJECT")
+	_expect(hud.context_prompt.visible and hud.get_presented_context_action() == "GRAB OBJECT", "A relevant interaction must show one contextual action")
+	_expect(hud.context_prompt.anchor_bottom == 1.0 and hud.context_prompt.offset_bottom == -24.0, "The contextual action must remain anchored to the bottom safe edge")
+	hud.present_context_action("")
+	_expect(not hud.context_prompt.visible, "No available interaction must hide the contextual action")
 
 	hud.present_flood_exposure(GameplayHud.FloodExposure.WADING)
 	_expect((hud.get_node("FloodDanger") as Label).visible and not (hud.get_node("FloodOverlay") as ColorRect).visible, "Wading must warn without implying head submersion")

@@ -204,10 +204,14 @@ func _test_default_scene_offline_input() -> void:
 	if DisplayServer.get_name() != "headless":
 		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Closing the lobby must restore camera input")
 	var start := playable_player.global_position
+	main._process(0.0)
+	_expect(main.gameplay_hud.get_presented_context_action() == "GRAB OBJECT", "An in-range prop must show a contextual grab prompt")
 	Input.action_press("grab")
 	playable_player._physics_process(DELTA)
 	Input.action_release("grab")
 	_expect(is_instance_valid((main.get_node("GrabManager") as GrabManager).get_held_body(1)), "Default-scene offline grab input must reach GrabManager")
+	main._process(0.0)
+	_expect(main.gameplay_hud.get_presented_context_action() == "RELEASE OBJECT", "A held prop must replace the grab prompt with release")
 	Input.action_press("move_forward")
 	for _frame in 30:
 		await physics_frame

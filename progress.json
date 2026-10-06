@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:20:53+07:00",
+  "updated_at": "2026-10-06T18:31:03+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,8 +33,8 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_1_theme_hud_and_components",
-    "task": "task_1_1_4_remove_permanent_debug_copy"
+    "milestone": "milestone_1_2_warning_and_personal_danger",
+    "task": "task_1_2_1_major_warning_banner"
   },
   "engine": {
     "name": "Godot",
@@ -54,12 +54,12 @@
     "milestones": {
       "milestone_1_1_theme_hud_and_components": {
         "title": "Theme, Responsive HUD, and Component Boundary",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_1_1_1_define_ui_tokens": "completed",
           "task_1_1_2_extract_semantic_hud_components": "completed",
           "task_1_1_3_build_health_timer_alive_and_hazard_components": "completed",
-          "task_1_1_4_remove_permanent_debug_copy": "planned"
+          "task_1_1_4_remove_permanent_debug_copy": "completed"
         },
         "gates": {
           "shared_theme": "passed",
@@ -70,7 +70,7 @@
       },
       "milestone_1_2_warning_and_personal_danger": {
         "title": "Warning and Personal-Danger Hierarchy",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
           "task_1_2_1_major_warning_banner": "planned",
           "task_1_2_2_hazard_and_combination_chips": "planned",
@@ -156,6 +156,11 @@
       "result": "passed",
       "check": "Task 1.1.3 responsive health, timer, survivor, and hazard components",
       "evidence": "GAMEPLAY_HUD_OK checks=19 validated fractional health visualization, bottom safe-edge anchoring, timer-card suppression, and deterministic two-chip hazard capping. UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=29, PLAYER_INTEGRATION_OK checks=41, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed five rematches and all presentation/authority checks; PLAYABLE_SCALE_MATRIX_OK passed 4, 8, and 20 players. Rendered overlap captures hud-components-1280x720.png and hud-components-1920x1080.png were inspected: cream metric cards and slate/amber hazard chips remained readable over mixed scenery with consistent safe margins, exactly two hazards, and no clipping or overlap. Display-backed capture used llvmpipe and dummy audio because WSL audio devices were unavailable; capture and tests exited successfully."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.4 contextual interaction prompt and Milestone 1.1 completion",
+      "evidence": "GAMEPLAY_HUD_OK checks=21 verified permanent prototype copy is absent and the contextual prompt is bottom-anchored and hidden without an action. GRAB_MANAGER_OK checks=22 validated candidate range, shared nearest selection, and owned-prop rejection. PLAYER_INTEGRATION_OK checks=43 validated GRAB OBJECT to RELEASE OBJECT transitions; PHASE1_TESTS_OK checks=31, UI_THEME_OK checks=18, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed authority, presentation, five rematches, and disconnect cleanup. Inspected context-prompt-visible-1280x720.png and context-prompt-hidden-1280x720.png confirmed the title/control legend is absent, the release prompt is readable and non-overlapping, and no prompt remains without an interaction. Display capture retained the known WSL dummy-audio fallback."
     }
   ],
   "blockers": [],
@@ -163,6 +168,7 @@
     "README.md",
     "docs/decisions.md",
     "docs/implementation-checklist.md",
+    "game/grab_manager.gd",
     "game/main.gd",
     "game/ui/gameplay_hud.gd",
     "game/ui/ui_tokens.gd",
@@ -171,8 +177,10 @@
     "tests/playable_scale_peer.gd",
     "tests/playable_scene_network_peer.gd",
     "tests/test_gameplay_hud.gd",
+    "tests/test_grab_manager.gd",
     "tests/test_phase1.gd",
+    "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.1.4 by removing the permanent sandbox title and full control legend, then show only contextual control prompts when relevant."
+  "next_action": "Implement Phase 1 Task 1.2.1 by adding one reusable major-warning banner with a disaster icon, name, countdown, and concise action."
 }

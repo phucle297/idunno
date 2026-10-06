@@ -591,10 +591,10 @@ func _process(delta: float) -> void:
 	gameplay_hud.present_match_status(
 		remaining,
 		_match_state_text(),
-		match_manager.state == MatchManager.MatchState.RESULTS,
-		match_manager.state == MatchManager.MatchState.ACTIVE and not spectator_controller.active
+		match_manager.state == MatchManager.MatchState.RESULTS
 	)
 	gameplay_hud.present_hazards(_active_disaster_lines())
+	_update_context_prompt(local_peer_id)
 	_update_lobby_ui()
 
 
@@ -661,6 +661,23 @@ func _update_flood_feedback(local_peer_id: int) -> void:
 		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.SUBMERGED, grace_remaining)
 	else:
 		gameplay_hud.present_flood_exposure(GameplayHud.FloodExposure.WADING)
+
+
+func _update_context_prompt(local_peer_id: int) -> void:
+	if match_manager.state != MatchManager.MatchState.ACTIVE or spectator_controller.active or $Interface/LobbyPanel.visible:
+		gameplay_hud.present_context_action("")
+		return
+	var player := _player_nodes.get(local_peer_id) as PartyPlayer
+	if not is_instance_valid(player) or not match_manager.is_player_alive(local_peer_id):
+		gameplay_hud.present_context_action("")
+		return
+	var grab_manager := $GrabManager as GrabManager
+	if is_instance_valid(grab_manager.get_held_body(local_peer_id)):
+		gameplay_hud.present_context_action("RELEASE OBJECT")
+	elif is_instance_valid(grab_manager.get_interaction_candidate(player)):
+		gameplay_hud.present_context_action("GRAB OBJECT")
+	else:
+		gameplay_hud.present_context_action("")
 
 
 func _active_disaster_lines() -> Array[String]:

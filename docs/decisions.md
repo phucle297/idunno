@@ -160,3 +160,9 @@
 - **Layout:** Anchor the cream health card to the lower-left safe margin, the timer card to top center, and the survivor pill to the upper-right safe margin. Godot canvas-item stretching preserves the 24 px design-space margin at 1280×720 and scales it consistently at 1920×1080.
 - **Hazards:** Present at most two ordered active-hazard chips. Each uses a slate surface, warning-amber border, and explicit text so identity never depends on color alone; later warning work owns prioritization beyond this bounded tray.
 - **Testing:** Network regressions assert semantic presented values rather than internal label paths. This keeps authoritative health, player counts, and hazard state covered while allowing later component-layout changes.
+
+## 2026-10-06 — Contextual interaction prompts
+
+- **Decision:** Remove the permanent prototype title and keyboard legend. Show one bottom-center `[F]` action only when the local player can grab an unowned prop or release their held prop; ordinary movement controls remain discoverable outside the gameplay HUD.
+- **Eligibility:** `GrabManager.get_interaction_candidate()` is the shared read-only source for range, facing, player-state, and ownership eligibility. It reuses the same candidate in authoritative grab requests and reads replicated owner metadata on clients without granting mutation authority.
+- **Suppression:** Hide the prompt outside ACTIVE play, while spectating, while the lobby is open, when eliminated, and when no eligible prop exists.

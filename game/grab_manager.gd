@@ -77,24 +77,29 @@ func request_nearest_grab(peer_id: int) -> bool:
 	if not _can_mutate() or not _players.has(peer_id):
 		return false
 	var player := _players[peer_id] as PartyPlayer
-	if not player.can_grab_objects():
+	var nearest := get_interaction_candidate(player)
+	if nearest == null:
 		return false
+	return request_grab(peer_id, nearest)
+
+
+func get_interaction_candidate(player: PartyPlayer) -> RigidBody3D:
+	if not is_instance_valid(player) or not player.can_grab_objects():
+		return null
 	var origin := player.get_grab_origin()
 	var forward := player.get_grab_direction()
 	var nearest: RigidBody3D
 	var nearest_distance := Tuning.GRAB_RANGE
 	for candidate in get_tree().get_nodes_in_group("grabbable"):
 		var body := candidate as RigidBody3D
-		if not is_instance_valid(body) or _owners.has(body):
+		if not is_instance_valid(body) or int(body.get_meta("grab_owner_peer_id", 0)) != 0:
 			continue
 		var offset := body.global_position - origin
 		var distance := offset.length()
 		if distance <= nearest_distance and distance > 0.001 and forward.dot(offset / distance) >= Tuning.GRAB_MIN_FORWARD_DOT:
 			nearest = body
 			nearest_distance = distance
-	if nearest == null:
-		return false
-	return request_grab(peer_id, nearest)
+	return nearest
 
 
 func request_grab(peer_id: int, body: RigidBody3D) -> bool:
@@ -141,7 +146,14 @@ func get_grab_owner(body: RigidBody3D) -> int:
 
 
 func get_held_body(peer_id: int) -> RigidBody3D:
-	return _held_by_peer.get(peer_id) as RigidBody3D
+	var held_body := _held_by_peer.get(peer_id) as RigidBody3D
+	if is_instance_valid(held_body):
+		return held_body
+	for candidate in get_tree().get_nodes_in_group("grabbable"):
+		var body := candidate as RigidBody3D
+		if is_instance_valid(body) and int(body.get_meta("grab_owner_peer_id", 0)) == peer_id:
+			return body
+	return null
 
 
 func _on_peer_disconnected(peer_id: int) -> void:

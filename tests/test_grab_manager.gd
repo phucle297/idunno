@@ -72,10 +72,13 @@ func _add_player(spawn_position: Vector3) -> PartyPlayer:
 
 func _test_range_and_contention() -> void:
 	crate.global_position = Vector3(0.0, 0.4, -Tuning.GRAB_RANGE - 0.2)
+	_expect(manager.get_interaction_candidate(player_one) == null, "The contextual query must reject props beyond grab range")
 	_expect(not manager.request_grab(1, crate), "A player must not grab beyond the 1.5 m range")
 	crate.global_position = Vector3(0.0, 0.4, -1.0)
+	_expect(manager.get_interaction_candidate(player_one) == crate, "The contextual query must return the same nearest prop used by grabbing")
 	_expect(manager.request_grab(1, crate), "A player must grab an in-range tagged body")
 	_expect(manager.get_grab_owner(crate) == 1, "The authoritative owner must be recorded")
+	_expect(manager.get_interaction_candidate(player_two) == null, "The contextual query must reject an owned prop")
 	_expect(not manager.request_grab(2, crate), "A second player must lose contention for an owned body")
 	_expect(crate.get_meta("grab_owner_peer_id", 0) == 1, "The body must expose its authoritative owner")
 
