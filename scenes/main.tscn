@@ -91,57 +91,129 @@ theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 15
 text = "WASD move  •  Shift sprint  •  Space jump  •  C crouch\nF grab / release  •  R knockdown"
 
-[node name="Timer" type="Label" parent="Interface"]
-offset_left = 596.0
-offset_top = 20.0
-offset_right = 684.0
-offset_bottom = 56.0
-theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 26
+[node name="TimerCard" type="PanelContainer" parent="Interface"]
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_top = 24.0
+offset_right = 110.0
+offset_bottom = 104.0
+grow_horizontal = 2
+theme_type_variation = &"HudMetricCard"
+
+[node name="Content" type="VBoxContainer" parent="Interface/TimerCard"]
+theme_override_constants/separation = 0
+
+[node name="Timer" type="Label" parent="Interface/TimerCard/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
 text = "10:00"
 horizontal_alignment = 1
 
-[node name="State" type="Label" parent="Interface"]
-offset_left = 574.0
-offset_top = 56.0
-offset_right = 706.0
-offset_bottom = 84.0
+[node name="State" type="Label" parent="Interface/TimerCard/Content"]
+layout_mode = 2
 theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "SURVIVE"
 horizontal_alignment = 1
 
-[node name="MeteorWarning" type="Label" parent="Interface"]
+[node name="AlivePill" type="PanelContainer" parent="Interface"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 72.0
+grow_horizontal = 0
+theme_type_variation = &"HudPill"
+
+[node name="Content" type="HBoxContainer" parent="Interface/AlivePill"]
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Caption" type="Label" parent="Interface/AlivePill/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SURVIVORS"
+
+[node name="Alive" type="Label" parent="Interface/AlivePill/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "1 / 1"
+
+[node name="HealthCard" type="PanelContainer" parent="Interface"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -118.0
+offset_right = 244.0
+offset_bottom = -24.0
+grow_vertical = 0
+theme_type_variation = &"HudMetricCard"
+
+[node name="Content" type="VBoxContainer" parent="Interface/HealthCard"]
+theme_override_constants/separation = 4
+
+[node name="MetricRow" type="HBoxContainer" parent="Interface/HealthCard/Content"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="Interface/HealthCard/Content/MetricRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "HEALTH"
+
+[node name="Health" type="Label" parent="Interface/HealthCard/Content/MetricRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "100"
+horizontal_alignment = 2
+
+[node name="HealthBar" type="ProgressBar" parent="Interface/HealthCard/Content"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_type_variation = &"HudHealthBar"
+value = 100.0
+show_percentage = false
+
+[node name="HazardTray" type="VBoxContainer" parent="Interface"]
 visible = false
-offset_left = 352.0
-offset_top = 104.0
-offset_right = 928.0
-offset_bottom = 188.0
-theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
-theme_override_colors/font_outline_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 28
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 120.0
+offset_right = 300.0
+offset_bottom = 224.0
+grow_horizontal = 2
+theme_override_constants/separation = 8
+
+[node name="HazardChip1" type="PanelContainer" parent="Interface/HazardTray"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"HazardChip"
+
+[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.956863, 0.901961, 0.784314, 1)
+theme_override_font_sizes/font_size = 18
 text = "WARNING — METEOR IMPACT IN 3"
 horizontal_alignment = 1
 
-[node name="Alive" type="Label" parent="Interface"]
-offset_left = 1100.0
-offset_top = 24.0
-offset_right = 1254.0
-offset_bottom = 54.0
-theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 18
-text = "ALIVE  1 / 1"
-horizontal_alignment = 2
+[node name="HazardChip2" type="PanelContainer" parent="Interface/HazardTray"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"HazardChip"
 
-[node name="Health" type="Label" parent="Interface"]
-offset_left = 24.0
-offset_top = 654.0
-offset_right = 170.0
-offset_bottom = 696.0
-theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 28
-text = "HP  100"
+[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.956863, 0.901961, 0.784314, 1)
+theme_override_font_sizes/font_size = 18
+text = "FLOOD — REACH HIGH GROUND"
+horizontal_alignment = 1
 
 [node name="FloodDanger" type="Label" parent="Interface"]
 visible = false

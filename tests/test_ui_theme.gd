@@ -23,11 +23,17 @@ func _run() -> void:
 	var button_focus := theme.get_stylebox("focus", "Button") as StyleBoxFlat
 	var line_edit_focus := theme.get_stylebox("focus", "LineEdit") as StyleBoxFlat
 	var panel := theme.get_stylebox("panel", "Panel") as StyleBoxFlat
+	var metric_card := theme.get_stylebox("panel", "HudMetricCard") as StyleBoxFlat
+	var hazard_chip := theme.get_stylebox("panel", "HazardChip") as StyleBoxFlat
+	var health_fill := theme.get_stylebox("fill", "HudHealthBar") as StyleBoxFlat
 	_expect(button_normal != null and button_normal.bg_color == UITokens.SLATE, "Buttons must use the slate primary surface")
 	_expect(button_focus != null and button_focus.border_color == UITokens.WARNING, "Button focus must use a non-color-independent visible ring")
 	_expect(line_edit_focus != null and line_edit_focus.border_width_left == UITokens.FOCUS_WIDTH, "Focused fields must use the shared focus width")
 	_expect(panel != null and panel.corner_radius_top_left == UITokens.PANEL_RADIUS, "Panels must use the shared rounded radius")
 	_expect(panel != null and panel.content_margin_left == UITokens.SPACE_XL, "Panels must use shared internal spacing")
+	_expect(metric_card != null and metric_card.bg_color == Color(UITokens.CREAM, 0.96), "HUD metric cards must use the shared cream surface")
+	_expect(hazard_chip != null and hazard_chip.border_color == UITokens.WARNING, "Hazard chips must use the warning border token")
+	_expect(health_fill != null and health_fill.bg_color == UITokens.TEAL, "The health bar must use the shared teal token")
 
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)

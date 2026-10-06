@@ -131,6 +131,25 @@ static func _set_panel_theme(theme: Theme) -> void:
 	theme.set_stylebox("panel", "Panel", panel)
 	theme.set_stylebox("panel", "PanelContainer", panel)
 
+	theme.set_type_variation("HudMetricCard", "PanelContainer")
+	var metric_card := panel.duplicate() as StyleBoxFlat
+	_set_content_margin(metric_card, SPACE_LG, SPACE_SM)
+	theme.set_stylebox("panel", "HudMetricCard", metric_card)
+
+	theme.set_type_variation("HudPill", "PanelContainer")
+	var pill := _control_style(Color(CREAM, 0.96), SLATE, 3)
+	theme.set_stylebox("panel", "HudPill", pill)
+
+	theme.set_type_variation("HazardChip", "PanelContainer")
+	var hazard_chip := _control_style(Color(SLATE, 0.96), WARNING, 3)
+	theme.set_stylebox("panel", "HazardChip", hazard_chip)
+
+	var health_background := _control_style(Color(SLATE, 0.28), Color(SLATE, 0.6), 2)
+	var health_fill := _control_style(TEAL, SLATE, 2)
+	theme.set_stylebox("background", "HudHealthBar", health_background)
+	theme.set_stylebox("fill", "HudHealthBar", health_fill)
+	theme.set_type_variation("HudHealthBar", "ProgressBar")
+
 
 static func _control_style(fill: Color, border: Color, width: int = 2) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

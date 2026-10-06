@@ -81,9 +81,9 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	for peer_id: int in peer_ids:
 		var expected_health := 100.0 if peer_id == 1 else 75.0
 		damage_passed = damage_passed and is_equal_approx(manager.get_health(peer_id), expected_health)
-	var hud_passed := (
-		(main.get_node("Interface/Health") as Label).text == "HP  100"
-		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  %d / %d" % [player_count, player_count]
+	var hud_passed: bool = (
+		main.gameplay_hud.get_presented_health() == 100
+		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(player_count, player_count)
 	)
 	var clients_passed := probe.all_clients_passed()
 	main.set_process(false)
@@ -143,17 +143,17 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		and is_instance_valid(host_player)
 		and host_player.get_multiplayer_authority() == 1
 	)
-	var match_passed := (
+	var match_passed: bool = (
 		manager.state == MatchManager.MatchState.ACTIVE
 		and manager.get_alive_count() == player_count
 		and is_equal_approx(manager.get_health(local_id), 75.0)
-		and (main.get_node("Interface/Health") as Label).text == "HP  75"
-		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  %d / %d" % [player_count, player_count]
+		and main.gameplay_hud.get_presented_health() == 75
+		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(player_count, player_count)
 	)
-	var disaster_passed := (
+	var disaster_passed: bool = (
 		meteor.phase == MeteorShower.Phase.WARNING
 		and meteor.active_effect_count() == 1
-		and "METEOR" in (main.get_node("Interface/MeteorWarning") as Label).text
+		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
 	)
 	var passed: bool = roster_passed and ownership_passed and movement_passed and match_passed and disaster_passed
 	probe.acknowledge_validation.rpc_id(1, passed)

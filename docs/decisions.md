@@ -154,3 +154,9 @@
 - **Decision:** The existing `Interface` canvas is a typed `GameplayHud` presenter. `main.gd` supplies semantic values such as health, survivor counts, match status, hazard lines, Flood exposure, and spectator target; only the presenter formats and mutates their controls.
 - **Authority:** The HUD remains presentation-only. `MatchManager`, disaster components, and server snapshots continue to own gameplay state, while the presenter has no references back to those systems.
 - **Migration:** Preserve existing node names and visual layout until Task 1.1.3 replaces the raw labels with responsive components, keeping established integration and network contracts stable during the refactor.
+
+## 2026-10-06 — Responsive gameplay HUD components
+
+- **Layout:** Anchor the cream health card to the lower-left safe margin, the timer card to top center, and the survivor pill to the upper-right safe margin. Godot canvas-item stretching preserves the 24 px design-space margin at 1280×720 and scales it consistently at 1920×1080.
+- **Hazards:** Present at most two ordered active-hazard chips. Each uses a slate surface, warning-amber border, and explicit text so identity never depends on color alone; later warning work owns prioritization beyond this bounded tray.
+- **Testing:** Network regressions assert semantic presented values rather than internal label paths. This keeps authoritative health, player counts, and hazard state covered while allowing later component-layout changes.

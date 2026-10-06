@@ -271,35 +271,35 @@ func _run_client(main: Node) -> void:
 	while meteor.phase != MeteorShower.Phase.WARNING and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var meteor_passed := (
+	var meteor_passed: bool = (
 		meteor.phase == MeteorShower.Phase.WARNING
 		and meteor.active_effect_count() == 1
-		and "METEOR" in (main.get_node("Interface/MeteorWarning") as Label).text
+		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
 	)
 	var lightning := main.get_node("Lightning") as Lightning
 	while lightning.phase != Lightning.Phase.WARNING and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var lightning_passed := (
+	var lightning_passed: bool = (
 		lightning.phase == Lightning.Phase.WARNING
 		and lightning.active_effect_count() == 1
-		and "LIGHTNING" in (main.get_node("Interface/MeteorWarning") as Label).text
+		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "LIGHTNING" in line)
 	)
 	var fire := main.get_node("Fire") as Fire
 	while fire.phase != Fire.Phase.WARNING and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var fire_passed := (
+	var fire_passed: bool = (
 		fire.phase == Fire.Phase.WARNING
 		and fire.active_effect_count() == 1
-		and "FIRE" in (main.get_node("Interface/MeteorWarning") as Label).text
+		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "FIRE" in line)
 	)
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
 	while flood.electrified_remaining <= 0.0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var electric_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var electric_text := "\n".join(main.gameplay_hud.get_presented_hazards())
 	var electric_combination_passed := (
 		flood.phase == Flood.Phase.RISING
 		and flood.electrified_remaining > 0.0
@@ -309,7 +309,7 @@ func _run_client(main: Node) -> void:
 	while (fire.phase != Fire.Phase.ACTIVE or tornado.phase != Tornado.Phase.ACTIVE) and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var wind_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var wind_text := "\n".join(main.gameplay_hud.get_presented_hazards())
 	var wind_combination_passed := (
 		fire.phase == Fire.Phase.ACTIVE
 		and fire.wind_active
@@ -327,7 +327,7 @@ func _run_client(main: Node) -> void:
 	while earthquake.phase != Earthquake.Phase.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var earthquake_text := (main.get_node("Interface/MeteorWarning") as Label).text
+	var earthquake_text := "\n".join(main.gameplay_hud.get_presented_hazards())
 	var earthquake_passed := (
 		earthquake.phase == Earthquake.Phase.ACTIVE
 		and earthquake.active_effect_count() == 1
@@ -336,11 +336,11 @@ func _run_client(main: Node) -> void:
 	while manager.get_health(local_id) != 75.0 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
-	var nonlethal_passed := (
+	var nonlethal_passed: bool = (
 		manager.get_health(local_id) == 75.0
 		and manager.get_alive_count() == 2
-		and (main.get_node("Interface/Health") as Label).text == "HP  75"
-		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  2 / 2"
+		and main.gameplay_hud.get_presented_health() == 75
+		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(2, 2)
 	)
 	while manager.is_player_alive(local_id) and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -351,8 +351,8 @@ func _run_client(main: Node) -> void:
 		and manager.get_alive_count() == 1
 		and not local_player.visual.visible
 		and main.spectator_controller.active
-		and (main.get_node("Interface/Health") as Label).text == "HP  0"
-		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
+		and main.gameplay_hud.get_presented_health() == 0
+		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(1, 2)
 		and (main.get_node("Interface/ResultsPanel") as Panel).visible
 		and "Network test" in (main.get_node("Interface/ResultsPanel/Summary") as Label).text
 		and (main.get_node("Interface/ResultsPanel/Prompt") as Label).text == "WAITING FOR HOST TO START REMATCH"
