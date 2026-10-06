@@ -87,3 +87,9 @@
 - **Decision:** Earthquake owns warning and pulse timing, while six map-owned `BreakableStructure` sections own stable piece IDs and intact/damaged/broken presentation. Each active pulse applies one authoritative damage batch plus bounded player and prop disturbance, then advances at most one section.
 - **Route budget:** At most two sections may break during one Earthquake. A broken section creates at most one authoritative debris body, preserving the 32-body global budget and preventing every elevation route from disappearing.
 - **Replication:** Playable snapshots send the six states as a stable-order `PackedByteArray`; clients recreate structure and hazard presentation only. The compact encoding keeps the complete 10 Hz snapshot below the ENet MTU.
+
+## 2026-10-06 — Lightning warning and strike event
+
+- **Decision:** Lightning is a short server-owned lifecycle with a 2 s violet radius ring and targeting column, followed by one distance-scaled damage batch and bounded knockdown. The component emits a named `struck(target)` event after authoritative damage.
+- **Combination boundary:** The event exists now so Flood can subscribe without Lightning knowing about Flood. Electrified water remains Phase 5 until Flood implements the behavior-changing interaction.
+- **Transport:** Main snapshots now include only active disasters. Missing entries explicitly clean client presentation, keeping packet size below ENet MTU as the disaster roster grows.

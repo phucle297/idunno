@@ -88,6 +88,12 @@ func _run_server(main: Node) -> void:
 	await create_timer(0.4).timeout
 	meteor.cleanup()
 	await create_timer(0.3).timeout
+	var lightning := main.get_node("Lightning") as Lightning
+	lightning.set_process(false)
+	var lightning_started := lightning.start_warning(Vector3(4.0, 0.06, 4.0))
+	await create_timer(0.4).timeout
+	lightning.cleanup()
+	await create_timer(0.3).timeout
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
 	flood.set_process(false)
@@ -105,6 +111,7 @@ func _run_server(main: Node) -> void:
 	await create_timer(0.5).timeout
 	var disasters_passed := (
 		meteor_started
+		and lightning_started
 		and flood_started
 		and tornado_started
 		and earthquake_started
@@ -194,6 +201,15 @@ func _run_client(main: Node) -> void:
 		and meteor.active_effect_count() == 1
 		and "METEOR" in (main.get_node("Interface/MeteorWarning") as Label).text
 	)
+	var lightning := main.get_node("Lightning") as Lightning
+	while lightning.phase != Lightning.Phase.WARNING and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var lightning_passed := (
+		lightning.phase == Lightning.Phase.WARNING
+		and lightning.active_effect_count() == 1
+		and "LIGHTNING" in (main.get_node("Interface/MeteorWarning") as Label).text
+	)
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
 	var earthquake := main.get_node("Earthquake") as Earthquake
@@ -241,11 +257,11 @@ func _run_client(main: Node) -> void:
 		and (main.get_node("Interface/Health") as Label).text == "HP  0"
 		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and overlap_passed and nonlethal_passed and lethal_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and overlap_passed and nonlethal_passed and lethal_passed
 	if passed:
 		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s overlap=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, overlap_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s overlap=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, overlap_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	quit(0 if passed else 1)
 
@@ -260,6 +276,7 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
 	var earthquake := main.get_node("Earthquake") as Earthquake
+	var lightning := main.get_node("Lightning") as Lightning
 	var passed: bool = (
 		manager.register_player(peer_id, "Cleanup Probe")
 		and grab_manager.register_player(peer_id, replacement)
@@ -267,12 +284,14 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 		and flood.register_player(peer_id, replacement)
 		and tornado.register_player(peer_id, replacement)
 		and earthquake.register_player(peer_id, replacement)
+		and lightning.register_player(peer_id, replacement)
 	)
 	grab_manager.unregister_player(peer_id)
 	meteor.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
 	tornado.unregister_player(peer_id)
 	earthquake.unregister_player(peer_id)
+	lightning.unregister_player(peer_id)
 	manager.unregister_player(peer_id)
 	replacement.queue_free()
 	return passed

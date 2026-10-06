@@ -30,6 +30,7 @@ godot --headless --path . --script res://tests/test_meteor_shower.gd
 godot --headless --path . --script res://tests/test_flood.gd
 godot --headless --path . --script res://tests/test_tornado.gd
 godot --headless --path . --script res://tests/test_earthquake.gd
+godot --headless --path . --script res://tests/test_lightning.gd
 godot --headless --path . --script res://tests/test_disaster_director.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).

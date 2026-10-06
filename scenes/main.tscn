@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://game/tornado.gd" id="7_tornado"]
 [ext_resource type="Script" path="res://game/disaster_director.gd" id="8_director"]
 [ext_resource type="Script" path="res://game/earthquake.gd" id="9_earthquake"]
+[ext_resource type="Script" path="res://game/lightning.gd" id="10_lightning"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -44,6 +45,9 @@ script = ExtResource("7_tornado")
 
 [node name="Earthquake" type="Node3D" parent="."]
 script = ExtResource("9_earthquake")
+
+[node name="Lightning" type="Node3D" parent="."]
+script = ExtResource("10_lightning")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 

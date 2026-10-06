@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T13:32:00+07:00",
+  "updated_at": "2026-10-06T13:55:00+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_4_additional_disasters",
@@ -49,7 +49,7 @@
       "status": "in_progress",
       "acceptance": {
         "earthquake": "passed_authority_warning_pulses_bounded_damage_force_six_stable_breakable_sections_debris_reset_replication_and_visual_gate",
-        "lightning": "not_implemented",
+        "lightning": "passed_authority_fair_telegraph_bounded_damage_knockdown_named_strike_event_replication_cleanup_and_visual_gate",
         "fire": "not_implemented"
       }
     },
@@ -347,6 +347,11 @@
       "result": "passed",
       "check": "Phase 4 authoritative Earthquake",
       "evidence": "EARTHQUAKE_OK checks=25 validates a 4 s fair warning, bounded server damage/player velocity/prop impulse, six stable predefined intact/damaged/broken sections, a two-section destruction cap, one gameplay debris body per broken section, survival credit, cleanup, reset, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=135 sandbox_children=20, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Earthquake presentation passed. Compact PackedByteArray structure state kept the 10 Hz unreliable snapshot below ENet MTU. .amp/in/artifacts/phase4-earthquake-v2.png was rendered and inspected: active HUD, high-contrast cracks/dust, changed structures, player silhouette, and routes passed."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 4 authoritative Lightning",
+      "evidence": "LIGHTNING_OK checks=24 validates a 2 s warning boundary, one authoritative distance-scaled strike, unaffected out-of-radius player, bounded knockdown, named struck event, one-shot damage, survival credit, cleanup, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=150, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Lightning presentation passed. Active-only disaster snapshots remained below ENet MTU. .amp/in/artifacts/phase4-lightning.png was rendered and inspected: violet radius ring, targeting column, warning text, player, and world all passed."
     }
   ],
   "blockers": [
@@ -377,6 +382,7 @@
     "game/tornado.gd",
     "game/breakable_structure.gd",
     "game/earthquake.gd",
+    "game/lightning.gd",
     "game/disaster_director.gd",
     "game/spectator_controller.gd",
     "game/main.gd",
@@ -398,6 +404,7 @@
     "tests/test_flood.gd",
     "tests/test_tornado.gd",
     "tests/test_earthquake.gd",
+    "tests/test_lightning.gd",
     "tests/test_disaster_director.gd",
     "tests/run_network_authority_test.sh",
     "tests/four_client_match_probe.gd",
@@ -409,5 +416,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Implement and validate authoritative Lightning with fair telegraphs, bounded strikes, multiplayer presentation, and the named strike event needed for Flood interaction in Phase 5."
+  "next_action": "Implement and validate authoritative Fire with a fixed zone graph, readable propagation warnings, multiplayer presentation, and an event hook for Tornado interaction."
 }

@@ -33,7 +33,7 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 ## Phase 4 — Additional disasters
 
 - [x] Implement Earthquake with predefined breakable structures and debris.
-- [ ] Implement Lightning with fair telegraphs and authoritative strikes.
+- [x] Implement Lightning with fair telegraphs and authoritative strikes.
 - [ ] Implement Fire with predefined zone/neighbor propagation.
 
 ## Director and overlap groundwork completed ahead of Phase 5
