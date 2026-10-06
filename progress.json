@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:24:26+00:00",
+  "updated_at": "2026-10-06T18:30:14+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,7 +33,7 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_6_regression_and_rendered_review",
+    "milestone": "milestone_1_7_map_boundary_and_out_of_bounds_safety",
     "task": null
   },
   "engine": {
@@ -158,6 +158,11 @@
     }
   },
   "validation_log": [
+    {
+      "result": "passed",
+      "check": "Requested post-commit re-verification of Milestones 1.1-1.6",
+      "evidence": "After separate committed/pushed 1.5 and 1.6 work, reran GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh: UI_REGRESSION_OK suites=25 matrices=4 persistence_restart=passed, including five actual ENet rematches and 4/8/20-player matrices. Repeated all eight rendered suites at 1280x720/1920x1080: milestone1_1=85, HUD=201, roster=127, lobby=39, spectator=86 with actual visibility assertions, results_table=487, results_actions=35, pause_settings=38. Fresh post-commit-review captures of lobby, default HUD, single warning, overlap/drowning, spectating, results, pause and settings were inspected and remain contained/readable. Previously inspected 1080p core captures use identical committed code. Fresh native Windows four-player staged-overlap profile: p50 0.68 ms, p95 1.07 ms, p95 process 6.70 ms, physics 1.00 ms, 128 draw calls, 532 nodes, 1280x720, target_60fps_met=true, ui_nodes_stable=true with V-Sync explicitly disabled. Default-V-Sync frame-pacing limitation and successful-exit Dummy-audio resource diagnostics remain disclosed; final log scan finds only those known shutdown resource messages, no runtime/parser/assertion/font-RID errors. No further implementation regressions reproduced after the 1.6 lifecycle/fixture corrections. jq empty progress.json, bash -n tests/run_ui_regression.sh and git diff --check pass. All 1.1-1.6 gates remain passed; Phase 1 remains in progress because required Milestone 1.7 is not implemented."
+    },
     {
       "result": "passed",
       "check": "Milestone 1.6 full regression, rendered review and native Windows throughput",
@@ -329,5 +334,5 @@
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "After committing Milestone 1.6, freshly reverify 1.1-1.6 together and fix any reproduced regressions before resuming pending Milestone 1.7."
+  "next_action": "Implement and validate Milestone 1.7 map boundary and authoritative out-of-bounds elimination, including rendered boundary/death feedback and five network rematches; do not close Phase 1 before these gates pass."
 }
