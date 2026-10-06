@@ -33,6 +33,9 @@ func _run() -> void:
 		await process_frame
 	_expect(main.multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED, "Client must complete the real ENet handshake")
 	_expect(not main.flood._can_mutate() and not main.match_manager._can_mutate(), "Connected clients must not gain local gameplay authority")
+	# Abrupt server shutdown can require ENet's timeout rather than a close packet.
+	# Keep that timeout inside this fixture's five-second recovery deadline.
+	main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 100, 300)
 	# Allow MultiplayerAPI to observe the connection before closing its server.
 	await create_timer(0.1).timeout
 	server.close()
@@ -60,6 +63,7 @@ func _run() -> void:
 	while main.multiplayer.multiplayer_peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED and Time.get_ticks_msec() < deadline:
 		await process_frame
 	_expect(main.multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED, "Retry must establish a real connection")
+	main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 100, 300)
 	await create_timer(0.1).timeout
 	main._spawn_network_player(2, "Remote Player", Vector3(4, 0, 4))
 	main.flood.apply_presentation_snapshot({"phase": Flood.Phase.HOLDING, "water_level": 1.0, "electrified_remaining": 2.0})

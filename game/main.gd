@@ -81,6 +81,7 @@ func _ready() -> void:
 		"fire": fire,
 	})
 	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
+	gameplay_hud.spectator_cycle_requested.connect(_cycle_spectator)
 	_configure_lobby_ui()
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
@@ -629,6 +630,7 @@ func _process(delta: float) -> void:
 	gameplay_hud.present_hazards(_active_disaster_lines())
 	_update_major_warning()
 	_update_context_prompt(local_peer_id)
+	_update_spectator_ui()
 	_update_lobby_ui()
 
 
@@ -795,9 +797,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif not _network_mode:
 				restart_local_match()
 	elif event.is_action_pressed("spectate_previous"):
-		spectator_controller.cycle(-1)
+		_cycle_spectator(-1)
 	elif event.is_action_pressed("spectate_next"):
-		spectator_controller.cycle(1)
+		_cycle_spectator(1)
+
+
+func _cycle_spectator(direction: int) -> void:
+	if spectator_controller.active and match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible:
+		spectator_controller.cycle(direction)
 
 
 func start_network_match() -> bool:
@@ -840,7 +847,7 @@ func _configure_lobby_ui() -> void:
 
 func _set_lobby_visible(visible: bool) -> void:
 	$Interface/LobbyPanel.visible = visible
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or spectator_controller.active else Input.MOUSE_MODE_CAPTURED
 	$Player.local_input_blocked = visible
 	_update_lobby_ui()
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
@@ -1040,6 +1047,7 @@ func _restart_authoritative_match() -> bool:
 
 
 func _on_match_finished(winner_ids: Array[int]) -> void:
+	gameplay_hud.set_spectating_visible(false)
 	var winner_names: Array[String] = []
 	for winner_id: int in winner_ids:
 		if match_manager.players.has(winner_id):
@@ -1094,18 +1102,18 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 		_set_lobby_visible(false)
 	if state != MatchManager.MatchState.ACTIVE:
 		return
+	spectator_controller.stop()
+	gameplay_hud.set_spectating_visible(false)
 	_set_lobby_visible(false)
 	$Interface/ResultsPanel.visible = false
 	if not _network_mode or multiplayer.is_server():
 		return
-	spectator_controller.stop()
-	gameplay_hud.set_spectating_visible(false)
 	gameplay_audio.reset_for_match()
 	for player_node: PartyPlayer in _player_nodes.values():
 		player_node.reset_for_match(player_node.global_position)
 
 
-func _on_player_eliminated(peer_id: int, _cause: String) -> void:
+func _on_player_eliminated(peer_id: int, cause: String) -> void:
 	var eliminated_player := _player_nodes.get(peer_id) as PartyPlayer
 	if is_instance_valid(eliminated_player):
 		eliminated_player.set_eliminated(true)
@@ -1113,8 +1121,24 @@ func _on_player_eliminated(peer_id: int, _cause: String) -> void:
 	if peer_id == local_peer_id and is_instance_valid(eliminated_player):
 		spectator_controller.begin(eliminated_player.get_node("CameraPivot"), _living_spectator_targets())
 		gameplay_hud.set_spectating_visible(true)
+		gameplay_hud.present_elimination(cause, float(match_manager.players[peer_id].elimination_time))
+		_update_spectator_ui()
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if gameplay_hud.spectator_card.visible and not gameplay_hud.spectator_previous.disabled:
+			gameplay_hud.spectator_previous.grab_focus()
 	else:
 		spectator_controller.set_targets(_living_spectator_targets())
+
+
+func _update_spectator_ui() -> void:
+	var visible: bool = spectator_controller.active and match_manager.state == MatchManager.MatchState.ACTIVE
+	gameplay_hud.set_spectating_visible(visible)
+	if visible:
+		spectator_controller.set_targets(_living_spectator_targets())
+		_on_spectator_target_changed(spectator_controller.current_target_id)
+		var focus := get_viewport().gui_get_focus_owner()
+		if focus is Button and focus.disabled and gameplay_hud.spectator_card.is_ancestor_of(focus):
+			$Interface/LobbyToggle.grab_focus()
 
 
 func _living_spectator_targets() -> Dictionary:
@@ -1128,7 +1152,7 @@ func _living_spectator_targets() -> Dictionary:
 
 func _on_spectator_target_changed(peer_id: int) -> void:
 	var player_name := "" if peer_id == 0 else String(match_manager.players[peer_id].name)
-	gameplay_hud.present_spectator_target(player_name)
+	gameplay_hud.present_spectator_target(player_name, _living_spectator_targets().size())
 
 
 func _add_spectator_demo_player(peer_id: int, player_name: String, spawn_position: Vector3) -> void:

@@ -34,7 +34,8 @@ func set_targets(targets: Dictionary) -> void:
 		current_target_id = previous_target
 	else:
 		current_target_id = _target_ids[0]
-	target_changed.emit(current_target_id)
+	if current_target_id != previous_target:
+		target_changed.emit(current_target_id)
 
 
 func cycle(direction: int) -> int:

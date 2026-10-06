@@ -2,6 +2,7 @@ class_name GameplayHud
 extends CanvasLayer
 
 signal warning_countdown_tick
+signal spectator_cycle_requested(direction: int)
 
 enum FloodExposure {
 	SAFE,
@@ -38,7 +39,12 @@ const WARNING_COPY := {
 @onready var personal_danger: PanelContainer = $PersonalDanger
 @onready var danger_status: Label = $PersonalDanger/Content/Status
 @onready var danger_action: Label = $PersonalDanger/Content/Action
-@onready var spectating_label: Label = $Spectating
+@onready var spectator_card: PanelContainer = $Spectating
+@onready var spectating_label: Label = $Spectating/Content/TargetRow/Identity/Name
+@onready var spectator_survivors: Label = $Spectating/Content/TargetRow/Identity/Survivors
+@onready var spectator_previous: Button = $Spectating/Content/TargetRow/Previous
+@onready var spectator_next: Button = $Spectating/Content/TargetRow/Next
+@onready var elimination_label: Label = $Spectating/Content/Elimination
 @onready var warning_banner: PanelContainer = $MajorWarning
 @onready var warning_icon: Control = $MajorWarning/Content/Icon
 @onready var warning_name: Label = $MajorWarning/Content/Copy/Name
@@ -55,11 +61,34 @@ var _warning_tween: Tween
 var _countdown_tween: Tween
 var _lobby_open := false
 var _results_visible := false
+var _spectating := false
+var _elimination_remaining := 0.0
+var _spectator_tween: Tween
 var reduced_motion := false:
 	set(value):
 		reduced_motion = value
 		if value and is_node_ready():
 			_clear_warning_motion()
+			_clear_spectator_motion()
+
+
+func _ready() -> void:
+	spectator_previous.pressed.connect(func() -> void: spectator_cycle_requested.emit(-1))
+	spectator_next.pressed.connect(func() -> void: spectator_cycle_requested.emit(1))
+	spectator_previous.focus_next = spectator_previous.get_path_to(spectator_next)
+	spectator_previous.focus_previous = spectator_previous.focus_next
+	spectator_previous.focus_neighbor_right = spectator_previous.focus_next
+	spectator_next.focus_next = spectator_next.get_path_to(spectator_previous)
+	spectator_next.focus_previous = spectator_next.focus_next
+	spectator_next.focus_neighbor_left = spectator_next.focus_next
+
+
+func _process(delta: float) -> void:
+	if _elimination_remaining > 0.0:
+		_elimination_remaining = maxf(0.0, _elimination_remaining - delta)
+		if _elimination_remaining == 0.0:
+			elimination_label.hide()
+			spectator_card.offset_top = -112.0
 
 
 func present_vitals(health: float, alive_count: int, player_count: int) -> void:
@@ -170,12 +199,39 @@ func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.
 
 
 func set_spectating_visible(visible: bool) -> void:
-	spectating_label.visible = visible
+	_spectating = visible
+	spectator_card.visible = visible and not _lobby_open
+	health_card.visible = not visible and not _lobby_open
+	if not visible:
+		_elimination_remaining = 0.0
+		elimination_label.hide()
+		spectator_card.offset_top = -112.0
+		_clear_spectator_motion()
+
+
+func present_elimination(cause: String, survival_seconds: float) -> void:
+	var seconds := maxi(0, int(survival_seconds))
+	elimination_label.text = "ELIMINATED — %s  •  SURVIVED %02d:%02d" % [cause, seconds / 60, seconds % 60]
+	elimination_label.show()
+	_elimination_remaining = 2.5
+	spectator_card.offset_top = -144.0
+	_clear_spectator_motion()
+	if not reduced_motion:
+		spectator_card.modulate.a = 0.85
+		_spectator_tween = create_tween()
+		_spectator_tween.tween_property(spectator_card, "modulate:a", 1.0, 0.16)
+
+
+func _clear_spectator_motion() -> void:
+	if _spectator_tween != null:
+		_spectator_tween.kill()
+	spectator_card.modulate = Color.WHITE
 
 
 func present_lobby_overlay(open: bool) -> void:
 	_lobby_open = open
-	health_card.visible = not open
+	health_card.visible = not open and not _spectating
+	spectator_card.visible = not open and _spectating
 	$AlivePill.visible = not open
 	timer_card.visible = not open and not _results_visible
 	hazard_tray.visible = not open and not _presented_hazards.is_empty()
@@ -185,11 +241,12 @@ func present_lobby_overlay(open: bool) -> void:
 		present_flood_exposure(FloodExposure.SAFE)
 
 
-func present_spectator_target(player_name: String) -> void:
-	spectating_label.text = (
-		"NO SURVIVORS TO SPECTATE" if player_name.is_empty()
-		else "SPECTATING  %s   •   Q / E cycle" % player_name
-	)
+func present_spectator_target(player_name: String, survivor_count: int = 0) -> void:
+	spectating_label.text = "NO SURVIVORS TO SPECTATE" if player_name.is_empty() else player_name
+	spectating_label.tooltip_text = spectating_label.text
+	spectator_survivors.text = "SPECTATING • %d %s" % [survivor_count, "SURVIVOR" if survivor_count == 1 else "SURVIVORS"]
+	spectator_previous.disabled = player_name.is_empty() or survivor_count < 2
+	spectator_next.disabled = spectator_previous.disabled
 
 
 func get_presented_health() -> int:

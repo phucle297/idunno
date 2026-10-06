@@ -74,9 +74,11 @@ Milestone 1.2 complete after review remediation: combined electrical damage/pers
 
 - [x] Task 1.3.1: Reusable player rows with HOST/YOU markers, READY/WAITING badges, long-name ellipsis, four-row fit and scrollable 20-player roster; headless and inspected 720p/1080p checks pass.
 - [x] Task 1.3.2: Labeled/validated connection fields, inline joining/retry status, explicit host-start gating, wrapped keyboard/controller focus, dim backdrop and HUD suppression; local input is neutral without pausing authority.
-- [ ] Task 1.3.3: Add an elimination transition and compact spectator target card with previous/next controls.
+- [x] Task 1.3.3: Brief cause/survival notice collapses to a compact target/survivor card; previous/next buttons, Q/E and controller shoulders cycle living targets; own HP hidden, disconnected targets refresh and results/rematch clear presentation.
 
 Acceptance: a 20-player roster scrolls without overlap; ready/start ownership is unambiguous; keyboard/controller focus order works; lobby and spectator state remain presentation-only.
+
+Milestone 1.3 complete and freshly reverified: headless behavior/regression suites, inspected 720p/1080p lobby/spectator states, real ENet lifecycle, five network rematches and 4/8/20-player spectator/authority matrix pass. Network fixtures must wait for authoritative match rosters, not merely spawned nodes, before measuring movement; abrupt-close lifecycle checks use a test-only timeout inside their recovery deadline. Physical controller/multi-PC and native Windows performance are not established by orb checks.
 
 ### Milestone 1.4 — Structured results
 

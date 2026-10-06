@@ -59,6 +59,20 @@ func _run() -> void:
 	_expect(not roster.get_h_scroll_bar().visible, "Names must not force horizontal scrolling")
 	_check_geometry(roster)
 	await _capture("twenty-top")
+	roster.grab_focus()
+	var down := InputEventJoypadButton.new()
+	down.button_index = JOY_BUTTON_DPAD_DOWN
+	down.pressed = true
+	root.push_input(down)
+	await _settle()
+	_expect(root.gui_get_focus_owner() == roster and roster.scroll_vertical > 0, "Controller down must scroll the focused roster without leaving it")
+	var scrolled: int = roster.scroll_vertical
+	var up := InputEventKey.new()
+	up.keycode = KEY_UP
+	up.pressed = true
+	root.push_input(up)
+	await _settle()
+	_expect(root.gui_get_focus_owner() == roster and roster.scroll_vertical < scrolled, "Keyboard up must scroll the focused roster backward")
 	roster.scroll_vertical = int(roster.get_v_scroll_bar().max_value)
 	await _settle()
 	_expect(roster.get_global_rect().encloses(roster.rows[20].get_global_rect()), "The final row must be fully reachable by scrolling")

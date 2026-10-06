@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T20:53:42+07:00",
+  "updated_at": "2026-10-06T14:15:55+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,8 +33,8 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_3_lobby_and_spectator",
-    "task": "task_1_3_3_elimination_and_spectator_card"
+    "milestone": "milestone_1_4_structured_results",
+    "task": "task_1_4_1_ranking_rows_and_columns"
   },
   "engine": {
     "name": "Godot",
@@ -86,17 +86,17 @@
       },
       "milestone_1_3_lobby_and_spectator": {
         "title": "Lobby and Spectator Presentation",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_1_3_1_structured_player_rows": "completed",
           "task_1_3_2_connection_status_focus_and_hud_suppression": "completed",
-          "task_1_3_3_elimination_and_spectator_card": "planned"
+          "task_1_3_3_elimination_and_spectator_card": "completed"
         },
         "gates": {
           "scrollable_20_player_roster": "passed",
-          "unambiguous_ready_and_host_start": "not_run",
-          "keyboard_and_controller_focus": "not_run",
-          "presentation_only_state": "not_run"
+          "unambiguous_ready_and_host_start": "passed",
+          "keyboard_and_controller_focus": "passed",
+          "presentation_only_state": "passed"
         }
       },
       "milestone_1_4_structured_results": {
@@ -216,6 +216,21 @@
       "result": "passed",
       "check": "Task 1.3.2 final joining render correction",
       "evidence": "First joining screenshot exposed a pre-existing NO SURVIVORS panel over the lobby: removing the last offline participant in _prepare_offline_player_for_join finishes the solo match. Cleared results/spectator presentation after preparing the join lobby and added a lifecycle assertion. Re-ran xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_session_lifecycle.gd -- --capture-dir=.amp/in/artifacts: SESSION_LIFECYCLE_OK checks=54. Inspected replacement lobby-joining-1280x720.png: unobscured labeled fields and pending status, disabled Ready, no client Start or stale results overlay."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.3 elimination and spectator target card",
+      "evidence": "godot --headless --path . --script res://tests/test_spectator_presentation.gd: SPECTATOR_PRESENTATION_OK checks=29; xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_spectator_presentation.gd -- --capture-dir=.amp/in/artifacts: checks=79 each. Actual four-participant damage at 127.8 seconds produces Meteor/02:07 notice, immediate target/camera, three survivors and hidden own HP. Checks Q/E, LB/RB, Tab/A, real mouse wrap at both scales, snapshot immutability, bounded tween custom_step, 2.49/2.51-second notice boundary, reduced-motion cancellation, lobby suppression/restoration, removed-target fallback, final simultaneous elimination/results, explicit one/zero-target presenter fallbacks, and local rematch cleanup. Initial fixture errors fixed: typed damage array, remove demo peers before single-player rematch, viewport-local mouse coordinates at 1080p and deterministic tween advancement rather than wall-clock frame assumptions. Inspected elimination/long-name 720p, compact 1080p, dark-overlap 720p and one/zero-survivor fallback captures: readable, contained card/controls with unobscured central target. Some successful display-backed runs retained intermittent death/victory WAV/playback shutdown diagnostics; verbose inspection identified the audio resources, not UI nodes. LOBBY_ROSTER_OK checks=124 additionally exercises actual controller/keyboard scrolling. LOBBY_PRESENTATION_OK checks=35, SESSION_LIFECYCLE_OK checks=52, GAMEPLAY_HUD_OK checks=97, UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=79, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=65 and REMATCH_INTEGRATION_OK cycles=5 checks=165 passed. tests/run_playable_scene_network_test.sh passed host/client lobby gates and five rematches. PLAYER_COUNTS=4 tests/run_playable_scale_test.sh passed new NETWORK_SPECTATOR_SCALE_OK: real eliminated client sees target/hidden HP and can cycle without authoritative snapshot mutation while living clients keep health UI. Full milestone re-verification follows before completion."
+    },
+    {
+      "result": "failed",
+      "check": "Milestone 1.3 initial fresh scale/lifecycle verification",
+      "evidence": "20-player matrix failed movement while roster, match, disasters and cleanup passed. Temporary diagnostics reproduced zero movement on both server/client with alive=false on the client, lobby closed and neutral input stored by the server: spawn RPCs arrived before the authoritative match roster, so the new Joining input guard correctly withheld movement during the fixture's measurement. Added a bounded all-client roster acknowledgement before movement; no gameplay guard weakened. Display-backed 1080p lifecycle fixture also exceeded its five-second disconnect deadline after abrupt ENet server close; bounded connected-client timeout to 100–300 ms in the fixture, as already used for connection failure. Production timeout unchanged. Diagnostics removed after investigation."
+    },
+    {
+      "result": "passed",
+      "check": "User-requested full Milestone 1.3 re-verification and completion",
+      "evidence": "Fresh godot --headless --path . --script res://tests/test_{suite}.gd runs: LOBBY_ROSTER_OK=124, LOBBY_PRESENTATION_OK=35, SPECTATOR_PRESENTATION_OK=29, SESSION_LIFECYCLE_OK=52, GAMEPLAY_HUD_OK=97, UI_THEME_OK=18, MILESTONE_1_1_OK=79, PHASE1_TESTS_OK=31, PLAYER_INTEGRATION_OK=65, REMATCH_INTEGRATION_OK cycles=5 checks=165 and PHASE7_POLISH_OK=34. Fresh xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_{suite}.gd -- --capture-dir=.amp/in/artifacts: roster=127, lobby=39, spectator=79, lifecycle=54 at each resolution. Inspected fresh four-client 1080p, scrolled player20 720p, host-ready 1080p, Joining 720p, failed-retry 1080p, elimination 720p, long-name 1080p, dark warning/hazard overlap 1080p and one/zero-target fallbacks: explicit markers/readiness/focus, unobscured gameplay target, contained ellipsis/controls and suppressed own HP. Functional disabled/input behavior is asserted separately, not inferred from images. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: NETWORK_HOST_LOBBY_OK, NETWORK_CLIENT_LOBBY_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK with five rematches/disconnect cleanup. After roster barrier correction, tests/run_playable_scale_test.sh: PLAYABLE_SCALE_MATRIX_OK players=4,8,20 and NETWORK_SPECTATOR_SCALE_OK at every count, verifying actual eliminated-client UI/cycling and immutable snapshots, living-client HP and authority. Final network logs contain no ERROR/SCRIPT ERROR. Older HUD/phase1/rematch/polish and one rendered spectator run still emit successful-exit resource diagnostics; Xvfb reports unsupported V-Sync. Linux llvmpipe/Dummy audio and synthetic joypad events do not establish native Windows performance, physical controller/audio or multi-PC playtesting. All four milestone gates passed; Milestone 1.4 is recorded only as the next action, not implemented."
     }
   ],
   "blockers": [],
@@ -228,6 +243,7 @@
     "game/grab_manager.gd",
     "game/main.gd",
     "game/player.gd",
+    "game/spectator_controller.gd",
     "game/ui/disaster_icon.gd",
     "game/ui/gameplay_hud.gd",
     "game/ui/lobby_roster.gd",
@@ -237,6 +253,7 @@
     "project.godot",
     "scenes/main.tscn",
     "tests/playable_scale_peer.gd",
+    "tests/playable_scale_probe.gd",
     "tests/playable_scene_network_peer.gd",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
@@ -247,7 +264,8 @@
     "tests/test_phase7_polish.gd",
     "tests/test_player_integration.gd",
     "tests/test_session_lifecycle.gd",
+    "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Task 1.3.3 elimination transition and compact spectator target card with previous/next controls, then re-verify all Milestone 1.3 gates as requested."
+  "next_action": "Implement Task 1.4.1 reusable ranking rows and explicit result columns, preserving authoritative ranking data."
 }

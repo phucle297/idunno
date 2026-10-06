@@ -174,9 +174,9 @@ func _run() -> void:
 	await _capture("personal-safe")
 
 	hud.present_spectator_target("Teal Player")
-	_expect("Teal Player" in (hud.get_node("Spectating") as Label).text, "Spectator presentation must name the selected player")
+	_expect(hud.spectating_label.text == "Teal Player", "Spectator presentation must name the selected player")
 	hud.present_spectator_target("")
-	_expect((hud.get_node("Spectating") as Label).text == "NO SURVIVORS TO SPECTATE", "Empty spectator targets must have explicit fallback copy")
+	_expect(hud.spectating_label.text == "NO SURVIVORS TO SPECTATE", "Empty spectator targets must have explicit fallback copy")
 
 	var audio := main.gameplay_audio as GameplayAudioController
 	audio.set_process(false)

@@ -41,9 +41,13 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
 	while main.get_network_player_ids().size() != player_count and Time.get_ticks_msec() < deadline:
 		await process_frame
+	# Spawn RPCs can arrive before the authoritative match roster. Movement is
+	# intentionally neutral until that roster confirms the local player is alive.
+	while probe.movement_ready.size() != player_count - 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
 	var peer_ids: Array[int] = main.get_network_player_ids()
 	var manager := main.get_node("MatchManager") as MatchManager
-	var spawn_passed := peer_ids.size() == player_count and manager.players.size() == player_count
+	var spawn_passed := peer_ids.size() == player_count and manager.players.size() == player_count and probe.movement_ready.size() == player_count - 1
 	var start_positions := {}
 	for peer_id: int in peer_ids:
 		var player := _player_for_peer(main, peer_id)
@@ -87,6 +91,12 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(player_count, player_count)
 	)
 	var clients_passed := probe.all_clients_passed()
+	var spectator_id: int = peer_ids[1]
+	manager.apply_damage(spectator_id, 100.0, "Spectator scale test")
+	probe.begin_spectator_check.rpc(spectator_id)
+	while probe.spectator_results.size() < player_count - 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	var spectators_passed := probe.spectator_results.size() == player_count - 1 and not probe.spectator_results.values().has(false)
 	main.set_process(false)
 	main.set_physics_process(false)
 	for peer_id: int in peer_ids:
@@ -97,8 +107,9 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 			await process_frame
 	await process_frame
 	var cleanup_passed := _disconnected_registries_are_clean(main, peer_ids)
-	var passed := spawn_passed and movement_passed and match_passed and disaster_passed and damage_passed and hud_passed and clients_passed and cleanup_passed
+	var passed := spectators_passed and spawn_passed and movement_passed and match_passed and disaster_passed and damage_passed and hud_passed and clients_passed and cleanup_passed
 	if passed:
+		print("NETWORK_SPECTATOR_SCALE_OK players=%d eliminated_client=passed living_clients=passed presentation_authority=passed" % player_count)
 		print("PLAYABLE_SCALE_SERVER_OK players=%d movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" % player_count)
 	else:
 		push_error("Playable scale server failed players=%d spawn=%s movement=%s match=%s disaster=%s damage=%s hud=%s clients=%s cleanup=%s ids=%s" % [player_count, spawn_passed, movement_passed, match_passed, disaster_passed, damage_passed, hud_passed, clients_passed, cleanup_passed, main.get_network_player_ids()])
@@ -109,7 +120,10 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 
 func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
-	while (main.get_network_player_ids().size() != player_count or not probe.begin_movement_received) and Time.get_ticks_msec() < deadline:
+	while (main.get_network_player_ids().size() != player_count or main.match_manager.players.size() != player_count) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	probe.acknowledge_movement_ready.rpc_id(1)
+	while not probe.begin_movement_received and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var local_id: int = root.multiplayer.get_unique_id()
 	var local_player := _player_for_peer(main, local_id)
@@ -159,6 +173,20 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	)
 	var passed: bool = roster_passed and ownership_passed and movement_passed and match_passed and disaster_passed
 	probe.acknowledge_validation.rpc_id(1, passed)
+	while (probe.spectator_peer_id == 0 or manager.is_player_alive(probe.spectator_peer_id)) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	main._update_spectator_ui()
+	var hud: GameplayHud = main.gameplay_hud
+	var spectator_passed: bool = manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == player_count - 1
+	if local_id == probe.spectator_peer_id:
+		var snapshot: Dictionary = main._create_playable_snapshot().duplicate(true)
+		spectator_passed = spectator_passed and hud.spectator_card.visible and not hud.health_card.visible and main.spectator_controller.current_target_id == 1 and hud.spectating_label.text == "Host" and not hud.spectator_next.disabled
+		main._cycle_spectator(1)
+		spectator_passed = spectator_passed and main.spectator_controller.current_target_id != 1 and main._create_playable_snapshot() == snapshot and manager.get_cause_of_death(local_id) == "Spectator scale test"
+	else:
+		spectator_passed = spectator_passed and not hud.spectator_card.visible and hud.health_card.visible and is_equal_approx(manager.get_health(local_id), 75.0)
+	passed = passed and spectator_passed
+	probe.acknowledge_spectator.rpc_id(1, spectator_passed)
 	while not probe.finish_received and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if passed and probe.finish_received:
