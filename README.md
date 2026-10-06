@@ -40,10 +40,15 @@ godot --headless --path . --script res://tests/test_phase7_polish.gd
 godot --headless --path . --script res://tests/test_ui_theme.gd
 godot --headless --path . --script res://tests/test_gameplay_hud.gd
 godot --headless --path . --script res://tests/test_milestone_1_1.gd
+godot --headless --path . --script res://tests/test_lobby_roster.gd
 # Repeat the milestone HUD/focus captures at 1280x720 and 1920x1080 (requires a display).
 # Use an existing ignored output directory for --capture-dir.
 godot --path . --audio-driver Dummy --resolution 1280x720 \
   --script res://tests/test_milestone_1_1.gd -- --capture-dir=.amp/in/artifacts
+# Render four-player and scrolled twenty-player lobby fixtures; repeat at 1920x1080.
+# In a displayless Linux orb, prefix this command with xvfb-run -a (requires Xvfb).
+godot --path . --audio-driver Dummy --resolution 1280x720 \
+  --script res://tests/test_lobby_roster.gd -- --capture-dir=.amp/in/artifacts
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh

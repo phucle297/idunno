@@ -72,7 +72,7 @@ Milestone 1.2 complete after review remediation: combined electrical damage/pers
 
 ### Milestone 1.3 — Lobby and spectator presentation
 
-- [ ] Task 1.3.1: Replace the multiline roster with reusable player rows, host/local markers, and ready/waiting badges.
+- [x] Task 1.3.1: Reusable player rows with HOST/YOU markers, READY/WAITING badges, long-name ellipsis, four-row fit and scrollable 20-player roster; headless and inspected 720p/1080p checks pass.
 - [ ] Task 1.3.2: Add labeled connection fields, inline status/errors, clear host-start gating, backdrop dimming, and gameplay-HUD suppression.
 - [ ] Task 1.3.3: Add an elimination transition and compact spectator target card with previous/next controls.
 

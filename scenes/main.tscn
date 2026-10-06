@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://game/gameplay_audio_controller.gd" id="12_audio"]
 [ext_resource type="Script" path="res://game/ui/gameplay_hud.gd" id="13_hud"]
 [ext_resource type="Script" path="res://game/ui/disaster_icon.gd" id="14_icon"]
+[ext_resource type="Script" path="res://game/ui/lobby_roster.gd" id="15_roster"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -349,7 +350,7 @@ visible = false
 offset_left = 24.0
 offset_top = 150.0
 offset_right = 404.0
-offset_bottom = 522.0
+offset_bottom = 696.0
 
 [node name="Title" type="Label" parent="Interface/LobbyPanel"]
 offset_left = 20.0
@@ -405,20 +406,25 @@ offset_right = 360.0
 offset_bottom = 196.0
 text = "START MATCH"
 
-[node name="PlayerList" type="Label" parent="Interface/LobbyPanel"]
+[node name="RosterTitle" type="Label" parent="Interface/LobbyPanel"]
 offset_left = 20.0
 offset_top = 208.0
 offset_right = 360.0
-offset_bottom = 318.0
-theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 16
+offset_bottom = 230.0
 text = "PLAYERS"
+
+[node name="PlayerList" type="ScrollContainer" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 238.0
+offset_right = 360.0
+offset_bottom = 488.0
+script = ExtResource("15_roster")
 
 [node name="Status" type="Label" parent="Interface/LobbyPanel"]
 offset_left = 20.0
-offset_top = 326.0
+offset_top = 500.0
 offset_right = 360.0
-offset_bottom = 354.0
+offset_bottom = 528.0
 text = "Create or join a LAN lobby"
 horizontal_alignment = 1
 

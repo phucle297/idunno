@@ -136,6 +136,11 @@ static func _set_panel_theme(theme: Theme) -> void:
 	_set_content_margin(metric_card, SPACE_LG, SPACE_SM)
 	theme.set_stylebox("panel", "HudMetricCard", metric_card)
 
+	theme.set_type_variation("LobbyPlayerRow", "PanelContainer")
+	var player_row := _control_style(Color(WHITE, 0.92), SAND, 1)
+	_set_content_margin(player_row, SPACE_MD, SPACE_XS)
+	theme.set_stylebox("panel", "LobbyPlayerRow", player_row)
+
 	theme.set_type_variation("HudPill", "PanelContainer")
 	var pill := _control_style(Color(CREAM, 0.96), SLATE, 3)
 	theme.set_stylebox("panel", "HudPill", pill)

@@ -890,15 +890,7 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
 	panel.get_node("Start").visible = ((_network_mode and multiplayer.is_server()) or lobby_demo) and in_lobby
 	panel.get_node("Start").disabled = not match_manager.can_start_match() or match_manager.players.size() < 2
-	var lines: Array[String] = ["PLAYERS"]
-	var peer_ids: Array[int] = []
-	for peer_id: int in match_manager.players:
-		peer_ids.append(peer_id)
-	peer_ids.sort()
-	for peer_id: int in peer_ids:
-		var player: Dictionary = match_manager.players[peer_id]
-		lines.append("%s  %s" % ["READY" if bool(player.ready) else "WAIT", String(player.name)])
-	panel.get_node("PlayerList").text = "\n".join(lines)
+	panel.get_node("PlayerList").present_players(match_manager.players, multiplayer.get_unique_id() if _network_mode else 1)
 	if _network_mode and in_lobby:
 		var local_peer_id := multiplayer.get_unique_id()
 		panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY"

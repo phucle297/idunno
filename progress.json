@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T20:17:39+07:00",
+  "updated_at": "2026-10-06T20:28:28+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_3_lobby_and_spectator",
-    "task": "task_1_3_1_structured_player_rows"
+    "task": "task_1_3_2_connection_status_focus_and_hud_suppression"
   },
   "engine": {
     "name": "Godot",
@@ -86,14 +86,14 @@
       },
       "milestone_1_3_lobby_and_spectator": {
         "title": "Lobby and Spectator Presentation",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
-          "task_1_3_1_structured_player_rows": "planned",
+          "task_1_3_1_structured_player_rows": "completed",
           "task_1_3_2_connection_status_focus_and_hud_suppression": "planned",
           "task_1_3_3_elimination_and_spectator_card": "planned"
         },
         "gates": {
-          "scrollable_20_player_roster": "not_run",
+          "scrollable_20_player_roster": "passed",
           "unambiguous_ready_and_host_start": "not_run",
           "keyboard_and_controller_focus": "not_run",
           "presentation_only_state": "not_run"
@@ -201,6 +201,11 @@
       "result": "passed",
       "check": "Milestone 1.2 electrical danger review remediation and combined regression",
       "evidence": "PLAYER_INTEGRATION_OK checks=65 independently verifies actual electrical HP loss/rate during shallow wading, breathing grace and drowning (25/25/37 HP/s), primary LEAVE THE WATER instruction, electrical expiry to each ordinary Flood state and dry-ground clearing. GAMEPLAY_HUD_OK checks=97 headless and checks=193 display-backed each at 1280x720/1920x1080 with --audio-driver Dummy -- --capture-dir=.amp/in/artifacts. Inspected personal-electric-1280x720 and personal-electric-drowning-1920x1080: correct 25/37 HP/s, one LEAVE THE WATER instruction, readable paired combination identity, no clipping/player obstruction. FLOOD_OK checks=29, DISASTER_COMBINATIONS_OK checks=20, PHASE7_POLISH_OK checks=34, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches/disconnect cleanup; tests/run_playable_scale_test.sh passed local 4/8/20-peer matrix. Restored all Milestone 1.2 gates to passed and resumed Milestone 1.3. Existing successful-exit resource diagnostics in older suites persist; lifecycle regression exited cleanly. WSL llvmpipe/Dummy audio and local ENet checks do not establish native Windows performance or multi-PC playtesting."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.1 structured lobby player rows",
+      "evidence": "godot --headless --path . --script res://tests/test_lobby_roster.gd: LOBBY_ROSTER_OK checks=122. Covers numeric ordering, distinct remote host/local client markers, combined local-host markers, asymmetric readiness, name updates, row reuse, disconnect/empty cleanup, long-name containment, four fully visible rows, twenty rows with vertical scrolling and fully reachable player 20, and unchanged authoritative snapshots. xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_lobby_roster.gd -- --capture-dir=.amp/in/artifacts: checks=125 each. Inspected revised four-client 720p, twenty-top 1080p and twenty-bottom 720p captures: readable markers/badges, long-name ellipsis, contained footer, final local player visible. Initial four-row render clipped its fourth row; reduced row padding and increased roster height, added full-row containment assertions and reran. UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=78, PHASE1_TESTS_OK checks=31 and SESSION_LIFECYCLE_OK checks=46 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches/disconnect cleanup. Phase1 suite retains existing successful-exit resource warnings; roster/lifecycle suites exit cleanly. Renders use Linux orb Xvfb/llvmpipe and Dummy audio, not Windows performance evidence. Backdrop/HUD suppression and controller focus remain Task 1.3.2; no milestone-wide authority/focus gate claimed yet."
     }
   ],
   "blockers": [],
@@ -214,6 +219,8 @@
     "game/main.gd",
     "game/ui/disaster_icon.gd",
     "game/ui/gameplay_hud.gd",
+    "game/ui/lobby_roster.gd",
+    "game/ui/lobby_roster.gd.uid",
     "game/ui/ui_tokens.gd",
     "progress.json",
     "scenes/main.tscn",
@@ -221,6 +228,7 @@
     "tests/playable_scene_network_peer.gd",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
+    "tests/test_lobby_roster.gd",
     "tests/test_milestone_1_1.gd",
     "tests/test_phase1.gd",
     "tests/test_phase7_polish.gd",
@@ -228,5 +236,5 @@
     "tests/test_session_lifecycle.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.3.1 by replacing the multiline lobby roster with structured player rows, host/local markers, and ready/waiting badges, including a scrollable 20-player roster check."
+  "next_action": "Implement Phase 1 Task 1.3.2: labeled connection fields and inline status/errors, authority-aware ready/start gating, keyboard/controller focus, backdrop dimming, and gameplay-HUD suppression while the lobby is open."
 }
