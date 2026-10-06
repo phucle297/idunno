@@ -1056,45 +1056,13 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		"NO SURVIVORS" if winner_names.is_empty()
 		else ("%s WINS!" % winner_names[0].to_upper() if winner_names.size() == 1 else "SHARED WINNERS — %s" % ", ".join(winner_names))
 	)
-	var ranked_ids: Array[int] = []
-	for peer_id: int in match_manager.players:
-		ranked_ids.append(peer_id)
-	ranked_ids.sort_custom(func(first: int, second: int) -> bool:
-		var first_player: Dictionary = match_manager.players[first]
-		var second_player: Dictionary = match_manager.players[second]
-		if bool(first_player.alive) != bool(second_player.alive):
-			return bool(first_player.alive)
-		if not is_equal_approx(float(first_player.elimination_time), float(second_player.elimination_time)):
-			return float(first_player.elimination_time) > float(second_player.elimination_time)
-		if int(first_player.disasters_survived) != int(second_player.disasters_survived):
-			return int(first_player.disasters_survived) > int(second_player.disasters_survived)
-		return float(first_player.damage_taken) < float(second_player.damage_taken)
-	)
-	var lines: Array[String] = []
-	for index: int in ranked_ids.size():
-		var peer_id := ranked_ids[index]
-		var player: Dictionary = match_manager.players[peer_id]
-		var survival_time: float = match_manager.elapsed_time if bool(player.alive) else maxf(float(player.elimination_time), 0.0)
-		var minutes := int(survival_time) / 60
-		var seconds := int(survival_time) % 60
-		var outcome := "SURVIVED" if bool(player.alive) else String(player.cause_of_death)
-		var winner_marker := "★" if peer_id in winner_ids else " "
-		lines.append("%s %2d. %-18s  %02d:%02d  •  %d disasters  •  %d damage  •  %s" % [
-			winner_marker,
-			index + 1,
-			String(player.name),
-			minutes,
-			seconds,
-			int(player.disasters_survived),
-			int(player.damage_taken),
-			outcome,
-		])
-	$Interface/ResultsPanel/Summary.text = "\n".join(lines)
+	$Interface/ResultsPanel/Table.present_results(match_manager.players, winner_ids, match_manager.elapsed_time)
 	$Interface/ResultsPanel/Prompt.text = (
 		"PRESS ENTER TO REMATCH" if not _network_mode or multiplayer.is_server()
 		else "WAITING FOR HOST TO START REMATCH"
 	)
 	$Interface/ResultsPanel.visible = true
+	$Interface/ResultsPanel/Table.scroll.grab_focus()
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:

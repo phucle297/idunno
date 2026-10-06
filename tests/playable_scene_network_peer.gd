@@ -175,7 +175,7 @@ func _run_server(main: Node) -> void:
 		and manager.get_alive_count() == 1
 		and manager.state == MatchManager.MatchState.RESULTS
 		and (main.get_node("Interface/ResultsPanel") as Panel).visible
-		and "Network test" in (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+		and main.get_node("Interface/ResultsPanel/Table").rows[client_id].get_node("Outcome").text == "Network test"
 	)
 	var rematch_passed := true
 	for rematch_index: int in 5:
@@ -369,7 +369,7 @@ func _run_client(main: Node) -> void:
 		and main.gameplay_hud.get_presented_health() == 0
 		and main.gameplay_hud.get_presented_alive_counts() == Vector2i(1, 2)
 		and (main.get_node("Interface/ResultsPanel") as Panel).visible
-		and "Network test" in (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+		and main.get_node("Interface/ResultsPanel/Table").rows[local_id].get_node("Outcome").text == "Network test"
 		and (main.get_node("Interface/ResultsPanel/Prompt") as Label).text == "WAITING FOR HOST TO START REMATCH"
 	)
 	var rematch_passed := true
@@ -389,14 +389,14 @@ func _run_client(main: Node) -> void:
 		while manager.state != MatchManager.MatchState.RESULTS and Time.get_ticks_msec() < deadline:
 			await process_frame
 		await process_frame
-		var rematch_summary := (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+		var rematch_outcome: String = main.get_node("Interface/ResultsPanel/Table").rows[local_id].get_node("Outcome").text
 		rematch_passed = (
 			rematch_passed
 			and manager.state == MatchManager.MatchState.RESULTS
 			and not local_player.visual.visible
 			and main.spectator_controller.active
 			and (main.get_node("Interface/ResultsPanel") as Panel).visible
-			and "Network rematch %d" % (rematch_index + 1) in rematch_summary
+			and rematch_outcome == "Network rematch %d" % (rematch_index + 1)
 		)
 	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
 	if passed:

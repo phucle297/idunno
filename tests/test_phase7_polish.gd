@@ -56,11 +56,11 @@ func _run() -> void:
 	_expect(manager.apply_damage(1, 100.0, "Phase 7 Test"), "Lethal result setup must apply")
 	await process_frame
 	var results_panel := main.get_node("Interface/ResultsPanel") as Panel
-	var summary := (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+	var row: HBoxContainer = main.get_node("Interface/ResultsPanel/Table").rows[1]
 	_expect(results_panel.visible, "Results panel must become visible when the match finishes")
-	_expect("Local Player" in summary, "Results must identify the player")
-	_expect("Phase 7 Test" in summary, "Results must show cause of death")
-	_expect("100 damage" in summary and "00:00" in summary, "Results must show damage and survival duration")
+	_expect(row.get_node("Name").text == "Local Player", "Results must identify the player")
+	_expect(row.get_node("Outcome").text == "Phase 7 Test", "Results must show cause of death")
+	_expect(row.get_node("Damage").text == "100" and row.get_node("Time").text == "00:00", "Results must show damage and survival duration")
 	_expect((main.get_node("Interface/ResultsPanel/Prompt") as Label).text == "PRESS ENTER TO REMATCH", "Offline results must explain rematch input")
 	_expect(main.restart_local_match(), "Offline rematch must restart from complete results")
 	await process_frame

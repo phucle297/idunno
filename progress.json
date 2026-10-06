@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T14:15:55+00:00",
+  "updated_at": "2026-10-06T15:53:14+00:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_4_structured_results",
-    "task": "task_1_4_1_ranking_rows_and_columns"
+    "task": "task_1_4_2_winner_reveal_and_one_existing_data_award"
   },
   "engine": {
     "name": "Godot",
@@ -101,17 +101,17 @@
       },
       "milestone_1_4_structured_results": {
         "title": "Structured Results",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
-          "task_1_4_1_ranking_rows_and_columns": "planned",
+          "task_1_4_1_ranking_rows_and_columns": "completed",
           "task_1_4_2_winner_reveal_and_one_existing_data_award": "planned",
           "task_1_4_3_authority_aware_results_actions": "planned"
         },
         "gates": {
-          "legible_4_and_20_player_results": "not_run",
+          "legible_4_and_20_player_results": "passed",
           "identical_authoritative_rankings": "not_run",
-          "five_network_rematches": "not_run",
-          "gameplay_hud_hidden": "not_run"
+          "five_network_rematches": "passed",
+          "gameplay_hud_hidden": "failed"
         }
       },
       "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
@@ -231,6 +231,21 @@
       "result": "passed",
       "check": "User-requested full Milestone 1.3 re-verification and completion",
       "evidence": "Fresh godot --headless --path . --script res://tests/test_{suite}.gd runs: LOBBY_ROSTER_OK=124, LOBBY_PRESENTATION_OK=35, SPECTATOR_PRESENTATION_OK=29, SESSION_LIFECYCLE_OK=52, GAMEPLAY_HUD_OK=97, UI_THEME_OK=18, MILESTONE_1_1_OK=79, PHASE1_TESTS_OK=31, PLAYER_INTEGRATION_OK=65, REMATCH_INTEGRATION_OK cycles=5 checks=165 and PHASE7_POLISH_OK=34. Fresh xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_{suite}.gd -- --capture-dir=.amp/in/artifacts: roster=127, lobby=39, spectator=79, lifecycle=54 at each resolution. Inspected fresh four-client 1080p, scrolled player20 720p, host-ready 1080p, Joining 720p, failed-retry 1080p, elimination 720p, long-name 1080p, dark warning/hazard overlap 1080p and one/zero-target fallbacks: explicit markers/readiness/focus, unobscured gameplay target, contained ellipsis/controls and suppressed own HP. Functional disabled/input behavior is asserted separately, not inferred from images. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: NETWORK_HOST_LOBBY_OK, NETWORK_CLIENT_LOBBY_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK with five rematches/disconnect cleanup. After roster barrier correction, tests/run_playable_scale_test.sh: PLAYABLE_SCALE_MATRIX_OK players=4,8,20 and NETWORK_SPECTATOR_SCALE_OK at every count, verifying actual eliminated-client UI/cycling and immutable snapshots, living-client HP and authority. Final network logs contain no ERROR/SCRIPT ERROR. Older HUD/phase1/rematch/polish and one rendered spectator run still emit successful-exit resource diagnostics; Xvfb reports unsupported V-Sync. Linux llvmpipe/Dummy audio and synthetic joypad events do not establish native Windows performance, physical controller/audio or multi-PC playtesting. All four milestone gates passed; Milestone 1.4 is recorded only as the next action, not implemented."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.1 reusable ranking rows and explicit columns",
+      "evidence": "TDD: test_results_table.gd first exited 1 because the structured Table was absent, then passed RESULTS_TABLE_OK checks=431 headless and checks=434 each at 1280x720/1920x1080 using godot --path . --audio-driver Dummy --resolution {size} --script res://tests/test_results_table.gd -- --capture-dir=.amp/in/artifacts. Checks distinguish survivor/time/disaster/damage ranking, numeric-ID exact ties across insertion orders, fractional time flooring, integer damage, supplied-record immutability, row reuse/removal, long-text containment, header alignment, four-row fit, twenty-row scrolling, controller down and fully reachable final row. Inspected corrected results-four-1280x720, results-twenty-bottom-1280x720 and results-twenty-top-1920x1080 captures: aligned readable columns, contained ellipsis, fixed headings and unobstructed footer. Initial fixture displayed an ACTIVE HUD beneath results; corrected to execute actual completion before presentation fixtures. PHASE7_POLISH_OK=34, UI_THEME_OK=18, GAMEPLAY_HUD_OK=97, MILESTONE_1_1_OK=79, REMATCH_INTEGRATION_OK cycles=5 checks=165 and SPECTATOR_PRESENTATION_OK=29 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five real ENet rematches and disconnect cleanup with exact outcome-cell assertions; final network logs contain no ERROR/SCRIPT ERROR. Some headless suites retain successful-exit resource diagnostics; verbose new-suite inspection identified only death/victory WAV/playback resources, not UI nodes. Rendered final runs exited without resource diagnostics. WSL llvmpipe/Dummy audio and synthetic joypad input do not establish native Windows performance or physical input/audio. Full cross-peer ranking matrix remains a milestone gate; winner reveal/actions are not implemented."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.1 final tooltip accessibility check",
+      "evidence": "Added mouse-accessible full-text tooltip assertions; they failed because Godot Labels default to MOUSE_FILTER_IGNORE. Name/outcome cells now use MOUSE_FILTER_PASS without blocking scroll propagation. Final test_results_table.gd passed checks=433 headless and checks=436 each rendered at 1280x720/1920x1080; final renders retained only unsupported V-Sync warnings, headless retained known death/victory audio shutdown diagnostics. jq empty progress.json and git diff --check passed."
+    },
+    {
+      "result": "failed",
+      "check": "Milestone 1.4 results HUD suppression remains incomplete",
+      "evidence": "Corrected actual-RESULTS-state 720p capture and game/ui/gameplay_hud.gd inspection confirm the timer/context prompt clear but HEALTH and SURVIVORS remain visible outside the panel. Recorded failed gameplay_hud_hidden gate for remaining results-overlay work in Task 1.4.3; no unrelated HUD behavior changed in the ranking-row task."
     }
   ],
   "blockers": [],
@@ -248,6 +263,7 @@
     "game/ui/gameplay_hud.gd",
     "game/ui/lobby_roster.gd",
     "game/ui/lobby_roster.gd.uid",
+    "game/ui/results_table.gd",
     "game/ui/ui_tokens.gd",
     "progress.json",
     "project.godot",
@@ -263,9 +279,10 @@
     "tests/test_phase1.gd",
     "tests/test_phase7_polish.gd",
     "tests/test_player_integration.gd",
+    "tests/test_results_table.gd",
     "tests/test_session_lifecycle.gd",
     "tests/test_spectator_presentation.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Task 1.4.1 reusable ranking rows and explicit result columns, preserving authoritative ranking data."
+  "next_action": "Implement Task 1.4.2 winner emphasis, reduced-motion-aware bounded row reveal, and one award derived only from existing authoritative result data."
 }

@@ -82,11 +82,13 @@ Milestone 1.3 complete and freshly reverified: headless behavior/regression suit
 
 ### Milestone 1.4 — Structured results
 
-- [ ] Task 1.4.1: Replace the space-aligned summary string with reusable ranking rows and explicit columns.
+- [x] Task 1.4.1: Reusable ranking rows with explicit rank/player/time/disasters/damage/outcome columns, long-text ellipsis/tooltips and scrollable twenty-player results; headless, inspected 720p/1080p and five ENet rematches pass.
 - [ ] Task 1.4.2: Add winner emphasis, restrained row reveal, and one optional award derived from existing result data.
 - [ ] Task 1.4.3: Present host Rematch and client waiting states clearly; add Return to Lobby and Settings only where authority allows them.
 
 Acceptance: 4- and 20-player results remain legible; all peers show identical authoritative rankings; five network rematches remain green; gameplay HUD is hidden beneath results.
+
+Remaining overlay gate: actual results still show health/survivor cards outside the panel; suppress them during Task 1.4.3 and reverify lifecycle restoration. Full cross-peer ranking coverage remains for milestone verification.
 
 ### Milestone 1.5 — Pause, settings, accessibility, and UI audio
 

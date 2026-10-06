@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://game/ui/gameplay_hud.gd" id="13_hud"]
 [ext_resource type="Script" path="res://game/ui/disaster_icon.gd" id="14_icon"]
 [ext_resource type="Script" path="res://game/ui/lobby_roster.gd" id="15_roster"]
+[ext_resource type="Script" path="res://game/ui/results_table.gd" id="16_results"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -528,15 +529,12 @@ theme_override_font_sizes/font_size = 30
 text = "MATCH RESULTS"
 horizontal_alignment = 1
 
-[node name="Summary" type="Label" parent="Interface/ResultsPanel"]
+[node name="Table" type="VBoxContainer" parent="Interface/ResultsPanel"]
 offset_left = 34.0
 offset_top = 76.0
 offset_right = 766.0
 offset_bottom = 506.0
-theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
-theme_override_font_sizes/font_size = 16
-text = "Results"
-vertical_alignment = 1
+script = ExtResource("16_results")
 
 [node name="Prompt" type="Label" parent="Interface/ResultsPanel"]
 offset_left = 32.0
