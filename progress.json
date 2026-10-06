@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T17:42:24+07:00",
+  "updated_at": "2026-10-06T18:02:23+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_1_theme_hud_and_components",
-    "task": "task_1_1_1_define_ui_tokens"
+    "task": "task_1_1_2_extract_semantic_hud_components"
   },
   "engine": {
     "name": "Godot",
@@ -54,15 +54,15 @@
     "milestones": {
       "milestone_1_1_theme_hud_and_components": {
         "title": "Theme, Responsive HUD, and Component Boundary",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
-          "task_1_1_1_define_ui_tokens": "planned",
+          "task_1_1_1_define_ui_tokens": "completed",
           "task_1_1_2_extract_semantic_hud_components": "planned",
           "task_1_1_3_build_health_timer_alive_and_hazard_components": "planned",
           "task_1_1_4_remove_permanent_debug_copy": "planned"
         },
         "gates": {
-          "shared_theme": "not_run",
+          "shared_theme": "passed",
           "responsive_1280x720_and_1920x1080": "not_run",
           "light_and_dark_world_readability": "not_run",
           "no_authority_regression": "not_run"
@@ -141,8 +141,23 @@
       }
     }
   },
-  "validation_log": [],
+  "validation_log": [
+    {
+      "result": "passed",
+      "check": "Task 1.1.1 shared Toy Broadcast UI tokens and theme",
+      "evidence": "UI_THEME_OK checks=15 validated design-bible colors, typography, spacing, 24 px safe margin, rounded panel/button/field styles, visible focus treatment, shared theme inheritance, and automatic lobby focus. PHASE1_TESTS_OK checks=29 and PLAYER_INTEGRATION_OK checks=41 passed. PHASE7_POLISH_OK checks=31 passed; its existing dummy-audio shutdown emitted AudioStreamWAV/playback leak diagnostics unrelated to the UI resources. Rendered 1280x720 captures phase1-ui-theme-lobby-v3.png and phase1-ui-theme-results.png were inspected: shared cream/slate styling, amber field focus, readable disabled state, neutral lobby status, four-player results, and no clipping or overlap passed."
+    }
+  ],
   "blockers": [],
-  "changed_files": [],
-  "next_action": "Implement Phase 1 Task 1.1.1 by defining the reusable Toy Broadcast UI color, typography, spacing, focus, panel, button, and safe-margin tokens from DESIGN.md."
+  "changed_files": [
+    "README.md",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "game/main.gd",
+    "game/ui/ui_tokens.gd",
+    "progress.json",
+    "scenes/main.tscn",
+    "tests/test_ui_theme.gd"
+  ],
+  "next_action": "Implement Phase 1 Task 1.1.2 by extracting semantic HUD presentation methods from raw label mutation in game/main.gd without changing authoritative gameplay state."
 }

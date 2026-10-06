@@ -36,6 +36,7 @@ godot --headless --path . --script res://tests/test_fire.gd
 godot --headless --path . --script res://tests/test_disaster_combinations.gd
 godot --headless --path . --script res://tests/test_disaster_director.gd
 godot --headless --path . --script res://tests/test_phase7_polish.gd
+godot --headless --path . --script res://tests/test_ui_theme.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh

@@ -142,3 +142,9 @@
 - **Decision:** Root `progress.json` contains only the active phase. Once a phase passes all required gates, its complete state and evidence move to `docs/old-docs/progress-{phase-slug}.json`, and a fresh root file starts the next phase.
 - **Reason:** Separating immutable completed evidence from current execution state keeps handoffs concise without losing validation history.
 - **Safety:** Phase archives are append-only and must never be overwritten. The new active file links to the previous archive and starts with no inherited validation claims or changed-file diary.
+
+## 2026-10-06 — Phase 1 UI token ownership
+
+- **Decision:** `game/ui/ui_tokens.gd` is the single code-owned source for Toy Broadcast colors, typography, spacing, safe margins, radii, focus width, and shared Godot control styles. `main.gd` applies one generated `Theme` resource to the current top-level interface controls until later tasks extract dedicated HUD scenes.
+- **Reason:** The existing UI mixed engine-default controls, scene-local panel styling, and per-label overrides. Central tokens create a stable visual contract without coupling presentation to authoritative match state or prematurely restructuring every screen.
+- **Accessibility:** Keyboard focus uses a three-pixel warning-amber ring, disabled controls retain readable ink text, and neutral lobby status does not use the danger color.

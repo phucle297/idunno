@@ -50,7 +50,7 @@ Goal: replace the functional prototype-label UI with a cohesive **Toy Broadcast*
 
 ### Milestone 1.1 — Theme, responsive HUD, and component boundary
 
-- [ ] Task 1.1.1: Define reusable color, typography, spacing, focus, panel, button, and safe-margin tokens from `DESIGN.md`.
+- [x] Task 1.1.1: Define reusable color, typography, spacing, focus, panel, button, and safe-margin tokens from `DESIGN.md`.
 - [ ] Task 1.1.2: Extract UI presentation from raw label mutation in `game/main.gd` into semantic HUD components.
 - [ ] Task 1.1.3: Replace floating labels with a health display, timer card, alive-count pill, and maximum-two active-hazard tray.
 - [ ] Task 1.1.4: Remove the permanent sandbox title/control legend and show only contextual control prompts.

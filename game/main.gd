@@ -10,6 +10,7 @@ const PALETTE := {
 	"amber": Color("ffbf3f"),
 	"orange": Color("f06438")
 }
+const UITokens = preload("res://game/ui/ui_tokens.gd")
 const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
 const DEFAULT_NETWORK_PORT := 29730
@@ -36,9 +37,11 @@ var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
 var _match_snapshot_remaining := 0.0
 var _prop_snapshot_remaining := 0.0
+var _ui_theme: Theme
 
 
 func _ready() -> void:
+	_configure_ui_theme()
 	_build_lighting()
 	_build_sandbox()
 	$Player.position = Vector3(0.0, 0.05, 7.0)
@@ -205,6 +208,14 @@ func _ready() -> void:
 			capture_after_meteor_impact(capture_path)
 		else:
 			capture_after_frames(capture_path, 5)
+
+
+func _configure_ui_theme() -> void:
+	_ui_theme = UITokens.build_theme()
+	for child in $Interface.get_children():
+		var control := child as Control
+		if control != null:
+			control.theme = _ui_theme
 
 
 func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_PLAYERS) -> Error:
@@ -767,6 +778,8 @@ func _configure_lobby_ui() -> void:
 func _set_lobby_visible(visible: bool) -> void:
 	$Interface/LobbyPanel.visible = visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
+	if visible:
+		$Interface/LobbyPanel/Address.call_deferred("grab_focus")
 
 
 func _on_lobby_host_pressed() -> void:
