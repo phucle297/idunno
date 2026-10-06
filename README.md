@@ -34,6 +34,7 @@ godot --headless --path . --script res://tests/test_lightning.gd
 godot --headless --path . --script res://tests/test_fire.gd
 godot --headless --path . --script res://tests/test_disaster_combinations.gd
 godot --headless --path . --script res://tests/test_disaster_director.gd
+godot --headless --path . --script res://tests/test_phase7_polish.gd
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh
@@ -41,6 +42,9 @@ GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh
 GODOT_BIN=/path/to/godot tests/run_playable_scale_test.sh
 # Load the real playable scene as one host and one client, including disconnect cleanup.
 GODOT_BIN=/path/to/godot tests/run_playable_scene_network_test.sh
+
+# Regenerate the deterministic synthesized gameplay audio.
+godot --headless --path . --script res://tools/audio_generation/generate_audio.gd
 
 # Profile a rendered four-player Flood + Tornado overlap (requires an X display).
 godot --path . --rendering-method gl_compatibility --max-fps 60 \

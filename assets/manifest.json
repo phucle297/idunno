@@ -86,6 +86,22 @@
       "provenance": "Deterministically generated in Godot; no third-party geometry",
       "sha256": "523ae2f2d4643632cf03c31c14e4835c452ceede383ca9203ad315e13e4d69bc",
       "validation_status": "reference_dimensions_and_visual_passed"
+    },
+    {
+      "asset_id": "AUD_GameplaySynth_v001",
+      "category": "audio_bundle",
+      "source_path": "tools/audio_generation/generate_audio.gd",
+      "export_path": "assets/audio/generated/",
+      "generator_script": "tools/audio_generation/generate_audio.gd",
+      "seed": 297,
+      "generator_version": "1",
+      "sample_rate_hz": 22050,
+      "channels": 1,
+      "bit_depth": 16,
+      "files": ["warning.wav", "impact.wav", "jump.wav", "death.wav", "victory.wav", "flood_warning.wav", "meteor_warning.wav", "tornado_warning.wav"],
+      "provenance": "Deterministically synthesized PCM in Godot; no third-party audio",
+      "sha256_manifest": "4406ef7d5bc7dd742d1a7a70a612fa0defa75b5edc958c574573d979fdfc01bc",
+      "validation_status": "all_eight_wav_files_imported; duration_and_reserved_warning_voice_overlap_checks_passed"
     }
   ]
 }

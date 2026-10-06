@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -11,6 +11,19 @@
 [ext_resource type="Script" path="res://game/earthquake.gd" id="9_earthquake"]
 [ext_resource type="Script" path="res://game/lightning.gd" id="10_lightning"]
 [ext_resource type="Script" path="res://game/fire.gd" id="11_fire"]
+[ext_resource type="Script" path="res://game/gameplay_audio_controller.gd" id="12_audio"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_results"]
+bg_color = Color(0.956863, 0.901961, 0.784314, 0.96)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.286275, 0.337255, 0.415686, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -52,6 +65,9 @@ script = ExtResource("10_lightning")
 
 [node name="Fire" type="Node3D" parent="."]
 script = ExtResource("11_fire")
+
+[node name="GameplayAudio" type="Node" parent="."]
+script = ExtResource("12_audio")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 
@@ -136,4 +152,42 @@ offset_bottom = 690.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 20
 text = "SPECTATING"
+horizontal_alignment = 1
+
+[node name="ResultsPanel" type="Panel" parent="Interface"]
+visible = false
+offset_left = 240.0
+offset_top = 92.0
+offset_right = 1040.0
+offset_bottom = 660.0
+theme_override_styles/panel = SubResource("StyleBox_results")
+
+[node name="Title" type="Label" parent="Interface/ResultsPanel"]
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 768.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
+theme_override_font_sizes/font_size = 30
+text = "MATCH RESULTS"
+horizontal_alignment = 1
+
+[node name="Summary" type="Label" parent="Interface/ResultsPanel"]
+offset_left = 34.0
+offset_top = 76.0
+offset_right = 766.0
+offset_bottom = 506.0
+theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
+theme_override_font_sizes/font_size = 16
+text = "Results"
+vertical_alignment = 1
+
+[node name="Prompt" type="Label" parent="Interface/ResultsPanel"]
+offset_left = 32.0
+offset_top = 518.0
+offset_right = 768.0
+offset_bottom = 552.0
+theme_override_colors/font_color = Color(0.286275, 0.337255, 0.415686, 1)
+theme_override_font_sizes/font_size = 17
+text = "PRESS ENTER TO REMATCH"
 horizontal_alignment = 1

@@ -25,6 +25,7 @@ const MATCH_SNAPSHOT_INTERVAL := 0.1
 @onready var earthquake: Earthquake = $Earthquake
 @onready var lightning: Lightning = $Lightning
 @onready var fire: Fire = $Fire
+@onready var gameplay_audio: GameplayAudioController = $GameplayAudio
 
 var spectator_controller: Node
 var _player_nodes: Dictionary = {}
@@ -43,6 +44,8 @@ func _ready() -> void:
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)
 	match_manager.player_eliminated.connect(_on_player_eliminated)
+	match_manager.match_finished.connect(_on_match_finished)
+	match_manager.state_changed.connect(_on_match_state_changed)
 	meteor_shower.configure(match_manager)
 	flood.configure(match_manager)
 	tornado.configure(match_manager)
@@ -62,6 +65,14 @@ func _ready() -> void:
 	disaster_director.register_disaster(earthquake)
 	disaster_director.register_disaster(lightning)
 	disaster_director.register_disaster(fire)
+	gameplay_audio.configure(match_manager, {
+		"meteor": meteor_shower,
+		"flood": flood,
+		"tornado": tornado,
+		"earthquake": earthquake,
+		"lightning": lightning,
+		"fire": fire,
+	})
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
 		if network_error != OK:
@@ -72,7 +83,7 @@ func _ready() -> void:
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
-	if _has_argument("--four-player-demo"):
+	if _has_argument("--four-player-demo") or _has_argument("--results-demo"):
 		_add_gameplay_demo_player(2, "Teal Player", Vector3(-5.0, 1.65, -3.0))
 		_add_gameplay_demo_player(3, "Coral Player", Vector3(4.0, 2.35, -5.0))
 		_add_gameplay_demo_player(4, "Amber Player", Vector3(10.0, 2.35, -5.0))
@@ -85,6 +96,15 @@ func _ready() -> void:
 		match_manager.apply_damage(1, 100.0, "Meteor")
 	if _has_argument("--knockdown"):
 		$Player.apply_knockdown(Vector3(4.0, 1.5, -1.0))
+	if _has_argument("--results-demo"):
+		match_manager.record_disaster_survived()
+		match_manager.record_disaster_survived()
+		match_manager.tick_match(125.0)
+		match_manager.apply_damage(2, 100.0, "Fire")
+		match_manager.tick_match(30.0)
+		match_manager.apply_damage(3, 100.0, "Flood")
+		match_manager.tick_match(25.0)
+		match_manager.apply_damage(4, 100.0, "Meteor")
 	if _has_argument("--grab-demo"):
 		$GrabManager.request_nearest_grab(1)
 	if _has_argument("--meteor-demo") or _has_argument("--meteor-impact-demo"):
@@ -324,6 +344,8 @@ func _physics_process(delta: float) -> void:
 		var sprinting := Input.is_action_pressed("sprint")
 		var crouched := Input.is_action_pressed("crouch")
 		var jump_pressed := Input.is_action_just_pressed("jump")
+		if jump_pressed:
+			gameplay_audio.play_jump()
 		if multiplayer.is_server():
 			_store_movement_input(local_peer_id, input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw(), _local_movement_sequence)
 		else:
@@ -447,6 +469,8 @@ func _network_spawn_position(index: int) -> Vector3:
 
 func _process(delta: float) -> void:
 	match_manager.tick_match(delta)
+	if not _network_mode and Input.is_action_just_pressed("jump"):
+		gameplay_audio.play_jump()
 	if _network_mode and multiplayer.is_server():
 		_match_snapshot_remaining -= delta
 		if _match_snapshot_remaining <= 0.0:
@@ -458,6 +482,8 @@ func _process(delta: float) -> void:
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
 	$Interface/State.text = _match_state_text()
+	$Interface/Timer.visible = match_manager.state != MatchManager.MatchState.RESULTS
+	$Interface/State.visible = match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/Help.visible = match_manager.state == 1 and not spectator_controller.active
 	var disaster_lines := _active_disaster_lines()
 	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
@@ -504,6 +530,8 @@ func _match_state_text() -> String:
 		return "SURVIVE"
 	if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode:
 		return "ENTER TO START" if multiplayer.is_server() else "WAITING FOR HOST"
+	if match_manager.state == MatchManager.MatchState.RESULTS and _network_mode and not multiplayer.is_server():
+		return "WAITING FOR HOST"
 	return "ENTER TO REMATCH"
 
 
@@ -559,8 +587,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept"):
 		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and multiplayer.is_server():
 			start_network_match()
-		elif match_manager.state == MatchManager.MatchState.RESULTS and not _network_mode:
-			restart_local_match()
+		elif match_manager.state == MatchManager.MatchState.RESULTS:
+			if _network_mode and multiplayer.is_server():
+				restart_network_match()
+			elif not _network_mode:
+				restart_local_match()
 	elif event.is_action_pressed("spectate_previous"):
 		spectator_controller.cycle(-1)
 	elif event.is_action_pressed("spectate_next"):
@@ -581,17 +612,104 @@ func start_network_match() -> bool:
 
 
 func restart_local_match() -> bool:
+	if _network_mode:
+		return false
+	return _restart_authoritative_match()
+
+
+func restart_network_match() -> bool:
+	if not _network_mode or not multiplayer.is_server():
+		return false
+	return _restart_authoritative_match()
+
+
+func _restart_authoritative_match() -> bool:
 	if not match_manager.reset_to_lobby():
 		return false
 	disaster_director.cleanup()
 	spectator_controller.stop()
 	$Interface/Spectating.visible = false
+	$Interface/ResultsPanel.visible = false
+	gameplay_audio.reset_for_match()
 	_reset_sandbox()
-	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
-	match_manager.set_player_ready(1, true)
+	var peer_ids: Array[int] = get_network_player_ids()
+	if not _network_mode:
+		peer_ids = [1]
+	for index: int in peer_ids.size():
+		var peer_id := peer_ids[index]
+		var player := _player_nodes.get(peer_id) as PartyPlayer
+		if not is_instance_valid(player):
+			return false
+		var spawn_position := Vector3(0.0, 0.05, 7.0) if peer_id == 1 else _network_spawn_position(index)
+		player.reset_for_match(spawn_position)
+		if not match_manager.set_player_ready(peer_id, true):
+			return false
 	if not match_manager.start_match():
 		return false
 	return disaster_director.start_directing()
+
+
+func _on_match_finished(winner_ids: Array[int]) -> void:
+	var winner_names: Array[String] = []
+	for winner_id: int in winner_ids:
+		if match_manager.players.has(winner_id):
+			winner_names.append(String(match_manager.players[winner_id].name))
+	$Interface/ResultsPanel/Title.text = (
+		"NO SURVIVORS" if winner_names.is_empty()
+		else ("%s WINS!" % winner_names[0].to_upper() if winner_names.size() == 1 else "SHARED WINNERS — %s" % ", ".join(winner_names))
+	)
+	var ranked_ids: Array[int] = []
+	for peer_id: int in match_manager.players:
+		ranked_ids.append(peer_id)
+	ranked_ids.sort_custom(func(first: int, second: int) -> bool:
+		var first_player: Dictionary = match_manager.players[first]
+		var second_player: Dictionary = match_manager.players[second]
+		if bool(first_player.alive) != bool(second_player.alive):
+			return bool(first_player.alive)
+		if not is_equal_approx(float(first_player.elimination_time), float(second_player.elimination_time)):
+			return float(first_player.elimination_time) > float(second_player.elimination_time)
+		if int(first_player.disasters_survived) != int(second_player.disasters_survived):
+			return int(first_player.disasters_survived) > int(second_player.disasters_survived)
+		return float(first_player.damage_taken) < float(second_player.damage_taken)
+	)
+	var lines: Array[String] = []
+	for index: int in ranked_ids.size():
+		var peer_id := ranked_ids[index]
+		var player: Dictionary = match_manager.players[peer_id]
+		var survival_time: float = match_manager.elapsed_time if bool(player.alive) else maxf(float(player.elimination_time), 0.0)
+		var minutes := int(survival_time) / 60
+		var seconds := int(survival_time) % 60
+		var outcome := "SURVIVED" if bool(player.alive) else String(player.cause_of_death)
+		var winner_marker := "★" if peer_id in winner_ids else " "
+		lines.append("%s %2d. %-18s  %02d:%02d  •  %d disasters  •  %d damage  •  %s" % [
+			winner_marker,
+			index + 1,
+			String(player.name),
+			minutes,
+			seconds,
+			int(player.disasters_survived),
+			int(player.damage_taken),
+			outcome,
+		])
+	$Interface/ResultsPanel/Summary.text = "\n".join(lines)
+	$Interface/ResultsPanel/Prompt.text = (
+		"PRESS ENTER TO REMATCH" if not _network_mode or multiplayer.is_server()
+		else "WAITING FOR HOST TO START REMATCH"
+	)
+	$Interface/ResultsPanel.visible = true
+
+
+func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	if state != MatchManager.MatchState.ACTIVE:
+		return
+	$Interface/ResultsPanel.visible = false
+	if not _network_mode or multiplayer.is_server():
+		return
+	spectator_controller.stop()
+	$Interface/Spectating.visible = false
+	gameplay_audio.reset_for_match()
+	for player_node: PartyPlayer in _player_nodes.values():
+		player_node.reset_for_match(player_node.global_position)
 
 
 func _on_player_eliminated(peer_id: int, _cause: String) -> void:
@@ -774,6 +892,7 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--electric-flood-demo")
 		or _has_argument("--fire-tornado-demo")
 		or _has_argument("--overlap-demo")
+		or _has_argument("--results-demo")
 	)
 
 

@@ -111,3 +111,9 @@
 - **Decision:** Replicate player movement and match state in packed, stable-order arrays instead of one dictionary per player. Movement includes position, velocity, camera yaw, and visual-facing yaw; match state includes health, alive state, damage, elimination, survival count, and result data.
 - **Reason:** The dictionary snapshots exceeded ENet's 1,392-byte MTU with only four match players and twenty movement players. Packed snapshots completed playable 4-, 8-, and 20-player sessions without MTU warnings while preserving authoritative movement, HUD, damage, disaster presentation, and remote facing.
 - **Disconnects:** Clients reconcile player nodes from the authoritative match roster. This avoids broadcasting a removal RPC through channels that are closing and keeps all gameplay registries clean after sequential disconnects.
+
+## 2026-10-06 — Phase 7 audio, results, and rematch
+
+- **Audio:** Eight mono 22.05 kHz PCM cues are deterministically synthesized from seed 297. One dedicated warning voice is separate from a four-voice round-robin effect pool, so overlapping impacts cannot take the active warning channel. WSL's dummy audio driver validates import/playback state but not physical speaker output.
+- **Results:** The replicated match snapshot already contains winner IDs, names, survival/elimination time, disasters survived, damage, and death cause. Every peer builds the same ranked cream/slate results panel locally from that authoritative data.
+- **Rematch:** Enter remains the only required action. Offline play restarts locally; in direct-IP sessions only the host can restart. The host resets lobby/match, players, spectator state, sandbox, hazards, director, results, and audio, while clients restore presentation when the replicated state returns to ACTIVE.

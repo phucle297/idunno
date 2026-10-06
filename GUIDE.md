@@ -68,6 +68,10 @@ For two processes on one development PC, join `127.0.0.1` instead.
 
 The HUD shows health at bottom-left, match time at top-center, and alive players at top-right. Large centered text names active disaster warnings.
 
+When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. The host presses **Enter** to start a rematch; clients remain connected and display **WAITING FOR HOST TO START REMATCH** until the new round begins.
+
+Warnings, impacts, jumping, death, and victory have synthesized placeholder audio. Flood, Meteor, and Tornado use distinct warning cues. Warning audio has a reserved voice so overlapping impact effects cannot silence it.
+
 ## Disaster timing
 
 - About **0:10**: the first Meteor or Flood warning can begin.
@@ -95,6 +99,7 @@ To inspect the implemented visuals immediately without waiting for normal match 
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --electric-flood-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --fire-tornado-demo
 & "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --overlap-demo
+& "C:\path\to\Godot_v4.7.2-stable_win64.exe" --path . -- --results-demo
 ```
 
 These are presentation/debug launches, not accelerated competitive matches.
@@ -104,8 +109,8 @@ These are presentation/debug launches, not accelerated competitive matches.
 - LAN and same-PC direct-IP sessions are validated. Internet play requires router/firewall UDP forwarding and is not validated.
 - The host owns match state, health, movement, disasters, and winner decisions.
 - There is no in-game lobby browser, ready button, Steam integration, or packaged Windows build.
-- Network rematch is not implemented; close and relaunch host/client processes after results.
-- Audio is not implemented in the current prototype.
+- Only the host can initiate a network rematch; individual client ready voting is not part of this prototype.
+- Audio is synthesized placeholder content rather than final authored sound design.
 
 ## Troubleshooting
 

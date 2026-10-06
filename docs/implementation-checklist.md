@@ -71,6 +71,6 @@ Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior
 ## Phase 7 — Polish
 
 - [x] Present HP, alive count, timer, active-disaster names, warnings, and baseline disaster VFX.
-- [ ] Add gameplay audio and verify warnings remain audible during overlap.
-- [ ] Add a complete winner/results screen with survival summary and network rematch flow.
-- [ ] Perform final UI/VFX/feedback tuning after Phases 4–6 are complete.
+- [x] Add deterministic synthesized gameplay audio and reserve a warning voice during capped effect overlap.
+- [x] Add a complete winner/results screen with survival summary and host-authoritative network rematch flow.
+- [x] Perform final UI/VFX/feedback tuning after Phases 4–6 are complete.

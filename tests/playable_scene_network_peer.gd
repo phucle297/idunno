@@ -1,6 +1,6 @@
 extends SceneTree
 
-const TIMEOUT_MSEC := 10000
+const TIMEOUT_MSEC := 20000
 const PlayerScene = preload("res://scenes/player.tscn")
 
 var role := ""
@@ -153,7 +153,29 @@ func _run_server(main: Node) -> void:
 		and not manager.is_player_alive(client_id)
 		and manager.get_alive_count() == 1
 		and manager.state == MatchManager.MatchState.RESULTS
+		and (main.get_node("Interface/ResultsPanel") as Panel).visible
+		and "Network test" in (main.get_node("Interface/ResultsPanel/Summary") as Label).text
 	)
+	var rematch_passed := true
+	for rematch_index: int in 5:
+		rematch_passed = rematch_passed and main.restart_network_match()
+		await create_timer(0.3).timeout
+		rematch_passed = (
+			rematch_passed
+			and manager.state == MatchManager.MatchState.ACTIVE
+			and manager.get_alive_count() == 2
+			and is_equal_approx(manager.get_health(client_id), 100.0)
+			and not (main.get_node("Interface/ResultsPanel") as Panel).visible
+			and (main.get_node("DisasterDirector") as DisasterDirector).running
+		)
+		rematch_passed = rematch_passed and manager.apply_damage(client_id, 100.0, "Network rematch %d" % (rematch_index + 1))
+		await create_timer(0.3).timeout
+		rematch_passed = (
+			rematch_passed
+			and manager.state == MatchManager.MatchState.RESULTS
+			and manager.get_alive_count() == 1
+			and (main.get_node("Interface/ResultsPanel") as Panel).visible
+		)
 	while main.get_network_player_ids().size() != 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
@@ -164,11 +186,13 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and disasters_passed and nonlethal_passed and lethal_passed and cleanup_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and disasters_passed and nonlethal_passed and lethal_passed and rematch_passed and cleanup_passed
 	if passed:
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed disaster_presentation=passed elimination=passed remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d" % client_id)
 	else:
-		push_error("Playable server validation failed spawn=%s movement=%s active=%s disasters=%s nonlethal=%s lethal=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, disasters_passed, nonlethal_passed, lethal_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s active=%s disasters=%s nonlethal=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, disasters_passed, nonlethal_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	main.free()
 	quit(0 if passed else 1)
 
 
@@ -301,13 +325,44 @@ func _run_client(main: Node) -> void:
 		and main.spectator_controller.active
 		and (main.get_node("Interface/Health") as Label).text == "HP  0"
 		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
+		and (main.get_node("Interface/ResultsPanel") as Panel).visible
+		and "Network test" in (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+		and (main.get_node("Interface/ResultsPanel/Prompt") as Label).text == "WAITING FOR HOST TO START REMATCH"
 	)
-	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed
+	var rematch_passed := true
+	for rematch_index: int in 5:
+		while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
+			await process_frame
+		await process_frame
+		rematch_passed = (
+			rematch_passed
+			and manager.state == MatchManager.MatchState.ACTIVE
+			and manager.get_alive_count() == 2
+			and is_equal_approx(manager.get_health(local_id), 100.0)
+			and local_player.visual.visible
+			and not main.spectator_controller.active
+			and not (main.get_node("Interface/ResultsPanel") as Panel).visible
+		)
+		while manager.state != MatchManager.MatchState.RESULTS and Time.get_ticks_msec() < deadline:
+			await process_frame
+		await process_frame
+		var rematch_summary := (main.get_node("Interface/ResultsPanel/Summary") as Label).text
+		rematch_passed = (
+			rematch_passed
+			and manager.state == MatchManager.MatchState.RESULTS
+			and not local_player.visual.visible
+			and main.spectator_controller.active
+			and (main.get_node("Interface/ResultsPanel") as Panel).visible
+			and "Network rematch %d" % (rematch_index + 1) in rematch_summary
+		)
+	var passed: bool = spawn_passed and movement_passed and active_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
 	if passed:
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
+	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
+	main.free()
 	quit(0 if passed else 1)
 
 
