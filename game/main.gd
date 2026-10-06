@@ -79,6 +79,7 @@ func _ready() -> void:
 		"lightning": lightning,
 		"fire": fire,
 	})
+	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
 	_configure_lobby_ui()
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:

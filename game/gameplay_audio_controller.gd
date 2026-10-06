@@ -77,11 +77,17 @@ func play_jump() -> void:
 	play_effect(JumpSound)
 
 
-func play_effect(stream: AudioStream) -> void:
+func play_warning_countdown() -> void:
+	# Reuse the short synthesized cue quietly; never replace the reserved warning stream.
+	play_effect(JumpSound, -16.0)
+
+
+func play_effect(stream: AudioStream, volume_db: float = -7.0) -> void:
 	if _effect_voices.is_empty():
 		return
 	var voice := _effect_voices[_next_effect_voice]
 	_next_effect_voice = (_next_effect_voice + 1) % _effect_voices.size()
+	voice.volume_db = volume_db
 	voice.stream = stream
 	voice.play()
 	effect_play_count += 1

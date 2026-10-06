@@ -64,9 +64,11 @@ Reverified after Task 1.2.1: `tests/test_milestone_1_1.gd` checks theme sharing,
 - [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
 - [x] Task 1.2.2: Add compact active-hazard and combination chips for persistent context; six vector identities and paired interaction chips validated at 720p/1080p without repeating major-warning instructions.
 - [x] Task 1.2.3: Merge Flood wading/breathing/drowning into one bottom-anchored personal-danger card; competing warning actions and interaction prompts yield until safe, with no full-screen tint or health flashing.
-- [ ] Task 1.2.4: Add restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice.
+- [x] Task 1.2.4: Add bounded opacity/countdown feedback, a reduced-motion presenter switch, and quiet final-three-second cues through the existing effect pool without replacing the dedicated warning voice.
 
 Acceptance: hazard identity is never color-only; at most one full warning and one personal-danger banner compete for attention; every incoming disaster shows icon, name, countdown, and action; overlap remains readable.
+
+Milestone 1.2 complete: timing, priority, lifecycle, bounded audio, 720p/1080p light/dark overlap, five network rematches, and local 4/8/20-peer regression passed. Personal danger takes escape-instruction priority while incoming identity/countdown stays visible. Settings persistence and physical audio review remain later work.
 
 ### Milestone 1.3 — Lobby and spectator presentation
 

@@ -171,6 +171,66 @@ func _run() -> void:
 	hud.present_spectator_target("")
 	_expect((hud.get_node("Spectating") as Label).text == "NO SURVIVORS TO SPECTATE", "Empty spectator targets must have explicit fallback copy")
 
+	var audio := main.gameplay_audio as GameplayAudioController
+	audio.set_process(false)
+	audio.reset_for_match()
+	audio.play_warning("tornado")
+	var reserved_stream: AudioStream = audio._warning_voice.stream
+	var effects_before := audio.effect_play_count
+	main.flood.start_warning()
+	main.flood.tick(main.flood.warning_duration)
+	main.flood._set_water_level(1.0)
+	main.tornado.start_warning(Vector3(-7, 0, 0), Vector3(9, 0, 0))
+	environment.background_color = Color("9fc8df")
+	environment.ambient_light_energy = 0.5
+	main.get_node("Sun").light_energy = 1.0
+	hud.present_major_warning("")
+	hud.present_major_warning("tornado", 5.0)
+	_expect(is_equal_approx(hud.warning_banner.modulate.a, 0.85), "New warning must start a restrained readable fade, not a scale/position jump")
+	var entrance_tween := hud._warning_tween
+	await _capture("motion-entrance")
+	hud.present_major_warning("tornado", 4.2)
+	_expect(hud._warning_tween == entrance_tween, "Repeated presentation must not restart the entrance tween")
+	await create_timer(0.2).timeout
+	_expect(hud.warning_banner.modulate == Color.WHITE, "Warning entrance must settle within its bounded duration")
+	hud.present_hazards(["TORNADO", "FLOOD"])
+	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
+	hud.present_major_warning("tornado", 4.0)
+	_expect(audio.effect_play_count == effects_before, "Initial warning and countdowns above three seconds must not play UI ticks")
+	hud.present_major_warning("tornado", 2.9)
+	_expect(audio.effect_play_count == effects_before + 1 and hud.warning_countdown.modulate == DisasterPartyUI.CREAM, "Crossing into three seconds must play one cue and emphasize the count")
+	await _capture("motion-overlap")
+	for remaining: float in [2.9, 2.2, 3.1, 2.9]:
+		hud.present_major_warning("tornado", remaining)
+	_expect(audio.effect_play_count == effects_before + 1, "Repeated snapshots and upward corrections must not duplicate a tick")
+	hud.present_major_warning("tornado", 0.8)
+	_expect(audio.effect_play_count == effects_before + 2 and hud.warning_countdown.text == "1 s", "Skipped seconds must produce only one current cue, not a catch-up burst")
+	await create_timer(0.16).timeout
+	_expect(hud.warning_countdown.modulate == Color.WHITE, "Countdown emphasis must settle within its bounded duration")
+	hud.present_major_warning("meteor", 1.0)
+	_expect(audio.effect_play_count == effects_before + 2, "Warning handoff must not sound like a countdown decrement")
+	hud.reduced_motion = true
+	_expect(hud.warning_banner.modulate == Color.WHITE and not hud._warning_tween.is_running(), "Reduced motion must cancel an in-flight transition immediately")
+	hud.present_major_warning("flood", 2.0)
+	hud.present_major_warning("flood", 1.0)
+	_expect(hud.warning_banner.modulate == Color.WHITE and hud.warning_countdown.modulate == Color.WHITE, "Reduced motion must keep warning geometry and appearance static")
+	_expect(audio.effect_play_count == effects_before + 3, "Reduced motion must preserve nonvisual countdown feedback")
+	environment.background_color = Color("202a38")
+	environment.ambient_light_energy = 0.1
+	main.get_node("Sun").light_energy = 0.1
+	await _capture("motion-reduced-overlap")
+	_expect(audio._warning_voice.stream == reserved_stream and audio.active_warning_name == "tornado" and audio.warning_play_count > 0, "Countdown effects must preserve the dedicated disaster warning stream")
+	_expect(audio.get_child_count() == 5, "Countdown feedback must reuse the bounded audio pool")
+	hud.reduced_motion = false
+	hud.present_major_warning("fire", 2.0)
+	hud.present_major_warning("fire", 1.0)
+	hud.present_major_warning("")
+	await create_timer(0.2).timeout
+	_expect(not hud.warning_banner.visible and hud.warning_banner.modulate == Color.WHITE and hud.warning_countdown.modulate == Color.WHITE, "Clearing must kill all animation and prevent stale callbacks after hiding")
+	hud.present_major_warning("fire", 2.0)
+	_expect(is_equal_approx(hud.warning_banner.modulate.a, 0.85), "A repeated hazard after clearing must get a fresh entrance")
+	hud.present_major_warning("")
+
 	main.gameplay_audio.reset_for_match()
 	await process_frame
 	main.free()

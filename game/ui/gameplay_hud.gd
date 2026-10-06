@@ -1,6 +1,8 @@
 class_name GameplayHud
 extends CanvasLayer
 
+signal warning_countdown_tick
+
 enum FloodExposure {
 	SAFE,
 	WADING,
@@ -46,6 +48,15 @@ var _presented_health := 0
 var _presented_alive_counts := Vector2i.ZERO
 var _presented_hazards: Array[String] = []
 var _presented_context_action := ""
+var _warning_id := ""
+var _warning_seconds := 0
+var _warning_tween: Tween
+var _countdown_tween: Tween
+var reduced_motion := false:
+	set(value):
+		reduced_motion = value
+		if value and is_node_ready():
+			_clear_warning_motion()
 
 
 func present_vitals(health: float, alive_count: int, player_count: int) -> void:
@@ -89,18 +100,48 @@ func present_context_action(action: String) -> void:
 
 
 func present_major_warning(disaster_id: String, remaining_seconds: float = 0.0) -> void:
+	var changed := disaster_id != _warning_id
+	var seconds := maxi(1, ceili(remaining_seconds)) if not disaster_id.is_empty() else 0
+	var countdown_decreased := not changed and seconds < _warning_seconds
+	_warning_id = disaster_id
+	# Snapshot corrections may increase the display, but must not replay an already heard tick.
+	_warning_seconds = seconds if changed else mini(_warning_seconds, seconds)
 	warning_banner.visible = not disaster_id.is_empty()
 	hazard_tray.offset_top = 220.0 if warning_banner.visible else 120.0
 	hazard_tray.offset_bottom = hazard_tray.offset_top + (88.0 if warning_banner.visible else 104.0)
 	for chip: PanelContainer in hazard_chips:
 		chip.custom_minimum_size.y = 40.0 if warning_banner.visible else 48.0
 	if disaster_id.is_empty():
+		_clear_warning_motion()
 		return
 	if warning_icon.disaster_id != disaster_id:
 		warning_icon.disaster_id = disaster_id
 	warning_name.text = WARNING_COPY[disaster_id][0]
 	warning_action.text = WARNING_COPY[disaster_id][1]
-	warning_countdown.text = "%d s" % maxi(1, ceili(remaining_seconds))
+	warning_countdown.text = "%d s" % seconds
+	if changed:
+		_clear_warning_motion()
+		if not reduced_motion:
+			warning_banner.modulate.a = 0.85
+			_warning_tween = create_tween()
+			_warning_tween.tween_property(warning_banner, "modulate:a", 1.0, 0.16)
+	elif countdown_decreased and seconds <= 3:
+		warning_countdown_tick.emit()
+		if not reduced_motion:
+			if _countdown_tween != null:
+				_countdown_tween.kill()
+			warning_countdown.modulate = DisasterPartyUI.CREAM
+			_countdown_tween = create_tween()
+			_countdown_tween.tween_property(warning_countdown, "modulate", Color.WHITE, 0.12)
+
+
+func _clear_warning_motion() -> void:
+	if _warning_tween != null:
+		_warning_tween.kill()
+	if _countdown_tween != null:
+		_countdown_tween.kill()
+	warning_banner.modulate = Color.WHITE
+	warning_countdown.modulate = Color.WHITE
 
 
 func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.0, damage_per_second: float = 0.0) -> void:

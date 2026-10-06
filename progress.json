@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T19:47:43+07:00",
+  "updated_at": "2026-10-06T19:59:03+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,8 +33,8 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_2_warning_and_personal_danger",
-    "task": "task_1_2_4_warning_motion_and_audio_feedback"
+    "milestone": "milestone_1_3_lobby_and_spectator",
+    "task": "task_1_3_1_structured_player_rows"
   },
   "engine": {
     "name": "Godot",
@@ -70,18 +70,18 @@
       },
       "milestone_1_2_warning_and_personal_danger": {
         "title": "Warning and Personal-Danger Hierarchy",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_1_2_1_major_warning_banner": "completed",
           "task_1_2_2_hazard_and_combination_chips": "completed",
           "task_1_2_3_unified_flood_danger_channel": "completed",
-          "task_1_2_4_warning_motion_and_audio_feedback": "planned"
+          "task_1_2_4_warning_motion_and_audio_feedback": "completed"
         },
         "gates": {
           "icon_name_countdown_and_action": "passed",
           "non_color_only_identity": "passed",
           "bounded_warning_priority": "passed",
-          "overlap_readability": "not_run"
+          "overlap_readability": "passed"
         }
       },
       "milestone_1_3_lobby_and_spectator": {
@@ -181,6 +181,11 @@
       "result": "passed",
       "check": "Task 1.2.3 unified personal Flood danger channel",
       "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=79 validates one wading/grace/drowning card, exact copy, authoritative snapshot immutability, no tint/health flashing, warning instruction and context-prompt priority in both call orders, and restoration/clearing on safety. PLAYER_INTEGRATION_OK checks=50 validates actual Flood exposure, exact two-second grace boundary then damage, lobby/results/open-lobby/spectator suppression, resumed exposure and dry-ground clearing. FLOOD_OK checks=29, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=140 each including safe-area, content containment, and no card overlaps. Inspected personal-wading, personal-breathing, personal-drowning and personal-safe at 720p plus personal-drowning-dark at 1080p: legible one-card instructions, unobscured player, preserved incoming identity/countdown, restored safe-state action/prompt. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Existing intermittent successful-exit HUD resource diagnostics remain. Captures use deterministic presentation fixtures with WSL llvmpipe/Dummy audio; actual exposure/damage is exercised separately by integration/Flood tests. Final motion/overlap gate remains Task 1.2.4."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.4 warning motion/audio feedback and Milestone 1.2 completion",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=95 covers bounded entrance/settle, no per-frame restart, final-three-second cue/emphasis, duplicate/upward snapshot correction suppression, single cue for skipped seconds, no handoff cue, immediate reduced-motion cancellation, preserved audio feedback, reserved warning stream/pool cap, hiding/reset and repeat entrance. Initial exact 0.85 Color-alpha assertions failed on float representation; corrected them to is_equal_approx, then reran successfully. PHASE7_POLISH_OK checks=34 validates quiet countdown effect routing, normal volume restoration on voice reuse, and reserved stream; PLAYER_INTEGRATION_OK checks=50, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=177 each. Inspected motion-entrance at 720p, motion-overlap at both resolutions, and motion-reduced-overlap in dark 720p scenery: readable entering banner, final count, two chips, one drowning instruction card, no clipped copy/card overlaps or obscured player; fixture includes visible Flood water and a Tornado warning. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches and disconnect cleanup; tests/run_playable_scale_test.sh passed local 4/8/20-peer matrix. All four Milestone 1.2 gates passed. Existing intermittent successful-exit HUD resource diagnostics remain. WSL llvmpipe and dummy audio do not establish physical audio audibility, Windows performance, or multi-PC playtesting. Reduced-motion persistence/control remains Milestone 1.5."
     }
   ],
   "blockers": [],
@@ -189,6 +194,7 @@
     "assets/manifest.json",
     "docs/decisions.md",
     "docs/implementation-checklist.md",
+    "game/gameplay_audio_controller.gd",
     "game/grab_manager.gd",
     "game/main.gd",
     "game/ui/disaster_icon.gd",
@@ -202,8 +208,9 @@
     "tests/test_grab_manager.gd",
     "tests/test_milestone_1_1.gd",
     "tests/test_phase1.gd",
+    "tests/test_phase7_polish.gd",
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.2.4 with restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice, then validate the remaining Milestone 1.2 overlap gate."
+  "next_action": "Implement Phase 1 Task 1.3.1 by replacing the multiline lobby roster with structured player rows, host/local markers, and ready/waiting badges, including a scrollable 20-player roster check."
 }
