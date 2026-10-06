@@ -17,6 +17,7 @@ func _run() -> void:
 	await physics_frame
 	player.set_physics_process(false)
 	_settle_player()
+	_test_mouse_capture()
 	_test_walk_and_sprint()
 	_test_crouch()
 	_test_jump_arc()
@@ -54,6 +55,30 @@ func _build_test_world() -> void:
 	player = (load("res://scenes/player.tscn") as PackedScene).instantiate()
 	world.add_child(player)
 	player.position = Vector3.ZERO
+
+
+func _test_mouse_capture() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var initial_rotation := player.camera_pivot.rotation
+	var escape := InputEventAction.new()
+	escape.action = "ui_cancel"
+	escape.pressed = true
+	player._unhandled_input(escape)
+	_expect(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Escape must release the captured cursor")
+
+	var motion := InputEventMouseMotion.new()
+	motion.relative = Vector2(80.0, 40.0)
+	player._unhandled_input(motion)
+	_expect(player.camera_pivot.rotation.is_equal_approx(initial_rotation), "Visible cursor motion must not rotate the camera")
+
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	player._unhandled_input(click)
+	if DisplayServer.get_name() != "headless":
+		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Left click must recapture the cursor")
+		player._unhandled_input(motion)
+		_expect(not player.camera_pivot.rotation.is_equal_approx(initial_rotation), "Captured cursor motion must rotate the camera")
 
 
 func _settle_player() -> void:

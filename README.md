@@ -51,4 +51,4 @@ godot --path . -- --join-address=127.0.0.1 --join-port=29730
 godot --path . res://scenes/asset_validation.tscn
 ```
 
-Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to rematch from results.
+Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to rematch from results.

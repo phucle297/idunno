@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T10:28:05+07:00",
+  "updated_at": "2026-10-06T10:33:01+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -264,6 +264,11 @@
       "result": "passed",
       "check": "Phase 5 native Windows 60 FPS target",
       "evidence": "Official checksum-verified Godot 4.7.2 Windows executable launched through WSL interop and selected OpenGL Compatibility on Intel UHD Graphics 630 driver 31.0.101.2140. The four-player Flood + Tornado profile ran for 120 warmup plus 600 measured frames at 1280x720. A 60 FPS-capped diagnostic measured p50 16.66 ms and p95 17.50 ms while engine process time was p95 5.28 ms, showing frame-limiter scheduling jitter. Two uncapped runs independently passed the actual 16.67 ms budget: p50/p95 9.98/11.74 ms and 10.01/11.37 ms, equivalent to at least 85 FPS at p95. Phase 5 is complete."
+    },
+    {
+      "result": "passed",
+      "check": "Playable camera cursor capture",
+      "evidence": "Player input now captures the cursor at startup, releases it with Escape, recaptures it with left click, and ignores camera motion while the cursor is visible. PLAYER_INTEGRATION_OK checks=23 passed headless; the cursor release/visible-motion/recapture/captured-motion assertions also passed with both WSLg Linux Godot and native Windows Godot display drivers. PHASE1_TESTS_OK checks=23 and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disconnect_cleanup=passed. The broader rendered integration runs separately exposed the existing timing-sensitive sprint-speed assertion, while the standard headless integration suite remained green."
     }
   ],
   "blockers": [

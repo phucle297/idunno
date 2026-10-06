@@ -28,12 +28,23 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and accepts_local_input():
+	if not accepts_local_input():
+		return
+	if event.is_action_pressed("ui_cancel"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		return
+	if (
+		event is InputEventMouseButton
+		and event.button_index == MOUSE_BUTTON_LEFT
+		and event.pressed
+		and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
+	):
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_camera_yaw -= event.relative.x * 0.0025
 		_camera_pitch = clampf(_camera_pitch - event.relative.y * 0.0025, -1.1, 0.35)
 		camera_pivot.rotation = Vector3(_camera_pitch, _camera_yaw, 0.0)
-	if event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _physics_process(delta: float) -> void:
