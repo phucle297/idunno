@@ -26,11 +26,11 @@ func _run() -> void:
 	var before: Dictionary = main._create_playable_snapshot().duplicate(true)
 	hud.present_vitals(17.25, 1, 20)
 	hud.present_match_status(601, "SURVIVE", false)
-	hud.present_hazards(["FLOOD — REACH HIGH GROUND", "TORNADO — FIND COVER", "FIRE"])
+	hud.present_hazards(["FLOOD", "TORNADO", "FIRE"])
 	hud.present_context_action("RELEASE OBJECT")
 	_expect(main._create_playable_snapshot() == before, "HUD presentation must not mutate authoritative match, health, or disaster state")
 	_expect(hud.timer_label.text == "10:01" and hud.alive_label.text == "1 / 20", "Clock and survivor values must remain distinct and correctly formatted")
-	hud.present_hazards(["FLOOD — REACH HIGH GROUND"])
+	hud.present_hazards(["FLOOD"])
 	_expect(hud.hazard_chips[0].visible and not hud.hazard_chips[1].visible, "Two-to-one hazard transition must clear the stale second chip")
 	var returned_lines := hud.get_presented_hazards()
 	returned_lines.clear()
@@ -71,7 +71,7 @@ func _run() -> void:
 
 	hud.present_vitals(73.9, 20, 20)
 	hud.present_match_status(125, "SURVIVE", false)
-	hud.present_hazards(["FLOOD — REACH HIGH GROUND", "TORNADO — FIND COVER"])
+	hud.present_hazards(["FLOOD", "TORNADO"])
 	player.camera_pivot.rotation = Vector3(-0.14, 0.35, 0.0)
 	for dark: bool in [false, true]:
 		var environment: Environment = main.get_node("WorldEnvironment").environment
@@ -127,7 +127,7 @@ func _check_layout(hud: GameplayHud) -> void:
 		_expect(safe.encloses(panel.get_global_rect()), "HUD panel must remain inside the safe area: %s" % panel.name)
 		for other: int in range(index + 1, panels.size()):
 			_expect(not panel.get_global_rect().intersects(panels[other].get_global_rect()), "HUD panels must not overlap: %s / %s" % [panel.name, panels[other].name])
-	for label: Label in [hud.health_label, hud.timer_label, hud.state_label, hud.alive_label, hud.context_action_label, hud.hazard_chips[0].get_node("Text"), hud.hazard_chips[1].get_node("Text")]:
+	for label: Label in [hud.health_label, hud.timer_label, hud.state_label, hud.alive_label, hud.context_action_label, hud.hazard_chips[0].get_node("Content/Text"), hud.hazard_chips[1].get_node("Content/Text")]:
 		_expect(label.size.x >= label.get_minimum_size().x, "HUD copy must not be horizontally clipped: %s" % label.text)
 
 

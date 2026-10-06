@@ -1,5 +1,7 @@
 extends Control
 
+@export var ink_color := DisasterPartyUI.INK
+
 var disaster_id := "":
 	set(value):
 		disaster_id = value
@@ -7,7 +9,8 @@ var disaster_id := "":
 
 
 func _draw() -> void:
-	var ink := DisasterPartyUI.INK
+	draw_set_transform(Vector2.ZERO, 0.0, size / 48.0)
+	var ink := ink_color
 	match disaster_id:
 		"meteor":
 			draw_circle(Vector2(30, 34), 12, ink)

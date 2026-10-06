@@ -62,7 +62,7 @@ Reverified after Task 1.2.1: `tests/test_milestone_1_1.gd` checks theme sharing,
 ### Milestone 1.2 — Warning and personal-danger hierarchy
 
 - [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
-- [ ] Task 1.2.2: Add compact active-hazard and combination chips for persistent context.
+- [x] Task 1.2.2: Add compact active-hazard and combination chips for persistent context; six vector identities and paired interaction chips validated at 720p/1080p without repeating major-warning instructions.
 - [ ] Task 1.2.3: Merge Flood breathing/drowning copy into one prioritized personal-danger channel so instructions do not compete.
 - [ ] Task 1.2.4: Add restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice.
 

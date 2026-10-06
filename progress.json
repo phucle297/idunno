@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T19:07:09+07:00",
+  "updated_at": "2026-10-06T19:19:45+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -34,7 +34,7 @@
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
     "milestone": "milestone_1_2_warning_and_personal_danger",
-    "task": "task_1_2_2_hazard_and_combination_chips"
+    "task": "task_1_2_3_unified_flood_danger_channel"
   },
   "engine": {
     "name": "Godot",
@@ -73,13 +73,13 @@
         "status": "in_progress",
         "tasks": {
           "task_1_2_1_major_warning_banner": "completed",
-          "task_1_2_2_hazard_and_combination_chips": "planned",
+          "task_1_2_2_hazard_and_combination_chips": "completed",
           "task_1_2_3_unified_flood_danger_channel": "planned",
           "task_1_2_4_warning_motion_and_audio_feedback": "planned"
         },
         "gates": {
           "icon_name_countdown_and_action": "passed",
-          "non_color_only_identity": "not_run",
+          "non_color_only_identity": "passed",
           "bounded_warning_priority": "not_run",
           "overlap_readability": "not_run"
         }
@@ -171,6 +171,11 @@
       "result": "passed",
       "check": "User-requested full Milestone 1.1 re-verification after Task 1.2.1",
       "evidence": "All four milestone gates remain passed. Inspected ui_tokens.gd, GameplayHud, main.gd presenter calls, scene anchors, and GrabManager read-only candidate/authoritative request boundaries. Re-ran godot --headless --path . --script res://tests/{suite}.gd: UI_THEME_OK checks=18, GAMEPLAY_HUD_OK checks=49, GRAB_MANAGER_OK checks=22, PLAYER_INTEGRATION_OK checks=43, PHASE1_TESTS_OK checks=31, PHASE7_POLISH_OK checks=31, REMATCH_INTEGRATION_OK cycles=5 checks=165. Added reusable tests/test_milestone_1_1.gd: headless checks=79, display-backed checks=84 each at 1280x720 and 1920x1080 with --audio-driver Dummy -- --capture-dir=.amp/in/artifacts. Checks cover one theme resource across every top-level control, immutable authoritative match/health/disaster snapshot during presentation, bar boundaries, stale second-chip removal, defensive hazard getter copy, GRAB/RELEASE and ineligible/eliminated/lobby/results/spectator prompt suppression, safe-area and pairwise non-overlap geometry, unclipped copy, field/button focus, actual lobby-toggle signals, and disabled style fixture. Inspected milestone-1-1 light/dark/empty/lobby-focus/button-focus captures: readable 20/20 counts, timer, health bar, two chips, contextual prompt, amber focus rings and distinct disabled style; no HUD clipping/overlap at either resolution. Earlier dark/light evidence used mixed scenery; this pass explicitly lowered sunlight and ambient illumination and changed the background for the dark fixture. Persistent MULTIPLAYER LOBBY [L] is an actionable toggle verified by signal, not removed prototype/debug copy. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches/disconnect cleanup; tests/run_playable_scale_test.sh passed 4/8/20-player HUD, movement, disaster, and ownership checks. Existing HUD/polish/rematch suites still emit successful-exit resource diagnostics; new milestone suite exited cleanly. Rendering uses WSL llvmpipe, not native Windows performance evidence. No production code changes or new milestone work were needed."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.2 compact active-hazard and combination chips",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=71 covers six chip icons/names, two-chip cap, compact incoming identity, interaction priority and constituent deduplication, electrification after flash expiry, expiry to one icon, warning-only Fire versus active wind interaction, and presentation snapshot immutability. Display-backed runs with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=93 each including content containment and captures. Inspected all six 720p warning/chip icons, electric combination at both resolutions, wind combination with banner at 720p and without banner at 1080p, and dark-world 720p chips: legible paired icons/copy, no clipping or player occlusion. DISASTER_COMBINATIONS_OK checks=20, UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. Initial Milestone 1.1 layout regression emitted missing-node errors because chip labels moved into Content; fixed paths and compact fixtures, then MILESTONE_1_1_OK checks=79 headless and checks=84 display-backed at 720p passed cleanly. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including combination replication, five rematches and disconnect cleanup. Existing HUD/combination resource diagnostics persist on successful exit. Rendering uses WSL llvmpipe/Dummy audio; not native Windows performance evidence. Remaining milestone gates await personal-danger and motion work."
     }
   ],
   "blockers": [],
@@ -195,5 +200,5 @@
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.2.2 by giving persistent active-hazard and combination chips compact icon/name presentation without duplicating the major warning."
+  "next_action": "Implement Phase 1 Task 1.2.3 by merging Flood breathing and drowning feedback into one prioritized personal-danger channel without competing instructions."
 }

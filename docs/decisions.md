@@ -172,3 +172,9 @@
 - **Presentation:** One amber banner presents a deterministic vector icon, explicit disaster name, rounded-up countdown, and concise escape action for each of the six existing disasters. No gameplay state or warning timing is changed.
 - **Priority:** Promote the warning with the shortest remaining time. Stable disaster order breaks ties; clearing that phase hands off to the next warning. Hide the banner outside ACTIVE play and while the lobby is open.
 - **Readability:** Keep the existing maximum-two tray below the banner with compact 40 px chips while a warning is visible. The inspected 720p capture exposed player-head occlusion in the first layout; the revised stack ends above the representative player's silhouette at both supported resolutions. Persistent chip identity and combination presentation remain Task 1.2.2.
+
+## 2026-10-06 — Persistent hazard and interaction chips
+
+- **Identity:** Reuse the six deterministic vector symbols at 24 px with cream ink beside compact hazard names. Warning phases keep identity in the tray, but countdowns and escape instructions appear only in the major banner.
+- **Interactions:** Electrified Flood water and active wind-driven Fire replace their constituent chips with one paired-icon chip naming the implemented interaction. Interaction chips precede ordinary hazards so the two-chip cap cannot hide them. Electrified water remains visible after the Lightning flash ends; warned Fire does not claim spreading flames before activation.
+- **Boundary:** Continue using the existing read-only hazard-line contract and replicated disaster state. No hazard timing, selection, damage, networking, or gameplay authority changes. No generic overlap is labeled as an implemented combination.

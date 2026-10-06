@@ -70,7 +70,14 @@ func present_hazards(lines: Array[String]) -> void:
 		var chip_visible := index < _presented_hazards.size()
 		chip.visible = chip_visible
 		if chip_visible:
-			(chip.get_node("Text") as Label).text = _presented_hazards[index]
+			var line := _presented_hazards[index]
+			(chip.get_node("Content/Text") as Label).text = line
+			var names := line.get_slice(" — ", 0).split(" + ")
+			var icon: Control = chip.get_node("Content/Icon")
+			icon.disaster_id = names[0].to_lower()
+			var second_icon: Control = chip.get_node("Content/SecondIcon")
+			second_icon.visible = names.size() == 2
+			second_icon.disaster_id = names[1].to_lower() if second_icon.visible else ""
 	hazard_tray.visible = not _presented_hazards.is_empty()
 
 

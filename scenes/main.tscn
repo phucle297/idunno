@@ -217,11 +217,30 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_type_variation = &"HazardChip"
 
-[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip1"]
+[node name="Content" type="HBoxContainer" parent="Interface/HazardTray/HazardChip1"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Control" parent="Interface/HazardTray/HazardChip1/Content"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("14_icon")
+ink_color = Color(0.956863, 0.901961, 0.784314, 1)
+
+[node name="SecondIcon" type="Control" parent="Interface/HazardTray/HazardChip1/Content"]
+visible = false
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("14_icon")
+ink_color = Color(0.956863, 0.901961, 0.784314, 1)
+
+[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip1/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.956863, 0.901961, 0.784314, 1)
-theme_override_font_sizes/font_size = 18
-text = "WARNING — METEOR IMPACT IN 3"
+theme_override_font_sizes/font_size = 16
+text = "METEOR"
 horizontal_alignment = 1
 
 [node name="HazardChip2" type="PanelContainer" parent="Interface/HazardTray"]
@@ -229,11 +248,30 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_type_variation = &"HazardChip"
 
-[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip2"]
+[node name="Content" type="HBoxContainer" parent="Interface/HazardTray/HazardChip2"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Control" parent="Interface/HazardTray/HazardChip2/Content"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("14_icon")
+ink_color = Color(0.956863, 0.901961, 0.784314, 1)
+
+[node name="SecondIcon" type="Control" parent="Interface/HazardTray/HazardChip2/Content"]
+visible = false
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("14_icon")
+ink_color = Color(0.956863, 0.901961, 0.784314, 1)
+
+[node name="Text" type="Label" parent="Interface/HazardTray/HazardChip2/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.956863, 0.901961, 0.784314, 1)
-theme_override_font_sizes/font_size = 18
-text = "FLOOD — REACH HIGH GROUND"
+theme_override_font_sizes/font_size = 16
+text = "FLOOD"
 horizontal_alignment = 1
 
 [node name="ContextPrompt" type="PanelContainer" parent="Interface"]

@@ -702,30 +702,23 @@ func _update_major_warning() -> void:
 
 func _active_disaster_lines() -> Array[String]:
 	var lines: Array[String] = []
-	if meteor_shower.phase == MeteorShower.Phase.WARNING:
-		lines.append("WARNING — METEOR IMPACT IN %d" % maxi(1, ceili(meteor_shower.warning_remaining)))
-	elif meteor_shower.phase == MeteorShower.Phase.IMPACT:
-		lines.append("METEOR IMPACT!")
-	if flood.phase == Flood.Phase.WARNING:
-		lines.append("WARNING — FLOOD IN %d" % maxi(1, ceili(flood.warning_remaining)))
-	elif flood.phase != Flood.Phase.IDLE:
-		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER" if flood.electrified_remaining > 0.0 else "FLOOD — REACH HIGH GROUND")
-	if tornado.phase == Tornado.Phase.WARNING:
-		lines.append("WARNING — TORNADO IN %d" % maxi(1, ceili(tornado.warning_remaining)))
-	elif tornado.phase == Tornado.Phase.ACTIVE:
-		lines.append("TORNADO — FIND COVER")
-	if earthquake.phase == Earthquake.Phase.WARNING:
-		lines.append("WARNING — EARTHQUAKE IN %d" % maxi(1, ceili(earthquake.warning_remaining)))
-	elif earthquake.phase == Earthquake.Phase.ACTIVE:
-		lines.append("EARTHQUAKE — AVOID BREAKING STRUCTURES")
-	if lightning.phase == Lightning.Phase.WARNING:
-		lines.append("WARNING — LIGHTNING IN %d" % maxi(1, ceili(lightning.warning_remaining)))
-	elif lightning.phase == Lightning.Phase.FLASH:
-		lines.append("LIGHTNING STRIKE!")
-	if fire.phase == Fire.Phase.WARNING:
-		lines.append("WARNING — FIRE IN %d" % maxi(1, ceili(fire.warning_remaining)))
-	elif fire.phase == Fire.Phase.ACTIVE:
-		lines.append("FIRE — WIND IS SPREADING FLAMES" if fire.wind_active else "FIRE — AVOID BURNING ZONES")
+	# Interactions replace their constituent chips, including effects that outlive a strike.
+	var electric := flood.phase != Flood.Phase.IDLE and flood.electrified_remaining > 0.0
+	var wind := fire.phase == Fire.Phase.ACTIVE and fire.wind_active
+	if electric:
+		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER")
+	if wind:
+		lines.append("TORNADO + FIRE — WIND IS SPREADING FLAMES")
+	for entry: Array in [
+		["METEOR", meteor_shower, false],
+		["FLOOD", flood, electric],
+		["TORNADO", tornado, wind],
+		["EARTHQUAKE", earthquake, false],
+		["LIGHTNING", lightning, electric],
+		["FIRE", fire, wind],
+	]:
+		if entry[1].is_active() and not entry[2]:
+			lines.append(entry[0])
 	return lines
 
 
