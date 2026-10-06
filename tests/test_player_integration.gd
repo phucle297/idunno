@@ -19,6 +19,7 @@ func _run() -> void:
 	_settle_player()
 	_test_mouse_capture()
 	_test_walk_and_sprint()
+	_test_visual_facing()
 	_test_crouch()
 	_test_jump_arc()
 	_test_ramp_traversal()
@@ -104,6 +105,26 @@ func _test_walk_and_sprint() -> void:
 	var sprint_distance := -player.position.z
 	_expect(sprint_distance > walk_distance + 1.5, "Sprint must travel materially farther than walk over one second")
 	_expect(player.velocity.z <= -6.45, "Sprint must reach the 6.5 m/s target")
+
+
+func _test_visual_facing() -> void:
+	player.position = Vector3.ZERO
+	player.velocity = Vector3.ZERO
+	player.visual.rotation = Vector3.ZERO
+	_settle_player()
+	for _index in 60:
+		player.apply_movement_input(Vector2(0.0, -1.0), false, false, false, DELTA)
+	var forward_facing := (player.visual.global_transform.basis * Vector3.FORWARD).normalized()
+	_expect(forward_facing.dot(Vector3.FORWARD) > 0.95, "Moving forward must turn the character visual forward")
+
+	player.position = Vector3.ZERO
+	player.velocity = Vector3.ZERO
+	player.visual.rotation = Vector3.ZERO
+	_settle_player()
+	for _index in 60:
+		player.apply_movement_input(Vector2(-1.0, 0.0), false, false, false, DELTA)
+	var left_facing := (player.visual.global_transform.basis * Vector3.FORWARD).normalized()
+	_expect(left_facing.dot(Vector3.LEFT) > 0.95, "Moving left must turn the character visual left")
 
 
 func _test_crouch() -> void:

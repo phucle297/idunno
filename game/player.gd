@@ -105,7 +105,7 @@ func apply_movement_input(
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 
 	if wish_direction.length_squared() > 0.01:
-		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(wish_direction.x, wish_direction.z), 12.0 * delta)
+		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
 	move_and_slide()
 
 

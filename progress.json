@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T12:34:15+07:00",
+  "updated_at": "2026-10-06T12:43:28+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_4_additional_disasters",
@@ -337,6 +337,11 @@
       "result": "passed",
       "check": "Seven-phase audit regression verification",
       "evidence": "All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37). NETWORK_AUTHORITY_PEERS_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed with host Enter start, authoritative movement, match/health HUD, Meteor/Flood/Tornado presentation, elimination, spectating, and disconnect cleanup. MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed the state-contract matrix; this is not full playable 4/8/20 validation."
+    },
+    {
+      "result": "passed",
+      "check": "Player visual movement facing",
+      "evidence": "Corrected visual yaw from a +Z-forward assumption to Godot's -Z forward convention. PLAYER_INTEGRATION_OK checks=29 independently verifies forward and left movement facing vectors. .amp/in/artifacts/movement-facing-forward.png and movement-facing-left.png were rendered and inspected: forward movement shows the character facing away from the follow camera, and left movement shows the face oriented left rather than right. All ten gameplay suites, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed."
     }
   ],
   "blockers": [
