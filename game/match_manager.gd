@@ -141,6 +141,42 @@ func get_alive_count() -> int:
 	return _alive_player_ids().size()
 
 
+func create_authoritative_snapshot() -> Dictionary:
+	return {
+		"state": int(state),
+		"elapsed_time": elapsed_time,
+		"match_duration": match_duration,
+		"players": players.duplicate(true),
+		"winner_ids": winner_ids.duplicate(),
+	}
+
+
+func apply_authoritative_snapshot(snapshot: Dictionary) -> bool:
+	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
+		return false
+	var previous_state := state
+	var previous_players := players
+	state = clampi(int(snapshot.get("state", MatchState.LOBBY)), MatchState.LOBBY, MatchState.RESULTS)
+	elapsed_time = clampf(float(snapshot.get("elapsed_time", 0.0)), 0.0, float(snapshot.get("match_duration", match_duration)))
+	match_duration = maxf(float(snapshot.get("match_duration", match_duration)), 0.0)
+	players = (snapshot.get("players", {}) as Dictionary).duplicate(true)
+	winner_ids.clear()
+	for winner_id: Variant in snapshot.get("winner_ids", []):
+		winner_ids.append(int(winner_id))
+	if state != previous_state:
+		state_changed.emit(state)
+	for peer_id: int in players:
+		var player: Dictionary = players[peer_id]
+		var previous: Dictionary = previous_players.get(peer_id, {})
+		if previous.is_empty() or not is_equal_approx(float(previous.health), float(player.health)):
+			health_changed.emit(peer_id, float(player.health))
+		if not bool(player.alive) and (previous.is_empty() or bool(previous.alive)):
+			player_eliminated.emit(peer_id, String(player.cause_of_death))
+	if state == MatchState.RESULTS and previous_state != MatchState.RESULTS:
+		match_finished.emit(winner_ids)
+	return true
+
+
 func reset_to_lobby() -> bool:
 	if not _can_mutate() or state != MatchState.RESULTS:
 		return false

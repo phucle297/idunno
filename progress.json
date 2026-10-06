@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-06T10:40:40+07:00",
+  "updated_at": "2026-10-06T11:27:19+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "current_phase": "phase_6_multiplayer_stabilization",
@@ -65,7 +65,7 @@
       "acceptance": {
         "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
         "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "partial_server_authoritative_movement_and_batched_snapshots_passed_match_health_and_disaster_presentation_required"
+        "playable_scene_replication": "partial_server_authoritative_movement_match_health_hud_elimination_and_spectating_passed_disaster_presentation_required"
       }
     }
   },
@@ -274,6 +274,11 @@
       "result": "passed",
       "check": "Phase 6 playable-scene authoritative movement",
       "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed disconnect_cleanup=passed from separate host and client processes loading scenes/main.tscn. The peers supplied divergent movement input; the host advanced both CharacterBody3D players and the client observed both batched authoritative snapshots. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Match, health, and disaster presentation replication remain unimplemented."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 6 playable-scene match and health replication",
+      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 match_health_hud=passed elimination_spectating=passed from separate host and client processes. The client observed authoritative ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2; its eliminated avatar was hidden and spectator follow activated. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Disaster presentation replication remains unimplemented."
     }
   ],
   "blockers": [
@@ -332,5 +337,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Replicate authoritative match state and per-player health into playable clients, then validate two-peer damage, elimination, alive count, and HUD consistency."
+  "next_action": "Replicate Meteor, Flood, and Tornado lifecycle and presentation state into playable clients, then validate a readable two-peer overlapping-disaster session."
 }

@@ -15,6 +15,7 @@ const PlayerScene = preload("res://scenes/player.tscn")
 const DEFAULT_NETWORK_PORT := 29730
 const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
+const MATCH_SNAPSHOT_INTERVAL := 0.1
 
 @onready var match_manager: Node = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -28,6 +29,7 @@ var _network_mode := false
 var _network_role := "offline"
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
+var _match_snapshot_remaining := 0.0
 
 
 func _ready() -> void:
@@ -314,7 +316,7 @@ func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: b
 	_submit_movement_input.rpc_id(1, input_2d, sprinting, crouched, jump_pressed, camera_yaw, _local_movement_sequence)
 
 
-@rpc("any_peer", "call_remote", "unreliable_ordered")
+@rpc("any_peer", "call_remote", "unreliable_ordered", 1)
 func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
 	if not multiplayer.is_server():
 		return
@@ -324,7 +326,7 @@ func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, 
 	_store_movement_input(sender_id, input_2d, sprinting, crouched, jump_pressed, camera_yaw, sequence)
 
 
-@rpc("authority", "call_remote", "unreliable_ordered")
+@rpc("authority", "call_remote", "unreliable_ordered", 1)
 func _apply_movement_snapshots(snapshots: Array[Dictionary]) -> void:
 	if multiplayer.is_server():
 		return
@@ -383,7 +385,13 @@ func _network_spawn_position(index: int) -> Vector3:
 
 func _process(delta: float) -> void:
 	match_manager.tick_match(delta)
-	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(1))
+	if _network_mode and multiplayer.is_server():
+		_match_snapshot_remaining -= delta
+		if _match_snapshot_remaining <= 0.0:
+			_match_snapshot_remaining = MATCH_SNAPSHOT_INTERVAL
+			_apply_match_snapshot.rpc(match_manager.create_authoritative_snapshot())
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	$Interface/Health.text = "HP  %d" % int(match_manager.get_health(local_peer_id))
 	$Interface/Alive.text = "ALIVE  %d / %d" % [match_manager.get_alive_count(), match_manager.players.size()]
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	$Interface/Timer.text = "%02d:%02d" % [remaining / 60, remaining % 60]
@@ -392,6 +400,11 @@ func _process(delta: float) -> void:
 	var disaster_lines := _active_disaster_lines()
 	$Interface/MeteorWarning.visible = not disaster_lines.is_empty()
 	$Interface/MeteorWarning.text = "\n".join(disaster_lines)
+
+
+@rpc("authority", "call_remote", "unreliable_ordered", 2)
+func _apply_match_snapshot(snapshot: Dictionary) -> void:
+	match_manager.apply_authoritative_snapshot(snapshot)
 
 
 func _active_disaster_lines() -> Array[String]:
@@ -435,9 +448,12 @@ func restart_local_match() -> bool:
 
 
 func _on_player_eliminated(peer_id: int, _cause: String) -> void:
-	if peer_id == 1:
-		$Player.set_eliminated(true)
-		spectator_controller.begin($Player/CameraPivot, _living_spectator_targets())
+	var eliminated_player := _player_nodes.get(peer_id) as PartyPlayer
+	if is_instance_valid(eliminated_player):
+		eliminated_player.set_eliminated(true)
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	if peer_id == local_peer_id and is_instance_valid(eliminated_player):
+		spectator_controller.begin(eliminated_player.get_node("CameraPivot"), _living_spectator_targets())
 		$Interface/Spectating.visible = true
 	else:
 		spectator_controller.set_targets(_living_spectator_targets())
@@ -445,8 +461,9 @@ func _on_player_eliminated(peer_id: int, _cause: String) -> void:
 
 func _living_spectator_targets() -> Dictionary:
 	var targets := {}
+	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	for peer_id: int in _player_nodes:
-		if peer_id != 1 and match_manager.is_player_alive(peer_id):
+		if peer_id != local_peer_id and match_manager.is_player_alive(peer_id):
 			targets[peer_id] = _player_nodes[peer_id]
 	return targets
 

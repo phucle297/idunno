@@ -69,6 +69,23 @@ func _run_server(main: Node) -> void:
 		and is_instance_valid(client_player)
 		and (client_player.global_position - client_spawn).length() >= 1.0
 	)
+	for peer_id: int in peer_ids:
+		manager.set_player_ready(peer_id, true)
+	var match_started := manager.start_match()
+	await create_timer(0.4).timeout
+	var active_passed := match_started and manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	var nonlethal_passed := manager.apply_damage(client_id, 25.0, "Network test")
+	await create_timer(0.5).timeout
+	nonlethal_passed = nonlethal_passed and is_equal_approx(manager.get_health(client_id), 75.0) and manager.get_alive_count() == 2
+	var lethal_passed := manager.apply_damage(client_id, 75.0, "Network test")
+	await create_timer(0.5).timeout
+	lethal_passed = (
+		lethal_passed
+		and is_zero_approx(manager.get_health(client_id))
+		and not manager.is_player_alive(client_id)
+		and manager.get_alive_count() == 1
+		and manager.state == MatchManager.MatchState.RESULTS
+	)
 	while main.get_network_player_ids().size() != 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await process_frame
@@ -79,11 +96,11 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = spawn_passed and movement_passed and cleanup_passed
+	var passed: bool = spawn_passed and movement_passed and active_passed and nonlethal_passed and lethal_passed and cleanup_passed
 	if passed:
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed match_health=passed elimination=passed remaining=1 disconnected_peer=%d" % client_id)
 	else:
-		push_error("Playable server validation failed spawn=%s movement=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s active=%s nonlethal=%s lethal=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, nonlethal_passed, lethal_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	quit(0 if passed else 1)
 
 
@@ -123,11 +140,39 @@ func _run_client(main: Node) -> void:
 		and (local_player.global_position - local_spawn).length() >= 1.0
 		and (host_player.global_position - host_spawn).length() >= 1.0
 	)
-	var passed := spawn_passed and movement_passed
+	var manager := main.get_node("MatchManager") as MatchManager
+	while (
+		(manager.state != MatchManager.MatchState.ACTIVE or manager.get_health(local_id) != 100.0)
+		and Time.get_ticks_msec() < deadline
+	):
+		await process_frame
+	var active_passed := manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == 2
+	while manager.get_health(local_id) != 75.0 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var nonlethal_passed := (
+		manager.get_health(local_id) == 75.0
+		and manager.get_alive_count() == 2
+		and (main.get_node("Interface/Health") as Label).text == "HP  75"
+		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  2 / 2"
+	)
+	while manager.is_player_alive(local_id) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await process_frame
+	var lethal_passed: bool = (
+		manager.state == MatchManager.MatchState.RESULTS
+		and manager.get_health(local_id) == 0.0
+		and manager.get_alive_count() == 1
+		and not local_player.visual.visible
+		and main.spectator_controller.active
+		and (main.get_node("Interface/Health") as Label).text == "HP  0"
+		and (main.get_node("Interface/Alive") as Label).text == "ALIVE  1 / 2"
+	)
+	var passed: bool = spawn_passed and movement_passed and active_passed and nonlethal_passed and lethal_passed
 	if passed:
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed match_health_hud=passed elimination_spectating=passed" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s local=%d ids=%s" % [spawn_passed, movement_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s nonlethal=%s lethal=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, nonlethal_passed, lethal_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	quit(0 if passed else 1)
 

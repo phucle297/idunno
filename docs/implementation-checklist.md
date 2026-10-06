@@ -50,4 +50,5 @@ Later phases remain governed by section 17 of `DESIGN.md` and must not begin unt
 - [x] Validate authoritative ready, match, health, alive, damage, and overlapping-disaster snapshots with 2, 4, 8, and 20 separate clients.
 - [x] Connect the playable scene to ENet create/join, authoritative player spawning, local camera ownership, and disconnect cleanup.
 - [x] Submit playable client input to the host, simulate movement authoritatively, and batch player snapshots back to clients.
-- [ ] Replicate playable match, health, and disaster presentation, then validate representative 2/4/8/20-player sessions rather than state-only probes.
+- [x] Replicate playable match state, health, elimination, alive count, local HUD, and spectating.
+- [ ] Replicate playable disaster presentation, then validate representative 2/4/8/20-player sessions rather than state-only probes.

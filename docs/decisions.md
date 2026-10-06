@@ -62,3 +62,10 @@
 - **Decision:** During ENet sessions, clients submit normalized movement controls and camera yaw to the host; only the host advances `CharacterBody3D` movement. Client-owned players no longer simulate their own transforms.
 - **Snapshots:** The host sends one unreliable ordered batch containing every player transform and velocity per physics tick. Batching avoids one broadcast per player and keeps snapshot dispatch linear at the 20-player target.
 - **Validation boundary:** A two-process playable-scene test drives host and client in opposite directions and verifies that the host simulates both while the client observes both authoritative results. Prediction, interpolation, match/health replication, and disaster presentation remain later Phase 6 slices.
+
+## 2026-10-06 — Playable match-state replication
+
+- **Decision:** `MatchManager` owns serialization and client application of its authoritative state. The host transports a complete snapshot at 10 Hz; clients cannot use this path to mutate the server.
+- **Presentation:** Playable HUD and spectating resolve the local ENet peer instead of assuming peer 1. Replicated elimination hides the corresponding avatar on every peer and starts spectating only for the eliminated local player.
+- **Channels:** Movement uses unreliable-ordered channel 1 and match state uses channel 2 so frequent movement packets cannot supersede health or elimination snapshots.
+- **Validation boundary:** The separate client observed ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2 and local spectating after server-owned damage. Disaster lifecycle and visual-state replication remain separate Phase 6 work.
