@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T19:59:03+07:00",
+  "updated_at": "2026-10-06T20:05:46+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -33,8 +33,8 @@
   },
   "current": {
     "phase": "phase_1_ui_identity_and_feedback",
-    "milestone": "milestone_1_3_lobby_and_spectator",
-    "task": "task_1_3_1_structured_player_rows"
+    "milestone": "milestone_1_2_warning_and_personal_danger",
+    "task": "task_1_2_3_unified_flood_danger_channel"
   },
   "engine": {
     "name": "Godot",
@@ -70,17 +70,17 @@
       },
       "milestone_1_2_warning_and_personal_danger": {
         "title": "Warning and Personal-Danger Hierarchy",
-        "status": "completed",
+        "status": "in_progress",
         "tasks": {
           "task_1_2_1_major_warning_banner": "completed",
           "task_1_2_2_hazard_and_combination_chips": "completed",
-          "task_1_2_3_unified_flood_danger_channel": "completed",
+          "task_1_2_3_unified_flood_danger_channel": "in_progress",
           "task_1_2_4_warning_motion_and_audio_feedback": "completed"
         },
         "gates": {
           "icon_name_countdown_and_action": "passed",
           "non_color_only_identity": "passed",
-          "bounded_warning_priority": "passed",
+          "bounded_warning_priority": "failed",
           "overlap_readability": "passed"
         }
       },
@@ -186,6 +186,11 @@
       "result": "passed",
       "check": "Task 1.2.4 warning motion/audio feedback and Milestone 1.2 completion",
       "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=95 covers bounded entrance/settle, no per-frame restart, final-three-second cue/emphasis, duplicate/upward snapshot correction suppression, single cue for skipped seconds, no handoff cue, immediate reduced-motion cancellation, preserved audio feedback, reserved warning stream/pool cap, hiding/reset and repeat entrance. Initial exact 0.85 Color-alpha assertions failed on float representation; corrected them to is_equal_approx, then reran successfully. PHASE7_POLISH_OK checks=34 validates quiet countdown effect routing, normal volume restoration on voice reuse, and reserved stream; PLAYER_INTEGRATION_OK checks=50, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=177 each. Inspected motion-entrance at 720p, motion-overlap at both resolutions, and motion-reduced-overlap in dark 720p scenery: readable entering banner, final count, two chips, one drowning instruction card, no clipped copy/card overlaps or obscured player; fixture includes visible Flood water and a Tornado warning. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches and disconnect cleanup; tests/run_playable_scale_test.sh passed local 4/8/20-peer matrix. All four Milestone 1.2 gates passed. Existing intermittent successful-exit HUD resource diagnostics remain. WSL llvmpipe and dummy audio do not establish physical audio audibility, Windows performance, or multi-PC playtesting. Reduced-motion persistence/control remains Milestone 1.5."
+    },
+    {
+      "result": "failed",
+      "check": "User-requested Milestone 1.2 review: electrified-water personal-danger priority",
+      "evidence": "Reproduced with actual Flood simulation: player feet y=0.1, water y=0.5, electrify_at then tick(0.5); HP 100 -> 87.5, submerged time 0, personal status IN FLOODWATER and action KEEP YOUR HEAD ABOVE WATER. game/main.gd:650-668 considers only submersion for personal danger; game/flood.gd:255-256 applies 25 HP/s electricity at feet regardless of head height. Personal danger also suppresses Lightning's LEAVE THE RING AND WATER action. A global ELECTRIFIED WATER chip exists but does not correct the prioritized local instruction. Fix should prioritize leaving electrified water and account for simultaneous electric/drowning damage. Existing suites still pass: GAMEPLAY_HUD_OK checks=95, PLAYER_INTEGRATION_OK checks=50, DISASTER_COMBINATIONS_OK checks=20, PHASE7_POLISH_OK checks=34; none joins electrification damage with local danger copy. Display-backed HUD at 1280x720 with Dummy audio passed checks=177 and inspected motion-overlap remained readable/unobstructed. Intermittent successful-exit resource diagnostics remain. Reopened Task 1.2.3 and the priority gate; no gameplay code was changed during review. Temporary reproduction script removed after execution."
     }
   ],
   "blockers": [],
@@ -212,5 +217,5 @@
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"
   ],
-  "next_action": "Implement Phase 1 Task 1.3.1 by replacing the multiline lobby roster with structured player rows, host/local markers, and ready/waiting badges, including a scrollable 20-player roster check."
+  "next_action": "Fix Task 1.2.3 personal-danger priority for electrified Flood water and add combined damage/presentation regressions for wading, breathing grace, drowning, and electrification expiry before resuming Milestone 1.3."
 }
