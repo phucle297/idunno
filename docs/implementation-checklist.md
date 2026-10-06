@@ -90,18 +90,6 @@ Acceptance: 4- and 20-player results remain legible; all peers show identical au
 
 Milestone 1.4 complete: all 24 headless suites pass, 720p/1080p results and action captures were inspected, five real ENet rematches pass, and 4/8/20-player sessions verify exact authoritative rankings/cells, client authority rejection and connected lobby return. Lobby/results snapshots are reliable and sequence-ordered against live packets; final network logs have no errors or oversized-unreliable-packet warnings. Existing successful-exit audio/font resource diagnostics remain in some headless suites. Next is Milestone 1.7 map safety, not settings.
 
-### Milestone 1.7 — Map boundary and out-of-bounds safety
-
-User-requested addition to Phase 1. Execute after Milestone 1.4 and before Milestone 1.5; retain existing milestone IDs rather than renumbering recorded work.
-
-- [ ] Establish a continuous, readable toy-town perimeter around the current 64 × 64 m block, with collision on all four sides and corners; do not rely on the existing separated north fences.
-- [ ] Add a server-authoritative out-of-bounds safeguard for players escaping the perimeter or falling below the map. Eliminate once through existing health/match state with an explicit out-of-bounds cause; release held props and enter the existing spectator/results flow. No competitive respawn or client-authored death.
-- [ ] Verify walking, sprinting, jumping and disaster impulses at edges/corners, below-map fallback, host/client agreement, solo death, simultaneous eliminations, and rematch reset. Render and inspect the perimeter and death feedback.
-
-Acceptance: ordinary traversal cannot leave the play area; escaped players cannot fall indefinitely; out-of-bounds death is clearly signaled and replicated; existing rankings, spectator behavior and five network rematches remain correct. Do not claim this resolves the reported X-server shutdown without reproducing that failure separately.
-
-Scope: safety and boundary readability only. Enlarging the footprint and adding more map content are planned in Phase 4, not silently included in this fix.
-
 ### Milestone 1.5 — Pause, settings, accessibility, and UI audio
 
 - [ ] Task 1.5.1: Add an online-safe pause overlay that releases local input without pausing server simulation.
@@ -119,6 +107,18 @@ Acceptance: settings survive restart; warning volume remains independently contr
 - [ ] Re-profile representative overlap and reject unbounded per-frame UI allocation or scene rebuilding.
 
 Acceptance: all prior functional gates pass; inspected captures meet hierarchy, consistency, accessibility, and no-clipping requirements; representative performance remains within the validated target budget.
+
+### Milestone 1.7 — Map boundary and out-of-bounds safety
+
+User-requested addition to Phase 1. Execute after Milestone 1.4 and before Milestone 1.5; retain existing milestone IDs rather than renumbering recorded work.
+
+- [ ] Establish a continuous, readable toy-town perimeter around the current 64 × 64 m block, with collision on all four sides and corners; do not rely on the existing separated north fences.
+- [ ] Add a server-authoritative out-of-bounds safeguard for players escaping the perimeter or falling below the map. Eliminate once through existing health/match state with an explicit out-of-bounds cause; release held props and enter the existing spectator/results flow. No competitive respawn or client-authored death.
+- [ ] Verify walking, sprinting, jumping and disaster impulses at edges/corners, below-map fallback, host/client agreement, solo death, simultaneous eliminations, and rematch reset. Render and inspect the perimeter and death feedback.
+
+Acceptance: ordinary traversal cannot leave the play area; escaped players cannot fall indefinitely; out-of-bounds death is clearly signaled and replicated; existing rankings, spectator behavior and five network rematches remain correct. Do not claim this resolves the reported X-server shutdown without reproducing that failure separately.
+
+Scope: safety and boundary readability only. Enlarging the footprint and adding more map content are planned in Phase 4, not silently included in this fix.
 
 ## Planned future phases
 
