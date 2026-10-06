@@ -1,83 +1,131 @@
-# Vertical Slice Implementation Checklist
+# Disaster Party Development Roadmap
 
-This checklist executes the existing plan in `PROMPT.md` and `DESIGN.md`; it does not replace either document.
+This checklist executes `DESIGN.md`; the original brief is archived at `docs/old-docs/PROMPT.md`. `progress.json` is the operational source of truth when this projection and recorded state differ.
 
-## Phase 1 — Core sandbox
+## Work hierarchy
 
-- [x] Inspect local tools and select an engine/export pipeline.
-- [x] Bootstrap fresh checkouts with a headless editor import so global script classes exist before script-mode validation.
-- [x] Launch the selected engine and import one deterministic generated asset.
-- [x] Validate the shared palette, base character proxy, wall, prop, and disaster-effect proxy together.
-- [x] Implement an authority-ready third-person controller, camera, jump, sprint, and crouch.
-- [x] Assemble a compact traversal greybox with physics props.
-- [x] Implement and recover from a bounded ragdoll/knockdown state.
-- [x] Run automated checks and visually inspect the playable sandbox.
-- [x] Complete the Toy Town map gate with three distinct landmarks, accessible interiors, four elevation routes, and required street props.
-- [x] Validate the generated character animation and cosmetic-variant gate rather than relying on the static proxy.
+```text
+Phase — a product outcome
+└── Milestone — a reviewable capability with acceptance gates
+    └── Task — an optional ordered work unit for a large milestone
+```
 
-Later phases remain governed by section 17 of `DESIGN.md` and must not begin until Phase 1 passes.
+- A phase may contain one or many milestones.
+- A small milestone may have no tasks; do not create bookkeeping-only tasks.
+- Finish and validate the current milestone before opening another milestone.
+- A phase is complete only when every required milestone gate passes.
+- Keep exactly one executable `next_action` in `progress.json`.
+- Record durable design/architecture choices in `docs/decisions.md`, not here.
 
-## Phase 2 — Match
+## Phase 0 — Init Project ✅
 
-- [x] Add authoritative lobby readiness, health, damage, death causes, winner rules, timeout ties, and solo-safe match state.
-- [x] Connect the local sandbox to HP, alive count, timer, active state, and lethal results presentation.
-- [x] Add deterministic spectator target cycling after death and inspect the rendered state.
-- [x] Add restart cleanup and verify five consecutive rematches without leaked sandbox physics bodies.
-- [x] Add server-arbitrated object grabbing, one-owner contention, bounded spring holding, and forced release.
-- [x] Add the required in-game create/join, player-list, and ready-state lobby controls.
-- [x] Finish an active match correctly when disconnects leave one survivor.
+Everything implemented and validated before this roadmap reset belongs to Phase 0.
 
-## Phase 3 — Slice disasters
+### Milestone 0.1 — Project and playable foundation ✅
 
-- [x] Implement Meteor Shower with an authoritative warning, impact damage, bounded impulse, ragdoll trigger, and cleanup.
-- [x] Implement Flood with authoritative water level, breathing grace, damage, buoyancy, and cleanup.
-- [x] Implement Tornado with an authoritative path, bounded pull/lift/throw forces, cover reduction, and cleanup.
-- [x] Validate each disaster independently before enabling director selection or overlap.
+- Godot 4.7.2 project and fresh-checkout bootstrap.
+- Deterministic generated assets, shared art language, Toy Town map, character, required animation contracts, and synthesized audio.
+- Responsive controller, camera, sprint, jump, crouch, grabbing, bounded knockdown/ragdoll, and recovery.
 
-## Phase 4 — Additional disasters
+### Milestone 0.2 — Complete multiplayer vertical slice ✅
 
-- [x] Implement Earthquake with predefined breakable structures and debris.
-- [x] Implement Lightning with fair telegraphs and authoritative strikes.
-- [x] Implement Fire with predefined zone/neighbor propagation.
+- Lobby readiness, authoritative match/health/death/winner state, spectating, results, and rematch.
+- Meteor, Flood, Tornado, Earthquake, Lightning, Fire, randomized Director, and two-disaster overlap.
+- Flood + Lightning and Tornado + Fire behavior-changing interactions.
+- Authoritative movement, shared props, ragdoll presentation, disasters, and match state replicated in playable ENet sessions.
 
-## Director and overlap groundwork completed ahead of Phase 5
+### Milestone 0.3 — Validation baseline ✅
 
-- [x] Add a server-owned Disaster Director with randomized selection and immediate-repeat suppression.
-- [x] Add disaster metadata, minimum-time/difficulty gates, and symmetric compatibility checks.
-- [x] Escalate intensity from solo opening hazards to a hard cap of two simultaneous disasters.
-- [x] Require each hazard to complete solo before it can participate in an overlap.
-- [x] Validate overlap behavior, separate-peer authority, five-rematch cleanup, and the rendered multi-hazard HUD.
+- Fifteen headless behavior suites.
+- Separate-process authority and playable two-peer checks.
+- State-contract 2/4/8/20-client matrix and playable 4/8/20-player matrix.
+- Five-rematch cleanup, rendered gameplay gates, native Windows performance, and native WASAPI overlap checks.
 
-## Phase 5 — Disaster combinations
+Phase 0 is complete for automated, rendered, scale, performance, and target audio-path gates. A physical multi-PC human LAN feel/loudness playtest remains useful product research, not a missing Phase 0 implementation gate.
 
-- [x] Add named cross-disaster events and shared hazard queries.
-- [x] Implement Flood + Lightning electrified water.
-- [x] Implement Tornado + Fire wind-driven propagation and tagged burning debris carriage.
+## Phase 1 — UI Identity and Feedback
 
-Flood + Lightning and Tornado + Fire both change authoritative gameplay behavior and replicate compact presentation state to playable clients.
+Goal: replace the functional prototype-label UI with a cohesive **Toy Broadcast** presentation—chunky rounded cards, broad readable icons, warm cream/slate surfaces, restrained motion, and strong hazard hierarchy—while preserving world visibility and server authority.
 
-## Slice polish and validation completed ahead of Phase 7
+### Milestone 1.1 — Theme, responsive HUD, and component boundary
 
-- [x] Validate one authoritative server plus four separate local clients against the same active Flood + Tornado match snapshot.
-- [x] Render and inspect a four-player overlap HUD with both hazards, readable danger geometry, and a dry refuge.
-- [x] Profile 600 representative overlap frames at 1280 × 720 and record renderer, CPU, draw calls, node count, frame time, and physics time.
-- [x] Validate the 60 FPS target with native Windows Godot on Intel UHD 630 hardware; two uncapped 600-frame runs measured p95 frame times of 11.74 ms and 11.37 ms.
+- [ ] Task 1.1.1: Define reusable color, typography, spacing, focus, panel, button, and safe-margin tokens from `DESIGN.md`.
+- [ ] Task 1.1.2: Extract UI presentation from raw label mutation in `game/main.gd` into semantic HUD components.
+- [ ] Task 1.1.3: Replace floating labels with a health display, timer card, alive-count pill, and maximum-two active-hazard tray.
+- [ ] Task 1.1.4: Remove the permanent sandbox title/control legend and show only contextual control prompts.
 
-## Phase 6 — Multiplayer stabilization
+Acceptance: one shared theme; no permanent debug copy; no clipping at 1280×720 and 1920×1080; readable over representative light and dark scenery; existing gameplay/network state remains authoritative.
 
-- [x] Validate authoritative ready, match, health, alive, damage, and overlapping-disaster snapshots with 2, 4, 8, and 20 separate clients.
-- [x] Connect the playable scene to ENet create/join, authoritative player spawning, local camera ownership, and disconnect cleanup.
-- [x] Submit playable client input to the host, simulate movement authoritatively, and batch player snapshots back to clients.
-- [x] Replicate playable match state, health, elimination, alive count, local HUD, and spectating.
-- [x] Replicate Meteor, Flood, and Tornado presentation into a two-peer playable session.
-- [x] Validate representative playable 4/8/20-player sessions rather than state-only probes.
-- [x] Replicate authoritative held-prop transforms/ownership and hazard-driven prop motion to playable clients.
-- [x] Replicate authoritative knockdown/ragdoll presentation and recovery state to playable clients.
+### Milestone 1.2 — Warning and personal-danger hierarchy
 
-## Phase 7 — Polish
+- [ ] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
+- [ ] Task 1.2.2: Add compact active-hazard and combination chips for persistent context.
+- [ ] Task 1.2.3: Merge Flood breathing/drowning copy into one prioritized personal-danger channel so instructions do not compete.
+- [ ] Task 1.2.4: Add restrained warning transitions and countdown feedback while preserving the dedicated warning audio voice.
 
-- [x] Present HP, alive count, timer, active-disaster names, warnings, and baseline disaster VFX.
-- [x] Add deterministic synthesized gameplay audio and reserve a warning voice during capped effect overlap.
-- [x] Add a complete winner/results screen with survival summary and host-authoritative network rematch flow.
-- [x] Perform final UI/VFX/feedback tuning after Phases 4–6 are complete.
-- [x] Validate simultaneous warning/effect playback through native Windows WASAPI with the reserved warning voice active.
+Acceptance: hazard identity is never color-only; at most one full warning and one personal-danger banner compete for attention; every incoming disaster shows icon, name, countdown, and action; overlap remains readable.
+
+### Milestone 1.3 — Lobby and spectator presentation
+
+- [ ] Task 1.3.1: Replace the multiline roster with reusable player rows, host/local markers, and ready/waiting badges.
+- [ ] Task 1.3.2: Add labeled connection fields, inline status/errors, clear host-start gating, backdrop dimming, and gameplay-HUD suppression.
+- [ ] Task 1.3.3: Add an elimination transition and compact spectator target card with previous/next controls.
+
+Acceptance: a 20-player roster scrolls without overlap; ready/start ownership is unambiguous; keyboard/controller focus order works; lobby and spectator state remain presentation-only.
+
+### Milestone 1.4 — Structured results
+
+- [ ] Task 1.4.1: Replace the space-aligned summary string with reusable ranking rows and explicit columns.
+- [ ] Task 1.4.2: Add winner emphasis, restrained row reveal, and one optional award derived from existing result data.
+- [ ] Task 1.4.3: Present host Rematch and client waiting states clearly; add Return to Lobby and Settings only where authority allows them.
+
+Acceptance: 4- and 20-player results remain legible; all peers show identical authoritative rankings; five network rematches remain green; gameplay HUD is hidden beneath results.
+
+### Milestone 1.5 — Pause, settings, accessibility, and UI audio
+
+- [ ] Task 1.5.1: Add an online-safe pause overlay that releases local input without pausing server simulation.
+- [ ] Task 1.5.2: Persist master/effects/warning volume, mouse sensitivity, invert-Y, camera-shake level, fullscreen/windowed mode, and reduced motion.
+- [ ] Task 1.5.3: Add a small pooled UI sound set for focus, confirm, back, error, ready, countdown, and results reveal.
+
+Acceptance: settings survive restart; warning volume remains independently controllable; reduced motion removes scale/pulse dependence; input focus and cursor capture recover correctly; online pause never stops authority.
+
+### Milestone 1.6 — UI regression and rendered review
+
+- [ ] Update exact-string tests toward semantic component state without weakening behavior assertions.
+- [ ] Run all Phase 0 regressions and multiplayer matrices.
+- [ ] Render and inspect lobby, default HUD, single warning, overlap, drowning, spectating, results, pause, and settings at 1280×720; inspect core states at 1920×1080.
+- [ ] Re-profile representative overlap and reject unbounded per-frame UI allocation or scene rebuilding.
+
+Acceptance: all prior functional gates pass; inspected captures meet hierarchy, consistency, accessibility, and no-clipping requirements; representative performance remains within the validated target budget.
+
+## Planned future phases
+
+These stay concise until they become current.
+
+### Phase 2 — Human Playtest and Core Feel
+
+- Package a reproducible Windows build and run structured 3–8-player, multi-PC sessions.
+- Tune movement, camera, warnings, pacing, fairness, match length, and cause-of-death clarity from observed evidence.
+- Gate expansion on understandable deaths, voluntary rematches, and recurring emergent moments.
+
+### Phase 3 — Player-Caused Chaos
+
+- Add one bounded server-authoritative shove with cooldown and recovery protection only if playtests support it.
+- Deepen a small set of prop roles and add two or three interruptible social emotes.
+- Reject stun-lock, combat dominance, and rigidbody-budget regressions.
+
+### Phase 4 — Disaster Remix and Toy Town Interaction
+
+- Add bounded variants to existing disasters before adding another disaster class.
+- Add at most two evidence-driven combinations, prioritizing Tornado + Meteor and Earthquake + Flood.
+- Deepen landmark interactions and authored map states without a second map or dynamic destruction system.
+
+### Phase 5 — Session Distribution and Release Readiness
+
+- Add a reproducible Windows export and robust failure UX.
+- Extract the direct-IP session boundary before evaluating Steam lobby/invite integration.
+- Validate physical LAN/Internet sessions without building accounts, ranking, or a custom backend.
+
+## Explicitly deferred
+
+Second map, additional disaster classes, progression, currencies, shops, inventories, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog.

@@ -1,9 +1,192 @@
 {
-  "schema_version": 1,
-  "updated_at": "2026-10-06T17:13:52+07:00",
+  "schema_version": 2,
+  "updated_at": "2026-10-06T17:30:26+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "current_phase": "phase_7_polish",
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_1_ui_identity_and_feedback",
+    "milestone": "milestone_1_1_theme_hud_and_components",
+    "task": "task_1_1_1_define_ui_tokens"
+  },
+  "phases": {
+    "phase_0_init_project": {
+      "title": "Init Project",
+      "status": "completed",
+      "dependencies": [],
+      "milestones": {
+        "milestone_0_1_project_and_playable_foundation": {
+          "status": "completed",
+          "required_gates": [
+            "engine_and_fresh_checkout",
+            "deterministic_assets_and_audio",
+            "toy_town_character_movement_physics"
+          ]
+        },
+        "milestone_0_2_multiplayer_vertical_slice": {
+          "status": "completed",
+          "required_gates": [
+            "match_lobby_spectating_results_rematch",
+            "six_disasters_director_and_overlap",
+            "behavior_changing_combinations",
+            "playable_authoritative_replication"
+          ]
+        },
+        "milestone_0_3_validation_baseline": {
+          "status": "completed",
+          "required_gates": [
+            "fifteen_headless_suites",
+            "separate_process_authority",
+            "playable_4_8_20_scale",
+            "rendered_readability",
+            "native_windows_performance",
+            "native_windows_audio"
+          ]
+        }
+      },
+      "remaining_research": "Optional physical multi-PC LAN feel and loudness playtest; not an implementation blocker"
+    },
+    "phase_1_ui_identity_and_feedback": {
+      "title": "UI Identity and Feedback",
+      "status": "planned",
+      "dependencies": [
+        "phase_0_init_project"
+      ],
+      "goal": "Replace prototype labels with a cohesive Toy Broadcast interface while preserving world readability and server authority",
+      "milestones": {
+        "milestone_1_1_theme_hud_and_components": {
+          "status": "planned",
+          "tasks": {
+            "task_1_1_1_define_ui_tokens": "planned",
+            "task_1_1_2_extract_semantic_hud_components": "planned",
+            "task_1_1_3_build_health_timer_alive_and_hazard_components": "planned",
+            "task_1_1_4_remove_permanent_debug_copy": "planned"
+          },
+          "required_gates": [
+            "shared_theme",
+            "responsive_1280x720_and_1920x1080",
+            "light_and_dark_world_readability",
+            "no_authority_regression"
+          ]
+        },
+        "milestone_1_2_warning_and_personal_danger": {
+          "status": "planned",
+          "tasks": {
+            "task_1_2_1_major_warning_banner": "planned",
+            "task_1_2_2_hazard_and_combination_chips": "planned",
+            "task_1_2_3_unified_flood_danger_channel": "planned",
+            "task_1_2_4_warning_motion_and_audio_feedback": "planned"
+          },
+          "required_gates": [
+            "icon_name_countdown_and_action",
+            "non_color_only_identity",
+            "bounded_warning_priority",
+            "overlap_readability"
+          ]
+        },
+        "milestone_1_3_lobby_and_spectator": {
+          "status": "planned",
+          "tasks": {
+            "task_1_3_1_structured_player_rows": "planned",
+            "task_1_3_2_connection_status_focus_and_hud_suppression": "planned",
+            "task_1_3_3_elimination_and_spectator_card": "planned"
+          },
+          "required_gates": [
+            "scrollable_20_player_roster",
+            "unambiguous_ready_and_host_start",
+            "keyboard_and_controller_focus",
+            "presentation_only_state"
+          ]
+        },
+        "milestone_1_4_structured_results": {
+          "status": "planned",
+          "tasks": {
+            "task_1_4_1_ranking_rows_and_columns": "planned",
+            "task_1_4_2_winner_reveal_and_one_existing_data_award": "planned",
+            "task_1_4_3_authority_aware_results_actions": "planned"
+          },
+          "required_gates": [
+            "legible_4_and_20_player_results",
+            "identical_authoritative_rankings",
+            "five_network_rematches",
+            "gameplay_hud_hidden"
+          ]
+        },
+        "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
+          "status": "planned",
+          "tasks": {
+            "task_1_5_1_online_safe_pause": "planned",
+            "task_1_5_2_persistent_input_display_motion_and_audio_settings": "planned",
+            "task_1_5_3_bounded_ui_audio_pool": "planned"
+          },
+          "required_gates": [
+            "settings_persist",
+            "independent_warning_volume",
+            "reduced_motion",
+            "cursor_and_focus_recovery",
+            "online_authority_never_pauses"
+          ]
+        },
+        "milestone_1_6_regression_and_rendered_review": {
+          "status": "planned",
+          "required_gates": [
+            "phase_0_regression",
+            "all_representative_ui_states_rendered_and_inspected",
+            "representative_performance_budget"
+          ]
+        }
+      }
+    },
+    "phase_2_human_playtest_and_core_feel": {
+      "title": "Human Playtest and Core Feel",
+      "status": "planned",
+      "dependencies": [
+        "phase_1_ui_identity_and_feedback"
+      ]
+    },
+    "phase_3_player_caused_chaos": {
+      "title": "Player-Caused Chaos",
+      "status": "planned",
+      "dependencies": [
+        "phase_2_human_playtest_and_core_feel"
+      ]
+    },
+    "phase_4_disaster_remix_and_toy_town_interaction": {
+      "title": "Disaster Remix and Toy Town Interaction",
+      "status": "planned",
+      "dependencies": [
+        "phase_2_human_playtest_and_core_feel"
+      ]
+    },
+    "phase_5_session_distribution_and_release_readiness": {
+      "title": "Session Distribution and Release Readiness",
+      "status": "planned",
+      "dependencies": [
+        "phase_2_human_playtest_and_core_feel"
+      ]
+    }
+  },
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -12,7 +195,7 @@
     "target": "Windows PC",
     "status": "installed_locally_and_executed"
   },
-  "phases": {
+  "phase_0_legacy_workstreams": {
     "phase_1_core_sandbox": {
       "status": "completed",
       "acceptance": {
@@ -94,7 +277,7 @@
       }
     }
   },
-  "original_roadmap_audit": {
+  "phase_0_legacy_roadmap_audit": {
     "phase_1_core_sandbox": "completed_map_character_animation_and_cosmetic_gates",
     "phase_2_match": "completed_in_game_lobby_readiness_and_disconnect_winner_resolution",
     "phase_3_first_disasters": "completed_meteor_flood_tornado",
@@ -413,10 +596,16 @@
       "result": "passed",
       "check": "Flood crouch damage and feedback regression",
       "evidence": "FLOOD_OK checks=29 proves a 1.0 m water surface remains safe below the standing 1.35 m head sample, covers the crouched 0.80 m sample, preserves the two-second breathing grace, then applies 12 HP/s; PLAYER_INTEGRATION_OK checks=41 proves HOLD BREATH feedback appears immediately and DROWNING feedback accompanies decreasing HP. Per-player exposure is included in compact Flood presentation snapshots. PLAYABLE_SCENE_NETWORK_PEERS_OK and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed after the snapshot change. .amp/in/artifacts/flood-breathing-grace-feedback.png and flood-damage-feedback.png were rendered and inspected: HP 100 with a one-second HOLD BREATH warning transitions to HP 94 with DROWNING, -12 HP/s, a blue overlay, and an escape instruction; both states passed without overlap."
+    },
+    {
+      "result": "passed",
+      "check": "Phase 0 completion re-verification and roadmap reset",
+      "evidence": "Re-ran all 15 headless behavior suites: PHASE1 29, PLAYER 41, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 29, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. NETWORK_AUTHORITY_PEERS_OK, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with five rematches, MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20, and PLAYABLE_SCALE_MATRIX_OK players=4,8,20 all passed. One combined run emitted shutdown-only ObjectDB/resource warnings in rematch and director despite success; verbose reruns and three subsequent normal reruns of each suite were clean, so no reproducible gameplay or stable-body leak was established. Existing inspected visual, native Windows performance, and native WASAPI evidence remains valid because documentation-only changes did not affect runtime presentation. The former seven implementation phases are now archived as Phase 0 — Init Project."
     }
   ],
   "blockers": [],
   "changed_files": [
+    "docs/old-docs/PROMPT.md",
     "README.md",
     "GUIDE.md",
     "AGENTS.md",
@@ -484,5 +673,5 @@
     "assets/generated/",
     "assets/materials/"
   ],
-  "next_action": "Run an optional multi-PC LAN feel and loudness playtest; all seven automated and rendered phase gates are complete."
+  "next_action": "Implement Phase 1 Task 1.1.1 by defining the reusable Toy Broadcast UI color, typography, spacing, focus, panel, button, and safe-margin tokens from DESIGN.md."
 }

@@ -4,19 +4,19 @@ A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
 Development is specification-led:
 
-- `PROMPT.md` contains the original development prompt.
+- `docs/old-docs/PROMPT.md` archives the original development prompt.
 - `DESIGN.md` is the local Disaster Party Design Bible.
-- `progress.json` is the single source of truth for implementation and validation state across sessions.
-- `docs/implementation-checklist.md` tracks the current short execution checklist without replacing the design plan.
+- `progress.json` is the single source of truth for the current phase, milestone, optional task, validation evidence, blockers, and next action.
+- `docs/implementation-checklist.md` is the human-readable roadmap and current execution checklist without replacing the design plan.
 
-The seven-phase vertical slice is implemented and validated through 20-player playable-scene sessions and native Windows performance/audio checks. The playable scene includes an in-game direct-IP lobby, authoritative movement and match state, all six disasters and both combinations, shared prop and knockdown presentation, results, and host-controlled rematches. See `GUIDE.md` for play instructions and current limitations.
+All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. The playable scene includes an in-game direct-IP lobby, authoritative movement and match state, all six disasters and both combinations, shared prop and knockdown presentation, results, and host-controlled rematches. Future development uses `phase → milestone → optional task`; Phase 1 focuses on a richer, cohesive UI identity and gameplay feedback. See `GUIDE.md` for play instructions and current limitations.
 
 ## Local development
 
 Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the portable binary.
 
 ```bash
-# Regenerate the deterministic Phase 1 reference assets.
+# Regenerate the deterministic Phase 0 reference assets.
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
 
 # Run the current automated checks.

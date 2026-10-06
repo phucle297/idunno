@@ -2,14 +2,14 @@
 
 Before implementation work:
 
-1. Read `PROMPT.md` and `DESIGN.md`. `DESIGN.md` is the local copy of the Disaster Party Design Bible and is authoritative after explicit user instructions.
+1. Read `docs/old-docs/PROMPT.md` and `DESIGN.md`. The archived prompt records the original brief; `DESIGN.md` is the local Disaster Party Design Bible and is authoritative after explicit user instructions.
 2. Read `progress.json`; it is the single source of truth for phase state, validation, blockers, and the next action. Update it after every meaningful implementation or validation result.
 3. Load `.agents/skills/advancing-disaster-party/SKILL.md` for implementation, planning, or session handoff work.
 4. Load `.agents/skills/validating-game-assets/SKILL.md` before downloading, generating, importing, changing, or approving an asset.
 
 Do not rewrite the design plan. Record implementation decisions in `docs/decisions.md` and concise executable work in `docs/implementation-checklist.md`.
 
-Complete and validate the current phase before expanding scope. Never mark imports, animation clips, retargeting, networking, performance, or multiplayer as working without an executed check recorded in `progress.json`.
+Work through the hierarchy `phase → milestone → task`. A phase may contain multiple milestones; add tasks only when a milestone is too large for one coherent work unit. Complete and validate the current milestone before starting another, and complete all required milestones before closing a phase. Never mark imports, animation clips, retargeting, networking, performance, or multiplayer as working without an executed check recorded in `progress.json`.
 
 When the same issue occurs repeatedly, verify and record its cause and proven fix, create or update a focused skill with prevention and recovery steps, and add a concise reminder to the relevant project guidance or checklist. Load the `building-skills` skill before creating or changing any skill.
 

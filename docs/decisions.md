@@ -70,9 +70,9 @@
 - **Channels:** Movement uses unreliable-ordered channel 1 and match state uses channel 2 so frequent movement packets cannot supersede health or elimination snapshots.
 - **Validation boundary:** The separate client observed ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2 and local spectating after server-owned damage. Disaster lifecycle and visual-state replication remain separate Phase 6 work.
 
-## 2026-10-06 — Seven-phase roadmap correction
+## 2026-10-06 — Seven-phase roadmap correction (historical Phase 0 workstream)
 
-- **Decision:** Track the original seven phases from `PROMPT.md` separately from completed slice-validation milestones. The next ordered phase is Phase 4 because Earthquake, Lightning, and Fire are absent.
+- **Decision:** Track the original seven phases from `docs/old-docs/PROMPT.md` separately from completed slice-validation milestones. At that time, the next ordered workstream was Phase 4 because Earthquake, Lightning, and Fire were absent. The 2026-10-06 Phase 0 baseline decision below supersedes this numbering for future development.
 - **Combination boundary:** Simultaneous Flood + Tornado proves scheduling, coexistence, and readability. It is not a Phase 5 cross-disaster interaction; no disaster currently changes another disaster's behavior.
 - **Polish boundary:** Baseline HUD and Meteor/Flood/Tornado VFX exist, but Phase 7 remains incomplete without audio, a complete results screen, network rematch, and final feedback tuning.
 
@@ -129,3 +129,10 @@
 
 - **Authority:** Derive the Flood head sample from the player's current authoritative capsule height. Standing remains sampled at 1.35 m, while crouching lowers the sample with the 0.95 m capsule, so presentation and damage agree.
 - **Feedback:** Replicate compact per-player submersion times in the existing Flood snapshot. The local HUD distinguishes water below the head, the two-second breathing grace, and active 12 HP/s drowning with a blue overlay and explicit text; damage remains server-owned.
+
+## 2026-10-06 — Extensible development hierarchy and Phase 0 baseline
+
+- **Decision:** Reclassify the complete validated vertical slice as **Phase 0 — Init Project**. The former seven phases remain historical implementation evidence inside Phase 0 rather than active roadmap units.
+- **Hierarchy:** Future work uses `phase → milestone → task`. A phase may contain multiple milestones; tasks are optional and exist only when a milestone needs multiple ordered work units. `progress.json` owns machine-readable state, while `docs/implementation-checklist.md` is its concise human-readable projection.
+- **Next product phase:** Phase 1 is **UI Identity and Feedback**. It deepens the existing lobby, HUD, warning, spectator, results, pause, settings, motion, and audio presentation without copying another game's visual identity or adding progression, matchmaking, chat, inventory, or other unrelated systems.
+- **Planning basis:** Independent roadmap, UI, and gameplay audits agreed that human playtest evidence and richer feedback have higher near-term value than adding disaster classes, maps, or platform infrastructure.
