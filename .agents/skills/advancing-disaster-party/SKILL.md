@@ -9,7 +9,7 @@ Deliver the smallest coherent improvement in the current milestone without expan
 
 ## Workflow
 
-1. Read `docs/old-docs/PROMPT.md`, `DESIGN.md`, and `progress.json` in that order. Treat the prompt as archived context and `DESIGN.md` as the active design authority.
+1. Read `docs/old-docs/PROMPT.md`, `DESIGN.md`, and root `progress.json` in that order. Treat the prompt as archived context, `DESIGN.md` as the active design authority, and root `progress.json` as active-phase state only.
 2. Confirm `current.phase`, `current.milestone`, `current.task`, their acceptance gates, blockers, and `next_action` from `progress.json`.
 3. Inspect the current code and local tools. On a fresh checkout or missing `.godot` directory, run `godot --headless --editor --path . --quit` before script-mode checks so Godot registers global `class_name` types. Do not substitute `godot --headless --path . --quit`; it can load the main scene before creating the class cache and emit misleading parse failures.
 4. Implement only the current task, or the smallest coherent slice when the milestone has no tasks. Keep server authority explicit for movement inputs, health, hazards, important physics outcomes, and match state.
@@ -25,6 +25,17 @@ Deliver the smallest coherent improvement in the current milestone without expan
 - Complete all required milestone gates before marking a phase complete.
 - Keep future phases concise until they become current; detail the current milestone and immediate next task.
 
+## Phase Rollover
+
+After every required milestone and gate passes:
+
+1. Record the final completion evidence in root `progress.json`.
+2. Derive a lowercase hyphenated phase slug from the stable phase ID, such as `phase-1-ui-identity-and-feedback`.
+3. Create `docs/old-docs/progress-{phase-slug}.json`. Stop if that path already exists; never replace historical phase evidence.
+4. Preserve the completed phase's full milestones, tasks, validation log, blockers, and changed files in the archive. Set `source_of_truth` to `false` and add archive metadata with phase ID, title, status, timestamp, and `superseded_by: "../../progress.json"`.
+5. Replace root `progress.json` with a fresh file for only the next phase. Include the workflow schema, `previous_phase_archive`, active phase/milestone/task, empty new-phase validation and changed-file state, blockers, and exactly one executable next action.
+6. Validate both files with `jq empty` and confirm the archive is complete while root state contains no completed-phase diary.
+
 ## Scope Rules
 
 - Treat `DESIGN.md` as the local Disaster Party Design Bible; do not duplicate or rewrite it.
@@ -36,4 +47,4 @@ Deliver the smallest coherent improvement in the current milestone without expan
 
 ## Session Handoff
 
-Before stopping, ensure `progress.json` names changed files, validation evidence, unresolved blockers, and the next action. Keep entries concise so the file remains operational rather than becoming a diary.
+Before stopping, ensure root `progress.json` names active-phase changed files, validation evidence, unresolved blockers, and the next action. Keep entries concise so the active file remains operational rather than becoming a cross-phase diary.

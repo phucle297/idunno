@@ -5,8 +5,9 @@ A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 Development is specification-led:
 
 - `docs/old-docs/PROMPT.md` archives the original development prompt.
+- `docs/old-docs/progress-{phase-slug}.json` preserves immutable completed-phase evidence.
 - `DESIGN.md` is the local Disaster Party Design Bible.
-- `progress.json` is the single source of truth for the current phase, milestone, optional task, validation evidence, blockers, and next action.
+- `progress.json` is the single source of truth for only the active phase, milestone, optional task, validation evidence, blockers, and next action.
 - `docs/implementation-checklist.md` is the human-readable roadmap and current execution checklist without replacing the design plan.
 
 All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. The playable scene includes an in-game direct-IP lobby, authoritative movement and match state, all six disasters and both combinations, shared prop and knockdown presentation, results, and host-controlled rematches. Future development uses `phase → milestone → optional task`; Phase 1 focuses on a richer, cohesive UI identity and gameplay feedback. See `GUIDE.md` for play instructions and current limitations.

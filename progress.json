@@ -1,8 +1,14 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T17:30:26+07:00",
+  "updated_at": "2026-10-06T17:42:24+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "progress-{phase-slug}.json",
+    "rule": "When the current phase is completed, move its full progress and validation evidence to the archive before creating a fresh progress.json for the next phase."
+  },
+  "previous_phase_archive": "docs/old-docs/progress-phase-0-init-project.json",
   "development_model": {
     "hierarchy": [
       "phase",
@@ -30,648 +36,113 @@
     "milestone": "milestone_1_1_theme_hud_and_components",
     "task": "task_1_1_1_define_ui_tokens"
   },
-  "phases": {
-    "phase_0_init_project": {
-      "title": "Init Project",
-      "status": "completed",
-      "dependencies": [],
-      "milestones": {
-        "milestone_0_1_project_and_playable_foundation": {
-          "status": "completed",
-          "required_gates": [
-            "engine_and_fresh_checkout",
-            "deterministic_assets_and_audio",
-            "toy_town_character_movement_physics"
-          ]
-        },
-        "milestone_0_2_multiplayer_vertical_slice": {
-          "status": "completed",
-          "required_gates": [
-            "match_lobby_spectating_results_rematch",
-            "six_disasters_director_and_overlap",
-            "behavior_changing_combinations",
-            "playable_authoritative_replication"
-          ]
-        },
-        "milestone_0_3_validation_baseline": {
-          "status": "completed",
-          "required_gates": [
-            "fifteen_headless_suites",
-            "separate_process_authority",
-            "playable_4_8_20_scale",
-            "rendered_readability",
-            "native_windows_performance",
-            "native_windows_audio"
-          ]
-        }
-      },
-      "remaining_research": "Optional physical multi-PC LAN feel and loudness playtest; not an implementation blocker"
-    },
-    "phase_1_ui_identity_and_feedback": {
-      "title": "UI Identity and Feedback",
-      "status": "planned",
-      "dependencies": [
-        "phase_0_init_project"
-      ],
-      "goal": "Replace prototype labels with a cohesive Toy Broadcast interface while preserving world readability and server authority",
-      "milestones": {
-        "milestone_1_1_theme_hud_and_components": {
-          "status": "planned",
-          "tasks": {
-            "task_1_1_1_define_ui_tokens": "planned",
-            "task_1_1_2_extract_semantic_hud_components": "planned",
-            "task_1_1_3_build_health_timer_alive_and_hazard_components": "planned",
-            "task_1_1_4_remove_permanent_debug_copy": "planned"
-          },
-          "required_gates": [
-            "shared_theme",
-            "responsive_1280x720_and_1920x1080",
-            "light_and_dark_world_readability",
-            "no_authority_regression"
-          ]
-        },
-        "milestone_1_2_warning_and_personal_danger": {
-          "status": "planned",
-          "tasks": {
-            "task_1_2_1_major_warning_banner": "planned",
-            "task_1_2_2_hazard_and_combination_chips": "planned",
-            "task_1_2_3_unified_flood_danger_channel": "planned",
-            "task_1_2_4_warning_motion_and_audio_feedback": "planned"
-          },
-          "required_gates": [
-            "icon_name_countdown_and_action",
-            "non_color_only_identity",
-            "bounded_warning_priority",
-            "overlap_readability"
-          ]
-        },
-        "milestone_1_3_lobby_and_spectator": {
-          "status": "planned",
-          "tasks": {
-            "task_1_3_1_structured_player_rows": "planned",
-            "task_1_3_2_connection_status_focus_and_hud_suppression": "planned",
-            "task_1_3_3_elimination_and_spectator_card": "planned"
-          },
-          "required_gates": [
-            "scrollable_20_player_roster",
-            "unambiguous_ready_and_host_start",
-            "keyboard_and_controller_focus",
-            "presentation_only_state"
-          ]
-        },
-        "milestone_1_4_structured_results": {
-          "status": "planned",
-          "tasks": {
-            "task_1_4_1_ranking_rows_and_columns": "planned",
-            "task_1_4_2_winner_reveal_and_one_existing_data_award": "planned",
-            "task_1_4_3_authority_aware_results_actions": "planned"
-          },
-          "required_gates": [
-            "legible_4_and_20_player_results",
-            "identical_authoritative_rankings",
-            "five_network_rematches",
-            "gameplay_hud_hidden"
-          ]
-        },
-        "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
-          "status": "planned",
-          "tasks": {
-            "task_1_5_1_online_safe_pause": "planned",
-            "task_1_5_2_persistent_input_display_motion_and_audio_settings": "planned",
-            "task_1_5_3_bounded_ui_audio_pool": "planned"
-          },
-          "required_gates": [
-            "settings_persist",
-            "independent_warning_volume",
-            "reduced_motion",
-            "cursor_and_focus_recovery",
-            "online_authority_never_pauses"
-          ]
-        },
-        "milestone_1_6_regression_and_rendered_review": {
-          "status": "planned",
-          "required_gates": [
-            "phase_0_regression",
-            "all_representative_ui_states_rendered_and_inspected",
-            "representative_performance_budget"
-          ]
-        }
-      }
-    },
-    "phase_2_human_playtest_and_core_feel": {
-      "title": "Human Playtest and Core Feel",
-      "status": "planned",
-      "dependencies": [
-        "phase_1_ui_identity_and_feedback"
-      ]
-    },
-    "phase_3_player_caused_chaos": {
-      "title": "Player-Caused Chaos",
-      "status": "planned",
-      "dependencies": [
-        "phase_2_human_playtest_and_core_feel"
-      ]
-    },
-    "phase_4_disaster_remix_and_toy_town_interaction": {
-      "title": "Disaster Remix and Toy Town Interaction",
-      "status": "planned",
-      "dependencies": [
-        "phase_2_human_playtest_and_core_feel"
-      ]
-    },
-    "phase_5_session_distribution_and_release_readiness": {
-      "title": "Session Distribution and Release Readiness",
-      "status": "planned",
-      "dependencies": [
-        "phase_2_human_playtest_and_core_feel"
-      ]
-    }
-  },
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
     "language": "GDScript",
     "renderer": "Compatibility",
-    "target": "Windows PC",
-    "status": "installed_locally_and_executed"
+    "target": "Windows PC"
   },
-  "phase_0_legacy_workstreams": {
-    "phase_1_core_sandbox": {
-      "status": "completed",
-      "acceptance": {
-        "engine_launch": "passed",
-        "generated_asset_import": "passed",
-        "asset_validation_scene": "passed",
-        "controller_and_camera": "passed_automated_movement_jump_crouch_and_camera_visual_checks",
-        "greybox_traversal": "passed_three_distinct_landmarks_two_accessible_interiors_four_tagged_elevation_routes_shelters_and_required_street_props",
-        "character_animation_and_cosmetics": "passed_deterministic_18_bone_character_11_required_clips_six_suit_colors_and_four_cosmetic_variants",
-        "ragdoll_recovery": "passed_11_body_10_joint_55kg_simulation_cleanup_and_visual_checks",
-        "network_authority_boundary": "passed_separate_local_enet_server_and_client_ownership_matrix",
-        "visual_review": "asset_reference_and_gameplay_camera_passed"
-      }
-    },
-    "phase_2_match": {
-      "status": "completed",
-      "acceptance": {
-        "lobby_readiness": "passed_in_game_direct_ip_create_join_player_list_per_player_ready_controls_and_all_ready_host_start_gate",
-        "health_and_death": "passed_server_guard_damage_clamp_death_cause_and_hud_checks",
-        "winner_rules": "passed_damage_elimination_timeout_solo_and_active_disconnect_last_survivor_resolution",
-        "spectating": "passed_local_camera_follow_deterministic_wraparound_target_cycling_and_visual_check",
-        "grabbing": "passed_server_arbitration_one_owner_bounded_spring_forced_release_rematch_and_visual_checks",
-        "rematch_cleanup": "passed_five_consecutive_scene_resets_with_stable_physics_body_count"
-      }
-    },
-    "phase_3_slice_disasters": {
-      "status": "completed",
-      "acceptance": {
-        "meteor_shower": "passed_server_authority_warning_damage_bounded_player_and_prop_impulses_ragdoll_cleanup_and_visual_checks",
-        "flood": "passed_server_authority_posture_aware_head_submersion_warning_grace_damage_feedback_bounded_buoyancy_current_cleanup_and_visual_checks",
-        "tornado": "passed_server_authority_path_bounded_pull_lift_single_throw_prop_force_cover_cleanup_and_visual_checks"
-      }
-    },
-    "phase_4_additional_disasters": {
-      "status": "completed",
-      "acceptance": {
-        "earthquake": "passed_authority_warning_pulses_bounded_damage_force_six_stable_breakable_sections_debris_reset_replication_and_visual_gate",
-        "lightning": "passed_authority_fair_telegraph_bounded_damage_knockdown_named_strike_event_replication_cleanup_and_visual_gate",
-        "fire": "passed_authority_fixed_zone_graph_warning_damage_neighbor_propagation_wind_hook_replication_cleanup_and_visual_gate"
-      }
-    },
-    "slice_director_overlap": {
-      "status": "completed",
-      "acceptance": {
-        "randomized_selection": "passed_seeded_random_selection_no_immediate_repeat_minimum_time_difficulty_and_compatibility_checks",
-        "two_disaster_overlap": "passed_solo_first_gate_intensity_three_unlock_two_hazard_cap_authority_cleanup_and_visual_check"
-      }
-    },
-    "phase_5_disaster_combinations": {
-      "status": "completed",
-      "acceptance": {
-        "cross_disaster_events": "passed_named_lightning_strike_tornado_activation_completion_fire_warning_and_shared_flood_query_contracts",
-        "behavior_changing_interaction": "passed_temporary_flood_electrification_and_tornado_accelerated_fire_with_carried_burning_debris_authority_replication_cleanup_and_visual_gates"
-      }
-    },
-    "slice_polish_validation": {
-      "status": "completed",
-      "acceptance": {
-        "four_client_match_snapshot": "passed_one_authoritative_server_and_four_separate_clients_with_consistent_ready_active_health_alive_damage_and_overlap_state",
-        "overlap_ui_readability": "passed_rendered_four_player_hud_two_named_hazards_flood_tornado_refuge_and_player_silhouette",
-        "representative_overlap_profile": "passed_native_windows_godot_intel_uhd_630_1280x720_compatibility_two_uncapped_600_frame_runs_p95_11_74ms_and_11_37ms"
-      }
-    },
-    "phase_6_multiplayer_stabilization": {
-      "status": "completed",
-      "acceptance": {
-        "separate_peer_state_matrix": "passed_2_4_8_20_clients_ready_active_health_alive_damage_client_mutation_rejection_and_flood_tornado_snapshot",
-        "playable_scene_session": "passed_two_peer_host_join_authoritative_spawn_local_camera_and_disconnect_cleanup",
-        "playable_scene_replication": "passed_4_8_20_roster_movement_facing_match_health_hud_disasters_shared_prop_ownership_transforms_and_knockdown_ragdoll_presentation"
-      }
-    },
-    "phase_7_polish": {
-      "status": "completed",
-      "acceptance": {
-        "baseline_hud_and_vfx": "passed_for_all_six_disasters_and_two_combinations",
-        "audio": "passed_eight_deterministic_imported_pcm_cues_reserved_warning_voice_and_simultaneous_warning_effect_playback_on_native_windows_wasapi",
-        "complete_results_screen": "passed_winner_ranking_survival_duration_disasters_survived_damage_death_cause_and_rendered_visual_gate",
-        "network_rematch": "passed_host_authoritative_five_cycle_playable_peer_flow_with_results_spectating_player_hazard_director_and_sandbox_reset"
+  "phase": {
+    "id": "phase_1_ui_identity_and_feedback",
+    "title": "UI Identity and Feedback",
+    "status": "in_progress",
+    "dependencies": [
+      "phase_0_init_project"
+    ],
+    "goal": "Replace prototype labels with a cohesive Toy Broadcast interface while preserving world readability and server authority.",
+    "milestones": {
+      "milestone_1_1_theme_hud_and_components": {
+        "title": "Theme, Responsive HUD, and Component Boundary",
+        "status": "planned",
+        "tasks": {
+          "task_1_1_1_define_ui_tokens": "planned",
+          "task_1_1_2_extract_semantic_hud_components": "planned",
+          "task_1_1_3_build_health_timer_alive_and_hazard_components": "planned",
+          "task_1_1_4_remove_permanent_debug_copy": "planned"
+        },
+        "gates": {
+          "shared_theme": "not_run",
+          "responsive_1280x720_and_1920x1080": "not_run",
+          "light_and_dark_world_readability": "not_run",
+          "no_authority_regression": "not_run"
+        }
+      },
+      "milestone_1_2_warning_and_personal_danger": {
+        "title": "Warning and Personal-Danger Hierarchy",
+        "status": "planned",
+        "tasks": {
+          "task_1_2_1_major_warning_banner": "planned",
+          "task_1_2_2_hazard_and_combination_chips": "planned",
+          "task_1_2_3_unified_flood_danger_channel": "planned",
+          "task_1_2_4_warning_motion_and_audio_feedback": "planned"
+        },
+        "gates": {
+          "icon_name_countdown_and_action": "not_run",
+          "non_color_only_identity": "not_run",
+          "bounded_warning_priority": "not_run",
+          "overlap_readability": "not_run"
+        }
+      },
+      "milestone_1_3_lobby_and_spectator": {
+        "title": "Lobby and Spectator Presentation",
+        "status": "planned",
+        "tasks": {
+          "task_1_3_1_structured_player_rows": "planned",
+          "task_1_3_2_connection_status_focus_and_hud_suppression": "planned",
+          "task_1_3_3_elimination_and_spectator_card": "planned"
+        },
+        "gates": {
+          "scrollable_20_player_roster": "not_run",
+          "unambiguous_ready_and_host_start": "not_run",
+          "keyboard_and_controller_focus": "not_run",
+          "presentation_only_state": "not_run"
+        }
+      },
+      "milestone_1_4_structured_results": {
+        "title": "Structured Results",
+        "status": "planned",
+        "tasks": {
+          "task_1_4_1_ranking_rows_and_columns": "planned",
+          "task_1_4_2_winner_reveal_and_one_existing_data_award": "planned",
+          "task_1_4_3_authority_aware_results_actions": "planned"
+        },
+        "gates": {
+          "legible_4_and_20_player_results": "not_run",
+          "identical_authoritative_rankings": "not_run",
+          "five_network_rematches": "not_run",
+          "gameplay_hud_hidden": "not_run"
+        }
+      },
+      "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
+        "title": "Pause, Settings, Accessibility, and UI Audio",
+        "status": "planned",
+        "tasks": {
+          "task_1_5_1_online_safe_pause": "planned",
+          "task_1_5_2_persistent_input_display_motion_and_audio_settings": "planned",
+          "task_1_5_3_bounded_ui_audio_pool": "planned"
+        },
+        "gates": {
+          "settings_persist": "not_run",
+          "independent_warning_volume": "not_run",
+          "reduced_motion": "not_run",
+          "cursor_and_focus_recovery": "not_run",
+          "online_authority_never_pauses": "not_run"
+        }
+      },
+      "milestone_1_6_regression_and_rendered_review": {
+        "title": "UI Regression and Rendered Review",
+        "status": "planned",
+        "gates": {
+          "phase_0_regression": "not_run",
+          "all_representative_ui_states_rendered_and_inspected": "not_run",
+          "representative_performance_budget": "not_run"
+        }
       }
     }
   },
-  "phase_0_legacy_roadmap_audit": {
-    "phase_1_core_sandbox": "completed_map_character_animation_and_cosmetic_gates",
-    "phase_2_match": "completed_in_game_lobby_readiness_and_disconnect_winner_resolution",
-    "phase_3_first_disasters": "completed_meteor_flood_tornado",
-    "phase_4_additional_disasters": "completed_earthquake_lightning_fire",
-    "phase_5_disaster_combinations": "completed_flood_lightning_and_tornado_fire",
-    "phase_6_multiplayer_stabilization": "completed_playable_4_8_20_core_prop_and_ragdoll_replication",
-    "phase_7_polish": "completed_results_network_rematch_rendered_feedback_and_native_windows_audio_path"
-  },
-  "asset_intake": {
-    "quaternius_universal_animation_library": "official_archive_blocked_by_cloudflare; third_party_standard_fbx_imported_in_scratch_and_45_clips_enumerated_as_secondary_evidence",
-    "kenney_city_kit_suburban": "archive_license_and_40_glb_files_verified_not_imported",
-    "kenney_particle_pack": "archive_license_and_80_transparent_png_files_verified_not_imported"
-  },
-  "validation_log": [
-    {
-      "result": "passed",
-      "check": "Godot executable",
-      "evidence": "Godot 4.7.2.stable.official.ed1daf0bf --headless --version"
-    },
-    {
-      "result": "passed",
-      "check": "deterministic asset generation",
-      "evidence": "ASSET_GENERATION_OK seed=297 assets=4 materials=10"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 1 structural tests",
-      "evidence": "PHASE1_TESTS_OK checks=17"
-    },
-    {
-      "result": "passed",
-      "check": "reference asset visual gate",
-      "evidence": ".amp/in/artifacts/asset-validation.png inspected: four coherent readable assets, no missing geometry"
-    },
-    {
-      "result": "passed",
-      "check": "gameplay sandbox visual gate",
-      "evidence": ".amp/in/artifacts/phase1-sandbox-final.png inspected: character, crates, landmarks, roads, raised route, flush ramp, palette, and UI readable"
-    },
-    {
-      "result": "partial",
-      "check": "Quaternius Standard animation inventory",
-      "evidence": "Third-party UAL1_Standard.fbx imported in Godot and exposed 45 named clips; official itch.io archive remains blocked and mirror provenance is insufficient"
-    },
-    {
-      "result": "passed",
-      "check": "controller and traversal integration",
-      "evidence": "PLAYER_INTEGRATION_OK checks=21: walk, sprint, crouch, jump apex/landing, ramp ascent, 11-body ragdoll constraints, stability, cleanup and upright recovery"
-    },
-    {
-      "result": "passed",
-      "check": "cosmetic ragdoll visual gate",
-      "evidence": ".amp/in/artifacts/phase1-ragdoll.png inspected: connected toy body, no explosive separation, missing regions, duplicate upright visual, or inconsistent materials"
-    },
-    {
-      "result": "passed",
-      "check": "separate-peer ENet authority boundary",
-      "evidence": "NETWORK_AUTHORITY_SERVER_OK and NETWORK_AUTHORITY_CLIENT_OK from separate Godot processes; each peer accepted only its authoritative player and only the server accepted match-state mutation"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 match-state rules",
-      "evidence": "MATCH_MANAGER_OK checks=21: lobby readiness, solo exception, damage, death cause, winner, simultaneous elimination, timeout tie, and lobby reset"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 active and lethal visual states",
-      "evidence": ".amp/in/artifacts/phase2-active.png and phase2-lethal.png inspected: consistent HP, alive count, timer, state, controls, and player visibility"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 repeated rematch cleanup",
-      "evidence": "MATCH_MANAGER_OK checks=37 and REMATCH_INTEGRATION_OK cycles=5 checks=35 sandbox_children=14: state, health, player visibility, collider, and sandbox physics reset without accumulation"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 local spectator presentation",
-      "evidence": "SPECTATOR_CONTROLLER_OK checks=12 and .amp/in/artifacts/phase2-spectating.png inspected: deterministic wraparound cycling, survivor follow, eliminated avatar hidden, HP 0, alive 2/3, and legible Q/E instruction"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 authoritative prop grabbing",
-      "evidence": "GRAB_MANAGER_OK checks=19, REMATCH_INTEGRATION_OK cycles=5 checks=50, and separate-process NETWORK_AUTHORITY_PEERS_OK: 1.5 m range, one-owner contention, non-teleport bounded spring, knockdown/death/separation/disconnect release, and stale-ownership cleanup passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 grabbing visual gate",
-      "evidence": ".amp/in/artifacts/phase2-grabbing.png inspected: held crate visibly suspended without intersection, player and toy-town remain readable, and two-line controls do not overlap match UI"
-    },
-    {
-      "result": "passed",
-      "check": "Orb toolchain setup",
-      "evidence": ".agents/setup downloaded checksum-verified Godot 4.7.2, warm setup completed in 0.32 s twice, resume completed in 0.01 s, and all six headless checks plus the ENet authority-peer check passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 authoritative Meteor Shower",
-      "evidence": "METEOR_SHOWER_OK checks=30 impacts=1: 2.5 s warning boundary, lethal direct core, nonlethal near damage, unaffected out-of-radius targets, one-shot impact, capped player and prop impulses, ragdoll, survival credit, reuse, and cleanup passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 Meteor authority and rematch cleanup",
-      "evidence": "NETWORK_AUTHORITY_PEERS_OK from separate ENet processes rejected client Meteor registration and warning mutation; REMATCH_INTEGRATION_OK cycles=5 checks=65 sandbox_children=14 removed active Meteor state/effects every cycle"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 Meteor rendered visual gate",
-      "evidence": ".amp/in/artifacts/phase3-meteor-warning.png and phase3-meteor-impact.png rendered with Godot Compatibility via Xvfb and inspected: aligned amber footprint/countdown, complete slate meteor with orange core/short trail, readable warning UI, localized impact ring, and displaced multi-body ragdoll passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 authoritative Flood",
-      "evidence": "FLOOD_OK checks=24: 6 s warning boundary, 3.5 m level, fractional water-crossing exposure, 2 s breathing grace, 12 HP/s damage, safe high ground, grace reset, bounded buoyancy/current, reuse, and cleanup passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 authoritative Tornado",
-      "evidence": "TORNADO_OK checks=30 throws=1: valid moving path, 3 s warning, 8 m influence boundary, core ragdoll, capped player/prop forces, 25% cover pull, one-shot throw, reuse, and cleanup passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 authority and rematch cleanup",
-      "evidence": "NETWORK_AUTHORITY_PEERS_OK rejected client Flood/Tornado registration and lifecycle mutation; REMATCH_INTEGRATION_OK cycles=5 checks=95 sandbox_children=14 removed Meteor, Flood, and Tornado state/effects every cycle"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 3 Flood and Tornado rendered visual gate",
-      "evidence": ".amp/in/artifacts/phase3-flood.png and phase3-tornado.png rendered with Godot Compatibility via Xvfb and inspected: dry rooftop over readable translucent flood/ripple state and coherent dark funnel with amber influence/orange core footprints passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 1 deterministic asset generation re-audit",
-      "evidence": "Fixed random PackedScene node unique_id serialization; two consecutive seed=297 runs produced byte-identical SHA-256 values for all 14 generated scene/material files (DETERMINISTIC_ASSETS_OK files=14)"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 1 and Phase 2 full behavior re-audit",
-      "evidence": "PHASE1_TESTS_OK checks=22; PLAYER_INTEGRATION_OK checks=21; MATCH_MANAGER_OK checks=37; SPECTATOR_CONTROLLER_OK checks=12; GRAB_MANAGER_OK checks=19; REMATCH_INTEGRATION_OK cycles=5 checks=95; NETWORK_AUTHORITY_PEERS_OK"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 1 and Phase 2 rendered visual re-audit",
-      "evidence": ".amp/in/artifacts/phase1-assets-recheck.png, phase1-sandbox-recheck.png, phase1-ragdoll-recheck.png, phase2-grabbing-recheck.png, and phase2-spectating-recheck.png inspected: generated imports, map, connected ragdoll, non-intersecting held crate, and spectator UI passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 authoritative Disaster Director",
-      "evidence": "DISASTER_DIRECTOR_OK checks=37: inactive-match rejection, seeded scheduler selection, immediate-repeat suppression, time/difficulty intensity gates, solo-first overlap, symmetric compatibility, and two-hazard cap passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 regression, authority, and rematch cleanup",
-      "evidence": "All ten headless behavior suites passed; NETWORK_AUTHORITY_PEERS_OK rejected client director configuration/registration/start; REMATCH_INTEGRATION_OK cycles=5 checks=110 cleared director history, active state, and hazard effects"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 rendered overlap visual gate",
-      "evidence": ".amp/in/artifacts/phase4-overlap.png rendered with Godot Compatibility via Xvfb and inspected: Flood and Tornado visuals, dry elevated refuge, and two unclipped named HUD lines passed"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 5 four-client authoritative match snapshot",
-      "evidence": "FOUR_CLIENT_MATCH_PEERS_OK clients=4 from one ENet server plus four separate Godot client processes; every client validated ACTIVE, ALIVE 4/4, 75 HP server damage, and simultaneous Flood + Tornado state; this is a validation harness, not production playable-scene replication"
-    },
-    {
-      "result": "passed",
-      "check": "Phase 5 four-player overlap UI readability",
-      "evidence": ".amp/in/artifacts/phase5-four-player-overlap.png rendered at 1280x720 with Godot Compatibility and inspected: ALIVE 4/4, unclipped Flood and Tornado instructions, flood surface, tornado funnel/footprint, dry refuge, and player silhouette passed"
-    },
-    {
-      "result": "blocked",
-      "check": "Phase 5 60 FPS performance target",
-      "evidence": "Mesa llvmpipe software renderer on 4-vCPU Intel Xeon orb, 1280x720 Compatibility, four players plus Flood + Tornado: 600 measured frames after 120 warmup, p50 31.60 ms, p95 36.57 ms, p95 physics 5.91 ms, 64 draw calls, 153 nodes, target_60fps_met=false; requires hardware-accelerated Windows target measurement"
-    },
-    {
-      "result": "passed",
-      "check": "Five-phase clean-workspace re-audit",
-      "evidence": "A clean .godot directory exposed that the old setup command did not register global class_name types and test_phase1 could print success despite main.gd parse errors. Setup now runs a headless editor import and Phase 1 asserts that the main script remains attached. After bootstrapping, deterministic assets (14 files), all ten behavior suites, five rematch cycles (110 checks), NETWORK_AUTHORITY_PEERS_OK, and FOUR_CLIENT_MATCH_PEERS_OK clients=4 passed. .amp/in/artifacts/phase5-five-phase-reaudit.png was regenerated at 1280x720 and inspected: ALIVE 4/4, both named hazard instructions, flood and tornado geometry, dry elevation, and player silhouette remain readable. Phase 5 remains in progress only for hardware-accelerated Windows profiling."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 separate-peer multiplayer state matrix",
-      "evidence": "MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 from one authoritative ENet server plus separate Godot client processes at each count; all peers validated ready/ACTIVE, complete ALIVE and health state, 75 HP server damage, client mutation rejection, and simultaneous Flood + Tornado. This does not validate playable-scene replication."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 playable-scene ENet session",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disconnect_cleanup=passed from two processes loading scenes/main.tscn; host/join, authoritative spawn IDs, per-peer authority, local camera ownership, and removal from scene plus match/grab/Meteor/Flood/Tornado registries passed. All ten gameplay suites, five rematch cycles, and NETWORK_AUTHORITY_PEERS_OK also passed. Movement and presentation replication remain unimplemented."
-    },
-    {
-      "result": "partial",
-      "check": "Six-phase clean-workspace verification re-audit",
-      "evidence": "Fresh editor import on Godot 4.7.2 passed; two seed=297 generations produced 14 byte-identical asset files; all ten behavior suites passed (PHASE1 23, player 21, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37); NETWORK_AUTHORITY_PEERS_OK, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2, and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed. .amp/in/artifacts/six-phase-verification.png was rendered at 1280x720 and inspected: ALIVE 4/4, both named hazards, flood, tornado, dry refuge, and player silhouettes passed. Mesa llvmpipe profile remained below target at p50 34.63 ms, p95 39.16 ms, 64 draw calls, 153 nodes, target_60fps_met=false. Phases 1-4 are verified complete; Phase 5 remains blocked only on hardware-accelerated Windows profiling; Phase 6 remains in progress because playable-scene movement, match, health, and disaster presentation replication are not implemented."
-    },
-    {
-      "result": "partial",
-      "check": "Local six-phase verification continuation",
-      "evidence": "From a deleted .godot cache, .agents/setup completed a fresh Godot 4.7.2 editor import; two seed=297 generations produced 14 byte-identical files; all ten behavior suites passed (PHASE1 23, player 21, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37); NETWORK_AUTHORITY_PEERS_OK, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2, and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed. .amp/in/artifacts/six-phase-verification-local.png rendered at 1280x720 and was inspected: ALIVE 4/4, both named hazard instructions, flood, tornado, danger footprint, dry elevated refuge, and the local player silhouette were readable; not all four avatars were individually readable because distant players were small or occluded. Mesa llvmpipe profiling completed with four players plus Flood and Tornado at p50 21.59 ms, p95 29.19 ms, p95 process 33.51 ms, p95 physics 2.23 ms, 64 draw calls, 153 nodes, target_60fps_met=false. Phases 1-4 remain verified complete; Phase 5 still requires hardware-accelerated Windows profiling; Phase 6 still lacks playable-scene movement, match, health, and disaster-presentation replication."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 5 native Windows 60 FPS target",
-      "evidence": "Official checksum-verified Godot 4.7.2 Windows executable launched through WSL interop and selected OpenGL Compatibility on Intel UHD Graphics 630 driver 31.0.101.2140. The four-player Flood + Tornado profile ran for 120 warmup plus 600 measured frames at 1280x720. A 60 FPS-capped diagnostic measured p50 16.66 ms and p95 17.50 ms while engine process time was p95 5.28 ms, showing frame-limiter scheduling jitter. Two uncapped runs independently passed the actual 16.67 ms budget: p50/p95 9.98/11.74 ms and 10.01/11.37 ms, equivalent to at least 85 FPS at p95. Phase 5 is complete."
-    },
-    {
-      "result": "passed",
-      "check": "Playable camera cursor capture",
-      "evidence": "Player input now captures the cursor at startup, releases it with Escape, recaptures it with left click, and ignores camera motion while the cursor is visible. PLAYER_INTEGRATION_OK checks=23 passed headless; the cursor release/visible-motion/recapture/captured-motion assertions also passed with both WSLg Linux Godot and native Windows Godot display drivers. PHASE1_TESTS_OK checks=23 and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disconnect_cleanup=passed. The broader rendered integration runs separately exposed the existing timing-sensitive sprint-speed assertion, while the standard headless integration suite remained green."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 playable-scene authoritative movement",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed disconnect_cleanup=passed from separate host and client processes loading scenes/main.tscn. The peers supplied divergent movement input; the host advanced both CharacterBody3D players and the client observed both batched authoritative snapshots. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Match, health, and disaster presentation replication remain unimplemented."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 playable-scene match and health replication",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 match_health_hud=passed elimination_spectating=passed from separate host and client processes. The client observed authoritative ACTIVE/100 HP, ACTIVE/75 HP with ALIVE 2/2, then RESULTS/0 HP with ALIVE 1/2; its eliminated avatar was hidden and spectator follow activated. All ten gameplay suites passed (PHASE1 23, player 23, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did NETWORK_AUTHORITY_PEERS_OK. Disaster presentation replication remains unimplemented."
-    },
-    {
-      "result": "passed",
-      "check": "Default-scene offline input regression",
-      "evidence": "The authoritative-movement change incorrectly treated Godot's default OfflineMultiplayerPeer as an active network session, causing PartyPlayer._physics_process to return before offline movement and interaction. The controller now bypasses local movement only for a non-offline multiplayer peer while still routing grab input in network sessions. PLAYER_INTEGRATION_OK checks=27 validates default main.tscn movement and grab input. All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37), as did PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 and NETWORK_AUTHORITY_PEERS_OK."
-    },
-    {
-      "result": "passed",
-      "check": "Default HUD and first-disaster timing",
-      "evidence": "Rendered 1280x720 default scene inspection showed HP 100 bottom-left, ALIVE 1/1 top-right, timer and controls readable. An executed 11-second default-session probe confirmed director running=true, selection_history=[Meteor Shower], active=[Meteor Shower], and rendered WARNING — METEOR IMPACT IN 2. The absence of overlap at launch is intentional: Tornado unlocks at 2:00 and overlap at 5:00 after solo completions."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 playable disaster presentation",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 disaster_presentation=passed from separate playable host/client processes. The client validated Meteor warning effect and text, then simultaneous Flood + Tornado effects and both named HUD lines. .amp/in/artifacts/playable-client-overlap.png was captured from the rendered client and inspected: flood surface, tornado funnel/footprints, HP 100, ALIVE 2/2, 09:59 timer, and two player silhouettes were readable."
-    },
-    {
-      "result": "audit",
-      "check": "Original seven-phase roadmap",
-      "evidence": "Phases 1-3 are complete. Phase 4 is not started because Earthquake, Lightning, and Fire do not exist. Phase 5 is not started because current overlap is coexistence without cross-disaster behavior. Phase 6 remains in progress because playable 4/8/20 sessions are unverified. Phase 7 is partial out of order: baseline HUD/VFX exist, but audio, complete results, network rematch, and final feedback are missing."
-    },
-    {
-      "result": "passed",
-      "check": "Seven-phase audit regression verification",
-      "evidence": "All ten gameplay suites passed (PHASE1 23, player 27, match 37, rematch 5 cycles/110, spectator 12, grab 19, Meteor 30, Flood 24, Tornado 30, director 37). NETWORK_AUTHORITY_PEERS_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed with host Enter start, authoritative movement, match/health HUD, Meteor/Flood/Tornado presentation, elimination, spectating, and disconnect cleanup. MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed the state-contract matrix; this is not full playable 4/8/20 validation."
-    },
-    {
-      "result": "passed",
-      "check": "Player visual movement facing",
-      "evidence": "Corrected visual yaw from a +Z-forward assumption to Godot's -Z forward convention. PLAYER_INTEGRATION_OK checks=29 independently verifies forward and left movement facing vectors. .amp/in/artifacts/movement-facing-forward.png and movement-facing-left.png were rendered and inspected: forward movement shows the character facing away from the follow camera, and left movement shows the face oriented left rather than right. All ten gameplay suites, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 authoritative Earthquake",
-      "evidence": "EARTHQUAKE_OK checks=25 validates a 4 s fair warning, bounded server damage/player velocity/prop impulse, six stable predefined intact/damaged/broken sections, a two-section destruction cap, one gameplay debris body per broken section, survival credit, cleanup, reset, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=135 sandbox_children=20, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Earthquake presentation passed. Compact PackedByteArray structure state kept the 10 Hz unreliable snapshot below ENet MTU. .amp/in/artifacts/phase4-earthquake-v2.png was rendered and inspected: active HUD, high-contrast cracks/dust, changed structures, player silhouette, and routes passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 authoritative Lightning",
-      "evidence": "LIGHTNING_OK checks=24 validates a 2 s warning boundary, one authoritative distance-scaled strike, unaffected out-of-radius player, bounded knockdown, named struck event, one-shot damage, survival credit, cleanup, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=150, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Lightning presentation passed. Active-only disaster snapshots remained below ENet MTU. .amp/in/artifacts/phase4-lightning.png was rendered and inspected: violet radius ring, targeting column, warning text, player, and world all passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 4 authoritative Fire",
-      "evidence": "FIRE_OK checks=26 validates eight fixed zones, a 3.5 s warning, authoritative 12 HP/s damage, graph-neighbor-only propagation, a distinct 1.5 s propagation warning, named ignition/warning/wind events, doubled propagation frequency under wind, compact presentation snapshots, cleanup, and reuse. REMATCH_INTEGRATION_OK cycles=5 checks=165 sandbox_children=20, NETWORK_AUTHORITY_PEERS_OK, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with Fire warning presentation passed. .amp/in/artifacts/phase4-fire.png was rendered and inspected: burning zone, distinct propagation ring, HUD, player, and traversal readability passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 5 behavior-changing disaster combinations",
-      "evidence": "DISASTER_COMBINATIONS_OK checks=20 validates named-signal orchestration, connected-water queries, three-second Flood electrification, separate 25 HP/s electric damage, high-ground safety, expiry, Tornado-driven half-interval Fire propagation, exactly one tagged burning debris body, physical carriage, compact presentation snapshots, completion, and cleanup. NETWORK_AUTHORITY_PEERS_OK rejects client interaction mutation, and PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 observes both replicated interaction states. .amp/in/artifacts/phase5-electric-flood-final-v2.png and phase5-fire-tornado-v3.png were rendered and inspected: explicit non-color-only HUD labels, violet water ripples, raised refuge, Tornado, Fire, and visibly flaming carried debris passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 production playable-scene scale matrix",
-      "evidence": "PLAYABLE_SCALE_MATRIX_OK players=4,8,20 from actual scenes/main.tscn host and client processes. Every peer validated the complete authoritative roster and ownership, host-simulated local and remote movement, replicated visual facing, ACTIVE match with local 75 HP and correct alive HUD, and replicated Meteor warning. The server validated host HUD, all remote damage, and cleanup from player scene plus match, movement, grab, and all six disaster registries. Packed movement and match snapshots eliminated ENet MTU warnings at 20 players. PLAYER_INTEGRATION_OK checks=29, MATCH_MANAGER_OK checks=37, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2, and NETWORK_AUTHORITY_PEERS_OK also passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 7 synthesized audio and overlap priority",
-      "evidence": "AUDIO_GENERATION_OK seed=297 version=1 sounds=8 sample_rate=22050 generated byte-stable mono 16-bit WAV cues for generic/Flood/Meteor/Tornado warnings, impact, jump, death, and victory. PHASE7_POLISH_OK checks=31 loaded every cue, validated duration, a dedicated warning voice, four capped reusable effect voices, hazard transition cues, and warning preservation under eight overlapping effects. The environment has only Godot's dummy audio driver, so physical speaker audibility remains unverified."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 7 results, network rematch, and visual feedback",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 validated identical authoritative winner/results data, elimination/spectating, five consecutive host-controlled network rematches, restored health/avatars/HUD/director, and disconnect cleanup. The full behavior regression passed: PHASE1 23, PLAYER 29, MATCH 37, REMATCH 5 cycles/165, Meteor 30, Flood 24, Tornado 30, Earthquake 25, Lightning 24, Fire 26, combinations 20, director 37, and authority peers. .amp/in/artifacts/phase7-results-final.png was rendered at 1280x720 and inspected: centered coherent panel, winner, four unclipped ranked rows, survival duration, disaster count, damage, death causes, and one rematch prompt passed."
-    },
-    {
-      "result": "audit",
-      "check": "All-phase completion review",
-      "evidence": "Re-ran all 15 headless suites, PLAYABLE_SCENE_NETWORK_PEERS_OK, and PLAYABLE_SCALE_MATRIX_OK players=4,8,20; all passed with existing ObjectDB/resource leak warnings. Direct inspection found no prop transform/ownership or knockdown/ragdoll fields in playable snapshots. A focused MatchManager execution reproduced active disconnect leaving state=ACTIVE, alive=1, winners=[] instead of finishing. Phase 1 sandbox render inspection found one visible elevation ramp with no accessible interiors, four-route coverage, or full landmark/prop gate. Phase 7 results render passed; physical audio remains unverified."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 1 audit remediation",
-      "evidence": "PHASE1_TESTS_OK checks=29 and PLAYER_INTEGRATION_OK checks=37, including cursor-accessible lobby open/close behavior. Seed 297 asset generation version 3 produced byte-identical generated files across consecutive runs (SHA-256 368eb71fc93321bffe316f6d7d1317aac49d25571c75413bab1034600150e3f9). .amp/in/artifacts/phase1-toy-town-remediation-v4.png was rendered and inspected: distinct Shop, Town Hall, Parking Garage, and Pocket Park landmarks, open interiors, four elevation routes, shelters, and readable street props passed. The deterministic character contract provides 18 bones, all 11 required clips, six suit colors, and four cosmetic variants."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 2 audit remediation",
-      "evidence": "MATCH_MANAGER_OK checks=40 includes active-disconnect last-survivor resolution. .amp/in/artifacts/phase2-lobby-remediation-final.png was rendered and inspected: direct-IP address/port fields, create/join controls, player list, per-player ready status, ready toggle, disabled host start while one player waits, and accurate in-panel waiting status passed without clipping. Network match start requires every connected player to be ready."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 6 audit remediation",
-      "evidence": "PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 authoritative_movement=passed remote_observation=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 disconnect_cleanup=passed. PLAYABLE_SCALE_MATRIX_OK players=4,8,20 and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed without MTU warnings; NETWORK_AUTHORITY_PEERS_OK also passed."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 7 native Windows audio remediation",
-      "evidence": "Official Godot 4.7.2 Windows console build selected Intel UHD Graphics and the WASAPI audio driver. An executed overlapping-playback probe reported WINDOWS_AUDIO_DRIVER=WASAPI warning_active=true effect_active=true warning_count=1 effect_count=8, validating the target audio path and reserved warning mix behavior."
-    },
-    {
-      "result": "passed",
-      "check": "All-phase remediation regression",
-      "evidence": "All 15 headless suites passed: PHASE1 29, PLAYER 37, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 24, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. Explicit audio stream release plus bounded audio-thread drains removed the prior ObjectDB/resource warnings from rematch, combination, polish, two-peer playable, and playable 4/8/20 harnesses."
-    },
-    {
-      "result": "passed",
-      "check": "Flood crouch damage and feedback regression",
-      "evidence": "FLOOD_OK checks=29 proves a 1.0 m water surface remains safe below the standing 1.35 m head sample, covers the crouched 0.80 m sample, preserves the two-second breathing grace, then applies 12 HP/s; PLAYER_INTEGRATION_OK checks=41 proves HOLD BREATH feedback appears immediately and DROWNING feedback accompanies decreasing HP. Per-player exposure is included in compact Flood presentation snapshots. PLAYABLE_SCENE_NETWORK_PEERS_OK and MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20 passed after the snapshot change. .amp/in/artifacts/flood-breathing-grace-feedback.png and flood-damage-feedback.png were rendered and inspected: HP 100 with a one-second HOLD BREATH warning transitions to HP 94 with DROWNING, -12 HP/s, a blue overlay, and an escape instruction; both states passed without overlap."
-    },
-    {
-      "result": "passed",
-      "check": "Phase 0 completion re-verification and roadmap reset",
-      "evidence": "Re-ran all 15 headless behavior suites: PHASE1 29, PLAYER 41, MATCH 40, REMATCH 5 cycles/165 with sandbox_children=38, SPECTATOR 12, GRAB 19, METEOR 30, FLOOD 29, TORNADO 30, EARTHQUAKE 25, LIGHTNING 24, FIRE 26, DISASTER_COMBINATIONS 20, DISASTER_DIRECTOR 37, and PHASE7 31. NETWORK_AUTHORITY_PEERS_OK, PLAYABLE_SCENE_NETWORK_PEERS_OK clients=2 with five rematches, MULTIPLAYER_STABILIZATION_OK client_counts=2,4,8,20, and PLAYABLE_SCALE_MATRIX_OK players=4,8,20 all passed. One combined run emitted shutdown-only ObjectDB/resource warnings in rematch and director despite success; verbose reruns and three subsequent normal reruns of each suite were clean, so no reproducible gameplay or stable-body leak was established. Existing inspected visual, native Windows performance, and native WASAPI evidence remains valid because documentation-only changes did not affect runtime presentation. The former seven implementation phases are now archived as Phase 0 — Init Project."
-    }
-  ],
+  "validation_log": [],
   "blockers": [],
-  "changed_files": [
-    "docs/old-docs/PROMPT.md",
-    "README.md",
-    "GUIDE.md",
-    "AGENTS.md",
-    ".agents/skills/advancing-disaster-party/SKILL.md",
-    ".agents/skills/validating-game-assets/SKILL.md",
-    "docs/implementation-checklist.md",
-    "docs/decisions.md",
-    "docs/animation-clip-inventory.md",
-    "assets/manifest.json",
-    "assets/THIRD_PARTY.md",
-    "progress.json",
-    "project.godot",
-    "game/player_tuning.gd",
-    "game/player.gd",
-    "game/toy_character_visual.gd",
-    "game/cosmetic_ragdoll.gd",
-    "game/match_manager.gd",
-    "game/grab_manager.gd",
-    "game/meteor_shower.gd",
-    "game/flood.gd",
-    "game/tornado.gd",
-    "game/breakable_structure.gd",
-    "game/earthquake.gd",
-    "game/lightning.gd",
-    "game/fire.gd",
-    "game/gameplay_audio_controller.gd",
-    "game/disaster_director.gd",
-    "game/spectator_controller.gd",
-    "game/main.gd",
-    "game/asset_validation.gd",
-    "scenes/player.tscn",
-    "scenes/main.tscn",
-    "scenes/asset_validation.tscn",
-    "tools/asset_generation/generate_assets.gd",
-    ".agents/setup",
-    ".agents/resume",
-    "tests/test_phase1.gd",
-    "tests/test_player_integration.gd",
-    "tests/network_authority_peer.gd",
-    "tests/test_match_manager.gd",
-    "tests/test_rematch_integration.gd",
-    "tests/test_spectator_controller.gd",
-    "tests/test_grab_manager.gd",
-    "tests/test_meteor_shower.gd",
-    "tests/test_flood.gd",
-    "tests/test_tornado.gd",
-    "tests/test_earthquake.gd",
-    "tests/test_lightning.gd",
-    "tests/test_fire.gd",
-    "tests/test_disaster_combinations.gd",
-    "tests/test_disaster_director.gd",
-    "tests/test_phase7_polish.gd",
-    "tests/run_network_authority_test.sh",
-    "tests/four_client_match_probe.gd",
-    "tests/four_client_match_peer.gd",
-    "tests/run_four_client_match_test.sh",
-    "tests/playable_scene_network_peer.gd",
-    "tests/run_playable_scene_network_test.sh",
-    "tests/playable_scale_probe.gd",
-    "tests/playable_scale_peer.gd",
-    "tests/run_playable_scale_test.sh",
-    "tests/profile_overlap.gd",
-    "tools/audio_generation/generate_audio.gd",
-    "assets/audio/generated/",
-    "assets/generated/",
-    "assets/materials/"
-  ],
+  "changed_files": [],
   "next_action": "Implement Phase 1 Task 1.1.1 by defining the reusable Toy Broadcast UI color, typography, spacing, focus, panel, button, and safe-margin tokens from DESIGN.md."
 }

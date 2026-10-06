@@ -16,6 +16,7 @@ Phase — a product outcome
 - A phase is complete only when every required milestone gate passes.
 - Keep exactly one executable `next_action` in `progress.json`.
 - Record durable design/architecture choices in `docs/decisions.md`, not here.
+- On phase completion, archive the full file as `docs/old-docs/progress-{phase-slug}.json`, then replace root `progress.json` with a fresh file containing only the next phase.
 
 ## Phase 0 — Init Project ✅
 
@@ -41,7 +42,7 @@ Everything implemented and validated before this roadmap reset belongs to Phase 
 - State-contract 2/4/8/20-client matrix and playable 4/8/20-player matrix.
 - Five-rematch cleanup, rendered gameplay gates, native Windows performance, and native WASAPI overlap checks.
 
-Phase 0 is complete for automated, rendered, scale, performance, and target audio-path gates. A physical multi-PC human LAN feel/loudness playtest remains useful product research, not a missing Phase 0 implementation gate.
+Phase 0 is complete for automated, rendered, scale, performance, and target audio-path gates. Its full evidence is archived in `docs/old-docs/progress-phase-0-init-project.json`. A physical multi-PC human LAN feel/loudness playtest remains useful product research, not a missing Phase 0 implementation gate.
 
 ## Phase 1 — UI Identity and Feedback
 

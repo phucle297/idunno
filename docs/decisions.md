@@ -136,3 +136,9 @@
 - **Hierarchy:** Future work uses `phase → milestone → task`. A phase may contain multiple milestones; tasks are optional and exist only when a milestone needs multiple ordered work units. `progress.json` owns machine-readable state, while `docs/implementation-checklist.md` is its concise human-readable projection.
 - **Next product phase:** Phase 1 is **UI Identity and Feedback**. It deepens the existing lobby, HUD, warning, spectator, results, pause, settings, motion, and audio presentation without copying another game's visual identity or adding progression, matchmaking, chat, inventory, or other unrelated systems.
 - **Planning basis:** Independent roadmap, UI, and gameplay audits agreed that human playtest evidence and richer feedback have higher near-term value than adding disaster classes, maps, or platform infrastructure.
+
+## 2026-10-06 — One active progress file per phase
+
+- **Decision:** Root `progress.json` contains only the active phase. Once a phase passes all required gates, its complete state and evidence move to `docs/old-docs/progress-{phase-slug}.json`, and a fresh root file starts the next phase.
+- **Reason:** Separating immutable completed evidence from current execution state keeps handoffs concise without losing validation history.
+- **Safety:** Phase archives are append-only and must never be overwritten. The new active file links to the previous archive and starts with no inherited validation claims or changed-file diary.
