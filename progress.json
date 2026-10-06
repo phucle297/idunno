@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T18:43:43+07:00",
+  "updated_at": "2026-10-06T19:07:09+07:00",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -166,6 +166,11 @@
       "result": "passed",
       "check": "Task 1.2.1 reusable major-warning banner",
       "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=49 covers all six icons/names/actions, fractional and exact countdown boundaries, minimum one second, nearest-deadline priority, stable ties, handoff, no stale warning, lobby/results suppression, and non-overlapping tray placement. UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Display-backed runs of test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts passed checks=56 each. All six 720p icon states and revised overlap at both resolutions were inspected; the initial 720p player-head occlusion was fixed by tightening banner/tray spacing and chip height. WSL llvmpipe and Dummy audio were used; some runs emitted intermittent successful-exit resource diagnostics. Remaining milestone gates require later chip, personal-danger, and motion tasks."
+    },
+    {
+      "result": "passed",
+      "check": "User-requested full Milestone 1.1 re-verification after Task 1.2.1",
+      "evidence": "All four milestone gates remain passed. Inspected ui_tokens.gd, GameplayHud, main.gd presenter calls, scene anchors, and GrabManager read-only candidate/authoritative request boundaries. Re-ran godot --headless --path . --script res://tests/{suite}.gd: UI_THEME_OK checks=18, GAMEPLAY_HUD_OK checks=49, GRAB_MANAGER_OK checks=22, PLAYER_INTEGRATION_OK checks=43, PHASE1_TESTS_OK checks=31, PHASE7_POLISH_OK checks=31, REMATCH_INTEGRATION_OK cycles=5 checks=165. Added reusable tests/test_milestone_1_1.gd: headless checks=79, display-backed checks=84 each at 1280x720 and 1920x1080 with --audio-driver Dummy -- --capture-dir=.amp/in/artifacts. Checks cover one theme resource across every top-level control, immutable authoritative match/health/disaster snapshot during presentation, bar boundaries, stale second-chip removal, defensive hazard getter copy, GRAB/RELEASE and ineligible/eliminated/lobby/results/spectator prompt suppression, safe-area and pairwise non-overlap geometry, unclipped copy, field/button focus, actual lobby-toggle signals, and disabled style fixture. Inspected milestone-1-1 light/dark/empty/lobby-focus/button-focus captures: readable 20/20 counts, timer, health bar, two chips, contextual prompt, amber focus rings and distinct disabled style; no HUD clipping/overlap at either resolution. Earlier dark/light evidence used mixed scenery; this pass explicitly lowered sunlight and ambient illumination and changed the background for the dark fixture. Persistent MULTIPLAYER LOBBY [L] is an actionable toggle verified by signal, not removed prototype/debug copy. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches/disconnect cleanup; tests/run_playable_scale_test.sh passed 4/8/20-player HUD, movement, disaster, and ownership checks. Existing HUD/polish/rematch suites still emit successful-exit resource diagnostics; new milestone suite exited cleanly. Rendering uses WSL llvmpipe, not native Windows performance evidence. No production code changes or new milestone work were needed."
     }
   ],
   "blockers": [],
@@ -185,6 +190,7 @@
     "tests/playable_scene_network_peer.gd",
     "tests/test_gameplay_hud.gd",
     "tests/test_grab_manager.gd",
+    "tests/test_milestone_1_1.gd",
     "tests/test_phase1.gd",
     "tests/test_player_integration.gd",
     "tests/test_ui_theme.gd"

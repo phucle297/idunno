@@ -57,6 +57,8 @@ Goal: replace the functional prototype-label UI with a cohesive **Toy Broadcast*
 
 Acceptance: one shared theme; no permanent debug copy; no clipping at 1280×720 and 1920×1080; readable over representative light and dark scenery; existing gameplay/network state remains authoritative.
 
+Reverified after Task 1.2.1: `tests/test_milestone_1_1.gd` checks theme sharing, authority isolation, layout, contextual actions, and focus; controlled light/dark captures at both resolutions and the 4/8/20-player network matrix passed. Full commands and limitations are recorded in `progress.json`.
+
 ### Milestone 1.2 — Warning and personal-danger hierarchy
 
 - [x] Task 1.2.1: Add one reusable major-warning banner with disaster icon, name, countdown, and concise action.
