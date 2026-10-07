@@ -1,12 +1,18 @@
-# Godot import cache and local editor state
-.godot/
-
-# Local tools and downloaded source archives
-.tools/
-.scratch/
+# Build output and dependencies
+node_modules/
+dist/
+*.tsbuildinfo
+.vercel/
+.wrangler/
 
 # Local captures and review artifacts
 .amp/in/
+test-results/
+playwright-report/
+
+# Local environment overrides (never commit secrets)
+.env*
+!.env.example
 
 # Platform/editor noise
 .DS_Store
