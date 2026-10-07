@@ -159,9 +159,21 @@ Existing evidence: unchanged release EXEs passed localhost ready/start/recovery/
 
 Task 2.2.3 validated: `--server-port=` starts a playerless development server; first connected player is owner until admission is implemented in 2.2.4. Owner RPCs enforce actual sender, registered membership, session revision and state/readiness. Transfer preserves normal last-survivor rules and refreshes results actions even without a state change. Real ENet three-client control fixture passes 103 checks, five rematches, active/results transfer and late-join rejection; separate-process server/two-client gameplay passes rightward movement, five rematches, matching results and server-loss recovery. Full regression passes 27 suites, persistence restart and five network groups; final targeted/CLI checks also pass. Inspected five owner/guest/transfer states at 720p/1080p on WSL llvmpipe/Dummy audio. Shutdown-only WAV playback resource diagnostics remain; no new Windows package, admission service, Docker or public Internet claim.
 
+### Milestone 2.6 — Mouse Interaction and Display-Session Reliability
+
+Stable ID added after the original plan; execute after 2.2 and before 2.3.
+
+- [ ] Reproduce the reported inability to rotate the camera or click buttons using `godot --path . -- --host-port=29730` on the user's Linux/X11/llvmpipe environment. Record window focus, mouse capture/visibility, motion/button events, UI event consumption and display-session state. Distinguish game input routing from missing OS events or X-session loss before identifying a cause.
+- [ ] Fix the proven input owner only; validate mouse camera rotation during play, clickable lobby/ready/start/results/settings controls, Escape release and click recapture, focus loss/return, rematches and server-loss recovery. Include solo/listen-host and dedicated clients, 720p/1080p, and native Windows regression. Use actual pointer events plus observable camera/control outcomes, not only direct method calls.
+- [ ] Investigate the reported `X connection to :0 broken` separately. Record whether the process/display was intentionally stopped and the first failure before the static-string/thread/RID cleanup diagnostics; do not treat shutdown output, V-Sync warnings or unavailable audio devices as the established input-failure cause. Validate normal exit; keep externally unavailable display reproduction explicitly blocked rather than claiming a fix.
+
+Acceptance: reproduced mouse failure with a proven correction and executed pointer/focus/state-transition regression; display-loss sequence classified with evidence or an explicit unresolved blocker. Human baseline depends on this milestone as well as 2.2. No gameplay lighting changes are part of this work.
+
+Preview review follow-up: the user clarifies normal direct host lighting looks normal; only Task 2.2.3 images look excessively bright. Compare the multi-scene capture fixture with a single normal host at matched renderer/camera/settings, including shared-world lights/environments and image encoding/display. Correct and inspect the preview workflow if a difference is reproduced; do not reduce production lighting to compensate for a capture-only issue. Prior captures demonstrate the tested UI layout, not user-approved lighting.
+
 ### Milestone 2.3 — Human Playtest Baseline
 
-Depends on 2.2; collect baseline evidence before changing core feel.
+Depends on 2.2 and 2.6; collect baseline evidence before changing core feel.
 
 - [ ] Run an initial 3–4-person session, then a 6–8-person session on separate Windows PCs joining Internet rooms by ID using matching packages. Aim for at least three normal rounds per session; record actual counts and early endings rather than forcing an 8–12-minute outcome. Keep debug/demo launches out of competitive rounds.
 - [ ] Before play, record client/server builds and hardware, server region, input devices, resolution/V-Sync, network latency/setup and prior familiarity. Include a brief traversal/prop/camera check through doors, stairs and each elevation route; test controller navigation and physical warning audibility where devices are available.
@@ -185,7 +197,7 @@ Depends on 2.4; retest affected scenarios and normal rounds at both group sizes 
 
 - [ ] Repeat the affected scenario and normal rounds with humans. Proposed expansion gate: at least 80% of sampled deaths correctly explained without coaching (report numerator/denominator), a majority independently willing to rematch in each follow-up group, and at least two distinct emergent causal patterns recurring across rounds. Record contrary evidence; do not treat small-sample results as statistical proof.
 
-Acceptance: human follow-up and baseline comparison, no unresolved session-blocking/control failures, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2, return observed issues to 2.4 and repeat 2.5. All five milestones must pass before phase closure.
+Acceptance: human follow-up and baseline comparison, no unresolved session-blocking/control failures, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2, return observed issues to 2.4 and repeat 2.5. All six milestones must pass before phase closure.
 
 Current constraints: export packaging, standalone launch, release localhost ready/start/recovery and editor-driven exported-PCK checks pass. Source dedicated mode and owner controls now pass; room service/admission/ID UI, Docker topology and Internet release readiness remain planned. Do not expose unauthenticated development servers publicly. Public server/domain/TLS/UDP exposure requires deployment approval; human Internet sessions, controller feel and physical loudness remain unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
 
@@ -203,7 +215,6 @@ These stay concise until they become current.
 
 ### Phase 4 — Disaster Remix and Toy Town Interaction
 
-- Address the user's overly bright/burned-out preview feedback: reproduce the appearance in the delivered gameplay views, inspect lighting/exposure/material contributions before choosing a fix, and reduce washed-out highlights while retaining the Design Bible palette, character/costume detail and hazard readability. Compare matched before/after renders at 720p/1080p in normal play and disaster overlap; do not claim the cause or fix from screenshots alone.
 - Enlarge and enrich the existing Toy Town in response to the user's small/sparse-map feedback: additional usable buildings, props, elevated refuges and connected traversal routes, not just decorative clutter. Select the new footprint during this phase's design; retain readable boundaries and out-of-bounds protection.
 - Revalidate disaster coverage, spawn distribution, reachable escape routes, 20-player readability and representative performance for the expanded footprint; larger ground alone is not sufficient.
 - Add bounded variants to existing disasters before adding another disaster class.
@@ -219,7 +230,7 @@ These stay concise until they become current.
 ### Phase 6 — Cosmetic Loot-Box Drops and Customization
 
 - Add earned loot-box drops that unlock new character models/costumes, with a small initial catalog, an opening/reward preview, an owned-cosmetics view and equip flow. Define drop eligibility, odds and duplicate handling when this phase becomes current; paid boxes, currencies and shops are not implied by this request.
-- Keep rewards cosmetic-only: unchanged hitboxes, movement, health, abilities and warning visibility. Follow the Design Bible proportions/materials/palette and asset provenance workflow; inspect models/costumes under the revised lighting rather than accepting blown-out previews.
+- Keep rewards cosmetic-only: unchanged hitboxes, movement, health, abilities and warning visibility. Follow the Design Bible proportions/materials/palette and asset provenance workflow; inspect models/costumes under normal gameplay lighting using faithful previews rather than accepting blown-out captures.
 - Persist unlocks and equipped selection; use server-authoritative reward grants with replay/duplicate protection, and replicate only validated equipped cosmetics. Decide durable player identity/storage before claiming ownership survives devices or service restarts; keep reward/ownership logic separate from match simulation for later refactoring without mass-scale infrastructure now.
 - Validate drop eligibility and probability boundaries, duplicate/replayed grants, save/restart, unauthorized equips, multiplayer appearance agreement and rematch/disconnect recovery. Inspect reward/equip and representative gameplay states at 720p/1080p and recheck readability/performance. No unlock or persistence gate is passed by planning alone.
 

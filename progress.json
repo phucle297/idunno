@@ -75,10 +75,21 @@
           "internet_play_guide_and_operator_runbook": "not_run"
         }
       },
+      "milestone_2_6_mouse_and_display_reliability": {
+        "title": "Mouse Interaction and Display-Session Reliability",
+        "status": "planned",
+        "dependencies": ["milestone_2_2_playtest_readiness"],
+        "scope": "Execute after 2.2 and before 2.3; stable ID preserves existing milestone references. Reproduce missing camera rotation/button clicks on Linux/X11/llvmpipe with --host-port=29730, distinguish game event routing/capture/focus from OS/display loss, fix the proven cause and validate actual pointer events across gameplay/UI/focus/recovery states plus native Windows regression. Investigate X-connection loss and cleanup diagnostics separately without inferring a cause from the pasted log. See checklist for reproduction and acceptance.",
+        "gates": {
+          "mouse_failure_reproduced_and_proven_fix": "not_run",
+          "pointer_camera_ui_focus_and_recovery_regression": "not_run",
+          "display_loss_classified_and_normal_exit_validated": "not_run"
+        }
+      },
       "milestone_2_3_human_playtest_baseline": {
         "title": "Human Playtest Baseline",
         "status": "planned",
-        "dependencies": ["milestone_2_2_playtest_readiness"],
+        "dependencies": ["milestone_2_2_playtest_readiness", "milestone_2_6_mouse_and_display_reliability"],
         "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs over Internet room-ID joining; aim for three normal rounds each and record client/server builds, server hardware, region/network latency and disconnects alongside input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
         "gates": {
           "observed_3_to_8_player_multi_pc_sessions": "not_run",
@@ -247,9 +258,16 @@
       "check": "Future cosmetic drops and lighting planning: JSON, unchanged active task/gates and git diff --check",
       "status": "passed",
       "result": "Added concise Phase 6 earned cosmetic loot-box/model/costume unlock, ownership/equip and validation scope; revised conflicting blanket deferrals. Phase 4 records user-reported overly bright preview with reproduction/investigation and before/after readability checks; cause and fix unverified. Planning only, no assets/runtime edits or monetization. Active Phase 2 task, gates and single next action unchanged; DESIGN and completed archives unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Corrected preview-only feedback and added mouse milestone: JSON/dependency assertions and git diff --check",
+      "status": "passed",
+      "result": "User clarifies direct host lighting looks normal; excess brightness is only in Task 2.2.3 images. Removed production-lighting change from Phase 4; added matched single-host/capture-workflow investigation, cause unverified. Added planned Milestone 2.6 with three not_run gates after 2.2 and before human baseline2.3. Mouse rotation/click failure and X display loss remain user reports, not reproduced/fixed; V-Sync/audio/cleanup output is not an established cause. Active task2.2.4, existing gate results and single next action unchanged. Planning only."
     }
   ],
   "blockers": [
+    "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
     "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
