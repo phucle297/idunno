@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T04:58:31Z",
+  "updated_at": "2026-10-07T08:20:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_1_executable_play_guide"
+    "task": "task_2_2_2_exported_session_and_lan_smoke"
   },
   "engine": {
     "name": "Godot",
@@ -52,18 +52,18 @@
       },
       "milestone_2_2_playtest_readiness": {
         "title": "Playtest Readiness",
-        "status": "planned",
+        "status": "blocked",
         "dependencies": ["milestone_2_1_reproducible_windows_playtest_build"],
         "scope": "Provide executable-based LAN instructions and validate exported settings/assets/audio, host/client readiness, movement, props, warnings, death/spectating, results, five rematches, disconnect/retry and physical LAN smoke before inviting a group.",
         "tasks": {
-          "task_2_2_1_executable_play_guide": "planned",
-          "task_2_2_2_exported_session_and_lan_smoke": "planned"
+          "task_2_2_1_executable_play_guide": "completed",
+          "task_2_2_2_exported_session_and_lan_smoke": "blocked"
         },
         "gates": {
-          "executable_playtest_instructions": "not_run",
-          "exported_session_settings_audio_and_five_rematches": "not_run",
-          "disconnect_and_retry": "not_run",
-          "physical_lan_host_client_smoke": "not_run"
+          "executable_playtest_instructions": "passed",
+          "exported_session_settings_audio_and_five_rematches": "blocked",
+          "disconnect_and_retry": "passed",
+          "physical_lan_host_client_smoke": "blocked"
         }
       },
       "milestone_2_3_human_playtest_baseline": {
@@ -160,11 +160,49 @@
       "check": "Package delivery and export safety",
       "status": "passed",
       "result": "Dirty tracked-source rejection passes before creating output. Four-file ZIP .amp/in/artifacts/DisasterParty-Windows-7eb1f25.zip validated with zip CRC and byte comparison against the tested payloads. Package is pinned to the tested implementation revision; subsequent completion commit changes documentation only."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Milestone 2.2 executable play guide and validation boundary",
+      "status": "passed",
+      "result": "GUIDE.md now documents package extraction/checksum identity, executable solo/host/join/demo commands, private LAN/firewall requirements, controls, host readiness/rematch, settings, current Flood danger card/electrical contact and recovery/log collection. Added explicit two-PC checklist. Release executable ignores --script (invalid-script probe still launched normal main), so external editor-driven PCK fixtures are not claimed as release-runtime or physical LAN coverage."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial native exported-PCK two-peer fixture",
+      "status": "failed",
+      "result": "First full native editor-driven PCK run: settings save/restart and recovery passed; server passed five rematches. Client failed only Meteor presentation (spawn/movement/active/other hazards/results/rematches true). Added failure-only phase/effects/HUD diagnostics, without relaxing assertions. Rerun passed; intermittent cause is not established and is not claimed fixed. Initial runner development also exposed PowerShell exit-code handle caching; retaining process Handle fixes runner exit-code collection."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "tests/run_windows_package_checks.ps1 -PackageDir $env:TEMP\\DisasterParty-2-1-7eb1f25 -GodotConsole <native Godot 4.7.2 console editor> -OutputDir $env:TEMP\\DisasterParty-2-2-checks-c -Port 29740",
+      "status": "passed",
+      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK: exact checksum-verified 7eb1f2520795da5eccf826a6be70261816fa4459 PCK, no source --path. Rendered settings/audio checks=38, separate-process settings restart checks=2, actual ENet recovery checks=54, host/client state/movement/props/ragdoll/hazards/damage/results and five rematches passed. Native editor driver on Windows 10.0.26200 / Intel UHD630 / 1280x720 Compatibility; rendered settings/recovery/overlap captures inspected. Headless host/restart use Dummy audio; rendered tests use native audio routing, not human audibility. Logs/captures .amp/in/artifacts/milestone-2-2/."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Actual unchanged release executables: localhost UI session and retry",
+      "status": "passed",
+      "result": "Two DisasterParty.exe processes on port29741 with isolated preferences, native Windows/GPU as above. Mouse clicks readied both peers and started host match; inspected host-ready/client-active show two READY roster entries then 100HP/2survivors and no lobby panel. Client W input exercised movement. Host termination followed by 40-second wait restored client's one-player offline lobby with explicit Server disconnected status and editable controls. Recreated host; changed recovered client port to29741 and JOIN; inspected client-retry shows shared roster/only-host-can-start status. Logs have no SCRIPT ERROR/ERROR lines. Captures release-host/client logs retained under .amp/in/artifacts/milestone-2-2. Hazard capture did not establish an actual release warning; scripted PCK fixtures cover that. Release five-rematch/settings-restart/listening and physical LAN gates remain blocked pending manual confirmation."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Final Windows runner with spaced output path and Windows-local editor",
+      "status": "passed",
+      "result": "Final -GodotEditor runner owns the engine process directly. Native editor from WSL UNC terminated validation before version output; copying the same executable to Windows-local TEMP passed version and all fixtures. Final run with OutputDir 'DisasterParty 2-2 local direct' passed settings save/restart, recovery and both peers/five rematches; WINDOWS_EXPORTED_PCK_CHECKS_OK. Runner rejects UNC editor paths; GUIDE documents local direct executable requirement. Earlier failed runs retained; no underlying UNC-launch cause claimed. Logs copied to .amp/in/artifacts/milestone-2-2/final-run/."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) PORT=29742 tests/run_playable_scene_network_test.sh",
+      "status": "passed",
+      "result": "Targeted source regression after failure-only Meteor diagnostic passes both peers, all gameplay/presentation checks, five rematches and disconnect cleanup. Assertions unchanged. Log .scratch/2-2-source-regression.log."
     }
   ],
   "blockers": [
-    "Milestone 2.2 physical LAN smoke and Milestones 2.3/2.5 human sessions require separate Windows PCs and participants; availability is not established and automated localhost peers cannot satisfy these gates."
+    "Milestone 2.2 still needs actual release-runtime five-rematch/settings/audio confirmation and physical LAN smoke on two separate Windows PCs. Exact exported-PCK editor fixtures pass, but release templates ignore external --script; do not substitute editor-driver or localhost evidence for these human gates.",
+    "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
+    "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot"],
-  "next_action": "Start Task 2.2.1: update GUIDE.md for the exported executable, matching build/checksum checks, LAN/firewall/controls/readiness/rematch/recovery instructions and current Flood feedback."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd"],
+  "next_action": "Run GUIDE.md's physical LAN readiness checklist with the matching release package on two Windows PCs; provide both logs/build identity and five-rematch/settings/audio/recovery results before completing Task 2.2.2."
 }

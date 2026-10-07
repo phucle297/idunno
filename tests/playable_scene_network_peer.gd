@@ -310,6 +310,8 @@ func _run_client(main: Node) -> void:
 		and meteor.active_effect_count() == 1
 		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
 	)
+	if not meteor_passed:
+		print("METEOR_PRESENTATION_DIAGNOSTIC phase=%s effects=%d hazards=%s" % [meteor.phase, meteor.active_effect_count(), main.gameplay_hud.get_presented_hazards()])
 	var lightning := main.get_node("Lightning") as Lightning
 	while lightning.phase != Lightning.Phase.WARNING and Time.get_ticks_msec() < deadline:
 		await process_frame

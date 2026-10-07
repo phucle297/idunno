@@ -143,10 +143,12 @@ Milestone 2.1 complete: official templates verified against release SHA-512; `to
 
 Depends on 2.1; validate the delivered package before inviting a group.
 
-- [ ] Task 2.2.1: Update `GUIDE.md` for executable launches, LAN IP/UDP 29730, firewall, controls, readiness, host authority, rematch and recovery. Correct stale Flood blue-overlay instructions and distinguish same-PC checks from physical LAN evidence.
+- [x] Task 2.2.1: Update `GUIDE.md` for executable launches, LAN IP/UDP 29730, firewall, controls, readiness, host authority, rematch and recovery. Correct stale Flood blue-overlay instructions and distinguish same-PC checks from physical LAN evidence.
 - [ ] Task 2.2.2: Check exported assets/audio/settings restart and host/client readiness, movement, props, warnings, death/spectating, identical results, five rematches, disconnect and retry. Record OS/GPU, resolution, build identity and logs; confirm one physical LAN host/client session.
 
 Acceptance: usable executable-based instructions, native Windows exported session checks, persistent settings, five rematches, disconnect/retry and physical LAN smoke. Editor and localhost checks cannot substitute for physical LAN evidence.
+
+Milestone 2.2 is partially validated and blocked on the human gate. The unchanged release EXE passed localhost ready/start, active two-player presentation, host-loss recovery and rejoin through UI input, with inspected captures and clean logs. The exact shipped PCK also passed native editor-driven settings save/restart/routing, actual ENet failure/retry, movement/props/hazards/death/results and five rematches via `tests/run_windows_package_checks.ps1`. These are distinct evidence layers: release templates ignore external `--script`; no tests or cheat driver were added to the package. One initial native fixture failed Meteor presentation and a rerun passed; retain diagnostics and do not claim its intermittent cause fixed. Complete actual release five-rematch/settings/listening checks and physical two-PC LAN using `GUIDE.md` before closing 2.2 or starting 2.3.
 
 ### Milestone 2.3 — Human Playtest Baseline
 
@@ -176,9 +178,9 @@ Depends on 2.4; retest affected scenarios and normal rounds at both group sizes 
 
 Acceptance: human follow-up and baseline comparison, no unresolved session-blocking/control failures, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2, return observed issues to 2.4 and repeat 2.5. All five milestones must pass before phase closure.
 
-Current constraints: export packaging and standalone Windows launch pass; exported session readiness and physical LAN smoke are pending. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
+Current constraints: export packaging, standalone launch, release localhost ready/start/recovery and editor-driven exported-PCK checks pass. Full release-runtime readiness and physical LAN smoke remain blocked pending human confirmation. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
 
-Next action: Task 2.2.1 — update `GUIDE.md` for the delivered executable and matching build checks, including current Flood feedback; finish readiness before starting human-session research.
+Next action: Task 2.2.2 — run the physical LAN readiness checklist on two Windows PCs with matching release packages and record logs/build identity plus five-rematch/settings/audio/recovery results.
 
 ## Planned future phases
 
