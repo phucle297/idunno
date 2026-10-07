@@ -18,8 +18,10 @@ service and one headless Godot process per room; keep room discovery/allocation
 separate from gameplay authority so additional machines can be introduced later
 without changing room-ID joining. No mass-scale infrastructure or optimization
 for hundreds of thousands/millions of users is planned. This is a roadmap change,
-not implemented functionality; the current package still uses direct-IP listen
-hosting. See `docs/implementation-checklist.md` for ordered tasks and gates.
+not completed Internet functionality. The source now supports playerless
+dedicated hosting and room-owner controls; room-ID discovery/admission are still
+planned, and the previously delivered package uses direct-IP listen hosting.
+See `docs/implementation-checklist.md` for ordered tasks and gates.
 
 ## Windows playtest export
 
@@ -81,13 +83,14 @@ Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the 
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
 
 # Run the current automated checks.
-# Or run all 26 suites, persistence restart and four network matrices together:
+# Or run all 27 suites, persistence restart and five network test groups together:
 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh
 # If another local session occupies the default ports, set PORT=29930 for this runner.
 godot --headless --path . --script res://tests/test_phase1.gd
 godot --headless --path . --script res://tests/test_map_safety.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
 godot --headless --path . --script res://tests/test_session_lifecycle.gd
+godot --headless --path . --script res://tests/test_dedicated_server.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
 godot --headless --path . --script res://tests/test_rematch_integration.gd
 godot --headless --path . --script res://tests/test_spectator_controller.gd
@@ -134,6 +137,8 @@ GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh
 GODOT_BIN=/path/to/godot tests/run_playable_scale_test.sh
 # Load the real playable scene as one host and one client, including disconnect cleanup.
 GODOT_BIN=/path/to/godot tests/run_playable_scene_network_test.sh
+# Playerless dedicated server + two clients: actual movement, five rematches and recovery.
+GODOT_BIN=/path/to/godot tests/run_dedicated_network_test.sh
 
 # Regenerate the deterministic synthesized gameplay audio.
 godot --headless --path . --script res://tools/audio_generation/generate_audio.gd
@@ -151,8 +156,21 @@ godot --path .
 godot --path . -- --host-port=29730
 godot --path . -- --join-address=127.0.0.1 --join-port=29730
 
+# Playerless dedicated server (development only; no room-ID admission yet).
+godot --headless --path . -- --server-port=29730
+# Join with two clients using the direct-IP command above. First connected client
+# is OWNER; owner may start once everyone is ready, rematch and return to lobby.
+
 # Inspect the reference assets together.
 godot --path . res://scenes/asset_validation.tscn
 ```
+
+Dedicated mode reserves no server-player slot, transfers ownership to the
+longest-connected remaining player and rejects delayed session actions from
+earlier rounds/owners. Matches retain normal survivor rules when someone leaves.
+New arrivals during ACTIVE are rejected; reconnect/rejoin during an active round
+is not supported yet. Server startup failure exits nonzero. This is unauthenticated
+development transport: **do not expose it publicly before room admission and
+Internet-readiness work**. No deployment or firewall changes are included.
 
 Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results.

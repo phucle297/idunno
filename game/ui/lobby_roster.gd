@@ -21,7 +21,7 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
-func present_players(players: Dictionary, local_peer_id: int) -> void:
+func present_players(players: Dictionary, local_peer_id: int, owner_peer_id: int = 1, owner_label: String = "HOST") -> void:
 	for peer_id: int in rows.keys():
 		if not players.has(peer_id):
 			rows[peer_id].free()
@@ -38,8 +38,8 @@ func present_players(players: Dictionary, local_peer_id: int) -> void:
 		var identity: VBoxContainer = row.get_node("Content/Identity")
 		identity.get_node("Name").text = String(players[peer_id].name)
 		var markers: Array[String] = []
-		if peer_id == 1:
-			markers.append("HOST")
+		if peer_id == owner_peer_id:
+			markers.append(owner_label)
 		if peer_id == local_peer_id:
 			markers.append("YOU")
 		identity.get_node("Markers").text = " · ".join(markers)

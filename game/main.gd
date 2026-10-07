@@ -36,6 +36,9 @@ var spectator_controller: Node
 var _player_nodes: Dictionary = {}
 var _network_mode := false
 var _network_role := "offline"
+var _dedicated_server := false
+var _room_owner_id := 0
+var _session_revision := 0
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
 var _match_snapshot_remaining := 0.0
@@ -102,6 +105,8 @@ func _ready() -> void:
 	if network_error != ERR_SKIP:
 		if network_error != OK:
 			push_error("Unable to start requested network session: %s" % error_string(network_error))
+			if not _argument_value("--server-port=").is_empty():
+				get_tree().quit(1)
 		return
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
@@ -237,18 +242,28 @@ func _configure_ui_theme() -> void:
 			control.theme = _ui_theme
 
 
-func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_PLAYERS) -> Error:
+func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_PLAYERS, dedicated: bool = false) -> Error:
 	if _network_mode:
 		return ERR_ALREADY_IN_USE
 	var peer := ENetMultiplayerPeer.new()
-	var error := peer.create_server(port, maxi(max_players - 1, 1))
+	var error := peer.create_server(port, maxi(max_players if dedicated else max_players - 1, 1))
 	if error != OK:
 		return error
+	if dedicated:
+		_prepare_offline_player_for_join()
 	multiplayer.multiplayer_peer = peer
 	_network_mode = true
-	_network_role = "host"
+	_dedicated_server = dedicated
+	_network_role = "server" if dedicated else "host"
+	_room_owner_id = 0 if dedicated else 1
 	multiplayer.peer_connected.connect(_on_network_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_network_peer_disconnected)
+	if dedicated:
+		_player_nodes.clear()
+		_disable_placeholder_player()
+		$Interface.hide()
+		print("DEDICATED_SERVER_READY port=%d capacity=%d" % [peer.host.get_local_port(), max_players])
+		return OK
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
 	_player_nodes[1] = $Player
 	if not match_manager.players.has(1) and not _register_server_gameplay_player(1, $Player, "Host"):
@@ -288,6 +303,24 @@ func get_network_role() -> String:
 	return _network_role
 
 
+func get_room_owner_id() -> int:
+	return _room_owner_id
+
+
+func can_control_session() -> bool:
+	if not _network_mode:
+		return true
+	if _dedicated_server:
+		return _room_owner_id > 1 and multiplayer.get_unique_id() == _room_owner_id
+	return multiplayer.is_server()
+
+
+func _disable_placeholder_player() -> void:
+	$Player.set_eliminated(true)
+	$Player.process_mode = Node.PROCESS_MODE_DISABLED
+	$Player/CameraPivot/SpringArm3D/Camera3D.current = false
+
+
 func get_network_player_ids() -> Array[int]:
 	var peer_ids: Array[int] = []
 	for peer_id: int in _player_nodes:
@@ -297,6 +330,11 @@ func get_network_player_ids() -> Array[int]:
 
 
 func _start_requested_network_session() -> Error:
+	var server_port := _argument_value("--server-port=")
+	if not server_port.is_empty():
+		if not server_port.is_valid_int() or server_port.to_int() < 1 or server_port.to_int() > 65535:
+			return ERR_INVALID_PARAMETER
+		return host_game(server_port.to_int(), MAX_NETWORK_PLAYERS, true)
 	var host_port := _argument_value("--host-port=")
 	if not host_port.is_empty():
 		return host_game(host_port.to_int())
@@ -321,8 +359,15 @@ func _on_network_peer_connected(peer_id: int) -> void:
 	var spawn_position := _network_spawn_position(_player_nodes.size())
 	var player_name := "Player %d" % peer_id
 	if not _spawn_server_network_player(peer_id, player_name, spawn_position):
-		push_error("Unable to register connected peer %d" % peer_id)
+		if _dedicated_server:
+			# Active-match admission is not supported in this first dedicated mode.
+			(multiplayer as SceneMultiplayer).disconnect_peer(peer_id)
+		else:
+			push_error("Unable to register connected peer %d" % peer_id)
 		return
+	if _dedicated_server and _room_owner_id == 0:
+		_room_owner_id = peer_id
+		_session_revision += 1
 	_spawn_network_player.rpc(peer_id, player_name, spawn_position)
 
 
@@ -337,8 +382,13 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	earthquake.unregister_player(peer_id)
 	lightning.unregister_player(peer_id)
 	fire.unregister_player(peer_id)
-	match_manager.unregister_player(peer_id)
 	_remove_network_player(peer_id)
+	if _dedicated_server and _room_owner_id == peer_id:
+		# Dictionary insertion order is connection order, not numeric peer ID order.
+		_room_owner_id = int(_player_nodes.keys()[0]) if not _player_nodes.is_empty() else 0
+		_session_revision += 1
+	match_manager.unregister_player(peer_id)
+	_match_snapshot_remaining = 0.0
 
 
 func _on_server_disconnected() -> void:
@@ -346,6 +396,9 @@ func _on_server_disconnected() -> void:
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	_network_mode = false
 	_network_role = "offline"
+	_dedicated_server = false
+	_room_owner_id = 0
+	_session_revision = 0
 	multiplayer.server_disconnected.disconnect(_on_server_disconnected)
 	multiplayer.connection_failed.disconnect(_on_connection_failed)
 	disaster_director.cleanup()
@@ -363,6 +416,7 @@ func _on_server_disconnected() -> void:
 		_remove_network_player(peer_id)
 	_movement_inputs.clear()
 	_reset_sandbox()
+	$Player.process_mode = Node.PROCESS_MODE_INHERIT
 	$Player.set_multiplayer_authority(1)
 	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
 	_configure_network_player($Player, 1, $Player.position)
@@ -657,6 +711,8 @@ func _process(delta: float) -> void:
 				_apply_match_snapshot.rpc(snapshot)
 			else:
 				_apply_session_snapshot.rpc(snapshot)
+	if _dedicated_server and multiplayer.is_server():
+		return
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	gameplay_hud.present_vitals(match_manager.get_health(local_peer_id), match_manager.get_alive_count(), match_manager.players.size())
 	_update_flood_feedback(local_peer_id)
@@ -686,11 +742,20 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 		if sequence <= _last_match_snapshot_sequence:
 			return
 		_last_match_snapshot_sequence = sequence
+	var previous_owner := _room_owner_id
+	var previous_state := match_manager.state
+	_dedicated_server = bool(snapshot.get("dedicated_server", false))
+	_room_owner_id = int(snapshot.get("room_owner_id", 1))
+	_session_revision = int(snapshot.get("session_revision", 0))
+	if _dedicated_server:
+		_disable_placeholder_player()
 	var snapshot_peer_ids: PackedInt32Array = snapshot.get("player_ids", PackedInt32Array())
 	for peer_id: int in _player_nodes.keys():
 		if peer_id not in snapshot_peer_ids:
 			_remove_network_player(peer_id)
 	match_manager.apply_authoritative_snapshot(snapshot)
+	if previous_owner != _room_owner_id and previous_state == MatchManager.MatchState.RESULTS and match_manager.state == previous_state:
+		_on_match_finished(match_manager.winner_ids)
 	var disasters: Dictionary = snapshot.get("disasters", {})
 	meteor_shower.apply_presentation_snapshot(disasters.get("meteor", {}))
 	flood.apply_presentation_snapshot(disasters.get("flood", {}))
@@ -702,6 +767,10 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 
 func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
+	if _dedicated_server:
+		snapshot.dedicated_server = true
+		snapshot.room_owner_id = _room_owner_id
+		snapshot.session_revision = _session_revision
 	var disasters := {}
 	if meteor_shower.is_active():
 		disasters.meteor = meteor_shower.create_presentation_snapshot()
@@ -724,10 +793,10 @@ func _match_state_text() -> String:
 		return "SURVIVE"
 	if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode:
 		if match_manager.can_start_match() and match_manager.players.size() >= 2:
-			return "ENTER TO START" if multiplayer.is_server() else "WAITING FOR HOST"
-		return "WAITING FOR READY" if multiplayer.is_server() else "READY UP"
-	if match_manager.state == MatchManager.MatchState.RESULTS and _network_mode and not multiplayer.is_server():
-		return "WAITING FOR HOST"
+			return "ENTER TO START" if can_control_session() else ("WAITING FOR ROOM OWNER" if _dedicated_server else "WAITING FOR HOST")
+		return "WAITING FOR READY" if can_control_session() else "READY UP"
+	if match_manager.state == MatchManager.MatchState.RESULTS and not can_control_session():
+		return "WAITING FOR ROOM OWNER" if _dedicated_server else "WAITING FOR HOST"
 	return "ENTER TO REMATCH"
 
 
@@ -836,17 +905,17 @@ func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if pause_settings.visible:
+	if pause_settings.visible or (_dedicated_server and multiplayer.is_server()):
 		return
 	if event.is_action_pressed("toggle_lobby"):
 		_set_lobby_visible(not $Interface/LobbyPanel.visible)
 	elif event.is_action_pressed("ui_accept"):
-		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and multiplayer.is_server():
+		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and can_control_session():
 			start_network_match()
 		elif match_manager.state == MatchManager.MatchState.LOBBY and not _network_mode:
 			start_local_match()
 		elif match_manager.state == MatchManager.MatchState.RESULTS:
-			if _network_mode and multiplayer.is_server():
+			if _network_mode and can_control_session():
 				restart_network_match()
 			elif not _network_mode:
 				restart_local_match()
@@ -862,16 +931,45 @@ func _cycle_spectator(direction: int) -> void:
 
 
 func start_network_match() -> bool:
-	if not _network_mode or not multiplayer.is_server() or match_manager.state != MatchManager.MatchState.LOBBY:
+	if not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
 	if match_manager.players.size() < 2:
 		return false
 	if not match_manager.can_start_match():
 		return false
+	if not multiplayer.is_server():
+		return _send_owner_action("start")
 	if not match_manager.start_match():
 		return false
 	_set_lobby_visible(false)
 	return disaster_director.start_directing()
+
+
+func _send_owner_action(action: String) -> bool:
+	if not _dedicated_server or not can_control_session():
+		return false
+	_request_session_action.rpc_id(1, action, _session_revision)
+	return true # Request queued; the authoritative snapshot confirms success.
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_session_action(action: String, revision: int) -> void:
+	_execute_owner_action(multiplayer.get_remote_sender_id(), action, revision)
+
+
+func _execute_owner_action(sender_id: int, action: String, revision: int) -> bool:
+	if not _network_mode or not _dedicated_server or not multiplayer.is_server():
+		return false
+	if sender_id != _room_owner_id or not match_manager.players.has(sender_id) or revision != _session_revision:
+		return false
+	match action:
+		"start":
+			return start_network_match()
+		"rematch":
+			return restart_network_match()
+		"lobby":
+			return return_to_lobby()
+	return false
 
 
 func set_local_ready(ready: bool) -> bool:
@@ -927,6 +1025,8 @@ func _connect_ui_audio(node: Node) -> void:
 
 
 func _set_lobby_visible(visible: bool) -> void:
+	if _dedicated_server and multiplayer.is_server():
+		return
 	visible = visible and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyPanel.visible = visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or (is_instance_valid(pause_settings) and pause_settings.visible) or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
@@ -945,6 +1045,8 @@ func _set_lobby_visible(visible: bool) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _dedicated_server and multiplayer.is_server():
+		return
 	if event.is_action_pressed("ui_cancel") and pause_settings.visible:
 		pause_settings.back()
 		get_viewport().set_input_as_handled()
@@ -1076,21 +1178,21 @@ func _update_lobby_ui() -> void:
 	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
 	panel.get_node("Ready").disabled = not connected and not lobby_demo
-	panel.get_node("Start").visible = (not _network_mode or multiplayer.is_server()) and in_lobby
+	panel.get_node("Start").visible = can_control_session() and in_lobby
 	panel.get_node("Start").disabled = (not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false
-	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id)
+	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id, _room_owner_id if _dedicated_server else 1, "OWNER" if _dedicated_server else "HOST")
 	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"
 	if in_lobby and (_network_mode or lobby_demo):
-		var acting_as_host := lobby_demo or multiplayer.is_server()
+		var acting_as_host := lobby_demo or can_control_session()
 		if not connected and not lobby_demo:
 			panel.get_node("Status").text = "Joining — waiting for server roster"
 		elif acting_as_host:
 			panel.get_node("Status").text = (
 				"Need at least 2 players to start" if match_manager.players.size() < 2
-				else ("All ready — host can start" if match_manager.can_start_match() else "Waiting for all players to ready up")
+				else (("All ready — room owner can start" if _dedicated_server else "All ready — host can start") if match_manager.can_start_match() else "Waiting for all players to ready up")
 			)
 		else:
-			panel.get_node("Status").text = "Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the host can start"
+			panel.get_node("Status").text = ("Ready — waiting for room owner" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the room owner can start") if _dedicated_server else ("Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the host can start")
 	panel.get_node("Status").tooltip_text = panel.get_node("Status").text
 	$Interface/LobbyBackdrop.visible = panel.visible
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
@@ -1107,8 +1209,10 @@ func restart_local_match() -> bool:
 
 
 func restart_network_match() -> bool:
-	if not _network_mode or not multiplayer.is_server():
+	if not _network_mode or match_manager.state != MatchManager.MatchState.RESULTS:
 		return false
+	if not multiplayer.is_server():
+		return _send_owner_action("rematch")
 	return _restart_authoritative_match()
 
 
@@ -1120,8 +1224,10 @@ func start_local_match() -> bool:
 
 
 func return_to_lobby() -> bool:
-	if match_manager.state != MatchManager.MatchState.RESULTS or (_network_mode and not multiplayer.is_server()):
+	if match_manager.state != MatchManager.MatchState.RESULTS:
 		return false
+	if _network_mode and not multiplayer.is_server():
+		return _send_owner_action("lobby")
 	disaster_director.cleanup()
 	spectator_controller.stop()
 	gameplay_hud.set_spectating_visible(false)
@@ -1157,6 +1263,8 @@ func _restart_authoritative_match() -> bool:
 
 
 func _on_match_finished(winner_ids: Array[int]) -> void:
+	if _dedicated_server and multiplayer.is_server():
+		return
 	gameplay_hud.set_spectating_visible(false)
 	var winner_names: Array[String] = []
 	for winner_id: int in winner_ids:
@@ -1170,10 +1278,10 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 	$Interface/ResultsPanel/Table.reduced_motion = gameplay_hud.reduced_motion
 	$Interface/ResultsPanel/Table.present_results(match_manager.players, winner_ids, match_manager.elapsed_time)
 	$Interface/ResultsPanel/Prompt.text = (
-		"PRESS ENTER TO REMATCH" if not _network_mode or multiplayer.is_server()
-		else "WAITING FOR HOST TO START REMATCH"
+		"PRESS ENTER TO REMATCH" if can_control_session()
+		else ("WAITING FOR ROOM OWNER TO START REMATCH" if _dedicated_server else "WAITING FOR HOST TO START REMATCH")
 	)
-	var can_act := not _network_mode or multiplayer.is_server()
+	var can_act := can_control_session()
 	$Interface/ResultsPanel/Actions/Rematch.visible = can_act
 	$Interface/ResultsPanel/Actions/Lobby.visible = can_act
 	var controls: Array[Control] = [$Interface/ResultsPanel/Table.scroll]
@@ -1194,6 +1302,10 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	if _dedicated_server and multiplayer.is_server():
+		_session_revision += 1
+		_match_snapshot_remaining = 0.0
+		return
 	gameplay_hud.present_match_status(ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0)), _match_state_text(), state == MatchManager.MatchState.RESULTS)
 	if state == MatchManager.MatchState.RESULTS:
 		_set_lobby_visible(false)

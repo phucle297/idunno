@@ -38,7 +38,7 @@ done
 "$GODOT_BIN" --headless --path "$ROOT" --script res://tests/test_pause_settings.gd \
   -- --settings-path=user://ui-regression-settings.cfg --verify-restart
 
-for script in run_network_authority_test run_four_client_match_test run_playable_scene_network_test run_playable_scale_test; do
+for script in run_network_authority_test run_four_client_match_test run_playable_scene_network_test run_playable_scale_test run_dedicated_network_test; do
   GODOT_BIN="$GODOT_BIN" "$ROOT/tests/$script.sh"
 done
-printf 'UI_REGRESSION_OK suites=%d matrices=4 persistence_restart=passed\n' "$count"
+printf 'UI_REGRESSION_OK suites=%d matrices=5 persistence_restart=passed\n' "$count"

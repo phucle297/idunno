@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T09:00:39Z",
+  "updated_at": "2026-10-07T09:40:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_3_dedicated_server_and_room_owner"
+    "task": "task_2_2_4_room_service_and_process_lifecycle"
   },
   "engine": {
     "name": "Godot",
@@ -58,7 +58,7 @@
         "tasks": {
           "task_2_2_1_executable_play_guide": "completed",
           "task_2_2_2_exported_session_and_lan_smoke": "cancelled",
-          "task_2_2_3_dedicated_server_and_room_owner": "planned",
+          "task_2_2_3_dedicated_server_and_room_owner": "completed",
           "task_2_2_4_room_service_and_process_lifecycle": "planned",
           "task_2_2_5_windows_room_create_join_ui": "planned",
           "task_2_2_6_container_network_and_failure_validation": "planned",
@@ -66,7 +66,7 @@
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
-          "playerless_server_and_room_owner_authority": "not_run",
+          "playerless_server_and_room_owner_authority": "passed",
           "room_id_admission_and_bounded_process_lifecycle": "not_run",
           "windows_room_ui_and_failure_recovery": "not_run",
           "multi_container_room_isolation_and_five_rematches": "not_run",
@@ -211,6 +211,36 @@
       "check": "User-directed Internet rooms planning revision",
       "status": "passed",
       "result": "Documentation-only plan validated with JSON/schema/dependency/task assertions and git diff --check. Replaced mandatory physical LAN task with dedicated-server/room-service/UI/container/Internet readiness tasks; old task cancelled rather than passed, prior evidence retained. Current code is a listen host with peer-1 player and server-only session controls; dedicated ownership and room discovery are not implemented. All new gates remain not_run. One-machine modest-capacity plan excludes mass-scale infrastructure; future refactor seams recorded in decisions/checklist."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_dedicated_server.gd",
+      "status": "passed",
+      "result": "DEDICATED_SERVER_OK checks=100 clients=3 rematches=5 owner_transfer=active_and_results real_enet=passed. One process with separate SceneMultiplayer APIs and actual ENet connections; physics disabled in this session-control fixture, not multi-PC evidence. Initial assertion ran before deferred collider update; waiting for physics/process boundary fixes the fixture without relaxing body checks. Verbose follow-up confirms shutdown-only leaked jump.wav/WAV playback resources, consistent with recorded Dummy-audio limitation; no script/runtime errors. Full regression, separate-process dedicated gameplay and rendered owner/guest review pending."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Dedicated network/render fixture failure investigation",
+      "status": "failed",
+      "result": "Initial separate-process fixture kept main ticking after closing its server peer, causing inactive-multiplayer errors. Initial rendered forced ENet kick briefly broadcast to zero channels; SceneMultiplayer kick replacement removed routing but did not emit local cleanup signal, so transfer failed. Engine source confirms these lifecycles. Final fixture stops server main before transport close and tests client-side departure with actual server disconnect signals; rejected unregistered ACTIVE joins use SceneMultiplayer. Later late-client window preference initialization resized one 1080p capture to1908x999; early root-size/engine-args attempts produced100x100/failed dimension assertions. Final explicit review-resolution fixture restores requested size and asserts window/framebuffer dimensions; only approved final captures are used. Failed logs retained in .scratch/dedicated-*; no assertions weakened."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "UI_REGRESSION_OK suites=27 matrices=5 persistence_restart=passed. Solo/listen-host behavior, existing authority/state/playable 4/8/20-player matrices and new separate-process dedicated server/two-client movement/results/five-rematch/recovery check pass. Log .scratch/dedicated-full-regression.log. Persistence save reported48 ObjectDB leaks/four resources; dedicated network peers reported shutdown-only WAV resource diagnostics. No gameplay/parser errors. Final targeted rerun after startup-failure guard/stricter X-axis movement assertions also passes (server27/owner37/guest35 checks)."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_dedicated_server.gd; tests/run_dedicated_network_test.sh; godot --headless --path . --quit-after 30 -- --server-port=29768 / --server-port=65536",
+      "status": "passed",
+      "result": "Final contract103 checks: three real ENet clients, no server participant/mesh/collider/camera, all client slots usable, actual-sender owner RPCs, unready/wrong-state/unknown/stale/duplicate rejection, five rematches, active/results transfer, late ACTIVE rejection, empty registries and asymmetric90→8→2 owner order. Separate processes pass authoritative rightward movement (not vertical displacement), matching winners, five rematches and offline recovery. Direct production CLI prints READY capacity20 and exits0; invalid port exits1 with expected Invalid parameter diagnostic. Logs .scratch/dedicated-final-contract.log, dedicated-final-network.log, dedicated-cli.log, dedicated-invalid-cli.log. Shutdown WAV diagnostics remain. No Internet/Docker or release-package claim."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --path . --audio-driver Dummy --resolution <1280x720|1920x1080> --script res://tests/test_dedicated_server.gd -- --review-resolution=<same> --capture-dir=.amp/in/artifacts/dedicated/approved",
+      "status": "passed",
+      "result": "DEDICATED_SERVER_OK checks=128 at both exact resolutions, including actual visibility and saved framebuffer-size assertions. Inspected owner-ready, guest-ready, owner-results, guest-results and transferred-owner-results captures: correct OWNER/YOU markers, owner-only controls, explicit waiting text, no overlap/phantom host and immediate results transfer refresh. Existing winner-title ellipsis/tooltip intentional. WSL/Mesa llvmpipe Compatibility/Dummy audio, not native Windows performance or physical listening. Final captures .amp/in/artifacts/dedicated/approved/; logs .scratch/dedicated-approved-{resolution}.log. Shutdown-only9/13 ObjectDB leaks and one WAV resource remain."
     }
   ],
   "blockers": [
@@ -219,6 +249,6 @@
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd"],
-  "next_action": "Implement Task 2.2.3: playerless dedicated-server launch and server-validated room-owner start/rematch/lobby requests, deterministic owner transfer on disconnect, with authority/lifecycle tests while preserving solo and listen-host behavior."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh"],
+  "next_action": "Implement Task 2.2.4: choose maintainable local room-service tooling, then add versioned custom-ID create/join, room-bound expiring single-use admission and bounded local server-process lifecycle with collision/capacity/security/crash-cleanup checks; no public deployment or mass-scale infrastructure."
 }
