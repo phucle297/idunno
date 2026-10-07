@@ -126,16 +126,18 @@ Scope: safety and boundary readability only. Enlarging the footprint and adding 
 
 Milestone 1.7 and Phase 1 complete: `MAP_SAFETY_OK checks=96` headless and `checks=99` at both rendered resolutions; all 26 suites, separate-process persistence and four multiplayer matrices pass. Five real network rematches alternate escaped/below-map client deaths, verify identical cause/results and reject client-side elimination. Inspected the four-wall overview, clean corner and actual death feedback, plus representative Phase 1 UI states at both sizes. Native Windows Radeon 860M overlap profiling passes twice at p95 4.09 ms with stable UI nodes. HUD motion tests now explicitly step both sides of tween-duration boundaries rather than relying on wall-clock scheduling. Full evidence is archived in `docs/old-docs/progress-phase-1-ui-identity-and-feedback.json`; `progress.json` contains fresh Phase 2 state. Physical multi-PC/controller/audio playtesting, default-V-Sync frame pacing, and the reported X-server shutdown remain separate limitations, not claimed fixed.
 
-## Phase 2 — Human Playtest and Core Feel (planned, current)
+## Phase 2 — Human Playtest and Core Feel (in progress, current)
 
 Goal: establish whether the validated prototype is understandable, responsive and worth rematching with friends. No new gameplay systems or map expansion in this phase.
 
 ### Milestone 2.1 — Reproducible Windows Playtest Build
 
-- [ ] Task 2.1.1: Install/verify matching Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and one repeatable export command. Export twice from the same clean revision; compare payload hashes and document any nondeterministic packaging metadata. Keep tools, caches, tests and review artifacts out of the package.
-- [ ] Task 2.1.2: Identify the build by source revision, engine version and package checksum in the delivered build notes and an accessible in-game/log surface. Launch the exported executable on native Windows without an editor or repository dependency and verify no missing resources. Record OS/GPU, resolution, build identity and logs.
+- [x] Task 2.1.1: Install/verify matching Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and one repeatable export command. Export twice from the same clean revision; compare payload hashes and document any nondeterministic packaging metadata. Keep tools, caches, tests and review artifacts out of the package.
+- [x] Task 2.1.2: Identify the build by source revision, engine version and package checksum in the delivered build notes and an accessible in-game/log surface. Launch the exported executable on native Windows without an editor or repository dependency and verify no missing resources. Record OS/GPU, resolution, build identity and logs.
 
 Acceptance: reproducible export evidence, no missing resources/editor dependency and identifiable matching packages. Existing editor-based tests do not satisfy these gates.
+
+Milestone 2.1 complete: official templates verified against release SHA-512; `tools/export_windows.sh` exports isolated committed HEAD. Initial scene-only binary-conversion variability was reproduced and resolved by retaining authored text scenes. Two exports of revision `7eb1f2520795da5eccf826a6be70261816fa4459` match EXE/PCK/build-note hashes exactly. A fresh native Windows directory with only four package files ran 600 iterations at 1280×720 on Intel UHD Graphics 630 / Compatibility / WASAPI, printed correct identity and exited 0 without resource/script errors. Standalone screenshot inspected. Full regression passes 26 suites, persistence and four network matrices; shutdown resource diagnostics remain recorded. Exported session/LAN readiness is not claimed and remains 2.2.
 
 ### Milestone 2.2 — Playtest Readiness
 
@@ -174,9 +176,9 @@ Depends on 2.4; retest affected scenarios and normal rounds at both group sizes 
 
 Acceptance: human follow-up and baseline comparison, no unresolved session-blocking/control failures, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2, return observed issues to 2.4 and repeat 2.5. All five milestones must pass before phase closure.
 
-Current constraints: export presets and local export templates are absent. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
+Current constraints: export packaging and standalone Windows launch pass; exported session readiness and physical LAN smoke are pending. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
 
-Next action: implement Task 2.1.1 only; finish Milestone 2.1 before starting the human-session milestone.
+Next action: Task 2.2.1 — update `GUIDE.md` for the delivered executable and matching build checks, including current Flood feedback; finish readiness before starting human-session research.
 
 ## Planned future phases
 

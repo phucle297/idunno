@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T04:44:44Z",
+  "updated_at": "2026-10-07T04:58:31Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -18,8 +18,8 @@
   },
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
-    "milestone": "milestone_2_1_reproducible_windows_playtest_build",
-    "task": "task_2_1_1_windows_export_pipeline"
+    "milestone": "milestone_2_2_playtest_readiness",
+    "task": "task_2_2_1_executable_play_guide"
   },
   "engine": {
     "name": "Godot",
@@ -37,17 +37,17 @@
     "milestones": {
       "milestone_2_1_reproducible_windows_playtest_build": {
         "title": "Reproducible Windows Playtest Build",
-        "status": "in_progress",
+        "status": "completed",
         "scope": "Create a repeatable Windows export with build/version identification; verify standalone launch without adding distribution services.",
         "tasks": {
-          "task_2_1_1_windows_export_pipeline": "in_progress",
-          "task_2_1_2_build_identity_and_standalone_launch": "planned"
+          "task_2_1_1_windows_export_pipeline": "completed",
+          "task_2_1_2_build_identity_and_standalone_launch": "completed"
         },
         "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch on native Windows without editor/repository, with matching build identity and no missing resources. See docs/implementation-checklist.md for the executable plan.",
         "gates": {
-          "reproducible_windows_export": "not_run",
-          "standalone_windows_launch": "not_run",
-          "build_identity_and_checksums": "not_run"
+          "reproducible_windows_export": "passed",
+          "standalone_windows_launch": "passed",
+          "build_identity_and_checksums": "passed"
         }
       },
       "milestone_2_2_playtest_readiness": {
@@ -136,11 +136,35 @@
       "check": "Initial repeated Windows export comparison",
       "status": "failed",
       "result": "Two exports of revision 2932b2491f645063b6aff44c4635292bbfcd8c05 succeeded without import/export errors; EXE and BUILD.txt hashes matched but PCK differed. PCK-directory inspection found identical 101 paths and differences only in seven converted binary scenes; scripts, imported audio and cache payloads matched. Disabled editor/export/convert_text_resources_to_binary to retain deterministic authored text scenes; repeat comparison pending. Development startup smoke exited cleanly and printed development build identity."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "tools/export_windows.sh .scratch/windows-2-1-c; tools/export_windows.sh .scratch/windows-2-1-d; diff -u .scratch/windows-2-1-c/SHA256SUMS.txt .scratch/windows-2-1-d/SHA256SUMS.txt",
+      "status": "passed",
+      "result": "Two isolated clean exports of 7eb1f2520795da5eccf826a6be70261816fa4459 match byte-for-byte: EXE d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562, PCK 67582b5b3f17824246d568bf962747d960625483c3ad185bf08e6f4e5c2ac4d4, BUILD.txt 05197e91ad00819b8e372e15b8d35e503aa8679a8ef65ab630c96c13a5d33e45. Conversion setting resolves the initial scene-only variability. PCK directory contains 84 entries, required main scene/compiled script and no tests/tools/docs/source/reference paths. Existing-output rejection passes. Logs retained in .scratch/windows-2-1-c."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Native Windows standalone exported launch",
+      "status": "passed",
+      "result": "Copied only EXE/PCK/BUILD.txt/SHA256SUMS.txt to C:\\Users\\Admin\\AppData\\Local\\Temp\\DisasterParty-2-1-7eb1f25; copied bytes match originals. Release executable ran 600 iterations at 1280x720 on Windows 10.0.26200, Intel UHD Graphics 630, OpenGL Compatibility, WASAPI. Correct full build revision printed; exit 0 and no SCRIPT ERROR/ERROR lines or missing dependencies. Inspected window capture shows town/avatar/health/timer/alive HUD. Screenshot/log: .amp/in/artifacts/windows-standalone-2-1.png and .log. Existing system certificate diagnostic skipped one certificate; no network claim. Exported LAN/settings/audio behavior remains 2.2, not passed by this launch."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Fresh post-export-change regression: exit 0, UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed; five network rematches retained. Persistence save emitted shutdown-only 44 ObjectDB leaks / four resources in use, permitted by existing runner; no gameplay fix claimed. Log .scratch/milestone-2-1-regression.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Package delivery and export safety",
+      "status": "passed",
+      "result": "Dirty tracked-source rejection passes before creating output. Four-file ZIP .amp/in/artifacts/DisasterParty-Windows-7eb1f25.zip validated with zip CRC and byte comparison against the tested payloads. Package is pinned to the tested implementation revision; subsequent completion commit changes documentation only."
     }
   ],
   "blockers": [
     "Milestone 2.2 physical LAN smoke and Milestones 2.3/2.5 human sessions require separate Windows PCs and participants; availability is not established and automated localhost peers cannot satisfy these gates."
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot"],
-  "next_action": "Validate two isolated Windows exports from the same committed revision, compare checksums and run the packaged executable standalone on native Windows."
+  "next_action": "Start Task 2.2.1: update GUIDE.md for the exported executable, matching build/checksum checks, LAN/firewall/controls/readiness/rematch/recovery instructions and current Flood feedback."
 }
