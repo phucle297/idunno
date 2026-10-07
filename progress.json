@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T04:31:59Z",
+  "updated_at": "2026-10-07T04:44:44Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -38,34 +38,60 @@
       "milestone_2_1_reproducible_windows_playtest_build": {
         "title": "Reproducible Windows Playtest Build",
         "status": "planned",
-        "scope": "Create a repeatable Windows export with build/version identification and direct-IP playtest instructions; verify launch and LAN session/rematch behavior without adding distribution services.",
+        "scope": "Create a repeatable Windows export with build/version identification; verify standalone launch without adding distribution services.",
         "tasks": {
           "task_2_1_1_windows_export_pipeline": "planned",
-          "task_2_1_2_build_identity_and_play_guide": "planned",
-          "task_2_1_3_native_exported_session_smoke": "planned"
+          "task_2_1_2_build_identity_and_standalone_launch": "planned"
         },
-        "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch without editor/repository; verify settings/assets/audio, exported host/client flow, five rematches and disconnect/retry; confirm physical LAN smoke and matching build identity. See docs/implementation-checklist.md for the executable plan.",
+        "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch on native Windows without editor/repository, with matching build identity and no missing resources. See docs/implementation-checklist.md for the executable plan.",
         "gates": {
           "reproducible_windows_export": "not_run",
-          "exported_build_launch_and_session_smoke": "not_run",
-          "playtest_instructions_and_build_identity": "not_run"
+          "standalone_windows_launch": "not_run",
+          "build_identity_and_checksums": "not_run"
         }
       },
-      "milestone_2_2_structured_multi_pc_playtest": {
-        "title": "Structured Multi-PC Playtest",
+      "milestone_2_2_playtest_readiness": {
+        "title": "Playtest Readiness",
         "status": "planned",
         "dependencies": ["milestone_2_1_reproducible_windows_playtest_build"],
+        "scope": "Provide executable-based LAN instructions and validate exported settings/assets/audio, host/client readiness, movement, props, warnings, death/spectating, results, five rematches, disconnect/retry and physical LAN smoke before inviting a group.",
+        "tasks": {
+          "task_2_2_1_executable_play_guide": "planned",
+          "task_2_2_2_exported_session_and_lan_smoke": "planned"
+        },
+        "gates": {
+          "executable_playtest_instructions": "not_run",
+          "exported_session_settings_audio_and_five_rematches": "not_run",
+          "disconnect_and_retry": "not_run",
+          "physical_lan_host_client_smoke": "not_run"
+        }
+      },
+      "milestone_2_3_human_playtest_baseline": {
+        "title": "Human Playtest Baseline",
+        "status": "planned",
+        "dependencies": ["milestone_2_2_playtest_readiness"],
         "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs; aim for three normal rounds each and record actual counts, hardware/network/input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
         "gates": {
           "observed_3_to_8_player_multi_pc_sessions": "not_run",
           "recorded_death_clarity_rematches_and_emergent_moments": "not_run"
         }
       },
-      "milestone_2_3_evidence_driven_core_feel_tuning": {
-        "title": "Evidence-Driven Core Feel Tuning",
+      "milestone_2_4_core_feel_improvements": {
+        "title": "Core-Feel Improvements",
         "status": "planned",
-        "dependencies": ["milestone_2_2_structured_multi_pc_playtest"],
-        "scope": "Prioritize reproduced high-impact issues; tune existing movement/camera/warning/pacing owners one coherent change at a time, regress and retest with humans. No new disasters, shove, map expansion or distribution services.",
+        "dependencies": ["milestone_2_3_human_playtest_baseline"],
+        "scope": "Prioritize reproduced high-impact issues; tune existing movement/camera/warning/pacing owners one coherent change at a time and regress. Create tasks from actual findings, not speculative tuning. No new disasters, shove, map expansion or distribution services.",
+        "gates": {
+          "observed_issues_prioritized_with_reproduction_evidence": "not_run",
+          "high_impact_issues_addressed_with_before_after_evidence": "not_run",
+          "affected_behavior_network_visual_and_performance_checks": "not_run"
+        }
+      },
+      "milestone_2_5_follow_up_validation_and_phase_review": {
+        "title": "Follow-Up Validation and Phase Review",
+        "status": "planned",
+        "dependencies": ["milestone_2_4_core_feel_improvements"],
+        "scope": "Retest affected scenarios and normal rounds with humans at both group sizes; compare baseline and follow-up evidence. Report actual durations against the configurable 8–12-minute target. If criteria fail, remain in Phase 2 and return observed issues to 2.4 before repeating 2.5.",
         "proposed_expansion_criteria": {
           "death_clarity": "At least 80% of sampled deaths correctly explained without coaching; report numerator and denominator.",
           "voluntary_rematches": "A majority independently willing to rematch in each follow-up group; distinguish requested rounds from voluntary requests.",
@@ -73,7 +99,8 @@
           "stability": "No unresolved session-blocking/control failures; recurring high-impact issues addressed with regression and human follow-up evidence. Small samples are product evidence, not statistical proof."
         },
         "gates": {
-          "observed_issues_addressed_and_regression_checked": "not_run",
+          "human_follow_up_and_baseline_comparison": "not_run",
+          "no_unresolved_session_blocking_or_control_failures": "not_run",
           "understandable_deaths_voluntary_rematches_and_recurring_emergent_moments": "not_run"
         }
       }
@@ -91,11 +118,17 @@
       "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Exit 0; UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed. State-contract 2/4/8/20-client and playable 4/8/20-player matrices, authority and two-peer five-rematch checks passed. Persistence save process emitted 48 ObjectDB leaks / 4 resources still in use at shutdown; runner permits shutdown resource diagnostics. This does not prove physical audio, controller feel, multi-PC sessions or Windows package behavior."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Five-milestone plan consistency: Python assertions, jq empty progress.json and git diff --check",
+      "status": "passed",
+      "result": "PHASE_2_PLAN_OK milestones=5 dependencies=ordered current_task=valid gates=not_run checklist=aligned. Documentation-only restructure; prior gameplay evidence preserved and completed-phase archives unchanged."
     }
   ],
   "blockers": [
     "Milestone 2.1 prerequisite: matching export templates and a Windows export preset/pipeline are absent; implement Task 2.1.1 before claiming any packaged-build gate.",
-    "Milestone 2.2 requires human participants and separate Windows PCs; availability is not established and automated localhost peers cannot satisfy the gate."
+    "Milestone 2.2 physical LAN smoke and Milestones 2.3/2.5 human sessions require separate Windows PCs and participants; availability is not established and automated localhost peers cannot satisfy these gates."
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md"],
   "next_action": "Implement Task 2.1.1: verify/install Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and repeatable export command, then compare two exports from the same clean revision."

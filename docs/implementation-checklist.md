@@ -133,12 +133,22 @@ Goal: establish whether the validated prototype is understandable, responsive an
 ### Milestone 2.1 — Reproducible Windows Playtest Build
 
 - [ ] Task 2.1.1: Install/verify matching Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and one repeatable export command. Export twice from the same clean revision; compare payload hashes and document any nondeterministic packaging metadata. Keep tools, caches, tests and review artifacts out of the package.
-- [ ] Task 2.1.2: Identify the build by source revision, engine version and package checksum in the delivered build notes and an accessible in-game/log surface. Update `GUIDE.md` for executable launches, LAN IP/UDP 29730, firewall, controls, readiness, host authority, rematch and recovery. Correct stale Flood blue-overlay instructions and distinguish same-PC checks from physical LAN evidence.
-- [ ] Task 2.1.3: Launch the exported executable on native Windows without an editor or repository dependency; check assets/audio/settings restart. Exercise exported host/client readiness, movement, props, warnings, death/spectating, identical results, five rematches, disconnect and retry. Record OS/GPU, resolution, build identity and logs; confirm one physical LAN host/client session before inviting the group.
+- [ ] Task 2.1.2: Identify the build by source revision, engine version and package checksum in the delivered build notes and an accessible in-game/log surface. Launch the exported executable on native Windows without an editor or repository dependency and verify no missing resources. Record OS/GPU, resolution, build identity and logs.
 
-Acceptance: reproducible export evidence, no missing resources/editor dependency, identifiable matching packages, executable-based session smoke and usable instructions. Existing editor-based tests do not satisfy these gates.
+Acceptance: reproducible export evidence, no missing resources/editor dependency and identifiable matching packages. Existing editor-based tests do not satisfy these gates.
 
-### Milestone 2.2 — Structured Multi-PC Playtest
+### Milestone 2.2 — Playtest Readiness
+
+Depends on 2.1; validate the delivered package before inviting a group.
+
+- [ ] Task 2.2.1: Update `GUIDE.md` for executable launches, LAN IP/UDP 29730, firewall, controls, readiness, host authority, rematch and recovery. Correct stale Flood blue-overlay instructions and distinguish same-PC checks from physical LAN evidence.
+- [ ] Task 2.2.2: Check exported assets/audio/settings restart and host/client readiness, movement, props, warnings, death/spectating, identical results, five rematches, disconnect and retry. Record OS/GPU, resolution, build identity and logs; confirm one physical LAN host/client session.
+
+Acceptance: usable executable-based instructions, native Windows exported session checks, persistent settings, five rematches, disconnect/retry and physical LAN smoke. Editor and localhost checks cannot substitute for physical LAN evidence.
+
+### Milestone 2.3 — Human Playtest Baseline
+
+Depends on 2.2; collect baseline evidence before changing core feel.
 
 - [ ] Run an initial 3–4-person session, then a 6–8-person session on separate Windows PCs using the same package. Aim for at least three normal rounds per session; record actual counts and early endings rather than forcing an 8–12-minute outcome. Keep debug/demo launches out of competitive rounds.
 - [ ] Before play, record build, host/client hardware, input devices, resolution/V-Sync, network setup and prior familiarity. Include a brief traversal/prop/camera check through doors, stairs and each elevation route; test controller navigation and physical warning audibility where devices are available.
@@ -147,13 +157,22 @@ Acceptance: reproducible export evidence, no missing resources/editor dependency
 
 Acceptance: real sessions at both group sizes, per-round observations and player feedback; localhost processes/bots are not substitutes. Lack of people/PCs is an explicit human dependency, not an automated pass.
 
-### Milestone 2.3 — Evidence-Driven Core Feel Tuning
+### Milestone 2.4 — Core-Feel Improvements
+
+Depends on 2.3; create ordered tasks from actual findings, not speculative tuning.
 
 - [ ] Prioritize reproduced issues by severity, recurrence and impact on comprehension/control. Tune movement in `game/player_tuning.gd`, camera in the existing player scene/controller, and pacing in MatchManager/Director/disaster metadata; keep authority, solo exception, recovery protection and physics budgets intact. Do not tune speculatively before observations.
 - [ ] Change one coherent issue at a time; record the hypothesis, baseline, values changed and before/after evidence. Re-run affected behavior tests and network checks; inspect renders for appearance changes and native Windows overlap throughput plus default-V-Sync pacing for performance changes.
+
+Acceptance: recurring high-impact issues prioritized with reproduction evidence, addressed with before/after evidence and affected regression checks. Human confirmation belongs to 2.5, not an assumed tuning success.
+
+### Milestone 2.5 — Follow-Up Validation and Phase Review
+
+Depends on 2.4; retest affected scenarios and normal rounds at both group sizes and compare with the baseline.
+
 - [ ] Repeat the affected scenario and normal rounds with humans. Proposed expansion gate: at least 80% of sampled deaths correctly explained without coaching (report numerator/denominator), a majority independently willing to rematch in each follow-up group, and at least two distinct emergent causal patterns recurring across rounds. Record contrary evidence; do not treat small-sample results as statistical proof.
 
-Acceptance: no unresolved session-blocking/control failures, addressed recurring high-impact issues with regression evidence, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2.
+Acceptance: human follow-up and baseline comparison, no unresolved session-blocking/control failures, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2, return observed issues to 2.4 and repeat 2.5. All five milestones must pass before phase closure.
 
 Current constraints: export presets and local export templates are absent. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
 
