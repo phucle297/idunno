@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T09:40:00Z",
+  "updated_at": "2026-10-07T10:38:16Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_4_room_service_and_process_lifecycle"
+    "task": "task_2_2_5_windows_room_create_join_ui"
   },
   "engine": {
     "name": "Godot",
@@ -59,7 +59,7 @@
           "task_2_2_1_executable_play_guide": "completed",
           "task_2_2_2_exported_session_and_lan_smoke": "cancelled",
           "task_2_2_3_dedicated_server_and_room_owner": "completed",
-          "task_2_2_4_room_service_and_process_lifecycle": "planned",
+          "task_2_2_4_room_service_and_process_lifecycle": "completed",
           "task_2_2_5_windows_room_create_join_ui": "planned",
           "task_2_2_6_container_network_and_failure_validation": "planned",
           "task_2_2_7_internet_release_readiness": "planned"
@@ -67,7 +67,7 @@
         "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
           "playerless_server_and_room_owner_authority": "passed",
-          "room_id_admission_and_bounded_process_lifecycle": "not_run",
+          "room_id_admission_and_bounded_process_lifecycle": "passed",
           "windows_room_ui_and_failure_recovery": "not_run",
           "multi_container_room_isolation_and_five_rematches": "not_run",
           "public_internet_release_clients_and_retry": "not_run",
@@ -264,6 +264,42 @@
       "check": "Corrected preview-only feedback and added mouse milestone: JSON/dependency assertions and git diff --check",
       "status": "passed",
       "result": "User clarifies direct host lighting looks normal; excess brightness is only in Task 2.2.3 images. Removed production-lighting change from Phase 4; added matched single-host/capture-workflow investigation, cause unverified. Added planned Milestone 2.6 with three not_run gates after 2.2 and before human baseline2.3. Mouse rotation/click failure and X display loss remain user reports, not reproduced/fixed; V-Sync/audio/cleanup output is not an established cause. Active task2.2.4, existing gate results and single next action unchanged. Planning only."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial room-service contract and actual-process checks",
+      "status": "failed",
+      "result": "Four contract cases passed; process cases exposed unsupported Path.open(opener=...). Switched to built-in open with mode0600 opener; retained initial log .scratch/room-service-tests.log. No gameplay failure or token bypass observed."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "status": "passed",
+      "result": "Eight tests passed in17.8s: HTTP version/password/custom/generated IDs, atomic collisions, bounded reservations/processes, real Godot ENet admission/ready, no-token UDP bypass rejection, bad/expired/replayed/wrong-room tokens, crash/empty/heartbeat-loss/shutdown cleanup and port reclamation. Occupied-UDP negative case emits expected ENet startup errors. Stale-heartbeat admission reservation retained by contract test. Local Linux source processes only; full regression/restart fail-closed check and operator documentation pending. Log .scratch/room-service-tests-b.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.4 expanded ACTIVE admission fixture",
+      "status": "failed",
+      "result": "Initial fixture attempted network start with only one registered player; main.start_network_match correctly requires two. Added a second actual admitted/ready client, retaining start and ACTIVE assertions. No gameplay rule relaxed. Failed log .scratch/room-service-final.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v; actual room_service.py CLI create/SIGTERM smoke",
+      "status": "passed",
+      "result": "Ten tests passed in36.9s, including two admitted clients ready/owner start, ACTIVE lookup and pre-issued-token rejection, invalid admission recovery followed by valid retry in the same client process, registry-loss fail-closed exit1 and new-instance old-token rejection. Prior security/capacity/lifecycle checks retained. CLI emitted ROOM_SERVICE_CLI_OK create=passed sigterm=passed udp_port_reclaimed=passed; exit0 and no script/runtime errors. Occupied-port negative case has expected startup errors; shutdown WAV diagnostics remain allowed. Logs .scratch/room-service-final-b.log and room-service-cli.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (two runs); PLAYER_COUNTS=20 tests/run_playable_scale_test.sh",
+      "status": "failed",
+      "result": "First full run passed UI_REGRESSION_OK suites27/matrices5/persistence restart. Second run passed suites/state matrices/listen-host/five rematches and 4/8 playable scale, but one20-player client reported movement=false (other state/presentation checks true), causing scale failure. Isolated unchanged20-player rerun passed all19 clients. Cause unconfirmed; no movement fix or assertion relaxation claimed. Retained .scratch/rooms-final-regression.log, rooms-scale-failure/ per-peer logs and rooms-scale-isolated.log. Serial full rerun pending."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (serial final run); jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "Serial final regression exits 0: UI_REGRESSION_OK suites=27 matrices=5 persistence_restart=passed, including dedicated authority/owner transfer, five rematches and playable 4/8/20-player matrix. No gameplay/parser errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Log .scratch/rooms-serial-regression.log. Local backend/admission/lifecycle gate passed; Task 2.2.4 completed. Windows UI, containers, public Internet and physical listening gates remain not_run. GUIDE documents tested local service commands and proxy security boundaries. Earlier scale failure remains unconfirmed, not claimed fixed."
     }
   ],
   "blockers": [
@@ -271,8 +307,9 @@
     "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
     "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
+    "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh"],
-  "next_action": "Implement Task 2.2.4: choose maintainable local room-service tooling, then add versioned custom-ID create/join, room-bound expiring single-use admission and bounded local server-process lifecycle with collision/capacity/security/crash-cleanup checks; no public deployment or mass-scale infrastructure."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid"],
+  "next_action": "Implement Task 2.2.5: Windows Create Room / Join Room ID UI and HTTP discovery against the validated backend, with retryable errors, solo/direct-IP regression and rendered 720p/1080p inspection; no public deployment."
 }

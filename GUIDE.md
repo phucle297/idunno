@@ -211,3 +211,74 @@ Run from the development checkout. Use the editor executable directly, not its
 UNC path. Output must be a fresh directory. The policy
 override applies only to this process, not the machine. Logs identify the payload,
 engine, test markers and evidence limitations; keep any failed checks visible.
+
+## Local room-service development (source checkout only)
+
+Task 2.2.4 adds the allocator/admission backend, not the Windows room-ID UI or a
+new release package. Python 3.10+ (standard library only) and Godot 4.7.2 are
+required. From the checkout on Linux:
+
+```bash
+godot --headless --editor --path . --quit
+python3 tools/room_service.py --godot "$(command -v godot)"
+```
+
+The HTTP service listens only on `127.0.0.1:29800`. Defaults allow four rooms,
+each with eight player slots, on UDP ports `29810–29813`. These are conservative
+configuration limits, not measured production capacity. Ctrl+C/SIGTERM stops
+all managed servers and deletes their private configuration files. A crashed
+service loses its in-memory registry; old servers fail closed after eight seconds
+without a successful heartbeat. Clients must create/join again with new tickets.
+
+Create and join use POST JSON. Both require `protocol: 1` and the exact server
+`build` (`development` for this source checkout):
+
+```bash
+curl --fail-with-body http://127.0.0.1:29800/v1/rooms/create \
+  -H 'Content-Type: application/json' \
+  -d '{"protocol":1,"build":"development","room_id":"FRIENDS-42","password":""}'
+curl --fail-with-body http://127.0.0.1:29800/v1/rooms/join \
+  -H 'Content-Type: application/json' \
+  -d '{"protocol":1,"build":"development","room_id":"friends-42","password":""}'
+```
+
+IDs are trimmed/uppercased, 3–24 ASCII letters/digits/hyphens with an alphanumeric
+first character. Empty/omitted create ID generates an eight-character ID. IDs
+are locators, not secrets. Optional passwords are stored as salted scrypt hashes;
+do not put real passwords in shell history. Responses contain `room_id`,
+`address`, UDP `port`, `protocol`, `build`, a single-use `token`, and `expires_in`
+(20 seconds by default). Outstanding tickets reserve player slots. Expired
+tickets free their reservations. Use a new ticket for every connection attempt.
+Tokens are room-instance-bound and hashed in memory; never publish them in logs.
+
+The client transport accepts a ticket via `join_game(address, port, token)`;
+normal Windows create/join UI is Task 2.2.5. Managed servers authenticate through
+Godot's ENet pre-registration hook. Raw direct-IP clients cannot bypass it.
+Unmanaged `--server-port=` remains an **unauthenticated development mode** and
+must not be exposed publicly. Room owner is the first admitted player, not
+necessarily the creator if the creator has not connected yet.
+
+Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
+(403), unknown room (404), duplicate/full/incompatible/active match (409), rate
+limit (429), capacity/startup failure (503). Join is lobby-only. Player counts,
+joinability and startup readiness are reported by authenticated loopback
+heartbeats. Empty rooms expire after 60 seconds once reservations are gone;
+dead or unresponsive processes are removed and their ports reclaimed.
+
+Run the executed local backend tests separately from gameplay regression:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v
+GODOT_BIN="$(command -v godot)" tests/run_ui_regression.sh
+```
+
+Public operation is **not configured or approved**. A future HTTPS reverse proxy
+must expose only `/v1/rooms/create` and `/v1/rooms/join`, never `/internal/*`, and
+apply per-client IP limits at the edge (the backend sees the loopback proxy IP
+and has a conservative 30-request/minute backstop). Request bodies are capped
+at 2 KiB and concurrent HTTP workers at 32. Only operator-owned executable/path
+configuration is launched, without a shell. Private per-room credentials use a
+mode-0600 file in a mode-0700 temporary directory. Do not enable proxy body
+logging. Public DNS/TLS/firewall/UDP changes require approval and actual remote
+Windows validation in Task 2.2.7. HTTPS does not encrypt ENet gameplay traffic;
+this prototype does not promise gameplay transport confidentiality.

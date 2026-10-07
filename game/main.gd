@@ -48,6 +48,7 @@ var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
 var pause_settings: Control
+var room_admission: Node
 
 
 func _ready() -> void:
@@ -245,6 +246,14 @@ func _configure_ui_theme() -> void:
 func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_PLAYERS, dedicated: bool = false) -> Error:
 	if _network_mode:
 		return ERR_ALREADY_IN_USE
+	var room_config := _argument_value("--room-config=")
+	if dedicated and not room_config.is_empty():
+		room_admission = preload("res://game/room_admission.gd").new()
+		add_child(room_admission)
+		var admission_error: Error = room_admission.configure_server(self, room_config)
+		if admission_error != OK:
+			return admission_error
+		max_players = int(room_admission.config.get("capacity", MAX_NETWORK_PLAYERS))
 	var peer := ENetMultiplayerPeer.new()
 	var error := peer.create_server(port, maxi(max_players if dedicated else max_players - 1, 1))
 	if error != OK:
@@ -276,13 +285,17 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 	return OK
 
 
-func join_game(address: String, port: int = DEFAULT_NETWORK_PORT) -> Error:
+func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_token: String = "") -> Error:
 	if _network_mode:
 		return ERR_ALREADY_IN_USE
 	var peer := ENetMultiplayerPeer.new()
 	var error := peer.create_client(address, port)
 	if error != OK:
 		return error
+	if not admission_token.is_empty():
+		room_admission = preload("res://game/room_admission.gd").new()
+		add_child(room_admission)
+		room_admission.configure_client(self, admission_token)
 	multiplayer.multiplayer_peer = peer
 	_network_mode = true
 	_network_role = "client"
@@ -394,6 +407,10 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 func _on_server_disconnected() -> void:
 	# Clear ENet before any gameplay authority checks; a closed peer still counts as installed.
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	if is_instance_valid(room_admission):
+		room_admission.reset_client()
+		room_admission.queue_free()
+		room_admission = null
 	_network_mode = false
 	_network_role = "offline"
 	_dedicated_server = false
