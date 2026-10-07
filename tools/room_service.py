@@ -265,8 +265,13 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(payload)
+        try:
+            self.end_headers()
+            self.wfile.write(payload)
+        except (BrokenPipeError, ConnectionResetError):
+            # A timed-out/cancelled HTTP caller cannot receive a reply. Allocation
+            # and reservations still follow their normal bounded expiry policy.
+            pass
 
 
 def arguments():

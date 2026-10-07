@@ -37,6 +37,7 @@ func _run() -> void:
 	var server := _make_peer("Server")
 	_expect(server.host_game(0, 3, true) == OK, "Dedicated server must bind an ephemeral port")
 	await process_frame
+	_expect(not (server.multiplayer as SceneMultiplayer).server_relay, "Dedicated rooms must not relay client-to-client traffic")
 	_expect(server.get_network_role() == "server" and server.match_manager.players.is_empty() and server.get_network_player_ids().is_empty(), "Dedicated server must have no phantom participant")
 	_expect(server.get_room_owner_id() == 0 and not server.can_control_session() and not server.set_local_ready(true), "Server is not the room owner or a ready player")
 	_expect(not server.get_node("Player/Visual").visible and server.get_node("Player/CollisionShape3D").disabled and not server.get_node("Player/CameraPivot/SpringArm3D/Camera3D").current, "Placeholder must have no mesh, collider or camera")
@@ -61,6 +62,7 @@ func _run() -> void:
 	await process_frame
 	_expect(not server._execute_owner_action(ids[0], "start", server._session_revision), "Owner cannot start an unready roster")
 	for client: Node in clients:
+		_expect(client.multiplayer.get_peers() == PackedInt32Array([1]), "Transport must expose only authority while gameplay snapshots retain all players")
 		_expect(not client.match_manager.players.has(1) and not client.get_network_player_ids().has(1), "Clients must not retain peer 1 in roster or scene registry")
 		_expect(not client.get_node("Player/Visual").visible and client.get_node("Player/CollisionShape3D").disabled, "Clients must disable their placeholder body")
 		client.set_local_ready(true)

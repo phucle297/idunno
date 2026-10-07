@@ -10,6 +10,12 @@ if grep -Eq '^(SCRIPT ERROR|ERROR):' /tmp/import.log; then
   cat /tmp/import.log
   exit 1
 fi
+if [[ "${1:-}" == --suite=managed-service ]]; then
+  exec env PYTHONPATH=/work python3 tests/managed_room_service.py "$2"
+elif [[ "${1:-}" == --suite=managed-client ]]; then
+  shift
+  exec /opt/godot --headless --path /work --script res://tests/managed_container_peer.gd -- "$@"
+fi
 if [[ "${1:-}" == --suite=regression ]]; then
   export GODOT_BIN=/opt/godot PYTHONDONTWRITEBYTECODE=1
   python3 -m unittest discover -s tests -p test_room_service.py -v

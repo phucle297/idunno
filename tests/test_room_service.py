@@ -1,6 +1,7 @@
 """Contract and actual Godot/ENet checks; no public network or Docker claims."""
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -12,10 +13,11 @@ import threading
 import time
 from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from tools.room_service import RoomService, Server, Rejected, normalize_id
+from tools.room_service import RoomService, Server, Handler, Rejected, normalize_id
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -102,6 +104,28 @@ class Contract(unittest.TestCase):
             self.service.rate_limit("127.0.0.1")
         self.rejects("rate_limited", lambda: self.service.rate_limit("127.0.0.1"))
         self.assertNotIn(token, repr(self.room))
+
+    def test_response_cancellation_is_not_an_application_failure(self):
+        for stage in ("headers", "body"):
+            for error in (BrokenPipeError, ConnectionResetError, OSError):
+                with self.subTest(stage=stage, error=error):
+                    handler = object.__new__(Handler)
+                    body = b'{"protocol":1,"build":"development","room_id":"UNKNOWN"}'
+                    handler.headers = {"Content-Length": str(len(body))}
+                    handler.rfile = io.BytesIO(body)
+                    handler.path = "/v1/rooms/join"
+                    handler.client_address = ("127.0.0.1", 1)
+                    handler.server = SimpleNamespace(service=self.service)
+                    handler.send_response = Mock()
+                    handler.send_header = Mock()
+                    handler.end_headers = Mock(side_effect=error() if stage == "headers" else None)
+                    handler.wfile = SimpleNamespace(write=Mock(side_effect=error() if stage == "body" else None))
+                    if error is OSError:
+                        with self.assertRaises(OSError):
+                            handler.do_POST()
+                    else:
+                        handler.do_POST()
+                    handler.send_response.assert_called_once_with(404)
 
 
 class RealProcesses(unittest.TestCase):
@@ -303,7 +327,7 @@ class RealProcesses(unittest.TestCase):
                 room["process"].wait(timeout=3)
                 self.service.reap()
                 for process, log in zip(processes, logs):
-                    self.assertEqual(process.wait(timeout=28), 0, log.read_text())
+                    self.assertEqual(process.wait(timeout=28), 0, {path.name: path.read_text() for path in logs})
                     output = log.read_text()
                     self.assertIn("ROOM_UI_PEER_OK", output)
                     self.assertNotIn("SCRIPT ERROR", output)

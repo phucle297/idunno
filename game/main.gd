@@ -264,6 +264,9 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 		return error
 	if dedicated:
 		_prepare_offline_player_for_join()
+	# Dedicated clients communicate only with authority. Relay DEL_PEER fan-out
+	# can target another departing ENet peer after its native channels are gone.
+	(multiplayer as SceneMultiplayer).server_relay = not dedicated
 	multiplayer.multiplayer_peer = peer
 	_network_mode = true
 	_dedicated_server = dedicated

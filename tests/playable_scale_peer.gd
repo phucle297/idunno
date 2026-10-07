@@ -162,6 +162,10 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		and is_instance_valid(host_player)
 		and host_player.global_position.distance_to(host_start) >= 0.5
 	)
+	if not movement_passed:
+		print("PLAYABLE_SCALE_MOVEMENT_DIAGNOSTIC peer=%d local_start=%s local_end=%s host_start=%s host_end=%s" % [
+			local_id, local_start, local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO,
+			host_start, host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO])
 	var manager := main.get_node("MatchManager") as MatchManager
 	main.set_local_ready(true)
 	var meteor := main.get_node("MeteorShower") as MeteorShower

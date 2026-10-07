@@ -21,6 +21,8 @@ When a phase is complete, archive its full progress before starting the next pha
 
 When the same issue occurs repeatedly, verify and record its cause and proven fix, create or update a focused skill with prevention and recovery steps, and add a concise reminder to the relevant project guidance or checklist. Load the `building-skills` skill before creating or changing any skill.
 
+For repeated ENet channel-zero errors during dedicated-room departures, load `recovering-enet-room-disconnects`; preserve dedicated relay-off policy and strict runtime-error checks.
+
 After completing and validating a feature, milestone, phase, or other coherent work unit, commit its changes and push the current branch to its configured remote before reporting the work complete. Do not include unrelated changes in the commit. Every commit message must follow Conventional Commits (`type(scope): description`), including documentation and workflow-only commits.
 
 Keep generated and third-party asset provenance in `assets/manifest.json`. Do not commit external archives or tools. Prefer deterministic generated assets and the CC0 packs named in the design bible; adapt or replace assets that conflict with its proportions, materials, palette, or gameplay readability.

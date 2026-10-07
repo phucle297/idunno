@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T11:46:55Z",
+  "updated_at": "2026-10-07T12:47:49Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_6_container_network_and_failure_validation"
+    "task": "task_2_2_7_internet_release_readiness"
   },
   "engine": {
     "name": "Godot",
@@ -61,7 +61,7 @@
           "task_2_2_3_dedicated_server_and_room_owner": "completed",
           "task_2_2_4_room_service_and_process_lifecycle": "completed",
           "task_2_2_5_windows_room_create_join_ui": "completed",
-          "task_2_2_6_container_network_and_failure_validation": "in_progress",
+          "task_2_2_6_container_network_and_failure_validation": "completed",
           "task_2_2_7_internet_release_readiness": "planned"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
@@ -69,7 +69,7 @@
           "playerless_server_and_room_owner_authority": "passed",
           "room_id_admission_and_bounded_process_lifecycle": "passed",
           "windows_room_ui_and_failure_recovery": "passed",
-          "multi_container_room_isolation_and_five_rematches": "not_run",
+          "multi_container_room_isolation_and_five_rematches": "passed",
           "public_internet_release_clients_and_retry": "not_run",
           "exported_settings_assets_and_physical_audio": "not_run",
           "internet_play_guide_and_operator_runbook": "not_run"
@@ -336,17 +336,53 @@
       "command": "bash tests/run_container_network_test.sh",
       "status": "failed",
       "result": "Final strict runner exits1 as intended on repeated ERROR: Unable to send packet on channel0, max channels0 during backend UI crash/retry. Eleven backend assertions pass in42.554s; dedicated contract103 checks and playable4/8/20 matrix pass inside one additional container using loopback. Expected occupied-port negative errors and existing shutdown diagnostics distinguished; unexpected channel error is not suppressed or claimed fixed. Final log .scratch/container-network-final-strict.log; regression.log retains output. Test containers/network cleaned; unrelated open-design container untouched. Task remains in_progress; full gate not_run. No UI/asset/runtime implementation change, new release, Internet or physical-audio claim."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_server_relay.gd [-- --relay=true]; bash tests/run_container_network_test.sh",
+      "status": "passed",
+      "result": "Bare SceneMultiplayer/ENet reproducer with three clients and no gameplay RPCs emits channel0/max-channels0 during poll when two clients leave together with relay enabled; relay disabled yields two removals and one healthy connection with no errors. Engine DEL_PEER relay fan-out confirmed in source. Main disables relay before dedicated transport assignment only; listen host preserved. Original strict Docker runner now exits0 with CONTAINER_VALIDATION_SLICE_OK, all11 backend assertions, ownership and4/8/20 scale. Logs .scratch/relay-before.log, relay-disabled.log, container-relay-fixed.log. Added focused recovery skill and regression policy assertions. Managed-room4/8 checks underway; full gate not yet passed."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Managed container fixture development and deliberate outage diagnostics",
+      "status": "failed",
+      "result": "First Bravo Start ran before ready RPCs reached authority; fixture now waits for server/owner can_start without weakening assertions. One later repeat lost room heartbeats before600 profiling samples; cause unconfirmed, sample/departure telemetry added, failure retained in .scratch/managed-final.log and disaster-managed-649662-4/. A completed lifecycle run was correctly rejected on HTTP BrokenPipe tracebacks after outage/resume: queued callers had timed out. Red test reproduces both header/body cancellation failures; Handler now catches only BrokenPipeError/ConnectionResetError, with generic OSError still propagated. Green targeted test and final managed run pass. Logs managed-diagnostic-final.log, http-cancel-red.log and http-cancel-green.log retained."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py",
+      "status": "passed",
+      "result": "MANAGED_CONTAINER_OK for two4-player rooms and two8-player rooms, one separately addressed container per client, actual RoomService allocation and Godot admission. Exact rosters, asymmetric83-vs100HP/Flood/Meteor isolation, matching winners, five rematches in each room, non-owner RPC rejection, movement and active/results owner transfer pass. Full room/service, crash/reclaim/retry, bad-token same-process recovery, heartbeat outage/resume, live-service restart with unused/unexpired old-token rejection, fresh retry, empty expiry and port reuse pass. Strict Godot-error/Python-traceback rejection passes. Service plus two rooms share2CPU/1GiB:4/room22.24–22.76% CPU/169–169.7MiB,8/room29.45–32.14%/184.6–185.3MiB (Docker100%=one core). Each room120 warmup/600 physics samples; work p954/room1.251/1.350ms,8/room1.792/1.686ms; tick-interval p95~20.71–20.73ms and ENet RTT7–13ms. Conservative initial local cap2rooms×4players; not perfect60Hz, client FPS, public deployment or production capacity evidence. Logs .scratch/managed-complete.log; metrics disaster-managed-663167-{4,8}/metrics.json."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "failed",
+      "result": "All29 headless suites including relay-off107-check dedicated ownership pass; source network groups and4/8 playable scale pass. One20-player client reports movement=false, other checks true; server authoritative movement=true. This repeats the previously recorded intermittent source-scale observation, not a proven relay regression or fixed cause. Preserved .scratch/task-2-2-6-full-regression.log and task-2-2-6-scale-failure/. Strict Docker regression and serial source rerun pending; assertions unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Final container regression development failures",
+      "status": "failed",
+      "result": "First final Docker run failed existing UI retry-roster assertion; cause unconfirmed. Added failure-only reporting of both peer logs; focused unchanged-assertion UI retry passes in4.004s. Next Docker run passed all12 backend tests but repeated20-player client movement=false while authoritative server movement=true. Added failure-only start/end position diagnostics and runner forwarding, preserving all thresholds/deadlines. Failures retained in .scratch/task-2-2-6-final-container-regression.log, task-2-2-6-container-retry-failure.log and task-2-2-6-container-final.log. These observations are not claimed fixed by reruns."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PLAYER_COUNTS=20 tests/run_playable_scale_test.sh; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; bash tests/run_container_network_test.sh; jq empty progress.json; bash -n tests/container_room_godot.sh tools/container-tests/entrypoint.sh tests/run_playable_scale_test.sh; Python AST parse; git diff --check",
+      "status": "passed",
+      "result": "Isolated20-player rerun passes all19 clients. Serial source regression exits0: UI_REGRESSION_OK suites=29 matrices=5 persistence_restart=passed. Final strict Docker regression exits0: CONTAINER_VALIDATION_SLICE_OK, separately addressed two-room movement/five rematches/recovery, all12 backend tests, DEDICATED_SERVER_OK checks=107 and playable4/8/20 coverage; no unexpected runtime errors. Known occupied-port negative and shutdown resource diagnostics remain explicitly distinguished. Logs .scratch/task-2-2-6-scale-isolated.log, task-2-2-6-source-final.log and task-2-2-6-container-diagnostic.log. Together with final managed4/8 lifecycle/isolation/profile evidence, Task2.2.6/container gate pass. Internet, physical listening, release-room clients and human gates remain not_run. No public deployment; next is local2.2.7 release preparation."
     }
   ],
   "blockers": [
-    "Task2.2.6 backend UI crash/retry repeatedly emits ENet channel0/max-channels0 diagnostic in containers despite passing assertions. Strict runner rejects it; cause/fix unverified. Reproduce and diagnose before completing container acceptance.",
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
     "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
+    "Task2.2.6 repeated the unconfirmed20-player client movement failure in source and Docker; one Docker UI retry-roster assertion also failed. Final source/container checks pass with assertions unchanged and failure-only diagnostics added, not a proven fix. One managed profile repeat lost heartbeats before600 samples; final managed4/8 run passes but its earlier loss remains unexplained. Retain logs for reliability investigation before raising capacity.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh"],
-  "next_action": "Reproduce and diagnose Task2.2.6 backend UI crash/retry ENet channel diagnostic with the strict container runner before continuing managed-room isolation and measured 4/8-player capacity checks."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh"],
+  "next_action": "Prepare Task2.2.7 reproducible, version-identified Windows clients/headless Linux servers and operator runbook locally; obtain approval before public provisioning/deployment or DNS/TLS/firewall changes."
 }

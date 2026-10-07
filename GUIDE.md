@@ -318,13 +318,14 @@ logging. Public DNS/TLS/firewall/UDP changes require approval and actual remote
 Windows validation in Task 2.2.7. HTTPS does not encrypt ENet gameplay traffic;
 this prototype does not promise gameplay transport confidentiality.
 
-## Local container network validation (Task 2.2.6, in progress)
+## Local container network validation (Task 2.2.6)
 
 Requirements: a running local Docker daemon, Docker Compose, and the verified
 Linux x86_64 Godot 4.7.2 executable. From the checkout:
 
 ```bash
 GODOT_BIN="$(command -v godot)" bash tests/run_container_network_test.sh
+GODOT_BIN="$(command -v godot)" python3 tests/run_managed_container_test.py
 ```
 
 The runner builds a Debian/Python dependency image, mounts the engine and source
@@ -346,9 +347,35 @@ The runner removes its own containers/network when it exits and leaves the
 local image cached. Do not run two copies concurrently with the same Compose
 project name.
 
-This is the first Task 2.2.6 slice, not its full acceptance gate. Managed-room
-discovery/admission across containers, independent health/hazard isolation,
-cross-container 4-/8-player rooms, failure injection and CPU/RAM/tick capacity
-measurements remain required. These development tests do not establish a safe
-production room limit, public Internet routing, release-client behavior or
-physical audio. No public service is deployed by this command.
+The managed runner adds the real allocator/admission implementation with two
+simultaneous four-player rooms, then two eight-player rooms. Each player has its
+own container address. HTTP requests originate from a client container; private
+server heartbeats remain on service-container loopback. A test-only bridge HTTP
+listener exposes the same handler and rejects remote `/internal/*` requests.
+Production loopback binding and HTTPS-only client UI are unchanged. No host ports
+are published, and the command never configures a public server.
+
+Checks include distinct rosters, asymmetric 17-HP damage and Flood/Meteor state,
+matching winners, five rematches per room, real non-owner RPC rejection, owner
+transfer, full room/service capacity, invalid admission followed by valid retry,
+server crash, heartbeat outage, service restart, rejection of an unused old ticket
+within its TTL, empty-room expiry and port reclamation. Test control files are
+local fixture machinery, not gameplay RPCs or shipped client/server features;
+never use these external test drivers in a public deployment.
+
+The managed service plus both game processes share a **2-CPU / 1-GiB** container
+budget. Every client has a separate 1-CPU / 1-GiB ceiling. Profiles record 120
+warmup ticks then 600 samples with actual map physics and Flood/Meteor overlap,
+three Docker CPU/RAM samples, and ENet RTT. Per-run logs and `metrics.json` are
+under `.scratch/disaster-managed-<pid>-4/` and `-8/`. The runner rejects unexpected
+Godot errors and Python tracebacks and cleans only its uniquely named containers
+and internal network. Images and evidence remain local.
+
+Use **two rooms with four players each** as the conservative initial local-test
+limit (`room_service.py --rooms 2 --players 4`), not the default configuration
+ceilings or a production concurrency promise. Eight-player rooms are additional
+stress coverage. WSL measurements distinguish physics work from tick cadence:
+sub-budget physics does not establish perfectly paced 60-Hz ticks, 60-FPS client
+rendering, or Internet latency. Re-measure on the approved deployment hardware
+and real network before raising limits. Public routing, release clients,
+physical audio and human feel remain Task 2.2.7/Playtest gates.
