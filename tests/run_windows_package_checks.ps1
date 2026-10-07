@@ -8,7 +8,7 @@ param(
 # This uses the native editor driver, NOT release-executable --script support.
 $ErrorActionPreference = 'Stop'
 $PackageDir = (Resolve-Path $PackageDir).Path
-$GodotEditor = (Resolve-Path $GodotEditor).Path
+$GodotEditor = (Resolve-Path $GodotEditor).ProviderPath
 if ($GodotEditor.StartsWith('\\')) { throw 'Copy the native editor to a Windows-local drive before running checks.' }
 if (Test-Path $OutputDir) { throw 'Choose a fresh output directory.' }
 New-Item -ItemType Directory $OutputDir | Out-Null

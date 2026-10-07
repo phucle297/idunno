@@ -189,7 +189,7 @@
       "date": "2026-10-07",
       "check": "Final Windows runner with spaced output path and Windows-local editor",
       "status": "passed",
-      "result": "Final -GodotEditor runner owns the engine process directly. Native editor from WSL UNC terminated validation before version output; copying the same executable to Windows-local TEMP passed version and all fixtures. Final run with OutputDir 'DisasterParty 2-2 local direct' passed settings save/restart, recovery and both peers/five rematches; WINDOWS_EXPORTED_PCK_CHECKS_OK. Runner rejects UNC editor paths; GUIDE documents local direct executable requirement. Earlier failed runs retained; no underlying UNC-launch cause claimed. Logs copied to .amp/in/artifacts/milestone-2-2/final-run/."
+      "result": "Final -GodotEditor runner owns the engine process directly. Native editor from WSL UNC terminated validation before version output; copying the same executable to Windows-local TEMP passed version and all fixtures. Final run with OutputDir 'DisasterParty 2-2 final' passed settings save/restart, recovery and both peers/five rematches; WINDOWS_EXPORTED_PCK_CHECKS_OK. Resolve-Path.ProviderPath avoids provider-qualified UNC strings bypassing the local-drive guard; negative test prints UNC_REJECTION_OK. GUIDE documents local direct executable requirement. Earlier failed runs retained; no underlying UNC-launch cause claimed. Logs copied to .amp/in/artifacts/milestone-2-2/final-run/."
     },
     {
       "date": "2026-10-07",
