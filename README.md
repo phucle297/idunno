@@ -10,7 +10,7 @@ Development is specification-led:
 - `progress.json` is the single source of truth for only the active phase, milestone, optional task, validation evidence, blockers, and next action.
 - `docs/implementation-checklist.md` is the human-readable roadmap and current execution checklist without replacing the design plan.
 
-All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. The playable scene includes an in-game direct-IP lobby, authoritative movement and match state, all six disasters and both combinations, shared prop and knockdown presentation, results, and host-controlled rematches. Future development uses `phase → milestone → optional task`; Phase 1 focuses on a richer, cohesive UI identity and gameplay feedback. See `GUIDE.md` for play instructions and current limitations.
+All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. **Phase 1 — UI Identity and Feedback** adds the Toy Broadcast HUD, warnings, lobby, spectator/results presentation, local pause, saved settings, and continuous map perimeter with authoritative out-of-bounds elimination. Both phases are complete; detailed evidence is archived under `docs/old-docs/`, and `progress.json` now tracks Phase 2 — Human Playtest and Core Feel. See `GUIDE.md` for play instructions and current limitations.
 
 ## Local development
 
@@ -21,9 +21,11 @@ Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the 
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
 
 # Run the current automated checks.
-# Or run all 25 suites, persistence restart and four network matrices together:
+# Or run all 26 suites, persistence restart and four network matrices together:
 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh
+# If another local session occupies the default ports, set PORT=29930 for this runner.
 godot --headless --path . --script res://tests/test_phase1.gd
+godot --headless --path . --script res://tests/test_map_safety.gd
 godot --headless --path . --script res://tests/test_player_integration.gd
 godot --headless --path . --script res://tests/test_session_lifecycle.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
@@ -62,6 +64,9 @@ godot --path . --audio-driver Dummy --resolution 1280x720 \
 # Render four-player and scrolled twenty-player results; repeat at 1920x1080.
 godot --path . --audio-driver Dummy --resolution 1280x720 \
   --script res://tests/test_results_table.gd -- --capture-dir=.amp/in/artifacts
+# Render actual out-of-bounds spectator feedback, perimeter corner and map overview.
+godot --path . --audio-driver Dummy --resolution 1280x720 \
+  --script res://tests/test_map_safety.gd -- --capture-dir=.amp/in/artifacts
 GODOT_BIN=/path/to/godot tests/run_network_authority_test.sh
 # Run the separate-process multiplayer matrix (2, 4, 8, and 20 clients).
 GODOT_BIN=/path/to/godot tests/run_four_client_match_test.sh

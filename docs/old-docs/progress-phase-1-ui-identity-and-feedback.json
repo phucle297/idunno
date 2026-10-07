@@ -1,0 +1,361 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-07T01:51:55Z",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "progress-{phase-slug}.json",
+    "rule": "When the current phase is completed, move its full progress and validation evidence to the archive before creating a fresh progress.json for the next phase."
+  },
+  "previous_phase_archive": "docs/old-docs/progress-phase-0-init-project.json",
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_1_ui_identity_and_feedback",
+    "milestone": "milestone_1_7_map_boundary_and_out_of_bounds_safety",
+    "task": null
+  },
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "phase": {
+    "id": "phase_1_ui_identity_and_feedback",
+    "title": "UI Identity and Feedback",
+    "status": "completed",
+    "dependencies": [
+      "phase_0_init_project"
+    ],
+    "goal": "Replace prototype labels with a cohesive Toy Broadcast interface while preserving world readability and server authority.",
+    "milestones": {
+      "milestone_1_1_theme_hud_and_components": {
+        "title": "Theme, Responsive HUD, and Component Boundary",
+        "status": "completed",
+        "tasks": {
+          "task_1_1_1_define_ui_tokens": "completed",
+          "task_1_1_2_extract_semantic_hud_components": "completed",
+          "task_1_1_3_build_health_timer_alive_and_hazard_components": "completed",
+          "task_1_1_4_remove_permanent_debug_copy": "completed"
+        },
+        "gates": {
+          "shared_theme": "passed",
+          "responsive_1280x720_and_1920x1080": "passed",
+          "light_and_dark_world_readability": "passed",
+          "no_authority_regression": "passed"
+        }
+      },
+      "milestone_1_2_warning_and_personal_danger": {
+        "title": "Warning and Personal-Danger Hierarchy",
+        "status": "completed",
+        "tasks": {
+          "task_1_2_1_major_warning_banner": "completed",
+          "task_1_2_2_hazard_and_combination_chips": "completed",
+          "task_1_2_3_unified_flood_danger_channel": "completed",
+          "task_1_2_4_warning_motion_and_audio_feedback": "completed"
+        },
+        "gates": {
+          "icon_name_countdown_and_action": "passed",
+          "non_color_only_identity": "passed",
+          "bounded_warning_priority": "passed",
+          "overlap_readability": "passed"
+        }
+      },
+      "milestone_1_3_lobby_and_spectator": {
+        "title": "Lobby and Spectator Presentation",
+        "status": "completed",
+        "tasks": {
+          "task_1_3_1_structured_player_rows": "completed",
+          "task_1_3_2_connection_status_focus_and_hud_suppression": "completed",
+          "task_1_3_3_elimination_and_spectator_card": "completed"
+        },
+        "gates": {
+          "scrollable_20_player_roster": "passed",
+          "unambiguous_ready_and_host_start": "passed",
+          "keyboard_and_controller_focus": "passed",
+          "presentation_only_state": "passed"
+        }
+      },
+      "milestone_1_4_structured_results": {
+        "title": "Structured Results",
+        "status": "completed",
+        "tasks": {
+          "task_1_4_1_ranking_rows_and_columns": "completed",
+          "task_1_4_2_winner_reveal_and_one_existing_data_award": "completed",
+          "task_1_4_3_authority_aware_results_actions": "completed"
+        },
+        "gates": {
+          "legible_4_and_20_player_results": "passed",
+          "identical_authoritative_rankings": "passed",
+          "five_network_rematches": "passed",
+          "gameplay_hud_hidden": "passed"
+        }
+      },
+      "milestone_1_5_pause_settings_accessibility_and_ui_audio": {
+        "title": "Pause, Settings, Accessibility, and UI Audio",
+        "status": "completed",
+        "dependencies": [
+          "milestone_1_4_structured_results"
+        ],
+        "execution_order": "Explicit user instruction: complete 1.5, commit, then 1.6, commit, then reverify 1.1-1.6; 1.7 remains pending.",
+        "tasks": {
+          "task_1_5_1_online_safe_pause": "completed",
+          "task_1_5_2_persistent_input_display_motion_and_audio_settings": "completed",
+          "task_1_5_3_bounded_ui_audio_pool": "completed"
+        },
+        "gates": {
+          "settings_persist": "passed",
+          "independent_warning_volume": "passed",
+          "reduced_motion": "passed",
+          "cursor_and_focus_recovery": "passed",
+          "online_authority_never_pauses": "passed"
+        }
+      },
+      "milestone_1_6_regression_and_rendered_review": {
+        "title": "UI Regression and Rendered Review",
+        "status": "completed",
+        "gates": {
+          "phase_0_regression": "passed",
+          "all_representative_ui_states_rendered_and_inspected": "passed",
+          "representative_performance_budget": "passed"
+        }
+      },
+      "milestone_1_7_map_boundary_and_out_of_bounds_safety": {
+        "title": "Map Boundary and Out-of-Bounds Safety",
+        "status": "completed",
+        "dependencies": [
+          "milestone_1_4_structured_results"
+        ],
+        "execution_order": "Earlier order superseded by explicit user instruction: complete and commit 1.5, then 1.6, then reverify 1.1-1.6 before resuming pending 1.7.",
+        "scope": "Readable continuous perimeter for the current 64 x 64 m block and server-authoritative out-of-bounds elimination with explicit cause, prop release, spectator/results transition and rematch cleanup. No competitive respawn. Larger/richer map work is recorded in the Phase 4 roadmap.",
+        "gates": {
+          "perimeter_edges_and_corners_block_traversal": "passed",
+          "escaped_players_cannot_fall_indefinitely": "passed",
+          "authoritative_death_and_clear_feedback": "passed",
+          "solo_simultaneous_elimination_and_five_network_rematches": "passed",
+          "rendered_boundary_and_death_feedback_inspected": "passed"
+        }
+      }
+    }
+  },
+  "validation_log": [
+    {
+      "result": "passed",
+      "check": "Milestone 1.7 continuous perimeter and authoritative out-of-bounds safety",
+      "evidence": "TDD test_map_safety.gd exited 1 for missing perimeter/safety before implementation; initial fixture API errors corrected before the meaningful red run. Final godot --headless --path . --script res://tests/test_map_safety.gd: MAP_SAFETY_OK checks=96. All four edges and four corners are reached and block walking, sprinting, jumping and bounded knockdown impulses. Independently tests exact +/-32 X/Z and -8 Y thresholds versus 0.01 m beyond, explicit Out of bounds cause, one-shot solo results, five solo resets, prop release, actual spectator copy, simultaneous shared winners and reset. godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_map_safety.gd -- --capture-dir=.amp/in/artifacts: checks=99 each. Inspected actual death feedback at both sizes, clean corner at both sizes, and HUD-free map overview with all four closed corners at 720p. Initial spring-arm capture was invalid and replaced; coplanar cap artifacts were fixed by adjoining spans and caps above walls. Map-prop regression caught missing wall tags, restored before final run. Five live ENet rematches now alternate x=33 and y=-9 client escapes on the server and verify replicated cause/results, health reset and client-side safety mutation rejection. No competitive respawn; no X-server crash reproduction or fix claim. Runtime perimeter provenance recorded in assets/manifest.json."
+    },
+    {
+      "result": "passed",
+      "check": "User-requested final full Phase 1 double-check and closure",
+      "evidence": "PORT=29930 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh exits 0: UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed. Latest GAMEPLAY_HUD_OK=107, MAP_SAFETY_OK=96, and all prior behavior suites pass. Four separate-process matrices cover authority, 2/4/8/20-client state contracts, two-peer production five rematches/disconnect cleanup, and 4/8/20-player playable spectator/ranking/results/pause authority. Network logs have no SCRIPT ERROR/ERROR. First default-port attempt collided with the user's running host on 29730; stopped only the hung test process and reran on 29930, leaving user's sessions untouched. Nine display-backed suites at each resolution exit 0: map99, milestone1.1=85, HUD203, roster127, lobby39, spectator86, results487, actions35, settings38. Inspected 720p default dark HUD, incoming Meteor, dark reduced-motion drowning overlap, last 20-player lobby/result rows, spectator hazard overlap, pause/settings; 1080p default light HUD, electrical+drowning danger, client waiting results, settings, perimeter/death. Intended ellipsis and one-chip single-hazard fixtures are not clipping failures. Rendered HUD countdown wall-clock assertions intermittently failed; replaced with paused custom_step checks immediately before/after 0.16/0.12-second boundaries, preserving production behavior and adding lower-bound checks. Native Windows Godot 4.7.2 Compatibility/Radeon 860M, 1280x720, four-player Flood/Tornado, V-Sync disabled, 120 warmup/600 samples: two exit-0 profiles p95 frame4.09ms, process6.56/6.03ms, physics1.33ms, UI nodes stable. Some successful headless/render runs retain shutdown-only audio resource diagnostics; verbose map run exited cleanly and the runner rejects runtime/parser/font errors. Physical multi-PC/controller/audio and default-V-Sync pacing remain separate limitations. All seven required milestone statuses and gates are passed; archive before fresh Phase 2 state."
+    },
+    {
+      "result": "passed",
+      "check": "Requested post-commit re-verification of Milestones 1.1-1.6",
+      "evidence": "After separate committed/pushed 1.5 and 1.6 work, reran GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh: UI_REGRESSION_OK suites=25 matrices=4 persistence_restart=passed, including five actual ENet rematches and 4/8/20-player matrices. Repeated all eight rendered suites at 1280x720/1920x1080: milestone1_1=85, HUD=201, roster=127, lobby=39, spectator=86 with actual visibility assertions, results_table=487, results_actions=35, pause_settings=38. Fresh post-commit-review captures of lobby, default HUD, single warning, overlap/drowning, spectating, results, pause and settings were inspected and remain contained/readable. Previously inspected 1080p core captures use identical committed code. Fresh native Windows four-player staged-overlap profile: p50 0.68 ms, p95 1.07 ms, p95 process 6.70 ms, physics 1.00 ms, 128 draw calls, 532 nodes, 1280x720, target_60fps_met=true, ui_nodes_stable=true with V-Sync explicitly disabled. Default-V-Sync frame-pacing limitation and successful-exit Dummy-audio resource diagnostics remain disclosed; final log scan finds only those known shutdown resource messages, no runtime/parser/assertion/font-RID errors. No further implementation regressions reproduced after the 1.6 lifecycle/fixture corrections. jq empty progress.json, bash -n tests/run_ui_regression.sh and git diff --check pass. All 1.1-1.6 gates remain passed; Phase 1 remains in progress because required Milestone 1.7 is not implemented."
+    },
+    {
+      "result": "passed",
+      "check": "Milestone 1.6 full regression, rendered review and native Windows throughput",
+      "evidence": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh: UI_REGRESSION_OK suites=25 matrices=4 persistence_restart=passed, including all Phase 0 suites, five ENet rematches, four-client match, authority and 4/8/20-player rankings/spectator/lobby-return matrices. Runner requires positive markers and rejects parser/runtime/assertion/font-RID errors; reports known shutdown-only audio resource diagnostics separately. New orphan-count regression first failed: results_table/lobby_roster allocated unattached children in member initializers and freeing an unmounted scene leaked ten CanvasItems/font resources. Allocation moved into _ready; PHASE1_TESTS_OK=32 exits cleanly. A deferred-test experiment did not fix the cause and was removed. All eight render suites pass at 720p/1080p: milestone1_1=85, HUD=201, roster=127, lobby=39, spectator=79 before added visible-capture assertions, table=487, actions=35, settings=38. Inspected default HUD, Meteor warning, Tornado/Flood/drowning overlap, 20-row scrolled lobby, host-ready, spectator notice/fallback, results with Settings and 1080p dark HUD/drowning/spectator/client results/settings: legible hierarchy, contained controls and no unwanted HUD. Initial fallback failures measured hidden stale-result geometry; reset presentation state and added actual visibility assertion. Checksum-verified native Windows Godot 4.7.2 through WSL UNC checkout, Compatibility, Ryzen AI 7 H 350 / AMD Radeon 860M driver 25.20.24.03.251024, 1280x720, four demo players, staged Flood/Tornado, 120 warmup/600 samples: two explicitly V-Sync-disabled runs p50 0.67/0.68 ms, p95 1.08/1.08 ms, 128 draw calls, 532 nodes, target_60fps_met=true, ui_nodes_stable=true. Profile now exits nonzero for failed budget or rebuilt UI. Default-V-Sync runs p95 24.09/24.65 ms remain a separate frame-pacing limitation, not claimed fixed gameplay; removing the limiter without explicit V-Sync disable did not establish uncapped throughput. Synthetic joypad/Dummy audio still do not verify physical hardware or multi-PC playtesting."
+    },
+    {
+      "result": "passed",
+      "check": "Milestone 1.5 local pause, persistent settings and bounded UI audio",
+      "evidence": "TDD test_pause_settings.gd first failed for missing overlay. Final headless checks=22, separate --save-for-restart and --verify-restart processes checks=22/2, rendered checks=38 each at 1280x720/1920x1080 with Dummy audio. Covers local input blocking without tree/timer pause, Tab/controller focus, cursor recovery, actual asymmetric mouse sensitivity/inversion, fullscreen/windowed transition, reduced motion/shake, independent Effects/Warnings gains, countdown routing/restoration, bounded four-effect pool with reserved warning, results settings and match completion underneath menu. Inspected corrected cream pause and settings captures: compact padded panel, explicit values/states, amber slider focus ring and no clipped controls. Initial render exposed missing dynamic theme inheritance and native HSlider lacks focus StyleBox; set shared theme before insertion and draw shared focus ring explicitly. UI_THEME_OK=18, MILESTONE_1_1_OK=80, GAMEPLAY_HUD_OK=105, RESULTS_ACTIONS_OK=33, PHASE7_POLISH_OK=34, LOBBY_PRESENTATION_OK=35. GODOT_BIN=$(command -v godot) PORT=29850 tests/run_playable_scene_network_test.sh passed real host/client pause with timer advancement, host neutral movement, five rematches and disconnect cleanup. Verbose shutdown diagnostics identify only WAV/playback resources, no UI nodes; some successful runs retain these existing audio diagnostics. WSL llvmpipe/Dummy audio and synthetic joypad events do not verify physical audio/controller or Windows performance. User explicitly reordered work; 1.7 is still required and unimplemented."
+    },
+    {
+      "result": "passed",
+      "check": "Milestone 1.4 completion: authority-aware results actions and all acceptance gates",
+      "evidence": "TDD results-actions checks first exposed missing actions, HUD leakage, lost names, surviving-winner input and snapshot ordering. Final 24 headless suites pass, including RESULTS_ACTIONS_OK=33, GAMEPLAY_HUD_OK=105, RESULTS_TABLE_OK=482 and REMATCH_INTEGRATION_OK cycles=5 checks=165. Rendered X11/Dummy results_actions=35 and results_table=487 each at 1280x720 and 1920x1080; inspected four-player host, client waiting and twenty-player bottom captures confirm contained controls/rows, readable rankings and no gameplay HUD. GODOT_BIN=$(command -v godot) PORT=29830 tests/run_playable_scene_network_test.sh passes five real ENet rematches. GODOT_BIN=$(command -v godot) PORT=29840 tests/run_playable_scale_test.sh passes 4/8/20-player exact authoritative ranking/cell comparisons, independent death-time order, client action rejection and connected lobby return/reset. Final network logs have no ERROR/SCRIPT ERROR or oversized unreliable snapshot warnings. One initial twenty-player movement-only failure did not recur in isolated and repeated full matrices; no movement cause/fix claimed. Compact default names and reliable sequence-ordered lobby/results snapshots remove reproduced MTU warnings; regressions cover both stale-packet directions. git diff --check and bash -n tests/run_playable_scale_test.sh pass. Some successful-exit headless suites retain audio/font resource diagnostics; verbose actions inspection identifies WAV/playback resources, not UI nodes. WSL llvmpipe, Dummy audio and synthetic joypad input do not verify native Windows performance, physical controllers or audio. Settings entry is deferred to its real screen in Milestone 1.5. Map safety remains unimplemented and next in Milestone 1.7."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.1 shared Toy Broadcast UI tokens and theme",
+      "evidence": "UI_THEME_OK checks=15 validated design-bible colors, typography, spacing, 24 px safe margin, rounded panel/button/field styles, visible focus treatment, shared theme inheritance, and automatic lobby focus. PHASE1_TESTS_OK checks=29 and PLAYER_INTEGRATION_OK checks=41 passed. PHASE7_POLISH_OK checks=31 passed; its existing dummy-audio shutdown emitted AudioStreamWAV/playback leak diagnostics unrelated to the UI resources. Rendered 1280x720 captures phase1-ui-theme-lobby-v3.png and phase1-ui-theme-results.png were inspected: shared cream/slate styling, amber field focus, readable disabled state, neutral lobby status, four-player results, and no clipping or overlap passed."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.2 semantic gameplay HUD presentation boundary",
+      "evidence": "GAMEPLAY_HUD_OK checks=16 validated asymmetric vitals, clock and state visibility, hazard lines, all Flood exposure states, and spectator target copy through GameplayHud. UI_THEME_OK checks=15, PHASE1_TESTS_OK checks=29, PLAYER_INTEGRATION_OK checks=41, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed authoritative movement, replicated match health HUD and disasters, elimination/spectating, results, five rematches, and disconnect cleanup. The polish test retained its known successful-exit dummy-audio resource diagnostics."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.3 responsive health, timer, survivor, and hazard components",
+      "evidence": "GAMEPLAY_HUD_OK checks=19 validated fractional health visualization, bottom safe-edge anchoring, timer-card suppression, and deterministic two-chip hazard capping. UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=29, PLAYER_INTEGRATION_OK checks=41, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed five rematches and all presentation/authority checks; PLAYABLE_SCALE_MATRIX_OK passed 4, 8, and 20 players. Rendered overlap captures hud-components-1280x720.png and hud-components-1920x1080.png were inspected: cream metric cards and slate/amber hazard chips remained readable over mixed scenery with consistent safe margins, exactly two hazards, and no clipping or overlap. Display-backed capture used llvmpipe and dummy audio because WSL audio devices were unavailable; capture and tests exited successfully."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.1.4 contextual interaction prompt and Milestone 1.1 completion",
+      "evidence": "GAMEPLAY_HUD_OK checks=21 verified permanent prototype copy is absent and the contextual prompt is bottom-anchored and hidden without an action. GRAB_MANAGER_OK checks=22 validated candidate range, shared nearest selection, and owned-prop rejection. PLAYER_INTEGRATION_OK checks=43 validated GRAB OBJECT to RELEASE OBJECT transitions; PHASE1_TESTS_OK checks=31, UI_THEME_OK checks=18, and PHASE7_POLISH_OK checks=31 passed. PLAYABLE_SCENE_NETWORK_PEERS_OK passed authority, presentation, five rematches, and disconnect cleanup. Inspected context-prompt-visible-1280x720.png and context-prompt-hidden-1280x720.png confirmed the title/control legend is absent, the release prompt is readable and non-overlapping, and no prompt remains without an interaction. Display capture retained the known WSL dummy-audio fallback."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.1 reusable major-warning banner",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=49 covers all six icons/names/actions, fractional and exact countdown boundaries, minimum one second, nearest-deadline priority, stable ties, handoff, no stale warning, lobby/results suppression, and non-overlapping tray placement. UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Display-backed runs of test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts passed checks=56 each. All six 720p icon states and revised overlap at both resolutions were inspected; the initial 720p player-head occlusion was fixed by tightening banner/tray spacing and chip height. WSL llvmpipe and Dummy audio were used; some runs emitted intermittent successful-exit resource diagnostics. Remaining milestone gates require later chip, personal-danger, and motion tasks."
+    },
+    {
+      "result": "passed",
+      "check": "User-requested full Milestone 1.1 re-verification after Task 1.2.1",
+      "evidence": "All four milestone gates remain passed. Inspected ui_tokens.gd, GameplayHud, main.gd presenter calls, scene anchors, and GrabManager read-only candidate/authoritative request boundaries. Re-ran godot --headless --path . --script res://tests/{suite}.gd: UI_THEME_OK checks=18, GAMEPLAY_HUD_OK checks=49, GRAB_MANAGER_OK checks=22, PLAYER_INTEGRATION_OK checks=43, PHASE1_TESTS_OK checks=31, PHASE7_POLISH_OK checks=31, REMATCH_INTEGRATION_OK cycles=5 checks=165. Added reusable tests/test_milestone_1_1.gd: headless checks=79, display-backed checks=84 each at 1280x720 and 1920x1080 with --audio-driver Dummy -- --capture-dir=.amp/in/artifacts. Checks cover one theme resource across every top-level control, immutable authoritative match/health/disaster snapshot during presentation, bar boundaries, stale second-chip removal, defensive hazard getter copy, GRAB/RELEASE and ineligible/eliminated/lobby/results/spectator prompt suppression, safe-area and pairwise non-overlap geometry, unclipped copy, field/button focus, actual lobby-toggle signals, and disabled style fixture. Inspected milestone-1-1 light/dark/empty/lobby-focus/button-focus captures: readable 20/20 counts, timer, health bar, two chips, contextual prompt, amber focus rings and distinct disabled style; no HUD clipping/overlap at either resolution. Earlier dark/light evidence used mixed scenery; this pass explicitly lowered sunlight and ambient illumination and changed the background for the dark fixture. Persistent MULTIPLAYER LOBBY [L] is an actionable toggle verified by signal, not removed prototype/debug copy. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches/disconnect cleanup; tests/run_playable_scale_test.sh passed 4/8/20-player HUD, movement, disaster, and ownership checks. Existing HUD/polish/rematch suites still emit successful-exit resource diagnostics; new milestone suite exited cleanly. Rendering uses WSL llvmpipe, not native Windows performance evidence. No production code changes or new milestone work were needed."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.2 compact active-hazard and combination chips",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=71 covers six chip icons/names, two-chip cap, compact incoming identity, interaction priority and constituent deduplication, electrification after flash expiry, expiry to one icon, warning-only Fire versus active wind interaction, and presentation snapshot immutability. Display-backed runs with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=93 each including content containment and captures. Inspected all six 720p warning/chip icons, electric combination at both resolutions, wind combination with banner at 720p and without banner at 1080p, and dark-world 720p chips: legible paired icons/copy, no clipping or player occlusion. DISASTER_COMBINATIONS_OK checks=20, UI_THEME_OK checks=18, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=43 passed. Initial Milestone 1.1 layout regression emitted missing-node errors because chip labels moved into Content; fixed paths and compact fixtures, then MILESTONE_1_1_OK checks=79 headless and checks=84 display-backed at 720p passed cleanly. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including combination replication, five rematches and disconnect cleanup. Existing HUD/combination resource diagnostics persist on successful exit. Rendering uses WSL llvmpipe/Dummy audio; not native Windows performance evidence. Remaining milestone gates await personal-danger and motion work."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.3 unified personal Flood danger channel",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=79 validates one wading/grace/drowning card, exact copy, authoritative snapshot immutability, no tint/health flashing, warning instruction and context-prompt priority in both call orders, and restoration/clearing on safety. PLAYER_INTEGRATION_OK checks=50 validates actual Flood exposure, exact two-second grace boundary then damage, lobby/results/open-lobby/spectator suppression, resumed exposure and dry-ground clearing. FLOOD_OK checks=29, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd with --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=140 each including safe-area, content containment, and no card overlaps. Inspected personal-wading, personal-breathing, personal-drowning and personal-safe at 720p plus personal-drowning-dark at 1080p: legible one-card instructions, unobscured player, preserved incoming identity/countdown, restored safe-state action/prompt. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches and disconnect cleanup. Existing intermittent successful-exit HUD resource diagnostics remain. Captures use deterministic presentation fixtures with WSL llvmpipe/Dummy audio; actual exposure/damage is exercised separately by integration/Flood tests. Final motion/overlap gate remains Task 1.2.4."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.2.4 warning motion/audio feedback and Milestone 1.2 completion",
+      "evidence": "godot --headless --path . --script res://tests/test_gameplay_hud.gd: GAMEPLAY_HUD_OK checks=95 covers bounded entrance/settle, no per-frame restart, final-three-second cue/emphasis, duplicate/upward snapshot correction suppression, single cue for skipped seconds, no handoff cue, immediate reduced-motion cancellation, preserved audio feedback, reserved warning stream/pool cap, hiding/reset and repeat entrance. Initial exact 0.85 Color-alpha assertions failed on float representation; corrected them to is_equal_approx, then reran successfully. PHASE7_POLISH_OK checks=34 validates quiet countdown effect routing, normal volume restoration on voice reuse, and reserved stream; PLAYER_INTEGRATION_OK checks=50, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. Display-backed test_gameplay_hud.gd --audio-driver Dummy --resolution 1280x720 and 1920x1080 -- --capture-dir=.amp/in/artifacts: checks=177 each. Inspected motion-entrance at 720p, motion-overlap at both resolutions, and motion-reduced-overlap in dark 720p scenery: readable entering banner, final count, two chips, one drowning instruction card, no clipped copy/card overlaps or obscured player; fixture includes visible Flood water and a Tornado warning. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches and disconnect cleanup; tests/run_playable_scale_test.sh passed local 4/8/20-peer matrix. All four Milestone 1.2 gates passed. Existing intermittent successful-exit HUD resource diagnostics remain. WSL llvmpipe and dummy audio do not establish physical audio audibility, Windows performance, or multi-PC playtesting. Reduced-motion persistence/control remains Milestone 1.5."
+    },
+    {
+      "result": "failed",
+      "check": "User-requested Milestone 1.2 review: electrified-water personal-danger priority",
+      "evidence": "Reproduced with actual Flood simulation: player feet y=0.1, water y=0.5, electrify_at then tick(0.5); HP 100 -> 87.5, submerged time 0, personal status IN FLOODWATER and action KEEP YOUR HEAD ABOVE WATER. game/main.gd:650-668 considers only submersion for personal danger; game/flood.gd:255-256 applies 25 HP/s electricity at feet regardless of head height. Personal danger also suppresses Lightning's LEAVE THE RING AND WATER action. A global ELECTRIFIED WATER chip exists but does not correct the prioritized local instruction. Fix should prioritize leaving electrified water and account for simultaneous electric/drowning damage. Existing suites still pass: GAMEPLAY_HUD_OK checks=95, PLAYER_INTEGRATION_OK checks=50, DISASTER_COMBINATIONS_OK checks=20, PHASE7_POLISH_OK checks=34; none joins electrification damage with local danger copy. Display-backed HUD at 1280x720 with Dummy audio passed checks=177 and inspected motion-overlap remained readable/unobstructed. Intermittent successful-exit resource diagnostics remain. Reopened Task 1.2.3 and the priority gate; no gameplay code was changed during review. Temporary reproduction script removed after execution."
+    },
+    {
+      "result": "passed",
+      "check": "User-reported inactive ENet authority errors: client lifecycle recovery",
+      "evidence": "Added tests/test_session_lifecycle.gd. Before the fix it reproduced The multiplayer instance isn't currently active through Player, disaster _can_mutate, GrabManager and main after real localhost server shutdown/failed retry, plus duplicate server_disconnected connections. Cause: closed ENet peer remained installed while flags reset; connection_failed had no handler. First clearing to null exposed camera unique-ID access without a peer; corrected recovery to install OfflineMultiplayerPeer before all cleanup. Final godot --headless --path . --script res://tests/test_session_lifecycle.gd: SESSION_LIFECYCLE_OK checks=46, with an explicit log scan finding no ERROR/SCRIPT ERROR. Covers real ENet handshake, server shutdown, unavailable-port failure (test-only shortened timeout), successful reconnect, repeated disconnect, seven gameplay registries restored to local ID 1, stale Flood cleanup, accessible error/lobby, and connected-client versus offline authority. No per-disaster guard weakening or client-authoritative simulation added. Documented command in README. Temporary before/after logs removed after inspection."
+    },
+    {
+      "result": "passed",
+      "check": "Milestone 1.2 electrical danger review remediation and combined regression",
+      "evidence": "PLAYER_INTEGRATION_OK checks=65 independently verifies actual electrical HP loss/rate during shallow wading, breathing grace and drowning (25/25/37 HP/s), primary LEAVE THE WATER instruction, electrical expiry to each ordinary Flood state and dry-ground clearing. GAMEPLAY_HUD_OK checks=97 headless and checks=193 display-backed each at 1280x720/1920x1080 with --audio-driver Dummy -- --capture-dir=.amp/in/artifacts. Inspected personal-electric-1280x720 and personal-electric-drowning-1920x1080: correct 25/37 HP/s, one LEAVE THE WATER instruction, readable paired combination identity, no clipping/player obstruction. FLOOD_OK checks=29, DISASTER_COMBINATIONS_OK checks=20, PHASE7_POLISH_OK checks=34, MILESTONE_1_1_OK checks=78, UI_THEME_OK checks=18 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five rematches/disconnect cleanup; tests/run_playable_scale_test.sh passed local 4/8/20-peer matrix. Restored all Milestone 1.2 gates to passed and resumed Milestone 1.3. Existing successful-exit resource diagnostics in older suites persist; lifecycle regression exited cleanly. WSL llvmpipe/Dummy audio and local ENet checks do not establish native Windows performance or multi-PC playtesting."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.1 structured lobby player rows",
+      "evidence": "godot --headless --path . --script res://tests/test_lobby_roster.gd: LOBBY_ROSTER_OK checks=122. Covers numeric ordering, distinct remote host/local client markers, combined local-host markers, asymmetric readiness, name updates, row reuse, disconnect/empty cleanup, long-name containment, four fully visible rows, twenty rows with vertical scrolling and fully reachable player 20, and unchanged authoritative snapshots. xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_lobby_roster.gd -- --capture-dir=.amp/in/artifacts: checks=125 each. Inspected revised four-client 720p, twenty-top 1080p and twenty-bottom 720p captures: readable markers/badges, long-name ellipsis, contained footer, final local player visible. Initial four-row render clipped its fourth row; reduced row padding and increased roster height, added full-row containment assertions and reran. UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=78, PHASE1_TESTS_OK checks=31 and SESSION_LIFECYCLE_OK checks=46 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: PLAYABLE_SCENE_NETWORK_PEERS_OK including five rematches/disconnect cleanup. Phase1 suite retains existing successful-exit resource warnings; roster/lifecycle suites exit cleanly. Renders use Linux orb Xvfb/llvmpipe and Dummy audio, not Windows performance evidence. Backdrop/HUD suppression and controller focus remain Task 1.3.2; no milestone-wide authority/focus gate claimed yet."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.2 connection status, focus and lobby suppression",
+      "evidence": "godot --headless --path . --script res://tests/test_lobby_presentation.gd: LOBBY_PRESENTATION_OK checks=35. xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts: checks=39 each. Exercises real Tab and joypad D-pad/A GUI input, wrapped focus skipping hidden/disabled controls, labeled fields, invalid port/empty-address rejection before gameplay reset, solo/partial/all-ready host gating, authoritative ready/start, neutral local movement without simulation pause, Escape/Close cursor recovery and immediate HUD suppression/restoration. A failing controller-confirm test showed default ui_accept lacked a joypad event; explicit A/B confirm/cancel mappings fixed it. Initial GDScript inference failure fixed with an explicit bool. SESSION_LIFECYCLE_OK checks=53 display-backed verifies Joining/disabled Ready and failed retry with restored editable controls; inspected joining/failure, 720p host-ready and 1080p host-waiting renders confirm labels, status, dim backdrop, hidden gameplay metrics and readable four-player rows. UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=79, LOBBY_ROSTER_OK checks=122 passed. Updated playable fixtures to close lobby before movement checks. tests/run_playable_scene_network_test.sh passed NETWORK_HOST_LOBBY_OK and NETWORK_CLIENT_LOBBY_OK, actual local/host markers, rejected client start, readiness plus five rematches/disconnect cleanup. Linux Xvfb/llvmpipe/Dummy audio, not physical controller or Windows performance evidence. Milestone-wide focus/state gates await spectator work and final re-verification."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.2 final joining render correction",
+      "evidence": "First joining screenshot exposed a pre-existing NO SURVIVORS panel over the lobby: removing the last offline participant in _prepare_offline_player_for_join finishes the solo match. Cleared results/spectator presentation after preparing the join lobby and added a lifecycle assertion. Re-ran xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_session_lifecycle.gd -- --capture-dir=.amp/in/artifacts: SESSION_LIFECYCLE_OK checks=54. Inspected replacement lobby-joining-1280x720.png: unobscured labeled fields and pending status, disabled Ready, no client Start or stale results overlay."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.3.3 elimination and spectator target card",
+      "evidence": "godot --headless --path . --script res://tests/test_spectator_presentation.gd: SPECTATOR_PRESENTATION_OK checks=29; xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_spectator_presentation.gd -- --capture-dir=.amp/in/artifacts: checks=79 each. Actual four-participant damage at 127.8 seconds produces Meteor/02:07 notice, immediate target/camera, three survivors and hidden own HP. Checks Q/E, LB/RB, Tab/A, real mouse wrap at both scales, snapshot immutability, bounded tween custom_step, 2.49/2.51-second notice boundary, reduced-motion cancellation, lobby suppression/restoration, removed-target fallback, final simultaneous elimination/results, explicit one/zero-target presenter fallbacks, and local rematch cleanup. Initial fixture errors fixed: typed damage array, remove demo peers before single-player rematch, viewport-local mouse coordinates at 1080p and deterministic tween advancement rather than wall-clock frame assumptions. Inspected elimination/long-name 720p, compact 1080p, dark-overlap 720p and one/zero-survivor fallback captures: readable, contained card/controls with unobscured central target. Some successful display-backed runs retained intermittent death/victory WAV/playback shutdown diagnostics; verbose inspection identified the audio resources, not UI nodes. LOBBY_ROSTER_OK checks=124 additionally exercises actual controller/keyboard scrolling. LOBBY_PRESENTATION_OK checks=35, SESSION_LIFECYCLE_OK checks=52, GAMEPLAY_HUD_OK checks=97, UI_THEME_OK checks=18, MILESTONE_1_1_OK checks=79, PHASE1_TESTS_OK checks=31, PLAYER_INTEGRATION_OK checks=65 and REMATCH_INTEGRATION_OK cycles=5 checks=165 passed. tests/run_playable_scene_network_test.sh passed host/client lobby gates and five rematches. PLAYER_COUNTS=4 tests/run_playable_scale_test.sh passed new NETWORK_SPECTATOR_SCALE_OK: real eliminated client sees target/hidden HP and can cycle without authoritative snapshot mutation while living clients keep health UI. Full milestone re-verification follows before completion."
+    },
+    {
+      "result": "failed",
+      "check": "Milestone 1.3 initial fresh scale/lifecycle verification",
+      "evidence": "20-player matrix failed movement while roster, match, disasters and cleanup passed. Temporary diagnostics reproduced zero movement on both server/client with alive=false on the client, lobby closed and neutral input stored by the server: spawn RPCs arrived before the authoritative match roster, so the new Joining input guard correctly withheld movement during the fixture's measurement. Added a bounded all-client roster acknowledgement before movement; no gameplay guard weakened. Display-backed 1080p lifecycle fixture also exceeded its five-second disconnect deadline after abrupt ENet server close; bounded connected-client timeout to 100–300 ms in the fixture, as already used for connection failure. Production timeout unchanged. Diagnostics removed after investigation."
+    },
+    {
+      "result": "passed",
+      "check": "User-requested full Milestone 1.3 re-verification and completion",
+      "evidence": "Fresh godot --headless --path . --script res://tests/test_{suite}.gd runs: LOBBY_ROSTER_OK=124, LOBBY_PRESENTATION_OK=35, SPECTATOR_PRESENTATION_OK=29, SESSION_LIFECYCLE_OK=52, GAMEPLAY_HUD_OK=97, UI_THEME_OK=18, MILESTONE_1_1_OK=79, PHASE1_TESTS_OK=31, PLAYER_INTEGRATION_OK=65, REMATCH_INTEGRATION_OK cycles=5 checks=165 and PHASE7_POLISH_OK=34. Fresh xvfb-run -a godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_{suite}.gd -- --capture-dir=.amp/in/artifacts: roster=127, lobby=39, spectator=79, lifecycle=54 at each resolution. Inspected fresh four-client 1080p, scrolled player20 720p, host-ready 1080p, Joining 720p, failed-retry 1080p, elimination 720p, long-name 1080p, dark warning/hazard overlap 1080p and one/zero-target fallbacks: explicit markers/readiness/focus, unobscured gameplay target, contained ellipsis/controls and suppressed own HP. Functional disabled/input behavior is asserted separately, not inferred from images. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh: NETWORK_HOST_LOBBY_OK, NETWORK_CLIENT_LOBBY_OK and PLAYABLE_SCENE_NETWORK_PEERS_OK with five rematches/disconnect cleanup. After roster barrier correction, tests/run_playable_scale_test.sh: PLAYABLE_SCALE_MATRIX_OK players=4,8,20 and NETWORK_SPECTATOR_SCALE_OK at every count, verifying actual eliminated-client UI/cycling and immutable snapshots, living-client HP and authority. Final network logs contain no ERROR/SCRIPT ERROR. Older HUD/phase1/rematch/polish and one rendered spectator run still emit successful-exit resource diagnostics; Xvfb reports unsupported V-Sync. Linux llvmpipe/Dummy audio and synthetic joypad events do not establish native Windows performance, physical controller/audio or multi-PC playtesting. All four milestone gates passed; Milestone 1.4 is recorded only as the next action, not implemented."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.1 reusable ranking rows and explicit columns",
+      "evidence": "TDD: test_results_table.gd first exited 1 because the structured Table was absent, then passed RESULTS_TABLE_OK checks=431 headless and checks=434 each at 1280x720/1920x1080 using godot --path . --audio-driver Dummy --resolution {size} --script res://tests/test_results_table.gd -- --capture-dir=.amp/in/artifacts. Checks distinguish survivor/time/disaster/damage ranking, numeric-ID exact ties across insertion orders, fractional time flooring, integer damage, supplied-record immutability, row reuse/removal, long-text containment, header alignment, four-row fit, twenty-row scrolling, controller down and fully reachable final row. Inspected corrected results-four-1280x720, results-twenty-bottom-1280x720 and results-twenty-top-1920x1080 captures: aligned readable columns, contained ellipsis, fixed headings and unobstructed footer. Initial fixture displayed an ACTIVE HUD beneath results; corrected to execute actual completion before presentation fixtures. PHASE7_POLISH_OK=34, UI_THEME_OK=18, GAMEPLAY_HUD_OK=97, MILESTONE_1_1_OK=79, REMATCH_INTEGRATION_OK cycles=5 checks=165 and SPECTATOR_PRESENTATION_OK=29 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five real ENet rematches and disconnect cleanup with exact outcome-cell assertions; final network logs contain no ERROR/SCRIPT ERROR. Some headless suites retain successful-exit resource diagnostics; verbose new-suite inspection identified only death/victory WAV/playback resources, not UI nodes. Rendered final runs exited without resource diagnostics. WSL llvmpipe/Dummy audio and synthetic joypad input do not establish native Windows performance or physical input/audio. Full cross-peer ranking matrix remains a milestone gate; winner reveal/actions are not implemented."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.1 final tooltip accessibility check",
+      "evidence": "Added mouse-accessible full-text tooltip assertions; they failed because Godot Labels default to MOUSE_FILTER_IGNORE. Name/outcome cells now use MOUSE_FILTER_PASS without blocking scroll propagation. Final test_results_table.gd passed checks=433 headless and checks=436 each rendered at 1280x720/1920x1080; final renders retained only unsupported V-Sync warnings, headless retained known death/victory audio shutdown diagnostics. jq empty progress.json and git diff --check passed."
+    },
+    {
+      "result": "failed",
+      "check": "Milestone 1.4 results HUD suppression remains incomplete",
+      "evidence": "Corrected actual-RESULTS-state 720p capture and game/ui/gameplay_hud.gd inspection confirm the timer/context prompt clear but HEALTH and SURVIVORS remain visible outside the panel. Recorded failed gameplay_hud_hidden gate for remaining results-overlay work in Task 1.4.3; no unrelated HUD behavior changed in the ranking-row task."
+    },
+    {
+      "result": "passed",
+      "check": "Task 1.4.2 winner emphasis, bounded row reveal and existing-data award",
+      "evidence": "TDD: new test_results_table.gd assertions first failed for absent award, then for uncontained winner title; implemented static 18px coral rank/name emphasis with existing stars, title ellipsis/full tooltip, one parallel tween fading rows 85% -> 100% over 0.16s with capped 0.245s stagger, and optional Most disasters survived award. Initial Tween.custom_step return-value assertions disagreed with fully opaque output; replaced them with independent per-row opacity checks after deterministic stepping. Tests pause before frame waits, prove stagger at 0.05s and full opacity by 0.5s including twenty players, no duplicate replay, hidden-round reset, immediate shared reduced-motion cancellation and zero-count/empty clearing. Award tests distinguish winner/rank from max count, positive shared ties in numeric peer order, and put count before ellipsized names; the count-first assertion failed before the copy correction. Final godot --headless --path . --script res://tests/test_results_table.gd: RESULTS_TABLE_OK checks=482. godot --path . --audio-driver Dummy --resolution {1280x720,1920x1080} --script res://tests/test_results_table.gd -- --capture-dir=.amp/in/artifacts: checks=487 each. Inspected final four-player 720p, twenty-top 720p, shared-reduced 1080p and paused-reveal 720p: contained headings, emphasized authoritative winners, count-first award/long-name ellipsis, no column/award/footer overlap. GAMEPLAY_HUD_OK=97, PHASE7_POLISH_OK=34, SPECTATOR_PRESENTATION_OK=29, UI_THEME_OK=18, MILESTONE_1_1_OK=79 and REMATCH_INTEGRATION_OK cycles=5 checks=165 passed. GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh passed five real ENet rematches/disconnect cleanup with no ERROR/SCRIPT ERROR in network logs. Final result tests exited cleanly except unsupported V-Sync during renders; some earlier/headless regression runs retain audio shutdown diagnostics, verbose polish inspection identified only WAV/playback resources. WSL llvmpipe/Dummy audio and synthetic joypad input do not establish native Windows performance or physical input/audio. No gameplay scoring, winner selection, snapshot or audio changes. Task 1.4.3 and full ranking-matrix/HUD gates remain."
+    }
+  ],
+  "blockers": [],
+  "changed_files": [
+    ".agents/skills/advancing-disaster-party/SKILL.md",
+    "GUIDE.md",
+    "README.md",
+    "assets/manifest.json",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "game/gameplay_audio_controller.gd",
+    "game/grab_manager.gd",
+    "game/main.gd",
+    "game/match_manager.gd",
+    "game/player.gd",
+    "game/spectator_controller.gd",
+    "game/ui/disaster_icon.gd",
+    "game/ui/gameplay_hud.gd",
+    "game/ui/lobby_roster.gd",
+    "game/ui/lobby_roster.gd.uid",
+    "game/ui/pause_settings.gd",
+    "game/ui/results_table.gd",
+    "game/ui/ui_tokens.gd",
+    "progress.json",
+    "project.godot",
+    "scenes/main.tscn",
+    "tests/playable_scale_peer.gd",
+    "tests/playable_scale_probe.gd",
+    "tests/playable_scene_network_peer.gd",
+    "tests/run_playable_scale_test.sh",
+    "tests/run_ui_regression.sh",
+    "tests/profile_overlap.gd",
+    "tests/test_gameplay_hud.gd",
+    "tests/test_grab_manager.gd",
+    "tests/test_lobby_roster.gd",
+    "tests/test_lobby_presentation.gd",
+    "tests/test_map_safety.gd",
+    "tests/test_map_safety.gd.uid",
+    "tests/test_milestone_1_1.gd",
+    "tests/test_phase1.gd",
+    "tests/test_phase7_polish.gd",
+    "tests/test_player_integration.gd",
+    "tests/test_pause_settings.gd",
+    "tests/test_results_actions.gd",
+    "tests/test_results_table.gd",
+    "tests/test_session_lifecycle.gd",
+    "tests/test_spectator_presentation.gd",
+    "tests/test_ui_theme.gd"
+  ],
+  "next_action": "Archive completed Phase 1 evidence and initialize Phase 2 with Windows playtest packaging as its first milestone.",
+  "archive": {
+    "phase": "phase_1_ui_identity_and_feedback",
+    "title": "UI Identity and Feedback",
+    "status": "completed",
+    "archived_at": "2026-10-07T01:51:55Z",
+    "superseded_by": "../../progress.json"
+  }
+}

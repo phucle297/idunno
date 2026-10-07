@@ -44,7 +44,7 @@ Everything implemented and validated before this roadmap reset belongs to Phase 
 
 Phase 0 is complete for automated, rendered, scale, performance, and target audio-path gates. Its full evidence is archived in `docs/old-docs/progress-phase-0-init-project.json`. A physical multi-PC human LAN feel/loudness playtest remains useful product research, not a missing Phase 0 implementation gate.
 
-## Phase 1 — UI Identity and Feedback
+## Phase 1 — UI Identity and Feedback ✅
 
 Goal: replace the functional prototype-label UI with a cohesive **Toy Broadcast** presentation—chunky rounded cards, broad readable icons, warm cream/slate surfaces, restrained motion, and strong hazard hierarchy—while preserving world visibility and server authority.
 
@@ -88,7 +88,7 @@ Milestone 1.3 complete and freshly reverified: headless behavior/regression suit
 
 Acceptance: 4- and 20-player results remain legible; all peers show identical authoritative rankings; five network rematches remain green; gameplay HUD is hidden beneath results.
 
-Milestone 1.4 complete: all 24 headless suites pass, 720p/1080p results and action captures were inspected, five real ENet rematches pass, and 4/8/20-player sessions verify exact authoritative rankings/cells, client authority rejection and connected lobby return. Lobby/results snapshots are reliable and sequence-ordered against live packets; final network logs have no errors or oversized-unreliable-packet warnings. Existing successful-exit audio/font resource diagnostics remain in some headless suites. Next is Milestone 1.7 map safety, not settings.
+Milestone 1.4 complete: all 24 headless suites pass, 720p/1080p results and action captures were inspected, five real ENet rematches pass, and 4/8/20-player sessions verify exact authoritative rankings/cells, client authority rejection and connected lobby return. Lobby/results snapshots are reliable and sequence-ordered against live packets; final network logs have no errors or oversized-unreliable-packet warnings. Later Milestone 1.6 fixed the reproduced UI/font lifecycle leak; some successful-exit audio diagnostics remain.
 
 ### Milestone 1.5 — Pause, settings, accessibility, and UI audio
 
@@ -114,15 +114,17 @@ Milestone 1.6 complete. Fixed the reproduced orphaned UI children/font-RID leak 
 
 ### Milestone 1.7 — Map boundary and out-of-bounds safety
 
-User-requested addition to Phase 1. Execute after Milestone 1.4 and before Milestone 1.5; retain existing milestone IDs rather than renumbering recorded work.
+User-requested addition to Phase 1. Executed after 1.5/1.6 per the superseding user instruction; retain existing milestone IDs rather than renumbering recorded work.
 
-- [ ] Establish a continuous, readable toy-town perimeter around the current 64 × 64 m block, with collision on all four sides and corners; do not rely on the existing separated north fences.
-- [ ] Add a server-authoritative out-of-bounds safeguard for players escaping the perimeter or falling below the map. Eliminate once through existing health/match state with an explicit out-of-bounds cause; release held props and enter the existing spectator/results flow. No competitive respawn or client-authored death.
-- [ ] Verify walking, sprinting, jumping and disaster impulses at edges/corners, below-map fallback, host/client agreement, solo death, simultaneous eliminations, and rematch reset. Render and inspect the perimeter and death feedback.
+- [x] Establish a continuous, readable toy-town perimeter around the current 64 × 64 m block, with collision on all four sides and corners; do not rely on the existing separated north fences.
+- [x] Add a server-authoritative out-of-bounds safeguard for players escaping the perimeter or falling below the map. Eliminate once through existing health/match state with an explicit out-of-bounds cause; release held props and enter the existing spectator/results flow. No competitive respawn or client-authored death.
+- [x] Verify walking, sprinting, jumping and disaster impulses at edges/corners, below-map fallback, host/client agreement, solo death, simultaneous eliminations, and rematch reset. Render and inspect the perimeter and death feedback.
 
 Acceptance: ordinary traversal cannot leave the play area; escaped players cannot fall indefinitely; out-of-bounds death is clearly signaled and replicated; existing rankings, spectator behavior and five network rematches remain correct. Do not claim this resolves the reported X-server shutdown without reproducing that failure separately.
 
 Scope: safety and boundary readability only. Enlarging the footprint and adding more map content are planned in Phase 4, not silently included in this fix.
+
+Milestone 1.7 and Phase 1 complete: `MAP_SAFETY_OK checks=96` headless and `checks=99` at both rendered resolutions; all 26 suites, separate-process persistence and four multiplayer matrices pass. Five real network rematches alternate escaped/below-map client deaths, verify identical cause/results and reject client-side elimination. Inspected the four-wall overview, clean corner and actual death feedback, plus representative Phase 1 UI states at both sizes. Native Windows Radeon 860M overlap profiling passes twice at p95 4.09 ms with stable UI nodes. HUD motion tests now explicitly step both sides of tween-duration boundaries rather than relying on wall-clock scheduling. Full evidence is archived in `docs/old-docs/progress-phase-1-ui-identity-and-feedback.json`; `progress.json` contains fresh Phase 2 state. Physical multi-PC/controller/audio playtesting, default-V-Sync frame pacing, and the reported X-server shutdown remain separate limitations, not claimed fixed.
 
 ## Planned future phases
 

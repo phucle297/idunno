@@ -18,6 +18,8 @@ const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
 const MATCH_SNAPSHOT_INTERVAL := 0.1
 const PROP_SNAPSHOT_INTERVAL := 0.1
+const MAP_HALF_EXTENT := 32.0
+const MAP_KILL_Y := -8.0
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -416,6 +418,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 
 func _physics_process(delta: float) -> void:
+	_eliminate_out_of_bounds()
 	if not _network_mode:
 		return
 	var local_peer_id := multiplayer.get_unique_id()
@@ -466,6 +469,21 @@ func _physics_process(delta: float) -> void:
 	if _prop_snapshot_remaining <= 0.0:
 		_prop_snapshot_remaining = PROP_SNAPSHOT_INTERVAL
 		_broadcast_prop_snapshots()
+
+
+func _eliminate_out_of_bounds() -> void:
+	if (_network_mode and not multiplayer.is_server()) or match_manager.state != MatchManager.MatchState.ACTIVE:
+		return
+	var events: Array[Dictionary] = []
+	for peer_id: int in _player_nodes:
+		var player := _player_nodes[peer_id] as PartyPlayer
+		if not match_manager.is_player_alive(peer_id):
+			continue
+		var position := player.global_position
+		if absf(position.x) > MAP_HALF_EXTENT or absf(position.z) > MAP_HALF_EXTENT or position.y < MAP_KILL_Y:
+			events.append({"peer_id": peer_id, "amount": match_manager.get_health(peer_id), "cause": "Out of bounds"})
+	# Evaluate winners only after every escape in this simulation step is recorded.
+	match_manager.apply_damage_batch(events)
 
 
 func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
@@ -1271,6 +1289,17 @@ func _build_lighting() -> void:
 
 func _build_sandbox() -> void:
 	_add_static_box("Ground", Vector3(64.0, 0.4, 64.0), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
+	for side: String in ["North", "South", "West", "East"]:
+		var horizontal := side == "North" or side == "South"
+		var offset := MAP_HALF_EXTENT - 0.25
+		var center := Vector3(0, 1.5, -offset if side == "North" else offset) if horizontal else Vector3(-offset if side == "West" else offset, 1.5, 0)
+		var size := Vector3(64, 3, 0.5) if horizontal else Vector3(0.5, 3, 63)
+		_add_static_box("Boundary" + side, size, center, PALETTE.cream)
+		$Sandbox.get_node("Boundary" + side).add_to_group("map_prop")
+		# Broad slate cap identifies the playset edge without an invisible wall.
+		size.y = 0.2
+		center.y = 3.1
+		_add_static_box("BoundaryCap" + side, size, center, PALETTE.slate)
 	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
@@ -1379,9 +1408,6 @@ func _add_town_props() -> void:
 	_add_bench("ParkBench", Vector3(12.0, 2.2, 15.5))
 	_add_static_box("TownSign", Vector3(2.8, 2.4, 0.3), Vector3(-5.5, 1.2, -4.8), PALETTE.amber)
 	$Sandbox/TownSign.add_to_group("map_prop")
-	for index in 5:
-		_add_static_box("FenceNorth%d" % index, Vector3(4.0, 1.1, 0.2), Vector3(-20.0 + index * 10.0, 0.55, -30.0), PALETTE.cream)
-		$Sandbox.get_node("FenceNorth%d" % index).add_to_group("map_prop")
 
 
 func _add_tree(node_name: String, position: Vector3) -> void:

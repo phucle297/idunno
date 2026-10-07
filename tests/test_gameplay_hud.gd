@@ -207,10 +207,13 @@ func _run() -> void:
 	hud.present_major_warning("tornado", 5.0)
 	_expect(is_equal_approx(hud.warning_banner.modulate.a, 0.85), "New warning must start a restrained readable fade, not a scale/position jump")
 	var entrance_tween := hud._warning_tween
+	entrance_tween.pause()
 	await _capture("motion-entrance")
 	hud.present_major_warning("tornado", 4.2)
 	_expect(hud._warning_tween == entrance_tween, "Repeated presentation must not restart the entrance tween")
-	await create_timer(0.2).timeout
+	entrance_tween.custom_step(0.15)
+	_expect(hud.warning_banner.modulate.a < 1.0, "Entrance must remain in progress before its 0.16-second boundary")
+	entrance_tween.custom_step(0.02)
 	_expect(hud.warning_banner.modulate == Color.WHITE, "Warning entrance must settle within its bounded duration")
 	hud.present_hazards(["TORNADO", "FLOOD"])
 	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
@@ -224,7 +227,10 @@ func _run() -> void:
 	_expect(audio.effect_play_count == effects_before + 1, "Repeated snapshots and upward corrections must not duplicate a tick")
 	hud.present_major_warning("tornado", 0.8)
 	_expect(audio.effect_play_count == effects_before + 2 and hud.warning_countdown.text == "1 s", "Skipped seconds must produce only one current cue, not a catch-up burst")
-	await create_timer(0.16).timeout
+	hud._countdown_tween.pause()
+	hud._countdown_tween.custom_step(0.11)
+	_expect(hud.warning_countdown.modulate != Color.WHITE, "Countdown emphasis must still run before its 0.12-second boundary")
+	hud._countdown_tween.custom_step(0.02)
 	_expect(hud.warning_countdown.modulate == Color.WHITE, "Countdown emphasis must settle within its bounded duration")
 	hud.present_major_warning("meteor", 1.0)
 	_expect(audio.effect_play_count == effects_before + 2, "Warning handoff must not sound like a countdown decrement")

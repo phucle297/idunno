@@ -197,12 +197,15 @@ func _run_server(main: Node) -> void:
 			and not (main.get_node("Interface/ResultsPanel") as Panel).visible
 			and (main.get_node("DisasterDirector") as DisasterDirector).running
 		)
-		rematch_passed = rematch_passed and manager.apply_damage(client_id, 100.0, "Network rematch %d" % (rematch_index + 1))
+		# Exercise the live server safety check, not a client-authored damage event.
+		var escaped_player: PartyPlayer = main._player_nodes[client_id]
+		escaped_player.position = Vector3(33, 1, 0) if rematch_index % 2 == 0 else Vector3(0, -9, 0)
 		await create_timer(0.3).timeout
 		rematch_passed = (
 			rematch_passed
 			and manager.state == MatchManager.MatchState.RESULTS
 			and manager.get_alive_count() == 1
+			and manager.get_cause_of_death(client_id) == "Out of bounds"
 			and (main.get_node("Interface/ResultsPanel") as Panel).visible
 		)
 	while main.get_network_player_ids().size() != 1 and Time.get_ticks_msec() < deadline:
@@ -393,6 +396,12 @@ func _run_client(main: Node) -> void:
 		while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 			await process_frame
 		await process_frame
+		var authoritative_health := manager.get_health(local_id)
+		var replicated_position := local_player.position
+		local_player.position = Vector3(40, -10, 0)
+		main._eliminate_out_of_bounds()
+		rematch_passed = rematch_passed and manager.get_health(local_id) == authoritative_health
+		local_player.position = replicated_position
 		rematch_passed = (
 			rematch_passed
 			and manager.state == MatchManager.MatchState.ACTIVE
@@ -412,7 +421,7 @@ func _run_client(main: Node) -> void:
 			and not local_player.visual.visible
 			and main.spectator_controller.active
 			and (main.get_node("Interface/ResultsPanel") as Panel).visible
-			and rematch_outcome == "Network rematch %d" % (rematch_index + 1)
+			and rematch_outcome == "Out of bounds"
 		)
 	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and lethal_passed and rematch_passed
 	if passed:

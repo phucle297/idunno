@@ -135,6 +135,26 @@
       "icons": ["meteor", "flood", "tornado", "earthquake", "lightning", "fire"],
       "provenance": "Project-authored deterministic Godot draw primitives; no external files or font glyph dependency; seed unused",
       "validation_status": "all_six_warning_and_24px_chip_icons_inspected_at_720p; paired_interaction_icons_and_copy_inspected_at_720p_and_1080p; dark_world_chip_contrast_inspected_at_720p"
+    },
+    {
+      "asset_id": "ENV_TownPerimeter_v001",
+      "category": "runtime_environment_assembly",
+      "source_path": "game/main.gd::_build_sandbox",
+      "export_path": "scenes/main.tscn::Sandbox/Boundary{North,South,West,East}",
+      "generator_script": "game/main.gd",
+      "seed": 0,
+      "generator_version": "1",
+      "intended_dimensions_m": [64.0, 3.2, 64.0],
+      "wall_thickness_m": 0.5,
+      "triangle_count": 96,
+      "material_ids": ["PALETTE.cream", "PALETTE.slate"],
+      "pivot": "town_ground_center",
+      "collider_type": "eight_static_boxes_matching_visible_walls_and_caps",
+      "skeleton_version": null,
+      "animation_list": [],
+      "gameplay_tags": ["map_prop"],
+      "provenance": "Project-authored deterministic Godot BoxMesh assembly; no third-party geometry; seed unused. Replaces separated north fences without enlarging the block.",
+      "validation_status": "all_four_edges_and_corners_block_walk_sprint_jump_and_bounded_impulses; gap_free_corner_and_four_wall_overview_inspected_at_720p_and_corner_at_1080p; five_live_server_out_of_bounds_rematches_passed"
     }
   ]
 }
