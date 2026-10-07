@@ -12,6 +12,15 @@ Development is specification-led:
 
 All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. **Phase 1 — UI Identity and Feedback** adds the Toy Broadcast HUD, warnings, lobby, spectator/results presentation, local pause, saved settings, and continuous map perimeter with authoritative out-of-bounds elimination. Both phases are complete; detailed evidence is archived under `docs/old-docs/`, and `progress.json` now tracks Phase 2 — Human Playtest and Core Feel. See `GUIDE.md` for play instructions and current limitations.
 
+Phase 2 now plans **Internet-hosted dedicated rooms joined by custom room ID**
+before human playtesting. Start with one Linux server machine, a small HTTPS room
+service and one headless Godot process per room; keep room discovery/allocation
+separate from gameplay authority so additional machines can be introduced later
+without changing room-ID joining. No mass-scale infrastructure or optimization
+for hundreds of thousands/millions of users is planned. This is a roadmap change,
+not implemented functionality; the current package still uses direct-IP listen
+hosting. See `docs/implementation-checklist.md` for ordered tasks and gates.
+
 ## Windows playtest export
 
 Use the official Godot **4.7.2 stable** Linux editor and its matching export
@@ -59,8 +68,9 @@ Get-FileHash .\DisasterParty.exe, .\DisasterParty.pck, .\BUILD.txt -Algorithm SH
 
 Compare hashes with `SHA256SUMS.txt`. Same-revision payload hashes must match;
 any packaging-only differences must be investigated and documented, not ignored.
-Exported multiplayer/settings/audio readiness and physical LAN checks belong to
-Milestone 2.2; this command does not prove them.
+Internet-room multiplayer/settings/audio readiness belongs to Milestone 2.2;
+this command does not prove it. Physical LAN smoke is optional legacy coverage,
+not the new readiness gate.
 
 ## Local development
 

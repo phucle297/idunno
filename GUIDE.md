@@ -5,6 +5,12 @@ Players use the packaged executable; no Godot editor or repository checkout is
 needed. Multiplayer uses direct ENet IP connections, with no lobby browser,
 Steam invites or NAT traversal. Same-PC checks do not prove physical LAN play.
 
+**Planned direction:** Internet-hosted dedicated servers with custom room-ID
+create/join are now scheduled in Phase 2. They are not implemented in the current
+package. The direct-IP instructions below remain valid for its existing mode;
+the LAN checklist is optional legacy coverage, not the active readiness gate.
+See `docs/implementation-checklist.md` for the Internet-room plan.
+
 ## Prepare and verify the package
 
 1. Extract the ZIP to a local folder on every PC. Keep `DisasterParty.exe`,
@@ -162,10 +168,12 @@ These are presentation/debug launches, not accelerated competitive matches.
 - **Mouse does not rotate the camera:** left-click the game window to capture the cursor.
 - **HP is not changing:** damage only occurs when a disaster actually reaches the player; HP starts at 100.
 
-## Physical LAN readiness checklist (Milestone 2.2 gate)
+## Physical LAN checklist (optional legacy-path coverage)
 
 Use **two separate Windows PCs**, the same package, and the host's LAN address—not
 localhost. This requires an actual person/PC session; automation cannot certify it.
+The former mandatory LAN task was cancelled in favor of Internet-room readiness;
+this checklist does not validate the planned room service or dedicated servers.
 
 - Record date, revision/checksums, host/client OS/GPU, resolution, network type,
   input devices, UDP port and logs. Keep private IPs/logs private when sharing publicly.
@@ -179,9 +187,9 @@ localhost. This requires an actual person/PC session; automation cannot certify 
   Record loudness/clarity complaints; WASAPI initialization alone proves neither.
 - Close the host, observe client lobby recovery, recreate it and retry from the
   same client. Also try an unavailable port and confirm actionable failure/retry.
-- Record pass/fail and reproduction details for each item. Leave the gate blocked
-  if PCs/people are unavailable; do not advance to baseline human research on a
-  localhost-only claim.
+- Record pass/fail and reproduction details for each item; leave unavailable
+  checks unverified. Baseline human research now requires the planned Internet
+  readiness gates, not a localhost-only or legacy LAN claim.
 
 ## Developer checks against the exported payload
 

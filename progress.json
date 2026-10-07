@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T08:20:00Z",
+  "updated_at": "2026-10-07T09:00:39Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_2_exported_session_and_lan_smoke"
+    "task": "task_2_2_3_dedicated_server_and_room_owner"
   },
   "engine": {
     "name": "Godot",
@@ -33,7 +33,7 @@
     "title": "Human Playtest and Core Feel",
     "status": "in_progress",
     "dependencies": ["phase_1_ui_identity_and_feedback"],
-    "goal": "Package a reproducible Windows build, observe structured 3–8-player multi-PC sessions, and tune core feel from evidence before expansion.",
+    "goal": "Deliver Internet-hosted dedicated rooms joined by custom room ID, package a reproducible Windows client, observe structured 3–8-player Internet sessions, and tune core feel from evidence before expansion. Start with one server machine; preserve clear room-service/gameplay boundaries for future refactoring, not mass-scale infrastructure.",
     "milestones": {
       "milestone_2_1_reproducible_windows_playtest_build": {
         "title": "Reproducible Windows Playtest Build",
@@ -51,26 +51,35 @@
         }
       },
       "milestone_2_2_playtest_readiness": {
-        "title": "Playtest Readiness",
-        "status": "blocked",
+        "title": "Internet Rooms and Playtest Readiness",
+        "status": "in_progress",
         "dependencies": ["milestone_2_1_reproducible_windows_playtest_build"],
-        "scope": "Provide executable-based LAN instructions and validate exported settings/assets/audio, host/client readiness, movement, props, warnings, death/spectating, results, five rematches, disconnect/retry and physical LAN smoke before inviting a group.",
+        "scope": "Implement playerless authoritative dedicated servers, one process per room on one machine, a small HTTPS room service with custom ID lookup/admission, and Windows create/join UI. Validate multi-container isolation/lifecycle and actual Internet release-client sessions before human baseline. No hundred-thousand/million-user design or optimization; additional machines are a future refactor.",
         "tasks": {
           "task_2_2_1_executable_play_guide": "completed",
-          "task_2_2_2_exported_session_and_lan_smoke": "blocked"
+          "task_2_2_2_exported_session_and_lan_smoke": "cancelled",
+          "task_2_2_3_dedicated_server_and_room_owner": "planned",
+          "task_2_2_4_room_service_and_process_lifecycle": "planned",
+          "task_2_2_5_windows_room_create_join_ui": "planned",
+          "task_2_2_6_container_network_and_failure_validation": "planned",
+          "task_2_2_7_internet_release_readiness": "planned"
         },
+        "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
-          "executable_playtest_instructions": "passed",
-          "exported_session_settings_audio_and_five_rematches": "blocked",
-          "disconnect_and_retry": "passed",
-          "physical_lan_host_client_smoke": "blocked"
+          "playerless_server_and_room_owner_authority": "not_run",
+          "room_id_admission_and_bounded_process_lifecycle": "not_run",
+          "windows_room_ui_and_failure_recovery": "not_run",
+          "multi_container_room_isolation_and_five_rematches": "not_run",
+          "public_internet_release_clients_and_retry": "not_run",
+          "exported_settings_assets_and_physical_audio": "not_run",
+          "internet_play_guide_and_operator_runbook": "not_run"
         }
       },
       "milestone_2_3_human_playtest_baseline": {
         "title": "Human Playtest Baseline",
         "status": "planned",
         "dependencies": ["milestone_2_2_playtest_readiness"],
-        "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs; aim for three normal rounds each and record actual counts, hardware/network/input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
+        "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs over Internet room-ID joining; aim for three normal rounds each and record client/server builds, server hardware, region/network latency and disconnects alongside input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
         "gates": {
           "observed_3_to_8_player_multi_pc_sessions": "not_run",
           "recorded_death_clarity_rematches_and_emergent_moments": "not_run"
@@ -196,13 +205,20 @@
       "command": "GODOT_BIN=$(command -v godot) PORT=29742 tests/run_playable_scene_network_test.sh",
       "status": "passed",
       "result": "Targeted source regression after failure-only Meteor diagnostic passes both peers, all gameplay/presentation checks, five rematches and disconnect cleanup. Assertions unchanged. Log .scratch/2-2-source-regression.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "User-directed Internet rooms planning revision",
+      "status": "passed",
+      "result": "Documentation-only plan validated with JSON/schema/dependency/task assertions and git diff --check. Replaced mandatory physical LAN task with dedicated-server/room-service/UI/container/Internet readiness tasks; old task cancelled rather than passed, prior evidence retained. Current code is a listen host with peer-1 player and server-only session controls; dedicated ownership and room discovery are not implemented. All new gates remain not_run. One-machine modest-capacity plan excludes mass-scale infrastructure; future refactor seams recorded in decisions/checklist."
     }
   ],
   "blockers": [
-    "Milestone 2.2 still needs actual release-runtime five-rematch/settings/audio confirmation and physical LAN smoke on two separate Windows PCs. Exact exported-PCK editor fixtures pass, but release templates ignore external --script; do not substitute editor-driver or localhost evidence for these human gates.",
+    "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
+    "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd"],
-  "next_action": "Run GUIDE.md's physical LAN readiness checklist with the matching release package on two Windows PCs; provide both logs/build identity and five-rematch/settings/audio/recovery results before completing Task 2.2.2."
+  "next_action": "Implement Task 2.2.3: playerless dedicated-server launch and server-validated room-owner start/rematch/lobby requests, deterministic owner transfer on disconnect, with authority/lifecycle tests while preserving solo and listen-host behavior."
 }
