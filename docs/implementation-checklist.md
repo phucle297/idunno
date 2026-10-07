@@ -126,15 +126,42 @@ Scope: safety and boundary readability only. Enlarging the footprint and adding 
 
 Milestone 1.7 and Phase 1 complete: `MAP_SAFETY_OK checks=96` headless and `checks=99` at both rendered resolutions; all 26 suites, separate-process persistence and four multiplayer matrices pass. Five real network rematches alternate escaped/below-map client deaths, verify identical cause/results and reject client-side elimination. Inspected the four-wall overview, clean corner and actual death feedback, plus representative Phase 1 UI states at both sizes. Native Windows Radeon 860M overlap profiling passes twice at p95 4.09 ms with stable UI nodes. HUD motion tests now explicitly step both sides of tween-duration boundaries rather than relying on wall-clock scheduling. Full evidence is archived in `docs/old-docs/progress-phase-1-ui-identity-and-feedback.json`; `progress.json` contains fresh Phase 2 state. Physical multi-PC/controller/audio playtesting, default-V-Sync frame pacing, and the reported X-server shutdown remain separate limitations, not claimed fixed.
 
+## Phase 2 — Human Playtest and Core Feel (planned, current)
+
+Goal: establish whether the validated prototype is understandable, responsive and worth rematching with friends. No new gameplay systems or map expansion in this phase.
+
+### Milestone 2.1 — Reproducible Windows Playtest Build
+
+- [ ] Task 2.1.1: Install/verify matching Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and one repeatable export command. Export twice from the same clean revision; compare payload hashes and document any nondeterministic packaging metadata. Keep tools, caches, tests and review artifacts out of the package.
+- [ ] Task 2.1.2: Identify the build by source revision, engine version and package checksum in the delivered build notes and an accessible in-game/log surface. Update `GUIDE.md` for executable launches, LAN IP/UDP 29730, firewall, controls, readiness, host authority, rematch and recovery. Correct stale Flood blue-overlay instructions and distinguish same-PC checks from physical LAN evidence.
+- [ ] Task 2.1.3: Launch the exported executable on native Windows without an editor or repository dependency; check assets/audio/settings restart. Exercise exported host/client readiness, movement, props, warnings, death/spectating, identical results, five rematches, disconnect and retry. Record OS/GPU, resolution, build identity and logs; confirm one physical LAN host/client session before inviting the group.
+
+Acceptance: reproducible export evidence, no missing resources/editor dependency, identifiable matching packages, executable-based session smoke and usable instructions. Existing editor-based tests do not satisfy these gates.
+
+### Milestone 2.2 — Structured Multi-PC Playtest
+
+- [ ] Run an initial 3–4-person session, then a 6–8-person session on separate Windows PCs using the same package. Aim for at least three normal rounds per session; record actual counts and early endings rather than forcing an 8–12-minute outcome. Keep debug/demo launches out of competitive rounds.
+- [ ] Before play, record build, host/client hardware, input devices, resolution/V-Sync, network setup and prior familiarity. Include a brief traversal/prop/camera check through doors, stairs and each elevation route; test controller navigation and physical warning audibility where devices are available.
+- [ ] Observe without coaching once the controls are introduced. For each death, record time, authoritative cause, what the player thought happened before explanation, warning noticed and escape attempted. Log camera blockage, client responsiveness, unfair/stuck recovery, spectator downtime, disconnects and frame-pacing complaints with reproduction context.
+- [ ] Record voluntary rematch requests separately from facilitator-requested rounds. Timestamp funny/emergent moments and their causal chain. Ask each player what felt unfair, confusing or enjoyable and what they would change first; collect recordings only with consent.
+
+Acceptance: real sessions at both group sizes, per-round observations and player feedback; localhost processes/bots are not substitutes. Lack of people/PCs is an explicit human dependency, not an automated pass.
+
+### Milestone 2.3 — Evidence-Driven Core Feel Tuning
+
+- [ ] Prioritize reproduced issues by severity, recurrence and impact on comprehension/control. Tune movement in `game/player_tuning.gd`, camera in the existing player scene/controller, and pacing in MatchManager/Director/disaster metadata; keep authority, solo exception, recovery protection and physics budgets intact. Do not tune speculatively before observations.
+- [ ] Change one coherent issue at a time; record the hypothesis, baseline, values changed and before/after evidence. Re-run affected behavior tests and network checks; inspect renders for appearance changes and native Windows overlap throughput plus default-V-Sync pacing for performance changes.
+- [ ] Repeat the affected scenario and normal rounds with humans. Proposed expansion gate: at least 80% of sampled deaths correctly explained without coaching (report numerator/denominator), a majority independently willing to rematch in each follow-up group, and at least two distinct emergent causal patterns recurring across rounds. Record contrary evidence; do not treat small-sample results as statistical proof.
+
+Acceptance: no unresolved session-blocking/control failures, addressed recurring high-impact issues with regression evidence, and the death-clarity/rematch/emergence gate met. Preserve the configurable 8–12-minute target but report actual duration distribution; short rounds may reveal balance problems rather than justify arbitrary timer changes. If gates fail, remain in Phase 2.
+
+Current constraints: export presets and local export templates are absent. Human multi-PC sessions, controller feel and physical loudness are unverified. Historical uncapped Windows throughput passed; default-V-Sync pacing and the reported X-server shutdown remain unresolved observations, not proven causes or fixes.
+
+Next action: implement Task 2.1.1 only; finish Milestone 2.1 before starting the human-session milestone.
+
 ## Planned future phases
 
 These stay concise until they become current.
-
-### Phase 2 — Human Playtest and Core Feel
-
-- Package a reproducible Windows build and run structured 3–8-player, multi-PC sessions.
-- Tune movement, camera, warnings, pacing, fairness, match length, and cause-of-death clarity from observed evidence.
-- Gate expansion on understandable deaths, voluntary rematches, and recurring emergent moments.
 
 ### Phase 3 — Player-Caused Chaos
 
@@ -152,7 +179,7 @@ These stay concise until they become current.
 
 ### Phase 5 — Session Distribution and Release Readiness
 
-- Add a reproducible Windows export and robust failure UX.
+- Harden the Phase 2 Windows package for release/distribution and add robust failure UX; do not defer the playtest export until this phase.
 - Extract the direct-IP session boundary before evaluating Steam lobby/invite integration.
 - Validate physical LAN/Internet sessions without building accounts, ranking, or a custom backend.
 

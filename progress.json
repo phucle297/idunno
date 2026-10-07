@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T01:51:55Z",
+  "updated_at": "2026-10-07T04:31:59Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_1_reproducible_windows_playtest_build",
-    "task": null
+    "task": "task_2_1_1_windows_export_pipeline"
   },
   "engine": {
     "name": "Godot",
@@ -39,6 +39,12 @@
         "title": "Reproducible Windows Playtest Build",
         "status": "planned",
         "scope": "Create a repeatable Windows export with build/version identification and direct-IP playtest instructions; verify launch and LAN session/rematch behavior without adding distribution services.",
+        "tasks": {
+          "task_2_1_1_windows_export_pipeline": "planned",
+          "task_2_1_2_build_identity_and_play_guide": "planned",
+          "task_2_1_3_native_exported_session_smoke": "planned"
+        },
+        "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch without editor/repository; verify settings/assets/audio, exported host/client flow, five rematches and disconnect/retry; confirm physical LAN smoke and matching build identity. See docs/implementation-checklist.md for the executable plan.",
         "gates": {
           "reproducible_windows_export": "not_run",
           "exported_build_launch_and_session_smoke": "not_run",
@@ -49,6 +55,7 @@
         "title": "Structured Multi-PC Playtest",
         "status": "planned",
         "dependencies": ["milestone_2_1_reproducible_windows_playtest_build"],
+        "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs; aim for three normal rounds each and record actual counts, hardware/network/input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
         "gates": {
           "observed_3_to_8_player_multi_pc_sessions": "not_run",
           "recorded_death_clarity_rematches_and_emergent_moments": "not_run"
@@ -58,6 +65,13 @@
         "title": "Evidence-Driven Core Feel Tuning",
         "status": "planned",
         "dependencies": ["milestone_2_2_structured_multi_pc_playtest"],
+        "scope": "Prioritize reproduced high-impact issues; tune existing movement/camera/warning/pacing owners one coherent change at a time, regress and retest with humans. No new disasters, shove, map expansion or distribution services.",
+        "proposed_expansion_criteria": {
+          "death_clarity": "At least 80% of sampled deaths correctly explained without coaching; report numerator and denominator.",
+          "voluntary_rematches": "A majority independently willing to rematch in each follow-up group; distinguish requested rounds from voluntary requests.",
+          "emergence": "At least two distinct emergent causal patterns recurring across rounds.",
+          "stability": "No unresolved session-blocking/control failures; recurring high-impact issues addressed with regression and human follow-up evidence. Small samples are product evidence, not statistical proof."
+        },
         "gates": {
           "observed_issues_addressed_and_regression_checked": "not_run",
           "understandable_deaths_voluntary_rematches_and_recurring_emergent_moments": "not_run"
@@ -65,8 +79,24 @@
       }
     }
   },
-  "validation_log": [],
-  "blockers": [],
-  "changed_files": [],
-  "next_action": "Inspect Windows export presets/templates and existing run guidance, then define and implement the smallest reproducible playtest build for Milestone 2.1."
+  "validation_log": [
+    {
+      "date": "2026-10-07",
+      "check": "Phase 2 entry inspection",
+      "status": "passed",
+      "result": "Clean main aligned with origin/main at inspection; Phase 1 archive is completed with all required gates passed. No export preset/build script found; local Godot export_templates directory is empty. Native Windows editor binaries exist, but editor checks are not packaged executable evidence."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Exit 0; UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed. State-contract 2/4/8/20-client and playable 4/8/20-player matrices, authority and two-peer five-rematch checks passed. Persistence save process emitted 48 ObjectDB leaks / 4 resources still in use at shutdown; runner permits shutdown resource diagnostics. This does not prove physical audio, controller feel, multi-PC sessions or Windows package behavior."
+    }
+  ],
+  "blockers": [
+    "Milestone 2.1 prerequisite: matching export templates and a Windows export preset/pipeline are absent; implement Task 2.1.1 before claiming any packaged-build gate.",
+    "Milestone 2.2 requires human participants and separate Windows PCs; availability is not established and automated localhost peers cannot satisfy the gate."
+  ],
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md"],
+  "next_action": "Implement Task 2.1.1: verify/install Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and repeatable export command, then compare two exports from the same clean revision."
 }
