@@ -13,6 +13,9 @@
    truthful status, no dead CTAs, 320–1440px layouts, keyboard and reduced motion.
 7. Inspect desktop/mobile screenshots; document deployment commands and media
    replacement points. Commit and push `feat/website`, without deploying.
+8. Configure GitHub Actions Pages publishing from `feat/website`, Bun frozen
+   installation/build, `dist/` artifact, root base `/` and `public/CNAME`.
+   Verify build output and document the required Pages/domain/environment setup.
 
 Implementation and local validation are complete. See `progress.json` for actual
 checks and evidence; public hosting and DNS configuration have not been performed.

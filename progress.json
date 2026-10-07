@@ -4,9 +4,9 @@
   "current": {
     "phase": "studio_landing_page",
     "milestone": "static_launch_readiness",
-    "task": "build_and_validate"
+    "task": "configure_github_pages_with_bun"
   },
-  "status": "in_progress",
+  "status": "completed",
   "stack": ["React", "TypeScript", "Vite", "Tailwind CSS"],
   "validation_log": [
     {
@@ -39,13 +39,22 @@
       "check": "Dependency/security and branch-scope review",
       "status": "passed",
       "result": "npm audit reports zero vulnerabilities. Only React/ReactDOM runtime dependencies; other packages are build/test tools. Font files include original OFL licenses. Game-only files removed, DESIGN.md unchanged, game branch untouched; git diff --check passes. No invented availability, achievements, dates, partners or social destinations."
+    },
+    {
+      "check": "GitHub Pages configuration and Bun production build",
+      "status": "passed",
+      "command": "bun install --frozen-lockfile && bun run build; LD_LIBRARY_PATH=<local browser libraries> bun run test",
+      "result": "Bun 1.3.14 frozen installation and static build pass; all 10 desktop/mobile browser tests pass, including Back to top reaching scroll position 0,0 without changing URL/history. Workflow YAML checks confirm feat/website-only push trigger, Pages permissions, Bun build, dist upload and official deploy action. All pinned action references resolve. dist/CNAME contains permees.com and built JS/CSS root asset paths exist. No remote workflow execution, Pages settings change or DNS update performed."
     }
   ],
   "blockers": [],
   "delivery": {
     "branch": "feat/website",
     "build_directory": "dist",
-    "deployment": "not_deployed"
+    "package_manager": "bun@1.3.14",
+    "hosting": "GitHub Pages",
+    "custom_domain": "permees.com",
+    "deployment": "not_triggered_by_this_task"
   },
-  "next_action": "Validate the requested pointer/hover/scroll animations, independently combinable artwork effects and reduced repeated copy on desktop/mobile before committing."
+  "next_action": "Obtain approval to push the configured branch, which will trigger public deployment; confirm GitHub Pages Actions source, custom domain and environment branch permissions."
 }

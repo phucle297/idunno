@@ -11,7 +11,8 @@ files in `dist/` with no backend or server-side dependencies.
 - Keep dependencies minimal, fonts self-hosted and media clearly labelled when
   it is decorative artwork rather than actual gameplay.
 - Respect reduced motion, keyboard focus and mobile layouts.
-- Verify with `npm run build` and `npm test`; inspect rendered desktop and mobile
+- Use Bun with the committed `bun.lock`: `bun install --frozen-lockfile`.
+- Verify with `bun run build` and `bun run test`; inspect rendered desktop and mobile
   screenshots after visual changes. Record actual results in `progress.json`.
 - Keep `docs/decisions.md` and the checklist concise and website-specific.
 - Commit coherent validated changes using Conventional Commits and push the

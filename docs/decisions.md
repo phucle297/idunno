@@ -19,3 +19,11 @@
   artwork effect toggles that can combine Meteor/Flood/Tornado. Explicitly label
   this an artwork study, not gameplay. Animations are finite, no new dependency,
   all controls work with keyboard/touch, and reduced motion disables movement.
+- 2026-10-07: Publish `dist/` with official GitHub Pages artifact/deploy actions
+  on pushes to `feat/website`; no `gh-pages` branch. Keep Vite base `/` and copy
+  `public/CNAME` containing permees.com into the build. Actions custom domains
+  also require the existing GitHub Pages custom-domain setting; DNS and remote
+  settings are not modified by the workflow configuration.
+- 2026-10-07: The latest instruction selects Bun over npm. Use the existing
+  `bun.lock`, pin Bun 1.3.14, and install with `--frozen-lockfile` in CI. Node 22
+  remains available for Vite's Node-based tooling; no npm install/build step.
