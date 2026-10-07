@@ -130,11 +130,17 @@
       "check": "Windows template installation and export implementation",
       "status": "passed",
       "result": "Official Godot 4.7.2 template TPZ verified against release SHA512-SUMS.txt (ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079). Installed x86_64 release/debug templates and version.txt locally. Added isolated committed-HEAD export script/preset and startup identity log. bash -n and git diff --check pass; export and native launch gates remain not_run pending a clean committed build."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial repeated Windows export comparison",
+      "status": "failed",
+      "result": "Two exports of revision 2932b2491f645063b6aff44c4635292bbfcd8c05 succeeded without import/export errors; EXE and BUILD.txt hashes matched but PCK differed. PCK-directory inspection found identical 101 paths and differences only in seven converted binary scenes; scripts, imported audio and cache payloads matched. Disabled editor/export/convert_text_resources_to_binary to retain deterministic authored text scenes; repeat comparison pending. Development startup smoke exited cleanly and printed development build identity."
     }
   ],
   "blockers": [
     "Milestone 2.2 physical LAN smoke and Milestones 2.3/2.5 human sessions require separate Windows PCs and participants; availability is not established and automated localhost peers cannot satisfy these gates."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd"],
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "project.godot"],
   "next_action": "Validate two isolated Windows exports from the same committed revision, compare checksums and run the packaged executable standalone on native Windows."
 }
