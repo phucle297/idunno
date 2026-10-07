@@ -31,3 +31,6 @@
   SVG in header/footer. The character can use Apple's colored emoji rendering,
   matching the reported white-on-green mark; SVG uses the orange currentColor
   without platform font fallback. Preserve decorative accessibility semantics.
+- 2026-10-07: Extend the same SVG replacement to the Disaster Party artwork
+  label and Steam Early Access target. No U+2733 remains in page content; the
+  regression checks all four marks, not only the studio wordmarks.

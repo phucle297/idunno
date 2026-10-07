@@ -10,6 +10,7 @@ files in `dist/` with no backend or server-side dependencies.
   availability, studio achievements, testimonials, team members or social links.
 - Keep dependencies minimal, fonts self-hosted and media clearly labelled when
   it is decorative artwork rather than actual gameplay.
+- Use SVG for decorative symbols that can render as colored platform emoji.
 - Respect reduced motion, keyboard focus and mobile layouts.
 - Use Bun with the committed `bun.lock`: `bun install --frozen-lockfile`.
 - Verify with `bun run build` and `bun run test`; inspect rendered desktop and mobile

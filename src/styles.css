@@ -426,7 +426,7 @@ a {
   align-items: center;
   gap: 8px;
 }
-.media-topline .orange {
+.media-topline .brand-dot {
   font-size: 18px;
 }
 .chaos-art--game {
@@ -666,8 +666,7 @@ a {
   align-items: center;
   padding-top: 4px;
 }
-.steam-target > span:first-child {
-  color: var(--orange);
+.steam-target .brand-dot {
   font-size: 17px;
 }
 .features {

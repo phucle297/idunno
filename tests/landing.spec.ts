@@ -48,12 +48,15 @@ test('visitors can discover the game and contact the studio without dead links',
   expect(errors).toEqual([])
 })
 
-test('studio wordmarks use orange vectors rather than platform emoji', async ({
+test('all asterisk decorations use orange vectors rather than platform emoji', async ({
   page,
 }) => {
   await page.goto('/')
-  const marks = page.locator('.wordmark svg.brand-dot')
-  await expect(marks).toHaveCount(2)
+  const marks = page.locator('svg.brand-dot')
+  await expect(marks).toHaveCount(4)
+  await expect(page.locator('.media-topline svg.brand-dot')).toHaveCount(1)
+  await expect(page.locator('.steam-target svg.brand-dot')).toHaveCount(1)
+  await expect(page.locator('body')).not.toContainText('✳')
   for (const mark of await marks.all()) {
     await expect(mark).toHaveAttribute('aria-hidden', 'true')
     expect(

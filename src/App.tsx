@@ -282,7 +282,7 @@ export default function App() {
           >
             <div className="media-topline">
               <span>
-                <span className="orange">✳</span> DISASTER PARTY
+                <BrandMark /> DISASTER PARTY
               </span>
               <span>MULTIPLAYER DISASTER SURVIVAL</span>
             </div>
@@ -326,7 +326,7 @@ export default function App() {
                 The last player standing wins.
               </p>
               <p className="steam-target">
-                <span aria-hidden="true">✳</span>
+                <BrandMark />
                 <span>Targeting Steam Early Access</span>
               </p>
             </div>

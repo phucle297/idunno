@@ -51,6 +51,12 @@
       "status": "passed",
       "command": "bun run build && LD_LIBRARY_PATH=<local browser libraries> bun run test",
       "result": "Regression first fails on both layouts because wordmarks are Unicode text. After replacing U+2733 with shared eight-spoked SVG, all 12 tests pass; both SVG strokes compute to rgb(255,121,76), remain decorative, and wordmarks contain only PERMEES text. Inspected header/footer crops and mobile footer screenshot: orange icons, no colored emoji backgrounds, clipping or overlap. WebKit installation attempted but launch blocked by missing system libraries; native Apple Safari rendering not directly verified. Fix remains local, no deployment triggered."
+    },
+    {
+      "check": "Remaining asterisk decorations",
+      "status": "passed",
+      "command": "bun run build && LD_LIBRARY_PATH=<local browser libraries> bun run test",
+      "result": "Expanded regression initially fails (2 SVG marks, expected 4), identifying remaining U+2733 in Disaster Party artwork label and Steam Early Access target. Both now reuse the shared SVG at original 18px/17px sizes. All 12 tests pass, all four marks are orange/decorative and body has no U+2733. Inspected desktop/mobile crops of both labels: no emoji backgrounds, overlap or clipping. Native Safari still requires user confirmation; no claim of remote deployment success."
     }
   ],
   "blockers": [],
@@ -60,7 +66,7 @@
     "package_manager": "bun@1.3.14",
     "hosting": "GitHub Pages",
     "custom_domain": "permees.com",
-    "deployment": "not_triggered_by_this_task"
+    "deployment": "not_verified"
   },
-  "next_action": "Obtain approval to push the wordmark fix, which triggers Pages deployment, then confirm orange icon rendering on the user's Safari."
+  "next_action": "Confirm the Pages workflow and all four orange SVG marks on the user's Safari after the authorized push."
 }
