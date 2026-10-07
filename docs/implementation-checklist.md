@@ -203,6 +203,7 @@ These stay concise until they become current.
 
 ### Phase 4 — Disaster Remix and Toy Town Interaction
 
+- Address the user's overly bright/burned-out preview feedback: reproduce the appearance in the delivered gameplay views, inspect lighting/exposure/material contributions before choosing a fix, and reduce washed-out highlights while retaining the Design Bible palette, character/costume detail and hazard readability. Compare matched before/after renders at 720p/1080p in normal play and disaster overlap; do not claim the cause or fix from screenshots alone.
 - Enlarge and enrich the existing Toy Town in response to the user's small/sparse-map feedback: additional usable buildings, props, elevated refuges and connected traversal routes, not just decorative clutter. Select the new footprint during this phase's design; retain readable boundaries and out-of-bounds protection.
 - Revalidate disaster coverage, spawn distribution, reachable escape routes, 20-player readability and representative performance for the expanded footprint; larger ground alone is not sufficient.
 - Add bounded variants to existing disasters before adding another disaster class.
@@ -215,6 +216,13 @@ These stay concise until they become current.
 - Harden the Internet room service and evaluate Steam lobby/invite integration against its existing discovery/admission boundary; do not defer dedicated rooms until this phase.
 - Improve server capacity/placement only from measured demand; adding server machines does not require changing room-ID client UX. No accounts/ranking or mass-scale infrastructure by default.
 
+### Phase 6 — Cosmetic Loot-Box Drops and Customization
+
+- Add earned loot-box drops that unlock new character models/costumes, with a small initial catalog, an opening/reward preview, an owned-cosmetics view and equip flow. Define drop eligibility, odds and duplicate handling when this phase becomes current; paid boxes, currencies and shops are not implied by this request.
+- Keep rewards cosmetic-only: unchanged hitboxes, movement, health, abilities and warning visibility. Follow the Design Bible proportions/materials/palette and asset provenance workflow; inspect models/costumes under the revised lighting rather than accepting blown-out previews.
+- Persist unlocks and equipped selection; use server-authoritative reward grants with replay/duplicate protection, and replicate only validated equipped cosmetics. Decide durable player identity/storage before claiming ownership survives devices or service restarts; keep reward/ownership logic separate from match simulation for later refactoring without mass-scale infrastructure now.
+- Validate drop eligibility and probability boundaries, duplicate/replayed grants, save/restart, unauthorized equips, multiplayer appearance agreement and rematch/disconnect recovery. Inspect reward/equip and representative gameplay states at 720p/1080p and recheck readability/performance. No unlock or persistence gate is passed by planning alone.
+
 ## Explicitly deferred
 
-Second map, additional disaster classes, progression, currencies, shops, inventories, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog.
+Second map, additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. Earned cosmetic loot-box drops and a minimal owned/equip collection are now planned in Phase 6, not current implementation scope.

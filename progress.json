@@ -241,6 +241,12 @@
       "command": "godot --path . --audio-driver Dummy --resolution <1280x720|1920x1080> --script res://tests/test_dedicated_server.gd -- --review-resolution=<same> --capture-dir=.amp/in/artifacts/dedicated/approved",
       "status": "passed",
       "result": "DEDICATED_SERVER_OK checks=128 at both exact resolutions, including actual visibility and saved framebuffer-size assertions. Inspected owner-ready, guest-ready, owner-results, guest-results and transferred-owner-results captures: correct OWNER/YOU markers, owner-only controls, explicit waiting text, no overlap/phantom host and immediate results transfer refresh. Existing winner-title ellipsis/tooltip intentional. WSL/Mesa llvmpipe Compatibility/Dummy audio, not native Windows performance or physical listening. Final captures .amp/in/artifacts/dedicated/approved/; logs .scratch/dedicated-approved-{resolution}.log. Shutdown-only9/13 ObjectDB leaks and one WAV resource remain."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Future cosmetic drops and lighting planning: JSON, unchanged active task/gates and git diff --check",
+      "status": "passed",
+      "result": "Added concise Phase 6 earned cosmetic loot-box/model/costume unlock, ownership/equip and validation scope; revised conflicting blanket deferrals. Phase 4 records user-reported overly bright preview with reproduction/investigation and before/after readability checks; cause and fix unverified. Planning only, no assets/runtime edits or monetization. Active Phase 2 task, gates and single next action unchanged; DESIGN and completed archives unchanged."
     }
   ],
   "blockers": [
