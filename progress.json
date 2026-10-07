@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T11:20:18Z",
+  "updated_at": "2026-10-07T11:46:55Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -61,7 +61,7 @@
           "task_2_2_3_dedicated_server_and_room_owner": "completed",
           "task_2_2_4_room_service_and_process_lifecycle": "completed",
           "task_2_2_5_windows_room_create_join_ui": "completed",
-          "task_2_2_6_container_network_and_failure_validation": "planned",
+          "task_2_2_6_container_network_and_failure_validation": "in_progress",
           "task_2_2_7_internet_release_readiness": "planned"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
@@ -318,9 +318,28 @@
       "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --headless --path . --script res://tests/test_room_ui.gd; native Windows editor same contract fixture",
       "status": "passed",
       "result": "Full regression exits 0: UI_REGRESSION_OK suites=28 matrices=5 persistence_restart=passed, including playable 4/8/20-player coverage and dedicated five-rematch/transfer/recovery checks. Added deadline assertions pass on Linux and native Windows: ROOM_UI_OK checks=62, open UDP sink remains connected at 9.9 simulated seconds and recovers after 10.1. No parser/gameplay errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Logs .scratch/room-ui-regression.log, .scratch/room-ui-deadline.log, native/native-deadline.log. Guide/checklist/decisions updated; Task 2.2.5 and UI gate passed. Task 2.2.6 is next, not started; public Internet and updated release packages remain pending."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.6 initial container startup and regression attempts",
+      "status": "failed",
+      "result": "Docker initially unavailable; user started daemon. First two-room attempt consumed the server registration deadline while clients imported assets, then emitted invalid dictionary-key errors. Preparing all private caches before peer launch resolves this without changing fixture deadlines/assertions. First backend container run reset engine via PATH lookup, absent in image, and returned400 instead of expected503; mounted engine now has a godot PATH symlink. Failed logs .scratch/container-first-failure/ and .scratch/container-regression-first-failure.log retained."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.6 separately addressed two-room development topology",
+      "status": "passed",
+      "result": "Repeated Docker runs pass CONTAINER_NETWORK_OK rooms=2 clients_per_room=2 rematches=5 movement=passed recovery=passed. Six separate containers on internal bridge; same UDP port in distinct server namespaces, no published ports, private import/preferences and read-only engine/source. Both exact rosters and replicated winners pass; no unexpected network script/runtime errors, existing shutdown resource diagnostics remain. This is development-server gameplay transport, not managed-room admission, independent hazard/health manipulation or capacity evidence. Logs .scratch/container-network/{alpha,bravo,alpha-owner,bravo-owner,alpha-guest,bravo-guest}.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "bash tests/run_container_network_test.sh",
+      "status": "failed",
+      "result": "Final strict runner exits1 as intended on repeated ERROR: Unable to send packet on channel0, max channels0 during backend UI crash/retry. Eleven backend assertions pass in42.554s; dedicated contract103 checks and playable4/8/20 matrix pass inside one additional container using loopback. Expected occupied-port negative errors and existing shutdown diagnostics distinguished; unexpected channel error is not suppressed or claimed fixed. Final log .scratch/container-network-final-strict.log; regression.log retains output. Test containers/network cleaned; unrelated open-design container untouched. Task remains in_progress; full gate not_run. No UI/asset/runtime implementation change, new release, Internet or physical-audio claim."
     }
   ],
   "blockers": [
+    "Task2.2.6 backend UI crash/retry repeatedly emits ENet channel0/max-channels0 diagnostic in containers despite passing assertions. Strict runner rejects it; cause/fix unverified. Reproduce and diagnose before completing container acceptance.",
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
     "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
@@ -328,6 +347,6 @@
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd"],
-  "next_action": "Implement and execute Task 2.2.6: local container topology proving two-room isolation, lifecycle/failure recovery and conservative measured capacity; no public deployment."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh"],
+  "next_action": "Reproduce and diagnose Task2.2.6 backend UI crash/retry ENet channel diagnostic with the strict container runner before continuing managed-room isolation and measured 4/8-player capacity checks."
 }

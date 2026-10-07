@@ -1,0 +1,41 @@
+name: disaster-party-local-validation
+
+x-peer: &peer
+  build:
+    context: ../..
+    dockerfile: tools/container-tests/Dockerfile
+  image: disaster-party-local-validation
+  volumes:
+    - ../..:/source:ro
+    - ${GODOT_BIN:?Set GODOT_BIN to the absolute Linux engine executable}:/opt/godot:ro
+  networks: [validation]
+  healthcheck:
+    test: [CMD, test, -f, /tmp/prepared]
+    interval: 1s
+    timeout: 2s
+    retries: 120
+  # No published ports: development servers must not be exposed publicly.
+
+services:
+  alpha:
+    <<: *peer
+    entrypoint: [bash, -c, 'bash /entrypoint.sh --role=server --server-port=29760 > /tmp/peer.log 2>&1; result=$$?; cat /tmp/peer.log; exit $$result']
+  bravo:
+    <<: *peer
+    entrypoint: [bash, -c, 'bash /entrypoint.sh --role=server --server-port=29760 > /tmp/peer.log 2>&1; result=$$?; cat /tmp/peer.log; exit $$result']
+  alpha-owner:
+    <<: *peer
+    entrypoint: [bash, -c, 'bash /entrypoint.sh --role=owner --join-address=alpha --join-port=29760 > /tmp/peer.log 2>&1; result=$$?; cat /tmp/peer.log; exit $$result']
+  bravo-owner:
+    <<: *peer
+    entrypoint: [bash, -c, 'bash /entrypoint.sh --role=owner --join-address=bravo --join-port=29760 > /tmp/peer.log 2>&1; result=$$?; cat /tmp/peer.log; exit $$result']
+  alpha-guest:
+    <<: *peer
+    command: [--role=guest, --join-address=alpha, --join-port=29760]
+  bravo-guest:
+    <<: *peer
+    command: [--role=guest, --join-address=bravo, --join-port=29760]
+
+networks:
+  validation:
+    internal: true

@@ -317,3 +317,38 @@ mode-0600 file in a mode-0700 temporary directory. Do not enable proxy body
 logging. Public DNS/TLS/firewall/UDP changes require approval and actual remote
 Windows validation in Task 2.2.7. HTTPS does not encrypt ENet gameplay traffic;
 this prototype does not promise gameplay transport confidentiality.
+
+## Local container network validation (Task 2.2.6, in progress)
+
+Requirements: a running local Docker daemon, Docker Compose, and the verified
+Linux x86_64 Godot 4.7.2 executable. From the checkout:
+
+```bash
+GODOT_BIN="$(command -v godot)" bash tests/run_container_network_test.sh
+```
+
+The runner builds a Debian/Python dependency image, mounts the engine and source
+read-only, and prepares a private import cache/preferences in every container.
+It starts two dedicated development servers on the same UDP port in different
+containers, with one owner and one guest container per room. Import preparation
+finishes before network deadlines start. An internal Docker bridge provides
+separate client addresses and DNS names; no host ports are published.
+
+Each room must pass authoritative movement, exact two-player rosters, consistent
+winners, five rematches and server-close/offline recovery. The runner also runs
+the existing room-service HTTP/ENet failure/admission tests, dedicated ownership
+contract and 4-/8-/20-player source scale matrix inside one additional container.
+Those regression peers use container-local loopback, **not** separate container
+addresses. Logs are retained under `.scratch/container-network/`. Exit status,
+positive markers and network script/runtime errors are checked; existing
+shutdown-only resource-in-use diagnostics are reported, not silently fixed.
+The runner removes its own containers/network when it exits and leaves the
+local image cached. Do not run two copies concurrently with the same Compose
+project name.
+
+This is the first Task 2.2.6 slice, not its full acceptance gate. Managed-room
+discovery/admission across containers, independent health/hazard isolation,
+cross-container 4-/8-player rooms, failure injection and CPU/RAM/tick capacity
+measurements remain required. These development tests do not establish a safe
+production room limit, public Internet routing, release-client behavior or
+physical audio. No public service is deployed by this command.
