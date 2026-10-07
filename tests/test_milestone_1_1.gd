@@ -96,7 +96,7 @@ func _run() -> void:
 	start_button.disabled = true
 	_expect(start_button.disabled, "The explicit disabled fixture must show the shared button style; solo Start is normally enabled")
 	await process_frame
-	_expect(root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/Address"), "Lobby opening must provide keyboard field focus")
+	_expect(root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/RoomId"), "Lobby opening must provide keyboard field focus")
 	await _capture("lobby-focus")
 	main.get_node("Interface/LobbyPanel/Host").grab_focus()
 	await process_frame
@@ -106,7 +106,7 @@ func _run() -> void:
 	_expect(not main.get_node("Interface/LobbyPanel").visible, "The persistent lobby button must actually close the lobby")
 	main.get_node("Interface/LobbyToggle").pressed.emit()
 	await process_frame
-	_expect(main.get_node("Interface/LobbyPanel").visible and root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/Address"), "The persistent lobby button must reopen the lobby and restore field focus")
+	_expect(main.get_node("Interface/LobbyPanel").visible and root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/RoomId"), "The persistent lobby button must reopen the lobby and restore field focus")
 	main.gameplay_audio.reset_for_match()
 	main.free()
 	await process_frame

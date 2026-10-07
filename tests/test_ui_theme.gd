@@ -40,7 +40,7 @@ func _run() -> void:
 	await process_frame
 	var lobby_button := main.get_node("Interface/LobbyToggle") as Button
 	var lobby_panel := main.get_node("Interface/LobbyPanel") as Panel
-	var address_field := main.get_node("Interface/LobbyPanel/Address") as LineEdit
+	var address_field := main.get_node("Interface/LobbyPanel/RoomId") as LineEdit
 	_expect(lobby_button.theme != null, "Top-level controls must receive the shared theme")
 	_expect(lobby_panel.theme == lobby_button.theme, "Panels and buttons must share one theme resource")
 	_expect(address_field.get_theme_stylebox("focus") is StyleBoxFlat, "Nested fields must inherit the shared focus style")

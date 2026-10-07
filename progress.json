@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-07T10:38:16Z",
+  "updated_at": "2026-10-07T11:20:18Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_5_windows_room_create_join_ui"
+    "task": "task_2_2_6_container_network_and_failure_validation"
   },
   "engine": {
     "name": "Godot",
@@ -60,7 +60,7 @@
           "task_2_2_2_exported_session_and_lan_smoke": "cancelled",
           "task_2_2_3_dedicated_server_and_room_owner": "completed",
           "task_2_2_4_room_service_and_process_lifecycle": "completed",
-          "task_2_2_5_windows_room_create_join_ui": "planned",
+          "task_2_2_5_windows_room_create_join_ui": "completed",
           "task_2_2_6_container_network_and_failure_validation": "planned",
           "task_2_2_7_internet_release_readiness": "planned"
         },
@@ -68,7 +68,7 @@
         "gates": {
           "playerless_server_and_room_owner_authority": "passed",
           "room_id_admission_and_bounded_process_lifecycle": "passed",
-          "windows_room_ui_and_failure_recovery": "not_run",
+          "windows_room_ui_and_failure_recovery": "passed",
           "multi_container_room_isolation_and_five_rematches": "not_run",
           "public_internet_release_clients_and_retry": "not_run",
           "exported_settings_assets_and_physical_audio": "not_run",
@@ -300,6 +300,24 @@
       "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (serial final run); jq empty progress.json; git diff --check",
       "status": "passed",
       "result": "Serial final regression exits 0: UI_REGRESSION_OK suites=27 matrices=5 persistence_restart=passed, including dedicated authority/owner transfer, five rematches and playable 4/8/20-player matrix. No gameplay/parser errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Log .scratch/rooms-serial-regression.log. Local backend/admission/lifecycle gate passed; Task 2.2.4 completed. Windows UI, containers, public Internet and physical listening gates remain not_run. GUIDE documents tested local service commands and proxy security boundaries. Earlier scale failure remains unconfirmed, not claimed fixed."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.5 discovery/UI implementation and initial integration",
+      "status": "failed",
+      "result": "New default room-ID/password UI, HTTPS-only remote discovery with loopback HTTP exception, retryable trusted error messages and ten-second ENet/roster recovery. Headless contract58 and rendered132 checks passed at720p/1080p. First real UI integration reached admission/ACTIVE but asserted Start enabled before the next UI refresh; fixture now waits for the actual enabled button without relaxing the assertion. Failed log .scratch/room-ui-service.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.5 actual HTTP/ENet UI flow and native Windows rendered review",
+      "status": "passed",
+      "result": "Eleven Python backend/process tests pass, including actual Create/Join buttons, bad-password retry preserving solo state, normalized ID/password clearing, real owner/guest ready/start, killed game process and fresh create/join retry in the same clients. Linux source processes/loopback only, not Internet. Native Windows 4.7.2 editor/Intel UHD630 Compatibility passes 132 checks at 1280x720 and 1920x1080 with visibility/framebuffer assertions. Inspected default/error/direct-IP/owner-ready/guest-ready/owner-results/guest-results/recovery at both widths; no clipping or overlap. One production world/light plus raw transport fixture avoids stacked preview lighting. Dummy audio; no physical listening or new release-package claim. Logs .scratch/room-ui-service-final.log; native artifacts .amp/in/artifacts/room-ui/native/."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --headless --path . --script res://tests/test_room_ui.gd; native Windows editor same contract fixture",
+      "status": "passed",
+      "result": "Full regression exits 0: UI_REGRESSION_OK suites=28 matrices=5 persistence_restart=passed, including playable 4/8/20-player coverage and dedicated five-rematch/transfer/recovery checks. Added deadline assertions pass on Linux and native Windows: ROOM_UI_OK checks=62, open UDP sink remains connected at 9.9 simulated seconds and recovers after 10.1. No parser/gameplay errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Logs .scratch/room-ui-regression.log, .scratch/room-ui-deadline.log, native/native-deadline.log. Guide/checklist/decisions updated; Task 2.2.5 and UI gate passed. Task 2.2.6 is next, not started; public Internet and updated release packages remain pending."
     }
   ],
   "blockers": [
@@ -310,6 +328,6 @@
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid"],
-  "next_action": "Implement Task 2.2.5: Windows Create Room / Join Room ID UI and HTTP discovery against the validated backend, with retryable errors, solo/direct-IP regression and rendered 720p/1080p inspection; no public deployment."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd"],
+  "next_action": "Implement and execute Task 2.2.6: local container topology proving two-room isolation, lifecycle/failure recovery and conservative measured capacity; no public deployment."
 }

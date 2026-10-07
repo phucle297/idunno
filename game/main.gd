@@ -49,6 +49,10 @@ var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
 var pause_settings: Control
 var room_admission: Node
+var room_client: Node
+var _direct_ip_mode := false
+var _room_id := ""
+var _room_connection_remaining := 0.0
 
 
 func _ready() -> void:
@@ -407,6 +411,9 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 func _on_server_disconnected() -> void:
 	# Clear ENet before any gameplay authority checks; a closed peer still counts as installed.
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	var was_room := not _room_id.is_empty()
+	_room_id = ""
+	_room_connection_remaining = 0.0
 	if is_instance_valid(room_admission):
 		room_admission.reset_client()
 		room_admission.queue_free()
@@ -441,12 +448,13 @@ func _on_server_disconnected() -> void:
 	_register_server_gameplay_player(1, $Player, "Local Player")
 	$Interface/ResultsPanel.visible = false
 	_set_lobby_visible(true)
-	$Interface/LobbyPanel/Status.text = "Server disconnected — create or join a lobby"
+	$Interface/LobbyPanel/Status.text = "Room server disconnected. Create or join again." if was_room else "Server disconnected — create or join a lobby"
 
 
 func _on_connection_failed() -> void:
+	var was_room := not _room_id.is_empty()
 	_on_server_disconnected()
-	$Interface/LobbyPanel/Status.text = "Connection failed — check address and retry"
+	$Interface/LobbyPanel/Status.text = "Room connection failed. Request a new ticket and retry." if was_room else "Connection failed — check address and retry"
 
 
 func _spawn_server_network_player(peer_id: int, player_name: String, spawn_position: Vector3) -> bool:
@@ -714,6 +722,14 @@ func _network_spawn_position(index: int) -> Vector3:
 
 
 func _process(delta: float) -> void:
+	if _room_connection_remaining > 0.0:
+		if match_manager.players.has(multiplayer.get_unique_id()):
+			_room_connection_remaining = 0.0
+		else:
+			_room_connection_remaining -= delta
+			if _room_connection_remaining <= 0.0:
+				multiplayer.multiplayer_peer.close()
+				_on_connection_failed()
 	match_manager.tick_match(delta)
 	if not _network_mode and Input.is_action_just_pressed("jump"):
 		gameplay_audio.play_jump()
@@ -1006,10 +1022,19 @@ func _request_ready(ready: bool) -> void:
 
 
 func _configure_lobby_ui() -> void:
+	room_client = preload("res://game/room_client.gd").new()
+	add_child(room_client)
+	room_client.service_url = _argument_value("--room-service-url=")
+	if room_client.service_url.is_empty():
+		room_client.service_url = ProjectSettings.get_setting("network/room_service_url", "")
+	room_client.ticket_received.connect(_on_room_ticket_received)
+	room_client.failed.connect(_on_room_lookup_failed)
+	_direct_ip_mode = _has_argument("--direct-ip") or not _argument_value("--host-port=").is_empty() or not _argument_value("--join-address=").is_empty()
 	$Interface/LobbyToggle.pressed.connect(func() -> void: _set_lobby_visible(not $Interface/LobbyPanel.visible))
 	$Interface/LobbyPanel/Host.pressed.connect(_on_lobby_host_pressed)
 	$Interface/LobbyPanel/Join.pressed.connect(_on_lobby_join_pressed)
 	$Interface/LobbyPanel/Close.pressed.connect(func() -> void: _set_lobby_visible(false))
+	$Interface/LobbyPanel/ConnectionMode.pressed.connect(func() -> void: _set_direct_ip_mode(not _direct_ip_mode))
 	$Interface/LobbyPanel/Ready.pressed.connect(_on_lobby_ready_pressed)
 	$Interface/LobbyPanel/Start.pressed.connect(func() -> void:
 		if _network_mode:
@@ -1044,6 +1069,9 @@ func _connect_ui_audio(node: Node) -> void:
 func _set_lobby_visible(visible: bool) -> void:
 	if _dedicated_server and multiplayer.is_server():
 		return
+	if not visible and room_client.busy:
+		room_client.cancel()
+		$Interface/LobbyPanel/Status.text = "Request cancelled. Create or join when ready."
 	visible = visible and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyPanel.visible = visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or (is_instance_valid(pause_settings) and pause_settings.visible) or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
@@ -1088,7 +1116,7 @@ func _input(event: InputEvent) -> void:
 
 func _lobby_focus_controls() -> Array[Control]:
 	var controls: Array[Control] = []
-	for node_name: String in ["Address", "Port", "Host", "Join", "Ready", "Start", "PlayerList", "Close"]:
+	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "PlayerList", "ConnectionMode", "Close"]:
 		var control: Control = $Interface/LobbyPanel.get_node(node_name)
 		if control.visible and control.focus_mode != Control.FOCUS_NONE and not (control is Button and control.disabled):
 			controls.append(control)
@@ -1122,6 +1150,9 @@ func _refresh_lobby_focus() -> void:
 
 
 func _on_lobby_host_pressed() -> void:
+	if not _direct_ip_mode:
+		_lookup_room(true)
+		return
 	if _network_mode or not _validate_lobby_fields(false):
 		return
 	disaster_director.cleanup()
@@ -1132,6 +1163,9 @@ func _on_lobby_host_pressed() -> void:
 
 
 func _on_lobby_join_pressed() -> void:
+	if not _direct_ip_mode:
+		_lookup_room(false)
+		return
 	if _network_mode or not _validate_lobby_fields(true):
 		return
 	_prepare_offline_player_for_join()
@@ -1141,6 +1175,45 @@ func _on_lobby_join_pressed() -> void:
 	if error != OK:
 		_register_server_gameplay_player(1, $Player, "Local Player")
 	$Interface/LobbyPanel/Status.text = "Joining %s:%d" % [address, port] if error == OK else "Join failed: %s" % error_string(error)
+
+
+func _set_direct_ip_mode(enabled: bool) -> void:
+	if _network_mode or room_client.busy:
+		return
+	_direct_ip_mode = enabled
+	$Interface/LobbyPanel/Status.text = "Unauthenticated direct-IP development mode" if enabled else "Create a room or join your friend's room ID"
+	_update_lobby_ui()
+
+
+func _lookup_room(create: bool) -> void:
+	if _network_mode or room_client.busy:
+		return
+	$Interface/LobbyPanel/Status.text = "Creating room — waiting for server startup" if create else "Looking up room — please wait"
+	room_client.lookup(create, $Interface/LobbyPanel/RoomId.text, $Interface/LobbyPanel/Password.text)
+	_update_lobby_ui()
+
+
+func _on_room_lookup_failed(message: String) -> void:
+	$Interface/LobbyPanel/Status.text = message
+	gameplay_audio.play_ui("error")
+	_update_lobby_ui()
+
+
+func _on_room_ticket_received(ticket: Dictionary) -> void:
+	# HTTP lookup errors never remove the offline player; only a valid ticket does.
+	$Interface/LobbyPanel/RoomId.text = ticket.room_id
+	$Interface/LobbyPanel/Password.clear()
+	_room_id = ticket.room_id
+	_prepare_offline_player_for_join()
+	var error := join_game(ticket.address, int(ticket.port), ticket.token)
+	if error != OK:
+		_room_id = ""
+		_register_server_gameplay_player(1, $Player, "Local Player")
+		_on_room_lookup_failed("Room connection could not start. Request a new ticket and retry.")
+		return
+	_room_connection_remaining = 10.0
+	$Interface/LobbyPanel/Status.text = "Joining room — validating admission"
+	_update_lobby_ui()
 
 
 func _validate_lobby_fields(joining: bool) -> bool:
@@ -1184,18 +1257,32 @@ func _update_lobby_ui() -> void:
 	$Interface/LobbyToggle.visible = match_manager.state != MatchManager.MatchState.RESULTS
 	var panel: Panel = $Interface/LobbyPanel
 	var in_lobby: bool = match_manager.state == MatchManager.MatchState.LOBBY
-	panel.get_node("Address").editable = not _network_mode
-	panel.get_node("Port").editable = not _network_mode
-	for field: String in ["Address", "Port"]:
-		panel.get_node(field).focus_mode = Control.FOCUS_NONE if _network_mode else Control.FOCUS_ALL
+	var locked: bool = _network_mode or room_client.busy
+	for field: String in ["Address", "Port", "RoomId", "Password"]:
+		panel.get_node(field).editable = not locked
+		panel.get_node(field).focus_mode = Control.FOCUS_NONE if locked else Control.FOCUS_ALL
+	for field: String in ["Address", "Port", "AddressLabel", "PortLabel"]:
+		panel.get_node(field).visible = _direct_ip_mode
+	for field: String in ["RoomId", "Password", "RoomIdLabel", "PasswordLabel"]:
+		panel.get_node(field).visible = not _direct_ip_mode
+	panel.get_node("Title").text = ("ROOM " + _room_id) if not _room_id.is_empty() else ("DIRECT-IP LOBBY" if _direct_ip_mode else "PLAY WITH FRIENDS")
+	panel.get_node("Title").tooltip_text = panel.get_node("Title").text
+	panel.get_node("Host").text = "CREATE" if _direct_ip_mode else "CREATE ROOM"
+	panel.get_node("Join").text = "JOIN" if _direct_ip_mode else "JOIN ROOM"
+	panel.get_node("Host").disabled = locked
+	panel.get_node("Join").disabled = locked
 	panel.get_node("Host").visible = not _network_mode
 	panel.get_node("Join").visible = not _network_mode
+	panel.get_node("ConnectionMode").visible = not _network_mode
+	panel.get_node("ConnectionMode").disabled = locked
+	panel.get_node("ConnectionMode").text = "INTERNET ROOMS" if _direct_ip_mode else "DIRECT IP (DEV)"
 	var lobby_demo := _has_argument("--lobby-demo")
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
 	panel.get_node("Ready").disabled = not connected and not lobby_demo
-	panel.get_node("Start").visible = can_control_session() and in_lobby
+	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
+	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
 	panel.get_node("Start").disabled = (not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false
 	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id, _room_owner_id if _dedicated_server else 1, "OWNER" if _dedicated_server else "HOST")
 	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"

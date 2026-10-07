@@ -406,7 +406,7 @@ color = Color(0.12549, 0.164706, 0.219608, 0.6)
 [node name="LobbyPanel" type="Panel" parent="Interface"]
 visible = false
 offset_left = 24.0
-offset_top = 150.0
+offset_top = 88.0
 offset_right = 404.0
 offset_bottom = 696.0
 
@@ -417,8 +417,9 @@ offset_right = 360.0
 offset_bottom = 38.0
 theme_override_colors/font_color = Color(0.12549, 0.164706, 0.219608, 1)
 theme_override_font_sizes/font_size = 22
-text = "DIRECT-IP LOBBY"
+text = "PLAY WITH FRIENDS"
 horizontal_alignment = 1
+text_overrun_behavior = 3
 
 [node name="AddressLabel" type="Label" parent="Interface/LobbyPanel"]
 offset_left = 20.0
@@ -455,23 +456,64 @@ placeholder_text = "Port"
 [node name="Host" type="Button" parent="Interface/LobbyPanel"]
 offset_left = 20.0
 offset_top = 108.0
-offset_right = 124.0
+offset_right = 180.0
 offset_bottom = 146.0
-text = "CREATE"
+text = "CREATE ROOM"
 
 [node name="Join" type="Button" parent="Interface/LobbyPanel"]
-offset_left = 136.0
-offset_top = 108.0
-offset_right = 240.0
-offset_bottom = 146.0
-text = "JOIN"
-
-[node name="Close" type="Button" parent="Interface/LobbyPanel"]
-offset_left = 252.0
+offset_left = 192.0
 offset_top = 108.0
 offset_right = 360.0
 offset_bottom = 146.0
+text = "JOIN ROOM"
+
+[node name="Close" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 192.0
+offset_top = 550.0
+offset_right = 360.0
+offset_bottom = 588.0
 text = "CLOSE"
+
+[node name="ConnectionMode" type="Button" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 550.0
+offset_right = 180.0
+offset_bottom = 588.0
+theme_override_font_sizes/font_size = 14
+text = "DIRECT IP (DEV)"
+
+[node name="RoomIdLabel" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 42.0
+offset_right = 180.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 14
+text = "ROOM ID"
+
+[node name="PasswordLabel" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 192.0
+offset_top = 42.0
+offset_right = 360.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 14
+text = "PASSWORD (OPTIONAL)"
+
+[node name="RoomId" type="LineEdit" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 64.0
+offset_right = 180.0
+offset_bottom = 100.0
+max_length = 24
+placeholder_text = "Blank = random ID"
+
+[node name="Password" type="LineEdit" parent="Interface/LobbyPanel"]
+offset_left = 192.0
+offset_top = 64.0
+offset_right = 360.0
+offset_bottom = 100.0
+secret = true
+max_length = 128
+placeholder_text = "No password"
 
 [node name="Ready" type="Button" parent="Interface/LobbyPanel"]
 offset_left = 20.0
@@ -506,11 +548,12 @@ script = ExtResource("15_roster")
 offset_left = 20.0
 offset_top = 500.0
 offset_right = 360.0
-offset_bottom = 528.0
+offset_bottom = 544.0
 theme_override_font_sizes/font_size = 14
-text_overrun_behavior = 3
-text = "Create or join a LAN lobby"
+autowrap_mode = 2
+text = "Create a room or join your friend's room ID"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ResultsPanel" type="Panel" parent="Interface"]
 visible = false

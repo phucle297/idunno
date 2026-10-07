@@ -275,6 +275,45 @@ class RealProcesses(unittest.TestCase):
             playing.result(timeout=12)
             ready_guest.result(timeout=12)
 
+    def test_ui_discovery_ready_start_and_crash_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            processes = []
+            logs = []
+            try:
+                for role in ("owner", "guest"):
+                    log = Path(directory) / f"{role}.log"
+                    logs.append(log)
+                    with log.open("w") as output:
+                        processes.append(subprocess.Popen([
+                            self.service.args.godot, "--headless", "--path", str(ROOT),
+                            "--script", "res://tests/room_ui_peer.gd", "--", f"--role={role}",
+                            f"--room-service-url=http://127.0.0.1:{self.server.server_port}",
+                        ], stdout=output, stderr=subprocess.STDOUT))
+                    if role == "owner":
+                        deadline = time.monotonic() + 12
+                        while "ROOM_UI_CONNECTED" not in log.read_text() and time.monotonic() < deadline:
+                            time.sleep(0.05)
+                        self.assertIn("ROOM_UI_CONNECTED", log.read_text())
+                deadline = time.monotonic() + 12
+                while not all("ROOM_UI_ACTIVE" in log.read_text() for log in logs) and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                self.assertTrue(all("ROOM_UI_ACTIVE" in log.read_text() for log in logs), [log.read_text() for log in logs])
+                room = self.service.rooms["UI-FRIENDS"]
+                room["process"].kill()
+                room["process"].wait(timeout=3)
+                self.service.reap()
+                for process, log in zip(processes, logs):
+                    self.assertEqual(process.wait(timeout=28), 0, log.read_text())
+                    output = log.read_text()
+                    self.assertIn("ROOM_UI_PEER_OK", output)
+                    self.assertNotIn("SCRIPT ERROR", output)
+                    self.assertEqual([line for line in output.splitlines() if line.startswith("ERROR:") and "resources still in use at exit" not in line], [], output)
+            finally:
+                for process in processes:
+                    if process.poll() is None:
+                        process.terminate()
+                        process.wait(timeout=3)
+
     def test_registry_restart_server_fails_closed(self):
         ticket = self.post("/v1/rooms/create", self.data)
         room = self.service.rooms[ticket["room_id"]]

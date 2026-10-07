@@ -2,14 +2,12 @@
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
-needed. Multiplayer uses direct ENet IP connections, with no lobby browser,
-Steam invites or NAT traversal. Same-PC checks do not prove physical LAN play.
-
-**Planned direction:** Internet-hosted dedicated servers with custom room-ID
-create/join are now scheduled in Phase 2. They are not implemented in the current
-package. The direct-IP instructions below remain valid for its existing mode;
-the LAN checklist is optional legacy coverage, not the active readiness gate.
-See `docs/implementation-checklist.md` for the Internet-room plan.
+needed. The source checkout now defaults to dedicated-room create/join by ID;
+an operator must configure its room-service URL. No public service is deployed.
+The previously delivered Windows ZIP still has the older direct-IP UI; do not
+expect room-ID support until a new matching client/server build is delivered in
+Task 2.2.7. No lobby browser, Steam invites or NAT traversal is implemented.
+Same-PC checks do not prove physical LAN or Internet play.
 
 ## Prepare and verify the package
 
@@ -45,6 +43,43 @@ one player does not immediately declare a winner. The first warning can appear
 after about 10 seconds. Use **L** to open the lobby for network play.
 Developers can still run `godot --path .`; see `README.md` for build commands.
 
+## Create or join a room (new source UI)
+
+Start the local service as described below, then launch a source client:
+
+```bash
+godot --path . -- --room-service-url=http://127.0.0.1:29800
+```
+
+1. Press **L** or select **LOBBY**. Enter a custom **ROOM ID** (3–24 ASCII
+   letters/digits/hyphens, starting with a letter/digit), or leave it blank when
+   creating to receive a generated ID. Case and surrounding spaces are normalized.
+2. Optionally enter a password; select **CREATE ROOM**. Share the displayed ID
+   and password with friends, not an admission token. Friends enter the same
+   ID/password and select **JOIN ROOM**. Joining requires an ID.
+3. Every admitted player selects **READY UP**. The first admitted player is
+   marked **OWNER** and can select **START MATCH** when at least two players are
+   present and all are ready. Guests see waiting text instead of owner controls.
+   Owner-only rematch/return controls remain in results; ownership transfers if
+   the owner leaves.
+4. Lookup errors leave solo gameplay intact and allow correction/retry. If the
+   room server disconnects, the client restores its offline lobby; create or
+   join again to obtain a fresh ticket. Connecting/admitting has a ten-second
+   deadline, separate from the twenty-second HTTP request deadline. Do not retry
+   an old token. A restarted service does not retain previous rooms.
+
+Remote operator URLs must use **HTTPS**; plain HTTP is accepted only for the
+explicit `127.0.0.1:<port>` development endpoint. An operator can set
+`network/room_service_url` in the matching build or override it using
+`--room-service-url=`. No URL is supplied by default, so an unconfigured client
+shows a clear error. Discovery uses HTTP; gameplay remains authoritative ENet/UDP.
+Local loopback and native Windows UI checks are not public routing evidence.
+
+For legacy listen-host development, select **DIRECT IP (DEV)** or launch with
+`--direct-ip`. **INTERNET ROOMS** switches back while disconnected. Existing
+`--host-port=` / `--join-address=` commands automatically select direct-IP mode.
+This is not a way to bypass admission on a managed room server.
+
 ## Play with another member on the same LAN
 
 ### 1. Prepare every PC
@@ -64,7 +99,7 @@ Use the address shown for the active Ethernet or Wi-Fi adapter, such as `192.168
 
 ### 2. Start or join in game
 
-Press **L** (or select **LOBBY**) to open the direct-IP panel. The host leaves the default UDP port or enters another port and selects **CREATE**. Each other player enters the host's LAN IPv4 address and the same port, then selects **JOIN**.
+Press **L** (or select **LOBBY**) to open the panel; in the new source UI select **DIRECT IP (DEV)** first. The host leaves the default UDP port or enters another port and selects **CREATE**. Each other player enters the host's LAN IPv4 address and the same port, then selects **JOIN**.
 
 Each connected player selects **READY**. The panel lists every player as ready or waiting. When at least two players are connected and all are ready, the host selects **START MATCH** or presses **Enter**.
 
@@ -214,9 +249,9 @@ engine, test markers and evidence limitations; keep any failed checks visible.
 
 ## Local room-service development (source checkout only)
 
-Task 2.2.4 adds the allocator/admission backend, not the Windows room-ID UI or a
-new release package. Python 3.10+ (standard library only) and Godot 4.7.2 are
-required. From the checkout on Linux:
+Tasks 2.2.4/2.2.5 add the allocator/admission backend and room-ID client UI,
+not a new release package. Python 3.10+ (standard library only) and Godot 4.7.2
+are required. From the checkout on Linux:
 
 ```bash
 godot --headless --editor --path . --quit
@@ -251,8 +286,8 @@ do not put real passwords in shell history. Responses contain `room_id`,
 tickets free their reservations. Use a new ticket for every connection attempt.
 Tokens are room-instance-bound and hashed in memory; never publish them in logs.
 
-The client transport accepts a ticket via `join_game(address, port, token)`;
-normal Windows create/join UI is Task 2.2.5. Managed servers authenticate through
+The room UI obtains a ticket and passes it to `join_game(address, port, token)`;
+the HTTP client never owns match simulation. Managed servers authenticate through
 Godot's ENet pre-registration hook. Raw direct-IP clients cannot bypass it.
 Unmanaged `--server-port=` remains an **unauthenticated development mode** and
 must not be exposed publicly. Room owner is the first admitted player, not

@@ -12,6 +12,7 @@ func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
+	main._set_direct_ip_mode(true)
 	var server_root := Node.new()
 	server_root.name = "TestServer"
 	root.add_child(server_root)

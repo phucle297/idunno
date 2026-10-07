@@ -19,8 +19,9 @@ separate from gameplay authority so additional machines can be introduced later
 without changing room-ID joining. No mass-scale infrastructure or optimization
 for hundreds of thousands/millions of users is planned. This is a roadmap change,
 not completed Internet functionality. The source now supports playerless
-dedicated hosting and room-owner controls; room-ID discovery/admission are still
-planned, and the previously delivered package uses direct-IP listen hosting.
+dedicated hosting, room-owner controls, bounded room allocation/admission and
+room-ID create/join UI with retry recovery. Containers/public Internet validation
+remain next; the previously delivered package still uses direct-IP listen hosting.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
 ## Windows playtest export
@@ -156,10 +157,16 @@ godot --path .
 godot --path . -- --host-port=29730
 godot --path . -- --join-address=127.0.0.1 --join-port=29730
 
-# Playerless dedicated server (development only; no room-ID admission yet).
+# Playerless dedicated server (unmanaged, unauthenticated development only).
 godot --headless --path . -- --server-port=29730
 # Join with two clients using the direct-IP command above. First connected client
 # is OWNER; owner may start once everyone is ready, rematch and return to lobby.
+
+# Managed rooms: start service, then launch clients in other terminals.
+python3 tools/room_service.py --godot "$(command -v godot)"
+godot --path . -- --room-service-url=http://127.0.0.1:29800
+# Press L for Create Room / Join Room; remote service URLs require HTTPS.
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v
 
 # Inspect the reference assets together.
 godot --path . res://scenes/asset_validation.tscn
@@ -170,7 +177,8 @@ longest-connected remaining player and rejects delayed session actions from
 earlier rounds/owners. Matches retain normal survivor rules when someone leaves.
 New arrivals during ACTIVE are rejected; reconnect/rejoin during an active round
 is not supported yet. Server startup failure exits nonzero. This is unauthenticated
-development transport: **do not expose it publicly before room admission and
-Internet-readiness work**. No deployment or firewall changes are included.
+development transport: **do not expose unmanaged servers publicly**. Managed
+rooms enforce pre-registration tickets; discovery/lifecycle and retry instructions
+are in `GUIDE.md`. No public deployment or firewall changes are included.
 
 Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results.
