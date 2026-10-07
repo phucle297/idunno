@@ -31,16 +31,16 @@
   "phase": {
     "id": "phase_2_human_playtest_and_core_feel",
     "title": "Human Playtest and Core Feel",
-    "status": "planned",
+    "status": "in_progress",
     "dependencies": ["phase_1_ui_identity_and_feedback"],
     "goal": "Package a reproducible Windows build, observe structured 3–8-player multi-PC sessions, and tune core feel from evidence before expansion.",
     "milestones": {
       "milestone_2_1_reproducible_windows_playtest_build": {
         "title": "Reproducible Windows Playtest Build",
-        "status": "planned",
+        "status": "in_progress",
         "scope": "Create a repeatable Windows export with build/version identification; verify standalone launch without adding distribution services.",
         "tasks": {
-          "task_2_1_1_windows_export_pipeline": "planned",
+          "task_2_1_1_windows_export_pipeline": "in_progress",
           "task_2_1_2_build_identity_and_standalone_launch": "planned"
         },
         "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch on native Windows without editor/repository, with matching build identity and no missing resources. See docs/implementation-checklist.md for the executable plan.",
@@ -124,12 +124,17 @@
       "check": "Five-milestone plan consistency: Python assertions, jq empty progress.json and git diff --check",
       "status": "passed",
       "result": "PHASE_2_PLAN_OK milestones=5 dependencies=ordered current_task=valid gates=not_run checklist=aligned. Documentation-only restructure; prior gameplay evidence preserved and completed-phase archives unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Windows template installation and export implementation",
+      "status": "passed",
+      "result": "Official Godot 4.7.2 template TPZ verified against release SHA512-SUMS.txt (ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079). Installed x86_64 release/debug templates and version.txt locally. Added isolated committed-HEAD export script/preset and startup identity log. bash -n and git diff --check pass; export and native launch gates remain not_run pending a clean committed build."
     }
   ],
   "blockers": [
-    "Milestone 2.1 prerequisite: matching export templates and a Windows export preset/pipeline are absent; implement Task 2.1.1 before claiming any packaged-build gate.",
     "Milestone 2.2 physical LAN smoke and Milestones 2.3/2.5 human sessions require separate Windows PCs and participants; availability is not established and automated localhost peers cannot satisfy these gates."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md"],
-  "next_action": "Implement Task 2.1.1: verify/install Godot 4.7.2 export templates, add a Windows x86_64 Compatibility preset and repeatable export command, then compare two exports from the same clean revision."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd"],
+  "next_action": "Validate two isolated Windows exports from the same committed revision, compare checksums and run the packaged executable standalone on native Windows."
 }

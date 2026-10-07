@@ -48,6 +48,11 @@ var pause_settings: Control
 
 
 func _ready() -> void:
+	print("DISASTER_PARTY_BUILD revision=%s engine=%s renderer=%s" % [
+		ProjectSettings.get_setting("build/revision", "development"),
+		Engine.get_version_info()["string"],
+		ProjectSettings.get_setting("rendering/renderer/rendering_method"),
+	])
 	_configure_ui_theme()
 	_build_lighting()
 	_build_sandbox()

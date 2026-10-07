@@ -12,6 +12,56 @@ Development is specification-led:
 
 All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. **Phase 1 — UI Identity and Feedback** adds the Toy Broadcast HUD, warnings, lobby, spectator/results presentation, local pause, saved settings, and continuous map perimeter with authoritative out-of-bounds elimination. Both phases are complete; detailed evidence is archived under `docs/old-docs/`, and `progress.json` now tracks Phase 2 — Human Playtest and Core Feel. See `GUIDE.md` for play instructions and current limitations.
 
+## Windows playtest export
+
+Use the official Godot **4.7.2 stable** Linux editor and its matching export
+templates. The build command runs on Linux/WSL with Bash, Git, tar, ripgrep and
+sha256sum. Native Windows is required to validate the resulting executable.
+
+Download `Godot_v4.7.2-stable_export_templates.tpz` and `SHA512-SUMS.txt` from
+[the official release](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable).
+Keep downloads outside tracked source. In the download directory:
+
+```bash
+rg ' Godot_v4.7.2-stable_export_templates.tpz$' SHA512-SUMS.txt | sha512sum -c -
+mkdir -p "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+unzip -j Godot_v4.7.2-stable_export_templates.tpz \
+  templates/windows_release_x86_64.exe templates/windows_debug_x86_64.exe \
+  templates/version.txt -d "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+```
+
+Commit the desired source first; the exporter rejects tracked changes and builds
+only committed `HEAD` in an isolated directory, without reusing editor caches.
+Untracked files are not build inputs. Choose fresh output directories:
+
+```bash
+GODOT_BIN=$(command -v godot) tools/export_windows.sh .scratch/windows-a
+GODOT_BIN=$(command -v godot) tools/export_windows.sh .scratch/windows-b
+diff .scratch/windows-a/SHA256SUMS.txt .scratch/windows-b/SHA256SUMS.txt
+```
+
+The package contains `DisasterParty.exe`, `DisasterParty.pck`, `BUILD.txt` and
+`SHA256SUMS.txt`; import/export logs are developer evidence, not runtime
+dependencies. Tests, generators, documentation, caches and downloaded tools are
+excluded. The executable is unsigned; this is not a Steam or release package.
+
+Copy those four files to a fresh directory on Windows and double-click
+`DisasterParty.exe`. Keep the PCK beside the EXE. No Godot/editor/repository is
+required. `BUILD.txt` identifies the full source revision and engine; the game
+prints `DISASTER_PARTY_BUILD` on startup. For a standalone launch smoke check:
+
+```powershell
+$game = Start-Process .\DisasterParty.exe -ArgumentList '--log-file launch.log --quit-after 600' -Wait -PassThru
+if ($game.ExitCode -ne 0) { throw "Launch failed: $($game.ExitCode)" }
+Get-Content .\launch.log
+Get-FileHash .\DisasterParty.exe, .\DisasterParty.pck, .\BUILD.txt -Algorithm SHA256
+```
+
+Compare hashes with `SHA256SUMS.txt`. Same-revision payload hashes must match;
+any packaging-only differences must be investigated and documented, not ignored.
+Exported multiplayer/settings/audio readiness and physical LAN checks belong to
+Milestone 2.2; this command does not prove them.
+
 ## Local development
 
 Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the portable binary.
