@@ -2,6 +2,24 @@ import { useEffect } from 'react'
 import ChaosArt from './ChaosArt'
 import DisasterArtwork from './DisasterArtwork'
 
+function BrandMark() {
+  return (
+    <svg
+      className="brand-dot"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M12 2v20M2 12h20M5 5l14 14M5 19 19 5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+      />
+    </svg>
+  )
+}
+
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
     <svg
@@ -147,7 +165,8 @@ export default function App() {
       </a>
       <header className="site-header container flex items-center justify-between">
         <a className="wordmark" href="#top" aria-label="Permees home">
-          PERMEES<span className="brand-dot">✳</span>
+          PERMEES
+          <BrandMark />
         </a>
         <nav
           aria-label="Main navigation"
@@ -414,7 +433,8 @@ export default function App() {
       <footer className="container site-footer flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="footer-brand">
           <a href="#top" className="wordmark" aria-label="Permees home">
-            PERMEES<span className="brand-dot">✳</span>
+            PERMEES
+            <BrandMark />
           </a>
           <span>Independent Game Studio</span>
         </div>

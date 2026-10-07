@@ -48,6 +48,23 @@ test('visitors can discover the game and contact the studio without dead links',
   expect(errors).toEqual([])
 })
 
+test('studio wordmarks use orange vectors rather than platform emoji', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const marks = page.locator('.wordmark svg.brand-dot')
+  await expect(marks).toHaveCount(2)
+  for (const mark of await marks.all()) {
+    await expect(mark).toHaveAttribute('aria-hidden', 'true')
+    expect(
+      await mark
+        .locator('path')
+        .evaluate((path) => getComputedStyle(path).stroke),
+    ).toBe('rgb(255, 121, 76)')
+  }
+  await expect(page.locator('.wordmark')).toHaveText(['PERMEES', 'PERMEES'])
+})
+
 test('static metadata, small screens, keyboard access and reduced motion are supported', async ({
   page,
   request,
@@ -58,7 +75,9 @@ test('static metadata, small screens, keyboard access and reduced motion are sup
   expect(html).toContain('property="og:image"')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
-  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeAttached()
+  await expect(
+    page.getByRole('link', { name: 'Skip to content' }),
+  ).toBeAttached()
   await page.keyboard.press('Tab')
   await expect(
     page.getByRole('link', { name: 'Skip to content' }),

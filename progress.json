@@ -4,7 +4,7 @@
   "current": {
     "phase": "studio_landing_page",
     "milestone": "static_launch_readiness",
-    "task": "configure_github_pages_with_bun"
+    "task": "consistent_wordmark_icon"
   },
   "status": "completed",
   "stack": ["React", "TypeScript", "Vite", "Tailwind CSS"],
@@ -45,6 +45,12 @@
       "status": "passed",
       "command": "bun install --frozen-lockfile && bun run build; LD_LIBRARY_PATH=<local browser libraries> bun run test",
       "result": "Bun 1.3.14 frozen installation and static build pass; all 10 desktop/mobile browser tests pass, including Back to top reaching scroll position 0,0 without changing URL/history. Workflow YAML checks confirm feat/website-only push trigger, Pages permissions, Bun build, dist upload and official deploy action. All pinned action references resolve. dist/CNAME contains permees.com and built JS/CSS root asset paths exist. No remote workflow execution, Pages settings change or DNS update performed."
+    },
+    {
+      "check": "Wordmark vector rendering regression",
+      "status": "passed",
+      "command": "bun run build && LD_LIBRARY_PATH=<local browser libraries> bun run test",
+      "result": "Regression first fails on both layouts because wordmarks are Unicode text. After replacing U+2733 with shared eight-spoked SVG, all 12 tests pass; both SVG strokes compute to rgb(255,121,76), remain decorative, and wordmarks contain only PERMEES text. Inspected header/footer crops and mobile footer screenshot: orange icons, no colored emoji backgrounds, clipping or overlap. WebKit installation attempted but launch blocked by missing system libraries; native Apple Safari rendering not directly verified. Fix remains local, no deployment triggered."
     }
   ],
   "blockers": [],
@@ -56,5 +62,5 @@
     "custom_domain": "permees.com",
     "deployment": "not_triggered_by_this_task"
   },
-  "next_action": "Obtain approval to push the configured branch, which will trigger public deployment; confirm GitHub Pages Actions source, custom domain and environment branch permissions."
+  "next_action": "Obtain approval to push the wordmark fix, which triggers Pages deployment, then confirm orange icon rendering on the user's Safari."
 }

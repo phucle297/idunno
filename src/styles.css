@@ -139,8 +139,10 @@ a {
 }
 .brand-dot {
   color: var(--orange);
-  font-family: Arial, sans-serif;
   font-size: 23px;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
 }
 .site-header nav {
   font-size: 13px;

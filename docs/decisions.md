@@ -27,3 +27,7 @@
 - 2026-10-07: The latest instruction selects Bun over npm. Use the existing
   `bun.lock`, pin Bun 1.3.14, and install with `--frozen-lockfile` in CI. Node 22
   remains available for Vite's Node-based tooling; no npm install/build step.
+- 2026-10-07: Replace the wordmark's Unicode U+2733 with an eight-spoked inline
+  SVG in header/footer. The character can use Apple's colored emoji rendering,
+  matching the reported white-on-green mark; SVG uses the orange currentColor
+  without platform font fallback. Preserve decorative accessibility semantics.
