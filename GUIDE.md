@@ -379,3 +379,104 @@ sub-budget physics does not establish perfectly paced 60-Hz ticks, 60-FPS client
 rendering, or Internet latency. Re-measure on the approved deployment hardware
 and real network before raising limits. Public routing, release clients,
 physical audio and human feel remain Task 2.2.7/Playtest gates.
+
+## Packaged server operator runbook (Task 2.2.7)
+
+This is local release preparation, **not deployment authorization or a tested
+public service**. Obtain approval for the exact server, domain, region, costs,
+TLS termination and inbound firewall/UDP rules before changing shared systems.
+Start with two rooms/four players per room; measure again on deployment hardware.
+
+### Verify and start locally
+
+Export both targets from the same committed revision using `README.md`. Copy
+only the Linux executable, PCK, `room_service.py`, `BUILD.txt` and `SHA256SUMS.txt`
+to a fresh directory, not source/tests or import caches. On Linux x86_64 with
+Python 3.10+ and the runtime libraries required by the Godot template, run from
+that package directory as an unprivileged operator:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+chmod +x DisasterParty.x86_64
+BUILD=$(sed -n 's/^Source revision: //p' BUILD.txt)
+test ${#BUILD} -eq 40
+python3 ./room_service.py \
+  --godot "$PWD/DisasterParty.x86_64" --project "$PWD" --build "$BUILD" \
+  --public-address 127.0.0.1 --listen-port 29800 \
+  --port-start 29810 --port-end 29811 --rooms 2 --players 4 \
+  > room-service.log 2>&1 &
+SERVICE_PID=$!
+```
+
+The Linux release template auto-loads the adjacent PCK; do not substitute a
+source checkout or development build. `ROOM_SERVICE_READY` confirms the HTTP
+listener, not a game server. A successful Create must also print
+`DISASTER_PARTY_BUILD`, `DEDICATED_SERVER_READY` and `ready room=... build=...`
+with the same revision. HTTP version checks and server admission fail closed
+on a mismatched build. Stop only the process started above:
+
+```bash
+kill -TERM "$SERVICE_PID"
+wait "$SERVICE_PID"
+```
+
+SIGTERM closes managed children and reclaims ports. For a supervised deployment,
+use a service manager with a dedicated user, private writable runtime/preferences
+directory, restart-on-failure and whole-process-group cleanup. Do not run as root
+or auto-update binaries under live rooms. Keep read-only versioned package
+directories; stop/drain sessions before switching the executable/PCK/service as
+one unit. Roll back the whole bundle **and clients**, not just the executable.
+
+From the matching Windows package, local discovery is:
+
+```powershell
+.\DisasterParty.exe --log-file room-client.log -- --room-service-url=http://127.0.0.1:29800
+```
+
+Here loopback refers to the Windows PC. For Windows/WSL split networking it works
+only when Windows can reach the WSL loopback-forwarded service and advertised
+UDP ports; failure is not Internet evidence. Use the source-only local checks or
+a verified host address/topology instead of assuming forwarding works.
+
+### Approved public deployment checklist (not executed)
+
+- Keep Python HTTP on `127.0.0.1:29800`; set `--public-address` to the reachable
+  game-server IPv4 address or DNS name, never loopback/private container DNS.
+  Discovery HTTPS and ENet UDP must reach this same machine and port mapping.
+- Terminate TLS on HTTPS port 443 with a valid trusted certificate for the chosen
+  domain. Proxy **only** POST `/v1/rooms/create` and `/v1/rooms/join` to the same
+  loopback paths. Return 404 for every other route, especially `/internal/*`.
+  Restrict method/body size (2 KiB), edge per-client-IP rate/concurrency limits
+  and upstream timeouts longer than the 15-second room startup budget. Do not
+  expose port 29800. Validate proxy configuration before reload and test that
+  remote internal routes stay inaccessible. Never publish test-fixture listeners.
+- Allow inbound UDP 29810–29811 on the server/provider firewall (not TCP for
+  gameplay) plus HTTPS 443. Preserve restricted operator access. Room creation
+  is unauthenticated and capacity-bounded, not an account/abuse-prevention service.
+  Players do not forward inbound router ports; their network must allow outbound
+  HTTPS and UDP/replies. HTTPS does not encrypt gameplay packets.
+- Give players a launcher command replacing `https://rooms.example.com` with the
+  approved endpoint: `DisasterParty.exe --log-file room-client.log --
+  --room-service-url=https://rooms.example.com`. Do not share tokens or room
+  passwords in logs/screenshots. Do not log proxy request/response bodies or
+  authorization data. Restrict log permissions/retention and collect only build,
+  room ID, timestamps, lifecycle/errors and performance/network measurements.
+- If HTTP succeeds but admission times out, verify advertised address, UDP rules,
+  matching revisions and server readiness. If only HTTPS fails, check DNS,
+  certificate trust/expiry and proxy route/timeouts; never disable certificate
+  validation. Full service gives 503; active/full rooms give 409. A room crash
+  removes that room; service restart loses all rooms/tickets. Clients recover
+  offline and Create/Join obtains fresh tickets. Never replay an old ticket.
+
+### Remaining release acceptance
+
+Use unchanged release executables on separate Windows PCs on different Internet
+networks. Record client/server full revisions, server CPU/RAM/OS/region, GPU and
+resolution, network type/RTT/loss/disconnects and timestamped credential-free
+logs. Create/join a custom ID, exercise ready/start, movement/props, every hazard
+warning, death/spectating/results, five rematches, owner departure/transfer and
+server-loss retry without restarting clients. Inspect asset presentation, change
+settings then restart the executable, and have participants confirm physical
+warning/effect audibility at documented volume levels. Scripted PCK/editor or
+Dummy-audio checks cannot pass those release-runtime/listening gates. Keep
+Internet and human gates open until these sessions are executed and recorded.

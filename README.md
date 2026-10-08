@@ -39,6 +39,7 @@ rg ' Godot_v4.7.2-stable_export_templates.tpz$' SHA512-SUMS.txt | sha512sum -c -
 mkdir -p "$HOME/.local/share/godot/export_templates/4.7.2.stable"
 unzip -j Godot_v4.7.2-stable_export_templates.tpz \
   templates/windows_release_x86_64.exe templates/windows_debug_x86_64.exe \
+  templates/linux_release.x86_64 templates/linux_debug.x86_64 \
   templates/version.txt -d "$HOME/.local/share/godot/export_templates/4.7.2.stable"
 ```
 
@@ -50,12 +51,23 @@ Untracked files are not build inputs. Choose fresh output directories:
 GODOT_BIN=$(command -v godot) tools/export_windows.sh .scratch/windows-a
 GODOT_BIN=$(command -v godot) tools/export_windows.sh .scratch/windows-b
 diff .scratch/windows-a/SHA256SUMS.txt .scratch/windows-b/SHA256SUMS.txt
+GODOT_BIN=$(command -v godot) tools/export_playtest.sh linux-server .scratch/linux-a
+GODOT_BIN=$(command -v godot) tools/export_playtest.sh linux-server .scratch/linux-b
+diff .scratch/linux-a/SHA256SUMS.txt .scratch/linux-b/SHA256SUMS.txt
 ```
 
 The package contains `DisasterParty.exe`, `DisasterParty.pck`, `BUILD.txt` and
 `SHA256SUMS.txt`; import/export logs are developer evidence, not runtime
 dependencies. Tests, generators, documentation, caches and downloaded tools are
 excluded. The executable is unsigned; this is not a Steam or release package.
+
+The Linux package substitutes `DisasterParty.x86_64` and adds the same-revision
+`room_service.py`. It runs with `--headless` without an editor, import cache or
+checkout. Python 3.10+ is required for room allocation. Both targets share the
+isolated exporter; `export_windows.sh` preserves the original command. Export
+both from the same HEAD, not merely the same tag name. See the
+[operator runbook](GUIDE.md#packaged-server-operator-runbook-task-227) for local
+startup, deployment boundaries and outstanding Internet/listening gates.
 
 Copy those four files to a fresh directory on Windows and double-click
 `DisasterParty.exe`. Keep the PCK beside the EXE. No Godot/editor/repository is
