@@ -23,6 +23,8 @@ var local_input_blocked := false
 var mouse_sensitivity := 1.0
 var invert_y := false
 var camera_shake_level := 1.0
+var _prediction_inputs: Array[Dictionary] = []
+var _last_movement_ack := -1
 
 
 func _ready() -> void:
@@ -95,12 +97,15 @@ func apply_movement_input(
 	sprinting: bool,
 	crouched: bool,
 	jump_pressed: bool,
-	delta: float
+	delta: float,
+	grounded_override: int = -1
 ) -> void:
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
-	if is_on_floor():
+	# The first replay tick starts from server contact, not the client's future contact.
+	var grounded := is_on_floor() if grounded_override < 0 else grounded_override != 0
+	if grounded:
 		_coyote_remaining = Tuning.COYOTE_TIME
 	else:
 		_coyote_remaining = maxf(0.0, _coyote_remaining - delta)
@@ -125,13 +130,61 @@ func apply_movement_input(
 		Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
 	)
 	var target_velocity := wish_direction * target_speed
-	var acceleration := Tuning.GROUND_ACCELERATION if is_on_floor() else Tuning.AIR_ACCELERATION
+	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 
 	if wish_direction.length_squared() > 0.01:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
 	move_and_slide()
+
+
+func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, delta: float) -> void:
+	if _is_eliminated or is_knocked_down():
+		_prediction_inputs.clear()
+		return
+	_prediction_inputs.append({"sequence": sequence, "direction": direction, "sprinting": sprinting, "crouched": crouched, "jump_pressed": jump_pressed, "yaw": _camera_yaw, "delta": delta})
+	if _prediction_inputs.size() > Tuning.PREDICTION_HISTORY_TICKS:
+		_prediction_inputs.pop_front()
+	apply_movement_input(direction, sprinting, crouched, jump_pressed, delta)
+
+
+func get_movement_replay_state() -> Vector3:
+	return Vector3(_coyote_remaining, _jump_buffer_remaining, 1.0 if is_on_floor() else 0.0)
+
+
+func is_crouched() -> bool:
+	return _is_crouched
+
+
+func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, crouched: bool) -> void:
+	if sequence < _last_movement_ack:
+		return
+	_last_movement_ack = sequence
+	if not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) > sequence + 1:
+		# Missing prefix after a long outage: snap rather than replay incomplete history.
+		_prediction_inputs.clear()
+	while not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) <= sequence:
+		_prediction_inputs.pop_front()
+	global_position = server_position
+	velocity = server_velocity
+	set_visual_yaw(facing)
+	set_network_knockdown(knocked_down)
+	_coyote_remaining = state.x
+	_jump_buffer_remaining = state.y
+	_is_crouched = crouched
+	_update_capsule(crouched)
+	if knocked_down or _is_eliminated:
+		_prediction_inputs.clear()
+		return
+	var aiming_yaw := _camera_yaw
+	var grounded := int(state.z)
+	# Transport invokes reconciliation in a physics tick: move_and_slide uses that delta.
+	for movement_input: Dictionary in _prediction_inputs:
+		_camera_yaw = float(movement_input.yaw)
+		apply_movement_input(movement_input.direction, movement_input.sprinting, movement_input.crouched, movement_input.jump_pressed, movement_input.delta, grounded)
+		grounded = -1
+	_camera_yaw = aiming_yaw
 
 
 func apply_knockdown(impulse: Vector3) -> void:
@@ -183,6 +236,7 @@ func is_knocked_down() -> bool:
 func set_eliminated(eliminated: bool) -> void:
 	if eliminated:
 		release_held_object()
+		_prediction_inputs.clear()
 	_is_eliminated = eliminated
 	visual.visible = not eliminated
 	collider.set_deferred("disabled", eliminated)
@@ -196,6 +250,10 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	_knockdown_remaining = 0.0
 	_is_crouched = false
 	_is_eliminated = false
+	_coyote_remaining = 0.0
+	_jump_buffer_remaining = 0.0
+	_prediction_inputs.clear()
+	_last_movement_ack = -1
 	position = spawn_position
 	velocity = Vector3.ZERO
 	visual.visible = true

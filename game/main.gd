@@ -41,6 +41,7 @@ var _room_owner_id := 0
 var _session_revision := 0
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
+var _pending_local_movement_snapshot: Dictionary = {}
 var _match_snapshot_remaining := 0.0
 var _match_snapshot_sequence := 0
 var _last_match_snapshot_sequence := 0
@@ -442,6 +443,7 @@ func _on_server_disconnected() -> void:
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
 	_movement_inputs.clear()
+	_pending_local_movement_snapshot.clear()
 	_reset_sandbox()
 	$Player.process_mode = Node.PROCESS_MODE_INHERIT
 	$Player.set_multiplayer_authority(1)
@@ -511,6 +513,10 @@ func _physics_process(delta: float) -> void:
 	var local_peer_id := multiplayer.get_unique_id()
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
+		if not multiplayer.is_server() and not _pending_local_movement_snapshot.is_empty():
+			var snapshot := _pending_local_movement_snapshot
+			_pending_local_movement_snapshot = {}
+			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched)
 		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
@@ -522,6 +528,7 @@ func _physics_process(delta: float) -> void:
 			_store_movement_input(local_peer_id, input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw(), _local_movement_sequence)
 		else:
 			submit_local_movement_input(input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw())
+			local_player.predict_movement_input(_local_movement_sequence, input_2d, sprinting, crouched, jump_pressed, delta)
 	if not multiplayer.is_server():
 		return
 	var peer_ids := PackedInt32Array()
@@ -530,6 +537,8 @@ func _physics_process(delta: float) -> void:
 	var camera_yaws := PackedFloat32Array()
 	var visual_yaws := PackedFloat32Array()
 	var knockdowns := PackedByteArray()
+	var acknowledged_inputs := PackedInt32Array()
+	var replay_states := PackedVector3Array()
 	for peer_id: int in _player_nodes:
 		var player := _player_nodes[peer_id] as PartyPlayer
 		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
@@ -550,8 +559,10 @@ func _physics_process(delta: float) -> void:
 		velocities.append(player.velocity)
 		camera_yaws.append(player.get_camera_yaw())
 		visual_yaws.append(player.get_visual_yaw())
-		knockdowns.append(1 if player.is_knocked_down() else 0)
-	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns)
+		knockdowns.append((1 if player.is_knocked_down() else 0) | (2 if player.is_crouched() else 0))
+		acknowledged_inputs.append(int(movement_input.sequence))
+		replay_states.append(player.get_movement_replay_state())
+	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns, acknowledged_inputs, replay_states)
 	_prop_snapshot_remaining -= delta
 	if _prop_snapshot_remaining <= 0.0:
 		_prop_snapshot_remaining = PROP_SNAPSHOT_INTERVAL
@@ -597,25 +608,33 @@ func _apply_movement_snapshots(
 	velocities: PackedVector3Array,
 	camera_yaws: PackedFloat32Array,
 	visual_yaws: PackedFloat32Array,
-	knockdowns: PackedByteArray
+	knockdowns: PackedByteArray,
+	acknowledged_inputs: PackedInt32Array = PackedInt32Array(),
+	replay_states: PackedVector3Array = PackedVector3Array()
 ) -> void:
 	if multiplayer.is_server():
 		return
 	var player_count := peer_ids.size()
 	if positions.size() != player_count or velocities.size() != player_count or camera_yaws.size() != player_count or visual_yaws.size() != player_count or knockdowns.size() != player_count:
 		return
+	if (not acknowledged_inputs.is_empty() or not replay_states.is_empty()) and (acknowledged_inputs.size() != player_count or replay_states.size() != player_count):
+		return
 	for index: int in player_count:
 		var peer_id := peer_ids[index]
 		if not _player_nodes.has(peer_id):
 			continue
 		var player := _player_nodes[peer_id] as PartyPlayer
+		if peer_id == multiplayer.get_unique_id() and not acknowledged_inputs.is_empty():
+			# Replay during the next physics tick, never at variable-rate RPC receipt time.
+			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "crouched": knockdowns[index] & 2 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
+			continue
 		player.global_position = positions[index]
 		player.velocity = velocities[index]
 		# Local aim is input, not state to rewind with a delayed server echo.
 		if peer_id != multiplayer.get_unique_id():
 			player.set_camera_yaw(camera_yaws[index])
 		player.set_visual_yaw(visual_yaws[index])
-		player.set_network_knockdown(knockdowns[index] != 0)
+		player.set_network_knockdown(knockdowns[index] & 1 != 0)
 
 
 func _broadcast_prop_snapshots() -> void:
@@ -1411,6 +1430,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	_pending_local_movement_snapshot.clear()
 	if _dedicated_server and multiplayer.is_server():
 		_session_revision += 1
 		_match_snapshot_remaining = 0.0
