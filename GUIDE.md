@@ -557,14 +557,17 @@ inspect the SSM command first; it may still run. Do not blindly redeploy.
 
 On 2026-10-08 the operator completed deployment of revision `6fb1e8d`, and
 actual Godot clients on two separate Docker bridge networks received valid
-HTTPS Create/Join tickets for `server.permees.com:29810`. Both then failed
-ENet admission. Check inbound **UDP** 29810–29811 (not TCP), host firewall,
-room-process listener and admission logs during a fresh attempt. Empty rooms
-expire, so `ss -lunp` after a test ends cannot prove whether a listener existed
-during the attempt. Default local DNS was intermittent; container DNS1.1.1.1
-resolved the public address in the diagnostic repeat. Root cause remains
-unverified; this is not a passed gameplay check, nor two physical Internet
-networks or Windows release-client evidence.
+HTTPS Create/Join tickets for `server.permees.com:29810`. Initial ENet admission
+failed while the SG had UDP port0. After the operator corrected inbound UDP to
+29810–29811, the unchanged server passed real admission, roster/ready/start,
+authoritative movement, Flood/health and later Meteor observations, six natural
+results/five rematches, owner transfer and a new-owner rematch. Result-time RTT
+samples were124–137ms; mostly stationary clients ended rounds in43–51s, not a
+human balance/performance benchmark. No runtime errors. Default local DNS was
+intermittent; container DNS1.1.1.1 resolved the public address for the repeat.
+Clients use Linux editor/source and share a host/upstream NAT: this does not
+pass Windows release, physically separate networks, all hazards/props,
+server-loss retry or physical audio/settings gates. No redeploy was needed.
 
 ### Remaining release acceptance
 
