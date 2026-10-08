@@ -141,7 +141,7 @@ Milestone 2.1 complete: official templates verified against release SHA-512; `to
 
 ### Milestone 2.2 — Internet Rooms and Playtest Readiness
 
-Depends on 2.1; implement Tasks 2.2.3–2.2.7 in order, validating each before starting the next. Start with one Linux server machine, a small room service and one headless Godot process per room on a bounded UDP port range. Retain Windows clients, solo testing and direct-IP listen hosting for development. Multi-machine placement is a later optimization, not a current gate.
+Depends on 2.1; implement Tasks 2.2.3–2.2.7 in order, validating each before starting the next. Urgent Task 2.2.8 now interrupts 2.2.7 acceptance to address the reported two-player control failure. Start with one Linux server machine, a small room service and one headless Godot process per room on a bounded UDP port range. Retain Windows clients, solo testing and direct-IP listen hosting for development. Multi-machine placement is a later optimization, not a current gate.
 
 - [x] Task 2.2.1 (historical): Executable direct-IP/LAN guide and evidence boundary delivered. It does not document the future room service.
 - Task 2.2.2 (cancelled, not passed): Mandatory physical LAN smoke superseded by Internet readiness below. Existing release and exported-PCK evidence remains in `progress.json`; unfinished settings/audio checks carry forward to 2.2.7.
@@ -159,7 +159,30 @@ Depends on 2.1; implement Tasks 2.2.3–2.2.7 in order, validating each before s
   - [ ] Separate-network Windows release-client acceptance: public server now exists and Docker check passes, but unchanged Windows executable gameplay including props/all hazards/server-loss retry remains unverified. Build Windows from matching deployed revision; old94ad2fd client is incompatible with current server.
   - [ ] Release-executable settings restart and physical warning/effect audibility confirmation. Editor-driven PCK fixtures do not complete this requirement.
 
-Acceptance: all seven new gates in `progress.json` pass with distinct dedicated-server, admission/lifecycle, UI, container, actual Internet release, assets/settings/audio and documentation evidence. LAN smoke is optional legacy-path coverage, not required or retroactively passed. Human baseline still depends on Internet readiness.
+Acceptance: all eight gates in `progress.json` pass with distinct dedicated-server, admission/lifecycle, UI, container, movement/camera, actual Internet release, assets/settings/audio and documentation evidence. LAN smoke is optional legacy-path coverage, not required or retroactively passed. Human baseline still depends on Internet readiness.
+
+### Task 2.2.8 — Multiplayer Movement and Camera Stabilization (urgent)
+
+User feedback on 2026-10-08: multiple physical devices can join the server, but movement lags and rotation continues with two or more players. Record connection success as user-reported evidence, not completion of the full release acceptance gate. This task interrupts 2.2.7 acceptance; resume release acceptance after correction. Do not defer this two-player control issue with the separate, unconfirmed 20-player scale failure.
+
+**Goal:** preserve responsive local aiming, then address measured network movement delay without changing server authority or replacing the character model as a networking workaround.
+
+**Architecture:** retain the existing capsule controller and authoritative server simulation. Local camera yaw is client-owned input; remote camera yaw and all gameplay outcomes remain replicated. Only add prediction/reconciliation or remote interpolation after measuring the corresponding latency/jitter; changing artwork does not correct stale input feedback.
+
+**Observed evidence:** `game/main.gd::_apply_movement_snapshots` overwrites local and remote camera yaw alike. A deterministic two-player snapshot fixture changed local yaw from 0.73 to the stale echo -0.41 while correctly setting remote yaw to 1.2. Feeding six-tick-delayed echoes back as new input reproduced a 0.04-radian oscillation through ticks 42–59 after stopping input at tick 12. This proves the feedback defect, not that it is the only cause of the physical-device report. A real three-process/two-client baseline still passes movement, five rematches and server-loss recovery; its current assertions do not measure latency or continuous rotation. Logs: `.amp/in/artifacts/movement-diagnosis/`.
+
+- [ ] **2.2.8a — Correct local camera ownership.** Add regression coverage in the existing dedicated-client fixture `tests/dedicated_network_peer.gd`: set local yaw to 0.73, apply a snapshot with local yaw -0.41 and remote yaw 1.2, require local yaw to remain 0.73 and remote yaw to become 1.2; also require server positions/velocities/visual facing to update. Cover repeated delayed echoes after mouse release, angle wrapping and both clients. Run the failing test before changing `game/main.gd`; use the smallest correction at the snapshot writer:
+
+  ```gdscript
+  if peer_id != multiplayer.get_unique_id():
+      player.set_camera_yaw(camera_yaws[index])
+  ```
+
+  Keep the server input yaw setter and remote visual-facing updates. This is a proposed correction, not applied runtime code. Require the regression to fail before and pass after the change.
+- [ ] **2.2.8b — Measure and correct movement latency separately.** Extend the dedicated-server/two-client harness with reproducible delay/jitter conditions around 0, 100 and 200 ms RTT, recording actual injected conditions, input-to-observed-motion time, snapshot gaps, client/server displacement and correction magnitude. Test asymmetric camera headings, straight sprint, direction reversal, stop, jump, stairs, two-player collision, knockdown and recovery. Current clients do not predict movement and apply positions immediately; determine whether the complaint is input latency, packet jitter, server tick stalls or rendering before choosing a correction. If input latency is reproduced, predict only the local capsule using the existing movement function, acknowledge input sequences and reconcile/replay unacknowledged inputs; keep health, hazards, grabs and results authoritative. If remote jitter is reproduced, interpolate remote presentation from bounded snapshot history rather than simulating authoritative damage locally. Do not blindly lower update rate, tune speeds, or discard corrections to hide the symptom.
+- [ ] **2.2.8c — Validate and deliver the matching fix.** Execute `bash tests/run_dedicated_network_test.sh`, `godot --headless --path . --script res://tests/test_player_integration.gd`, and `PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh`; require positive markers and reject unexpected runtime errors. Exercise actual mouse release/recapture, pause, rematch and disconnect recovery on rendered clients. Rebuild matching Windows/Linux packages, obtain approval for any new shared-server deployment, and repeat separate-network Windows 2- and 4-player traversal. Require no aim changes after input stops, no sustained player spinning on a straight route, and documented before/after responsiveness at the measured RTT. Keep untested physical/network cases open.
+
+Acceptance: local yaw regression corrected; delayed-input movement behavior measured and addressed at its proven owner; two/four-player release follow-up confirms usable control. Commit each independently validated correction and record results in `progress.json`. Do not mark the task passed on a localhost displacement check alone.
 
 Refactor seams: keep room lookup/admission/process allocation out of MatchManager and gameplay simulation; keep client HTTP discovery separate from ENet session establishment. Use a versioned wire contract and explicit room/build/owner identity rather than machine addresses or peer 1 as business identity. A local launcher is the initial implementation, not a generic scheduler framework: later replace allocation with remote workers and registry storage if measured demand warrants it. No Kubernetes, distributed database, message bus, autoscaling, multi-region routing, account system or ranked matchmaking now. Choose the room-service language and deployment tools when implementing 2.2.4, based on installed tooling and maintainability.
 
@@ -203,7 +226,7 @@ Task 2.2.6 validated: `bash tests/run_container_network_test.sh` and `python3 te
 
 Task 2.2.7 local preparation validated: both targets at revision `94ad2fd` match byte-for-byte across repeated exports; PCK audit has88 entries and excludes test drivers/source generators. Standalone Linux package passes actual allocator startup/version rejection/HTTP create/join/crash/recreate/SIGTERM/UDP reclaim without checkout/cache/editor. Official release templates reject `--path`; the allocator now uses project/package cwd, and release stdout flush preserves build/ready logs across termination. Native Windows unchanged release launches/exits cleanly with correct identity and inspected assets; exact-PCK editor fixtures pass settings/restart/recovery/five rematches, not physical listening or release-client admission. Fresh source regression passes29 suites/five network groups. Matching Windows ZIP/Linux TAR and evidence are in `.amp/in/artifacts/release-2-2-7/`. Operator runbook is in GUIDE; public steps remain unexecuted.
 
-Next action: Task 2.2.7 — await main pipeline37770598203 updating the server to4b535af, then use delivered Windows4b535af ZIP by direct EXE launch for separate-network release acceptance (props/all hazards/server-loss retry/settings/listening). Public endpoint is now bundled; default/override UI checks and native exact-PCK fixtures pass. Old6fb1e8d ZIP cannot join the new server. These checks do not close the Windows/human gates; evidence-only updates skip CI. Task2.2.7 and Milestone2.2 remain open; do not start2.6/2.3 yet.
+Next action: Task 2.2.8a — add the local-versus-remote yaw regression and correct camera snapshot ownership before measuring delayed-input movement. Published Windows e3b5c6e is the existing baseline, not a corrected build. Resume Task2.2.7 separate-network release acceptance after movement stabilization; keep Milestone2.2 open and do not start2.6/2.3 yet.
 
 ### Milestone 2.6 — Mouse Interaction and Display-Session Reliability
 
@@ -229,11 +252,36 @@ These stay concise until they become current.
 
 ### Phase 4 — Disaster Remix and Toy Town Interaction
 
-- Enlarge and enrich the existing Toy Town in response to the user's small/sparse-map feedback: additional usable buildings, props, elevated refuges and connected traversal routes, not just decorative clutter. Select the new footprint during this phase's design; retain readable boundaries and out-of-bounds protection.
-- Revalidate disaster coverage, spawn distribution, reachable escape routes, 20-player readability and representative performance for the expanded footprint; larger ground alone is not sufficient.
-- Add bounded variants to existing disasters before adding another disaster class.
-- Add at most two evidence-driven combinations, prioritizing Tornado + Meteor and Earthquake + Flood.
-- Deepen landmark interactions and authored map states without a second map or dynamic destruction system.
+User-requested expansion on 2026-10-08; plan only until Phase 2 control/feel gates pass. Existing code already provides six disasters, randomized eligible selection, repeat avoidance, escalation bands, two-disaster overlap, Flood + Lightning and Tornado + Fire. Improve variety and interactions rather than introducing a second Director.
+
+#### Milestone 4.1 — Randomized, Replayable Disaster Rounds
+
+- Build on `game/disaster_director.gd` and `tests/test_disaster_director.gd`: retain server-only seeded selection and record seeds/history for replaying failures. Add a small recent-history exclusion or weighting only after comparing repeated-round histories; avoid fixed scripts and guarantee an eligible fallback.
+- Add bounded variants within existing hazard owners: meteor clusters versus moving lanes, flood rise/current patterns, and tornado paths. Select variants server-side and replicate their gameplay parameters; no client-chosen random damage or hazards.
+- Gate: multiple seeds produce meaningfully different sequences/patterns, the same seed reproduces the same configured scenario, no immediate repeat or forbidden overlap, and early players see hazards individually before combinations. Five rematches clear history, variant state and effects correctly.
+
+#### Milestone 4.2 — More Behavior-Changing Disaster Compositions
+
+- First add **Tornado + Meteor**: tornado picks up bounded tagged impact debris; then **Earthquake + Flood**: visibly damaged elevated sections can collapse while preserving another reachable high route.
+- After those pass, evaluate **Fire + Earthquake**: burning breakable sections drop short-lived damaging debris with an explicit cue. Continue using named events/shared hazard queries rather than coupling every disaster to every other disaster.
+- Gate each composition separately: observable behavior beyond two simultaneous effects, correct server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup and multiplayer agreement. Retain the 32-authoritative-body and two-active-disaster budgets; three-way overlap requires a separately measured performance/readability decision, not an automatic difficulty increase.
+
+#### Milestone 4.3 — Map Variety, One Additional Map at a Time
+
+- Enrich Toy Town first with usable buildings, props, elevated refuges and connected traversal; retain readable boundaries and out-of-bounds protection. Choose any new footprint from traversal and disaster-coverage evidence, not decorative size alone.
+- Then build a second compact **Toy Harbor** map from the existing modular kit: docks and cargo platforms, a sheltered warehouse with two exits, and multiple high escape routes. Add server-selected map identity at the lobby/rematch boundary; all clients load the same map before countdown. Keep map-specific spawn, shelter, breakable and hazard anchors in the map rather than hardcoding them into the Director.
+- Gate both maps: no trapped spawns/camera/collider snags, four routes to elevation and two exits per refuge, flood escape from every spawn group, no universally safe location, all six hazards/compositions cover the playable area, and structures/props reset through five rematches. Inspect gameplay views and profile 2/4 players before raising supported capacity. Additional maps follow this gate, not a bulk content import.
+
+#### Milestone 4.4 — Harder but Fair Survival
+
+- Tune the existing time/intensity curve and disaster parameters from actual survival/death data. Keep the first roughly two minutes forgiving; later increase hazard strength/frequency, shorten recovery and schedule compatible pairs. Do not silently multiply HP damage or remove warnings.
+- Add an owner-selected **Hard** room/match preset only after a readable Normal baseline passes; replicate the preset before countdown. Preserve telegraph minimums (meteor at least 1.2 s), navigable escape routes, bounded forces, recovery protection and the solo exception. No permanently electrified water, unavoidable overlapping lethal zones or repeated stun-lock.
+- Gate: compare Normal/Hard death timing, uncoached cause recognition, escape attempts and voluntary rematches with humans. Keep the 8–12-minute target configurable; report actual durations and do not call harder necessarily better. Regress both sides of intensity/warning boundaries, combination compatibility and native Windows/network performance.
+
+#### Movement and Character Model Follow-Up
+
+- Fix Task 2.2.8 networking before artistic changes. Evaluate controller acceleration, air control, turn animation and camera comfort during Phase 2 follow-up, using centralized `game/player_tuning.gd`; keep the responsive capsule rather than replacing it with upright rigidbody walking.
+- Interpret “modal” as a possible **character model** change unless clarified. Change proportions/animation or replace the visual model only if recordings still show a readability/locomotion problem after networking is corrected. Reuse the skeleton/collider contract, load `validating-game-assets`, record provenance and verify animations/ragdoll/imports. A cosmetic replacement is not evidence of a movement fix.
 
 ### Phase 5 — Session Distribution and Release Readiness
 
@@ -251,4 +299,4 @@ These stay concise until they become current.
 
 ## Explicitly deferred
 
-Second map, additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. Earned cosmetic loot-box drops and a minimal owned/equip collection are now planned in Phase 6, not current implementation scope.
+Additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. A second map and more disaster compositions are now planned in Phase 4; earned cosmetic loot-box drops and a minimal owned/equip collection remain planned in Phase 6. Neither is current implementation scope.

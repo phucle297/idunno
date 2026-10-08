@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T11:10:48Z",
+  "updated_at": "2026-10-08T14:46:09Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -19,7 +19,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_7_internet_release_readiness"
+    "task": "task_2_2_8_multiplayer_movement_stabilization"
   },
   "engine": {
     "name": "Godot",
@@ -62,14 +62,16 @@
           "task_2_2_4_room_service_and_process_lifecycle": "completed",
           "task_2_2_5_windows_room_create_join_ui": "completed",
           "task_2_2_6_container_network_and_failure_validation": "completed",
-          "task_2_2_7_internet_release_readiness": "in_progress"
+          "task_2_2_7_internet_release_readiness": "in_progress",
+          "task_2_2_8_multiplayer_movement_stabilization": "in_progress"
         },
-        "acceptance": "Execute Tasks 2.2.3–2.2.7 in order per docs/implementation-checklist.md. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
+        "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
           "playerless_server_and_room_owner_authority": "passed",
           "room_id_admission_and_bounded_process_lifecycle": "passed",
           "windows_room_ui_and_failure_recovery": "passed",
           "multi_container_room_isolation_and_five_rematches": "passed",
+          "multiplayer_camera_feedback_corrected_and_latency_validated": "not_run",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -438,9 +440,16 @@
       "check": "Matching Windows client delivery for current EC2 release",
       "status": "passed",
       "result": "Exported twice using existing isolated exporter from detached6fb1e8d43cfc81915e3262443d4f8a948416d7a8 worktree; original EXE/PCK/BUILD hashes identical. Native Windows/Intel UHD630/1280x720 release smoke exits0, correct full identity, no runtime errors; PrintWindow screenshot inspected for world/avatar/intact HUD, tiny world labels noted. Exact shipped PCK native editor-driver settings/save/restart/recovery and five ENet rematches pass unchanged tests, not release Internet/listening evidence. Added artifact-only Play-Internet.cmd and PLAYTEST.txt; native launcher execution confirms endpoint argument and clean EXE exit. Initial launcher fixture used Start-Process -Wait, which waits descendants; post-wait child check failed after game exited. Corrected fixture to wait only wrapper process; no launcher/runtime change required. Retained failed fixture log and successful checks. Six-file ZIP CRC/full byte comparison and five payload hashes pass, archive SHA256 a024778c4ac283c3371c46988e2008f6b5064aa84cbc22545a730bf464180caa. Delivery .amp/in/artifacts/DisasterParty-Windows-Internet-6fb1e8d.zip copied to C:\\Users\\Admin\\Downloads; native extracted package in Temp/DisasterParty-Internet-6fb1e8d. Evidence under .amp/in/artifacts/windows-6fb1e8d-a/. No EC2 change/redeploy, public GitHub Release or Steam publication. Temporary worktree/scripts removed; evidence-only commit skips CI. Actual release two-network gameplay, release settings/physical listening and human gates remain open."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Two-player movement investigation and expansion planning",
+      "status": "passed",
+      "result": "Diagnostic, not fix acceptance: temporary Godot fixture exercised actual Main snapshot writer with local/remote players. Stale yaw changed local0.73 to-0.41 and remote to1.2. Six-tick delayed echo feedback oscillated0.04rad at ticks42–59 after mouse input stopped at12. Deterministic state-level reproduction, not live latency/physical mouse confirmation. bash tests/run_dedicated_network_test.sh passes server27/owner37/guest35 checks, two clients, five rematches and recovery; server emits existing shutdown-only four ObjectDB leaks/two resources. Logs .amp/in/artifacts/movement-diagnosis/{yaw-feedback,dedicated-baseline}.log. Runtime unchanged; temporary diagnostic script removed. User-reported multi-device connection success acknowledged but full Internet release gate stays blocked. Prior delivery remains published Windows e3b5c6e baseline at https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-08-e3b5c6e; no new deployment/package. Added urgent Task2.2.8 plus future Phase4 random variants, compositions, second-map and fair-hard-mode milestones in checklist; interpreted modal as character model, not a confirmed art defect. No future gameplay gate passed."
     }
   ],
   "blockers": [
+    "2026-10-08 user confirms multiple devices join but reports lag and continuous rotation with >=2 players. Deterministic two-player snapshot fixture proves local camera yaw is overwritten by stale server echoes and can oscillate after input stops. Exact physical-device symptom and movement latency remain unmeasured; no runtime fix applied. Urgent Task2.2.8 precedes release acceptance; do not conflate with deferred20-player defect.",
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Existing EC2 public HTTPS and ENet gameplay now pass two-client Docker testing after operator corrected SG UDP port0 to29810–29811. Five rematches/owner transfer pass on unchanged6fb1e8d server. Source/editor clients share host/upstream NAT, so Windows release on distinct physical Internet networks, all hazards/props/server-loss recovery and physical acceptance remain open.",
     "Matching6fb1e8d Windows Internet ZIP now delivered alongside unchanged deployed Linux release, native launch and exact-PCK editor fixtures pass. Actual release-runtime settings restart/physical audio and separate-network Windows release-client gameplay remain unverified; editor fixtures cannot prove listening or human feel.",
@@ -450,5 +459,5 @@
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh"],
-  "next_action": "Use published Windows1–4 pre-release https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-08-e3b5c6e for separate-network release gameplay/settings/audio acceptance. CLI now phucle297 with Write/admin; user-authorized publication succeeded, draft=false/prerelease=true. API asset uploaded38321003bytes with SHA256 b2f561bd4d2dac3a25640496f33d6cb8873f06cb408dfc7ebe30c4797837746a matching local archive; CRC/payload hashes reverified. Exact client revision e3b5c6eb2dc50d6114a3a28bcbef25b0c724a1cf matches successful build/deploy run37774742537. No new deployment triggered; evidence commit skips CI. Scope1–4, deferred Phase5 scale defect and unverified release/human gates unchanged; Task2.2.7 stays open."
+  "next_action": "Implement Task2.2.8a: add failing local-versus-remote yaw assertions to tests/dedicated_network_peer.gd, preserve locally owned camera yaw in game/main.gd::_apply_movement_snapshots, then run the real dedicated two-client regression before measuring movement latency under delay. See docs/implementation-checklist.md. Existing Windows e3b5c6e release remains a baseline, not a movement fix; no deployment or replacement package in this planning session."
 }
