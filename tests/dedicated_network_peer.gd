@@ -75,6 +75,7 @@ func _client(main: Node) -> void:
 	await _wait_until(func() -> bool: return main.match_manager.players.size() == 2 and main.get_room_owner_id() > 1, "Client must receive dedicated roster")
 	var local_id: int = main.multiplayer.get_unique_id()
 	_expect(main.can_control_session() == (role == "owner"), "Only first client is room owner")
+	_test_camera_snapshot_ownership(main, local_id)
 	main.set_local_ready(true)
 	if role == "owner":
 		await _wait_until(func() -> bool: return main.match_manager.can_start_match(), "Both clients must ready")
@@ -99,6 +100,35 @@ func _client(main: Node) -> void:
 		await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Client must observe rematch")
 	await _wait_until(func() -> bool: return not main.is_network_session(), "Server close must recover client offline lobby")
 	_expect(main.get_network_player_ids() == [1] and main.match_manager.players.size() == 1 and main.get_node("Player/Visual").visible, "Recovery must restore solo player")
+
+
+func _test_camera_snapshot_ownership(main: Node, local_id: int) -> void:
+	var remote_id := 0
+	for id: int in main.get_network_player_ids():
+		if id != local_id:
+			remote_id = id
+	var local := main._player_nodes[local_id] as PartyPlayer
+	var remote := main._player_nodes[remote_id] as PartyPlayer
+	var peer_ids := PackedInt32Array([remote_id, local_id])
+	var origins := PackedVector3Array([remote.global_position, local.global_position])
+	var velocities := PackedVector3Array([remote.velocity, local.velocity])
+	var original_yaws := PackedFloat32Array([remote.get_camera_yaw(), local.get_camera_yaw()])
+	var original_facing := PackedFloat32Array([remote.get_visual_yaw(), local.get_visual_yaw()])
+	var positions := PackedVector3Array([origins[0] + Vector3(0.1, 0, 0), origins[1] + Vector3(0, 0, 0.2)])
+	var snapshot_velocities := PackedVector3Array([Vector3(1, 0, 2), Vector3(-2, 0, 1)])
+	# Reverse peer order and cross the angle boundary: don't confuse array index with ownership.
+	for yaw: float in [0.73, -3.12]:
+		local.set_camera_yaw(yaw)
+		for _echo in 6:
+			main._apply_movement_snapshots(peer_ids, positions, snapshot_velocities, PackedFloat32Array([1.2, -0.41 if yaw > 0 else 3.12]), PackedFloat32Array([-0.7, 0.3]), PackedByteArray([0, 0]))
+			_expect(is_equal_approx(local.get_camera_yaw(), yaw) and is_equal_approx(local.camera_pivot.rotation.y, yaw), "Delayed snapshots must not rewind local aim after input stops")
+		_expect(is_equal_approx(remote.get_camera_yaw(), 1.2), "Remote camera yaw must still replicate")
+		_expect(local.global_position.is_equal_approx(positions[1]) and remote.global_position.is_equal_approx(positions[0]), "Both player positions must remain server-authoritative")
+		_expect(local.velocity.is_equal_approx(snapshot_velocities[1]) and remote.velocity.is_equal_approx(snapshot_velocities[0]), "Both velocities must remain server-authoritative")
+		_expect(is_equal_approx(local.get_visual_yaw(), 0.3) and is_equal_approx(remote.get_visual_yaw(), -0.7), "Both visual facings must still replicate independently of local camera")
+	# Restore synchronous fixture changes before sending real input or ready requests.
+	local.set_camera_yaw(original_yaws[1])
+	main._apply_movement_snapshots(peer_ids, origins, velocities, original_yaws, original_facing, PackedByteArray([0, 0]))
 
 
 func _wait_until(predicate: Callable, message: String) -> void:

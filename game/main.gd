@@ -611,7 +611,9 @@ func _apply_movement_snapshots(
 		var player := _player_nodes[peer_id] as PartyPlayer
 		player.global_position = positions[index]
 		player.velocity = velocities[index]
-		player.set_camera_yaw(camera_yaws[index])
+		# Local aim is input, not state to rewind with a delayed server echo.
+		if peer_id != multiplayer.get_unique_id():
+			player.set_camera_yaw(camera_yaws[index])
 		player.set_visual_yaw(visual_yaws[index])
 		player.set_network_knockdown(knockdowns[index] != 0)
 
