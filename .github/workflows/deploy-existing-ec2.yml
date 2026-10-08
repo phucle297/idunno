@@ -59,6 +59,9 @@ jobs:
             -d "$HOME/.local/share/godot/export_templates/4.7.2.stable"
       - name: Source regression and admission checks
         shell: bash
+        env:
+          # Temporary playtest scope: retain full default matrix for later scale work.
+          PLAYER_COUNTS: '4'
         run: |
           set -euo pipefail
           GODOT_BIN=$(command -v godot)

@@ -383,3 +383,8 @@
 
 - User requests no player configuration. Set the existing project setting `network/room_service_url` to `https://server.permees.com`; retain existing command-line override and direct-IP development mode. No new endpoint resolver, `.env`, or player-side port forwarding.
 - Source room UI checks pass64 assertions with no endpoint argument and with an explicit different loopback endpoint. Existing shutdown-only resource diagnostics remain. Changing the bundled project requires a new matching server/client revision; push/main runs the authorized existing pipeline. Historical6fb1e8d ZIP still requires its launcher and must not be mixed with the new server.
+
+## 2026-10-08 — Temporary four-player playtest gate
+
+- User limits current playtest to1–4 players and defers scale defects. Deploy CI sets the existing PLAYER_COUNTS=4 override for the playable scale group; default4/8/20 tests and all assertions stay intact. Other authority/state matrices remain unchanged. This is an explicit support-scope change, not a20-player fix or ignored test failure; track reproduction/correction before expansion in Phase5.
+- Scoped source regression exits0 with29 suites/five groups/persistence restart, four-player playable movement and dedicated rematches/recovery; known shutdown-only diagnostics remain. Solo fixtures are included; actual separate-network Windows1–4 acceptance remains open. Release publication still blocked by missing GitHub CLI workflow scope.
