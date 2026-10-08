@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T16:36:33Z",
+  "updated_at": "2026-10-08T17:05:37Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -63,7 +63,8 @@
           "task_2_2_5_windows_room_create_join_ui": "completed",
           "task_2_2_6_container_network_and_failure_validation": "completed",
           "task_2_2_7_internet_release_readiness": "in_progress",
-          "task_2_2_8_multiplayer_movement_stabilization": "in_progress"
+          "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
+          "task_2_2_9_dead_player_movement": "planned"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
@@ -72,6 +73,7 @@
           "windows_room_ui_and_failure_recovery": "passed",
           "multi_container_room_isolation_and_five_rematches": "passed",
           "multiplayer_camera_feedback_corrected_and_latency_validated": "not_run",
+          "dead_body_movement_blocked_and_spectator_rematch_validated": "not_run",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -85,7 +87,8 @@
         "gates": {
           "mouse_failure_reproduced_and_proven_fix": "not_run",
           "pointer_camera_ui_focus_and_recovery_regression": "not_run",
-          "display_loss_classified_and_normal_exit_validated": "not_run"
+          "display_loss_classified_and_normal_exit_validated": "not_run",
+          "windowed_resolution_persistence_and_rendered_ui": "not_run"
         }
       },
       "milestone_2_3_human_playtest_baseline": {
@@ -506,9 +509,16 @@
       "command": "tools/export_windows.sh /mnt/c/Users/permees/Downloads/DisasterParty-movement-ba3cb20; sha256sum -c SHA256SUMS.txt; native PowerShell Start-Process DisasterParty.exe --headless --quit-after60 with isolated settings",
       "status": "passed",
       "result": "PLAYTEST_EXPORT_OK exact ba3cb202b55f01a2ed1e8d5d7d9cc868ed42a7da committed source. All three payload hashes verify; executable is native Windows x86_64 PE. Actual release executable on Windows-local drive exits0, matching full build marker, no runtime errors. This headless smoke does not prove GPU FPS, rendered appearance, physical input/audio or public admission. Local test folder delivered under C:/Users/permees/Downloads/DisasterParty-movement-ba3cb20; launch EXE normally for human rendering/control tests. Solo or same-bundle Direct IP only; older public server remains unchanged. Official template archive and temporary decision-split scratch removed."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "godot --headless --path . --script res://.amp/in/scratch/check_dead_movement.gd",
+      "status": "passed",
+      "result": "Diagnostic reproduction, NOT fix acceptance: actual Main server loop with three registered players, peer2 eliminated through MatchManager and retained sprint-right input. Hidden=true/alive=false node moves(1.033333,-2.583333,0) over30 physics ticks without Earthquake. Server still simulates dead nodes; movement method lacks elimination guard and elimination retains velocity. Earthquake filters dead players already. Native Windows reported camera symptom not reproduced; no runtime changes. Log .amp/in/artifacts/death-earthquake/diagnostic.log; shutdown2 ObjectDB/1 resource diagnostics retained. Temporary driver removed. Added planned Task2.2.9 and unexecuted gate; next prioritize regression/fix, then resume2.2.8. Checklist captures persistent random collapse, shrinking refuges, flood jump/current/waves, useful props and connected limbs/model evaluation, plus windowed720p/768p/900p/1080p/1440p selection/persistence/display-fit gates. Planning only; future phase gates remain unexecuted."
     }
   ],
   "blockers": [
+    "Task2.2.9: eliminated invisible nodes still move in the authoritative server loop with retained input/velocity; diagnostic reproduction confirmed, runtime correction and native Windows/spectator/network/rematch acceptance not yet executed.",
     "Task2.2.8 camera ownership, capsule isolation, missing-prefix recovery and fixed/jittered sprint/reversal pass current regression. Delayed stairs/jump/contact/knockdown/recovery, loss and physical-device spinning confirmation remain open; jitter correction up to0.325m is measured, not smoothness acceptance. Existing public client/server remain unpatched; no shared deployment. Matching-build2.2.8c precedes release acceptance. Separate20-player defect remains unexplained.",
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Existing EC2 public HTTPS and ENet gameplay now pass two-client Docker testing after operator corrected SG UDP port0 to29810–29811. Five rematches/owner transfer pass on unchanged6fb1e8d server. Source/editor clients share host/upstream NAT, so Windows release on distinct physical Internet networks, all hazards/props/server-loss recovery and physical acceptance remain open.",
@@ -520,5 +530,5 @@
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
     "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md"],
-  "next_action": "Task2.2.8b: extend the validated fixed/jittered two-client fixture to stair traversal and jump/contact/knockdown recovery, recording correction sizes and convergence. Sprint/reversal and missing-prefix recovery pass; no public deployment or physical acceptance."
+  "next_action": "Task2.2.9: convert the reproduced authoritative dead-node movement into a permanent failing regression, then block movement/retained input after elimination and validate spectator/rematch behavior before resuming2.2.8b/c. Planning/diagnosis only so far; no runtime fix or public deployment."
 }
