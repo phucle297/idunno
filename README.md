@@ -25,9 +25,12 @@ matching Windows/Linux release packaging now pass locally. Public Internet
 release-client sessions and physical listening remain unverified.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
-For the selected EC2 path, [Terraform and deployment instructions](infra/ec2/README.md)
-cover isolated stages, provisioning/runtime IAM roles, Elastic IP, Security Group,
-Caddy and systemd. No EKS is needed; live apply/DNS/deployment has not run.
+The selected path now uses the **existing Tokyo EC2**, not Terraform provisioning.
+See [pipeline prerequisites and operation](GUIDE.md#existing-ec2-pipeline-main-only):
+main-only GitHub Actions validates/builds Linux, then deploys through OIDC/SSM.
+No Windows ZIP, GitHub Release or Steam publication is part of this deployment.
+The [earlier Terraform module](infra/ec2/README.md) is an optional reference only.
+No EKS is needed; public deployment and Internet gameplay remain unverified.
 
 ## Windows playtest export
 

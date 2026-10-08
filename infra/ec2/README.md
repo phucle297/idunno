@@ -1,5 +1,10 @@
 # EC2 playtest deployment — Task 2.2.7
 
+**Current choice: use the existing Tokyo EC2, not this module's apply.** Follow
+the main-only OIDC/SSM pipeline and host prerequisites in
+[GUIDE.md](../../GUIDE.md#existing-ec2-pipeline-main-only). This previously prepared
+module remains a reference for a future separately authorized provisioning task.
+
 One EC2, no EKS/Kubernetes, ECS, ALB, NAT Gateway, Route 53 migration or registry.
 Terraform provisions infrastructure; it does **not** ship a game build or run a
 deployment pipeline. Only create `dev` for the current playtest. Live apply,

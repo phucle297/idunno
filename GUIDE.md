@@ -482,6 +482,77 @@ a verified host address/topology instead of assuming forwarding works.
   removes that room; service restart loses all rooms/tickets. Clients recover
   offline and Create/Join obtains fresh tickets. Never replay an old ticket.
 
+### Existing EC2 pipeline (main only)
+
+`.github/workflows/deploy-existing-ec2.yml` runs on pushes to `main` or manually
+from Actions on `main`. Stages are **validate/build → deploy**, serialized so two
+deployments cannot overlap. It builds only the Linux server, retains a seven-day
+workflow artifact, then uses a short-lived signed download URL through SSM.
+No GitHub token reaches EC2, no Windows ZIP is copied there, and no GitHub Release
+or Steam publication occurs. Windows distribution is separate future work; use
+the same full revision when producing clients, because admission requires it.
+
+The target is existing instance `i-0fd134761df1f88bf`, account `665808487768`,
+region `ap-northeast-1`. **Do not run Terraform apply to create another server.**
+The earlier `infra/ec2` module remains an optional reference, not a pipeline stage.
+
+Before the first deployment, configure:
+
+1. Repository **Settings → Secrets and variables → Actions → Variables**:
+   `AWS_DEPLOY_ROLE_ARN` = the ARN of the separate GitHub deploy role. Its OIDC
+   trust must require audience `sts.amazonaws.com` and subject
+   `repo:phucle297/idunno:ref:refs/heads/main`. Do not add a GitHub Environment to
+   this workflow: that changes the subject. Grant `ssm:SendCommand` only for
+   `arn:aws:ssm:ap-northeast-1::document/AWS-RunShellScript` and the exact instance
+   ARN, plus `ssm:GetCommandInvocation` for status. No AWS access keys are needed.
+2. Attach a **different instance runtime role** with
+   `AmazonSSMManagedInstanceCore` to EC2. Ensure the SSM agent is running and the
+   instance is **Online** in Systems Manager, with outbound HTTPS connectivity.
+   The workflow does not attach roles, create instances, or change networking.
+3. On a dedicated Ubuntu 24.04 x86_64 host, prepare the `disaster-party` user,
+   `/etc/disaster-party/server.env`, systemd unit and Caddy configuration before
+   deployment. The existing template can be rendered **without Terraform**:
+
+   ```bash
+   # Run from this repository; inspect the output before copying to EC2.
+   python3 - <<'PY' > /tmp/disaster-party-bootstrap.sh
+   from pathlib import Path
+   template = Path('infra/ec2/bootstrap.sh.tftpl').read_text()
+   print(template.replace('${domain}', 'server.permees.com').replace('$${', '${'), end='')
+   PY
+   bash -n /tmp/disaster-party-bootstrap.sh
+   ```
+
+   Copy that reviewed script to EC2 and run `sudo bash disaster-party-bootstrap.sh`
+   **once**. It installs packages, creates the service user, replaces Caddy's
+   configuration, and restarts Caddy; do not run it on a shared host with existing
+   Caddy sites or rerun it over an installed service. It enables but does not start
+   the game until deployment. A non-Ubuntu host needs equivalent setup rather than
+   this apt-based script. No host OS or bootstrap has been verified remotely.
+4. Point `server.permees.com` to the existing EC2 public IPv4 (preferably a stable
+   Elastic IP) using the authoritative DNS provider. Route 53 is not required
+   when Spaceship already hosts DNS. Allow TCP 80/443 and UDP 29810–29811 in the
+   Security Group/host firewall; leave TCP 29800 private. DNS/firewall setup is
+   operator-managed, not performed by this pipeline. The Caddy template bounds
+   request sizes/routes/timeouts, but has no per-IP edge rate limiter; the service
+   has a shared 30-request/minute limit, not full public abuse protection.
+
+Deployment verifies archive/payload hashes and revision, stops active rooms,
+switches a root-owned versioned bundle, and starts the unprivileged service.
+It checks loopback unknown-room/version behavior without allocating a room;
+failed startup restores the previous bundle/config when available. Restarting
+loses rooms/tickets, so schedule updates between playtests. On EC2 inspect:
+
+```bash
+sudo systemctl status disaster-party caddy
+sudo journalctl -u disaster-party -n 100 --no-pager
+sudo cat /opt/disaster-party/current/BUILD.txt
+```
+
+`EXISTING_EC2_DEPLOY_OK` proves only the service startup probe, **not** public
+TLS, UDP reachability or release-client gameplay. If status polling times out,
+inspect the SSM command first; it may still run. Do not blindly redeploy.
+
 ### Remaining release acceptance
 
 Use unchanged release executables on separate Windows PCs on different Internet
