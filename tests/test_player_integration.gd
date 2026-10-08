@@ -62,6 +62,7 @@ func _build_test_world() -> void:
 func _test_mouse_capture() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	var initial_rotation := player.camera_pivot.rotation
+	var initial_yaw := player.get_camera_yaw()
 	var escape := InputEventAction.new()
 	escape.action = "ui_cancel"
 	escape.pressed = true
@@ -81,6 +82,8 @@ func _test_mouse_capture() -> void:
 		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Left click must recapture the cursor")
 		player._unhandled_input(motion)
 		_expect(not player.camera_pivot.rotation.is_equal_approx(initial_rotation), "Captured cursor motion must rotate the camera")
+	# Later movement, visual-facing, and ramp checks assume the initial world heading.
+	player.set_camera_yaw(initial_yaw)
 
 
 func _settle_player() -> void:
@@ -105,6 +108,20 @@ func _test_walk_and_sprint() -> void:
 	var sprint_distance := -player.position.z
 	_expect(sprint_distance > walk_distance + 1.5, "Sprint must travel materially farther than walk over one second")
 	_expect(player.velocity.z <= -6.45, "Sprint must reach the 6.5 m/s target")
+
+	var initial_yaw := player.get_camera_yaw()
+	var yaw := 0.63
+	player.set_camera_yaw(yaw)
+	player.position = Vector3.ZERO
+	player.velocity = Vector3.ZERO
+	_settle_player()
+	for index in 60:
+		player.apply_movement_input(Vector2(0.0, -1.0), true, false, false, DELTA)
+	# Independent trig expectation catches ignored/reversed yaw or a pivot-only reset.
+	var expected_velocity := Vector3(-sin(yaw), 0.0, -cos(yaw)) * Tuning.SPRINT_SPEED
+	var horizontal_velocity := Vector3(player.velocity.x, 0.0, player.velocity.z)
+	_expect(horizontal_velocity.distance_to(expected_velocity) < 0.05, "Sprint must follow an asymmetric camera heading at the configured speed")
+	player.set_camera_yaw(initial_yaw)
 
 
 func _test_visual_facing() -> void:
