@@ -500,6 +500,12 @@
       "check": "User-requested phase decision archives and Windows export preparation",
       "status": "passed",
       "result": "Lossless mechanical split followed by section-content comparison verifies every original decision preserved in chronological phase order. Phase0/1 decision archives created under docs/old-docs, active log contains Phase2 only; relative links pass. AGENTS records active-only/phase-archive policy and no-overwrite rule. Completed progress archives untouched. Current Windows user is permees, not historical Admin; installed missing official4.7.2 templates after SHA512 verification. No native package or launch claim yet."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tools/export_windows.sh /mnt/c/Users/permees/Downloads/DisasterParty-movement-ba3cb20; sha256sum -c SHA256SUMS.txt; native PowerShell Start-Process DisasterParty.exe --headless --quit-after60 with isolated settings",
+      "status": "passed",
+      "result": "PLAYTEST_EXPORT_OK exact ba3cb202b55f01a2ed1e8d5d7d9cc868ed42a7da committed source. All three payload hashes verify; executable is native Windows x86_64 PE. Actual release executable on Windows-local drive exits0, matching full build marker, no runtime errors. This headless smoke does not prove GPU FPS, rendered appearance, physical input/audio or public admission. Local test folder delivered under C:/Users/permees/Downloads/DisasterParty-movement-ba3cb20; launch EXE normally for human rendering/control tests. Solo or same-bundle Direct IP only; older public server remains unchanged. Official template archive and temporary decision-split scratch removed."
     }
   ],
   "blockers": [
