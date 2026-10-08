@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T17:45:30Z",
+  "updated_at": "2026-10-08T18:06:38Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -64,7 +64,7 @@
           "task_2_2_6_container_network_and_failure_validation": "completed",
           "task_2_2_7_internet_release_readiness": "in_progress",
           "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
-          "task_2_2_9_dead_player_movement": "in_progress"
+          "task_2_2_9_dead_player_movement": "completed"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
@@ -72,8 +72,8 @@
           "room_id_admission_and_bounded_process_lifecycle": "passed",
           "windows_room_ui_and_failure_recovery": "passed",
           "multi_container_room_isolation_and_five_rematches": "passed",
-          "multiplayer_camera_feedback_corrected_and_latency_validated": "not_run",
-          "dead_body_movement_blocked_and_spectator_rematch_validated": "not_run",
+          "multiplayer_camera_feedback_corrected_and_latency_validated": "blocked",
+          "dead_body_movement_blocked_and_spectator_rematch_validated": "passed",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -539,19 +539,25 @@
       "command": "PLAYER_COUNTS=4 GODOT_BIN=godot bash tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Fresh final source recheck exits0:33 suites,5 network groups,settings restart. Additional dedicated dead-input assertion fails six times before local alive guard; after guard guest67 checks/five rematches pass with separate forged RPC still testing server rejection. This prevents post-death local jump from queuing for next round. Log source-final.log and death/local-jump-red.log retained. Native package checks remain next; no updated public acceptance claim."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "Repeated tools/export_windows.sh and tools/export_playtest.sh linux-server; run_release_linux_test.py; native run_windows_package_checks.ps1 and rendered extra fixtures",
+      "status": "passed",
+      "result": "Revision96e7df23ef347033bb1d5e1f1db6b1979d438342 exported twice per target with identical SHA256SUMS; Windows/Linux identical PCK17dff10f356cab301128b9dc899dae86c8a295f5270d5a7b7acc3dacf026529b. Standalone Linux exact bundle passes hashes/version rejection/create/join/crash/retry/SIGTERM/reclaimed UDP port/no cache. Native Windows exact-PCK editor fixtures pass settings save/restart/recovery/two-client five rematches plus eliminated movement27, jump8, prediction16, player integration69 and spectator presentation86 assertions. Actual unmodified release EXE renders180 frames at1280x720 using AMD Radeon860M Compatibility, prints exact revision and exits0 without runtime errors. Inspected spectator elimination/empty-target and settings captures: controls readable/unclipped; bright scene remains a separate preview investigation. These are editor-driven PCK gameplay checks, not release Internet/input feel. Windows bundle delivered C:/Users/permees/Downloads/DisasterParty-readiness-20261008; same-revision Linux in .amp/in/artifacts/milestone-2-2-final/linux. Fresh14 Python tests pass. Task2.2.9 complete with source dedicated/native regression evidence. Updated public movement and release-EXE settings restart remain unverified; owner confirms older-build Internet/audio baseline. No new deployment/publication."
     }
   ],
   "blockers": [
-    "Task2.2.9 source correction and death/Earthquake/spectator/dedicated/rematch regressions pass; matching native Windows package acceptance remains pending.",
-    "Task2.2.8 fixed/jitter/loss traversal, jump, three risers, overlap and knockdown recovery pass0/100/200ms; recovery correction up to0.9m is measured, not human smoothness acceptance. Native matching package and updated public deployment/movement acceptance remain pending. Separate20-player defect remains unexplained and beyond supported1–4 playtest scope.",
+    "Task2.2.8 synthetic fixed/jitter/loss traversal and matching native package regression pass; recovery correction up to0.9m is measured, not human smoothness acceptance. Updated public deployment and separate-network2/4-player movement acceptance need scoped authorization and human confirmation. Separate20-player defect remains unexplained and beyond supported1–4 playtest scope.",
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Owner confirms real Internet and physical audio baseline successful. Updated death/jump build has not been deployed or tested on public server; shared deployment requires scoped approval. Do not mix new client build identity with older server.",
+    "Exact exported PCK settings save/restart passes on native editor; actual release EXE launches cleanly. Native OS-key release settings attempts did not confirm the intended game settings state or save; failure logs retained, invalid captures removed. This is inconclusive input/focus automation, not a proven game defect. Do not substitute editor restart or baseline physical audio for this remaining release gate.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Task2.2.6 repeated the unconfirmed20-player client movement failure in source and Docker; one Docker UI retry-roster assertion also failed. Final source/container checks pass with assertions unchanged and failure-only diagnostics added, not a proven fix. One managed profile repeat lost heartbeats before600 samples; final managed4/8 run passes but its earlier loss remains unexplained. Retain logs for reliability investigation before raising capacity.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
   "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
-    "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md"],
-  "next_action": "Commit verified source locally for reproducible matching Windows/Linux exports and native Windows checks, then push evidence with skip-CI. Owner confirms real Internet/audio baseline; obtain scoped shared deployment approval before updated Internet movement acceptance."
+    "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md"],
+  "next_action": "Finish actual release-EXE settings persistence, then obtain scoped shared-server deployment approval for matching updated Internet2/4-player movement acceptance before closing Milestone2.2."
 }
