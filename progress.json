@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T06:00:37Z",
+  "updated_at": "2026-10-08T07:40:39Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -396,6 +396,12 @@
       "command": "tests/run_windows_package_checks.ps1 against native Windows-local final bundle; unchanged DisasterParty.exe --quit-after1200; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK: checksum-verified94ad2fd PCK settings/restart/recovery and actual ENet five rematches pass using native editor driver, not release-client admission. Unchanged release EXE on Windows/Intel UHD630/1280x720 Compatibility opens and exits0 with matching full identity, no runtime/missing-resource errors; direct PrintWindow capture inspected for world/avatar/intact HUD (the Multiplayer Lobby label is the normal toggle). Initial desktop capture missed the game and was discarded; no lobby input claim. Final exported-PCK overlap capture inspected; main HUD readable, existing world text partly occluded. Fresh source regression exits0 UI_REGRESSION_OK suites29/matrices5/persistence_restart=passed; known shutdown-only diagnostics retained. Logs/captures under .amp/in/artifacts/release-2-2-7/ and .scratch/release-2-2-7-*. Operator runbook/local commands and plan alignment pass; public routing, separate-network release sessions, release-runtime settings restart and physical listening remain blocked."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "User-requested independent hosting inspection: CNAME/config search, getent ahostsv4 permees.com, HTTPS GET headers for root and /v1/rooms/join, ss listeners and docker ps",
+      "status": "passed",
+      "result": "CNAME names permees.com. DNS resolves185.199.108.153/185.199.111.153 and HTTPS root returns200 Server:GitHub.com; GET /v1/rooms/join returns404 GitHub HTML. Available project configuration has no room-service URL/deployment configuration; no running local room service or game UDP listener found. The identified domain is a static-site endpoint, not a usable managed-room service; this does not rule out an unknown server elsewhere. Only read-only remote GETs performed, no public POST/allocation/provisioning/DNS/firewall changes. Added checked local-preparation/runbook subitems and unchecked Internet/settings-listening subitems under Task2.2.7 for clarity; parent remains in_progress with existing blocked gates."
     }
   ],
   "blockers": [
