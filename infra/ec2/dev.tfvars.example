@@ -1,0 +1,6 @@
+stage              = "dev"
+aws_region         = "ap-southeast-1"
+provision_role_arn = "arn:aws:iam::123456789012:role/disaster-party-dev-provision"
+operator_ipv4_cidr = "203.0.113.10/32" # Replace with your real public IPv4.
+ssh_key_name      = "disaster-party-dev"
+domain            = "server.permees.com"

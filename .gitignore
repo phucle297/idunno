@@ -11,3 +11,13 @@
 # Platform/editor noise
 .DS_Store
 Thumbs.db
+
+# Terraform local cache, state, plans and operator-specific configuration
+infra/**/.terraform/
+infra/**/*.tfstate*
+infra/**/*.tfplan
+infra/**/*.tfvars
+infra/**/*.tfvars.json
+infra/**/*.pem
+infra/**/backend.hcl
+infra/**/crash.log

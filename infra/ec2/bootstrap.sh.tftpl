@@ -1,0 +1,80 @@
+#!/bin/bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+# EIP association happens after instance creation; tolerate that short network gap.
+apt-get -o Acquire::Retries=20 -o APT::Update::Error-Mode=any update
+apt-get install -y python3 curl gpg debian-keyring debian-archive-keyring apt-transport-https
+curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt > /etc/apt/sources.list.d/caddy-stable.list
+chmod 644 /usr/share/keyrings/caddy-stable-archive-keyring.gpg /etc/apt/sources.list.d/caddy-stable.list
+apt-get update
+apt-get install -y caddy
+
+useradd --system --create-home --home-dir /var/lib/disaster-party --shell /usr/sbin/nologin disaster-party
+install -d -m 755 /opt/disaster-party/releases
+install -d -m 750 -o root -g disaster-party /etc/disaster-party
+cat > /etc/disaster-party/server.env <<'ENV'
+BUILD_REVISION=NOT_DEPLOYED
+ROOM_ADDRESS=${domain}
+ENV
+chmod 640 /etc/disaster-party/server.env
+chown root:disaster-party /etc/disaster-party/server.env
+
+cat > /etc/systemd/system/disaster-party.service <<'UNIT'
+[Unit]
+Description=Disaster Party managed rooms
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/opt/disaster-party/current/DisasterParty.x86_64
+
+[Service]
+User=disaster-party
+Group=disaster-party
+WorkingDirectory=/opt/disaster-party/current
+Environment=HOME=/var/lib/disaster-party
+EnvironmentFile=/etc/disaster-party/server.env
+ExecStart=/usr/bin/python3 /opt/disaster-party/current/room_service.py --godot /opt/disaster-party/current/DisasterParty.x86_64 --project /opt/disaster-party/current --build $${BUILD_REVISION} --public-address $${ROOM_ADDRESS} --listen-port 29800 --port-start 29810 --port-end 29811 --rooms 2 --players 4
+Restart=on-failure
+RestartSec=3
+KillMode=mixed
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/disaster-party
+MemoryMax=1G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+cat > /etc/caddy/Caddyfile <<'CADDY'
+${domain} {
+    @rooms {
+        method POST
+        path /v1/rooms/create /v1/rooms/join
+    }
+    handle @rooms {
+        request_body {
+            max_size 2048
+        }
+        reverse_proxy 127.0.0.1:29800 {
+            transport http {
+                response_header_timeout 20s
+            }
+        }
+    }
+    handle {
+        respond "Not found" 404
+    }
+}
+CADDY
+# No access/body logging; the service emits credential-free lifecycle logs.
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+systemctl daemon-reload
+systemctl enable disaster-party.service
+systemctl restart caddy
+# The game service intentionally starts only after a verified bundle is deployed.

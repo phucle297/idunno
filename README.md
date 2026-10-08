@@ -25,6 +25,10 @@ matching Windows/Linux release packaging now pass locally. Public Internet
 release-client sessions and physical listening remain unverified.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
+For the selected EC2 path, [Terraform and deployment instructions](infra/ec2/README.md)
+cover isolated stages, provisioning/runtime IAM roles, Elastic IP, Security Group,
+Caddy and systemd. No EKS is needed; live apply/DNS/deployment has not run.
+
 ## Windows playtest export
 
 Use the official Godot **4.7.2 stable** Linux editor and its matching export
