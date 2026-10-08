@@ -378,6 +378,12 @@
       "check": "Task 2.2.7 initial repeated exports and standalone Linux check",
       "status": "failed",
       "result": "Windows and Linux exports of c8aabd9405ef93916daa397aab7f4bb689c4434f each match byte-for-byte across two isolated builds. Native Windows exported-PCK settings/restart/recovery/five-rematch fixtures pass. Standalone Linux allocator Create fails503 because official release template rejects --path (compiled without path overrides); retained linux-managed.log and red regression linux-managed-red.log under .amp/in/artifacts/release-2-2-7/. Changed allocator to use cwd rather than --path for both source and release. All12 existing source backend/process tests pass in42.738s with unchanged assertions; final matching exports and packaged green check pending."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Packaged cwd launch and release stdout diagnostics",
+      "status": "failed",
+      "result": "Repeated Linux exports of1c62fb176391d635cf3e52a8d932fe8eb5f06c4e match; managed Create/Join, crash/recreate, SIGTERM and port reclaim now execute successfully, but strict runner rejects missing build/ready stdout. Direct release launch prints markers normally; redirected managed children killed by SIGTERM lose buffered stdout. Enable existing application/run/flush_stdout_on_print so production lifecycle logs retain identity/readiness. Runner distinguishes only the known exact shutdown resource-in-use diagnostic, retaining all other errors; no runtime errors suppressed. Log linux-managed-green.log retains this failure; final rebuild pending."
     }
   ],
   "blockers": [
