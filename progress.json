@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T08:50:15Z",
+  "updated_at": "2026-10-08T08:55:52Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -414,6 +414,12 @@
       "check": "Main-only existing EC2 workflow: actionlint1.7.7 with ShellCheck0.11.0; bash -n; isolated deployment mocks and bootstrap template render",
       "status": "passed",
       "result": "User superseded new Terraform provisioning with existing Tokyo EC2 i-0fd134761df1f88bf/account665808487768 and authorized push to run the pipeline; operator will inspect EC2. Added .github/workflows/deploy-existing-ec2.yml and tools/deploy_existing_ec2.sh: main-only build then OIDC/SSM deploy, fixed account/region/instance, Linux artifact only, no public Release/Windows ZIP/Steam publication. Existing source regression, repeat exports and packaged lifecycle run in CI before deployment. Bash/ShellCheck/actionlint pass; isolated temporary filesystem with mocked identity/curl/systemctl passes corrupt-hash rejection before stopping, first install, identical redeploy, startup-failure rollback and traversal rejection. Bootstrap render without Terraform passes syntax. Added prerequisites/operator guidance; earlier Terraform retained as reference. No AWS local queries, remote bootstrap/deployment or live systemd/public TLS/UDP/gameplay checks performed. GitHub repository-variable read denied403, AWS_DEPLOY_ROLE_ARN presence unverified. Task2.2.7 gates unchanged; runtime remains systemd, Docker/ECR/ECS are optional later steps, EKS not needed."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "GitHub Actions run37752635206 failure log",
+      "status": "failed",
+      "result": "Build/source-regression stage fails before export or deploy. Log explicitly reports tests/run_ui_regression.sh lines11/27 rg: command not found. Dedicated suite itself passes107 checks/three clients/five rematches/owner transfer; missing ripgrep prevents positive-marker validation, not a proven gameplay failure. Added explicit apt installation of ripgrep/unzip plus rg version preflight before engine/regressions; actionlint with ShellCheck, JSON and diff checks pass. Original log retained at .scratch/ec2-ci-failed.log. User will set repository variable AWS_DEPLOY_ROLE_ARN; no AWS keys or Environment variables required. Fresh CI execution pending; no EC2 mutation from this failed run."
     }
   ],
   "blockers": [

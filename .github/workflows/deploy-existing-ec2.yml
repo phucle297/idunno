@@ -24,6 +24,13 @@ jobs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install build and test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ripgrep unzip
+          rg --version
       - name: Install pinned engine and templates
         shell: bash
         run: |
