@@ -378,3 +378,8 @@
 
 - Reuse the committed-HEAD exporter in a detached6fb1e8d worktree, not current documentation HEAD, so client admission matches unchanged EC2. Two exports have identical EXE/PCK/build-note hashes. Native release launch/screenshot inspection and editor-driven exact-PCK settings/recovery/five-rematch checks pass; no actual release Internet/listening claim.
 - Deliver a local six-file ZIP with original runtime plus artifact-only endpoint launcher/instructions and payload checksums; copy to Windows Downloads. Launcher is executed natively and endpoint argument/clean exit verified. No public GitHub Release/Steam publication or ZIP upload to EC2. Documentation evidence uses skip-CI commits to prevent unintended server version changes.
+
+## 2026-10-08 — Shipped public endpoint
+
+- User requests no player configuration. Set the existing project setting `network/room_service_url` to `https://server.permees.com`; retain existing command-line override and direct-IP development mode. No new endpoint resolver, `.env`, or player-side port forwarding.
+- Source room UI checks pass64 assertions with no endpoint argument and with an explicit different loopback endpoint. Existing shutdown-only resource diagnostics remain. Changing the bundled project requires a new matching server/client revision; push/main runs the authorized existing pipeline. Historical6fb1e8d ZIP still requires its launcher and must not be mixed with the new server.

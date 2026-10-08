@@ -20,6 +20,9 @@ func _run() -> void:
 	main.name = "Main"
 	root.add_child(main)
 	await process_frame
+	_expect(ProjectSettings.get_setting("network/room_service_url", "") == "https://server.permees.com", "Build must configure the public room service without a launcher")
+	var override_url: String = main._argument_value("--room-service-url=")
+	_expect(main.room_client.service_url == ("https://server.permees.com" if override_url.is_empty() else override_url), "Explicit development endpoint must override the shipped default")
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()

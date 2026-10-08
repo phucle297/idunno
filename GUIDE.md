@@ -71,10 +71,11 @@ godot --path . -- --room-service-url=http://127.0.0.1:29800
    an old token. A restarted service does not retain previous rooms.
 
 Remote operator URLs must use **HTTPS**; plain HTTP is accepted only for the
-explicit `127.0.0.1:<port>` development endpoint. An operator can set
-`network/room_service_url` in the matching build or override it using
-`--room-service-url=`. No URL is supplied by default, so an unconfigured client
-shows a clear error. Discovery uses HTTP; gameplay remains authoritative ENet/UDP.
+explicit `127.0.0.1:<port>` development endpoint. The game defaults to
+`https://server.permees.com` through `network/room_service_url`; players can run
+`DisasterParty.exe` directly without a launcher, `.env`, or network configuration.
+Development can override it using `--room-service-url=`. Discovery uses HTTP;
+gameplay remains authoritative ENet/UDP. Client and server full revisions must match.
 Local loopback and native Windows UI checks are not public routing evidence.
 
 For legacy listen-host development, select **DIRECT IP (DEV)** or launch with
