@@ -47,6 +47,15 @@ func run() -> void:
 	expect(player.position.is_equal_approx(Vector3(2.4, 0, -0.4)), "Stale acknowledgement must not rewind prediction")
 	player.reset_for_match(Vector3.ZERO)
 	player.set_camera_yaw(0)
+	for sequence in range(101, 104):
+		player.predict_movement_input(sequence, Vector2.RIGHT, false, false, false, DELTA)
+	player.reconcile_movement(Vector3(1, 0, 0), Vector3(4.5, 0, 0), 0, false, 90, Vector3(0.12, 0, 1), false)
+	expect(player.position == Vector3(1, 0, 0), "Missing prefix must snap without replaying incomplete history")
+	expect(player._prediction_inputs.size() == 3, "Missing prefix must retain recent inputs until delayed acknowledgements catch up")
+	player.reconcile_movement(Vector3(2, 0, 0), Vector3(4.5, 0, 0), 0, false, 101, Vector3(0.12, 0, 1), false)
+	expect(player.position.is_equal_approx(Vector3(2.15, 0, 0)) and player._prediction_inputs.size() == 2, "Prediction must resume when an acknowledgement bridges the missing prefix")
+	player.reset_for_match(Vector3.ZERO)
+	player.set_camera_yaw(0)
 	for sequence in range(1, 11):
 		player.predict_movement_input(sequence, Vector2.ZERO, false, false, sequence == 7, DELTA)
 	# Client is already airborne; authoritative floor contact must seed the replayed jump.
@@ -64,7 +73,7 @@ func run() -> void:
 		player.predict_movement_input(sequence, Vector2.RIGHT, false, false, false, DELTA)
 	expect(player._prediction_inputs.size() == 60, "Replay history must be bounded to sixty physics ticks")
 	player.reconcile_movement(Vector3(2, 0, 3), Vector3.ZERO, 0, false, 1, Vector3.ZERO, false)
-	expect(player._prediction_inputs.is_empty() and player.position == Vector3(2, 0, 3), "History overflow must snap to authority rather than replay an incomplete prefix")
+	expect(player._prediction_inputs.size() == 60 and player.position == Vector3(2, 0, 3), "History overflow must snap without replay, retaining bounded inputs for acknowledgement recovery")
 	player.predict_movement_input(81, Vector2.RIGHT, false, false, false, DELTA)
 	player.set_eliminated(true)
 	expect(player._prediction_inputs.is_empty(), "Elimination must clear prediction history")

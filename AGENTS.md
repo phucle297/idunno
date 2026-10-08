@@ -7,7 +7,7 @@ Before implementation work:
 3. Load `.agents/skills/advancing-disaster-party/SKILL.md` for implementation, planning, or session handoff work.
 4. Load `.agents/skills/validating-game-assets/SKILL.md` before downloading, generating, importing, changing, or approving an asset.
 
-Do not rewrite the design plan. Record implementation decisions in `docs/decisions.md` and concise executable work in `docs/implementation-checklist.md`.
+Do not rewrite the design plan. Record only active-phase implementation decisions in `docs/decisions.md` and concise executable work in `docs/implementation-checklist.md`. Split decisions by phase: move completed-phase entries to `docs/old-docs/decisions-{phase-slug}.md`, preserve their content, and link archives from the active log. Never overwrite an existing decision archive.
 
 Work through the hierarchy `phase → milestone → task`. A phase may contain multiple milestones; add tasks only when a milestone is too large for one coherent work unit. Complete and validate the current milestone before starting another, and complete all required milestones before closing a phase. Never mark imports, animation clips, retargeting, networking, performance, or multiplayer as working without an executed check recorded in `progress.json`.
 
@@ -18,6 +18,7 @@ When a phase is complete, archive its full progress before starting the next pha
 3. Mark the archive as historical (`source_of_truth: false`) and record its phase ID, title, completion status, and archive timestamp.
 4. Replace root `progress.json` with a fresh active-phase file containing only the new phase, a link to the previous archive, empty current-phase evidence, and exactly one next action.
 5. Validate both JSON files before committing. Do not carry completed-phase validation logs or changed-file diaries into the new active file.
+6. Archive that phase's decision log under `docs/old-docs/decisions-{phase-slug}.md` before starting the next phase's decisions in `docs/decisions.md`.
 
 When the same issue occurs repeatedly, verify and record its cause and proven fix, create or update a focused skill with prevention and recovery steps, and add a concise reminder to the relevant project guidance or checklist. Load the `building-skills` skill before creating or changing any skill.
 

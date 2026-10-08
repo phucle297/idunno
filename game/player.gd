@@ -161,9 +161,7 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	if sequence < _last_movement_ack:
 		return
 	_last_movement_ack = sequence
-	if not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) > sequence + 1:
-		# Missing prefix after a long outage: snap rather than replay incomplete history.
-		_prediction_inputs.clear()
+	var missing_prefix := not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) > sequence + 1
 	while not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) <= sequence:
 		_prediction_inputs.pop_front()
 	global_position = server_position
@@ -176,6 +174,9 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	_update_capsule(crouched)
 	if knocked_down or _is_eliminated:
 		_prediction_inputs.clear()
+		return
+	if missing_prefix:
+		# Snap without replay, but retain bounded inputs so delayed acks can catch up.
 		return
 	var aiming_yaw := _camera_yaw
 	var grounded := int(state.z)

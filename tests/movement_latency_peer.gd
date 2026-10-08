@@ -9,6 +9,27 @@ class MeasuredMain extends "res://game/main.gd":
 	var travel := {}
 	var previous := {}
 	var done := {}
+	var corrections: Array[float] = []
+	var measuring := false
+	var contacts := {}
+
+	func _physics_process(delta: float) -> void:
+		# Consume at the same physics boundary as Main, measuring only reconciliation,
+		# not the additional prediction step that super performs afterward.
+		var player := _player_nodes.get(multiplayer.get_unique_id()) as PartyPlayer
+		if is_instance_valid(player) and not multiplayer.is_server() and not _pending_local_movement_snapshot.is_empty():
+			var snapshot := _pending_local_movement_snapshot
+			_pending_local_movement_snapshot = {}
+			var before := player.global_position
+			player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched)
+			if measuring:
+				corrections.append(before.distance_to(player.global_position))
+		super._physics_process(delta)
+		if measuring and is_instance_valid(player):
+			for index in player.get_slide_collision_count():
+				var collision := player.get_slide_collision(index)
+				if collision.get_normal().y < 0.9:
+					contacts[str(collision.get_collider().get_path())] = true
 
 	func mark(event: String, key: int = 0) -> void:
 		if measurement_role != "server":
@@ -41,6 +62,7 @@ class MeasuredMain extends "res://game/main.gd":
 
 var role := ""
 var trials := 6
+var patterns := PackedStringArray(["walk", "sprint", "reversal"])
 var telemetry_port := 0
 var main: Node
 
@@ -50,6 +72,8 @@ func _initialize() -> void:
 			role = arg.trim_prefix("--role=")
 		if arg.begins_with("--trials="):
 			trials = int(arg.trim_prefix("--trials="))
+		if arg.begins_with("--patterns="):
+			patterns = arg.trim_prefix("--patterns=").split(",")
 		if arg.begins_with("--telemetry-port="):
 			telemetry_port = int(arg.trim_prefix("--telemetry-port="))
 	_run.call_deferred()
@@ -105,6 +129,9 @@ func _run() -> void:
 		var max_yaw_error := 0.0
 		for trial in trials:
 			Input.action_release("move_forward")
+			Input.action_release("move_back")
+			Input.action_release("sprint")
+			var pattern: String = patterns[trial % patterns.size()]
 			# Headless has no captured mouse: set local aim, then stop changing it.
 			var yaw: float = [0.73, -1.17, 2.31][trial % 3] + (0.19 if role == "guest" else 0.0)
 			player.set_camera_yaw(yaw)
@@ -113,6 +140,8 @@ func _run() -> void:
 			if trial == 0:
 				main.travel.clear()
 				main.arrivals.clear()
+				main.corrections.clear()
+				main.measuring = true
 			var probe_stamp := Time.get_ticks_usec()
 			main.mark("probe", probe_stamp)
 			main.probe.rpc_id(1, probe_stamp)
@@ -120,15 +149,45 @@ func _run() -> void:
 			var stamp := Time.get_ticks_usec()
 			main.mark("input", trial)
 			Input.action_press("move_forward")
+			if pattern != "walk":
+				Input.action_press("sprint")
 			var latency := -1.0
+			var peak_speed := 0.0
 			while Time.get_ticks_usec() - stamp < 450000:
 				await process_frame
+				peak_speed = maxf(peak_speed, Vector2(player.velocity.x, player.velocity.z).length())
 				var step := player.global_position - origin
 				if latency < 0.0 and Vector2(step.x, step.z).length() > 0.001:
 					latency = (Time.get_ticks_usec() - stamp) / 1000.0
 					main.mark("motion", trial)
 				max_yaw_error = maxf(max_yaw_error, maxf(absf(angle_difference(yaw, player.get_camera_yaw())), absf(angle_difference(yaw, player.camera_pivot.rotation.y))))
 			Input.action_release("move_forward")
+			var forward_step := player.global_position - origin
+			var expected := Basis(Vector3.UP, yaw) * Vector3.FORWARD
+			if Vector2(forward_step.x, forward_step.z).normalized().dot(Vector2(expected.x, expected.z)) <= 0.9:
+				print("FORWARD_DIAGNOSTIC role=%s trial=%d origin=%s end=%s velocity=%s" % [role, trial, origin, player.global_position, player.velocity])
+			require(Vector2(forward_step.x, forward_step.z).normalized().dot(Vector2(expected.x, expected.z)) > 0.9, "Forward movement disagrees with asymmetric camera heading")
+			if pattern != "walk":
+				require(peak_speed > 6.4, "Sprint must reach configured speed, not walk speed")
+			var reversed_distance := 0.0
+			if pattern == "reversal":
+				var turn_position := player.global_position
+				var reversal_stamp := Time.get_ticks_usec()
+				main.mark("reverse", trial)
+				Input.action_press("move_back")
+				await create_timer(0.75).timeout
+				main.mark("reverse_end", trial)
+				Input.action_release("move_back")
+				var reversed_step := player.global_position - turn_position
+				reversed_distance = Vector2(reversed_step.x, reversed_step.z).dot(-Vector2(expected.x, expected.z))
+				if reversed_distance <= 0.1 or Vector2(player.velocity.x, player.velocity.z).dot(-Vector2(expected.x, expected.z)) <= 6.4:
+					print("REVERSAL_DIAGNOSTIC role=%s trial=%d origin=%s turn=%s end=%s velocity=%s grounded=%s collisions=%d distance=%f" % [role, trial, origin, turn_position, player.global_position, player.velocity, player.is_on_floor(), player.get_slide_collision_count(), reversed_distance])
+					print("CONTACTS_DIAGNOSTIC " + JSON.stringify(main.contacts))
+					print("REVERSAL_TIME_DIAGNOSTIC elapsed_ms=%f" % [(Time.get_ticks_usec() - reversal_stamp) / 1000.0])
+					for index in player.get_slide_collision_count():
+						print("COLLISION_DIAGNOSTIC collider=%s normal=%s" % [player.get_slide_collision(index).get_collider(), player.get_slide_collision(index).get_normal()])
+				require(reversed_distance > 0.1 and Vector2(player.velocity.x, player.velocity.z).dot(-Vector2(expected.x, expected.z)) > 6.4, "Reversal must move and reach sprint speed in the opposite direction")
+			Input.action_release("sprint")
 			main.mark("release", trial)
 			await create_timer(0.8).timeout
 			max_yaw_error = maxf(max_yaw_error, maxf(absf(angle_difference(yaw, player.get_camera_yaw())), absf(angle_difference(yaw, player.camera_pivot.rotation.y))))
@@ -137,10 +196,10 @@ func _run() -> void:
 			require(Vector2(player.velocity.x, player.velocity.z).length() < 0.01, "Release must stop local movement")
 			var displacement := player.global_position - origin
 			var horizontal := Vector2(displacement.x, displacement.z)
-			var expected := Basis(Vector3.UP, yaw) * Vector3.FORWARD
 			require(latency >= 0.0 and horizontal.length() > 0.1, "No horizontal motion in trial")
-			require(horizontal.normalized().dot(Vector2(expected.x, expected.z)) > 0.9, "Movement disagrees with asymmetric camera heading")
-			samples.append({"trial": trial, "yaw": yaw, "ticks_latency_ms": latency, "displacement_m": horizontal.length(), "settled_error_m": settled_error})
+			if pattern != "reversal":
+				require(horizontal.normalized().dot(Vector2(expected.x, expected.z)) > 0.9, "Movement disagrees with asymmetric camera heading")
+			samples.append({"trial": trial, "pattern": pattern, "yaw": yaw, "ticks_latency_ms": latency, "peak_speed_mps": peak_speed, "reversed_distance_m": reversed_distance, "displacement_m": horizontal.length(), "settled_error_m": settled_error})
 		require(max_yaw_error < 0.0001, "Camera changed after turn input stopped")
 		for peer_id in main._player_nodes:
 			require(float(main.travel.get(peer_id, 0.0)) > 0.1, "Both clients must observe movement of both peers")
@@ -148,7 +207,8 @@ func _run() -> void:
 		for i in range(1, main.arrivals.size()):
 			gaps.append(main.arrivals[i] - main.arrivals[i - 1])
 		require(main.rtts.size() >= trials - 1, "Insufficient measured RTT probes")
-		print("MEASUREMENT " + JSON.stringify({"role": role, "id": id, "trials": samples, "ticks_rtt_ms": main.rtts, "ticks_snapshot_gaps_ms": gaps, "observed_travel_m": main.travel, "max_camera_error_rad": max_yaw_error}))
+		require(main.corrections.size() >= 100, "Insufficient reconciliation measurements")
+		print("MEASUREMENT " + JSON.stringify({"role": role, "id": id, "trials": samples, "ticks_rtt_ms": main.rtts, "ticks_snapshot_gaps_ms": gaps, "observed_travel_m": main.travel, "corrections_m": main.corrections, "max_camera_error_rad": max_yaw_error}))
 		main.finished.rpc_id(1)
 		main.set_process(false)
 		main.set_physics_process(false)

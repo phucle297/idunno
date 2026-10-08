@@ -2,7 +2,8 @@
 """Local-only baseline: python3 tests/run_movement_latency_test.py.
 
 Each client has its own loopback UDP relay; every datagram in each direction
-waits added_rtt/2. No host network changes, loss, bandwidth cap or dependencies.
+waits added_rtt/2 plus a deterministic -jitter/0/+jitter cycle (clamped at zero).
+This can reorder packets. No host network changes, loss or bandwidth cap.
 Measurements use the runner's monotonic receipt times for undelayed loopback
 telemetry. Engine tick measurements are retained separately for clock diagnosis.
 Use --max-response-ms 50 to opt into a future prediction acceptance bound.
@@ -24,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DelayProxy:
-    def __init__(self, server_port, delay_ms):
+    def __init__(self, server_port, delay_ms, jitter_ms=0):
         self.selector = selectors.DefaultSelector()
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.front.bind(('127.0.0.1', 0))
@@ -36,8 +37,11 @@ class DelayProxy:
         self.server = ('127.0.0.1', server_port)
         self.client = None
         self.delay = delay_ms / 2000
+        self.jitter = jitter_ms / 1000
         self.queue = []
         self.holds = []
+        self.scheduled_holds = []
+        self.received_counts = [0, 0]
         self.counts = [0, 0]
         self.error = None
         self.stop = threading.Event()
@@ -74,7 +78,11 @@ class DelayProxy:
                         target, destination, direction = self.front, self.client, 1
                     serial += 1
                     received = time.monotonic()
-                    heapq.heappush(self.queue, (received + self.delay, serial, received, target, destination, data, direction))
+                    offset = (self.received_counts[direction] % 3 - 1) * self.jitter
+                    self.received_counts[direction] += 1
+                    hold = max(0, self.delay + offset)
+                    self.scheduled_holds.append(hold * 1000)
+                    heapq.heappush(self.queue, (received + hold, serial, received, target, destination, data, direction))
             now = time.monotonic()
             while self.queue and self.queue[0][0] <= now:
                 _, _, received, sock, address, data, direction = heapq.heappop(self.queue)
@@ -143,7 +151,8 @@ def run_case(args, delay, out):
             handles.append(handle)
             command = [args.godot, '--headless', '--path', str(ROOT), '--script',
                        'res://tests/movement_latency_peer.gd', '--', f'--role={role}',
-                       f'--trials={args.trials}', f'--telemetry-port={telemetry.getsockname()[1]}', *network]
+                       f'--trials={args.trials}', f'--patterns={",".join(args.patterns)}',
+                       f'--telemetry-port={telemetry.getsockname()[1]}', *network]
             process = subprocess.Popen(command, stdout=handle, stderr=subprocess.STDOUT)
             processes.append(process)
             return process, path
@@ -151,11 +160,11 @@ def run_case(args, delay, out):
         server, log = launch('server', [f'--server-port={port}'])
         wait_marker(server, log, 'DEDICATED_SERVER_READY')
         for role in ('owner', 'guest'):
-            proxy = DelayProxy(port, delay)
+            proxy = DelayProxy(port, delay, args.jitter_ms)
             proxies.append(proxy)
             client, log = launch(role, ['--join-address=127.0.0.1', f'--join-port={proxy.front.getsockname()[1]}'])
             wait_marker(client, log, f'LATENCY_CONNECTED {role}')
-        deadline = time.monotonic() + args.trials * 3 + 25
+        deadline = time.monotonic() + args.trials * 4 + 25
         for process in processes:
             process.wait(timeout=max(.1, deadline - time.monotonic()))
         telemetry_stop.set()
@@ -163,7 +172,8 @@ def run_case(args, delay, out):
         if telemetry_errors or receiver.is_alive():
             raise RuntimeError(f'Telemetry receiver failed: {telemetry_errors}')
         (out / 'telemetry.json').write_text(json.dumps(events) + '\n')
-        result = {'added_rtt_ms': delay, 'clock': 'Python time.monotonic; undelayed local telemetry receipt',
+        result = {'added_rtt_ms': delay, 'one_way_jitter_ms': args.jitter_ms,
+                  'patterns': args.patterns, 'clock': 'Python time.monotonic; undelayed local telemetry receipt',
                   'clients': {}, 'proxy': {}}
         for role, process in zip(('server', 'owner', 'guest'), processes):
             text = (out / f'{role}.log').read_text()
@@ -203,13 +213,16 @@ def run_case(args, delay, out):
                                            'ticks_rtt_ms': stats(record['ticks_rtt_ms']),
                                            'snapshot_gap_ms': stats(gaps),
                                            'trials': record['trials'], 'observed_travel_m': record['observed_travel_m'],
+                                           'correction_m': stats(record['corrections_m']),
                                            'max_camera_error_rad': record['max_camera_error_rad']}
-                if min(rtts) < delay - 1:
+                if min(rtts) < max(0, delay - 2 * args.jitter_ms) - 1:
                     raise RuntimeError(f'{role}: RTT shorter than injected hold; check clocks/proxy')
         for role, proxy in zip(('owner', 'guest'), proxies):
             if proxy.error is not None or not proxy.thread.is_alive():
                 raise RuntimeError(f'{role} proxy failed: {proxy.error}')
-            result['proxy'][role] = {'one_way_hold_ms': stats(proxy.holds), 'datagrams_each_direction': proxy.counts}
+            result['proxy'][role] = {'one_way_hold_ms': stats(proxy.holds),
+                                     'scheduled_one_way_hold_ms': stats(proxy.scheduled_holds),
+                                     'datagrams_each_direction': proxy.counts}
         result['response_bound_ms'] = args.max_response_ms
         result['response_bound_passed'] = (None if args.max_response_ms is None else
                                           all(client['latency_ms']['max'] <= args.max_response_ms
@@ -240,11 +253,15 @@ def main():
     parser.add_argument('--godot', default=os.environ.get('GODOT_BIN', 'godot'))
     parser.add_argument('--trials', type=int, default=6)
     parser.add_argument('--delays', nargs='+', type=float, default=[0, 100, 200])
+    parser.add_argument('--jitter-ms', type=float, default=0, help='One-way -N/0/+N ms cycle')
+    parser.add_argument('--patterns', nargs='+', choices=['walk', 'sprint', 'reversal'], default=['walk', 'sprint', 'reversal'])
     parser.add_argument('--output', type=Path, default=ROOT / '.amp/in/artifacts/movement-latency')
     parser.add_argument('--max-response-ms', type=float)
     args = parser.parse_args()
     if args.trials < 2 or any(delay < 0 or delay > 300 for delay in args.delays):
         parser.error('Use >=2 trials and added RTT in 0..300ms')
+    if not 0 <= args.jitter_ms <= 100 or args.trials < len(args.patterns):
+        parser.error('Use jitter in 0..100ms and at least one trial per pattern')
     results = [run_case(args, delay, args.output / f'added-{delay:g}ms') for delay in args.delays]
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / 'summary.json').write_text(json.dumps(results, indent=2) + '\n')
@@ -252,7 +269,8 @@ def main():
         for role, client in result['clients'].items():
             print(f"added={result['added_rtt_ms']:g}ms {role}: latency={client['latency_ms']['median']:.2f}ms "
                   f"RTT={client['rtt_ms']['median']:.2f}ms gap={client['snapshot_gap_ms']['median']:.2f}ms "
-                  f"gap_jitter_sd={client['snapshot_gap_ms']['stdev']:.2f}ms")
+                  f"gap_jitter_sd={client['snapshot_gap_ms']['stdev']:.2f}ms "
+                  f"correction_p95={client['correction_m']['p95']:.3f}m max={client['correction_m']['max']:.3f}m")
     if any(result['response_bound_passed'] is False for result in results):
         raise SystemExit('MOVEMENT_LATENCY_RESPONSE_BOUND_FAILED (measurements retained)')
     print('MOVEMENT_LATENCY_OK measurement-only' if args.max_response_ms is None else 'MOVEMENT_LATENCY_OK response-bound')
