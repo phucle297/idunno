@@ -501,7 +501,9 @@ Before the first deployment, configure:
 1. Repository **Settings → Secrets and variables → Actions → Variables**:
    `AWS_DEPLOY_ROLE_ARN` = the ARN of the separate GitHub deploy role. Its OIDC
    trust must require audience `sts.amazonaws.com` and subject
-   `repo:phucle297/idunno:ref:refs/heads/main`. Do not add a GitHub Environment to
+   `repo:phucle297@72026735/idunno@1401508578:ref:refs/heads/main`.
+   This repository uses GitHub's immutable OIDC subject; the older name-only
+   subject does not match. Do not add a GitHub Environment to
    this workflow: that changes the subject. Grant `ssm:SendCommand` only for
    `arn:aws:ssm:ap-northeast-1::document/AWS-RunShellScript` and the exact instance
    ARN, plus `ssm:GetCommandInvocation` for status. No AWS access keys are needed.
@@ -552,6 +554,17 @@ sudo cat /opt/disaster-party/current/BUILD.txt
 `EXISTING_EC2_DEPLOY_OK` proves only the service startup probe, **not** public
 TLS, UDP reachability or release-client gameplay. If status polling times out,
 inspect the SSM command first; it may still run. Do not blindly redeploy.
+
+On 2026-10-08 the operator completed deployment of revision `6fb1e8d`, and
+actual Godot clients on two separate Docker bridge networks received valid
+HTTPS Create/Join tickets for `server.permees.com:29810`. Both then failed
+ENet admission. Check inbound **UDP** 29810–29811 (not TCP), host firewall,
+room-process listener and admission logs during a fresh attempt. Empty rooms
+expire, so `ss -lunp` after a test ends cannot prove whether a listener existed
+during the attempt. Default local DNS was intermittent; container DNS1.1.1.1
+resolved the public address in the diagnostic repeat. Root cause remains
+unverified; this is not a passed gameplay check, nor two physical Internet
+networks or Windows release-client evidence.
 
 ### Remaining release acceptance
 
