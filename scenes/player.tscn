@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://assets/generated/CHR_Base_v001.tscn" id="2_visual"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+resource_local_to_scene = true
 radius = 0.28
 height = 1.5
 
