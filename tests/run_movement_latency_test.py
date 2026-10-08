@@ -3,7 +3,8 @@
 
 Each client has its own loopback UDP relay; every datagram in each direction
 waits added_rtt/2 plus a deterministic -jitter/0/+jitter cycle (clamped at zero).
-This can reorder packets. No host network changes, loss or bandwidth cap.
+This can reorder packets. Optional loss drops every Nth datagram independently
+in each direction (including ENet control packets); no host network changes.
 Measurements use the runner's monotonic receipt times for undelayed loopback
 telemetry. Engine tick measurements are retained separately for clock diagnosis.
 Use --max-response-ms 50 to opt into a future prediction acceptance bound.
@@ -25,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DelayProxy:
-    def __init__(self, server_port, delay_ms, jitter_ms=0):
+    def __init__(self, server_port, delay_ms, jitter_ms=0, loss_every=0):
         self.selector = selectors.DefaultSelector()
         self.front = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.front.bind(('127.0.0.1', 0))
@@ -42,6 +43,8 @@ class DelayProxy:
         self.holds = []
         self.scheduled_holds = []
         self.received_counts = [0, 0]
+        self.loss_every = loss_every
+        self.dropped_counts = [0, 0]
         self.counts = [0, 0]
         self.error = None
         self.stop = threading.Event()
@@ -80,6 +83,9 @@ class DelayProxy:
                     received = time.monotonic()
                     offset = (self.received_counts[direction] % 3 - 1) * self.jitter
                     self.received_counts[direction] += 1
+                    if self.loss_every and self.received_counts[direction] % self.loss_every == 0:
+                        self.dropped_counts[direction] += 1
+                        continue
                     hold = max(0, self.delay + offset)
                     self.scheduled_holds.append(hold * 1000)
                     heapq.heappush(self.queue, (received + hold, serial, received, target, destination, data, direction))
@@ -160,19 +166,24 @@ def run_case(args, delay, out):
         server, log = launch('server', [f'--server-port={port}'])
         wait_marker(server, log, 'DEDICATED_SERVER_READY')
         for role in ('owner', 'guest'):
-            proxy = DelayProxy(port, delay, args.jitter_ms)
+            proxy = DelayProxy(port, delay, args.jitter_ms, args.loss_every)
             proxies.append(proxy)
             client, log = launch(role, ['--join-address=127.0.0.1', f'--join-port={proxy.front.getsockname()[1]}'])
             wait_marker(client, log, f'LATENCY_CONNECTED {role}')
-        deadline = time.monotonic() + args.trials * 4 + 25
-        for process in processes:
-            process.wait(timeout=max(.1, deadline - time.monotonic()))
+        deadline = time.monotonic() + args.trials * 4 + 60
+        while any(process.poll() is None for process in processes):
+            if any(process.poll() not in (None, 0) for process in processes):
+                raise RuntimeError(f'Peer failed; see {out}')
+            if time.monotonic() >= deadline:
+                raise RuntimeError(f'Peer timeout; see {out}')
+            time.sleep(.05)
         telemetry_stop.set()
         receiver.join(2)
         if telemetry_errors or receiver.is_alive():
             raise RuntimeError(f'Telemetry receiver failed: {telemetry_errors}')
         (out / 'telemetry.json').write_text(json.dumps(events) + '\n')
         result = {'added_rtt_ms': delay, 'one_way_jitter_ms': args.jitter_ms,
+                  'loss_every': args.loss_every,
                   'patterns': args.patterns, 'clock': 'Python time.monotonic; undelayed local telemetry receipt',
                   'clients': {}, 'proxy': {}}
         for role, process in zip(('server', 'owner', 'guest'), processes):
@@ -214,6 +225,7 @@ def run_case(args, delay, out):
                                            'snapshot_gap_ms': stats(gaps),
                                            'trials': record['trials'], 'observed_travel_m': record['observed_travel_m'],
                                            'correction_m': stats(record['corrections_m']),
+                                           'traversal': record.get('traversal', []),
                                            'max_camera_error_rad': record['max_camera_error_rad']}
                 if min(rtts) < max(0, delay - 2 * args.jitter_ms) - 1:
                     raise RuntimeError(f'{role}: RTT shorter than injected hold; check clocks/proxy')
@@ -222,6 +234,8 @@ def run_case(args, delay, out):
                 raise RuntimeError(f'{role} proxy failed: {proxy.error}')
             result['proxy'][role] = {'one_way_hold_ms': stats(proxy.holds),
                                      'scheduled_one_way_hold_ms': stats(proxy.scheduled_holds),
+                                     'received_each_direction': proxy.received_counts,
+                                     'dropped_each_direction': proxy.dropped_counts,
                                      'datagrams_each_direction': proxy.counts}
         result['response_bound_ms'] = args.max_response_ms
         result['response_bound_passed'] = (None if args.max_response_ms is None else
@@ -246,6 +260,18 @@ def run_case(args, delay, out):
         telemetry.close()
         for handle in handles:
             handle.close()
+        (out / 'telemetry.json').write_text(json.dumps(events) + '\n')
+        traces = []
+        for role in ('owner', 'guest'):
+            path = out / f'{role}.log'
+            if path.exists():
+                traces.extend({'role': role, **json.loads(line.removeprefix('TRAVERSAL '))}
+                              for line in path.read_text().splitlines() if line.startswith('TRAVERSAL '))
+        (out / 'traversal.json').write_text(json.dumps(traces, indent=2) + '\n')
+        (out / 'proxy.json').write_text(json.dumps([
+            {'received': proxy.received_counts, 'forwarded': proxy.counts,
+             'dropped': proxy.dropped_counts, 'loss_every': proxy.loss_every,
+             'error': str(proxy.error) if proxy.error else None} for proxy in proxies], indent=2) + '\n')
 
 
 def main():
@@ -254,23 +280,36 @@ def main():
     parser.add_argument('--trials', type=int, default=6)
     parser.add_argument('--delays', nargs='+', type=float, default=[0, 100, 200])
     parser.add_argument('--jitter-ms', type=float, default=0, help='One-way -N/0/+N ms cycle')
+    parser.add_argument('--loss-every', type=int, default=0, help='Drop every Nth datagram per direction; 0 disables')
     parser.add_argument('--patterns', nargs='+', choices=['walk', 'sprint', 'reversal'], default=['walk', 'sprint', 'reversal'])
     parser.add_argument('--output', type=Path, default=ROOT / '.amp/in/artifacts/movement-latency')
     parser.add_argument('--max-response-ms', type=float)
     args = parser.parse_args()
+    if args.loss_every < 0 or args.loss_every == 1:
+        parser.error('Loss interval must be 0 or >=2')
     if args.trials < 2 or any(delay < 0 or delay > 300 for delay in args.delays):
         parser.error('Use >=2 trials and added RTT in 0..300ms')
     if not 0 <= args.jitter_ms <= 100 or args.trials < len(args.patterns):
         parser.error('Use jitter in 0..100ms and at least one trial per pattern')
-    results = [run_case(args, delay, args.output / f'added-{delay:g}ms') for delay in args.delays]
+    results, failures = [], []
+    for delay in args.delays:
+        try:
+            results.append(run_case(args, delay, args.output / f'added-{delay:g}ms'))
+        except (RuntimeError, subprocess.TimeoutExpired) as error:
+            failure = {'added_rtt_ms': delay, 'error': str(error)}
+            failures.append(failure)
+            print(failure, flush=True)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / 'summary.json').write_text(json.dumps(results, indent=2) + '\n')
+    (args.output / 'failures.json').write_text(json.dumps(failures, indent=2) + '\n')
     for result in results:
         for role, client in result['clients'].items():
             print(f"added={result['added_rtt_ms']:g}ms {role}: latency={client['latency_ms']['median']:.2f}ms "
                   f"RTT={client['rtt_ms']['median']:.2f}ms gap={client['snapshot_gap_ms']['median']:.2f}ms "
                   f"gap_jitter_sd={client['snapshot_gap_ms']['stdev']:.2f}ms "
                   f"correction_p95={client['correction_m']['p95']:.3f}m max={client['correction_m']['max']:.3f}m")
+    if failures:
+        raise SystemExit('MOVEMENT_LATENCY_FAILED (all requested cases attempted; evidence retained)')
     if any(result['response_bound_passed'] is False for result in results):
         raise SystemExit('MOVEMENT_LATENCY_RESPONSE_BOUND_FAILED (measurements retained)')
     print('MOVEMENT_LATENCY_OK measurement-only' if args.max_response_ms is None else 'MOVEMENT_LATENCY_OK response-bound')

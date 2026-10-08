@@ -41,6 +41,7 @@ var _room_owner_id := 0
 var _session_revision := 0
 var _movement_inputs: Dictionary = {}
 var _local_movement_sequence := 0
+var _local_jump_sequence := 0
 var _pending_local_movement_snapshot: Dictionary = {}
 var _match_snapshot_remaining := 0.0
 var _match_snapshot_sequence := 0
@@ -443,6 +444,7 @@ func _on_server_disconnected() -> void:
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
 	_movement_inputs.clear()
+	_local_jump_sequence = 0
 	_pending_local_movement_snapshot.clear()
 	_reset_sandbox()
 	$Player.process_mode = Node.PROCESS_MODE_INHERIT
@@ -544,7 +546,8 @@ func _physics_process(delta: float) -> void:
 		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
 		if movement_input.is_empty():
 			movement_input = _empty_movement_input()
-		player.set_camera_yaw(float(movement_input.yaw))
+		if match_manager.is_player_alive(peer_id):
+			player.set_camera_yaw(float(movement_input.yaw))
 		player.apply_movement_input(
 			movement_input.direction,
 			movement_input.sprinting,
@@ -587,18 +590,23 @@ func _eliminate_out_of_bounds() -> void:
 func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
 	if not _network_mode or multiplayer.is_server():
 		return
+	if not match_manager.is_player_alive(multiplayer.get_unique_id()):
+		return
 	_local_movement_sequence += 1
-	_submit_movement_input.rpc_id(1, input_2d, sprinting, crouched, jump_pressed, camera_yaw, _local_movement_sequence)
+	if jump_pressed:
+		_local_jump_sequence = _local_movement_sequence
+	# Repeat the latest numbered jump: movement datagrams can be dropped/reordered.
+	_submit_movement_input.rpc_id(1, input_2d, sprinting, crouched, jump_pressed, camera_yaw, _local_movement_sequence, _local_jump_sequence)
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
-func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
+func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id := multiplayer.get_remote_sender_id()
 	if sender_id <= 1 or not _player_nodes.has(sender_id):
 		return
-	_store_movement_input(sender_id, input_2d, sprinting, crouched, jump_pressed, camera_yaw, sequence)
+	_store_movement_input(sender_id, input_2d, sprinting, crouched, jump_pressed, camera_yaw, sequence, jump_sequence)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 1)
@@ -621,7 +629,7 @@ func _apply_movement_snapshots(
 		return
 	for index: int in player_count:
 		var peer_id := peer_ids[index]
-		if not _player_nodes.has(peer_id):
+		if not _player_nodes.has(peer_id) or not match_manager.is_player_alive(peer_id):
 			continue
 		var player := _player_nodes[peer_id] as PartyPlayer
 		if peer_id == multiplayer.get_unique_id() and not acknowledged_inputs.is_empty():
@@ -699,10 +707,17 @@ func _network_prop(prop_id: int) -> RigidBody3D:
 	return null
 
 
-func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int) -> void:
+func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
+	if not match_manager.is_player_alive(peer_id):
+		return
+	if jump_sequence < -1 or jump_sequence > sequence:
+		return
 	var previous: Dictionary = _movement_inputs.get(peer_id, {})
 	if not previous.is_empty() and sequence < int(previous.sequence):
 		return
+	var last_jump: int = previous.get("jump_sequence", 0)
+	if jump_sequence >= 0:
+		jump_pressed = jump_sequence > last_jump
 	var safe_input := input_2d if input_2d.is_finite() else Vector2.ZERO
 	var safe_yaw := camera_yaw if is_finite(camera_yaw) else 0.0
 	_movement_inputs[peer_id] = {
@@ -712,6 +727,7 @@ func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, cro
 		"jump_pressed": jump_pressed or (not previous.is_empty() and bool(previous.jump_pressed)),
 		"yaw": wrapf(safe_yaw, -PI, PI),
 		"sequence": sequence,
+		"jump_sequence": maxi(last_jump, jump_sequence),
 	}
 
 
@@ -1451,6 +1467,10 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 
 
 func _on_player_eliminated(peer_id: int, cause: String) -> void:
+	var last_input: Dictionary = _movement_inputs.get(peer_id, {})
+	_movement_inputs[peer_id] = _empty_movement_input()
+	# Keep event deduplication across death/rematch, without retaining movement.
+	_movement_inputs[peer_id].jump_sequence = last_input.get("jump_sequence", 0)
 	var eliminated_player := _player_nodes.get(peer_id) as PartyPlayer
 	if is_instance_valid(eliminated_player):
 		eliminated_player.set_eliminated(true)

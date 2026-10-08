@@ -3,6 +3,7 @@ extends SceneTree
 var main: Node
 var panel: Panel
 var role := ""
+var retry_ready_file := ""
 var failures: Array[String] = []
 
 
@@ -10,6 +11,8 @@ func _initialize() -> void:
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--role="):
 			role = argument.trim_prefix("--role=")
+		if argument.begins_with("--retry-ready-file="):
+			retry_ready_file = argument.trim_prefix("--retry-ready-file=")
 	_run.call_deferred()
 
 
@@ -47,12 +50,18 @@ func _run() -> void:
 	_expect("Room server disconnected" in panel.get_node("Status").text and not panel.get_node("Join").disabled and main.get_network_player_ids() == [1], "Actual room crash must expose ID retry and restore solo")
 	# The operator has removed the crashed room; a fresh create/join uses a new ticket.
 	if role == "guest":
-		await create_timer(0.8).timeout
+		await _wait(func() -> bool: return FileAccess.file_exists(retry_ready_file), "Operator must observe recreated owner admission before guest retry")
 	panel.get_node("Password").text = "sample-password"
 	panel.get_node("Host" if role == "owner" else "Join").pressed.emit()
 	await _wait(func() -> bool: return main.get_room_owner_id() > 1 and main.match_manager.players.has(main.multiplayer.get_unique_id()), "Same process must retry via UI and fresh discovery after crash")
+	print("ROOM_UI_RETRY_ADMITTED role=%s peers=%s" % [role, main.match_manager.players.keys()])
 	await _wait(func() -> bool: return main.match_manager.players.size() == 2, "Retried room must contain both real clients")
-	await create_timer(0.3).timeout
+	print("ROOM_UI_RETRY_ROSTER role=%s peers=%s" % [role, main.match_manager.players.keys()])
+	# Both send ready only after observing the two-player roster. Neither may
+	# tear down before the other has also reached that assertion.
+	panel.get_node("Ready").pressed.emit()
+	await _wait(func() -> bool: return main.match_manager.can_start_match(), "Both retry clients must acknowledge the restored roster before teardown")
+	print("ROOM_UI_RETRY_TEARDOWN role=%s peers=%s" % [role, main.match_manager.players.keys()])
 	main.process_mode = Node.PROCESS_MODE_DISABLED
 	main.gameplay_audio.reset_for_match()
 	main.multiplayer.multiplayer_peer.close()
@@ -72,6 +81,8 @@ func _wait(predicate: Callable, message: String) -> void:
 	var deadline := Time.get_ticks_msec() + 12000
 	while not predicate.call() and Time.get_ticks_msec() < deadline:
 		await process_frame
+	if not predicate.call():
+		print("ROOM_UI_WAIT_DIAGNOSTIC role=%s message=%s network=%s busy=%s peers=%s status=%s" % [role, message, main.is_network_session(), main.room_client.busy, main.match_manager.players.keys(), panel.get_node("Status").text])
 	_expect(predicate.call(), message)
 
 

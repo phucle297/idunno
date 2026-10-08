@@ -303,6 +303,7 @@ class RealProcesses(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             processes = []
             logs = []
+            retry_ready = Path(directory) / "retry-ready"
             try:
                 for role in ("owner", "guest"):
                     log = Path(directory) / f"{role}.log"
@@ -312,6 +313,7 @@ class RealProcesses(unittest.TestCase):
                             self.service.args.godot, "--headless", "--path", str(ROOT),
                             "--script", "res://tests/room_ui_peer.gd", "--", f"--role={role}",
                             f"--room-service-url=http://127.0.0.1:{self.server.server_port}",
+                            f"--retry-ready-file={retry_ready}",
                         ], stdout=output, stderr=subprocess.STDOUT))
                     if role == "owner":
                         deadline = time.monotonic() + 12
@@ -326,6 +328,11 @@ class RealProcesses(unittest.TestCase):
                 room["process"].kill()
                 room["process"].wait(timeout=3)
                 self.service.reap()
+                deadline = time.monotonic() + 12
+                while "ROOM_UI_RETRY_ADMITTED role=owner" not in logs[0].read_text() and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                self.assertIn("ROOM_UI_RETRY_ADMITTED role=owner", logs[0].read_text())
+                retry_ready.touch()
                 for process, log in zip(processes, logs):
                     self.assertEqual(process.wait(timeout=28), 0, {path.name: path.read_text() for path in logs})
                     output = log.read_text()

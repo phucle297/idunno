@@ -100,6 +100,8 @@ func apply_movement_input(
 	delta: float,
 	grounded_override: int = -1
 ) -> void:
+	if _is_eliminated:
+		return
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
@@ -158,7 +160,7 @@ func is_crouched() -> bool:
 
 
 func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, crouched: bool) -> void:
-	if sequence < _last_movement_ack:
+	if _is_eliminated or sequence < _last_movement_ack:
 		return
 	_last_movement_ack = sequence
 	var missing_prefix := not _prediction_inputs.is_empty() and int(_prediction_inputs[0].sequence) > sequence + 1
@@ -189,7 +191,7 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 
 
 func apply_knockdown(impulse: Vector3) -> void:
-	if _knockdown_remaining > 0.0:
+	if _is_eliminated or _knockdown_remaining > 0.0:
 		return
 	release_held_object()
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
@@ -198,6 +200,8 @@ func apply_knockdown(impulse: Vector3) -> void:
 
 
 func set_network_knockdown(active: bool) -> void:
+	if _is_eliminated:
+		return
 	if active and _knockdown_remaining <= 0.0:
 		_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 		_spawn_cosmetic_ragdoll(velocity, Vector3.ZERO)
@@ -226,6 +230,8 @@ func _clear_cosmetic_ragdoll() -> void:
 
 
 func apply_hazard_velocity(velocity_change: Vector3, speed_cap: float) -> void:
+	if _is_eliminated:
+		return
 	release_held_object()
 	velocity = (velocity + velocity_change).limit_length(maxf(speed_cap, 0.0))
 
@@ -235,10 +241,15 @@ func is_knocked_down() -> bool:
 
 
 func set_eliminated(eliminated: bool) -> void:
+	_is_eliminated = eliminated
 	if eliminated:
 		release_held_object()
 		_prediction_inputs.clear()
-	_is_eliminated = eliminated
+		velocity = Vector3.ZERO
+		_coyote_remaining = 0.0
+		_jump_buffer_remaining = 0.0
+		_knockdown_remaining = 0.0
+		_clear_cosmetic_ragdoll()
 	visual.visible = not eliminated
 	collider.set_deferred("disabled", eliminated)
 
@@ -337,7 +348,7 @@ func _update_capsule(crouched: bool) -> void:
 
 
 func accepts_local_input() -> bool:
-	return not multiplayer.has_multiplayer_peer() or is_multiplayer_authority()
+	return not _is_eliminated and (not multiplayer.has_multiplayer_peer() or is_multiplayer_authority())
 
 
 func _has_active_network_session() -> bool:

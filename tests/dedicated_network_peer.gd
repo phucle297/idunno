@@ -55,6 +55,10 @@ func _server(main: Node) -> void:
 	for cycle: int in 6:
 		_expect(main.match_manager.apply_damage(guest_id, 100.0, "Dedicated smoke"), "Server must eliminate guest")
 		_expect(main.match_manager.state == MatchManager.MatchState.RESULTS and main.match_manager.winner_ids == [owner_id], "Results must identify the actual surviving client")
+		var dead: PartyPlayer = main._player_nodes[guest_id]
+		var dead_position := dead.global_position
+		await create_timer(0.15).timeout
+		_expect(dead.global_position == dead_position and dead.velocity == Vector3.ZERO and not dead.is_knocked_down(), "Server must freeze eliminated capsule despite subsequent client inputs")
 		if cycle == 5:
 			break
 		await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Owner rematch RPC must restart cycle %d" % (cycle + 1))
@@ -89,6 +93,16 @@ func _client(main: Node) -> void:
 		await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.RESULTS, "Client must observe results cycle %d" % cycle)
 		_expect(not main.match_manager.players.has(1) and main.match_manager.winner_ids == [main.get_room_owner_id()], "Replicated results must agree with server")
 		_expect(main.get_node("Interface/ResultsPanel/Actions/Rematch").visible == (role == "owner"), "Results actions must reflect ownership")
+		if role == "guest":
+			var dead: PartyPlayer = main._player_nodes[local_id]
+			var dead_position := dead.global_position
+			var jump_sequence: int = main._local_jump_sequence
+			main.submit_local_movement_input(Vector2.RIGHT, true, true, true, -0.7)
+			_expect(main._local_jump_sequence == jump_sequence, "Dead local input cannot queue a jump for the next rematch")
+			# Bypass local controls to exercise authoritative rejection as well.
+			main._submit_movement_input.rpc_id(1, Vector2.RIGHT, true, true, true, -0.7, main._local_movement_sequence + 1)
+			await create_timer(0.1).timeout
+			_expect(dead.global_position == dead_position and dead.velocity == Vector3.ZERO and not dead.visual.visible and not dead.can_grab_objects(), "Eliminated client must stay frozen after forged live input and subsequent snapshots")
 		if cycle == 5:
 			break
 		if role == "owner":
