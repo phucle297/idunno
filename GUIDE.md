@@ -571,6 +571,18 @@ server-loss retry or physical audio/settings gates. No redeploy was needed.
 
 ### Remaining release acceptance
 
+The matching Windows package `DisasterParty-Windows-Internet-6fb1e8d.zip` is
+prepared locally and copied to the operator's Windows Downloads directory.
+Extract the entire ZIP into a fresh writable folder and run `Play-Internet.cmd`.
+This launcher passes `--room-service-url=https://server.permees.com` and writes
+`room-client.log` beside the EXE. Open Multiplayer Lobby [L], Create a custom
+Room ID, then use the same package/ID on the second PC to Join; Ready both and
+let the owner Start. Keep EXE/PCK together. `SHA256SUMS.txt` verifies runtime,
+build notes, launcher and `PLAYTEST.txt`. No public Release/Steam upload occurs.
+Native standalone launch and launcher argument checks pass; settings/recovery
+and five-rematch exported-PCK fixtures use an editor driver, not the release
+EXE. Those results do not replace the following acceptance session.
+
 Use unchanged release executables on separate Windows PCs on different Internet
 networks. Record client/server full revisions, server CPU/RAM/OS/region, GPU and
 resolution, network type/RTT/loss/disconnects and timestamped credential-free
