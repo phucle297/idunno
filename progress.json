@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T00:00:00Z",
+  "updated_at": "2026-10-08T05:50:40Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -372,6 +372,12 @@
       "command": "PLAYER_COUNTS=20 tests/run_playable_scale_test.sh; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; bash tests/run_container_network_test.sh; jq empty progress.json; bash -n tests/container_room_godot.sh tools/container-tests/entrypoint.sh tests/run_playable_scale_test.sh; Python AST parse; git diff --check",
       "status": "passed",
       "result": "Isolated20-player rerun passes all19 clients. Serial source regression exits0: UI_REGRESSION_OK suites=29 matrices=5 persistence_restart=passed. Final strict Docker regression exits0: CONTAINER_VALIDATION_SLICE_OK, separately addressed two-room movement/five rematches/recovery, all12 backend tests, DEDICATED_SERVER_OK checks=107 and playable4/8/20 coverage; no unexpected runtime errors. Known occupied-port negative and shutdown resource diagnostics remain explicitly distinguished. Logs .scratch/task-2-2-6-scale-isolated.log, task-2-2-6-source-final.log and task-2-2-6-container-diagnostic.log. Together with final managed4/8 lifecycle/isolation/profile evidence, Task2.2.6/container gate pass. Internet, physical listening, release-room clients and human gates remain not_run. No public deployment; next is local2.2.7 release preparation."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Task 2.2.7 initial repeated exports and standalone Linux check",
+      "status": "failed",
+      "result": "Windows and Linux exports of c8aabd9405ef93916daa397aab7f4bb689c4434f each match byte-for-byte across two isolated builds. Native Windows exported-PCK settings/restart/recovery/five-rematch fixtures pass. Standalone Linux allocator Create fails503 because official release template rejects --path (compiled without path overrides); retained linux-managed.log and red regression linux-managed-red.log under .amp/in/artifacts/release-2-2-7/. Changed allocator to use cwd rather than --path for both source and release. All12 existing source backend/process tests pass in42.738s with unchanged assertions; final matching exports and packaged green check pending."
     }
   ],
   "blockers": [

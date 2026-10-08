@@ -427,6 +427,18 @@ or auto-update binaries under live rooms. Keep read-only versioned package
 directories; stop/drain sessions before switching the executable/PCK/service as
 one unit. Roll back the whole bundle **and clients**, not just the executable.
 
+Developers can run the packaged Linux lifecycle check from the repository (the
+runner copies only checksum-verified runtime files into a temporary directory):
+
+```bash
+python3 tests/run_release_linux_test.py .scratch/linux-a --log .scratch/linux-release-check.log
+```
+
+Choose a fresh log path and unused TCP/UDP ports (`--port 29870` uses TCP 29870,
+UDP 29871–29872). It validates release startup, build rejection, HTTP create/join,
+room crash/recreate, SIGTERM and port reclamation without editor/cache inputs;
+it does not admit release clients or prove Internet gameplay.
+
 From the matching Windows package, local discovery is:
 
 ```powershell

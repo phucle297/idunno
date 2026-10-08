@@ -106,9 +106,10 @@ class RoomService:
                     json.dump({"room_id": room_id, "key": room["key"], "url": self.internal_url,
                                "build": self.args.build, "capacity": self.args.players}, output)
                 # No shell; executable/project are operator configuration, not request input.
+                # Official release templates reject --path; cwd also works for source editors.
                 room["process"] = subprocess.Popen(
-                    [self.args.godot, "--headless", "--path", self.args.project, "--",
-                     f"--server-port={port}", f"--room-config={config}"])
+                    [self.args.godot, "--headless", "--",
+                     f"--server-port={port}", f"--room-config={config}"], cwd=self.args.project)
             except OSError:
                 self.remove(room)
                 raise Rejected("server_start_failed", 503)
