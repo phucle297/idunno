@@ -161,18 +161,6 @@ Task 2.2.3 validated: `--server-port=` starts a playerless development server; f
 
 Task 2.2.4 validated: Python standard-library loopback backend, normalized/generated IDs, version 1/exact-build lookup, salted passwords and hashed single-use 20-second tickets. Real Godot SceneMultiplayer pre-registration authentication rejects UDP bypass and invalid/expired/replayed/wrong-room tickets; actual rejection recovery/retry and two admitted/ready clients with owner start/ACTIVE admission denial pass. Ten backend tests cover atomic IDs/capacity, private file permissions, startup/port conflicts, crash/empty/heartbeat-loss/shutdown cleanup, registry-loss fail-closed and port reuse. Actual CLI create/SIGTERM/reclaimed UDP port passes. Serial full regression passes 27 suites/five network groups/persistence restart, including five rematches and 20-player source scale. One earlier 20-player client movement assertion failed, then isolated and full reruns passed unchanged; cause unconfirmed and logs preserved. `GUIDE.md` documents local commands and HTTPS/proxy security boundaries; no Windows room-ID UI, Docker or public deployment claim.
 
-### Milestone 2.6 — Mouse Interaction and Display-Session Reliability
-
-Stable ID added after the original plan; execute after 2.2 and before 2.3.
-
-- [ ] Reproduce the reported inability to rotate the camera or click buttons using `godot --path . -- --host-port=29730` on the user's Linux/X11/llvmpipe environment. Record window focus, mouse capture/visibility, motion/button events, UI event consumption and display-session state. Distinguish game input routing from missing OS events or X-session loss before identifying a cause.
-- [ ] Fix the proven input owner only; validate mouse camera rotation during play, clickable lobby/ready/start/results/settings controls, Escape release and click recapture, focus loss/return, rematches and server-loss recovery. Include solo/listen-host and dedicated clients, 720p/1080p, and native Windows regression. Use actual pointer events plus observable camera/control outcomes, not only direct method calls.
-- [ ] Investigate the reported `X connection to :0 broken` separately. Record whether the process/display was intentionally stopped and the first failure before the static-string/thread/RID cleanup diagnostics; do not treat shutdown output, V-Sync warnings or unavailable audio devices as the established input-failure cause. Validate normal exit; keep externally unavailable display reproduction explicitly blocked rather than claiming a fix.
-
-Acceptance: reproduced mouse failure with a proven correction and executed pointer/focus/state-transition regression; display-loss sequence classified with evidence or an explicit unresolved blocker. Human baseline depends on this milestone as well as 2.2. No gameplay lighting changes are part of this work.
-
-Preview review follow-up: the user clarifies normal direct host lighting looks normal; only Task 2.2.3 images look excessively bright. Compare the multi-scene capture fixture with a single normal host at matched renderer/camera/settings, including shared-world lights/environments and image encoding/display. Correct and inspect the preview workflow if a difference is reproduced; do not reduce production lighting to compensate for a capture-only issue. Prior captures demonstrate the tested UI layout, not user-approved lighting.
-
 ### Milestone 2.3 — Human Playtest Baseline
 
 Depends on 2.2 and 2.6; collect baseline evidence before changing core feel.
@@ -206,6 +194,18 @@ Current constraints: export packaging, standalone launch, release localhost read
 Task 2.2.6 validated: `bash tests/run_container_network_test.sh` and `python3 tests/run_managed_container_test.py` pass strict internal-bridge checks without published ports. Actual RoomService plus two Godot rooms and separately addressed clients pass four/eight players per room, isolated rosters/83-vs100HP/Flood/Meteor/results, five rematches each, owner transfer/forged-request rejection, admission retry, full capacity, crash, heartbeat outage/resume, live-service restart with unused unexpired old-ticket rejection, empty expiry and port reuse. Proven engine DEL_PEER departure fan-out is prevented by dedicated relay-off; timed-out HTTP reply writes catch only cancellation exceptions. Measured service/two-room budget is 2CPU/1GiB, about 170–185MiB used; 120 warmup/600 samples per room yield physics-work p95 1.25–1.79ms, tick-interval p95 about20.7ms, RTT7–13ms on WSL/internal bridge. Conservative initial local cap: two rooms/four players each, not a production or perfect60Hz promise. Earlier heartbeat, retry-roster and20-player movement failures remain unconfirmed observations with retained logs and extra diagnostics; no assertions relaxed or unrelated gameplay fixes claimed. See GUIDE/progress for evidence and limitations; public Internet readiness remains planned.
 
 Next action: Task 2.2.7 — prepare reproducible, version-identified Windows clients/headless Linux servers and the operator runbook from the validated room implementation. Public provisioning/deployment, DNS/TLS/firewall changes and actual Internet/human gates remain subject to approval and available endpoints/participants.
+
+### Milestone 2.6 — Mouse Interaction and Display-Session Reliability
+
+Stable ID added after the original plan; execute after 2.2 and before 2.3.
+
+- [ ] Reproduce the reported inability to rotate the camera or click buttons using `godot --path . -- --host-port=29730` on the user's Linux/X11/llvmpipe environment. Record window focus, mouse capture/visibility, motion/button events, UI event consumption and display-session state. Distinguish game input routing from missing OS events or X-session loss before identifying a cause.
+- [ ] Fix the proven input owner only; validate mouse camera rotation during play, clickable lobby/ready/start/results/settings controls, Escape release and click recapture, focus loss/return, rematches and server-loss recovery. Include solo/listen-host and dedicated clients, 720p/1080p, and native Windows regression. Use actual pointer events plus observable camera/control outcomes, not only direct method calls.
+- [ ] Investigate the reported `X connection to :0 broken` separately. Record whether the process/display was intentionally stopped and the first failure before the static-string/thread/RID cleanup diagnostics; do not treat shutdown output, V-Sync warnings or unavailable audio devices as the established input-failure cause. Validate normal exit; keep externally unavailable display reproduction explicitly blocked rather than claiming a fix.
+
+Acceptance: reproduced mouse failure with a proven correction and executed pointer/focus/state-transition regression; display-loss sequence classified with evidence or an explicit unresolved blocker. Human baseline depends on this milestone as well as 2.2. No gameplay lighting changes are part of this work.
+
+Preview review follow-up: the user clarifies normal direct host lighting looks normal; only Task 2.2.3 images look excessively bright. Compare the multi-scene capture fixture with a single normal host at matched renderer/camera/settings, including shared-world lights/environments and image encoding/display. Correct and inspect the preview workflow if a difference is reproduced; do not reduce production lighting to compensate for a capture-only issue. Prior captures demonstrate the tested UI layout, not user-approved lighting.
 
 ## Planned future phases
 
