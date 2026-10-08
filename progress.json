@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-08T05:50:40Z",
+  "updated_at": "2026-10-08T06:00:37Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -70,9 +70,9 @@
           "room_id_admission_and_bounded_process_lifecycle": "passed",
           "windows_room_ui_and_failure_recovery": "passed",
           "multi_container_room_isolation_and_five_rematches": "passed",
-          "public_internet_release_clients_and_retry": "not_run",
-          "exported_settings_assets_and_physical_audio": "not_run",
-          "internet_play_guide_and_operator_runbook": "not_run"
+          "public_internet_release_clients_and_retry": "blocked",
+          "exported_settings_assets_and_physical_audio": "blocked",
+          "internet_play_guide_and_operator_runbook": "passed"
         }
       },
       "milestone_2_6_mouse_and_display_reliability": {
@@ -384,17 +384,29 @@
       "check": "Packaged cwd launch and release stdout diagnostics",
       "status": "failed",
       "result": "Repeated Linux exports of1c62fb176391d635cf3e52a8d932fe8eb5f06c4e match; managed Create/Join, crash/recreate, SIGTERM and port reclaim now execute successfully, but strict runner rejects missing build/ready stdout. Direct release launch prints markers normally; redirected managed children killed by SIGTERM lose buffered stdout. Enable existing application/run/flush_stdout_on_print so production lifecycle logs retain identity/readiness. Runner distinguishes only the known exact shutdown resource-in-use diagnostic, retaining all other errors; no runtime errors suppressed. Log linux-managed-green.log retains this failure; final rebuild pending."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tools/export_playtest.sh linux-server .scratch/release-2-2-7-linux-final-{a,b}; tools/export_windows.sh .scratch/release-2-2-7-windows-final-{a,b}; per-target checksum diff; python3 tests/run_release_linux_test.py <linux-final-a> --log <linux-managed-final.log>",
+      "status": "passed",
+      "result": "Both targets at94ad2fd9e095c80802ef14f086c42065969ec7bc match byte-for-byte across repeated isolated exports. RELEASE_MANAGED_LINUX_OK: checksum-verified runtime-only temporary bundle without editor/checkout/import cache passes actual CLI allocation, full-revision rejection, HTTP create/join, room SIGKILL/crash reclaim/recreate with fresh token, service SIGTERM, child cleanup and UDP reuse. Build/ready markers survive redirected termination; no unexpected errors. Existing shutdown-only resource diagnostics remain allowed by exact pattern and retained, not fixed. Both PCK directories have88 entries, room client/admission present, tests/tools/docs/source generators absent. ZIP/TAR CRC/payload comparison passes; artifacts .amp/in/artifacts/release-2-2-7/DisasterParty-{Windows-94ad2fd.zip,Linux-94ad2fd.tar.gz}. Dirty-source rejection and Bash syntax checks pass."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tests/run_windows_package_checks.ps1 against native Windows-local final bundle; unchanged DisasterParty.exe --quit-after1200; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK: checksum-verified94ad2fd PCK settings/restart/recovery and actual ENet five rematches pass using native editor driver, not release-client admission. Unchanged release EXE on Windows/Intel UHD630/1280x720 Compatibility opens and exits0 with matching full identity, no runtime/missing-resource errors; direct PrintWindow capture inspected for world/avatar/intact HUD (the Multiplayer Lobby label is the normal toggle). Initial desktop capture missed the game and was discarded; no lobby input claim. Final exported-PCK overlap capture inspected; main HUD readable, existing world text partly occluded. Fresh source regression exits0 UI_REGRESSION_OK suites29/matrices5/persistence_restart=passed; known shutdown-only diagnostics retained. Logs/captures under .amp/in/artifacts/release-2-2-7/ and .scratch/release-2-2-7-*. Operator runbook/local commands and plan alignment pass; public routing, separate-network release sessions, release-runtime settings restart and physical listening remain blocked."
     }
   ],
   "blockers": [
     "User reports mouse rotation and button clicks fail on Linux/X11/llvmpipe; X connection loss and static-string/thread/RID shutdown diagnostics also reported. Cause unverified; new Milestone 2.6 must validate input and classify display loss before human baseline. Task 2.2.3 preview-only excess brightness needs matched capture investigation, not production lighting changes.",
     "Public Internet validation will require an approved reachable server/domain/TLS and UDP exposure plus remote Windows clients; no deployment or shared-network change is authorized by this planning request.",
-    "Actual release-runtime settings/audio confirmation remains unverified; native exported-PCK editor fixtures and containers cannot prove physical listening or human feel. Prior package does not implement room joining.",
+    "New matching94ad2fd Windows/Linux bundles implement room joining and pass local packaging/launch checks. Actual release-runtime settings restart/physical audio and separate-network release-client admission remain unverified; native exported-PCK editor fixtures cannot prove listening or human feel.",
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Task2.2.6 repeated the unconfirmed20-player client movement failure in source and Docker; one Docker UI retry-roster assertion also failed. Final source/container checks pass with assertions unchanged and failure-only diagnostics added, not a proven fix. One managed profile repeat lost heartbeats before600 samples; final managed4/8 run passes but its earlier loss remains unexplained. Retain logs for reliability investigation before raising capacity.",
     "Milestones 2.3/2.5 require human participants and separate Windows PCs; availability is not established."
   ],
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh"],
-  "next_action": "Export both release targets twice from the committed packaging revision, compare checksums and validate standalone managed Linux startup plus native Windows payload/launch; public deployment remains unapproved."
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py"],
+  "next_action": "Obtain specific approval and server/IP/domain details for HTTPS443 proxy/TLS and UDP29810–29811 deployment, then execute Task2.2.7 separate-network Windows release-client and physical settings/audio acceptance using the matching94ad2fd bundles; do not advance to2.6/2.3 yet."
 }

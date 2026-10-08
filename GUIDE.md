@@ -2,11 +2,12 @@
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
-needed. The source checkout now defaults to dedicated-room create/join by ID;
+needed. Current builds default to dedicated-room create/join by ID;
 an operator must configure its room-service URL. No public service is deployed.
-The previously delivered Windows ZIP still has the older direct-IP UI; do not
-expect room-ID support until a new matching client/server build is delivered in
-Task 2.2.7. No lobby browser, Steam invites or NAT traversal is implemented.
+Task 2.2.7 supplies matching Windows/Linux bundles at revision `94ad2fd`, locally
+validated but not Internet-certified. The older `7eb1f25` ZIP has direct-IP UI
+only; do not mix it with the new service. No lobby browser, Steam invites or
+NAT traversal is implemented.
 Same-PC checks do not prove physical LAN or Internet play.
 
 ## Prepare and verify the package
@@ -43,9 +44,10 @@ one player does not immediately declare a winner. The first warning can appear
 after about 10 seconds. Use **L** to open the lobby for network play.
 Developers can still run `godot --path .`; see `README.md` for build commands.
 
-## Create or join a room (new source UI)
+## Create or join a room
 
-Start the local service as described below, then launch a source client:
+Start the local service as described below, then launch a source client (packaged
+Windows commands are in the operator runbook):
 
 ```bash
 godot --path . -- --room-service-url=http://127.0.0.1:29800

@@ -20,8 +20,9 @@ without changing room-ID joining. No mass-scale infrastructure or optimization
 for hundreds of thousands/millions of users is planned. This is a roadmap change,
 not completed Internet functionality. The source now supports playerless
 dedicated hosting, room-owner controls, bounded room allocation/admission and
-room-ID create/join UI with retry recovery. Containers/public Internet validation
-remain next; the previously delivered package still uses direct-IP listen hosting.
+room-ID create/join UI with retry recovery. Managed-container validation and
+matching Windows/Linux release packaging now pass locally. Public Internet
+release-client sessions and physical listening remain unverified.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
 ## Windows playtest export
