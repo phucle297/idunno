@@ -23,6 +23,7 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	player.set_camera_yaw(0.0)
 	await _check_elevation_routes(main, player)
+	await _check_roof_breakage(main, player)
 	_expect(main.get_node("Sandbox").get_node_or_null("BoundaryNorth") != null, "Map requires a continuous perimeter, not separated north fences")
 	if not main.has_method("_eliminate_out_of_bounds"):
 		_expect(false, "Escaped players require an authoritative safety check")
@@ -174,6 +175,89 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer) -> void:
 				break
 		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop" % route_name)
 	player.reset_for_match(Vector3.ZERO)
+
+
+func _check_roof_breakage(main: Node3D, player: PartyPlayer) -> void:
+	var flood := main.get_node("Flood") as Flood
+	flood.set_process(false)
+	var camera := Camera3D.new()
+	main.add_child(camera)
+	for building_name in ["Shop", "Hall"]:
+		var x := -16.0 if building_name == "Shop" else 16.0
+		var panel := main.get_node("Sandbox/RoofPanel" + building_name) as BreakableStructure
+		player.reset_for_match(Vector3(x + 3, 4.9, -13))
+		await _walk_roof(player, Vector2(x, -13), 90)
+		_expect(player.is_on_floor() and absf(player.position.y - 4.855) < 0.03 and absf(player.position.x - x) < 0.15, "Intact %s panel must be flush and walkable without jumping" % building_name)
+		camera.position = Vector3(x + 8, 12, -5)
+		camera.look_at(Vector3(x, 3, -13))
+		camera.make_current()
+		main._process(0.0)
+		await _capture(building_name + "RoofIntact")
+		_expect(flood.start_warning(), "Start Flood while player stands on intact panel")
+		flood.tick(flood.warning_duration)
+		flood.tick(flood.rise_duration)
+		_expect(main.match_manager.get_health(1) == 100, "Intact roof panel protects player from peak Flood")
+		panel.apply_damage(false)
+		await _walk_roof(player, Vector2(x, -13), 10)
+		_expect(player.is_on_floor() and player.position.y > 4.8, "Damaged panel must retain support until broken")
+		panel.apply_damage(false)
+		main.get_node("Earthquake").cleanup()
+		await _walk_roof(player, Vector2(x, -13), 90)
+		_expect(player.is_on_floor() and player.position.y < 0.1, "Broken %s panel must drop the actual capsule indoors, even after Earthquake cleanup" % building_name)
+		flood.tick(2.0)
+		_expect(main.match_manager.get_health(1) == 100, "Drop into Flood retains the two-second breathing grace")
+		flood.tick(0.5)
+		_expect(is_equal_approx(main.match_manager.get_health(1), 94), "Dropped player takes independently calculated 6HP after 0.5s beyond grace")
+		print("ROOF_BREAKAGE building=%s dropped_feet=%s hp=%s" % [building_name, player.position, main.match_manager.get_health(1)])
+		main._process(0.0)
+		await _capture(building_name + "RoofBroken")
+		flood.cleanup()
+		main.match_manager.apply_damage(1, 1000, "Fixture")
+		_expect(main.restart_local_match(), "Roof death must allow rematch")
+		main.disaster_director.cleanup()
+		panel = main.get_node("Sandbox/RoofPanel" + building_name) as BreakableStructure
+		player.reset_for_match(Vector3(x, 4.9, -13))
+		await _walk_roof(player, Vector2(x, -13), 30)
+		_expect(panel.structure_state == BreakableStructure.StructureState.INTACT and player.is_on_floor() and player.position.y > 4.8, "Rematch restores actual support, not only panel appearance")
+		await _walk_roof(player, Vector2(x + 3, -13), 90)
+		panel.apply_damage(false)
+		panel.apply_damage(false)
+		await _walk_roof(player, Vector2(x + 3, -13), 30)
+		_expect(absf(player.position.x - x - 3) < 0.15 and player.is_on_floor() and absf(player.position.y - 4.855) < 0.03, "Walking sideways before collapse reaches preserved roof escape without jumping")
+		flood.start_warning()
+		flood.tick(flood.warning_duration)
+		flood.tick(flood.rise_duration)
+		flood.tick(3.0)
+		_expect(main.match_manager.get_health(1) == 100, "Preserved same-roof escape remains safe from peak Flood")
+		main._process(0.0)
+		await _capture(building_name + "RoofEscape")
+		flood.cleanup()
+		main.match_manager.apply_damage(1, 1000, "Fixture")
+		_expect(main.restart_local_match(), "Escape fixture rematches")
+		main.disaster_director.cleanup()
+	for round_index in 5:
+		for building_name in ["Shop", "Hall"]:
+			var panel := main.get_node("Sandbox/RoofPanel" + building_name) as BreakableStructure
+			panel.apply_damage(false)
+			panel.apply_damage(false)
+		main.match_manager.apply_damage(1, 1000, "Fixture")
+		_expect(main.restart_local_match(), "Repeated collapsed-roof round must rematch")
+		main.disaster_director.cleanup()
+		for building_name in ["Shop", "Hall"]:
+			var x := -16.0 if building_name == "Shop" else 16.0
+			player.reset_for_match(Vector3(x, 4.9, -13))
+			await _walk_roof(player, Vector2(x, -13), 30)
+			_expect(player.is_on_floor() and absf(player.position.y - 4.855) < 0.03, "Five rematches restore %s panel's standing collision" % building_name)
+	camera.free()
+	player.get_node("CameraPivot/SpringArm3D/Camera3D").make_current()
+	player.reset_for_match(Vector3.ZERO)
+
+
+func _walk_roof(player: PartyPlayer, target: Vector2, ticks: int) -> void:
+	for tick in ticks:
+		var remaining := target - Vector2(player.position.x, player.position.z)
+		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		await physics_frame
 
 
 func _capture(state: String) -> void:

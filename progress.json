@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T12:49:28Z",
+  "updated_at": "2026-10-09T13:07:48Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_11_elevation_route_continuity"
+    "task": "task_2_2_12_roof_panel_support_loss"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -74,7 +74,8 @@
           "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
           "task_2_2_9_dead_player_movement": "completed",
           "task_2_2_10_character_joint_continuity": "completed",
-          "task_2_2_11_elevation_route_continuity": "completed"
+          "task_2_2_11_elevation_route_continuity": "completed",
+          "task_2_2_12_roof_panel_support_loss": "completed"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
@@ -86,6 +87,7 @@
           "dead_body_movement_blocked_and_spectator_rematch_validated": "passed",
           "character_joints_and_shoes_connected_across_animated_poses": "passed",
           "four_walkable_elevation_routes_and_peak_flood_refuges": "passed",
+          "roof_panel_support_loss_escape_and_rematch": "passed",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -657,6 +659,24 @@
       "check": "User-requested detailed Phase3 planning: source/test inspection; Python document IDs/links/path and active-state comparison; jq empty progress.json; git diff --check",
       "status": "passed",
       "result": "PHASE3_PLAN_CHECK_OK milestones=6 tasks=6 gates=7 links=13. Expanded existing Player-Caused Chaos checklist with safe grabbing, authoritative readable carry, one useful prop/float go-no-go, optional bounded shove decision, two interruptible emotes and integrated supported1–4 regression/performance/matching delivery. Actual GrabManager/Player/Main/Flood/input/character and existing tests inspected; no new gameplay test or pass claimed. Reference paths exist; IDs unique and dependencies ordered; all feature checks/gates remain unexecuted. Phase2/current/next_action, prior evidence, gates, blockers and manual waiver unchanged. No runtime/assets/archive/phase rollover/export/publication/deployment changes. Documentation-only push uses skip-CI."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.12 actual capsule roof support regression before correction",
+      "status": "failed",
+      "result": "New test_map_safety assertions fail against original solid roofs: both broken panels still support player at4.855m/100HP; raised intact panels also fail flush walkability. Source red retained at .amp/in/artifacts/roof-support-fix/red.log. This is expected red evidence, not a new network defect."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --path . --script res://tests/test_map_safety.gd",
+      "status": "passed",
+      "result": "MAP_SAFETY_OK checks151 after four structural roof strips around each existing2x2m panel and flush4.855m panel tops. Both panels drop capsule to indoor ground after break/quake cleanup; real Flood retains2s grace then exactly6HP damage in0.5s. Intact/damaged support, side escape at100HP, four ramp ascents/descents and five collapsed-round support restoration pass. Existing shutdown16 ObjectDB/3resources diagnostics retained. Green log under .amp/in/artifacts/roof-support-fix/. Full source and rendered verification are in progress; no pacing/controller/disaster-selection or deployment change."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; xvfb-run Godot test_map_safety.gd at1280x720/1920x1080; .agents/setup twice; bash -n .agents/setup",
+      "status": "passed",
+      "result": "Task2.2.12 complete: full source exits0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed; dedicated33/57/67checks/five rematches/recovery and supported4-player scale pass. Xvfb/llvmpipe Compatibility source renders pass166 checks each; all12 Shop/Hall intact/broken/escape captures inspected. Visible central holes, grounded living avatar on preserved escape and readable100/94HP/drowning cues; tiny labels and cropped peripheral structures remain existing review limits, not changed.720p ALSA unavailable then Dummy fallback,1080p explicit Dummy; no physical/native-Windows claim. Orb setup persists missing Xvfb/xauth; two setup/import runs and syntax pass. Manifest records deterministic runtime geometry120triangles/net+72, no added dynamic bodies. Evidence .amp/in/artifacts/roof-support-fix/{regression,rendered-720p,rendered-1080p}.log and720p/1080p/. Known shutdown-only resource/ObjectDB diagnostics retained. No updated packages/deployment/pacing/selector/controller changes; broader Phase4 warned refuge relocation remains planned."
     }
   ],
   "documentation_validation": {
@@ -683,6 +703,6 @@
   ],
   "changed_files": ["game/ui/pause_settings.gd", "tests/test_pause_settings.gd", "tests/test_windowed_resolution.gd", "tests/test_windowed_resolution.gd.uid", "tests/pointer_input_peer.gd", "tests/pointer_input_peer.gd.uid", "tests/run_pointer_input_test.py", "progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
     "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md",
-    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "tests/test_map_safety.gd", "docs/checklists/phase-3-player-caused-chaos.md"],
-  "next_action": "Correct the proven Shop/Hall roof-panel support defect at Main's map owner: partition permanent roof geometry around each existing 2x2m breakable panel, preserve intact roof escape and north ramps, add actual capsule drop/escape/Flood/rematch regression and rendered review; do not change Flood pacing or deploy."
+    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "tests/test_map_safety.gd", "docs/checklists/phase-3-player-caused-chaos.md", ".agents/setup"],
+  "next_action": "Reconcile Phase2's remaining gates against the explicit manual-acceptance waiver and supported1–4 technical evidence before activating Phase3 Milestone3.1; preserve unclassified failures and unexecuted release checks rather than inventing passes, do not deploy."
 }

@@ -24,6 +24,8 @@ install_prerequisites() {
   local packages=()
   command -v curl >/dev/null 2>&1 || packages+=(curl)
   command -v unzip >/dev/null 2>&1 || packages+=(unzip)
+  command -v Xvfb >/dev/null 2>&1 || packages+=(xvfb)
+  command -v xauth >/dev/null 2>&1 || packages+=(xauth)
 
   if ((${#packages[@]} == 0)); then
     echo "System prerequisites already available."

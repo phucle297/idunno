@@ -1584,8 +1584,9 @@ func _build_sandbox() -> void:
 	_add_world_label("HallRouteLabel", "ROOF ACCESS", Vector3(16.0, 1.0, -29.6), PALETTE.amber)
 	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, -3.3), PALETTE.amber)
 	_add_world_label("ParkRouteLabel", "UP", Vector3(15.0, 0.8, 0.0), PALETTE.amber)
-	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.98, -13.0), PALETTE.cream)
-	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.98, -13.0), PALETTE.cream)
+	# Panel tops meet the surrounding 4.855m roof; no raised walking obstacle.
+	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.735, -13.0), PALETTE.cream)
+	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.735, -13.0), PALETTE.cream)
 	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal)
 	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal)
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
@@ -1649,7 +1650,15 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	_add_box_to(root, "SouthEastWall", Vector3(side_segment, wall_height, 0.3), Vector3((door_width + side_segment) * 0.5, wall_height * 0.5, footprint.y * 0.5), color)
 	_add_box_to(root, "WestWall", Vector3(0.3, wall_height, footprint.y), Vector3(-footprint.x * 0.5, wall_height * 0.5, 0.0), color)
 	_add_box_to(root, "EastWall", Vector3(0.3, wall_height, footprint.y), Vector3(footprint.x * 0.5, wall_height * 0.5, 0.0), color)
-	_add_box_to(root, "Roof", Vector3(footprint.x + 0.6, 0.35, footprint.y + 0.6), Vector3(0.0, height + 0.18, 0.0), PALETTE.cream)
+	# Four structural strips leave the central 2x2m breakable panel as sole support.
+	var roof_width := footprint.x + 0.6
+	var roof_depth := footprint.y + 0.6
+	var side_width := (roof_width - 2.0) * 0.5
+	var end_depth := (roof_depth - 2.0) * 0.5
+	_add_box_to(root, "RoofWest", Vector3(side_width, 0.35, roof_depth), Vector3(-(roof_width + 2.0) * 0.25, height + 0.18, 0.0), PALETTE.cream)
+	_add_box_to(root, "RoofEast", Vector3(side_width, 0.35, roof_depth), Vector3((roof_width + 2.0) * 0.25, height + 0.18, 0.0), PALETTE.cream)
+	_add_box_to(root, "RoofNorth", Vector3(2.0, 0.35, end_depth), Vector3(0.0, height + 0.18, -(roof_depth + 2.0) * 0.25), PALETTE.cream)
+	_add_box_to(root, "RoofSouth", Vector3(2.0, 0.35, end_depth), Vector3(0.0, height + 0.18, (roof_depth + 2.0) * 0.25), PALETTE.cream)
 	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
 	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
 	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
