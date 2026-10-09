@@ -141,6 +141,29 @@ test('the static build has real share assets and no external runtime requests', 
   const bytes = await image.body()
   expect(bytes.readUInt32BE(16)).toBe(1200)
   expect(bytes.readUInt32BE(20)).toBe(630)
+  for (const [path, size, rel] of [
+    ['/favicon.png', 96, 'icon'],
+    ['/apple-touch-icon.png', 180, 'apple-touch-icon'],
+  ] as const) {
+    await expect(page.locator(`head link[rel="${rel}"][href="${path}"]`)).toHaveAttribute(
+      'sizes', `${size}x${size}`,
+    )
+    const icon = await request.get(path)
+    expect(icon.status()).toBe(200)
+    expect(icon.headers()['content-type']).toContain('image/png')
+    const data = await icon.body()
+    expect(data.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
+    expect(data.readUInt32BE(16)).toBe(size)
+    expect(data.readUInt32BE(20)).toBe(size)
+  }
+  await expect(page.locator('head link[rel="icon"][href="/favicon.svg"]')).toHaveAttribute('sizes', 'any')
+  await expect(page.locator('head link[rel="icon"][href="/favicon.ico"]')).toHaveAttribute('sizes', '16x16 32x32 48x48')
+  const ico = await request.get('/favicon.ico')
+  expect(ico.status()).toBe(200)
+  const icoBytes = await ico.body()
+  expect(icoBytes.readUInt16LE(2)).toBe(1)
+  expect(icoBytes.readUInt16LE(4)).toBe(3)
+  expect([0, 1, 2].map(index => icoBytes[6 + index * 16])).toEqual([16, 32, 48])
   expect(await (await request.get('/robots.txt')).text()).toContain(
     'Sitemap: https://permees.com/sitemap.xml',
   )

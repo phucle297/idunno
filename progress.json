@@ -4,7 +4,7 @@
   "current": {
     "phase": "studio_landing_page",
     "milestone": "static_launch_readiness",
-    "task": "consistent_wordmark_icon"
+    "task": "search_compatible_favicons"
   },
   "status": "completed",
   "stack": ["React", "TypeScript", "Vite", "Tailwind CSS"],
@@ -57,6 +57,12 @@
       "status": "passed",
       "command": "bun run build && LD_LIBRARY_PATH=<local browser libraries> bun run test",
       "result": "Expanded regression initially fails (2 SVG marks, expected 4), identifying remaining U+2733 in Disaster Party artwork label and Steam Early Access target. Both now reuse the shared SVG at original 18px/17px sizes. All 12 tests pass, all four marks are orange/decorative and body has no U+2733. Inspected desktop/mobile crops of both labels: no emoji backgrounds, overlap or clipping. Native Safari still requires user confirmation; no claim of remote deployment success."
+    },
+    {
+      "check": "Search-compatible favicon formats",
+      "status": "passed",
+      "command": "bun install --frozen-lockfile && bun run build && bun run test",
+      "result": "All 12 desktop/mobile tests pass, including favicon link declarations, successful PNG/ICO responses, PNG signatures and 96/180px dimensions, and ICO 16/32/48px directory entries. Chromium decodes every format; inspected format comparison plus desktop/mobile captures with no broken images or layout regressions. PNG and ICO generated from unchanged SVG artwork without dependencies. Live inspection before this change confirmed SVG-only metadata, HTTP 200 favicon, permissive robots.txt and www redirect. Google Search appearance and deployment of the new assets are not yet verified."
     }
   ],
   "blockers": [],
@@ -68,5 +74,5 @@
     "custom_domain": "permees.com",
     "deployment": "not_verified"
   },
-  "next_action": "Confirm the Pages workflow and all four orange SVG marks on the user's Safari after the authorized push."
+  "next_action": "After the authorized push, confirm Pages publishes the favicon assets; request homepage indexing in Search Console and allow Google time to recrawl."
 }

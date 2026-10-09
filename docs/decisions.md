@@ -34,3 +34,7 @@
 - 2026-10-07: Extend the same SVG replacement to the Disaster Party artwork
   label and Steam Early Access target. No U+2733 remains in page content; the
   regression checks all four marks, not only the studio wordmarks.
+- 2026-10-09: Keep the existing favicon artwork and SVG; add a 96px PNG for
+  Google Search, a 16/32/48px ICO fallback and a 180px Apple touch icon. All are
+  rasterized from the existing SVG, with stable URLs and no new dependencies.
+  Search appearance still depends on Google's recrawl and is not guaranteed.
