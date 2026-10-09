@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T10:47:32Z",
+  "updated_at": "2026-10-09T10:55:04Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -20,8 +20,14 @@
   },
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
-    "milestone": "milestone_2_4_human_playtest_baseline",
-    "task": null
+    "milestone": "milestone_2_3_mouse_and_display_reliability",
+    "task": "task_2_3_2_pointer_and_display_diagnosis"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4–2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4–2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {
     "name": "Godot",
@@ -99,7 +105,7 @@
       },
       "milestone_2_4_human_playtest_baseline": {
         "title": "Human Playtest Baseline",
-        "status": "blocked",
+        "status": "cancelled",
         "dependencies": ["milestone_2_2_playtest_readiness", "milestone_2_3_mouse_and_display_reliability"],
         "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs over Internet room-ID joining; aim for three normal rounds each and record client/server builds, server hardware, region/network latency and disconnects alongside input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
         "gates": {
@@ -109,7 +115,7 @@
       },
       "milestone_2_5_core_feel_improvements": {
         "title": "Core-Feel Improvements",
-        "status": "blocked",
+        "status": "cancelled",
         "dependencies": ["milestone_2_4_human_playtest_baseline"],
         "scope": "Prioritize reproduced high-impact issues; tune existing movement/camera/warning/pacing owners one coherent change at a time and regress. Create tasks from actual findings, not speculative tuning. No new disasters, shove, map expansion or distribution services.",
         "gates": {
@@ -120,7 +126,7 @@
       },
       "milestone_2_6_follow_up_validation_and_phase_review": {
         "title": "Follow-Up Validation and Phase Review",
-        "status": "blocked",
+        "status": "cancelled",
         "dependencies": ["milestone_2_5_core_feel_improvements"],
         "scope": "Retest affected scenarios and normal rounds with humans at both group sizes; compare baseline and follow-up evidence. Report actual durations against the configurable 8–12-minute target. If criteria fail, remain in Phase 2 and return observed issues to2.5 before repeating2.6.",
         "proposed_expansion_criteria": {
@@ -620,7 +626,6 @@
     "result": "26 relative links/anchors and active pointers pass; four moved historical decision/progress payloads remain byte-identical, completed Phase0/1 and future Phase3–6 sections split losslessly. Phase2 now distinguishes completed2.2.8b synthetic implementation from pending2.2.8c human acceptance; parent task and all gameplay gates unchanged. Added NEED_REAL_CHECK.md, per-phase checklists/archive indexes, AGENTS policy and organizing-phase-tracking skill. Documentation-only delivery; no runtime change, deployment or new human acceptance."
   },
   "blockers": [
-    "Milestones2.4–2.6 preparation/protocols are ready in NEED_REAL_CHECK; actual matching-build human baseline is missing,2.5 lacks baseline findings and2.6 lacks before/after human results. Group6–8 also requires approved/validated capacity beyond current1–4 support. Do not mark complete or tune to fabricate evidence.",
     "Phase-review first regression reports dedicated owner Client must observe rematch while server/guest pass; isolated and full unchanged reruns pass. Cause unconfirmed; retain three-peer failed logs and investigate on recurrence. Not a proven production rematch defect or fixed race.",
     "Task2.2.8 synthetic fixed/jitter/loss traversal and native regression pass; current0d10b28 public deployment and matching Windows delivery include movement,2.3 display/cursor and living airborne-recovery corrections. Separate-network2/4-player movement/aim confirmation remains open; recovery correction up to0.9m is measured, not human smoothness acceptance. Separate20-player defect remains unexplained and beyond supported1–4 playtest scope.",
     "Milestone2.3 fixes reproduced actor-spawn cursor stealing and proven shared-world preview-light accumulation; actual X11 solo/host/dedicated recovery, native Windows pointer/focus and corrected preview checks pass. Original X connection loss and cleanup diagnostics remain unclassified: no original first-failure/display lifecycle evidence, and current normal-exit runs do not reproduce it. Physical mixed-DPI monitor switching remains unexecuted; no production lighting change or inferred X-loss cause.",
@@ -628,9 +633,9 @@
     "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
     "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
     "Task2.2.6 repeated the unconfirmed20-player client movement failure in source and Docker; one Docker UI retry-roster assertion also failed. Final source/container checks pass with assertions unchanged and failure-only diagnostics added, not a proven fix. One managed profile repeat lost heartbeats before600 samples; final managed4/8 run passes but its earlier loss remains unexplained. Retain logs for reliability investigation before raising capacity.",
-    "Renumbered Milestones2.4/2.6 require human participants and separate Windows PCs; availability is not established."
+    "Manual/user acceptance requirements no longer block continuation under user_acceptance_waiver. Unverified human observations in older blocker entries remain historical limits, not demands for another checklist; current support remains1–4 and technical failures still require honest reporting."
   ],
   "changed_files": ["game/ui/pause_settings.gd", "tests/test_pause_settings.gd", "tests/test_windowed_resolution.gd", "tests/test_windowed_resolution.gd.uid", "tests/pointer_input_peer.gd", "tests/pointer_input_peer.gd.uid", "tests/run_pointer_input_test.py", "progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
     "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md"],
-  "next_action": "Collect owner-provided matching-build3–4-player baseline using RC-2.4-BASELINE in NEED_REAL_CHECK, merging only actually observed2.2 checks; then reproduce/prioritize findings before2.5 tuning. Keep6–8 capacity, original X-loss and human follow-up gates open; no UI redesign or deploy."
+  "next_action": "Inspect native Windows character idle/run/jump/hold/knockdown recovery and Toy Town elevation/cover routes to select the first gameplay/model/terrain improvement per the prioritized checklist; no baseline/user checklist prerequisite, no Settings redesign or deploy."
 }

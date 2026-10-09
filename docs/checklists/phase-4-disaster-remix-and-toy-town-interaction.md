@@ -1,5 +1,7 @@
 ### Phase 4 — Disaster Remix and Toy Town Interaction
 
+**Continuation override2026-10-09:** user cancels required baseline/follow-up2.4–2.6 and removes current manual acceptance checklists, choosing to report bugs later. Their missing human evidence no longer blocks gameplay/model/terrain investigation or subsequent scoped implementation. Earlier human-gate prerequisites below are superseded by this override, not retroactively passed. Keep technical/asset/visual validation, current1–4 support and specific approval for deployment/capacity changes; this update does not open/archive a phase by itself.
+
 User-requested expansion on 2026-10-08; plan only until Phase 2 control/feel gates pass. Existing code already provides six disasters, randomized eligible selection, repeat avoidance, escalation bands, two-disaster overlap, Flood + Lightning and Tornado + Fire. Improve variety and interactions rather than introducing a second Director.
 
 #### Priority refinement 2026-10-09 — Gameplay, Character Model and Terrain First
