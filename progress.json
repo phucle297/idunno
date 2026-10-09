@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T10:55:04Z",
+  "updated_at": "2026-10-09T11:14:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -20,8 +20,8 @@
   },
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
-    "milestone": "milestone_2_3_mouse_and_display_reliability",
-    "task": "task_2_3_2_pointer_and_display_diagnosis"
+    "milestone": "milestone_2_2_playtest_readiness",
+    "task": "task_2_2_10_character_joint_continuity"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -72,7 +72,8 @@
           "task_2_2_6_container_network_and_failure_validation": "completed",
           "task_2_2_7_internet_release_readiness": "in_progress",
           "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
-          "task_2_2_9_dead_player_movement": "completed"
+          "task_2_2_9_dead_player_movement": "completed",
+          "task_2_2_10_character_joint_continuity": "completed"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
@@ -82,6 +83,7 @@
           "multi_container_room_isolation_and_five_rematches": "passed",
           "multiplayer_camera_feedback_corrected_and_latency_validated": "blocked",
           "dead_body_movement_blocked_and_spectator_rematch_validated": "passed",
+          "character_joints_and_shoes_connected_across_animated_poses": "passed",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -144,6 +146,18 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; native Windows test_player_integration.gd; repeat generate_assets.gd --seed=297 and hash diff; native character gameplay captures",
+      "status": "passed",
+      "result": "Task2.2.10 source fix complete: full regression exits0 UI_REGRESSION_OK suites34/matrices5/settings restart; dedicated33/57/67 checks and five rematches/recovery. Native Intel UHD630 player72 checks include ground/airborne knockdown recovery. Repeated generation yields identical scene/material hashes; unchanged non-character geometry only gains generator-v4 metadata, manifest hashes updated. Native actual Main idle/run poses at gameplay distance720p have visible connected avatar/shoes and intact HUD, both captures inspected; six-pose close view also inspected.1728 triangles unchanged. Existing shutdown-only ObjectDB/resource diagnostics retained, no unexpected runtime errors. No clip blending/physical smoothness/full route coverage/new package/deploy/human gate claimed. Scratch audit/render drivers removed after verification; artifacts/logs retained under .amp/in/artifacts/character-continuity/."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.10 character continuity red/green and native pose audit",
+      "status": "passed",
+      "result": "Continuation audit reproduces visible run/crouch/get-up hip gaps and stationary shoes in six-pose Linux render. New shoe displacement and fixed hip endpoint assertions fail against original asset after correcting test initialization to deferred tree entry. Generator v4 places existing arm/leg tracks on shoulder/hip pivots, extends legs0.50→0.56m to meet torso and parents shoes under legs; updates player-color mesh paths. Headless asset39 checks and scratch11-clip/four-variant1760 pose/color checks pass;1728 triangles unchanged. Native Windows Intel UHD630720p six-pose capture inspected, all visible connections intact; initial direct WSL-drive EXE invocation emitted no output/capture, Windows-local editor via PowerShell succeeds. No collider/speed/authority/animation timing/blending change. Full regression/native player and repeat generation pending; no package/deploy/human motion acceptance. Artifacts .amp/in/artifacts/character-continuity/."
+    },
     {
       "date": "2026-10-09",
       "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (first phase-review run)",
@@ -636,6 +650,7 @@
     "Manual/user acceptance requirements no longer block continuation under user_acceptance_waiver. Unverified human observations in older blocker entries remain historical limits, not demands for another checklist; current support remains1–4 and technical failures still require honest reporting."
   ],
   "changed_files": ["game/ui/pause_settings.gd", "tests/test_pause_settings.gd", "tests/test_windowed_resolution.gd", "tests/test_windowed_resolution.gd.uid", "tests/pointer_input_peer.gd", "tests/pointer_input_peer.gd.uid", "tests/run_pointer_input_test.py", "progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
-    "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md"],
-  "next_action": "Inspect native Windows character idle/run/jump/hold/knockdown recovery and Toy Town elevation/cover routes to select the first gameplay/model/terrain improvement per the prioritized checklist; no baseline/user checklist prerequisite, no Settings redesign or deploy."
+    "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md",
+    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md"],
+  "next_action": "Audit all four existing Toy Town ramps with the actual player capsule and native gameplay camera; record reachable roof heights, two exits per refuge and flood escape/cover behavior to select the first evidenced terrain improvement. No Settings redesign or deployment."
 }

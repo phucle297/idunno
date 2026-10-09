@@ -49,7 +49,7 @@ func set_player_color(color_index: int) -> void:
 	material.albedo_color = SUIT_COLORS[posmod(color_index, SUIT_COLORS.size())]
 	material.metallic = 0.0
 	material.roughness = 0.8
-	for part_name in ["Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
+	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
 		(get_node(part_name) as MeshInstance3D).material_override = material
 
 

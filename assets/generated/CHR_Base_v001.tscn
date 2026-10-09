@@ -26,28 +26,28 @@ rings = 4
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_80txc"]
 material = ExtResource("3_bfjj2")
+radius = 0.1
+height = 0.56
+radial_segments = 12
+rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_g7n46"]
+material = ExtResource("4_nn63l")
+size = Vector3(0.2, 0.16, 0.24)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_fg08o"]
+material = ExtResource("3_bfjj2")
 radius = 0.09
 height = 0.48
 radial_segments = 12
 rings = 4
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_g7n46"]
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_sytos"]
 material = ExtResource("3_bfjj2")
 radius = 0.1
-height = 0.5
+height = 0.56
 radial_segments = 12
 rings = 4
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_fg08o"]
-material = ExtResource("3_bfjj2")
-radius = 0.1
-height = 0.5
-radial_segments = 12
-rings = 4
-
-[sub_resource type="BoxMesh" id="BoxMesh_sytos"]
-material = ExtResource("4_nn63l")
-size = Vector3(0.2, 0.16, 0.24)
 
 [sub_resource type="BoxMesh" id="BoxMesh_rb77b"]
 material = ExtResource("4_nn63l")
@@ -74,7 +74,7 @@ size = Vector3(0.09, 0.025, 0.018)
 [node name="CHR_Base_v001" type="Node3D"]
 script = ExtResource("1_loqi5")
 metadata/generator_seed = 297
-metadata/generator_version = 3
+metadata/generator_version = 4
 
 [node name="Head" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.385, 0)
@@ -84,28 +84,40 @@ mesh = SubResource("SphereMesh_omqrs")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
 mesh = SubResource("BoxMesh_jy7im")
 
-[node name="LeftArm" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.94, 0)
+[node name="LeftArm" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 1.18, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="LeftArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
 mesh = SubResource("CapsuleMesh_6wst3")
 
-[node name="RightArm" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 0.94, 0)
+[node name="LeftLeg" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.7, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="LeftLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, 0)
 mesh = SubResource("CapsuleMesh_80txc")
 
-[node name="LeftLeg" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.42, 0)
-mesh = SubResource("CapsuleMesh_g7n46")
+[node name="LeftShoe" type="MeshInstance3D" parent="LeftLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.025)
+mesh = SubResource("BoxMesh_g7n46")
 
-[node name="RightLeg" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.42, 0)
+[node name="RightArm" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 1.18, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="RightArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
 mesh = SubResource("CapsuleMesh_fg08o")
 
-[node name="LeftShoe" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.1, -0.025)
-mesh = SubResource("BoxMesh_sytos")
+[node name="RightLeg" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.7, 0)
 
-[node name="RightShoe" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.1, -0.025)
+[node name="Mesh" type="MeshInstance3D" parent="RightLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, 0)
+mesh = SubResource("CapsuleMesh_sytos")
+
+[node name="RightShoe" type="MeshInstance3D" parent="RightLeg"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.025)
 mesh = SubResource("BoxMesh_rb77b")
 
 [node name="LeftEye" type="MeshInstance3D" parent="."]

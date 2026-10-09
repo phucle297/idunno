@@ -2,7 +2,7 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
-const GENERATOR_VERSION := 3
+const GENERATOR_VERSION := 4
 const CharacterVisualScript = preload("res://game/toy_character_visual.gd")
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),
@@ -53,12 +53,24 @@ func _generate_character(materials: Dictionary) -> void:
 	root.set_meta("generator_version", GENERATOR_VERSION)
 	_add_sphere(root, "Head", 0.24, 0.43, Vector3(0.0, 1.385, 0.0), materials.cream)
 	_add_box(root, "Torso", Vector3(0.43, 0.52, 0.28), Vector3(0.0, 0.96, 0.0), materials.cyan)
-	_add_capsule(root, "LeftArm", 0.09, 0.48, Vector3(-0.19, 0.94, 0.0), materials.cyan)
-	_add_capsule(root, "RightArm", 0.09, 0.48, Vector3(0.19, 0.94, 0.0), materials.cyan)
-	_add_capsule(root, "LeftLeg", 0.10, 0.50, Vector3(-0.13, 0.42, 0.0), materials.cyan)
-	_add_capsule(root, "RightLeg", 0.10, 0.50, Vector3(0.13, 0.42, 0.0), materials.cyan)
-	_add_box(root, "LeftShoe", Vector3(0.20, 0.16, 0.24), Vector3(-0.13, 0.10, -0.025), materials.slate)
-	_add_box(root, "RightShoe", Vector3(0.20, 0.16, 0.24), Vector3(0.13, 0.10, -0.025), materials.slate)
+	for side in ["Left", "Right"]:
+		var direction := -1.0 if side == "Left" else 1.0
+		var arm := Node3D.new()
+		arm.name = side + "Arm"
+		arm.position = Vector3(direction * 0.19, 1.18, 0.0)
+		root.add_child(arm)
+		arm.owner = root
+		_add_capsule(arm, "Mesh", 0.09, 0.48, Vector3(0.0, -0.24, 0.0), materials.cyan)
+		arm.get_node("Mesh").owner = root
+		var leg := Node3D.new()
+		leg.name = side + "Leg"
+		leg.position = Vector3(direction * 0.13, 0.70, 0.0)
+		root.add_child(leg)
+		leg.owner = root
+		_add_capsule(leg, "Mesh", 0.10, 0.56, Vector3(0.0, -0.28, 0.0), materials.cyan)
+		leg.get_node("Mesh").owner = root
+		_add_box(leg, side + "Shoe", Vector3(0.20, 0.16, 0.24), Vector3(0.0, -0.60, -0.025), materials.slate)
+		leg.get_node(side + "Shoe").owner = root
 	_add_sphere(root, "LeftEye", 0.035, 0.07, Vector3(-0.09, 1.43, -0.215), materials.ink)
 	_add_sphere(root, "RightEye", 0.035, 0.07, Vector3(0.09, 1.43, -0.215), materials.ink)
 	_add_box(root, "Mouth", Vector3(0.09, 0.025, 0.018), Vector3(0.0, 1.32, -0.229), materials.ink)

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "3",
+    "version": "4",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,7 +14,7 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "3",
+      "generator_version": "4",
       "intended_dimensions_m": [0.56, 1.6, 0.48],
       "triangle_count": 1728,
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
@@ -36,8 +36,8 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "a732151f1781fedf2267b6432bebcdb43608f561b6feb18072cd8a4120162faa",
-      "validation_status": "reference_dimensions_visual_runtime_skeleton_11_clips_and_four_cosmetic_variants_passed"
+      "sha256": "82be0f939f1e4b3b95832b6d31e3f816081bd37f48b7d0133dff845d04a8fa53",
+      "validation_status": "shoulder_hip_pivots_and_attached_shoes_regression_passed; 11_clips_four_variants_1760_pose_color_checks_passed; six_pose_native_Windows_Intel_UHD630_720p_inspected; transition_blending_and_full_route_audit_pending"
     },
     {
       "asset_id": "ENV_Wall_2m_v001",
@@ -46,7 +46,7 @@
       "export_path": "assets/generated/ENV_Wall_2m_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "3",
+      "generator_version": "4",
       "intended_dimensions_m": [2.0, 2.5, 0.24],
       "triangle_count": 24,
       "material_ids": ["MAT_Cream_v001", "MAT_Teal_v001"],
@@ -56,7 +56,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "602f43ab8ad15c1cee52baf00e0db94151c4a6da026a8cac08a5fb94df66aa09",
+      "sha256": "3ff27008a37ac1aa67ed6c98b845d2cc6845b74ec75005f856dfbdfea555f4b1",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {
@@ -66,7 +66,7 @@
       "export_path": "assets/generated/PROP_Crate_Small_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "3",
+      "generator_version": "4",
       "intended_dimensions_m": [0.64, 0.6, 0.64],
       "triangle_count": 24,
       "material_ids": ["MAT_Sand_v001", "MAT_Slate_v001"],
@@ -76,7 +76,7 @@
       "animation_list": [],
       "gameplay_tags": ["Grabbable"],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "7e4a99c5c4729080d5a99b9945e827165296c75fe2d7cc672ead7a5ffb8356e1",
+      "sha256": "de28ab5e0f54ce9a1881b7904d0834ef0bcf41a6ebb9dc4a82b0f9a4a98124be",
       "validation_status": "reference_dimensions_visual_and_runtime_rigidbody_passed"
     },
     {
@@ -86,7 +86,7 @@
       "export_path": "assets/generated/VFX_MeteorTelegraph_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "3",
+      "generator_version": "4",
       "intended_dimensions_m": [3.0, 2.82, 3.0],
       "triangle_count": 592,
       "material_ids": ["MAT_Amber_v001", "MAT_Orange_v001"],
@@ -96,7 +96,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "6e08a1ced60be3013b011d09aebbdb0b890892815a5d2e8c71db829e721c939e",
+      "sha256": "8adedeacb237ede8dc82f0157afec6bd9763673588bde538efbb8f7f6d6123c8",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {
