@@ -21,6 +21,7 @@ func _run() -> void:
 	_test_walk_and_sprint()
 	_test_visual_facing()
 	_test_crouch()
+	_test_carry_presentation()
 	_test_jump_arc()
 	_test_ramp_traversal()
 	await _test_knockdown_recovery()
@@ -153,6 +154,36 @@ func _test_crouch() -> void:
 	_expect(is_equal_approx(capsule.height, Tuning.STANDING_HEIGHT), "Releasing crouch must restore the 1.50 m capsule")
 
 
+func _test_carry_presentation() -> void:
+	player.reset_for_match(Vector3.ZERO)
+	player.set_camera_yaw(0.0)
+	player.carrying_medium = true
+	player.velocity = Vector3.ZERO
+	player._process(DELTA)
+	_expect(player.character.current_clip == "holding_idle", "A grounded stationary holder must use the holding idle pose")
+	player.velocity = Vector3(0.0, 0.0, -1.0)
+	player._process(DELTA)
+	_expect(player.character.current_clip == "holding_walk", "A grounded moving holder must use the holding walk pose")
+	player.apply_movement_input(Vector2.ZERO, false, true, false, DELTA)
+	player._process(DELTA)
+	_expect(player.character.current_clip.begins_with("holding_") and player.is_crouched(), "Crouch while carrying must keep the readable hold and lowered capsule")
+	player.position = Vector3(0.0, 5.0, 0.0)
+	player.velocity = Vector3(0.0, 1.0, 0.0)
+	player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA, 0)
+	player._process(DELTA)
+	_expect(player.character.current_clip == "jump_takeoff", "Airborne takeoff must override the holding pose")
+	player.velocity.y = -1.0
+	player._process(DELTA)
+	_expect(player.character.current_clip == "falling", "Falling must override the holding pose")
+	player.carrying_medium = false
+	player.reset_for_match(Vector3.ZERO)
+	player.velocity = Vector3.ZERO
+	for _tick in 5:
+		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+	player._process(DELTA)
+	_expect(player.character.current_clip == "idle", "Release/rematch must resume ordinary locomotion")
+
+
 func _test_jump_arc() -> void:
 	player.position = Vector3.ZERO
 	player.velocity = Vector3.ZERO
@@ -198,6 +229,7 @@ func _test_knockdown_recovery() -> void:
 	_expect(not player.is_knocked_down(), "Knockdown must recover after the bounded duration")
 	_expect(player.ragdoll_body_count() == 0, "Recovery must clean up the cosmetic ragdoll")
 	_expect(player.get_node("Visual").visible, "Recovery must restore the upright visual")
+	_expect(player.character.current_clip == "get_up", "Grounded recovery must play the get-up presentation before locomotion")
 	# Earthquake can knock a living player off an elevated route. Expiry must
 	# restore the visible actor even when the capsule has not landed yet.
 	player.reset_for_match(Vector3(0.0, 40.0, 0.0))
@@ -236,13 +268,13 @@ func _test_default_scene_offline_input() -> void:
 		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Closing the lobby must restore camera input")
 	var start := playable_player.global_position
 	main._process(0.0)
-	_expect(main.gameplay_hud.get_presented_context_action() == "GRAB OBJECT", "An in-range prop must show a contextual grab prompt")
+	_expect(main.gameplay_hud.get_presented_context_action() == "GRAB — CARRY SLOWS YOU 25%", "An in-range prop must show acquisition plus the carry tradeoff")
 	Input.action_press("grab")
 	playable_player._physics_process(DELTA)
 	Input.action_release("grab")
 	_expect(is_instance_valid((main.get_node("GrabManager") as GrabManager).get_held_body(1)), "Default-scene offline grab input must reach GrabManager")
 	main._process(0.0)
-	_expect(main.gameplay_hud.get_presented_context_action() == "RELEASE OBJECT", "A held prop must replace the grab prompt with release")
+	_expect(main.gameplay_hud.get_presented_context_action() == "RELEASE TO RESTORE SPEED", "A held prop must replace acquisition with release/restored speed")
 	Input.action_press("move_forward")
 	for _frame in 30:
 		await physics_frame

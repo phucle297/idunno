@@ -1,6 +1,6 @@
 # Phase 3 — Player-Caused Chaos
 
-**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress;3.1 and3.2.1 complete,3.2.2 next · **Plan checked:** 2026-10-09.
+**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress;3.1–3.2 complete,3.3 next · **Plan checked:** 2026-10-09.
 
 ## Outcome and boundaries
 
@@ -72,9 +72,11 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_2_2_carry_presentation` · **Owners:** Player animation selection, `toy_character_visual.gd`, character generator/manifest if a clip changes, Main's existing context prompt.
 
-- [ ] Use/refine existing holding clips before adding a new rig or animation layer; inspect arms, prop and shoulder pivots at gameplay distance. Holding must read while idle/walking without hiding the avatar or ground warnings.
-- [ ] Define priority: elimination/spectator and knockdown override holding; airborne/crouch presentation remains coherent; ordinary locomotion resumes after release. Keep camera yaw locally owned.
-- [ ] Context feedback names acquisition/release and an actual carry tradeoff, not a new HUD dashboard. Reject an owned/unreachable prop consistently with3.1.
+- [x] Use/refine existing holding clips before adding a new rig or animation layer; inspect arms, prop and shoulder pivots at gameplay distance. Holding must read while idle/walking without hiding the avatar or ground warnings.
+- [x] Define priority: elimination/spectator and knockdown override holding; airborne/crouch presentation remains coherent; ordinary locomotion resumes after release. Keep camera yaw locally owned.
+- [x] Context feedback names acquisition/release and an actual carry tradeoff, not a new HUD dashboard. Reject an owned/unreachable prop consistently with3.1.
+
+**Complete2026-10-09:** `holding_idle/holding_walk` use converging forward arm tracks with readable leg swing; `get_up` holds priority after knockdown before locomotion. Prompt copy is `GRAB — CARRY SLOWS YOU 25%` / `RELEASE TO RESTORE SPEED`. `GRAB_HOLD_DISTANCE` is1.0m after measured0.85m reacquisition and0.9m latency failures were rejected. `CARRY_PRESENTATION_OK checks=26` renders idle, walk, crouch, airborne, release and knockdown recovery at720p/1080p; captures inspected under `.amp/in/artifacts/phase-3-carry/`. The simple mitten rig has no explicit hand mesh and one side arm can be occluded in a three-quarter view; this is recorded as a cosmetic limitation, not a disconnected pivot. Full regression is35 suites/five matrices/settings restart.
 
 **Acceptance/validation:** Render idle/carry-walk/release, crouch/airborne carry and knockdown recovery at720p/1080p; inspect captures for connected limbs, collider/mesh agreement and unobscured warnings. Load asset-validation skill before changing clips/assets; deterministic provenance/manifest and all four cosmetic variants remain required. Extend existing animation/player tests for externally observable carry-state transitions; no unverified rig/skinning claim.
 
@@ -156,7 +158,7 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 ## Phase exit gates
 
-`safe_grab_ownership_and_release` is **passed** for Phase3 after3.1's executed checks. All remaining gates are **not run**. Existing Phase2 passes support the baseline only.
+`safe_grab_ownership_and_release` and `carry_tradeoff_and_prediction_agreement` are **passed** for Phase3 after3.1–3.2's executed checks. Remaining gates are **not run**. Existing Phase2 passes support the baseline only.
 
 | Gate | Required evidence |
 | --- | --- |

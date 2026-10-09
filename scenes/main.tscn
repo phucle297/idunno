@@ -294,7 +294,7 @@ text = "[F]"
 [node name="Action" type="Label" parent="Interface/ContextPrompt/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "GRAB OBJECT"
+text = "GRAB — CARRY SLOWS YOU 25%"
 
 [node name="PersonalDanger" type="PanelContainer" parent="Interface"]
 visible = false

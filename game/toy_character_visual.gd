@@ -140,6 +140,15 @@ func _create_clip(clip_name: String) -> Animation:
 	var animation := Animation.new()
 	animation.length = _clip_duration(clip_name)
 	animation.loop_mode = Animation.LOOP_LINEAR if clip_name in ["idle", "walk", "run", "falling", "crouch_idle", "crouch_walk", "holding_idle", "holding_walk"] else Animation.LOOP_NONE
+	if clip_name in ["holding_idle", "holding_walk"]:
+		var hold_base := 1.05 if clip_name == "holding_idle" else 1.15
+		var hold_swing := 0.04 if clip_name == "holding_idle" else 0.08
+		_add_holding_track(animation, "LeftArm", hold_base, hold_swing, 0.22)
+		_add_holding_track(animation, "RightArm", hold_base, hold_swing, -0.22)
+		var holding_leg_angle := 0.0 if clip_name == "holding_idle" else 0.45
+		_add_rotation_track(animation, "LeftLeg", -holding_leg_angle)
+		_add_rotation_track(animation, "RightLeg", holding_leg_angle)
+		return animation
 	var arm_angle := 0.0
 	var leg_angle := 0.0
 	if clip_name in ["walk", "holding_walk", "crouch_walk"]:
@@ -172,6 +181,18 @@ func _add_rotation_track(animation: Animation, node_name: String, angle: float) 
 	animation.track_insert_key(track, 0.0, Vector3(angle, 0.0, 0.0))
 	animation.track_insert_key(track, animation.length * 0.5, Vector3(-angle, 0.0, 0.0))
 	animation.track_insert_key(track, animation.length, Vector3(angle, 0.0, 0.0))
+
+
+func _add_holding_track(animation: Animation, node_name: String, base_angle: float, swing: float, inward: float) -> void:
+	var track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(track, NodePath("%s:rotation" % node_name))
+	animation.track_insert_key(track, 0.0, Vector3(base_angle + swing, 0.0, inward))
+	animation.track_insert_key(track, animation.length * 0.5, Vector3(base_angle - swing, 0.0, inward))
+	animation.track_insert_key(track, animation.length, Vector3(base_angle + swing, 0.0, inward))
+
+
+func get_clip_duration(clip_name: String) -> float:
+	return _clip_duration(clip_name)
 
 
 func _clip_duration(clip_name: String) -> float:

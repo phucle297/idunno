@@ -27,7 +27,7 @@ func _run() -> void:
 	hud.present_vitals(17.25, 1, 20)
 	hud.present_match_status(601, "SURVIVE", false)
 	hud.present_hazards(["FLOOD", "TORNADO", "FIRE"])
-	hud.present_context_action("RELEASE OBJECT")
+	hud.present_context_action("RELEASE TO RESTORE SPEED")
 	_expect(main._create_playable_snapshot() == before, "HUD presentation must not mutate authoritative match, health, or disaster state")
 	_expect(hud.timer_label.text == "10:01" and hud.alive_label.text == "1 / 20", "Clock and survivor values must remain distinct and correctly formatted")
 	hud.present_hazards(["FLOOD"])
@@ -44,10 +44,10 @@ func _run() -> void:
 	crate.freeze = true
 	crate.global_position = player.get_grab_origin() + player.get_grab_direction()
 	main._update_context_prompt(1)
-	_expect(hud.get_presented_context_action() == "GRAB OBJECT", "An eligible unowned prop must show GRAB")
+	_expect(hud.get_presented_context_action() == "GRAB — CARRY SLOWS YOU 25%", "An eligible unowned prop must show acquisition and the carry tradeoff")
 	_expect(grab_manager.request_grab(1, crate), "The fixture must actually grab the eligible prop")
 	main._update_context_prompt(1)
-	_expect(hud.get_presented_context_action() == "RELEASE OBJECT", "A held prop must show RELEASE")
+	_expect(hud.get_presented_context_action() == "RELEASE TO RESTORE SPEED", "A held prop must show release/restored speed")
 	main.get_node("Interface/LobbyPanel").show()
 	main._update_context_prompt(1)
 	_expect(not hud.context_prompt.visible, "Lobby must suppress the context prompt even with a held prop")
@@ -78,7 +78,7 @@ func _run() -> void:
 		environment.background_color = Color("202a38") if dark else Color("9fc8df")
 		environment.ambient_light_energy = 0.1 if dark else 0.5
 		main.get_node("Sun").light_energy = 0.1 if dark else 1.0
-		hud.present_context_action("RELEASE OBJECT")
+		hud.present_context_action("RELEASE TO RESTORE SPEED")
 		await process_frame
 		_check_layout(hud)
 		await _capture("dark" if dark else "light")

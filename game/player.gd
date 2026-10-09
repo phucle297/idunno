@@ -17,6 +17,7 @@ var _camera_yaw := 0.0
 var _camera_pitch := -0.14
 var _ragdoll: Node3D
 var _is_eliminated := false
+var _get_up_remaining := 0.0
 var _grab_manager: Node
 var _peer_id := 1
 var carrying_medium := false
@@ -42,8 +43,13 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(character) or _is_eliminated or is_knocked_down():
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
-	if not is_on_floor():
+	if _get_up_remaining > 0.0:
+		_get_up_remaining = maxf(0.0, _get_up_remaining - _delta)
+		character.play_clip("get_up")
+	elif not is_on_floor():
 		character.play_clip("jump_takeoff" if velocity.y > 0.0 else "falling")
+	elif carrying_medium:
+		character.play_clip("holding_walk" if horizontal_speed > 0.2 else "holding_idle")
 	elif _is_crouched:
 		character.play_clip("crouch_walk" if horizontal_speed > 0.2 else "crouch_idle")
 	elif horizontal_speed > Tuning.WALK_SPEED + 0.5:
@@ -231,6 +237,7 @@ func _clear_cosmetic_ragdoll() -> void:
 		_ragdoll = null
 	visual.visible = not _is_eliminated
 	if not _is_eliminated:
+		_get_up_remaining = character.get_clip_duration("get_up") if is_instance_valid(character) else 0.0
 		character.play_clip("get_up")
 
 
@@ -265,6 +272,7 @@ func reset_for_match(spawn_position: Vector3) -> void:
 		_ragdoll.queue_free()
 		_ragdoll = null
 	_knockdown_remaining = 0.0
+	_get_up_remaining = 0.0
 	_is_crouched = false
 	_is_eliminated = false
 	_coyote_remaining = 0.0
@@ -278,6 +286,8 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	visual.scale = Vector3.ONE
 	collider.set_deferred("disabled", false)
 	_update_capsule(false)
+	if is_instance_valid(character):
+		character.play_clip("idle")
 
 
 func configure_grabbing(manager: Node, peer_id: int) -> void:

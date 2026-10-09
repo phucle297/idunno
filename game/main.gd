@@ -919,9 +919,9 @@ func _update_context_prompt(local_peer_id: int) -> void:
 		return
 	var grab_manager := $GrabManager as GrabManager
 	if is_instance_valid(grab_manager.get_held_body(local_peer_id)):
-		gameplay_hud.present_context_action("RELEASE OBJECT")
+		gameplay_hud.present_context_action("RELEASE TO RESTORE SPEED")
 	elif is_instance_valid(grab_manager.get_interaction_candidate(player)):
-		gameplay_hud.present_context_action("GRAB OBJECT")
+		gameplay_hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
 	else:
 		gameplay_hud.present_context_action("")
 

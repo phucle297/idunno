@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T18:19:00Z",
+  "updated_at": "2026-10-09T19:46:02Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -20,8 +20,8 @@
   },
   "current": {
     "phase": "phase_3_player_caused_chaos",
-    "milestone": "milestone_3_2_readable_carrying",
-    "task": "task_3_2_2_carry_presentation"
+    "milestone": "milestone_3_3_useful_survival_prop",
+    "task": "task_3_3_1_prop_role_feasibility"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -60,16 +60,16 @@
       },
       "milestone_3_2_readable_carrying": {
         "title": "Readable Carrying with a Survival Tradeoff",
-        "status": "in_progress",
+        "status": "completed",
         "dependencies": ["milestone_3_1_safe_interaction_contract"],
-        "tasks": {"task_3_2_1_carry_movement": "completed", "task_3_2_2_carry_presentation": "planned"},
-        "gates": {"carry_tradeoff_and_prediction_agreement": "not_run"}
+        "tasks": {"task_3_2_1_carry_movement": "completed", "task_3_2_2_carry_presentation": "completed"},
+        "gates": {"carry_tradeoff_and_prediction_agreement": "passed"}
       },
       "milestone_3_3_useful_survival_prop": {
         "title": "One Useful Survival Prop",
-        "status": "planned",
+        "status": "in_progress",
         "dependencies": ["milestone_3_2_readable_carrying"],
-        "tasks": {"task_3_3_1_prop_role_feasibility": "planned", "task_3_3_2_prop_role_integration": "planned"},
+        "tasks": {"task_3_3_1_prop_role_feasibility": "in_progress", "task_3_3_2_prop_role_integration": "planned"},
         "gates": {"one_useful_prop_role_validated": "not_run"}
       },
       "milestone_3_4_bounded_shove_decision": {
@@ -202,11 +202,29 @@
       "command": "Python milestone/task/gate/path checks; jq empty progress.json; git diff --check",
       "status": "passed",
       "result": "MILESTONE_TRACKING_OK completed3.1/next3.2.1; six future gates remain not_run and future milestone/tasks planned.22 relative documentation links pass, production game/assets and all historical archives unchanged, scratch driver removed. Checklist/index/README/decisions agree with root state; no full-phase closure or deployment claimed."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Task3.2.2 holding pose/prompt implementation plus rendered carry review",
+      "status": "passed",
+      "result": "CARRY_PRESENTATION_OK checks=26 at1280x720 and1920x1080. holding_idle/holding_walk now use converging forward arm tracks while retaining leg swing; get_up has bounded priority after knockdown; airborne/crouch states remain coherent and release resumes idle. Prompt copy is GRAB — CARRY SLOWS YOU 25% and RELEASE TO RESTORE SPEED. Captures for carry-idle, carry-walk, carry-crouch, carry-airborne, release and knockdown-recovery are in .amp/in/artifacts/phase-3-carry/ and were inspected at both resolutions. The simple mitten rig has no explicit hand mesh; one side arm is occluded by the crate in some three-quarter views, noted as a cosmetic limit rather than a disconnected pivot."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "GRAB_HOLD_DISTANCE readability experiments:0.85m,0.9m and1.0m with grab/map/prediction/latency checks",
+      "status": "failed",
+      "result": "0.85m fails wall mass12 repeated reacquisition in GRAB_MANAGER stress.0.9m passes GRAB_MANAGER_OK checks295 but fails movement latency at100ms peer startup and records a14.5m correction at200ms. Both runs and logs are retained as contrary evidence; neither is shipped."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Final Task3.2.2 validation at GRAB_HOLD_DISTANCE=1.0: grab/map/prediction/latency and full UI regression",
+      "status": "passed",
+      "result": "GRAB_MANAGER_OK checks295; MAP_SAFETY_OK checks175; NETWORK_PREDICTION_OK checks21. MOVEMENT_LATENCY_OK response-bound with correction maxima0.217m/0.550m/1.088m at added RTT0/100/200ms and zero settled error. PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh passes UI_REGRESSION_OK suites35/matrices5/persistence_restart=passed. Milestone3.2 gate carry_tradeoff_and_prediction_agreement is passed;3.3.1 is next. Shutdown-only ObjectDB/resources diagnostics remain unchanged."
     }
   ],
   "blockers": [
     "Phase2's unclassified X-loss/rematch/20-player observations and unexecuted native/release acceptance remain preserved in previous_phase_archive. They are not marked fixed or passed; current support remains1–4 and user manual waiver remains in force."
   ],
-  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/main.gd", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
-  "next_action": "Implement Task3.2.2: refine existing holding_idle/holding_walk presentation and minimal acquisition/release feedback, then render idle/carry-walk/release, crouch/airborne carry and knockdown recovery at720p/1080p before closing Milestone3.2."
+  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/toy_character_visual.gd", "game/main.gd", "scenes/main.tscn", "assets/manifest.json", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/test_player_integration.gd", "tests/test_carry_presentation.gd", "tests/test_gameplay_hud.gd", "tests/test_milestone_1_1.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
+  "next_action": "Run Task3.3.1 buoyant foothold/escape-aid feasibility experiment with an actual passenger, water rise/current, holder versus passenger collision and two-client delay/loss checks; record go/no-go and then integrate only the selected role."
 }

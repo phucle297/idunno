@@ -35,9 +35,9 @@
         "get_up"
       ],
       "gameplay_tags": [],
-      "provenance": "Deterministically generated in Godot; no third-party geometry",
+      "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/toy_character_visual.gd.",
       "sha256": "82be0f939f1e4b3b95832b6d31e3f816081bd37f48b7d0133dff845d04a8fa53",
-      "validation_status": "shoulder_hip_pivots_and_attached_shoes_regression_passed; 11_clips_four_variants_1760_pose_color_checks_passed; six_pose_native_Windows_Intel_UHD630_720p_inspected; transition_blending_and_full_route_audit_pending"
+      "validation_status": "shoulder_hip_pivots_and_attached_shoes_regression_passed; 11_clips_four_variants_1760_pose_color_checks_passed; six_pose_native_Windows_Intel_UHD630_720p_inspected; holding_idle_and_holding_walk_forward_grip_pose_refined; carry_idle_walk_crouch_airborne_release_and_knockdown_recovery_rendered_and_inspected_at_720p_and_1080p; transition_blending_and_full_route_audit_pending"
     },
     {
       "asset_id": "ENV_Wall_2m_v001",
