@@ -23,6 +23,8 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	player.set_camera_yaw(0.0)
 	await _check_elevation_routes(main, player)
+	await _check_elevation_routes(main, player, true)
+	player.set_camera_yaw(0.0)
 	await _check_roof_breakage(main, player)
 	_expect(main.get_node("Sandbox").get_node_or_null("BoundaryNorth") != null, "Map requires a continuous perimeter, not separated north fences")
 	if not main.has_method("_eliminate_out_of_bounds"):
@@ -123,7 +125,7 @@ func _run() -> void:
 	_finish()
 
 
-func _check_elevation_routes(main: Node3D, player: PartyPlayer) -> void:
+func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool = false) -> void:
 	var routes := {
 		"ShopRoofRamp": Vector3(-16, 4.855, -16),
 		"HallRoofRamp": Vector3(16, 4.855, -17),
@@ -145,19 +147,45 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer) -> void:
 		for tick in 10:
 			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
 			await physics_frame
-		for tick in 240:
-			player.apply_movement_input(direction, false, false, false, 1.0 / 60.0)
+		var crate := get_first_node_in_group("grabbable") as RigidBody3D
+		var crate_spawn := crate.global_transform
+		if carrying:
+			player.set_camera_yaw(atan2(-direction.x, -direction.y))
+			crate.freeze = true
+			crate.global_position = player.get_hold_position()
+			crate.linear_velocity = Vector3.ZERO
+			crate.angular_velocity = Vector3.ZERO
+			crate.freeze = false
+			_expect(main.get_node("GrabManager").request_grab(1, crate) and player.carrying_medium, "Acquire actual medium crate before ramp ascent")
+		var ascent_ticks := 0
+		for tick in (360 if carrying else 240):
+			player.apply_movement_input(Vector2.UP if carrying else direction, false, false, false, 1.0 / 60.0)
 			await physics_frame
+			ascent_ticks += 1
 			if Vector2(player.position.x - high.x, player.position.z - high.z).length() < 0.15:
 				break
 		var goal: Vector3 = routes[route_name]
 		for tick in 180:
 			var remaining := Vector2(goal.x - player.position.x, goal.z - player.position.z)
-			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			if carrying and remaining.length() > 0.1:
+				player.set_camera_yaw(atan2(-remaining.x, -remaining.y))
+			player.apply_movement_input((Vector2.UP if carrying else remaining.normalized()) if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
 			await physics_frame
-		print("ELEVATION_ROUTE route=%s feet=%s goal=%s" % [route_name, player.position, goal])
+		print("ELEVATION_ROUTE route=%s carry=%s ascent_ticks=%s feet=%s goal=%s" % [route_name, carrying, ascent_ticks, player.position, goal])
+		if carrying:
+			_expect(player.carrying_medium and main.get_node("GrabManager").get_held_body(1) == crate, "Ramp ascent must keep actual crate ownership, not silently drop penalty")
+			await _capture(route_name + "Carrying")
+			main.get_node("GrabManager").release_grab(1)
+			player.set_camera_yaw(0.0)
+			# The existing straight-line descent checks an unobstructed route.
+			# Remove the fixture's dropped obstacle, not a gameplay collision rule.
+			crate.freeze = true
+			crate.global_transform = crate_spawn
+			crate.linear_velocity = Vector3.ZERO
+			crate.angular_velocity = Vector3.ZERO
+			crate.freeze = false
 		_expect(Vector2(goal.x - player.position.x, goal.z - player.position.z).length() < 0.25 and absf(player.position.y - goal.y) < 0.05 and player.is_on_floor(), "Walk without jumps must reach the actual refuge via %s: %s" % [route_name, player.position])
-		await _capture(route_name)
+		await _capture(route_name + ("CarryArrival" if carrying else ""))
 		_expect(main.get_node("Flood").start_warning(), "Start actual Flood at the reached refuge")
 		var flood := main.get_node("Flood") as Flood
 		flood.tick(flood.warning_duration)

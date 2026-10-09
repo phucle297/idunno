@@ -4,6 +4,8 @@ extends RefCounted
 const WALK_SPEED := 4.5
 const SPRINT_SPEED := 6.5
 const CROUCH_SPEED := 2.5
+const MEDIUM_CARRY_SPEED_FACTOR := 0.75
+const MEDIUM_PROP_MIN_MASS := 10.0
 const GROUND_ACCELERATION := 25.0
 const AIR_ACCELERATION := 8.0
 const GRAVITY := 20.0

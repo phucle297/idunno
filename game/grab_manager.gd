@@ -126,6 +126,7 @@ func request_grab(peer_id: int, body: RigidBody3D) -> bool:
 	_owners[body] = peer_id
 	_held_by_peer[peer_id] = body
 	body.set_meta("grab_owner_peer_id", peer_id)
+	player.carrying_medium = body.mass >= Tuning.MEDIUM_PROP_MIN_MASS
 	body.add_collision_exception_with(player)
 	body.sleeping = false
 	return true
@@ -138,6 +139,8 @@ func release_grab(peer_id: int) -> bool:
 	var player = _players.get(peer_id)
 	_held_by_peer.erase(peer_id)
 	_owners.erase(body)
+	if is_instance_valid(player):
+		player.carrying_medium = false
 	if is_instance_valid(body):
 		body.remove_meta("grab_owner_peer_id")
 		if is_instance_valid(player):

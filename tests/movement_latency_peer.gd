@@ -71,9 +71,19 @@ class MeasuredMain extends "res://game/main.gd":
 		contacts.clear()
 		for id in _player_nodes:
 			var position := Vector3(4 if kind == "stairs" else 0, 30.05, 0 if kind == "stairs" else 1)
+			if kind == "carry":
+				position.z = 8.0 # Both speed phases must stay on the24m fixture floor.
 			if id != owner_id:
 				position = Vector3(0, 30.05, -0.5) if kind == "contact" else Vector3(-6, 30.05, 0)
 			_player_nodes[id].reset_for_match(position)
+		if kind == "carry" and multiplayer.is_server():
+			var prop := _network_prop(1)
+			prop.gravity_scale = 0.0 # Test-only hold: keep the real body at the query origin.
+			prop.freeze = true
+			prop.global_position = Vector3(_player_nodes[owner_id].global_position.x + 0.8, 30.3, _player_nodes[owner_id].global_position.z - 1.0)
+			prop.linear_velocity = Vector3.ZERO
+			prop.angular_velocity = Vector3.ZERO
+			prop.freeze = false
 		fixture_ready = kind
 
 	@rpc("any_peer", "call_remote", "reliable")
@@ -134,7 +144,7 @@ class MeasuredMain extends "res://game/main.gd":
 			var snapshot := _pending_local_movement_snapshot
 			_pending_local_movement_snapshot = {}
 			var before := player.global_position
-			player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched)
+			player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched, snapshot.carrying_medium)
 			if measuring:
 				corrections.append(before.distance_to(player.global_position))
 		super._physics_process(delta)
@@ -145,7 +155,7 @@ class MeasuredMain extends "res://game/main.gd":
 				for other in _player_nodes.values():
 					if other != observed:
 						nearest_peer = minf(nearest_peer, observed.global_position.distance_to(other.global_position))
-				trajectory.append({"ticks_ms": Time.get_ticks_usec() / 1000.0, "position": [observed.global_position.x, observed.global_position.y, observed.global_position.z], "velocity": [observed.velocity.x, observed.velocity.y, observed.velocity.z], "grounded": observed.is_on_floor(), "knocked_down": observed.is_knocked_down(), "nearest_peer_m": nearest_peer, "pending_inputs": observed._prediction_inputs.size(), "acknowledged_sequence": observed._last_movement_ack})
+				trajectory.append({"ticks_ms": Time.get_ticks_usec() / 1000.0, "position": [observed.global_position.x, observed.global_position.y, observed.global_position.z], "velocity": [observed.velocity.x, observed.velocity.y, observed.velocity.z], "grounded": observed.is_on_floor(), "knocked_down": observed.is_knocked_down(), "carrying_medium": observed.carrying_medium, "nearest_peer_m": nearest_peer, "pending_inputs": observed._prediction_inputs.size(), "acknowledged_sequence": observed._last_movement_ack})
 		if measuring and is_instance_valid(player):
 			for index in player.get_slide_collision_count():
 				var collision := player.get_slide_collision(index)
@@ -349,6 +359,7 @@ func _run() -> void:
 			# Guest remains connected and stationary, with normal snapshot processing.
 			await wait_for(func(): return main.all_baselines_ready)
 			await run_traversal(player)
+			await run_carry(player)
 			main.end_traversal.rpc_id(1)
 			await wait_for(func(): return main.traversal_done)
 		else:
@@ -371,6 +382,73 @@ func _run() -> void:
 	main.free()
 	await process_frame
 	quit(exit_code)
+
+func run_carry(player: PartyPlayer) -> void:
+	main.fixture_ready = ""
+	main.setup_fixture.rpc_id(1, "carry")
+	await wait_for(func(): return main.fixture_ready == "carry")
+	var fixture_prop_position := Vector3(player.global_position.x + 0.8, 30.3, player.global_position.z - 1.0)
+	await wait_for(func(): return main._network_prop(1).global_position.distance_to(fixture_prop_position) < 0.25)
+	player.set_camera_yaw(0.0)
+	await create_timer(0.8).timeout
+	main.arm_fixture.rpc_id(1)
+	await wait_for(func(): return main.fixture_armed)
+	var correction_start: int = main.corrections.size()
+	# Use the actual sender-derived toggle RPC; movement is measured across release transition.
+	var acquire_stamp := Time.get_ticks_usec()
+	main.get_node("GrabManager").request_local_toggle(main.multiplayer.get_unique_id())
+	await wait_for(func(): return player.carrying_medium)
+	var acquire_response_ms := (Time.get_ticks_usec() - acquire_stamp) / 1000.0
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await physics_frame
+	await physics_frame
+	for tick in 72:
+		await physics_frame
+	require(player.carrying_medium and absf(player.velocity.z + 4.875) < 0.05, "Delayed acquisition must converge to medium carry sprint4.875m/s")
+	var carry_start := player.global_position
+	for tick in 30:
+		await physics_frame
+	var carry_distance := Vector2(player.global_position.x - carry_start.x, player.global_position.z - carry_start.z).length()
+	require(carry_distance > 1.8 and carry_distance < 2.8, "Half-second stable carry must travel at reduced speed despite delayed corrections")
+	var release_stamp := Time.get_ticks_usec()
+	main.get_node("GrabManager").request_local_toggle(main.multiplayer.get_unique_id())
+	player.set_camera_yaw(PI) # Measure restored movement away from the released prop's path.
+	await physics_frame
+	await physics_frame
+	for tick in 48:
+		await physics_frame
+	require(not player.carrying_medium, "Delayed release must clear carry state before measuring restored movement")
+	var release_response_ms := (Time.get_ticks_usec() - release_stamp) / 1000.0
+	var release_start := player.global_position
+	for tick in 30:
+		await physics_frame
+	var release_distance := Vector2(player.global_position.x - release_start.x, player.global_position.z - release_start.z).length()
+	require(release_distance > 2.8 and release_distance < 4.0 and release_distance > carry_distance + 0.4, "Released route must travel materially farther than carried route")
+	Input.action_release("move_forward")
+	Input.action_release("sprint")
+	for tick in 60:
+		await physics_frame
+	main.authoritative_trace = []
+	main.fetch_trace.rpc_id(1)
+	await wait_for(func(): return not main.authoritative_trace.is_empty())
+	var saw_carry := false
+	var saw_restoration := false
+	for sample in main.authoritative_trace:
+		var sample_speed := Vector2(sample.velocity[0], sample.velocity[2]).length()
+		if sample.carrying_medium and absf(sample_speed - 4.875) < 0.05:
+			saw_carry = true
+		if saw_carry and not sample.carrying_medium and absf(sample_speed - 6.5) < 0.05:
+			saw_restoration = true
+	require(saw_carry and saw_restoration, "Authority trace must agree on reduced carry speed and restored release speed")
+	var settled_error := player.global_position.distance_to(main.previous[main.multiplayer.get_unique_id()])
+	require(settled_error < 0.05, "Carry/release prediction must settle within5cm")
+	var corrections: Array = main.corrections.slice(correction_start)
+	require(not corrections.is_empty() and corrections.max() < 1.5, "Carry transitions cannot produce repeated large prediction launches")
+	var record := {"fixture": "carry", "acquire_response_ms": acquire_response_ms, "release_response_ms": release_response_ms, "carry_distance_m": carry_distance, "release_distance_m": release_distance, "settled_error_m": settled_error, "corrections_m": corrections, "local_trajectory": main.trajectory.duplicate(true), "authority_trajectory": main.authoritative_trace.duplicate(true)}
+	main.traversal.append(record)
+	print("TRAVERSAL " + JSON.stringify(record))
+
 
 func run_traversal(player: PartyPlayer) -> void:
 	for kind in ["jump", "stairs", "contact", "knockdown"]:

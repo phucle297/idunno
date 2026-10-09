@@ -7,7 +7,7 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 3 — Player-Caused Chaos | In progress: 3.1 complete,3.2.1 next | [Phase 3](checklists/phase-3-player-caused-chaos.md) |
+| 3 — Player-Caused Chaos | In progress: 3.1 and3.2.1 complete,3.2.2 next | [Phase 3](checklists/phase-3-player-caused-chaos.md) |
 | 4 — Disaster Remix and Toy Town Interaction | Planned | [Phase 4](checklists/phase-4-disaster-remix-and-toy-town-interaction.md) |
 | 5 — Session Distribution and Release Readiness | Planned | [Phase 5](checklists/phase-5-session-distribution-and-release-readiness.md) |
 | 6 — Cosmetic Loot-Box Drops and Customization | Planned | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |

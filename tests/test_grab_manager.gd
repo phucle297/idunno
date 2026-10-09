@@ -20,6 +20,7 @@ func _run() -> void:
 	_build_world()
 	await physics_frame
 	await _test_acquisition_eligibility()
+	_test_carry_movement()
 	_test_range_and_contention()
 	await _test_bounded_spring()
 	_test_lifecycle_releases()
@@ -71,6 +72,43 @@ func _add_player(spawn_position: Vector3) -> PartyPlayer:
 	player.global_position = spawn_position
 	player.set_physics_process(false)
 	return player
+
+
+func _test_carry_movement() -> void:
+	# Isolate locomotion from spring motion here; actual moving holds run below.
+	manager.set_physics_process(false)
+	crate.freeze = true
+	manager.release_all()
+	for mass in [8.0, 9.99, 10.0, 12.0, 25.0]:
+		for mode in ["walk", "sprint", "crouch"]:
+			player_one.reset_for_match(Vector3.ZERO)
+			player_one.set_camera_yaw(0.0)
+			for tick in 5:
+				player_one.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			crate.mass = mass
+			crate.position = Vector3(0, 0.4, -1)
+			_expect(manager.request_grab(1, crate), "Acquire real mass-class prop for movement")
+			var medium: bool = mass >= 10.0
+			var speed := (6.5 if mode == "sprint" else (2.5 if mode == "crouch" else 4.5)) * (0.75 if medium else 1.0)
+			var expected_distance := 0.0
+			for tick in 60:
+				expected_distance += minf((tick + 1) * 25.0 / 60.0, speed) / 60.0
+				player_one.apply_movement_input(Vector2.UP, mode == "sprint", mode == "crouch", false, 1.0 / 60.0)
+			_expect(absf(-player_one.position.z - expected_distance) < 0.001 and absf(player_one.velocity.z + speed) < 0.001, "Mass boundary %s/%s displacement must match independent speed/acceleration contract" % [mass, mode])
+			print("CARRY_ROUTE mass=%s mode=%s distance=%.6f speed=%.3f" % [mass, mode, -player_one.position.z, -player_one.velocity.z])
+			player_one.local_input_blocked = true
+			_expect(player_one.carrying_medium == medium and manager.get_held_body(1) == crate, "Opening UI cannot clear ownership or carry penalty")
+			manager.release_grab(1)
+			_expect(not player_one.carrying_medium, "Release clears penalty immediately, including while input blocked")
+			player_one.local_input_blocked = false
+			for tick in 20:
+				player_one.apply_movement_input(Vector2.UP, true, false, false, 1.0 / 60.0)
+			_expect(absf(player_one.velocity.z + 6.5) < 0.001, "Release restores unladen sprint target without changing acceleration")
+	player_one.reset_for_match(Vector3.ZERO)
+	crate.position = Vector3(0, 0.4, -1)
+	crate.mass = 12.0
+	manager.set_physics_process(true)
+	crate.freeze = false
 
 
 func _test_acquisition_eligibility() -> void:
@@ -157,12 +195,12 @@ func _test_bounded_spring() -> void:
 
 func _test_lifecycle_releases() -> void:
 	player_one.apply_knockdown(Vector3.ZERO)
-	_expect(manager.get_grab_owner(crate) == 0, "Knockdown must release the held body")
+	_expect(manager.get_grab_owner(crate) == 0 and not player_one.carrying_medium, "Knockdown must release body and penalty")
 	player_one.reset_for_match(Vector3.ZERO)
 	_place_crate_in_reach()
 	_expect(manager.request_grab(1, crate), "A recovered player must be able to grab again")
 	player_one.set_eliminated(true)
-	_expect(manager.get_grab_owner(crate) == 0, "Elimination must release the held body")
+	_expect(manager.get_grab_owner(crate) == 0 and not player_one.carrying_medium, "Elimination must release body and penalty")
 	player_one.reset_for_match(Vector3.ZERO)
 	_place_crate_in_reach()
 	_expect(manager.request_grab(1, crate), "A reset player must regain interaction")
@@ -170,14 +208,14 @@ func _test_lifecycle_releases() -> void:
 	crate.global_position = Vector3(0.0, 0.4, -Tuning.GRAB_BREAK_DISTANCE - 0.2)
 	crate.freeze = false
 	manager._physics_process(1.0 / 60.0)
-	_expect(manager.get_grab_owner(crate) == 0, "Excessive separation must break the hold")
+	_expect(manager.get_grab_owner(crate) == 0 and not player_one.carrying_medium, "Excessive separation must clear hold and penalty")
 
 
 func _test_disconnect_release() -> void:
 	_place_crate_in_reach()
 	_expect(manager.request_grab(2, crate), "The second player must grab after ownership is released")
 	_expect(manager.unregister_player(2), "Disconnect cleanup must unregister the peer")
-	_expect(manager.get_grab_owner(crate) == 0, "Disconnect cleanup must release the peer's body")
+	_expect(manager.get_grab_owner(crate) == 0 and not player_two.carrying_medium, "Disconnect cleanup must release body and penalty")
 	_expect(not crate.has_meta("grab_owner_peer_id"), "Disconnect cleanup must clear body ownership metadata")
 
 
@@ -264,7 +302,7 @@ func _test_destroyed_prop_release() -> void:
 	crate.free()
 	await physics_frame
 	await physics_frame
-	_expect(manager.get_held_body(1) == null, "Destroying the held prop leaves no stale held body")
+	_expect(manager.get_held_body(1) == null and not player_one.carrying_medium, "Destroying the held prop clears body and penalty")
 	world.add_child(replacement)
 	replacement.position = Vector3(0, 0.4, -1)
 	_expect(manager.request_grab(1, replacement), "Holder can acquire a replacement after prop destruction")

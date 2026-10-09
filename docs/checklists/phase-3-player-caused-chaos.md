@@ -1,6 +1,6 @@
 # Phase 3 — Player-Caused Chaos
 
-**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress;3.1 complete,3.2.1 next · **Plan checked:** 2026-10-09.
+**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress;3.1 and3.2.1 complete,3.2.2 next · **Plan checked:** 2026-10-09.
 
 ## Outcome and boundaries
 
@@ -60,9 +60,11 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_2_1_carry_movement` · **Owners:** `player.gd`, `player_tuning.gd`, GrabManager and Main's existing movement/prop snapshots.
 
-- [ ] Choose a single readable medium-prop slowdown from a measured unladen/carry route comparison; record the value and reason in active decisions. No speed change for every player, acceleration overhaul or hidden hazard immunity.
-- [ ] Carry state/eligibility must be server-owned and available at the physics-tick prediction/reconciliation boundary, including replay. Do not trust client-supplied mass, owner or speed. Avoid unconditionally reading a later prop snapshot as historical replay state; inspect whether the existing player snapshot needs a small carry-state field.
-- [ ] Release immediately restores normal movement; death, knockdown, disconnect, pause/input blocking and rematch cannot leave a persistent penalty. Keep UI-blocked acquisition distinct from simulation and cleanup, so opening Settings is not an ownership exploit.
+- [x] Choose a single readable medium-prop slowdown from a measured unladen/carry route comparison; record the value and reason in active decisions. No speed change for every player, acceleration overhaul or hidden hazard immunity.
+- [x] Carry state/eligibility must be server-owned and available at the physics-tick prediction/reconciliation boundary, including replay. Do not trust client-supplied mass, owner or speed. Avoid unconditionally reading a later prop snapshot as historical replay state; inspect whether the existing player snapshot needs a small carry-state field.
+- [x] Release immediately restores normal movement; death, knockdown, disconnect, pause/input blocking and rematch cannot leave a persistent penalty. Keep UI-blocked acquisition distinct from simulation and cleanup, so opening Settings is not an ownership exploit.
+
+**Complete2026-10-09:** server-derived medium carry applies a0.75 speed factor at10–25kg; movement snapshots carry the state bit for replay/observers. Unladen versus carried one-second routes are4.132/5.708/2.396m versus3.175/4.440/1.819m; current-map ramps ascend with a held12kg crate without jumps.0/100/200ms ±30ms jitter/20th-loss matrix passes with acquire/release response and correction evidence; full regression passes. Holding pose/context feedback remain3.2.2.
 
 **Acceptance/validation:** Compare independently specified normal versus carrying displacement, then release and restore normal speed; test actual ascent on current ramps without compulsory jumping. Extend prediction and delayed network coverage at0/100/200ms, ±30ms jitter and every20th-datagram loss using the existing runner. Measure correction magnitudes as well as first response; do not claim physical smoothness from headless telemetry.
 

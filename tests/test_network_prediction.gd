@@ -79,6 +79,22 @@ func run() -> void:
 	expect(player._prediction_inputs.is_empty(), "Elimination must clear prediction history")
 	player.reset_for_match(Vector3(0, 0, 1))
 	expect(player._prediction_inputs.is_empty() and player._last_movement_ack == -1, "Rematch must reset prediction and acknowledgement state")
+	player.reset_for_match(Vector3.ZERO)
+	player.set_camera_yaw(0)
+	for sequence in range(1, 11):
+		player.predict_movement_input(sequence, Vector2.RIGHT, true, false, false, DELTA)
+	# Acquire happened at authority while these local ticks predicted unladen.
+	player.reconcile_movement(Vector3(2, 0, 0), Vector3(4.875, 0, 0), 0, false, 6, Vector3(0.12, 0, 1), false, true)
+	expect(player.position.is_equal_approx(Vector3(2.325, 0, 0)) and player.carrying_medium, "Carry snapshot must replay four pending ticks at 4.875m/s, not stale local unladen speed")
+	player.reconcile_movement(Vector3(99, 0, 0), Vector3.ZERO, 0, false, 5, Vector3.ZERO, false, false)
+	expect(player.carrying_medium and player.position.is_equal_approx(Vector3(2.325, 0, 0)), "Stale release acknowledgement must not erase current carry penalty")
+	# Release happened at authority while local ticks still predicted carrying.
+	player.reconcile_movement(Vector3(3, 0, 0), Vector3(6.5, 0, 0), 0, false, 8, Vector3(0.12, 0, 1), false, false)
+	expect(player.position.is_equal_approx(Vector3(3.2166667, 0, 0)) and not player.carrying_medium, "Release snapshot must replay two pending ticks at restored6.5m/s")
+	player.reconcile_movement(Vector3.ZERO, Vector3.ZERO, 0, true, 10, Vector3.ZERO, false, true)
+	expect(not player.carrying_medium, "Knockdown overrides even a carry flag in the snapshot")
+	player.reset_for_match(Vector3.ZERO)
+	expect(not player.carrying_medium, "Rematch cannot retain a carry penalty")
 	finish(world)
 
 func finish(world: Node) -> void:

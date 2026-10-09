@@ -19,6 +19,7 @@ var _ragdoll: Node3D
 var _is_eliminated := false
 var _grab_manager: Node
 var _peer_id := 1
+var carrying_medium := false
 var local_input_blocked := false
 var mouse_sensitivity := 1.0
 var invert_y := false
@@ -130,6 +131,8 @@ func apply_movement_input(
 	var target_speed := Tuning.CROUCH_SPEED if _is_crouched else (
 		Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
 	)
+	if carrying_medium:
+		target_speed *= Tuning.MEDIUM_CARRY_SPEED_FACTOR
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
@@ -158,7 +161,7 @@ func is_crouched() -> bool:
 	return _is_crouched
 
 
-func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, crouched: bool) -> void:
+func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, crouched: bool, medium_carry: bool = false) -> void:
 	if _is_eliminated or sequence < _last_movement_ack:
 		return
 	_last_movement_ack = sequence
@@ -172,6 +175,9 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	_coyote_remaining = state.x
 	_jump_buffer_remaining = state.y
 	_is_crouched = crouched
+	# Carry toggles are not predicted inputs. The movement snapshot owns this
+	# state for replay and subsequent prediction, independent of prop channel 3.
+	carrying_medium = medium_carry and not knocked_down
 	_update_capsule(crouched)
 	if knocked_down or _is_eliminated:
 		_prediction_inputs.clear()
@@ -282,6 +288,7 @@ func configure_grabbing(manager: Node, peer_id: int) -> void:
 
 
 func release_held_object() -> void:
+	carrying_medium = false
 	if is_instance_valid(_grab_manager):
 		_grab_manager.release_grab(_peer_id)
 

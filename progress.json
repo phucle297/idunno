@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T17:30:08Z",
+  "updated_at": "2026-10-09T18:19:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_3_player_caused_chaos",
     "milestone": "milestone_3_2_readable_carrying",
-    "task": "task_3_2_1_carry_movement"
+    "task": "task_3_2_2_carry_presentation"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -60,9 +60,9 @@
       },
       "milestone_3_2_readable_carrying": {
         "title": "Readable Carrying with a Survival Tradeoff",
-        "status": "planned",
+        "status": "in_progress",
         "dependencies": ["milestone_3_1_safe_interaction_contract"],
-        "tasks": {"task_3_2_1_carry_movement": "planned", "task_3_2_2_carry_presentation": "planned"},
+        "tasks": {"task_3_2_1_carry_movement": "completed", "task_3_2_2_carry_presentation": "planned"},
         "gates": {"carry_tradeoff_and_prediction_agreement": "not_run"}
       },
       "milestone_3_3_useful_survival_prop": {
@@ -95,6 +95,42 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh final Task3.2.1 validation",
+      "status": "passed",
+      "result": "Exit0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed. Headless suites, settings restart, playable/dedicated network groups and supported4-player scale pass with strict runtime-error checks; known shutdown-only ObjectDB/resources diagnostics retained. Together with GRAB_MANAGER_OK checks290, MAP_SAFETY_OK checks175 and MOVEMENT_LATENCY_OK response-bound matrix, Task3.2.1 technical acceptance passes. Milestone3.2 gate remains not_run because holding presentation3.2.2 is not implemented. Log .scratch/phase3-carry/regression-final.log."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --path . --script res://tests/test_map_safety.gd after carry route fixture cleanup",
+      "status": "passed",
+      "result": "MAP_SAFETY_OK checks175. Four current-map elevation routes pass without jumps and again with an actual held12kg medium crate: ascent ticks unladen192/181/184/156 versus carry253/238/242/205 on ShopRoofRamp/HallRoofRamp/GarageRamp/ParkRamp. Arrival y4.855/2.575/2.2 with ownership retained; existing roof-breakage, flood safety, perimeter and rematch checks pass. The straight-line descent fixture temporarily restores its dropped test crate to its spawn so the old unobstructed descent assertion remains comparable; no gameplay collision change. Log .scratch/phase3-carry/map-final.log."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "python3 tests/run_movement_latency_test.py --trials3 --delays0 100 200 --jitter-ms30 --loss-every20 --max-response-ms50",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound. Carry fixture uses sender-derived toggle RPC and movement snapshots; measured carry records: added RTT0ms acquire62.1ms/release836.0ms carry2.519m/release3.358m settle0m correction max0.303m;100ms acquire103.3ms/release835.5ms carry2.519m/release3.250m settle0m correction max0.390m;200ms acquire214.0ms/release834.5ms carry2.600m/release3.250m settle0m correction max0.536m. Authority traces show medium sprint4.875m/s then restored sprint6.5m/s. Release route reverses away from fixture prop path; that test-only prop uses gravity_scale0 to remain at pre-acquisition query origin. Logs .scratch/phase3-carry/latency-matrix-final/."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --path . --script res://tests/test_grab_manager.gd after fixture type/order correction",
+      "status": "passed",
+      "result": "GRAB_MANAGER_OK checks290. Mass boundary route comparisons independently assert one-second distance/terminal speed at8.0/9.99/10.0/12.0/25.0kg for walk/sprint/crouch: medium10–25kg converges3.375/4.875/1.875m/s and3.175/4.440/1.819m versus unladen4.5/6.5/2.5 and4.132/5.708/2.396m. Input blocking retains ownership; explicit release clears penalty and restores speed. Knockdown, elimination, separation, disconnect and destroyed prop clear it. Existing218 checks retained. Log .scratch/phase3-carry/grab-final.log."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "tests/run_movement_latency_test.py --trials3 --delays0 100 200 --jitter-ms30 --loss-every20 --max-response-ms50 diagnostic",
+      "status": "failed",
+      "result": "Carry fixture wrongly placed network prop at y30.9 with local dynamic-body descent; server candidate null at y0.116 and all cases fail before prediction comparison. Corrected fixture placement to resting y30.3 one metre forward; rerun pending. This is fixture failure, not a network smoothing result. Log .scratch/phase3-carry/latency-diagnostic.log."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --editor --path . --quit; tests/test_network_prediction.gd; tests/test_grab_manager.gd",
+      "status": "failed",
+      "result": "Import and NETWORK_PREDICTION_OK checks21 pass with authoritative carry acquire/release replay and stale acknowledgement assertions. Grab fixture fails parse: inferred medium bool from Variant mass loop; explicit type correction pending. Candidate25% medium slowdown/server grab state and movement snapshot bit implemented, not yet accepted. Logs .scratch/phase3-carry/{import,prediction,grab}.log."
+    },
     {
       "date": "2026-10-09",
       "command": "godot --headless --path . --script res://tests/test_grab_manager.gd (red then green)",
@@ -171,6 +207,6 @@
   "blockers": [
     "Phase2's unclassified X-loss/rematch/20-player observations and unexecuted native/release acceptance remain preserved in previous_phase_archive. They are not marked fixed or passed; current support remains1–4 and user manual waiver remains in force."
   ],
-  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player_tuning.gd", "game/main.gd", "tests/test_grab_manager.gd", "tests/playable_scene_network_peer.gd", "tests/network_authority_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-3-player-caused-chaos.md", "docs/old-docs/README.md", "docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json", "docs/old-docs/phase-2-human-playtest-and-core-feel/decisions.md", "README.md", "NEED_REAL_CHECK.md"],
-  "next_action": "Implement Task3.2.1: measure unladen versus medium-crate routes, choose one carry slowdown and carry-state field at the authoritative player prediction/replay boundary; validate release restoration, current ramps and delayed/jitter/loss agreement before holding-pose work."
+  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/main.gd", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
+  "next_action": "Implement Task3.2.2: refine existing holding_idle/holding_walk presentation and minimal acquisition/release feedback, then render idle/carry-walk/release, crouch/airborne carry and knockdown recovery at720p/1080p before closing Milestone3.2."
 }

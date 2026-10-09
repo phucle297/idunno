@@ -518,7 +518,7 @@ func _physics_process(delta: float) -> void:
 		if not multiplayer.is_server() and not _pending_local_movement_snapshot.is_empty():
 			var snapshot := _pending_local_movement_snapshot
 			_pending_local_movement_snapshot = {}
-			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched)
+			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched, snapshot.carrying_medium)
 		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
@@ -562,7 +562,7 @@ func _physics_process(delta: float) -> void:
 		velocities.append(player.velocity)
 		camera_yaws.append(player.get_camera_yaw())
 		visual_yaws.append(player.get_visual_yaw())
-		knockdowns.append((1 if player.is_knocked_down() else 0) | (2 if player.is_crouched() else 0))
+		knockdowns.append((1 if player.is_knocked_down() else 0) | (2 if player.is_crouched() else 0) | (4 if player.carrying_medium else 0))
 		acknowledged_inputs.append(int(movement_input.sequence))
 		replay_states.append(player.get_movement_replay_state())
 	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns, acknowledged_inputs, replay_states)
@@ -634,10 +634,11 @@ func _apply_movement_snapshots(
 		var player := _player_nodes[peer_id] as PartyPlayer
 		if peer_id == multiplayer.get_unique_id() and not acknowledged_inputs.is_empty():
 			# Replay during the next physics tick, never at variable-rate RPC receipt time.
-			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "crouched": knockdowns[index] & 2 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
+			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "crouched": knockdowns[index] & 2 != 0, "carrying_medium": knockdowns[index] & 4 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
 			continue
 		player.global_position = positions[index]
 		player.velocity = velocities[index]
+		player.carrying_medium = knockdowns[index] & 4 != 0 and knockdowns[index] & 1 == 0
 		# Local aim is input, not state to rewind with a delayed server echo.
 		if peer_id != multiplayer.get_unique_id():
 			player.set_camera_yaw(camera_yaws[index])
