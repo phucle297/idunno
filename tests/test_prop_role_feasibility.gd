@@ -50,6 +50,7 @@ func _run() -> void:
 	await _scenario_buoyant_support(true)
 	await _scenario_grab_boundaries()
 	await _scenario_wall_contact()
+	await _scenario_ramp_contact()
 	await _scenario_disturbance()
 	await _scenario_dry_ground_role()
 
@@ -208,6 +209,55 @@ func _scenario_wall_contact() -> void:
 		"Current-driven crate must stay contained by the actual wall: x=%.2f" % max_x
 	)
 	print("PROP_ROLE_EVIDENCE wall_contact max_crate_x=%.2f passenger_finite=%s" % [max_x, _passenger.position.is_finite()])
+
+
+func _scenario_ramp_contact() -> void:
+	_reset_round()
+	var crate := _crate()
+	# ParkRamp is a thin rotated slab, not a solid wedge: its walking surface
+	# at z=5 sits near y=1.13 and its underside near y=0.94, so a grounded
+	# crate (top y=0.65) can legitimately pass beneath it and flood water
+	# (peak 3.5m) lifts a floating crate above it. Containment therefore is
+	# not a ramp property; the honest contact checks are: a crate dropped onto
+	# the walking surface cannot tunnel through it, and a shoved crate crosses
+	# the slab without sinking below it.
+	_place(crate, Vector3(15.0, 1.6, 5.0), Vector3.ZERO)
+	_passenger.reset_for_match(Vector3(12.5, 0.05, 5.0))
+	_holder.reset_for_match(Vector3(12.5, 0.05, 7.5))
+	await _settle(45)
+	# The crate body origin sits on its bottom face (collision offset y=0.3
+	# on a 0.6 cube), so resting clearance is body_y minus surface_y.
+	var rest_clearance := crate.global_position.y - _park_ramp_surface_y(crate.global_position.z)
+	_expect(
+		absf(rest_clearance) < 0.3 and crate.global_position.is_finite(),
+		"A crate dropped onto the ramp walking surface must rest on it without tunneling: clearance=%.2f" % rest_clearance
+	)
+	crate.linear_velocity = Vector3(9.0, 0.0, 0.0)
+	var min_clearance := 10.0
+	var crossed := false
+	for tick in 8 * 60:
+		await _idle_step()
+		var pos := crate.global_position
+		if not pos.is_finite():
+			break
+		if pos.x > 16.5:
+			crossed = true
+			break
+		if pos.x >= 13.6 and pos.z >= 0.5 and pos.z <= 9.5:
+			min_clearance = minf(min_clearance, pos.y - _park_ramp_surface_y(pos.z))
+	_expect(crossed, "A shoved crate must cross the ramp slab to the east edge")
+	_expect(
+		min_clearance > -0.1 and crate.global_position.is_finite() and _passenger.position.is_finite(),
+		"A crossing crate must not sink through the ramp slab: min_clearance=%.2f" % min_clearance
+	)
+	print("PROP_ROLE_EVIDENCE ramp_contact rest_clearance=%.2f min_clearance=%.2f crossed=%s end_pos=%s passenger_finite=%s" % [
+		rest_clearance, min_clearance, crossed, crate.global_position, _passenger.position.is_finite(),
+	])
+
+
+func _park_ramp_surface_y(z: float) -> float:
+	# Mirrors _add_ramp("ParkRamp", ..., Vector3(15.0, 0.05, 0.0), Vector3(15.0, 2.2, 10.0)).
+	return lerpf(0.05, 2.2, clampf(z / 10.0, 0.0, 1.0))
 
 
 func _scenario_disturbance() -> void:

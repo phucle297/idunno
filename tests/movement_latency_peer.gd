@@ -73,6 +73,8 @@ class MeasuredMain extends "res://game/main.gd":
 			var position := Vector3(4 if kind == "stairs" else 0, 30.05, 0 if kind == "stairs" else 1)
 			if kind == "carry":
 				position.z = 8.0 # Both speed phases must stay on the24m fixture floor.
+			if kind == "footing" and id == owner_id:
+				position = Vector3(0, 30.65, 0) # Server-approved standing height on the prop top.
 			if id != owner_id:
 				position = Vector3(0, 30.05, -0.5) if kind == "contact" else Vector3(-6, 30.05, 0)
 			_player_nodes[id].reset_for_match(position)
@@ -81,6 +83,14 @@ class MeasuredMain extends "res://game/main.gd":
 			prop.gravity_scale = 0.0 # Test-only hold: keep the real body at the query origin.
 			prop.freeze = true
 			prop.global_position = Vector3(_player_nodes[owner_id].global_position.x + 0.8, 30.3, _player_nodes[owner_id].global_position.z - 1.0)
+			prop.linear_velocity = Vector3.ZERO
+			prop.angular_velocity = Vector3.ZERO
+			prop.freeze = false
+		if kind == "footing" and multiplayer.is_server():
+			var prop := _network_prop(1)
+			prop.gravity_scale = 1.0
+			prop.freeze = true
+			prop.global_position = Vector3(0, 30.0, 0) # Resting origin on the fixture floor top.
 			prop.linear_velocity = Vector3.ZERO
 			prop.angular_velocity = Vector3.ZERO
 			prop.freeze = false
@@ -360,6 +370,7 @@ func _run() -> void:
 			await wait_for(func(): return main.all_baselines_ready)
 			await run_traversal(player)
 			await run_carry(player)
+			await run_footing(player)
 			main.end_traversal.rpc_id(1)
 			await wait_for(func(): return main.traversal_done)
 		else:
@@ -446,6 +457,66 @@ func run_carry(player: PartyPlayer) -> void:
 	var corrections: Array = main.corrections.slice(correction_start)
 	require(not corrections.is_empty() and corrections.max() < 1.5, "Carry transitions cannot produce repeated large prediction launches")
 	var record := {"fixture": "carry", "acquire_response_ms": acquire_response_ms, "release_response_ms": release_response_ms, "carry_distance_m": carry_distance, "release_distance_m": release_distance, "settled_error_m": settled_error, "corrections_m": corrections, "local_trajectory": main.trajectory.duplicate(true), "authority_trajectory": main.authoritative_trace.duplicate(true)}
+	main.traversal.append(record)
+	print("TRAVERSAL " + JSON.stringify(record))
+
+
+func run_footing(player: PartyPlayer) -> void:
+	main.measuring = false
+	main.fixture_ready = ""
+	main.setup_fixture.rpc_id(1, "footing")
+	await wait_for(func(): return main.fixture_ready == "footing")
+	# The shared prop must replicate the teleport before the owner stands on it.
+	await wait_for(func(): return main._network_prop(1).global_position.distance_to(Vector3(0, 30.0, 0)) < 0.25)
+	player.set_camera_yaw(0.0)
+	await wait_for(func(): return player.is_on_floor() and absf(player.global_position.y - 30.6) < 0.12)
+	await create_timer(0.8).timeout
+	main.arm_fixture.rpc_id(1)
+	await wait_for(func(): return main.fixture_armed)
+	var correction_start: int = main.corrections.size()
+	var top := player.global_position.y
+	var origin := player.global_position
+	# Standing on a prop must neither eject nor float the capsule.
+	var stand_min := player.global_position.y
+	var stand_max := player.global_position.y
+	for tick in 60:
+		await physics_frame
+		stand_min = minf(stand_min, player.global_position.y)
+		stand_max = maxf(stand_max, player.global_position.y)
+	require(player.is_on_floor() and absf(player.global_position.y - top) < 0.08, "Prop footing must hold the approved standing height")
+	main.authoritative_trace = []
+	main.fetch_trace.rpc_id(1)
+	await wait_for(func(): return not main.authoritative_trace.is_empty())
+	var authority_stand_min := 1000.0
+	var authority_stand_max := -1000.0
+	for sample in main.authoritative_trace:
+		authority_stand_min = minf(authority_stand_min, sample.position[1])
+		authority_stand_max = maxf(authority_stand_max, sample.position[1])
+	require(authority_stand_min > 30.45 and authority_stand_max < 30.75, "Authority must approve the elevated prop footing, not a client-only elevation")
+	# A prop-footed hop must land back on the prop without a replay launch.
+	var hop_peak := player.global_position.y
+	Input.action_press("jump")
+	await physics_frame
+	await physics_frame
+	Input.action_release("jump")
+	for tick in 60:
+		await physics_frame
+		hop_peak = maxf(hop_peak, player.global_position.y)
+		stand_min = minf(stand_min, player.global_position.y)
+		stand_max = maxf(stand_max, player.global_position.y)
+	require(hop_peak - top < 1.6, "Prop-footed jump must stay within configured jump height")
+	require(player.is_on_floor() and absf(player.global_position.y - top) < 0.08, "Prop-footed jump must land back on the approved footing")
+	# Step off the prop to the fixture floor and settle there.
+	Input.action_press("move_forward")
+	await create_timer(0.8).timeout
+	Input.action_release("move_forward")
+	await create_timer(1.0).timeout
+	require(player.is_on_floor() and absf(player.global_position.y - 30.05) < 0.12, "Stepping off the prop must land on the fixture floor")
+	var settled_error := player.global_position.distance_to(main.previous[main.multiplayer.get_unique_id()])
+	require(settled_error < 0.05, "Prop footing prediction must settle within 5cm")
+	var corrections: Array = main.corrections.slice(correction_start)
+	require(not corrections.is_empty() and corrections.max() < 1.5, "Prop footing cannot produce repeated large prediction launches")
+	var record := {"fixture": "footing", "origin": [origin.x, origin.y, origin.z], "stand_y_range": [stand_min, stand_max], "authority_stand_y_range": [authority_stand_min, authority_stand_max], "hop_peak_m": hop_peak, "settled_error_m": settled_error, "corrections_m": corrections, "local_trajectory": main.trajectory.duplicate(true), "authority_trajectory": main.authoritative_trace.duplicate(true)}
 	main.traversal.append(record)
 	print("TRAVERSAL " + JSON.stringify(record))
 
