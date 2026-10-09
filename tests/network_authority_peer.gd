@@ -109,6 +109,7 @@ func _check_authority_matrix(
 	var grab_player := server_player if role == "server" else client_player
 	var grab_registration_result: bool = grab_manager.register_player(root.multiplayer.get_unique_id(), grab_player)
 	var body := RigidBody3D.new()
+	body.mass = 12.0
 	body.add_to_group("grabbable")
 	body.position = Vector3(0.0, 0.4, -1.0)
 	host.add_child(body)

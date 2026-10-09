@@ -21,17 +21,17 @@ func _physics_process(_delta: float) -> void:
 	if not _can_mutate():
 		return
 	for peer_id: int in _held_by_peer.keys():
-		var body := _held_by_peer[peer_id] as RigidBody3D
-		var player := _players.get(peer_id) as PartyPlayer
+		var body = _held_by_peer[peer_id]
+		var player = _players.get(peer_id)
 		if not is_instance_valid(body) or not is_instance_valid(player) or not player.can_grab_objects():
 			release_grab(peer_id)
 			continue
-		var grab_origin := player.get_grab_origin()
+		var grab_origin: Vector3 = player.get_grab_origin()
 		if grab_origin.distance_to(body.global_position) > Tuning.GRAB_BREAK_DISTANCE:
 			release_grab(peer_id)
 			continue
-		var displacement := player.get_hold_position() - body.global_position
-		var force := displacement * Tuning.GRAB_SPRING_STRENGTH - body.linear_velocity * Tuning.GRAB_SPRING_DAMPING
+		var displacement: Vector3 = player.get_hold_position() - body.global_position
+		var force: Vector3 = displacement * Tuning.GRAB_SPRING_STRENGTH - body.linear_velocity * Tuning.GRAB_SPRING_DAMPING
 		body.sleeping = false
 		body.apply_central_force(force.limit_length(Tuning.GRAB_MAX_FORCE))
 
@@ -87,30 +87,41 @@ func get_interaction_candidate(player: PartyPlayer) -> RigidBody3D:
 	if not is_instance_valid(player) or not player.can_grab_objects():
 		return null
 	var origin := player.get_grab_origin()
-	var forward := player.get_grab_direction()
 	var nearest: RigidBody3D
 	var nearest_distance := Tuning.GRAB_RANGE
 	for candidate in get_tree().get_nodes_in_group("grabbable"):
 		var body := candidate as RigidBody3D
-		if not is_instance_valid(body) or int(body.get_meta("grab_owner_peer_id", 0)) != 0:
+		if not _can_acquire(player, body):
 			continue
-		var offset := body.global_position - origin
-		var distance := offset.length()
-		if distance <= nearest_distance and distance > 0.001 and forward.dot(offset / distance) >= Tuning.GRAB_MIN_FORWARD_DOT:
+		var distance := body.global_position.distance_to(origin)
+		if distance <= nearest_distance:
 			nearest = body
 			nearest_distance = distance
 	return nearest
+
+
+func _can_acquire(player: PartyPlayer, body: RigidBody3D) -> bool:
+	if not is_instance_valid(body) or not player.can_grab_objects() or not body.is_in_group("grabbable"):
+		return false
+	if body.mass < Tuning.GRAB_MIN_MASS or body.mass > Tuning.GRAB_MAX_MASS or int(body.get_meta("grab_owner_peer_id", 0)) != 0:
+		return false
+	var origin := player.get_grab_origin()
+	var offset := body.global_position - origin
+	var distance := offset.length()
+	if distance > Tuning.GRAB_RANGE or distance <= 0.001 or player.get_grab_direction().dot(offset / distance) < Tuning.GRAB_MIN_FORWARD_DOT:
+		return false
+	var query := PhysicsRayQueryParameters3D.create(origin, body.global_position, player.collision_mask, [player.get_rid(), body.get_rid()])
+	query.hit_from_inside = true
+	return player.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
 func request_grab(peer_id: int, body: RigidBody3D) -> bool:
 	if not _can_mutate() or not _players.has(peer_id) or not is_instance_valid(body):
 		return false
 	var player := _players[peer_id] as PartyPlayer
-	if not player.can_grab_objects() or not body.is_in_group("grabbable"):
+	if not _can_acquire(player, body):
 		return false
 	if _held_by_peer.has(peer_id) or _owners.has(body):
-		return false
-	if player.get_grab_origin().distance_to(body.global_position) > Tuning.GRAB_RANGE:
 		return false
 	_owners[body] = peer_id
 	_held_by_peer[peer_id] = body
@@ -123,8 +134,8 @@ func request_grab(peer_id: int, body: RigidBody3D) -> bool:
 func release_grab(peer_id: int) -> bool:
 	if not _can_mutate() or not _held_by_peer.has(peer_id):
 		return false
-	var body := _held_by_peer[peer_id] as RigidBody3D
-	var player := _players.get(peer_id) as PartyPlayer
+	var body = _held_by_peer[peer_id]
+	var player = _players.get(peer_id)
 	_held_by_peer.erase(peer_id)
 	_owners.erase(body)
 	if is_instance_valid(body):
@@ -146,7 +157,7 @@ func get_grab_owner(body: RigidBody3D) -> int:
 
 
 func get_held_body(peer_id: int) -> RigidBody3D:
-	var held_body := _held_by_peer.get(peer_id) as RigidBody3D
+	var held_body = _held_by_peer.get(peer_id)
 	if is_instance_valid(held_body):
 		return held_body
 	for candidate in get_tree().get_nodes_in_group("grabbable"):

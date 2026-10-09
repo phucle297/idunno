@@ -1,0 +1,716 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-09T13:07:48Z",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {
+    "phase_id": "phase_2_human_playtest_and_core_feel",
+    "title": "Human Playtest and Core Feel",
+    "status": "deferred_not_completed",
+    "archived_at": "2026-10-09T15:38:16Z",
+    "reason": "User authorizes continuing Phase3 after the Phase2 technical review and manual-acceptance waiver. Snapshot preserves all unfinished gates and failures; Phase2 is suspended, not falsely completed.",
+    "superseded_by": "../../../progress.json"
+  },
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "{phase-slug}/progress.json",
+    "rule": "When the current phase is completed, move its full progress and validation evidence to the archive before creating a fresh progress.json for the next phase."
+  },
+  "previous_phase_archive": "docs/old-docs/phase-1-ui-identity-and-feedback/progress.json",
+  "checklist": "docs/checklists/phase-2-human-playtest-and-core-feel.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_2_human_playtest_and_core_feel",
+    "milestone": "milestone_2_2_playtest_readiness",
+    "task": "task_2_2_12_roof_panel_support_loss"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4–2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4–2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "phase": {
+    "id": "phase_2_human_playtest_and_core_feel",
+    "title": "Human Playtest and Core Feel",
+    "status": "in_progress",
+    "dependencies": ["phase_1_ui_identity_and_feedback"],
+    "goal": "Deliver Internet-hosted dedicated rooms joined by custom room ID, package a reproducible Windows client, observe structured 3–8-player Internet sessions, and tune core feel from evidence before expansion. Start with one server machine; preserve clear room-service/gameplay boundaries for future refactoring, not mass-scale infrastructure.",
+    "milestones": {
+      "milestone_2_1_reproducible_windows_playtest_build": {
+        "title": "Reproducible Windows Playtest Build",
+        "status": "completed",
+        "scope": "Create a repeatable Windows export with build/version identification; verify standalone launch without adding distribution services.",
+        "tasks": {
+          "task_2_1_1_windows_export_pipeline": "completed",
+          "task_2_1_2_build_identity_and_standalone_launch": "completed"
+        },
+        "acceptance": "Export twice from the same clean revision with matching payload hashes or documented packaging-only differences; launch on native Windows without editor/repository, with matching build identity and no missing resources. See docs/implementation-checklist.md for the executable plan.",
+        "gates": {
+          "reproducible_windows_export": "passed",
+          "standalone_windows_launch": "passed",
+          "build_identity_and_checksums": "passed"
+        }
+      },
+      "milestone_2_2_playtest_readiness": {
+        "title": "Internet Rooms and Playtest Readiness",
+        "status": "in_progress",
+        "dependencies": ["milestone_2_1_reproducible_windows_playtest_build"],
+        "scope": "Implement playerless authoritative dedicated servers, one process per room on one machine, a small HTTPS room service with custom ID lookup/admission, and Windows create/join UI. Validate multi-container isolation/lifecycle and actual Internet release-client sessions before human baseline. No hundred-thousand/million-user design or optimization; additional machines are a future refactor.",
+        "tasks": {
+          "task_2_2_1_executable_play_guide": "completed",
+          "task_2_2_2_exported_session_and_lan_smoke": "cancelled",
+          "task_2_2_3_dedicated_server_and_room_owner": "completed",
+          "task_2_2_4_room_service_and_process_lifecycle": "completed",
+          "task_2_2_5_windows_room_create_join_ui": "completed",
+          "task_2_2_6_container_network_and_failure_validation": "completed",
+          "task_2_2_7_internet_release_readiness": "in_progress",
+          "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
+          "task_2_2_9_dead_player_movement": "completed",
+          "task_2_2_10_character_joint_continuity": "completed",
+          "task_2_2_11_elevation_route_continuity": "completed",
+          "task_2_2_12_roof_panel_support_loss": "completed"
+        },
+        "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
+        "gates": {
+          "playerless_server_and_room_owner_authority": "passed",
+          "room_id_admission_and_bounded_process_lifecycle": "passed",
+          "windows_room_ui_and_failure_recovery": "passed",
+          "multi_container_room_isolation_and_five_rematches": "passed",
+          "multiplayer_camera_feedback_corrected_and_latency_validated": "blocked",
+          "dead_body_movement_blocked_and_spectator_rematch_validated": "passed",
+          "character_joints_and_shoes_connected_across_animated_poses": "passed",
+          "four_walkable_elevation_routes_and_peak_flood_refuges": "passed",
+          "roof_panel_support_loss_escape_and_rematch": "passed",
+          "public_internet_release_clients_and_retry": "blocked",
+          "exported_settings_assets_and_physical_audio": "blocked",
+          "internet_play_guide_and_operator_runbook": "passed"
+        }
+      },
+      "milestone_2_3_mouse_and_display_reliability": {
+        "title": "Mouse Interaction and Display-Session Reliability",
+        "status": "blocked",
+        "dependencies": ["milestone_2_2_playtest_readiness"],
+        "scope": "Renumbered from former2.6 to restore dependency order before human baseline2.4. User explicitly requests implementation now while2.2 human acceptance remains open; do not mark2.2 completed. Implement existing windowed settings preferences; reproduce missing camera rotation/button clicks on Linux/X11/llvmpipe with --host-port=29730, distinguish game event routing/capture/focus from OS/display loss, fix only a proven cause and validate pointer/focus/recovery plus native Windows regression. Investigate X-connection loss separately without inferring a cause from shutdown logs.",
+        "tasks": {
+          "task_2_3_1_windowed_resolution": "completed",
+          "task_2_3_2_pointer_and_display_diagnosis": "blocked"
+        },
+        "gates": {
+          "mouse_failure_reproduced_and_proven_fix": "passed",
+          "pointer_camera_ui_focus_and_recovery_regression": "passed",
+          "display_loss_classified_and_normal_exit_validated": "blocked",
+          "windowed_resolution_persistence_and_rendered_ui": "passed"
+        }
+      },
+      "milestone_2_4_human_playtest_baseline": {
+        "title": "Human Playtest Baseline",
+        "status": "cancelled",
+        "dependencies": ["milestone_2_2_playtest_readiness", "milestone_2_3_mouse_and_display_reliability"],
+        "scope": "Observe a 3–4-person session and a 6–8-person session on separate Windows PCs over Internet room-ID joining; aim for three normal rounds each and record client/server builds, server hardware, region/network latency and disconnects alongside input/display setup, uncoached death explanations, warnings, camera/control/fairness issues, voluntary rematches and timestamped emergent causal chains.",
+        "gates": {
+          "observed_3_to_8_player_multi_pc_sessions": "not_run",
+          "recorded_death_clarity_rematches_and_emergent_moments": "not_run"
+        }
+      },
+      "milestone_2_5_core_feel_improvements": {
+        "title": "Core-Feel Improvements",
+        "status": "cancelled",
+        "dependencies": ["milestone_2_4_human_playtest_baseline"],
+        "scope": "Prioritize reproduced high-impact issues; tune existing movement/camera/warning/pacing owners one coherent change at a time and regress. Create tasks from actual findings, not speculative tuning. No new disasters, shove, map expansion or distribution services.",
+        "gates": {
+          "observed_issues_prioritized_with_reproduction_evidence": "not_run",
+          "high_impact_issues_addressed_with_before_after_evidence": "not_run",
+          "affected_behavior_network_visual_and_performance_checks": "not_run"
+        }
+      },
+      "milestone_2_6_follow_up_validation_and_phase_review": {
+        "title": "Follow-Up Validation and Phase Review",
+        "status": "cancelled",
+        "dependencies": ["milestone_2_5_core_feel_improvements"],
+        "scope": "Retest affected scenarios and normal rounds with humans at both group sizes; compare baseline and follow-up evidence. Report actual durations against the configurable 8–12-minute target. If criteria fail, remain in Phase 2 and return observed issues to2.5 before repeating2.6.",
+        "proposed_expansion_criteria": {
+          "death_clarity": "At least 80% of sampled deaths correctly explained without coaching; report numerator and denominator.",
+          "voluntary_rematches": "A majority independently willing to rematch in each follow-up group; distinguish requested rounds from voluntary requests.",
+          "emergence": "At least two distinct emergent causal patterns recurring across rounds.",
+          "stability": "No unresolved session-blocking/control failures; recurring high-impact issues addressed with regression and human follow-up evidence. Small samples are product evidence, not statistical proof."
+        },
+        "gates": {
+          "human_follow_up_and_baseline_comparison": "not_run",
+          "no_unresolved_session_blocking_or_control_failures": "not_run",
+          "understandable_deaths_voluntary_rematches_and_recurring_emergent_moments": "not_run"
+        }
+      }
+    }
+  },
+  "validation_log": [
+    {
+      "date": "2026-10-09",
+      "check": "User garage crop/source inspection and Flood pacing planning; JSON/diff validation",
+      "status": "passed",
+      "result": "Cropped image matches ParkingGarage UpperShelter:8x6m canopy cannot meet pillars at x±5.5/z±4.5, verified unsupported geometry; plan inset supports/beam frame in existing4.3a, no asset/code correction yet. User reports Flood too easy/long, build/session unspecified. Source defaults6+35+5+5≈51s, head-submersion damage and prop-only current confirmed. Existing4.1/4.4 backlog now compares baseline refuge/idle time against shorter-rise20–25s candidate, staged surge and warned refuge relocation, then later current/crate ideas. Preserve escape fairness, authority/budgets, manual waiver and single existing next action. Planning only; no runtime test, difficulty pass, export or deploy."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "native Windows test_map_safety.gd720p windowed/1080p fullscreen; scratch terrain_cover_audit.gd; PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (initial and final)",
+      "status": "passed",
+      "result": "Task2.2.11 complete source correction: all four actual capsule walks reach Shop/Hall4.855m, Garage2.575m, Park2.2m without jumps, retain100HP through actual peak3.5m Flood and descend to ground. Source MAP_SAFETY_OK112; native Intel UHD630720p/1080p final121 checks each. Reused existing real-Main fixture/capture workflow; inspected reached-refuge views, north/south overviews and Park Flood at both sizes. Final north view shows all four flush ramp junctions; final west-car1m move removes observed edge overlap. Four boxes/48 triangles unchanged, no controller/jump/authority/lighting change. Native initial world-path divergence/downstream Flood deaths retained; isolation of unhandled OS input/zero yaw fixes fixture, no unlogged mouse cause claimed. Requested1080p window falls back even with fresh settings; measured1920x1032 desktop working area cannot fit client/frame, existing fullscreen preferences produce actual1920x1080 captures. Scratch four Shop/Hall two-way ground passages, four Tornado inside/roof queries and five completed-round rematches/20 restored ramp transforms/shapes pass; initial ACTIVE-rematch assertion correctly rejected and hung driver terminated, log retained. Final full regression exits0 UI_REGRESSION_OK34 suites/five matrices/settings restart, dedicated33/57/67/five rematches/recovery. Existing shutdown-only resources/ObjectDB diagnostics retained. Temporary drivers/config removed; logs/images .amp/in/artifacts/terrain-routes/. No new package/deploy, every-spawn Flood path, alternate high escape, full door-camera motion, Meteor or breakable-floor-loss claim."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.11 actual capsule four-route red/initial green",
+      "status": "passed",
+      "result": "Original source fails all four ground→refuge walk assertions: Shop/Hall feet remain ground-level, Garage under deck, Park stuck near road. Initial fixture incorrectly assumed generated collision node name; retained runtime failure separately, corrected to actual CollisionShape child lookup before valid red. Native unchanged overview inspected: Garage/Park slopes rise away from destination. Existing ramp owner now derives box from low/high walking-surface endpoints, normal-offsets thickness, reverses Garage/Park, and moves Shop/Hall to flush north-roof access without overlapping garage/park routes. First headless check exits0 MAP_SAFETY_OK100 with all four actual foot elevations reached. No controller/speed/jump/authority/roof/breakage change; Shop destination verifies entrance landing before existing breakable panel, not traversal through that panel. Added descending and actual peak-Flood tests pending final run. Evidence .amp/in/artifacts/terrain-routes/."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; native Windows test_player_integration.gd; repeat generate_assets.gd --seed=297 and hash diff; native character gameplay captures",
+      "status": "passed",
+      "result": "Task2.2.10 source fix complete: full regression exits0 UI_REGRESSION_OK suites34/matrices5/settings restart; dedicated33/57/67 checks and five rematches/recovery. Native Intel UHD630 player72 checks include ground/airborne knockdown recovery. Repeated generation yields identical scene/material hashes; unchanged non-character geometry only gains generator-v4 metadata, manifest hashes updated. Native actual Main idle/run poses at gameplay distance720p have visible connected avatar/shoes and intact HUD, both captures inspected; six-pose close view also inspected.1728 triangles unchanged. Existing shutdown-only ObjectDB/resource diagnostics retained, no unexpected runtime errors. No clip blending/physical smoothness/full route coverage/new package/deploy/human gate claimed. Scratch audit/render drivers removed after verification; artifacts/logs retained under .amp/in/artifacts/character-continuity/."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.10 character continuity red/green and native pose audit",
+      "status": "passed",
+      "result": "Continuation audit reproduces visible run/crouch/get-up hip gaps and stationary shoes in six-pose Linux render. New shoe displacement and fixed hip endpoint assertions fail against original asset after correcting test initialization to deferred tree entry. Generator v4 places existing arm/leg tracks on shoulder/hip pivots, extends legs0.50→0.56m to meet torso and parents shoes under legs; updates player-color mesh paths. Headless asset39 checks and scratch11-clip/four-variant1760 pose/color checks pass;1728 triangles unchanged. Native Windows Intel UHD630720p six-pose capture inspected, all visible connections intact; initial direct WSL-drive EXE invocation emitted no output/capture, Windows-local editor via PowerShell succeeds. No collider/speed/authority/animation timing/blending change. Full regression/native player and repeat generation pending; no package/deploy/human motion acceptance. Artifacts .amp/in/artifacts/character-continuity/."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (first phase-review run)",
+      "status": "failed",
+      "result": "All34 headless suites/settings restart and first four network groups pass; final dedicated owner reports Client must observe rematch. Server33/guest67 checks complete five rematches; owner fails one ACTIVE-observation assertion. Runner inspected: temporary ACTIVE windows and process-frame observation exist but a fixture race is only a hypothesis, not a verified cause. No code/assertion/deadline changes. Preserve .amp/in/artifacts/phase-2-review/regression.log and dedicated-first-failure/{server,owner,guest}.log; this is not a human-session observation."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_dedicated_network_test.sh; PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (serial full repeat); jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "Unchanged isolated dedicated run passes33/57/67checks/five rematches/recovery; unchanged final full repeat exits0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed, supported playable scale4. Shutdown-only ObjectDB/resources remain. Logs .amp/in/artifacts/phase-2-review/{dedicated-isolated,regression-repeat}.log. A green repeat does not fix or classify the earlier owner assertion. Ready baseline2.4 protocol/report, agent-owned2.5 triage/no-speculative-tuning procedure and2.6 follow-up criteria in NEED_REAL_CHECK. No actual human baseline/fix findings/follow-up or approved6–8 capacity supplied;2.4–2.6 are blocked with gates not_run, not completed. Existing release build/server unchanged; no runtime edits, export, public test or deploy."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "UI planning baseline: rendered test_room_ui.gd and test_windowed_resolution.gd; inspected lobby/HUD/results/settings and generated three-layout reference; jq empty progress.json and git diff --check",
+      "status": "passed",
+      "result": "Current room UI138 checks and window-size24 checks exit0 on Linux/X11/llvmpipe; inspected720p lobby/HUD/results/settings, no clipping in these captures. Desktop cannot fit1080p; native review remains unexecuted. Audio Dummy fallback, unsupported V-Sync and shutdown ObjectDB/resources retained. Evidence .amp/in/artifacts/ui-planning/. Three-layout Painter reference inspected but user redirects priority to gameplay, character model and terrain before Settings/menu polish. UI proposal is non-gating backlog, not current work. Read actual toy_character_visual/cosmetic_ragdoll and Main map owners; mesh-node animation and existing four ramps/six breakables confirmed in source, not a complete rendered movement/route audit. Refined existing Phase4 plan without closing Phase2 gates or authorizing future implementation/deployment. No runtime/asset import, package or production-light change."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Phase 2 entry inspection",
+      "status": "passed",
+      "result": "Clean main aligned with origin/main at inspection; Phase 1 archive is completed with all required gates passed. No export preset/build script found; local Godot export_templates directory is empty. Native Windows editor binaries exist, but editor checks are not packaged executable evidence."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Exit 0; UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed. State-contract 2/4/8/20-client and playable 4/8/20-player matrices, authority and two-peer five-rematch checks passed. Persistence save process emitted 48 ObjectDB leaks / 4 resources still in use at shutdown; runner permits shutdown resource diagnostics. This does not prove physical audio, controller feel, multi-PC sessions or Windows package behavior."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Five-milestone plan consistency: Python assertions, jq empty progress.json and git diff --check",
+      "status": "passed",
+      "result": "PHASE_2_PLAN_OK milestones=5 dependencies=ordered current_task=valid gates=not_run checklist=aligned. Documentation-only restructure; prior gameplay evidence preserved and completed-phase archives unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Windows template installation and export implementation",
+      "status": "passed",
+      "result": "Official Godot 4.7.2 template TPZ verified against release SHA512-SUMS.txt (ca4d71c4d7b81dfc15d1a98baa07534aa95b03fdda78a0075b06672e1648d2e5f40980c9adc28d23e1b92e732ee7bf3461997aa804af74ec2fcd7a93ccb84079). Installed x86_64 release/debug templates and version.txt locally. Added isolated committed-HEAD export script/preset and startup identity log. bash -n and git diff --check pass; export and native launch gates remain not_run pending a clean committed build."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial repeated Windows export comparison",
+      "status": "failed",
+      "result": "Two exports of revision 2932b2491f645063b6aff44c4635292bbfcd8c05 succeeded without import/export errors; EXE and BUILD.txt hashes matched but PCK differed. PCK-directory inspection found identical 101 paths and differences only in seven converted binary scenes; scripts, imported audio and cache payloads matched. Disabled editor/export/convert_text_resources_to_binary to retain deterministic authored text scenes; repeat comparison pending. Development startup smoke exited cleanly and printed development build identity."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "tools/export_windows.sh .scratch/windows-2-1-c; tools/export_windows.sh .scratch/windows-2-1-d; diff -u .scratch/windows-2-1-c/SHA256SUMS.txt .scratch/windows-2-1-d/SHA256SUMS.txt",
+      "status": "passed",
+      "result": "Two isolated clean exports of 7eb1f2520795da5eccf826a6be70261816fa4459 match byte-for-byte: EXE d34d36f3be1a6c49c56525ae86469b92e4f417ddf0b43cf00dd80c385c4b0562, PCK 67582b5b3f17824246d568bf962747d960625483c3ad185bf08e6f4e5c2ac4d4, BUILD.txt 05197e91ad00819b8e372e15b8d35e503aa8679a8ef65ab630c96c13a5d33e45. Conversion setting resolves the initial scene-only variability. PCK directory contains 84 entries, required main scene/compiled script and no tests/tools/docs/source/reference paths. Existing-output rejection passes. Logs retained in .scratch/windows-2-1-c."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Native Windows standalone exported launch",
+      "status": "passed",
+      "result": "Copied only EXE/PCK/BUILD.txt/SHA256SUMS.txt to C:\\Users\\Admin\\AppData\\Local\\Temp\\DisasterParty-2-1-7eb1f25; copied bytes match originals. Release executable ran 600 iterations at 1280x720 on Windows 10.0.26200, Intel UHD Graphics 630, OpenGL Compatibility, WASAPI. Correct full build revision printed; exit 0 and no SCRIPT ERROR/ERROR lines or missing dependencies. Inspected window capture shows town/avatar/health/timer/alive HUD. Screenshot/log: .amp/in/artifacts/windows-standalone-2-1.png and .log. Existing system certificate diagnostic skipped one certificate; no network claim. Exported LAN/settings/audio behavior remains 2.2, not passed by this launch."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Fresh post-export-change regression: exit 0, UI_REGRESSION_OK suites=26 matrices=4 persistence_restart=passed; five network rematches retained. Persistence save emitted shutdown-only 44 ObjectDB leaks / four resources in use, permitted by existing runner; no gameplay fix claimed. Log .scratch/milestone-2-1-regression.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Package delivery and export safety",
+      "status": "passed",
+      "result": "Dirty tracked-source rejection passes before creating output. Four-file ZIP .amp/in/artifacts/DisasterParty-Windows-7eb1f25.zip validated with zip CRC and byte comparison against the tested payloads. Package is pinned to the tested implementation revision; subsequent completion commit changes documentation only."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Milestone 2.2 executable play guide and validation boundary",
+      "status": "passed",
+      "result": "GUIDE.md now documents package extraction/checksum identity, executable solo/host/join/demo commands, private LAN/firewall requirements, controls, host readiness/rematch, settings, current Flood danger card/electrical contact and recovery/log collection. Added explicit two-PC checklist. Release executable ignores --script (invalid-script probe still launched normal main), so external editor-driven PCK fixtures are not claimed as release-runtime or physical LAN coverage."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial native exported-PCK two-peer fixture",
+      "status": "failed",
+      "result": "First full native editor-driven PCK run: settings save/restart and recovery passed; server passed five rematches. Client failed only Meteor presentation (spawn/movement/active/other hazards/results/rematches true). Added failure-only phase/effects/HUD diagnostics, without relaxing assertions. Rerun passed; intermittent cause is not established and is not claimed fixed. Initial runner development also exposed PowerShell exit-code handle caching; retaining process Handle fixes runner exit-code collection."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "tests/run_windows_package_checks.ps1 -PackageDir $env:TEMP\\DisasterParty-2-1-7eb1f25 -GodotConsole <native Godot 4.7.2 console editor> -OutputDir $env:TEMP\\DisasterParty-2-2-checks-c -Port 29740",
+      "status": "passed",
+      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK: exact checksum-verified 7eb1f2520795da5eccf826a6be70261816fa4459 PCK, no source --path. Rendered settings/audio checks=38, separate-process settings restart checks=2, actual ENet recovery checks=54, host/client state/movement/props/ragdoll/hazards/damage/results and five rematches passed. Native editor driver on Windows 10.0.26200 / Intel UHD630 / 1280x720 Compatibility; rendered settings/recovery/overlap captures inspected. Headless host/restart use Dummy audio; rendered tests use native audio routing, not human audibility. Logs/captures .amp/in/artifacts/milestone-2-2/."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Actual unchanged release executables: localhost UI session and retry",
+      "status": "passed",
+      "result": "Two DisasterParty.exe processes on port29741 with isolated preferences, native Windows/GPU as above. Mouse clicks readied both peers and started host match; inspected host-ready/client-active show two READY roster entries then 100HP/2survivors and no lobby panel. Client W input exercised movement. Host termination followed by 40-second wait restored client's one-player offline lobby with explicit Server disconnected status and editable controls. Recreated host; changed recovered client port to29741 and JOIN; inspected client-retry shows shared roster/only-host-can-start status. Logs have no SCRIPT ERROR/ERROR lines. Captures release-host/client logs retained under .amp/in/artifacts/milestone-2-2. Hazard capture did not establish an actual release warning; scripted PCK fixtures cover that. Release five-rematch/settings-restart/listening and physical LAN gates remain blocked pending manual confirmation."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Final Windows runner with spaced output path and Windows-local editor",
+      "status": "passed",
+      "result": "Final -GodotEditor runner owns the engine process directly. Native editor from WSL UNC terminated validation before version output; copying the same executable to Windows-local TEMP passed version and all fixtures. Final run with OutputDir 'DisasterParty 2-2 final' passed settings save/restart, recovery and both peers/five rematches; WINDOWS_EXPORTED_PCK_CHECKS_OK. Resolve-Path.ProviderPath avoids provider-qualified UNC strings bypassing the local-drive guard; negative test prints UNC_REJECTION_OK. GUIDE documents local direct executable requirement. Earlier failed runs retained; no underlying UNC-launch cause claimed. Logs copied to .amp/in/artifacts/milestone-2-2/final-run/."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) PORT=29742 tests/run_playable_scene_network_test.sh",
+      "status": "passed",
+      "result": "Targeted source regression after failure-only Meteor diagnostic passes both peers, all gameplay/presentation checks, five rematches and disconnect cleanup. Assertions unchanged. Log .scratch/2-2-source-regression.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "User-directed Internet rooms planning revision",
+      "status": "passed",
+      "result": "Documentation-only plan validated with JSON/schema/dependency/task assertions and git diff --check. Replaced mandatory physical LAN task with dedicated-server/room-service/UI/container/Internet readiness tasks; old task cancelled rather than passed, prior evidence retained. Current code is a listen host with peer-1 player and server-only session controls; dedicated ownership and room discovery are not implemented. All new gates remain not_run. One-machine modest-capacity plan excludes mass-scale infrastructure; future refactor seams recorded in decisions/checklist."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_dedicated_server.gd",
+      "status": "passed",
+      "result": "DEDICATED_SERVER_OK checks=100 clients=3 rematches=5 owner_transfer=active_and_results real_enet=passed. One process with separate SceneMultiplayer APIs and actual ENet connections; physics disabled in this session-control fixture, not multi-PC evidence. Initial assertion ran before deferred collider update; waiting for physics/process boundary fixes the fixture without relaxing body checks. Verbose follow-up confirms shutdown-only leaked jump.wav/WAV playback resources, consistent with recorded Dummy-audio limitation; no script/runtime errors. Full regression, separate-process dedicated gameplay and rendered owner/guest review pending."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Dedicated network/render fixture failure investigation",
+      "status": "failed",
+      "result": "Initial separate-process fixture kept main ticking after closing its server peer, causing inactive-multiplayer errors. Initial rendered forced ENet kick briefly broadcast to zero channels; SceneMultiplayer kick replacement removed routing but did not emit local cleanup signal, so transfer failed. Engine source confirms these lifecycles. Final fixture stops server main before transport close and tests client-side departure with actual server disconnect signals; rejected unregistered ACTIVE joins use SceneMultiplayer. Later late-client window preference initialization resized one 1080p capture to1908x999; early root-size/engine-args attempts produced100x100/failed dimension assertions. Final explicit review-resolution fixture restores requested size and asserts window/framebuffer dimensions; only approved final captures are used. Failed logs retained in .scratch/dedicated-*; no assertions weakened."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "UI_REGRESSION_OK suites=27 matrices=5 persistence_restart=passed. Solo/listen-host behavior, existing authority/state/playable 4/8/20-player matrices and new separate-process dedicated server/two-client movement/results/five-rematch/recovery check pass. Log .scratch/dedicated-full-regression.log. Persistence save reported48 ObjectDB leaks/four resources; dedicated network peers reported shutdown-only WAV resource diagnostics. No gameplay/parser errors. Final targeted rerun after startup-failure guard/stricter X-axis movement assertions also passes (server27/owner37/guest35 checks)."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_dedicated_server.gd; tests/run_dedicated_network_test.sh; godot --headless --path . --quit-after 30 -- --server-port=29768 / --server-port=65536",
+      "status": "passed",
+      "result": "Final contract103 checks: three real ENet clients, no server participant/mesh/collider/camera, all client slots usable, actual-sender owner RPCs, unready/wrong-state/unknown/stale/duplicate rejection, five rematches, active/results transfer, late ACTIVE rejection, empty registries and asymmetric90→8→2 owner order. Separate processes pass authoritative rightward movement (not vertical displacement), matching winners, five rematches and offline recovery. Direct production CLI prints READY capacity20 and exits0; invalid port exits1 with expected Invalid parameter diagnostic. Logs .scratch/dedicated-final-contract.log, dedicated-final-network.log, dedicated-cli.log, dedicated-invalid-cli.log. Shutdown WAV diagnostics remain. No Internet/Docker or release-package claim."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --path . --audio-driver Dummy --resolution <1280x720|1920x1080> --script res://tests/test_dedicated_server.gd -- --review-resolution=<same> --capture-dir=.amp/in/artifacts/dedicated/approved",
+      "status": "passed",
+      "result": "DEDICATED_SERVER_OK checks=128 at both exact resolutions, including actual visibility and saved framebuffer-size assertions. Inspected owner-ready, guest-ready, owner-results, guest-results and transferred-owner-results captures: correct OWNER/YOU markers, owner-only controls, explicit waiting text, no overlap/phantom host and immediate results transfer refresh. Existing winner-title ellipsis/tooltip intentional. WSL/Mesa llvmpipe Compatibility/Dummy audio, not native Windows performance or physical listening. Final captures .amp/in/artifacts/dedicated/approved/; logs .scratch/dedicated-approved-{resolution}.log. Shutdown-only9/13 ObjectDB leaks and one WAV resource remain."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Future cosmetic drops and lighting planning: JSON, unchanged active task/gates and git diff --check",
+      "status": "passed",
+      "result": "Added concise Phase 6 earned cosmetic loot-box/model/costume unlock, ownership/equip and validation scope; revised conflicting blanket deferrals. Phase 4 records user-reported overly bright preview with reproduction/investigation and before/after readability checks; cause and fix unverified. Planning only, no assets/runtime edits or monetization. Active Phase 2 task, gates and single next action unchanged; DESIGN and completed archives unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Corrected preview-only feedback and added mouse milestone: JSON/dependency assertions and git diff --check",
+      "status": "passed",
+      "result": "User clarifies direct host lighting looks normal; excess brightness is only in Task 2.2.3 images. Removed production-lighting change from Phase 4; added matched single-host/capture-workflow investigation, cause unverified. Added planned Milestone 2.6 with three not_run gates after 2.2 and before human baseline2.3. Mouse rotation/click failure and X display loss remain user reports, not reproduced/fixed; V-Sync/audio/cleanup output is not an established cause. Active task2.2.4, existing gate results and single next action unchanged. Planning only."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Initial room-service contract and actual-process checks",
+      "status": "failed",
+      "result": "Four contract cases passed; process cases exposed unsupported Path.open(opener=...). Switched to built-in open with mode0600 opener; retained initial log .scratch/room-service-tests.log. No gameplay failure or token bypass observed."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "status": "passed",
+      "result": "Eight tests passed in17.8s: HTTP version/password/custom/generated IDs, atomic collisions, bounded reservations/processes, real Godot ENet admission/ready, no-token UDP bypass rejection, bad/expired/replayed/wrong-room tokens, crash/empty/heartbeat-loss/shutdown cleanup and port reclamation. Occupied-UDP negative case emits expected ENet startup errors. Stale-heartbeat admission reservation retained by contract test. Local Linux source processes only; full regression/restart fail-closed check and operator documentation pending. Log .scratch/room-service-tests-b.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.4 expanded ACTIVE admission fixture",
+      "status": "failed",
+      "result": "Initial fixture attempted network start with only one registered player; main.start_network_match correctly requires two. Added a second actual admitted/ready client, retaining start and ACTIVE assertions. No gameplay rule relaxed. Failed log .scratch/room-service-final.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v; actual room_service.py CLI create/SIGTERM smoke",
+      "status": "passed",
+      "result": "Ten tests passed in36.9s, including two admitted clients ready/owner start, ACTIVE lookup and pre-issued-token rejection, invalid admission recovery followed by valid retry in the same client process, registry-loss fail-closed exit1 and new-instance old-token rejection. Prior security/capacity/lifecycle checks retained. CLI emitted ROOM_SERVICE_CLI_OK create=passed sigterm=passed udp_port_reclaimed=passed; exit0 and no script/runtime errors. Occupied-port negative case has expected startup errors; shutdown WAV diagnostics remain allowed. Logs .scratch/room-service-final-b.log and room-service-cli.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (two runs); PLAYER_COUNTS=20 tests/run_playable_scale_test.sh",
+      "status": "failed",
+      "result": "First full run passed UI_REGRESSION_OK suites27/matrices5/persistence restart. Second run passed suites/state matrices/listen-host/five rematches and 4/8 playable scale, but one20-player client reported movement=false (other state/presentation checks true), causing scale failure. Isolated unchanged20-player rerun passed all19 clients. Cause unconfirmed; no movement fix or assertion relaxation claimed. Retained .scratch/rooms-final-regression.log, rooms-scale-failure/ per-peer logs and rooms-scale-isolated.log. Serial full rerun pending."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (serial final run); jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "Serial final regression exits 0: UI_REGRESSION_OK suites=27 matrices=5 persistence_restart=passed, including dedicated authority/owner transfer, five rematches and playable 4/8/20-player matrix. No gameplay/parser errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Log .scratch/rooms-serial-regression.log. Local backend/admission/lifecycle gate passed; Task 2.2.4 completed. Windows UI, containers, public Internet and physical listening gates remain not_run. GUIDE documents tested local service commands and proxy security boundaries. Earlier scale failure remains unconfirmed, not claimed fixed."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.5 discovery/UI implementation and initial integration",
+      "status": "failed",
+      "result": "New default room-ID/password UI, HTTPS-only remote discovery with loopback HTTP exception, retryable trusted error messages and ten-second ENet/roster recovery. Headless contract58 and rendered132 checks passed at720p/1080p. First real UI integration reached admission/ACTIVE but asserted Start enabled before the next UI refresh; fixture now waits for the actual enabled button without relaxing the assertion. Failed log .scratch/room-ui-service.log."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.5 actual HTTP/ENet UI flow and native Windows rendered review",
+      "status": "passed",
+      "result": "Eleven Python backend/process tests pass, including actual Create/Join buttons, bad-password retry preserving solo state, normalized ID/password clearing, real owner/guest ready/start, killed game process and fresh create/join retry in the same clients. Linux source processes/loopback only, not Internet. Native Windows 4.7.2 editor/Intel UHD630 Compatibility passes 132 checks at 1280x720 and 1920x1080 with visibility/framebuffer assertions. Inspected default/error/direct-IP/owner-ready/guest-ready/owner-results/guest-results/recovery at both widths; no clipping or overlap. One production world/light plus raw transport fixture avoids stacked preview lighting. Dummy audio; no physical listening or new release-package claim. Logs .scratch/room-ui-service-final.log; native artifacts .amp/in/artifacts/room-ui/native/."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --headless --path . --script res://tests/test_room_ui.gd; native Windows editor same contract fixture",
+      "status": "passed",
+      "result": "Full regression exits 0: UI_REGRESSION_OK suites=28 matrices=5 persistence_restart=passed, including playable 4/8/20-player coverage and dedicated five-rematch/transfer/recovery checks. Added deadline assertions pass on Linux and native Windows: ROOM_UI_OK checks=62, open UDP sink remains connected at 9.9 simulated seconds and recovers after 10.1. No parser/gameplay errors; existing shutdown-only ObjectDB/WAV resource diagnostics remain. Logs .scratch/room-ui-regression.log, .scratch/room-ui-deadline.log, native/native-deadline.log. Guide/checklist/decisions updated; Task 2.2.5 and UI gate passed. Task 2.2.6 is next, not started; public Internet and updated release packages remain pending."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.6 initial container startup and regression attempts",
+      "status": "failed",
+      "result": "Docker initially unavailable; user started daemon. First two-room attempt consumed the server registration deadline while clients imported assets, then emitted invalid dictionary-key errors. Preparing all private caches before peer launch resolves this without changing fixture deadlines/assertions. First backend container run reset engine via PATH lookup, absent in image, and returned400 instead of expected503; mounted engine now has a godot PATH symlink. Failed logs .scratch/container-first-failure/ and .scratch/container-regression-first-failure.log retained."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Task 2.2.6 separately addressed two-room development topology",
+      "status": "passed",
+      "result": "Repeated Docker runs pass CONTAINER_NETWORK_OK rooms=2 clients_per_room=2 rematches=5 movement=passed recovery=passed. Six separate containers on internal bridge; same UDP port in distinct server namespaces, no published ports, private import/preferences and read-only engine/source. Both exact rosters and replicated winners pass; no unexpected network script/runtime errors, existing shutdown resource diagnostics remain. This is development-server gameplay transport, not managed-room admission, independent hazard/health manipulation or capacity evidence. Logs .scratch/container-network/{alpha,bravo,alpha-owner,bravo-owner,alpha-guest,bravo-guest}.log."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "bash tests/run_container_network_test.sh",
+      "status": "failed",
+      "result": "Final strict runner exits1 as intended on repeated ERROR: Unable to send packet on channel0, max channels0 during backend UI crash/retry. Eleven backend assertions pass in42.554s; dedicated contract103 checks and playable4/8/20 matrix pass inside one additional container using loopback. Expected occupied-port negative errors and existing shutdown diagnostics distinguished; unexpected channel error is not suppressed or claimed fixed. Final log .scratch/container-network-final-strict.log; regression.log retains output. Test containers/network cleaned; unrelated open-design container untouched. Task remains in_progress; full gate not_run. No UI/asset/runtime implementation change, new release, Internet or physical-audio claim."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "godot --headless --path . --script res://tests/test_server_relay.gd [-- --relay=true]; bash tests/run_container_network_test.sh",
+      "status": "passed",
+      "result": "Bare SceneMultiplayer/ENet reproducer with three clients and no gameplay RPCs emits channel0/max-channels0 during poll when two clients leave together with relay enabled; relay disabled yields two removals and one healthy connection with no errors. Engine DEL_PEER relay fan-out confirmed in source. Main disables relay before dedicated transport assignment only; listen host preserved. Original strict Docker runner now exits0 with CONTAINER_VALIDATION_SLICE_OK, all11 backend assertions, ownership and4/8/20 scale. Logs .scratch/relay-before.log, relay-disabled.log, container-relay-fixed.log. Added focused recovery skill and regression policy assertions. Managed-room4/8 checks underway; full gate not yet passed."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Managed container fixture development and deliberate outage diagnostics",
+      "status": "failed",
+      "result": "First Bravo Start ran before ready RPCs reached authority; fixture now waits for server/owner can_start without weakening assertions. One later repeat lost room heartbeats before600 profiling samples; cause unconfirmed, sample/departure telemetry added, failure retained in .scratch/managed-final.log and disaster-managed-649662-4/. A completed lifecycle run was correctly rejected on HTTP BrokenPipe tracebacks after outage/resume: queued callers had timed out. Red test reproduces both header/body cancellation failures; Handler now catches only BrokenPipeError/ConnectionResetError, with generic OSError still propagated. Green targeted test and final managed run pass. Logs managed-diagnostic-final.log, http-cancel-red.log and http-cancel-green.log retained."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py",
+      "status": "passed",
+      "result": "MANAGED_CONTAINER_OK for two4-player rooms and two8-player rooms, one separately addressed container per client, actual RoomService allocation and Godot admission. Exact rosters, asymmetric83-vs100HP/Flood/Meteor isolation, matching winners, five rematches in each room, non-owner RPC rejection, movement and active/results owner transfer pass. Full room/service, crash/reclaim/retry, bad-token same-process recovery, heartbeat outage/resume, live-service restart with unused/unexpired old-token rejection, fresh retry, empty expiry and port reuse pass. Strict Godot-error/Python-traceback rejection passes. Service plus two rooms share2CPU/1GiB:4/room22.24–22.76% CPU/169–169.7MiB,8/room29.45–32.14%/184.6–185.3MiB (Docker100%=one core). Each room120 warmup/600 physics samples; work p954/room1.251/1.350ms,8/room1.792/1.686ms; tick-interval p95~20.71–20.73ms and ENet RTT7–13ms. Conservative initial local cap2rooms×4players; not perfect60Hz, client FPS, public deployment or production capacity evidence. Logs .scratch/managed-complete.log; metrics disaster-managed-663167-{4,8}/metrics.json."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "failed",
+      "result": "All29 headless suites including relay-off107-check dedicated ownership pass; source network groups and4/8 playable scale pass. One20-player client reports movement=false, other checks true; server authoritative movement=true. This repeats the previously recorded intermittent source-scale observation, not a proven relay regression or fixed cause. Preserved .scratch/task-2-2-6-full-regression.log and task-2-2-6-scale-failure/. Strict Docker regression and serial source rerun pending; assertions unchanged."
+    },
+    {
+      "date": "2026-10-07",
+      "check": "Final container regression development failures",
+      "status": "failed",
+      "result": "First final Docker run failed existing UI retry-roster assertion; cause unconfirmed. Added failure-only reporting of both peer logs; focused unchanged-assertion UI retry passes in4.004s. Next Docker run passed all12 backend tests but repeated20-player client movement=false while authoritative server movement=true. Added failure-only start/end position diagnostics and runner forwarding, preserving all thresholds/deadlines. Failures retained in .scratch/task-2-2-6-final-container-regression.log, task-2-2-6-container-retry-failure.log and task-2-2-6-container-final.log. These observations are not claimed fixed by reruns."
+    },
+    {
+      "date": "2026-10-07",
+      "command": "PLAYER_COUNTS=20 tests/run_playable_scale_test.sh; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; bash tests/run_container_network_test.sh; jq empty progress.json; bash -n tests/container_room_godot.sh tools/container-tests/entrypoint.sh tests/run_playable_scale_test.sh; Python AST parse; git diff --check",
+      "status": "passed",
+      "result": "Isolated20-player rerun passes all19 clients. Serial source regression exits0: UI_REGRESSION_OK suites=29 matrices=5 persistence_restart=passed. Final strict Docker regression exits0: CONTAINER_VALIDATION_SLICE_OK, separately addressed two-room movement/five rematches/recovery, all12 backend tests, DEDICATED_SERVER_OK checks=107 and playable4/8/20 coverage; no unexpected runtime errors. Known occupied-port negative and shutdown resource diagnostics remain explicitly distinguished. Logs .scratch/task-2-2-6-scale-isolated.log, task-2-2-6-source-final.log and task-2-2-6-container-diagnostic.log. Together with final managed4/8 lifecycle/isolation/profile evidence, Task2.2.6/container gate pass. Internet, physical listening, release-room clients and human gates remain not_run. No public deployment; next is local2.2.7 release preparation."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Task 2.2.7 initial repeated exports and standalone Linux check",
+      "status": "failed",
+      "result": "Windows and Linux exports of c8aabd9405ef93916daa397aab7f4bb689c4434f each match byte-for-byte across two isolated builds. Native Windows exported-PCK settings/restart/recovery/five-rematch fixtures pass. Standalone Linux allocator Create fails503 because official release template rejects --path (compiled without path overrides); retained linux-managed.log and red regression linux-managed-red.log under .amp/in/artifacts/release-2-2-7/. Changed allocator to use cwd rather than --path for both source and release. All12 existing source backend/process tests pass in42.738s with unchanged assertions; final matching exports and packaged green check pending."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Packaged cwd launch and release stdout diagnostics",
+      "status": "failed",
+      "result": "Repeated Linux exports of1c62fb176391d635cf3e52a8d932fe8eb5f06c4e match; managed Create/Join, crash/recreate, SIGTERM and port reclaim now execute successfully, but strict runner rejects missing build/ready stdout. Direct release launch prints markers normally; redirected managed children killed by SIGTERM lose buffered stdout. Enable existing application/run/flush_stdout_on_print so production lifecycle logs retain identity/readiness. Runner distinguishes only the known exact shutdown resource-in-use diagnostic, retaining all other errors; no runtime errors suppressed. Log linux-managed-green.log retains this failure; final rebuild pending."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tools/export_playtest.sh linux-server .scratch/release-2-2-7-linux-final-{a,b}; tools/export_windows.sh .scratch/release-2-2-7-windows-final-{a,b}; per-target checksum diff; python3 tests/run_release_linux_test.py <linux-final-a> --log <linux-managed-final.log>",
+      "status": "passed",
+      "result": "Both targets at94ad2fd9e095c80802ef14f086c42065969ec7bc match byte-for-byte across repeated isolated exports. RELEASE_MANAGED_LINUX_OK: checksum-verified runtime-only temporary bundle without editor/checkout/import cache passes actual CLI allocation, full-revision rejection, HTTP create/join, room SIGKILL/crash reclaim/recreate with fresh token, service SIGTERM, child cleanup and UDP reuse. Build/ready markers survive redirected termination; no unexpected errors. Existing shutdown-only resource diagnostics remain allowed by exact pattern and retained, not fixed. Both PCK directories have88 entries, room client/admission present, tests/tools/docs/source generators absent. ZIP/TAR CRC/payload comparison passes; artifacts .amp/in/artifacts/release-2-2-7/DisasterParty-{Windows-94ad2fd.zip,Linux-94ad2fd.tar.gz}. Dirty-source rejection and Bash syntax checks pass."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tests/run_windows_package_checks.ps1 against native Windows-local final bundle; unchanged DisasterParty.exe --quit-after1200; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK: checksum-verified94ad2fd PCK settings/restart/recovery and actual ENet five rematches pass using native editor driver, not release-client admission. Unchanged release EXE on Windows/Intel UHD630/1280x720 Compatibility opens and exits0 with matching full identity, no runtime/missing-resource errors; direct PrintWindow capture inspected for world/avatar/intact HUD (the Multiplayer Lobby label is the normal toggle). Initial desktop capture missed the game and was discarded; no lobby input claim. Final exported-PCK overlap capture inspected; main HUD readable, existing world text partly occluded. Fresh source regression exits0 UI_REGRESSION_OK suites29/matrices5/persistence_restart=passed; known shutdown-only diagnostics retained. Logs/captures under .amp/in/artifacts/release-2-2-7/ and .scratch/release-2-2-7-*. Operator runbook/local commands and plan alignment pass; public routing, separate-network release sessions, release-runtime settings restart and physical listening remain blocked."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "User-requested independent hosting inspection: CNAME/config search, getent ahostsv4 permees.com, HTTPS GET headers for root and /v1/rooms/join, ss listeners and docker ps",
+      "status": "passed",
+      "result": "CNAME names permees.com. DNS resolves185.199.108.153/185.199.111.153 and HTTPS root returns200 Server:GitHub.com; GET /v1/rooms/join returns404 GitHub HTML. Available project configuration has no room-service URL/deployment configuration; no running local room service or game UDP listener found. The identified domain is a static-site endpoint, not a usable managed-room service; this does not rule out an unknown server elsewhere. Only read-only remote GETs performed, no public POST/allocation/provisioning/DNS/firewall changes. Added checked local-preparation/runbook subitems and unchecked Internet/settings-listening subitems under Task2.2.7 for clarity; parent remains in_progress with existing blocked gates."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "terraform1.13.5 init -backend=false; fmt -check -recursive; validate; test (mock AWS); Terraform template render; bash -n; systemd-analyze verify; Docker caddy2.11.7 validate and local proxy requests against production Python Handler",
+      "status": "passed",
+      "result": "User selected EC2/Terraform with role/stage separation. Added infra/ec2 with dedicated VPC/subnet/routing, Ubuntu x86_64 t3.small/EIP, encrypted gp3, IMDSv2, SSH operator/32, TCP80/443 and UDP29810–29811 only. Separate assumed provision role and created SSM-only host role; explicit stage/backend-key/domain/account guidance. S3 state locks/encryption examples, ignored local state/plans/credentials, signed AWS provider6.68.0 lock. Four mock tests pass: safety contracts, dev/staging names, open-SSH rejection and shell-in-domain rejection. Rendered Bash and systemd verify; Caddy config and actual local HTTP proxy pass exact POST routes, internal/other/GET404, body2048 forwarding and2049 rejection413, no room allocated. Caddy2KB adapted to2000, corrected to explicit2048; initial synthetic oversized-body cancellation emitted BrokenPipe, final production-handler test passes cleanly. Evidence .scratch/terraform-{init,tests,proxy-backend}.log and .amp/in/artifacts/{terraform-bootstrap.sh,disaster-party.service,Caddyfile}. No real AWS plan/apply, bootstrap boot, DNS/TLS/UDP exposure, IAM permission evaluation, auto-deploy pipeline or Internet readiness claim. No EKS/runtime Docker needed; current task/gates unchanged."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Main-only existing EC2 workflow: actionlint1.7.7 with ShellCheck0.11.0; bash -n; isolated deployment mocks and bootstrap template render",
+      "status": "passed",
+      "result": "User superseded new Terraform provisioning with existing Tokyo EC2 i-0fd134761df1f88bf/account665808487768 and authorized push to run the pipeline; operator will inspect EC2. Added .github/workflows/deploy-existing-ec2.yml and tools/deploy_existing_ec2.sh: main-only build then OIDC/SSM deploy, fixed account/region/instance, Linux artifact only, no public Release/Windows ZIP/Steam publication. Existing source regression, repeat exports and packaged lifecycle run in CI before deployment. Bash/ShellCheck/actionlint pass; isolated temporary filesystem with mocked identity/curl/systemctl passes corrupt-hash rejection before stopping, first install, identical redeploy, startup-failure rollback and traversal rejection. Bootstrap render without Terraform passes syntax. Added prerequisites/operator guidance; earlier Terraform retained as reference. No AWS local queries, remote bootstrap/deployment or live systemd/public TLS/UDP/gameplay checks performed. GitHub repository-variable read denied403, AWS_DEPLOY_ROLE_ARN presence unverified. Task2.2.7 gates unchanged; runtime remains systemd, Docker/ECR/ECS are optional later steps, EKS not needed."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "GitHub Actions run37752635206 failure log",
+      "status": "failed",
+      "result": "Build/source-regression stage fails before export or deploy. Log explicitly reports tests/run_ui_regression.sh lines11/27 rg: command not found. Dedicated suite itself passes107 checks/three clients/five rematches/owner transfer; missing ripgrep prevents positive-marker validation, not a proven gameplay failure. Added explicit apt installation of ripgrep/unzip plus rg version preflight before engine/regressions; actionlint with ShellCheck, JSON and diff checks pass. Original log retained at .scratch/ec2-ci-failed.log. User will set repository variable AWS_DEPLOY_ROLE_ARN; no AWS keys or Environment variables required. Fresh CI execution pending; no EC2 mutation from this failed run."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Authorized two-container public EC2 gameplay test",
+      "status": "failed",
+      "result": "GitHub run37753298487 now success:29 suites/five matrices/12 backend tests/repeated Linux exports/standalone lifecycle and operator-completed SSM deployment. GitHub OIDC API reports immutable subject prefix repo:phucle297@72026735/idunno@1401508578; operator fixed trust/runtime IAM/SSM and bootstrapped Ubuntu26.04. Public HTTPS root404 and unknown-room JSON verified by operator. Agent created two separately addressed egress Docker networks172.20/16 and172.21/16 with clients172.20.0.2/172.21.0.2; source archived from deployed6fb1e8d43cfc81915e3262443d4f8a948416d7a8 plus embedded matching build and local-only client driver, no server changes. Initial default-resolver run fails discovery; local DNS resolution is intermittent. With container DNS1.1.1.1, Godot's actual HTTPS Create AND Join receive valid matching tickets for server.permees.com:29810, resolving16.76.176.229, but BOTH clients fail ENet admission and recover offline. No runtime errors; movement/results/rematches/owner transfer not reached. Not proof of a specific firewall or server defect; inspect SG UDP29810–29811, host listener/firewall and credential-free server admission logs during next attempt. Same host/upstream NAT, not two physical Internet networks or Windows releases. Containers/networks removed; test rooms expire by existing empty-room policy. Evidence .amp/in/artifacts/internet-2-2-7/{report.json,run.log,initial-dns-failure.json,admission-failure.json,client logs}; raw tokens never logged. Task2.2.7 Internet gate remains blocked. Documentation-only commit skips CI to preserve deployed revision and avoid restarting server."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Two public Docker clients after operator UDP Security Group correction",
+      "status": "passed",
+      "result": "Operator screenshot first showed Custom UDP port0, then saved UDP29810–29811/source0.0.0.0/0. Reran same exact-revision source/client-only driver against unchanged EC2 release6fb1e8d43cfc81915e3262443d4f8a948416d7a8, two isolated bridge subnets172.20/16 and172.21/16, DNS1.1.1.1, no port publishing. PUBLIC_INTERNET_DOCKER_OK: actual Godot TLS Create/Join, full-build admission over public ENet/UDP, two-player roster/owner, ready/start, authoritative rightward movement observed by both clients, Flood/health changes and Meteor in later rounds, six naturally completed results with matching health/winners, five owner rematches with100HP reset, owner disconnect/transfer and new-owner rematch all pass. Six round durations42.85–50.86s for largely stationary automated clients; RTT samples at results124–137ms, not performance percentiles. No runtime errors. Correction resolves the observed admission blocker; no game changes/redeploy/remote restart or forced server results. Local containers/networks and scratch archive removed; credential-free artifacts .amp/in/artifacts/internet-2-2-7/{report.json,run.log,runner.py,public_internet_peer.gd,client logs}, pre-fix failure retained under before-udp-fix/. Both clients share host/upstream NAT and use Linux editor/source, not Windows release executables or physically independent Internet networks. Props/all hazards/server-loss retry, release settings/physical audio/human gates not covered. Task2.2.7 remains in_progress; Internet release acceptance gate unchanged. Evidence-only commit skips CI to retain deployed revision."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Matching Windows client delivery for current EC2 release",
+      "status": "passed",
+      "result": "Exported twice using existing isolated exporter from detached6fb1e8d43cfc81915e3262443d4f8a948416d7a8 worktree; original EXE/PCK/BUILD hashes identical. Native Windows/Intel UHD630/1280x720 release smoke exits0, correct full identity, no runtime errors; PrintWindow screenshot inspected for world/avatar/intact HUD, tiny world labels noted. Exact shipped PCK native editor-driver settings/save/restart/recovery and five ENet rematches pass unchanged tests, not release Internet/listening evidence. Added artifact-only Play-Internet.cmd and PLAYTEST.txt; native launcher execution confirms endpoint argument and clean EXE exit. Initial launcher fixture used Start-Process -Wait, which waits descendants; post-wait child check failed after game exited. Corrected fixture to wait only wrapper process; no launcher/runtime change required. Retained failed fixture log and successful checks. Six-file ZIP CRC/full byte comparison and five payload hashes pass, archive SHA256 a024778c4ac283c3371c46988e2008f6b5064aa84cbc22545a730bf464180caa. Delivery .amp/in/artifacts/DisasterParty-Windows-Internet-6fb1e8d.zip copied to C:\\Users\\Admin\\Downloads; native extracted package in Temp/DisasterParty-Internet-6fb1e8d. Evidence under .amp/in/artifacts/windows-6fb1e8d-a/. No EC2 change/redeploy, public GitHub Release or Steam publication. Temporary worktree/scripts removed; evidence-only commit skips CI. Actual release two-network gameplay, release settings/physical listening and human gates remain open."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Two-player movement investigation and expansion planning",
+      "status": "passed",
+      "result": "Diagnostic, not fix acceptance: temporary Godot fixture exercised actual Main snapshot writer with local/remote players. Stale yaw changed local0.73 to-0.41 and remote to1.2. Six-tick delayed echo feedback oscillated0.04rad at ticks42–59 after mouse input stopped at12. Deterministic state-level reproduction, not live latency/physical mouse confirmation. bash tests/run_dedicated_network_test.sh passes server27/owner37/guest35 checks, two clients, five rematches and recovery; server emits existing shutdown-only four ObjectDB leaks/two resources. Logs .amp/in/artifacts/movement-diagnosis/{yaw-feedback,dedicated-baseline}.log. Runtime unchanged; temporary diagnostic script removed. User-reported multi-device connection success acknowledged but full Internet release gate stays blocked. Prior delivery remains published Windows e3b5c6e baseline at https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-08-e3b5c6e; no new deployment/package. Added urgent Task2.2.8 plus future Phase4 random variants, compositions, second-map and fair-hard-mode milestones in checklist; interpreted modal as character model, not a confirmed art defect. No future gameplay gate passed."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "bash tests/run_dedicated_network_test.sh (red then green); PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --path . --script res://tests/test_pause_settings.gd -- --settings-path=user://yaw-fix-rendered-settings.cfg",
+      "status": "passed",
+      "result": "Task2.2.8a implemented: snapshot writer preserves local camera yaw, still applies remote yaw and authoritative positions/velocities/facing. Both clients' new delayed-echo assertions fail before fix and pass afterward, including +/-PI boundary and reversed peer order. Dedicated27/57/55 checks, five rematches/recovery; full29 suites/five network groups/settings restart pass (playable scale scoped4, other state matrices retained). X11/llvmpipe rendered pause/settings passes25 checks including mouse deltas/resume capture. Headless shutdown-only resource diagnostics remain. Logs .amp/in/artifacts/movement-diagnosis/yaw-{red,green,regression,rendered-settings}.log. No physical mouse/two-network acceptance, native Windows package or shared deployment. Combined movement gate stays not_run pending2.2.8b/c; next measure latency."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "godot --path . --script res://tests/test_player_integration.gd (rendered, repeated in isolation); temporary inherited diagnostic fixture",
+      "status": "failed",
+      "result": "Rendered sprint assertion fails independently of network snapshot path. Prior mouse test leaves yaw=-0.2; diagnostic measured velocity(1.291351,0,-6.370433), horizontal speed6.5000005, while assertion expects Z<=-6.45. Existing headless suite passes because mouse rotation branch is skipped. Unrelated fixture issue retained, not hidden or corrected here; one isolated attempt also emitted X11 NO GRAB. Logs yaw-rendered-input*.log and rendered-sprint-diagnosis.log under movement-diagnosis. Temporary diagnostic script removed; rendered pause/settings check separately passes."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "python3 tests/run_movement_latency_test.py --delays 200 --trials 3 --max-response-ms 50 --output .amp/in/artifacts/movement-latency/parent-red (before prediction)",
+      "status": "failed",
+      "result": "Expected red responsiveness check: both clients have about240ms median input-to-first-body-motion at200ms injected RTT; maximum exceeds50ms. Relays hold each direction by half added RTT, no host network mutation. Monotonic external local telemetry supplies measurements; earlier engine/wall clock anomalies retained without claiming cause. Baseline0/100/200 matrices under monotonic-baseline and monotonic-repeat. This establishes delayed local motion, not Internet or physical mouse-to-photon evidence."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; python3 tests/run_movement_latency_test.py --delays 0 100 200 --trials 6 --max-response-ms 50 --output .amp/in/artifacts/movement-latency/final-convergence; rendered test_network_prediction.gd and test_player_integration.gd",
+      "status": "passed",
+      "result": "Task2.2.8b increment: bounded local capsule prediction plus physics-tick authoritative reconciliation/input replay. Final31 suites/five groups/settings restart pass, dedicated27/57/55 checks/five rematches/recovery and four-player playable scale. Delay matrix36 trials all<22ms body response; owner/guest medians0ms14/11,100ms18/8,200ms8/14 with actual205/212ms RTT. Every stopped trial measures0m disagreement with latest server snapshot; stopped yaw error<6e-8rad; snapshot-gap p9521–23ms. Prediction13 checks pass headless/rendered including exact replay displacement, stale ack, historical yaw/current aim, pending and acknowledged jump, knockdown, bounded overflow, death/rematch. Independent capsule cross-talk red/green correction153 checks passes both update orders; rendered sprint fixture correction preserves original threshold and adds asymmetric yaw,69 checks pass. Final logs under movement-latency/final-regression.log and final-convergence/, player-colliders/, sprint-fixture/. Existing shutdown-only resource/ObjectDB diagnostics remain; no runtime assertions suppressed. No native Windows new build, physical-network acceptance or deployment. Delayed sprint/reversal/stair/contact, injected jitter/loss and moving-world correction magnitudes remain open; overall gate not_run, task in_progress."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_movement_latency.py -v; python3 tests/run_movement_latency_test.py --delays 200 --trials 3 --jitter-ms 30 --max-response-ms 50 --output .amp/in/artifacts/movement-latency/jitter-first",
+      "status": "passed",
+      "result": "Test-only Task2.2.8b increment: deterministic one-way -30/0/+30ms datagram holds, walking/sprint/reversal, direct physics-boundary reconciliation displacement. Real UDP unit fails before jitter support and passes after. First actual three-process/two-client run passes response50ms, sprint6.5m/s, opposite-direction reversal, stopped5cm convergence and unchanged aim. Owner/guest response medians21.74/7.77ms; correction p950.166/0.150m, maxima0.244/0.283m including idle/settling samples. No loss, stair/contact/native/physical acceptance or runtime change. Full fixed/jitter matrices and source regression pending."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Extended fixed-delay reversal failure and missing-prefix diagnosis",
+      "status": "failed",
+      "result": "Six-trial matrix passes0/100ms but fails200ms reversal on both clients. Isolated reversal repeats; per-physics telemetry shows acknowledgement13ticks behind but history permanently1entry, movement reset until echoed inputs arrive. Missing-prefix branch clears history on every snapshot; advancing oldest retained input prevents acknowledgement recovery. Side-contact registry empty, velocity heading correct. Three new missing-prefix/overflow recovery assertions fail before fix. Failure artifacts sprint-fixed, reversal-{diagnostic,colliders,contacts,isolated,trace,history}/ and prefix-red.log retained. Secondary server timeout/key error follows clients exiting, not the movement cause."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "godot --headless --path . --script res://tests/test_network_prediction.gd; python3 tests/run_movement_latency_test.py --delays 200 --trials 6 --max-response-ms 50 --output .amp/in/artifacts/movement-latency/prefix-network-green",
+      "status": "passed",
+      "result": "Minimal missing-prefix fix snaps without replay but retains bounded history until an acknowledgement bridges the gap. Sixteen prediction checks pass including exact two-tick recovery; original knockdown/death/stale-ack/jump/history-limit coverage retained. Previously failing200ms six-trial walk/sprint/reversal passes both clients, response medians12.52/11.70ms and correction max0.108m. Production server authority/wire/speeds unchanged. Full matrices and regression still pending; temporary per-frame telemetry removed after diagnosis."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "python3 tests/run_movement_latency_test.py --delays 0 100 200 --trials 6 [--jitter-ms 30] --max-response-ms 50 --output .amp/in/artifacts/movement-latency/recovery-{fixed,jitter}; PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; real UDP unit; git diff --check; jq empty progress.json",
+      "status": "passed",
+      "result": "Both final matrices pass72 total walk/sprint/reversal trials. Max response26.58ms fixed/21.38ms jitter; every stopped error0m; yaw<6e-8rad. Correction max0.108m fixed/0.325m jitter includes idle/settling samples; not visual-smoothness or physical-input acceptance. Full regression exits0 UI_REGRESSION_OK suites31/matrices5/persistence restart, four-player playable scale and dedicated27/57/55 checks/five rematches/recovery. No unexpected runtime errors; existing shutdown-only ObjectDB/resources diagnostics retained. Logs recovery-{fixed,jitter,regression}.log. Task2.2.8b stays open for delayed stairs/jump/contact/knockdown/recovery and loss. User requests native Windows testing; fresh local export pending after commit, no public deployment."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "User-requested phase decision archives and Windows export preparation",
+      "status": "passed",
+      "result": "Lossless mechanical split followed by section-content comparison verifies every original decision preserved in chronological phase order. Phase0/1 decision archives created under docs/old-docs, active log contains Phase2 only; relative links pass. AGENTS records active-only/phase-archive policy and no-overwrite rule. Completed progress archives untouched. Current Windows user is permees, not historical Admin; installed missing official4.7.2 templates after SHA512 verification. No native package or launch claim yet."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "tools/export_windows.sh /mnt/c/Users/permees/Downloads/DisasterParty-movement-ba3cb20; sha256sum -c SHA256SUMS.txt; native PowerShell Start-Process DisasterParty.exe --headless --quit-after60 with isolated settings",
+      "status": "passed",
+      "result": "PLAYTEST_EXPORT_OK exact ba3cb202b55f01a2ed1e8d5d7d9cc868ed42a7da committed source. All three payload hashes verify; executable is native Windows x86_64 PE. Actual release executable on Windows-local drive exits0, matching full build marker, no runtime errors. This headless smoke does not prove GPU FPS, rendered appearance, physical input/audio or public admission. Local test folder delivered under C:/Users/permees/Downloads/DisasterParty-movement-ba3cb20; launch EXE normally for human rendering/control tests. Solo or same-bundle Direct IP only; older public server remains unchanged. Official template archive and temporary decision-split scratch removed."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "godot --headless --path . --script res://.amp/in/scratch/check_dead_movement.gd",
+      "status": "passed",
+      "result": "Diagnostic reproduction, NOT fix acceptance: actual Main server loop with three registered players, peer2 eliminated through MatchManager and retained sprint-right input. Hidden=true/alive=false node moves(1.033333,-2.583333,0) over30 physics ticks without Earthquake. Server still simulates dead nodes; movement method lacks elimination guard and elimination retains velocity. Earthquake filters dead players already. Native Windows reported camera symptom not reproduced; no runtime changes. Log .amp/in/artifacts/death-earthquake/diagnostic.log; shutdown2 ObjectDB/1 resource diagnostics retained. Temporary driver removed. Added planned Task2.2.9 and unexecuted gate; next prioritize regression/fix, then resume2.2.8. Checklist captures persistent random collapse, shrinking refuges, flood jump/current/waves, useful props and connected limbs/model evaluation, plus windowed720p/768p/900p/1080p/1440p selection/persistence/display-fit gates. Planning only; future phase gates remain unexecuted."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "test_eliminated_movement.gd red/green; test_jump_delivery.gd; run_movement_latency_test.py --delays0,100,200 [--jitter-ms30 --loss-every20] --max-response-ms50; PLAYER_COUNTS=4 tests/run_ui_regression.sh; unittest discover test_*.py",
+      "status": "passed",
+      "result": "Source correction: eliminated capsule rejects simulation/hazards/aim and stale snapshots, clears velocity/buffers/ragdoll, retains jump deduplication but no movement across rematch.27 before/during/after-Earthquake assertions fail before/pass after; real dedicated guest sends post-death input, server/client remain frozen through five rematches. Expanded delayed jump/three-riser traversal/peer overlap/knockdown fixture exposes lost one-shot jump under reordering: sent jump1187 absent at server, stopped at first riser. Repeat latest numbered jump in movement packets and deduplicate once;8 explicit duplicate/stale/future/rematch checks pass. Final fixed and combined +/-30ms jitter/every20th-datagram loss matrices pass0/100/200ms with all traversal assertions; max correction0.9m during knockdown recovery remains measured, not smoothness acceptance. Peer masks exclude player collision: fixture tests overlap/pass-through, not pushing. Full33-suite/five-group/persistence restart regression passes, dedicated33/57/61checks;14 Python real UDP/admission/process tests pass. Logs .amp/in/artifacts/milestone-2-2-final/. Existing shutdown-only resource diagnostics retained. Native matching package/render verification and Docker recheck still pending."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Owner confirmation of actual Internet and physical audio testing",
+      "status": "passed",
+      "result": "Owner explicitly confirms real Internet and real audio already tested successfully. Accept as human-provided evidence, not agent observation; no build IDs, participant counts or recordings supplied in that confirmation. Removes unavailable-human/audio assumption for previously tested builds. New source death/jump corrections still require matching package delivery and shared deployment authorization; do not imply this statement tests an as-yet unexported revision."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Final container matrix and retry-fixture recovery",
+      "status": "passed",
+      "result": "Container network exits0: backend12 tests, dedicated control and4/8/20 playable matrices. Serial managed matrix exits0: two independent rooms,4 then8 players each, five rematches, isolation/lifecycle/failures/profile pass. Prior concurrent8-player profile p95 ALPHA19.65ms exceeds16.67ms budget; serial pass does not prove its cause. Crash-retry failure is verified fixture ordering: guest unknown_room before owner recreation. Replace fixed0.8s guest wait with owner-admitted operator marker; constrained2CPU/1GiB repeat passes three times and final matrix passes. Added focused recovering-room-retry-fixtures skill/checklist reminder; no production retry change or relaxed assertion. Logs container-final.log, managed-serial.log, managed-container.log, retry-diagnosis/green under .amp/in/artifacts/milestone-2-2-final/."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=godot bash tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Fresh final source recheck exits0:33 suites,5 network groups,settings restart. Additional dedicated dead-input assertion fails six times before local alive guard; after guard guest67 checks/five rematches pass with separate forged RPC still testing server rejection. This prevents post-death local jump from queuing for next round. Log source-final.log and death/local-jump-red.log retained. Native package checks remain next; no updated public acceptance claim."
+    },
+    {
+      "date": "2026-10-08",
+      "command": "Repeated tools/export_windows.sh and tools/export_playtest.sh linux-server; run_release_linux_test.py; native run_windows_package_checks.ps1 and rendered extra fixtures",
+      "status": "passed",
+      "result": "Revision96e7df23ef347033bb1d5e1f1db6b1979d438342 exported twice per target with identical SHA256SUMS; Windows/Linux identical PCK17dff10f356cab301128b9dc899dae86c8a295f5270d5a7b7acc3dacf026529b. Standalone Linux exact bundle passes hashes/version rejection/create/join/crash/retry/SIGTERM/reclaimed UDP port/no cache. Native Windows exact-PCK editor fixtures pass settings save/restart/recovery/two-client five rematches plus eliminated movement27, jump8, prediction16, player integration69 and spectator presentation86 assertions. Actual unmodified release EXE renders180 frames at1280x720 using AMD Radeon860M Compatibility, prints exact revision and exits0 without runtime errors. Inspected spectator elimination/empty-target and settings captures: controls readable/unclipped; bright scene remains a separate preview investigation. These are editor-driven PCK gameplay checks, not release Internet/input feel. Windows bundle delivered C:/Users/permees/Downloads/DisasterParty-readiness-20261008; same-revision Linux in .amp/in/artifacts/milestone-2-2-final/linux. Fresh14 Python tests pass. Task2.2.9 complete with source dedicated/native regression evidence. Updated public movement and release-EXE settings restart remain unverified; owner confirms older-build Internet/audio baseline. No new deployment/publication."
+    },
+    {
+      "date": "2026-10-08",
+      "check": "Owner-authorized existing EC2 deployment and matching Windows delivery",
+      "status": "passed",
+      "result": "Owner authorizes deploy via đẩy lên đi. Normal main push of0c79ebe64d78ee8b56ebe4e04282f39fb57d7df6 triggers https://github.com/phucle297/idunno/actions/runs/37824461420; observed Success on actual run page, including build and SSM deploy. Public HTTPS unknown-room Join for exact new revision changes from409 incompatible_version before deployment to404 unknown_room after, confirming deployed allocator accepts matching identity without creating a room. No direct AWS inspection/firewall change. Matching Windows exported twice with identical hashes, native release headless60-frame smoke verifies full revision/exit0/no runtime errors; four-file ZIP CRC passes. Delivered C:/Users/permees/Downloads/DisasterParty-public-0c79ebe. Previous96e7df2 package is incompatible with newly deployed server. API monitoring initially rate-limited403; public run HTML provides exact revision/result instead. Deployment acceptance is not updated2/4-player human movement or actual release settings persistence; these gates remain open."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.3.1 windowed resolutions red/green, native restart and rendered review",
+      "status": "passed",
+      "result": "Initial missing-control red retained. Existing settings owner now offers fitting720p/768p/900p/1080p/1440p client sizes, custom manual dimensions, invalid/oversized fallback and fullscreen disabling/restoration. Native polling fixes the reproduced logical-viewport resize signal gap; frame-origin offset fixes an offscreen title-bar red. Headless11 checks; X11/native Windows18 checks and27 with captures pass. Native two-process settings25/restart3 checks restore actual1111x666 client pixels on Radeon860M. Inspected closed720p/1080p, expanded selector, fullscreen-disabled and lobby/HUD/results renders; no UI clipping, native dropdown naturally overlays lower controls while open. Current175%-DPI pointer mapping tested separately; physical mixed-DPI monitor switching remains unexecuted. Logs/captures .amp/in/artifacts/milestone-2-3/. Source fixtures, not new exported release or public deployment."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.3.2 actual OS pointer diagnosis, proven spawn correction and supported-scope regression",
+      "status": "passed",
+      "result": "Listen-host OS input initially passes; dedicated client reproduces lobby-visible/cursor-captured after roster spawn and OS Close cannot click. Player._ready unconditionally changes global mouse mode on every actor spawn. Remove only that assignment; existing Main match/UI owner already controls capture. Original client failure now passes17 checks including deliberate server loss and actual OS click/camera recovery. XTest solo14/host13/client17 checks pass at720p AND1080p, with OS motion/buttons/Escape/focus departure-return, no direct input methods. Native Win32 host13 checks pass with foreground verification; native player69/lobby36/session-recovery52 checks pass. Temporary Windows driver's initial1.75x event-coordinate mismatch resolves with per-monitor DPI awareness; stale-log preflight failure retained and corrected, not game fixes. Final source regression passes34 suites/five network groups/settings restart, dedicated33/57/67 checks/five rematches. Known headless shutdown-only resource diagnostics retained. Actual OS runs exit normally without X loss; original X connection loss lacks reproducible lifecycle/first-failure evidence and remains blocked, not attributed to spawn/DPI/V-Sync. Preview-only brightness comparison remains open; no production lighting change or new deployment."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.3.2 controlled preview-light diagnosis and original capture workflow rerun",
+      "status": "passed",
+      "result": "Read original2.2.3 thread T-01a1157e-607f-7018-bf1e-024358ebba9d: unprocessed root PNGs, four then five Main copies share one World3D. Same-camera/resolution/renderer diagnostic changes only other copies' Sun visibility; original four directional lights produce gray/washed materials, single production-energy1.0 Sun restores colors. Each Main really has its own global Sun despite200m spatial separation. Fix only test_dedicated_server._capture to render selected peer's Sun, not production energy/environment. Original five-state720p/1080p workflow passes132 checks per run and exact framebuffer/visibility assertions; inspected all ten final captures. Existing long shared-winner heading uses intentional ellipsis/tooltip, unchanged. Headless107-check control rerun passes. Logs/images preview-diagnostic/ and preview-final/ under milestone-2-3; no X-loss fix inferred."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Living-player airborne knockdown recovery red/green, native Windows and full source regression",
+      "status": "passed",
+      "result": "Owner clarifies living avatar falls then controls resume invisibly; screenshot33HP/one survivor, distinct from corrected elimination movement. Airborne timer expiry exits knockdown before floor-gated cleanup executes; remove only floor requirement to restore visual/remove ragdoll when controls recover. New airborne-expiry and subsequent running/landing/jumping assertions fail before/pass after. Headless player69/native Windows Radeon860M72 checks; full source34 suites/five network groups/settings restart pass. Rendered actual Main/Earthquake three pulses/85HP fixture verifies recovery, both final captures inspected. Logs .amp/in/artifacts/earthquake-recovery/. Known headless shutdown-only diagnostics retained. Validated source, no public deployment; old release executables lack fix. Milestone2.3 original X-loss classification stays blocked."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Owner-authorized airborne recovery EC2 deployment and matching Windows package",
+      "status": "passed",
+      "result": "Owner authorizes deploy. Normal main push of0d10b289520f43889dd19cf5beba9c2abbaaea92 triggers https://github.com/phucle297/idunno/actions/runs/37875109067; observed completed/success for both build and Tokyo EC2 SSM deployment. Exact-build HTTPS unknown-room Join changes409 incompatible_version to404 unknown_room, without allocating a room. Includes prior2.3 resolution/cursor fixes. Windows exported twice with identical payload hashes; actual release EXE60-frame headless launch logs exact revision/exit0. Native Radeon860M exact-PCK player72 assertions, settings restart3/recovery/two-peer five rematches pass. Initial runner blocked by process execution policy after successful smoke/player tests; rerun with process-only Bypass passes, no persistent policy change. Four-file ZIP CRC/exact bytes pass, SHA2567b0eaefbc7b59fe64510b59275bba28b406f701fac421d2fb644e57c31dbaa9b. Windows folder C:/Users/permees/Downloads/DisasterParty-public-0d10b28; logs/ZIP .amp/in/artifacts/earthquake-deploy/. Old0c79ebe clients no longer match public server. No direct AWS changes or new human Internet/Earthquake acceptance claim. Evidence-only follow-up push skips CI to preserve deployed revision."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --editor --path . --quit; godot --headless --path . --script res://.scratch/audit_roof_support.gd",
+      "status": "passed",
+      "result": "Diagnostic only: ROOF_SUPPORT_AUDIT_OK checks=43. Actual Shop/Hall capsule settles at5.100m on intact panel, then4.854/4.855m on underlying permanent roof after two panel damage transitions; peak3.5m Flood leaves100HP. Walking3m east without jumping reaches intact same-roof refuge at4.856m on both buildings. Counterfactual disabling only permanent roof collision drops capsule to interior ground and exposes it to Flood (accelerated35s stage tick kills; not natural death timing). Five completed-round rematches restore both panel colliders and preserve both primary ramps. Initial scratch fixture used nonexistent eliminate_player; corrected to existing apply_damage, no production change. Final exit0 has no script errors; shutdown16 ObjectDB/3 resources diagnostics retained, not fixed. Logs .amp/in/artifacts/roof-support-audit/{passed,initial-fixture-error}.log. Temporary driver removed. No assets/runtime/Flood pacing/package/deployment changed; next partition permanent roofs around panels with regression and rendered review."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "User-requested detailed Phase3 planning: source/test inspection; Python document IDs/links/path and active-state comparison; jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "PHASE3_PLAN_CHECK_OK milestones=6 tasks=6 gates=7 links=13. Expanded existing Player-Caused Chaos checklist with safe grabbing, authoritative readable carry, one useful prop/float go-no-go, optional bounded shove decision, two interruptible emotes and integrated supported1–4 regression/performance/matching delivery. Actual GrabManager/Player/Main/Flood/input/character and existing tests inspected; no new gameplay test or pass claimed. Reference paths exist; IDs unique and dependencies ordered; all feature checks/gates remain unexecuted. Phase2/current/next_action, prior evidence, gates, blockers and manual waiver unchanged. No runtime/assets/archive/phase rollover/export/publication/deployment changes. Documentation-only push uses skip-CI."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.12 actual capsule roof support regression before correction",
+      "status": "failed",
+      "result": "New test_map_safety assertions fail against original solid roofs: both broken panels still support player at4.855m/100HP; raised intact panels also fail flush walkability. Source red retained at .amp/in/artifacts/roof-support-fix/red.log. This is expected red evidence, not a new network defect."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --path . --script res://tests/test_map_safety.gd",
+      "status": "passed",
+      "result": "MAP_SAFETY_OK checks151 after four structural roof strips around each existing2x2m panel and flush4.855m panel tops. Both panels drop capsule to indoor ground after break/quake cleanup; real Flood retains2s grace then exactly6HP damage in0.5s. Intact/damaged support, side escape at100HP, four ramp ascents/descents and five collapsed-round support restoration pass. Existing shutdown16 ObjectDB/3resources diagnostics retained. Green log under .amp/in/artifacts/roof-support-fix/. Full source and rendered verification are in progress; no pacing/controller/disaster-selection or deployment change."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; xvfb-run Godot test_map_safety.gd at1280x720/1920x1080; .agents/setup twice; bash -n .agents/setup",
+      "status": "passed",
+      "result": "Task2.2.12 complete: full source exits0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed; dedicated33/57/67checks/five rematches/recovery and supported4-player scale pass. Xvfb/llvmpipe Compatibility source renders pass166 checks each; all12 Shop/Hall intact/broken/escape captures inspected. Visible central holes, grounded living avatar on preserved escape and readable100/94HP/drowning cues; tiny labels and cropped peripheral structures remain existing review limits, not changed.720p ALSA unavailable then Dummy fallback,1080p explicit Dummy; no physical/native-Windows claim. Orb setup persists missing Xvfb/xauth; two setup/import runs and syntax pass. Manifest records deterministic runtime geometry120triangles/net+72, no added dynamic bodies. Evidence .amp/in/artifacts/roof-support-fix/{regression,rendered-720p,rendered-1080p}.log and720p/1080p/. Known shutdown-only resource/ObjectDB diagnostics retained. No updated packages/deployment/pacing/selector/controller changes; broader Phase4 warned refuge relocation remains planned."
+    }
+  ],
+  "documentation_validation": {
+    "date": "2026-10-09",
+    "planning_skill_publication": {
+      "name": "planning-project-phases",
+      "repository": "https://ampcode.com/git/@permees/-/skills",
+      "status": "passed",
+      "result": "User-authorized personal Amp skill publication: frontmatter/name/description/length and planning/phase/milestone/task/archive/real-check scope assertions pass; git diff --cached --check passes and push to personal main succeeds. AGENTS and local organizing-phase-tracking now reference the reusable skill; gameplay phase/gates/next action unchanged."
+    },
+    "command": "Python byte comparisons of Git originals and split sections; Markdown path/anchor and active progress pointer checks; jq empty progress.json docs/old-docs/phase-*/progress.json; git diff --check",
+    "status": "passed",
+    "result": "26 relative links/anchors and active pointers pass; four moved historical decision/progress payloads remain byte-identical, completed Phase0/1 and future Phase3–6 sections split losslessly. Phase2 now distinguishes completed2.2.8b synthetic implementation from pending2.2.8c human acceptance; parent task and all gameplay gates unchanged. Added NEED_REAL_CHECK.md, per-phase checklists/archive indexes, AGENTS policy and organizing-phase-tracking skill. Documentation-only delivery; no runtime change, deployment or new human acceptance."
+  },
+  "blockers": [
+    "Phase-review first regression reports dedicated owner Client must observe rematch while server/guest pass; isolated and full unchanged reruns pass. Cause unconfirmed; retain three-peer failed logs and investigate on recurrence. Not a proven production rematch defect or fixed race.",
+    "Task2.2.8 synthetic fixed/jitter/loss traversal and native regression pass; current0d10b28 public deployment and matching Windows delivery include movement,2.3 display/cursor and living airborne-recovery corrections. Separate-network2/4-player movement/aim confirmation remains open; recovery correction up to0.9m is measured, not human smoothness acceptance. Separate20-player defect remains unexplained and beyond supported1–4 playtest scope.",
+    "Milestone2.3 fixes reproduced actor-spawn cursor stealing and proven shared-world preview-light accumulation; actual X11 solo/host/dedicated recovery, native Windows pointer/focus and corrected preview checks pass. Original X connection loss and cleanup diagnostics remain unclassified: no original first-failure/display lifecycle evidence, and current normal-exit runs do not reproduce it. Physical mixed-DPI monitor switching remains unexecuted; no production lighting change or inferred X-loss cause.",
+    "Exact exported PCK settings save/restart passes on native editor; actual release EXE launches cleanly. Native OS-key release settings attempts did not confirm the intended game settings state or save; failure logs retained, invalid captures removed. This is inconclusive input/focus automation, not a proven game defect. Do not substitute editor restart or baseline physical audio for this remaining release gate.",
+    "Native exported-PCK fixture initially failed Meteor presentation and then passed; cause remains unconfirmed. Retain diagnostic output and investigate if it recurs rather than weakening assertions.",
+    "One Task 2.2.4 full-regression run failed a single 20-player client's movement assertion; isolated and serial full reruns passed unchanged. Cause unconfirmed; retained per-peer logs in .scratch/rooms-scale-failure/. Investigate if it recurs without relaxing checks.",
+    "Task2.2.6 repeated the unconfirmed20-player client movement failure in source and Docker; one Docker UI retry-roster assertion also failed. Final source/container checks pass with assertions unchanged and failure-only diagnostics added, not a proven fix. One managed profile repeat lost heartbeats before600 samples; final managed4/8 run passes but its earlier loss remains unexplained. Retain logs for reliability investigation before raising capacity.",
+    "Manual/user acceptance requirements no longer block continuation under user_acceptance_waiver. Unverified human observations in older blocker entries remain historical limits, not demands for another checklist; current support remains1–4 and technical failures still require honest reporting."
+  ],
+  "changed_files": ["game/ui/pause_settings.gd", "tests/test_pause_settings.gd", "tests/test_windowed_resolution.gd", "tests/test_windowed_resolution.gd.uid", "tests/pointer_input_peer.gd", "tests/pointer_input_peer.gd.uid", "tests/run_pointer_input_test.py", "progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
+    "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md",
+    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "tests/test_map_safety.gd", "docs/checklists/phase-3-player-caused-chaos.md", ".agents/setup"],
+  "next_action": "Reconcile Phase2's remaining gates against the explicit manual-acceptance waiver and supported1–4 technical evidence before activating Phase3 Milestone3.1; preserve unclassified failures and unexecuted release checks rather than inventing passes, do not deploy."
+}

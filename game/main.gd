@@ -694,8 +694,16 @@ func _apply_prop_snapshots(
 		body.global_transform = Transform3D(Basis(Quaternion(rotation.x, rotation.y, rotation.z, rotation.w).normalized()), positions[index])
 		body.linear_velocity = linear_velocities[index]
 		body.angular_velocity = angular_velocities[index]
+		var previous_owner := int(body.get_meta("grab_owner_peer_id", 0))
+		if previous_owner != owner_ids[index]:
+			var previous_holder := _player_nodes.get(previous_owner) as PartyPlayer
+			if is_instance_valid(previous_holder):
+				body.remove_collision_exception_with(previous_holder)
 		if owner_ids[index] > 0:
 			body.set_meta("grab_owner_peer_id", owner_ids[index])
+			var holder := _player_nodes.get(owner_ids[index]) as PartyPlayer
+			if is_instance_valid(holder):
+				body.add_collision_exception_with(holder)
 		else:
 			body.remove_meta("grab_owner_peer_id")
 

@@ -297,9 +297,13 @@ func _run_client(main: Node) -> void:
 		int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
 		and shared_prop.freeze
 		and shared_prop.global_position.distance_to(host_player.get_hold_position()) < 1.5
+		and shared_prop.get_collision_exceptions().has(host_player)
 	)
 	while not host_player.is_knocked_down() and Time.get_ticks_msec() < deadline:
 		await process_frame
+	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 0 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	prop_replication_passed = prop_replication_passed and not shared_prop.get_collision_exceptions().has(host_player)
 	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11 and not host_player.visual.visible
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	while meteor.phase != MeteorShower.Phase.WARNING and Time.get_ticks_msec() < deadline:

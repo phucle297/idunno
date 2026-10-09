@@ -19,10 +19,12 @@ func _initialize() -> void:
 func _run() -> void:
 	_build_world()
 	await physics_frame
+	await _test_acquisition_eligibility()
 	_test_range_and_contention()
 	await _test_bounded_spring()
 	_test_lifecycle_releases()
 	_test_disconnect_release()
+	await _test_destroyed_prop_release()
 	if failures.is_empty():
 		print("GRAB_MANAGER_OK checks=%d" % checks)
 		quit(0)
@@ -68,6 +70,54 @@ func _add_player(spawn_position: Vector3) -> PartyPlayer:
 	player.global_position = spawn_position
 	player.set_physics_process(false)
 	return player
+
+
+func _test_acquisition_eligibility() -> void:
+	crate.freeze = true
+	for mass in [1.99, 25.01]:
+		crate.mass = mass
+		_expect(manager.get_interaction_candidate(player_one) == null and not manager.request_grab(1, crate), "Prompt and authority reject uncarryable mass %s" % mass)
+	for mass in [2.0, 25.0]:
+		crate.mass = mass
+		_expect(manager.get_interaction_candidate(player_one) == crate and manager.request_grab(1, crate), "Both carry mass boundaries are eligible")
+		manager.release_grab(1)
+	crate.mass = 12.0
+	crate.position = Vector3(0, 0.4, 1)
+	_expect(manager.get_interaction_candidate(player_one) == null and not manager.request_grab(1, crate), "A direct request cannot bypass the forward cone")
+	crate.position = player_one.get_grab_origin() + Vector3.FORWARD * 1.5
+	_expect(manager.get_interaction_candidate(player_one) == crate and manager.request_grab(1, crate), "Exact 1.5m boundary is reachable")
+	manager.release_grab(1)
+	crate.position.z -= 0.01
+	_expect(manager.get_interaction_candidate(player_one) == null and not manager.request_grab(1, crate), "Just outside range is rejected by both paths")
+	crate.position = Vector3(0, 0.4, -1)
+	var wall := StaticBody3D.new()
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2, 2, 0.15)
+	collision.shape = shape
+	wall.add_child(collision)
+	world.add_child(wall)
+	wall.position = Vector3(0, 1, -0.5)
+	await physics_frame
+	_expect(manager.get_interaction_candidate(player_one) == null and not manager.request_grab(1, crate), "Wall obstruction rejects prompt and authoritative acquisition")
+	_expect(manager.get_grab_owner(crate) == 0 and not crate.has_meta("grab_owner_peer_id"), "Rejected request leaves ownership unchanged")
+	wall.position.x = -1.8
+	var other_wall := wall.duplicate() as StaticBody3D
+	world.add_child(other_wall)
+	other_wall.position.x = 1.8
+	await physics_frame
+	_expect(manager.get_interaction_candidate(player_one) == crate and manager.request_grab(1, crate), "Open doorway between walls permits actual reach")
+	_expect(crate.get_collision_exceptions().has(player_one), "Holding excludes the holder collider")
+	wall.position.x = 0
+	player_one.set_camera_yaw(PI)
+	await physics_frame
+	_expect(manager.toggle_grab(1) and manager.get_grab_owner(crate) == 0, "Release works despite occlusion and aim turning away")
+	_expect(not crate.get_collision_exceptions().has(player_one), "Release restores holder collision")
+	player_one.set_camera_yaw(0)
+	wall.free()
+	other_wall.free()
+	crate.freeze = false
+	await physics_frame
 
 
 func _test_range_and_contention() -> void:
@@ -123,6 +173,22 @@ func _test_disconnect_release() -> void:
 	_expect(manager.unregister_player(2), "Disconnect cleanup must unregister the peer")
 	_expect(manager.get_grab_owner(crate) == 0, "Disconnect cleanup must release the peer's body")
 	_expect(not crate.has_meta("grab_owner_peer_id"), "Disconnect cleanup must clear body ownership metadata")
+
+
+func _test_destroyed_prop_release() -> void:
+	_place_crate_in_reach()
+	_expect(manager.request_grab(1, crate), "Acquire the prop before destruction")
+	var replacement := crate.duplicate() as RigidBody3D
+	replacement.remove_meta("grab_owner_peer_id")
+	crate.free()
+	await physics_frame
+	await physics_frame
+	_expect(manager.get_held_body(1) == null, "Destroying the held prop leaves no stale held body")
+	world.add_child(replacement)
+	replacement.position = Vector3(0, 0.4, -1)
+	_expect(manager.request_grab(1, replacement), "Holder can acquire a replacement after prop destruction")
+	_expect(manager.release_grab(1) and not replacement.get_collision_exceptions().has(player_one), "Replacement releases with ordinary collision restored")
+	replacement.free()
 
 
 func _place_crate_in_reach() -> void:

@@ -2,7 +2,7 @@
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.
 
-`progress.json` vẫn giữ kết quả đã chạy, failure chưa rõ nguyên nhân và quyết định miễn acceptance. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
+`progress.json` giữ trạng thái Phase3 và quyết định miễn acceptance; [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
 
 ## Bản đã giao gần nhất
 

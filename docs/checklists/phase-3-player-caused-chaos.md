@@ -1,12 +1,12 @@
 # Phase 3 — Player-Caused Chaos
 
-**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** planned · **Plan checked:** 2026-10-09.
+**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress, milestone3.1 · **Plan checked:** 2026-10-09.
 
 ## Outcome and boundaries
 
 Give supported **1–4 players** a few readable ways to affect survival and create comic situations: safe carrying, one useful environmental prop role, an optional bounded shove, and two interruptible social emotes. Improve the existing capsule, grab manager and prop replication rather than introducing combat, inventory or a second physics system.
 
-Authority and proportions remain governed by [DESIGN](../../DESIGN.md). The [phase index](../implementation-checklist.md) owns navigation; [root progress](../../progress.json) owns the active phase and exactly one operational next action. This detailed future plan does **not** start Phase 3 or reset Phase 2 evidence.
+Authority and proportions remain governed by [DESIGN](../../DESIGN.md). The [phase index](../implementation-checklist.md) owns navigation; [root progress](../../progress.json) owns the active phase and exactly one operational next action. User-authorized activation preserves Phase2 in a [deferred, not completed snapshot](../old-docs/phase-2-human-playtest-and-core-feel/progress.json); no unfinished gate is reset or passed.
 
 - Required: safe grabbing/carrying, one demonstrated survival-useful prop, minimal interaction feedback, two emotes, network/lifecycle/performance regression and reproducible matching packages.
 - Conditional: shove ships only after the bounded experiment below passes. Explicitly declining it completes the decision, not a nonexistent gameplay test.
@@ -16,7 +16,7 @@ Authority and proportions remain governed by [DESIGN](../../DESIGN.md). The [pha
 
 ## Checked implementation baseline
 
-These are source observations, not new executed gameplay passes. Earlier executed evidence remains in `progress.json`.
+These are source observations at planning time, before3.1 implementation, not current feature passes. Earlier Phase2 executed evidence remains in its frozen snapshot; subsequent Phase3 results live in root progress and the milestone notes below.
 
 | Area | Existing owner and behavior | Gap this phase must address |
 | --- | --- | --- |
@@ -30,9 +30,9 @@ These are source observations, not new executed gameplay passes. Earlier execute
 
 ## Entry and execution order
 
-1. Complete the pending correction for Phase2's proven roof-support defect at its current map owner; do not relabel it Phase3 or bundle Flood pacing into prop work. Use a technically validated source baseline with corrected death/recovery, prediction, grabbing and current ramps. Older unverified human gates are not prerequisites under the waiver.
-2. Before phase rollover, reconcile Phase2's remaining technical gates honestly. Archive only under repository closure rules; preserve unclassified X-loss/rematch/scale observations. No Phase2 gate is passed by this planning change.
-3. On activation, create fresh root Phase3 state linked to the Phase2 archive. Add the milestone/task IDs below and their unexecuted gates then, not a competing future-phase progress file now.
+1. Phase2 roof correction is validated at the existing map owner, not relabeled Phase3 or bundled with Flood pacing. Corrected death/recovery, prediction and current ramps support the1–4 technical entry baseline. Older unverified human gates are not prerequisites under the waiver.
+2. User-authorized suspension preserves Phase2's complete evidence and unfinished gates as `deferred_not_completed`, not a completed-phase rollover. Unclassified X-loss/rematch/scale observations and unexecuted release acceptance remain historical limits. No Phase2 gate is passed by activation.
+3. Fresh root Phase3 state now links to that frozen snapshot and contains only current-phase milestone/task IDs, evidence and gates. The original Phase2 checklist remains a deferred reference at its existing path.
 4. Execute **3.1 → 3.2 → 3.3 → 3.4 decision → 3.5 → 3.6**. A small milestone needs no extra tasks; split only the multi-step carrying, prop experiment and shove work described below. Validate a unit before adding another mechanic.
 
 ## Milestone 3.1 — Safe Interaction Contract
@@ -41,10 +41,12 @@ These are source observations, not new executed gameplay passes. Earlier execute
 
 **Behavior/owners:** Centralize the existing acquisition eligibility at `GrabManager` so prompt, nearest selection and authoritative request agree on living/controllable state, range, forward direction, permitted body/mass and unobstructed reach. Keep release available even if the held body moves out of acquisition range or behind cover. Preserve one player/one body ownership and sender-derived identity; do not create a new generic interaction framework.
 
-- [ ] Establish boundary expectations using real wall/doorway/prop geometry; reject grabbing through a wall and allow a reachable prop through an open doorway. Heavy/anchored objects remain uncarryable; use DESIGN's lightweight2–8kg/medium10–25kg classes rather than arbitrary per-prop behavior.
+- [x] Establish boundary expectations using real wall/doorway/prop geometry; reject grabbing through a wall and allow a reachable prop through an open doorway. Heavy/anchored objects remain uncarryable; use DESIGN's lightweight2–8kg/medium10–25kg classes rather than arbitrary per-prop behavior.
 - [ ] Align contextual eligibility and acquisition at the existing source of truth. Diagnose repeated-toggle behavior before adding rate limiting; protect authoritative state without rejecting ordinary deliberate release/re-grab.
 - [ ] Verify collision exceptions end on release and are consistent for a predicted local holder versus an observing client. Reject stale ownership across destruction, reset and disconnect.
 - [ ] Measure repeated carry/release near a wall, ramp and another player; establish velocity/impulse bounds through actual motion. Add a clamp only at the owner where unsafe behavior is reproduced, with centralized tunables; a single easy spring test is not the safety gate.
+
+**First slice:** shared eligibility and observer collision synchronization implemented. Unit acquisition/release and destroyed-prop replacement pass39 checks; the destruction test reproduces freed-object cast errors before the fix. Original authority probe now uses the representative12kg crate instead of an ineligible default1kg body, with authority assertions unchanged. Full executed results are recorded in root progress. The remaining checkbox portions (repeated-toggle/motion, both network-holder/update orders and held-state rematch cleanup) keep milestone3.1 and its gate open.
 
 **Acceptance:** Rejected acquisition changes neither owner nor body transform; contention yields exactly one owner; valid input remains responsive; no wall teleport, explosive launch, leftover collision exception or stuck ownership through five rematches.
 

@@ -1,6 +1,8 @@
-## Phase 2 — Human Playtest and Core Feel (in progress, current)
+## Phase 2 — Human Playtest and Core Feel (deferred, not completed)
 
-Navigation: [phase index](../implementation-checklist.md) · [user/device acceptance](../../NEED_REAL_CHECK.md). Root `progress.json` is authoritative.
+Navigation: [phase index](../implementation-checklist.md) · [user/device acceptance](../../NEED_REAL_CHECK.md) · [frozen full progress](../old-docs/phase-2-human-playtest-and-core-feel/progress.json). Root progress now tracks Phase3.
+
+**Suspension2026-10-09:** user authorizes Phase3 continuation on the supported1–4 technical baseline after roof correction. All requirements/evidence below remain historical Phase2 state, including older “current/next” statements; no unfinished gate is passed and Phase2 is not closed. Its decision body and full progress are frozen together; this checklist stays at its existing path to preserve references.
 
 **User override2026-10-09:** remove existing manual acceptance checklists and cancel required2.4–2.6 baseline/tuning/follow-up to continue development; user will report bugs later. Older pending-human/RC statements below are historical, superseded as continuation requirements. No unexecuted test becomes passed; actual failures/results remain preserved. Automated verification of future changes and deployment/capacity approval rules still apply.
 
