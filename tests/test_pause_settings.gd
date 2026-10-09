@@ -21,6 +21,7 @@ func _run() -> void:
 		menu.config_path = "user://test-milestone-1-5.cfg"
 	if "--verify-restart" in OS.get_cmdline_user_args():
 		_expect(is_equal_approx(menu.values.master_volume, 0.31) and is_equal_approx(menu.values.mouse_sensitivity, 1.7) and menu.values.invert_y and menu.values.reduced_motion, "New process must restore persisted settings at startup")
+		_expect(menu.values.windowed_resolution == Vector2i(1111, 666) and (DisplayServer.get_name() == "headless" or DisplayServer.window_get_size() == Vector2i(1111, 666)), "New process must restore custom windowed dimensions to the actual window")
 		DirAccess.remove_absolute(menu.config_path)
 		main.free()
 		_finish()
@@ -37,7 +38,7 @@ func _run() -> void:
 	await _capture("pause")
 	menu.show_settings()
 	await process_frame
-	_expect(menu.controls.size() == 9, "All nine persistent preferences must be editable")
+	_expect(menu.controls.size() == 10, "All preferences including windowed resolution must be editable")
 	_expect(menu.controls.master_volume.has_focus(), "Settings starts on master-volume focus")
 	var tab := InputEventKey.new()
 	tab.keycode = KEY_TAB
@@ -119,6 +120,8 @@ func _run() -> void:
 	await process_frame
 	_expect(not menu.visible and settings.has_focus() and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Results settings returns to invoking focus and visible cursor")
 	if "--save-for-restart" in OS.get_cmdline_user_args():
+		menu.values.windowed_resolution = Vector2i(1111, 666)
+		menu._save()
 		main.gameplay_audio.reset_for_match()
 		main.free()
 		_finish()

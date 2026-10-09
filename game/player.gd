@@ -28,7 +28,6 @@ var _last_movement_ack := -1
 
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_update_capsule(false)
 	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		$CameraPivot/SpringArm3D/Camera3D.current = false

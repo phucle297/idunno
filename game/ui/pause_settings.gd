@@ -5,7 +5,9 @@ const DEFAULTS := {
 	"master_volume": 1.0, "effects_volume": 1.0, "warning_volume": 1.0,
 	"mouse_sensitivity": 1.0, "invert_y": false, "camera_shake": 1.0,
 	"fullscreen": false, "reduced_motion": false,
+	"windowed_resolution": Vector2i(1280, 720),
 }
+const WINDOWED_RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1366, 768), Vector2i(1600, 900), Vector2i(1920, 1080), Vector2i(2560, 1440)]
 var values := DEFAULTS.duplicate()
 var config_path := "user://settings.cfg"
 var controls: Dictionary = {}
@@ -17,6 +19,9 @@ var status: Label
 var _main: Node
 var _return_focus: Control
 var _from_pause := false
+var _display_initialized := false
+var _display_remaining := 0.0
+var _screen_rect := Rect2i()
 
 func _ready() -> void:
 	_main = get_parent().get_parent()
@@ -68,6 +73,10 @@ func _ready() -> void:
 			toggle.text = "ON / OFF"
 			toggle.toggled.connect(func(value: bool) -> void: _change(key, value))
 			control = toggle
+		elif DEFAULTS[key] is Vector2i:
+			var option := OptionButton.new()
+			option.item_selected.connect(func(index: int) -> void: _change(key, option.get_item_metadata(index)))
+			control = option
 		else:
 			var slider := HSlider.new()
 			slider.min_value = 0.2 if key == "mouse_sensitivity" else 0.0
@@ -102,7 +111,7 @@ func _ready() -> void:
 		values = DEFAULTS.duplicate()
 		_sync_controls()
 		_save()
-		apply_preferences()
+		apply_preferences(true)
 	)
 	status = Label.new()
 	status.text = "Changes save automatically"
@@ -114,9 +123,13 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--settings-path="):
 			config_path = argument.trim_prefix("--settings-path=")
+	if DisplayServer.get_name() != "headless":
+		# Preserve CLI/window dimensions when upgrading an older settings file.
+		values.windowed_resolution = DisplayServer.window_get_size()
 	load_preferences(config_path)
 	_sync_controls()
 	apply_preferences()
+	get_window().size_changed.connect(_on_window_size_changed)
 	hide()
 	settings_page.hide()
 
@@ -125,15 +138,21 @@ func load_preferences(path: String) -> void:
 	if config.load(path) != OK:
 		return
 	for key: String in DEFAULTS:
-		var value: Variant = config.get_value("preferences", key, DEFAULTS[key])
+		var value: Variant = config.get_value("preferences", key, values[key])
 		if DEFAULTS[key] is bool:
 			values[key] = value if value is bool else DEFAULTS[key]
+		elif DEFAULTS[key] is Vector2i:
+			values[key] = value if value is Vector2i and value.x > 0 and value.y > 0 else DEFAULTS[key]
 		elif (value is float or value is int) and is_finite(float(value)):
 			values[key] = clampf(float(value), 0.2 if key == "mouse_sensitivity" else 0.0, 3.0 if key == "mouse_sensitivity" else 1.0)
 
 func _sync_controls() -> void:
 	for key: String in DEFAULTS:
-		if controls[key] is CheckButton:
+		if controls[key] is OptionButton:
+			_refresh_resolution_choices()
+			controls[key].get_parent().get_node("Value").text = ""
+			continue
+		elif controls[key] is CheckButton:
 			controls[key].set_pressed_no_signal(values[key])
 		else:
 			controls[key].set_value_no_signal(values[key])
@@ -144,7 +163,7 @@ func _change(key: String, value: Variant) -> void:
 	values[key] = value
 	_sync_controls()
 	_save()
-	apply_preferences()
+	apply_preferences(key == "windowed_resolution")
 
 func _save() -> void:
 	var config := ConfigFile.new()
@@ -155,7 +174,7 @@ func _save() -> void:
 	if error != OK:
 		_main.gameplay_audio.play_ui("error")
 
-func apply_preferences() -> void:
+func apply_preferences(resize_window: bool = false) -> void:
 	for bus: String in ["Master", "Effects", "Warnings"]:
 		var key := "master_volume" if bus == "Master" else ("effects_volume" if bus == "Effects" else "warning_volume")
 		AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(bus), values[key])
@@ -164,7 +183,90 @@ func apply_preferences() -> void:
 		apply_player_preferences(player)
 	apply_player_preferences(_main.get_node("Player"))
 	if DisplayServer.get_name() != "headless":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if values.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+		var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if values.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+		var changed := DisplayServer.window_get_mode() != mode
+		if changed:
+			DisplayServer.window_set_mode(mode)
+		if not values.fullscreen and (not _display_initialized or changed or resize_window):
+			_apply_windowed_size()
+		_display_initialized = true
+
+static func available_window_resolutions(available: Vector2i) -> Array[Vector2i]:
+	var sizes: Array[Vector2i] = []
+	for size: Vector2i in WINDOWED_RESOLUTIONS:
+		if size.x <= available.x and size.y <= available.y:
+			sizes.append(size)
+	if sizes.is_empty():
+		sizes.append(Vector2i(mini(1280, available.x), mini(720, available.y)))
+	return sizes
+
+static func fit_window_resolution(requested: Vector2i, available: Vector2i) -> Vector2i:
+	if requested.x > 0 and requested.y > 0 and requested.x <= available.x and requested.y <= available.y:
+		return requested
+	return available_window_resolutions(available)[0]
+
+func _available_window_rect() -> Rect2i:
+	if DisplayServer.get_name() == "headless":
+		return Rect2i(Vector2i.ZERO, Vector2i(2560, 1440))
+	var rect := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	# Client pixels must fit together with the native frame/title bar.
+	var borders := DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED:
+		rect.position += DisplayServer.window_get_position() - DisplayServer.window_get_position_with_decorations()
+		rect.size -= borders
+	return rect
+
+func _refresh_resolution_choices() -> void:
+	var option: OptionButton = controls.windowed_resolution
+	var available := _available_window_rect().size
+	values.windowed_resolution = fit_window_resolution(values.windowed_resolution, available)
+	var sizes := available_window_resolutions(available)
+	if values.windowed_resolution not in sizes:
+		sizes.append(values.windowed_resolution)
+	option.clear()
+	for size: Vector2i in sizes:
+		option.add_item("%d × %d%s" % [size.x, size.y, " (custom)" if size not in WINDOWED_RESOLUTIONS else ""])
+		option.set_item_metadata(option.item_count - 1, size)
+	option.select(sizes.find(values.windowed_resolution))
+	option.disabled = values.fullscreen
+	option.tooltip_text = "Client window size; available only in windowed mode."
+
+func _apply_windowed_size() -> void:
+	var rect := _available_window_rect()
+	values.windowed_resolution = fit_window_resolution(values.windowed_resolution, rect.size)
+	DisplayServer.window_set_size(values.windowed_resolution)
+	var position := DisplayServer.window_get_position()
+	position.x = clampi(position.x, rect.position.x, rect.end.x - values.windowed_resolution.x)
+	position.y = clampi(position.y, rect.position.y, rect.end.y - values.windowed_resolution.y)
+	DisplayServer.window_set_position(position)
+	_screen_rect = rect
+	_refresh_resolution_choices()
+
+func _on_window_size_changed() -> void:
+	if DisplayServer.get_name() == "headless" or values.fullscreen:
+		return
+	var size := DisplayServer.window_get_size()
+	if size == values.windowed_resolution:
+		return
+	values.windowed_resolution = size
+	_refresh_resolution_choices()
+	_save()
+
+func _process(delta: float) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	# Canvas stretch can leave logical viewport size unchanged after a native resize.
+	_on_window_size_changed()
+	_display_remaining -= delta
+	if _display_remaining > 0.0:
+		return
+	_display_remaining = 0.5
+	var rect := _available_window_rect()
+	if rect != _screen_rect:
+		_screen_rect = rect
+		if not values.fullscreen:
+			_apply_windowed_size()
+		_refresh_resolution_choices()
 
 func apply_player_preferences(player: PartyPlayer) -> void:
 	player.mouse_sensitivity = values.mouse_sensitivity

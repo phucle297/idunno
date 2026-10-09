@@ -182,6 +182,8 @@ func _capture(main: Node, state: String) -> void:
 		_expect(review_size != Vector2i.ZERO, "Rendered review requires explicit --review-resolution")
 		for candidate: Node in peers:
 			candidate.get_node("Interface").visible = candidate == main
+			# Directional lights ignore the copies' spatial separation.
+			candidate.get_node("Sun").visible = candidate == main
 		var local_id: int = main.multiplayer.get_unique_id()
 		main._player_nodes[local_id].get_node("CameraPivot/SpringArm3D/Camera3D").make_current()
 		# Late fixture initialization reapplies window settings; restore requested review size.

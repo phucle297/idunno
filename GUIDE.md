@@ -150,6 +150,8 @@ When a match ends, every peer sees the same ranked results with winner, survival
 
 The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **START MATCH** to resume solo play. Every peer can open **SETTINGS** from results or the local pause menu. Master, effects and warning volume, mouse sensitivity, invert-Y, camera shake, fullscreen and reduced motion save automatically across restarts. Opening the menu blocks only your input: hazards, networking and the match timer keep running. Reduced motion disables UI transitions and camera shake; warning identity and audio remain available.
 
+**Windowed Resolution** selects client-window pixels: 1280×720, 1366×768, 1600×900, 1920×1080 or 2560×1440 when the desktop and native window frame fit. Smaller displays get a fitting fallback. Manual sizes are remembered as custom choices; changing audio/input settings does not undo resizing. The selector is disabled in fullscreen, and returning to windowed restores the last windowed size. This is not internal render scaling.
+
 Warnings, impacts, jumping, death, and victory have synthesized placeholder audio. Flood, Meteor, and Tornado use distinct warning cues. Warning audio has a reserved voice so overlapping impact effects cannot silence it.
 
 ## Disaster timing

@@ -54,7 +54,7 @@ $settings = '-- --settings-path=user://windows-package-check.cfg'
 $p = Start-Check 'settings-save' 'test_pause_settings.gd' "$settings --save-for-restart --capture-dir=`"$OutputDir`""
 Finish-Check $p 'settings-save' 'PAUSE_SETTINGS_OK'
 $p = Start-Check 'settings-restart' 'test_pause_settings.gd' "--headless $settings --verify-restart"
-Finish-Check $p 'settings-restart' 'PAUSE_SETTINGS_OK checks=2'
+Finish-Check $p 'settings-restart' 'PAUSE_SETTINGS_OK checks=3'
 $p = Start-Check 'recovery' 'test_session_lifecycle.gd' "$settings --capture-dir=`"$OutputDir`""
 Finish-Check $p 'recovery' 'SESSION_LIFECYCLE_OK'
 $server = Start-Check 'server' 'playable_scene_network_peer.gd' "--headless -- --settings-path=user://windows-package-host.cfg --role=server --port=$Port --host-port=$Port"
