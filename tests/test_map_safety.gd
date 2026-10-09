@@ -18,6 +18,11 @@ func _run() -> void:
 	main.match_manager.set_process(false)
 	var player: PartyPlayer = main.get_node("Player")
 	player.set_physics_process(false)
+	# Scripted world-space paths must not be rotated by real OS mouse events.
+	print("MAP_FIXTURE_INITIAL_YAW ", player.get_camera_yaw())
+	player.set_process_unhandled_input(false)
+	player.set_camera_yaw(0.0)
+	await _check_elevation_routes(main, player)
 	_expect(main.get_node("Sandbox").get_node_or_null("BoundaryNorth") != null, "Map requires a continuous perimeter, not separated north fences")
 	if not main.has_method("_eliminate_out_of_bounds"):
 		_expect(false, "Escaped players require an authoritative safety check")
@@ -107,11 +112,68 @@ func _run() -> void:
 	await process_frame
 	await _capture("corner")
 	main.gameplay_hud.hide()
+	camera.position = Vector3(0, 40, -47)
+	camera.look_at(Vector3(0, 0, 0))
+	await _capture("routes")
 	camera.position = Vector3(0, 40, 47)
 	camera.look_at(Vector3(0, 0, 0))
 	await _capture("town")
 	main.free()
 	_finish()
+
+
+func _check_elevation_routes(main: Node3D, player: PartyPlayer) -> void:
+	var routes := {
+		"ShopRoofRamp": Vector3(-16, 4.855, -16),
+		"HallRoofRamp": Vector3(16, 4.855, -17),
+		"GarageRamp": Vector3(-15, 2.575, 13),
+		"ParkRamp": Vector3(15, 2.2, 13),
+	}
+	for route_name in routes:
+		var ramp := main.get_node("Sandbox/" + route_name) as StaticBody3D
+		var collision := ramp.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D
+		var shape := (collision.shape as BoxShape3D).size
+		var low := ramp.to_global(Vector3(0, shape.y / 2, -shape.z / 2))
+		var high := ramp.to_global(Vector3(0, shape.y / 2, shape.z / 2))
+		if low.y > high.y:
+			var swap := low
+			low = high
+			high = swap
+		var direction := Vector2(high.x - low.x, high.z - low.z).normalized()
+		player.reset_for_match(Vector3(low.x - direction.x, 0.1, low.z - direction.y))
+		for tick in 10:
+			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
+		for tick in 240:
+			player.apply_movement_input(direction, false, false, false, 1.0 / 60.0)
+			await physics_frame
+			if Vector2(player.position.x - high.x, player.position.z - high.z).length() < 0.15:
+				break
+		var goal: Vector3 = routes[route_name]
+		for tick in 180:
+			var remaining := Vector2(goal.x - player.position.x, goal.z - player.position.z)
+			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
+		print("ELEVATION_ROUTE route=%s feet=%s goal=%s" % [route_name, player.position, goal])
+		_expect(Vector2(goal.x - player.position.x, goal.z - player.position.z).length() < 0.25 and absf(player.position.y - goal.y) < 0.05 and player.is_on_floor(), "Walk without jumps must reach the actual refuge via %s: %s" % [route_name, player.position])
+		await _capture(route_name)
+		_expect(main.get_node("Flood").start_warning(), "Start actual Flood at the reached refuge")
+		var flood := main.get_node("Flood") as Flood
+		flood.tick(flood.warning_duration)
+		flood.tick(flood.rise_duration)
+		flood.tick(3.0)
+		_expect(is_equal_approx(flood.water_level, 3.5) and main.get_node("MatchManager").get_health(1) == 100, "Standing at %s must escape peak Flood without drowning" % route_name)
+		if route_name == "ParkRamp":
+			await _capture("ParkFlood")
+		flood.cleanup()
+		for tick in 300:
+			var remaining := Vector2(low.x - direction.x - player.position.x, low.z - direction.y - player.position.z)
+			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
+			if remaining.length() < 0.1 and player.is_on_floor() and player.position.y < 0.1:
+				break
+		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop" % route_name)
+	player.reset_for_match(Vector3.ZERO)
 
 
 func _capture(state: String) -> void:

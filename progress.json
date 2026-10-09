@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T11:14:00Z",
+  "updated_at": "2026-10-09T12:18:18Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_2_human_playtest_and_core_feel",
     "milestone": "milestone_2_2_playtest_readiness",
-    "task": "task_2_2_10_character_joint_continuity"
+    "task": "task_2_2_11_elevation_route_continuity"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -73,7 +73,8 @@
           "task_2_2_7_internet_release_readiness": "in_progress",
           "task_2_2_8_multiplayer_movement_stabilization": "in_progress",
           "task_2_2_9_dead_player_movement": "completed",
-          "task_2_2_10_character_joint_continuity": "completed"
+          "task_2_2_10_character_joint_continuity": "completed",
+          "task_2_2_11_elevation_route_continuity": "completed"
         },
         "acceptance": "Execute Tasks 2.2.3–2.2.7 per docs/implementation-checklist.md; urgent Task 2.2.8 now interrupts 2.2.7 acceptance after the user's two-player lag/spinning report. Correct reproduced camera feedback and measure delayed-input movement before resuming release acceptance. Previous LAN requirement is superseded, not passed; retain prior evidence. Room service allocates/admit clients only; Godot server owns gameplay. Rebuild/version-check both client and server. Docker evidence does not pass real Internet or human listening gates. Public deployment/shared infrastructure changes require specific approval.",
         "gates": {
@@ -84,6 +85,7 @@
           "multiplayer_camera_feedback_corrected_and_latency_validated": "blocked",
           "dead_body_movement_blocked_and_spectator_rematch_validated": "passed",
           "character_joints_and_shoes_connected_across_animated_poses": "passed",
+          "four_walkable_elevation_routes_and_peak_flood_refuges": "passed",
           "public_internet_release_clients_and_retry": "blocked",
           "exported_settings_assets_and_physical_audio": "blocked",
           "internet_play_guide_and_operator_runbook": "passed"
@@ -146,6 +148,18 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-09",
+      "command": "native Windows test_map_safety.gd720p windowed/1080p fullscreen; scratch terrain_cover_audit.gd; PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (initial and final)",
+      "status": "passed",
+      "result": "Task2.2.11 complete source correction: all four actual capsule walks reach Shop/Hall4.855m, Garage2.575m, Park2.2m without jumps, retain100HP through actual peak3.5m Flood and descend to ground. Source MAP_SAFETY_OK112; native Intel UHD630720p/1080p final121 checks each. Reused existing real-Main fixture/capture workflow; inspected reached-refuge views, north/south overviews and Park Flood at both sizes. Final north view shows all four flush ramp junctions; final west-car1m move removes observed edge overlap. Four boxes/48 triangles unchanged, no controller/jump/authority/lighting change. Native initial world-path divergence/downstream Flood deaths retained; isolation of unhandled OS input/zero yaw fixes fixture, no unlogged mouse cause claimed. Requested1080p window falls back even with fresh settings; measured1920x1032 desktop working area cannot fit client/frame, existing fullscreen preferences produce actual1920x1080 captures. Scratch four Shop/Hall two-way ground passages, four Tornado inside/roof queries and five completed-round rematches/20 restored ramp transforms/shapes pass; initial ACTIVE-rematch assertion correctly rejected and hung driver terminated, log retained. Final full regression exits0 UI_REGRESSION_OK34 suites/five matrices/settings restart, dedicated33/57/67/five rematches/recovery. Existing shutdown-only resources/ObjectDB diagnostics retained. Temporary drivers/config removed; logs/images .amp/in/artifacts/terrain-routes/. No new package/deploy, every-spawn Flood path, alternate high escape, full door-camera motion, Meteor or breakable-floor-loss claim."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Task2.2.11 actual capsule four-route red/initial green",
+      "status": "passed",
+      "result": "Original source fails all four ground→refuge walk assertions: Shop/Hall feet remain ground-level, Garage under deck, Park stuck near road. Initial fixture incorrectly assumed generated collision node name; retained runtime failure separately, corrected to actual CollisionShape child lookup before valid red. Native unchanged overview inspected: Garage/Park slopes rise away from destination. Existing ramp owner now derives box from low/high walking-surface endpoints, normal-offsets thickness, reverses Garage/Park, and moves Shop/Hall to flush north-roof access without overlapping garage/park routes. First headless check exits0 MAP_SAFETY_OK100 with all four actual foot elevations reached. No controller/speed/jump/authority/roof/breakage change; Shop destination verifies entrance landing before existing breakable panel, not traversal through that panel. Added descending and actual peak-Flood tests pending final run. Evidence .amp/in/artifacts/terrain-routes/."
+    },
     {
       "date": "2026-10-09",
       "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; native Windows test_player_integration.gd; repeat generate_assets.gd --seed=297 and hash diff; native character gameplay captures",
@@ -651,6 +665,6 @@
   ],
   "changed_files": ["game/ui/pause_settings.gd", "tests/test_pause_settings.gd", "tests/test_windowed_resolution.gd", "tests/test_windowed_resolution.gd.uid", "tests/pointer_input_peer.gd", "tests/pointer_input_peer.gd.uid", "tests/run_pointer_input_test.py", "progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "README.md", "export_presets.cfg", "tools/export_windows.sh", "game/main.gd", "game/ui/lobby_roster.gd", "project.godot", "GUIDE.md", "tests/run_windows_package_checks.ps1", "tests/playable_scene_network_peer.gd", "tests/test_dedicated_server.gd", "tests/dedicated_network_peer.gd", "tests/run_dedicated_network_test.sh", "tests/run_ui_regression.sh", "tools/room_service.py", "game/room_admission.gd", "game/room_admission.gd.uid", "tests/test_room_service.py", "tests/room_admission_peer.gd", "tests/room_admission_peer.gd.uid", "game/room_client.gd", "game/room_client.gd.uid", "scenes/main.tscn", "tests/test_room_ui.gd", "tests/test_room_ui.gd.uid", "tests/room_ui_peer.gd", "tests/room_ui_peer.gd.uid", "tests/test_lobby_presentation.gd", "tests/test_session_lifecycle.gd", "tests/test_ui_theme.gd", "tests/test_milestone_1_1.gd", "tests/run_container_network_test.sh", "tools/container-tests/Dockerfile", "tools/container-tests/compose.yml", "tools/container-tests/entrypoint.sh", "AGENTS.md", ".agents/skills/recovering-enet-room-disconnects/SKILL.md", "tests/test_server_relay.gd", "tests/test_server_relay.gd.uid", "tests/managed_container_peer.gd", "tests/managed_container_peer.gd.uid", "tests/managed_room_service.py", "tests/container_room_godot.sh", "tests/run_managed_container_test.py", "tests/playable_scale_peer.gd", "tests/run_playable_scale_test.sh", "tools/export_playtest.sh", "tests/run_release_linux_test.py", ".gitignore", "infra/ec2/main.tf", "infra/ec2/variables.tf", "infra/ec2/bootstrap.sh.tftpl", "infra/ec2/dev.tfvars.example", "infra/ec2/backend.hcl.example", "infra/ec2/tests/safety.tftest.hcl", "infra/ec2/.terraform.lock.hcl", "infra/ec2/README.md", ".github/workflows/deploy-existing-ec2.yml", "tools/deploy_existing_ec2.sh",
     "game/player.gd", "game/player_tuning.gd", "scenes/player.tscn", "tests/test_player_integration.gd", "tests/test_player_colliders.gd", "tests/test_network_prediction.gd", "tests/test_network_prediction.gd.uid", "tests/movement_latency_peer.gd", "tests/movement_latency_peer.gd.uid", "tests/run_movement_latency_test.py", "tests/test_movement_latency.py", "docs/old-docs/decisions-phase-0-init-project.md", "docs/old-docs/decisions-phase-1-ui-identity-and-feedback.md", "tests/test_eliminated_movement.gd", "tests/test_eliminated_movement.gd.uid", "tests/test_jump_delivery.gd", "tests/test_jump_delivery.gd.uid", ".agents/skills/recovering-room-retry-fixtures/SKILL.md",
-    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md"],
-  "next_action": "Audit all four existing Toy Town ramps with the actual player capsule and native gameplay camera; record reachable roof heights, two exits per refuge and flood escape/cover behavior to select the first evidenced terrain improvement. No Settings redesign or deployment."
+    "game/toy_character_visual.gd", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "tests/test_map_safety.gd"],
+  "next_action": "Audit whether breaking Shop/Hall roof panels actually removes usable standing collision under a living player, and identify a reachable alternate escape before implementing meaningful Earthquake+Flood refuge loss; preserve current ramps and rematch restoration, no deployment."
 }

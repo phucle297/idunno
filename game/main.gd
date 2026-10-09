@@ -1576,13 +1576,13 @@ func _build_sandbox() -> void:
 	_add_static_box("PocketParkPlatform", Vector3(10.0, 2.2, 8.0), Vector3(15.0, 1.1, 14.0), PALETTE.teal)
 	$Sandbox/PocketParkPlatform.add_to_group("landmark")
 	_add_world_label("PocketParkLabel", "POCKET PARK", Vector3(15.0, 3.0, 18.2), PALETTE.cream)
-	_add_ramp("ShopRoofRamp", Vector3(3.0, 0.35, 13.0), Vector3(-9.7, 2.35, -13.0), deg_to_rad(20.0))
-	_add_ramp("HallRoofRamp", Vector3(3.0, 0.35, 13.0), Vector3(9.7, 2.35, -13.0), deg_to_rad(-20.0))
-	_add_ramp("GarageRamp", Vector3(4.0, 0.35, 12.0), Vector3(-15.0, 1.15, 7.0), deg_to_rad(11.0))
-	_add_ramp("ParkRamp", Vector3(3.0, 0.35, 10.0), Vector3(15.0, 1.05, 5.0), deg_to_rad(12.0))
-	_add_world_label("ShopRouteLabel", "ROOF ACCESS", Vector3(-9.7, 1.0, -6.3), PALETTE.amber)
-	_add_world_label("HallRouteLabel", "ROOF ACCESS", Vector3(9.7, 1.0, -6.3), PALETTE.amber)
-	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, 1.0), PALETTE.amber)
+	_add_ramp("ShopRoofRamp", 3.0, Vector3(-16.0, 0.0, -29.3), Vector3(-16.0, 4.855, -18.3))
+	_add_ramp("HallRoofRamp", 3.0, Vector3(16.0, 0.0, -29.3), Vector3(16.0, 4.855, -19.3))
+	_add_ramp("GarageRamp", 4.0, Vector3(-15.0, 0.0, -3.0), Vector3(-15.0, 2.575, 9.0))
+	_add_ramp("ParkRamp", 3.0, Vector3(15.0, 0.05, 0.0), Vector3(15.0, 2.2, 10.0))
+	_add_world_label("ShopRouteLabel", "ROOF ACCESS", Vector3(-16.0, 1.0, -29.6), PALETTE.amber)
+	_add_world_label("HallRouteLabel", "ROOF ACCESS", Vector3(16.0, 1.0, -29.6), PALETTE.amber)
+	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, -3.3), PALETTE.amber)
 	_add_world_label("ParkRouteLabel", "UP", Vector3(15.0, 0.8, 0.0), PALETTE.amber)
 	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.98, -13.0), PALETTE.cream)
 	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.98, -13.0), PALETTE.cream)
@@ -1622,7 +1622,12 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 	$Sandbox.add_child(body)
 
 
-func _add_ramp(node_name: String, size: Vector3, position: Vector3, angle: float) -> void:
+func _add_ramp(node_name: String, width: float, low: Vector3, high: Vector3) -> void:
+	# Endpoints describe the walking surface, not the box's center/bottom face.
+	var angle := -atan((high.y - low.y) / (high.z - low.z))
+	var size := Vector3(width, 0.35, low.distance_to(high))
+	var normal := Basis(Vector3.RIGHT, angle) * Vector3.UP
+	var position := (low + high) * 0.5 - normal * size.y * 0.5
 	_add_static_box(node_name, size, position, PALETTE.cream)
 	$Sandbox.get_node(node_name).rotation.x = angle
 	$Sandbox.get_node(node_name).add_to_group("elevation_route")
@@ -1669,7 +1674,7 @@ func _add_town_props() -> void:
 	_add_tree("TreeWest", Vector3(-26.0, 0.0, 3.0))
 	_add_tree("TreeEast", Vector3(25.0, 0.0, 8.0))
 	_add_tree("TreePark", Vector3(18.0, 2.2, 15.0))
-	_add_car("ToyCarWest", Vector3(-12.0, 0.0, 1.5), PALETTE.coral)
+	_add_car("ToyCarWest", Vector3(-11.0, 0.0, 1.5), PALETTE.coral)
 	_add_car("ToyCarEast", Vector3(13.0, 0.0, -1.5), PALETTE.teal)
 	_add_bench("ParkBench", Vector3(12.0, 2.2, 15.5))
 	_add_static_box("TownSign", Vector3(2.8, 2.4, 0.3), Vector3(-5.5, 1.2, -4.8), PALETTE.amber)

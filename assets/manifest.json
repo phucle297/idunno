@@ -155,6 +155,25 @@
       "gameplay_tags": ["map_prop"],
       "provenance": "Project-authored deterministic Godot BoxMesh assembly; no third-party geometry; seed unused. Replaces separated north fences without enlarging the block.",
       "validation_status": "all_four_edges_and_corners_block_walk_sprint_jump_and_bounded_impulses; gap_free_corner_and_four_wall_overview_inspected_at_720p_and_corner_at_1080p; five_live_server_out_of_bounds_rematches_passed"
+    },
+    {
+      "asset_id": "ENV_TownElevationRoutes_v001",
+      "category": "runtime_environment_assembly",
+      "source_path": "game/main.gd::_build_sandbox/_add_ramp",
+      "export_path": "scenes/main.tscn::Sandbox/{ShopRoofRamp,HallRoofRamp,GarageRamp,ParkRamp}",
+      "generator_script": "game/main.gd",
+      "seed": 0,
+      "generator_version": "2_surface_endpoints",
+      "intended_dimensions_m": {"widths": [3.0, 3.0, 4.0, 3.0], "surface_heights": [4.855, 4.855, 2.575, 2.2], "thickness": 0.35},
+      "triangle_count": 48,
+      "material_ids": ["PALETTE.cream"],
+      "pivot": "walking_surface_midpoint_minus_half_thickness_normal",
+      "collider_type": "four_rotated_static_boxes_matching_visible_meshes",
+      "skeleton_version": null,
+      "animation_list": [],
+      "gameplay_tags": ["elevation_route"],
+      "provenance": "Project-authored deterministic Godot BoxMesh assembly; no third-party geometry; seed unused. Corrects four original ramps without adding geometry density or changing the controller.",
+      "validation_status": "four_route_actual_capsule_ascent_descent_and_peak_3.5m_flood_passed; native_Windows_Intel_UHD630_720p_windowed_1080p_fullscreen121_checks_and_gameplay_views_inspected; north_overview_four_flush_junctions_and_west_car_clearance_inspected; five_rematches_restore20_route_transforms_shapes; full_map_and_collapse_gates_pending"
     }
   ]
 }
