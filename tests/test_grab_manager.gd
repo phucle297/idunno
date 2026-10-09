@@ -23,6 +23,7 @@ func _run() -> void:
 	_test_range_and_contention()
 	await _test_bounded_spring()
 	_test_lifecycle_releases()
+	await _test_repeated_carry_motion()
 	_test_disconnect_release()
 	await _test_destroyed_prop_release()
 	if failures.is_empty():
@@ -40,7 +41,7 @@ func _build_world() -> void:
 	var floor := StaticBody3D.new()
 	var floor_collision := CollisionShape3D.new()
 	var floor_shape := BoxShape3D.new()
-	floor_shape.size = Vector3(20.0, 0.2, 20.0)
+	floor_shape.size = Vector3(80.0, 0.2, 80.0)
 	floor_collision.shape = floor_shape
 	floor_collision.position.y = -0.1
 	floor.add_child(floor_collision)
@@ -116,6 +117,11 @@ func _test_acquisition_eligibility() -> void:
 	player_one.set_camera_yaw(0)
 	wall.free()
 	other_wall.free()
+	var rapid_toggles_passed := true
+	for _index in 50:
+		rapid_toggles_passed = manager.toggle_grab(1) and rapid_toggles_passed
+		rapid_toggles_passed = manager.toggle_grab(1) and rapid_toggles_passed
+	_expect(rapid_toggles_passed and not crate.has_meta("grab_owner_peer_id") and crate.get_collision_exceptions().is_empty(), "100 immediate toggles preserve deliberate release/re-grab and clear ownership")
 	crate.freeze = false
 	await physics_frame
 
@@ -173,6 +179,81 @@ func _test_disconnect_release() -> void:
 	_expect(manager.unregister_player(2), "Disconnect cleanup must unregister the peer")
 	_expect(manager.get_grab_owner(crate) == 0, "Disconnect cleanup must release the peer's body")
 	_expect(not crate.has_meta("grab_owner_peer_id"), "Disconnect cleanup must clear body ownership metadata")
+
+
+func _test_repeated_carry_motion() -> void:
+	var obstacle := StaticBody3D.new()
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(4, 3, 0.3)
+	collision.shape = shape
+	obstacle.add_child(collision)
+	world.add_child(obstacle)
+	for context in ["wall", "ramp", "player"]:
+		obstacle.rotation = Vector3.ZERO
+		obstacle.position = Vector3(0, 1.5, -1.7) if context == "wall" else Vector3(8, 1.5, 0)
+		if context == "ramp":
+			shape.size = Vector3(4, 0.3, 5)
+			obstacle.position = Vector3(0, 0.7, -3)
+			obstacle.rotation.x = 0.3
+		else:
+			shape.size = Vector3(4, 3, 0.3)
+		for mass in [2.0, 12.0, 25.0]:
+			manager.release_all()
+			player_one.reset_for_match(Vector3.ZERO)
+			player_two.reset_for_match(Vector3(0, 0, -1.4) if context == "player" else Vector3(7, 0, 0))
+			player_one.set_camera_yaw(0)
+			crate.mass = mass
+			crate.freeze = true
+			crate.transform = Transform3D(Basis.IDENTITY, Vector3(0, 0.65 if context == "ramp" else 0.4, -1))
+			crate.linear_velocity = Vector3.ZERO
+			crate.angular_velocity = Vector3.ZERO
+			crate.freeze = false
+			await physics_frame
+			var acquisitions := 0
+			var peak_speed := 0.0
+			var peak_spin := 0.0
+			var previous_position := crate.position
+			var peak_step := 0.0
+			var minimum_height := crate.position.y
+			var minimum_z := crate.position.z
+			for tick in 240:
+				if tick % 30 == 0:
+					if manager.get_held_body(1) != null:
+						_expect(manager.toggle_grab(1) and not crate.get_collision_exceptions().has(player_one), "Repeated release restores collision near %s" % context)
+					elif manager.request_nearest_grab(1):
+						acquisitions += 1
+					var held_position := crate.position
+					if manager.get_held_body(1) != null:
+						_expect(not manager.request_grab(2, crate), "Other player cannot steal the carried prop")
+					_expect(crate.position == held_position, "Toggle/contending requests never teleport the prop")
+				# Approach a dropped prop naturally instead of resetting its transform.
+				var offset := crate.position - player_one.position
+				player_one.set_camera_yaw(atan2(-offset.x, -offset.z))
+				var movement := Vector2.ZERO
+				if manager.get_held_body(1) != null:
+					movement.y = -1 if tick % 60 < 30 else 1
+				elif Vector2(offset.x, offset.z).length() > 0.9:
+					movement.y = -1
+				player_one.apply_movement_input(movement, false, false, false, 1.0 / 60.0)
+				await physics_frame
+				peak_speed = maxf(peak_speed, crate.linear_velocity.length())
+				peak_spin = maxf(peak_spin, crate.angular_velocity.length())
+				peak_step = maxf(peak_step, crate.position.distance_to(previous_position))
+				minimum_height = minf(minimum_height, crate.position.y)
+				minimum_z = minf(minimum_z, crate.position.z)
+				previous_position = crate.position
+			manager.release_all()
+			print("CARRY_MOTION context=%s mass=%s acquisitions=%d speed=%.3f spin=%.3f step=%.3f" % [context, mass, acquisitions, peak_speed, peak_spin, peak_step])
+			_expect(acquisitions >= 2, "Stress must actually reacquire near %s at mass %s" % [context, mass])
+			_expect(peak_speed < 8.0 and peak_spin < 20.0 and peak_step < 0.3, "Repeated carry cannot explosively launch or teleport near %s" % context)
+			_expect(minimum_height > 0.0 and (context != "wall" or minimum_z > -1.6), "Prop cannot tunnel through the floor or wall")
+			_expect(not crate.has_meta("grab_owner_peer_id") and not crate.get_collision_exceptions().has(player_one), "Stress ends without stale ownership/exclusion")
+	obstacle.free()
+	player_one.reset_for_match(Vector3.ZERO)
+	player_two.reset_for_match(Vector3(0.2, 0, 0))
+	player_one.set_camera_yaw(0)
+	crate.mass = 12.0
 
 
 func _test_destroyed_prop_release() -> void:

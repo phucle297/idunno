@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T15:47:30Z",
+  "updated_at": "2026-10-09T17:30:08Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -20,8 +20,8 @@
   },
   "current": {
     "phase": "phase_3_player_caused_chaos",
-    "milestone": "milestone_3_1_safe_interaction_contract",
-    "task": null
+    "milestone": "milestone_3_2_readable_carrying",
+    "task": "task_3_2_1_carry_movement"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -52,11 +52,11 @@
     "milestones": {
       "milestone_3_1_safe_interaction_contract": {
         "title": "Safe Interaction Contract",
-        "status": "in_progress",
+        "status": "completed",
         "dependencies": ["phase_2_human_playtest_and_core_feel"],
         "scope": "Shared acquisition eligibility, obstruction/mass checks, authority/ownership/release consistency and repeated-carry safety at existing GrabManager/Main owners.",
         "acceptance": "Prompt and server agree; no through-wall acquisition, heavy carry, stale ownership/collision exception or explosive repeated carry/release; contention, lifecycle and five rematches pass.",
-        "gates": {"safe_grab_ownership_and_release": "not_run"}
+        "gates": {"safe_grab_ownership_and_release": "passed"}
       },
       "milestone_3_2_readable_carrying": {
         "title": "Readable Carrying with a Survival Tradeoff",
@@ -136,12 +136,41 @@
       "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh final after destroyed-prop cleanup fix",
       "status": "passed",
       "result": "Exit0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed; GRAB_MANAGER_OK checks39; real authority and observer prop holder-collision/release checks pass. Playable and dedicated five rematches/disconnect/recovery pass; supported4-player scale passes. No script/runtime errors; known shutdown-only ObjectDB/resources diagnostics retained. Final log .amp/in/artifacts/phase-3-grab/regression-cleanup-final.log. Source-only first3.1 slice, no repeated wall/ramp/player stress or both-holder/update-order/held-rematch claim, no native Windows/package/deployment acceptance. README and bug-policy relative links also validate after tracking update."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Repeated carry physics initial/follow/predictive-clamp diagnostic runs",
+      "status": "failed",
+      "result": "Initial fixture fails reacquisition because dropped props are not approached; correct to natural capsule movement toward them and raise initial ramp prop out of overlap. Follow run reports16.549m/s, provisional clamp still reports10.288m/s. Detailed tick/owner/position trace proves high speed occurs unheld after fixture walks off20m floor (z<-13/y<-1), not a demonstrated spring launch. Expand only test floor to80m and remove speculative clamp entirely; production GrabManager/Tuning are unchanged from prior commit. Failed logs motion-initial/motion-follow/motion-bounded/motion-diagnostic retained, not concealed or called a production fix."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "godot --headless --path . --script res://tests/test_grab_manager.gd corrected floor/original physics",
+      "status": "passed",
+      "result": "GRAB_MANAGER_OK checks208; nine4s/240-tick wall/ramp/player scenarios at2/12/25kg each actually acquire3–4 times, move/aim with no prop teleport between cycles and clear ownership/collision on release. Peak speed6.686m/s, spin9.841rad/s, single-tick displacement0.111m, below independent8m/s/20rad/s/0.3m practical bounds. No reproduced unsafe launch, no new clamp/rate limiter. Log motion-floor-corrected.log. Final run adds explicit floor/wall containment and100 immediate toggles; in progress."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh; temporary Godot Main snapshot-order probe",
+      "status": "passed",
+      "result": "Real two-process ENet host→client→host ownership uses actual sender-derived client toggle RPC; exclusions move to each holder and clear on knockdown. Five rematches now start with an actually held old prop, free it and restore unowned replacement/no exceptions; server and client checks pass, no extended deadline or weakened original assertion. Logs transfer-initial.log/held-rematches.log. Controlled direct snapshot ingress probe separately passes late/early player-roster ordering, repeated-owner reapplication, direct90→8→90 transfer without unowned snapshot and release. Snapshot-order probe is not network-loss evidence; log snapshot-order.log, temporary driver removed after check. Full regression pending."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh final Milestone3.1 validation",
+      "status": "passed",
+      "result": "Exit0 UI_REGRESSION_OK suites34/matrices5/persistence_restart=passed; GRAB_MANAGER_OK checks218 adds100 immediate toggles, nine240-tick motion/reacquisition cases and explicit floor/wall containment. Peaks6.686m/s/9.841rad/s/0.111m per tick; original production physics unchanged. Real ENet holder transfer and five held-prop rematches pass alongside authority, supported4-player scale, dedicated recovery/rematches and existing lifecycle checks. No script/runtime errors, known shutdown-only ObjectDB/resources diagnostics retained. Logs safety-final-regression.log and motion-final.log under .amp/in/artifacts/phase-3-grab/. Milestone3.1 technical gate passed;3.2.1 is next, not implemented. No native Windows/latency matrix/new package/deployment or human-feel claim."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Python milestone/task/gate/path checks; jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "MILESTONE_TRACKING_OK completed3.1/next3.2.1; six future gates remain not_run and future milestone/tasks planned.22 relative documentation links pass, production game/assets and all historical archives unchanged, scratch driver removed. Checklist/index/README/decisions agree with root state; no full-phase closure or deployment claimed."
     }
   ],
   "blockers": [
-    "Milestone3.1 remains open for repeated carry/release near walls/ramps/players, both network-holder/update orders and held-state rematch cleanup; destroyed-prop replacement now passes. Do not call the whole safety milestone complete from acquisition checks alone.",
     "Phase2's unclassified X-loss/rematch/20-player observations and unexecuted native/release acceptance remain preserved in previous_phase_archive. They are not marked fixed or passed; current support remains1–4 and user manual waiver remains in force."
   ],
   "changed_files": ["progress.json", "game/grab_manager.gd", "game/player_tuning.gd", "game/main.gd", "tests/test_grab_manager.gd", "tests/playable_scene_network_peer.gd", "tests/network_authority_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-2-human-playtest-and-core-feel.md", "docs/checklists/phase-3-player-caused-chaos.md", "docs/old-docs/README.md", "docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json", "docs/old-docs/phase-2-human-playtest-and-core-feel/decisions.md", "README.md", "NEED_REAL_CHECK.md"],
-  "next_action": "Finish Milestone3.1 with repeated carry/release physics near walls/ramps/another player, both network-holder/update orders and held-state cleanup through five rematches; retain strict authority/runtime assertions, no carrying slowdown/emotes/shove or deployment yet."
+  "next_action": "Implement Task3.2.1: measure unladen versus medium-crate routes, choose one carry slowdown and carry-state field at the authoritative player prediction/replay boundary; validate release restoration, current ramps and delayed/jitter/loss agreement before holding-pose work."
 }

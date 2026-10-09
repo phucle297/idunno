@@ -108,6 +108,21 @@ func _run_server(main: Node) -> void:
 	await create_timer(1.0).timeout
 	prop_replication_passed = prop_replication_passed and int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
 	grab_manager.release_grab(1)
+	shared_prop.freeze = true
+	shared_prop.global_position = client_player.get_grab_origin() + client_player.get_grab_direction()
+	shared_prop.linear_velocity = Vector3.ZERO
+	shared_prop.freeze = false
+	while grab_manager.get_grab_owner(shared_prop) != client_id and Time.get_ticks_msec() < deadline:
+		await process_frame
+	prop_replication_passed = prop_replication_passed and grab_manager.get_grab_owner(shared_prop) == client_id and shared_prop.get_collision_exceptions().has(client_player) and not shared_prop.get_collision_exceptions().has(host_player)
+	while grab_manager.get_grab_owner(shared_prop) != 0 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	shared_prop.freeze = true
+	shared_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
+	shared_prop.linear_velocity = Vector3.ZERO
+	shared_prop.freeze = false
+	prop_replication_passed = prop_replication_passed and grab_manager.request_grab(1, shared_prop)
+	await create_timer(0.3).timeout
 	host_player.apply_knockdown(Vector3(2.0, 1.0, 0.0))
 	await create_timer(0.7).timeout
 	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11
@@ -187,7 +202,14 @@ func _run_server(main: Node) -> void:
 	)
 	var rematch_passed := true
 	for rematch_index: int in 5:
+		var old_prop := main._network_prop(1) as RigidBody3D
+		old_prop.freeze = true
+		old_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
+		old_prop.freeze = false
+		rematch_passed = grab_manager.request_grab(1, old_prop) and rematch_passed
 		rematch_passed = rematch_passed and main.restart_network_match()
+		var new_prop := main._network_prop(1) as RigidBody3D
+		rematch_passed = rematch_passed and not is_instance_valid(old_prop) and grab_manager.get_held_body(1) == null and not new_prop.has_meta("grab_owner_peer_id") and new_prop.get_collision_exceptions().is_empty()
 		await create_timer(0.3).timeout
 		rematch_passed = (
 			rematch_passed
@@ -299,6 +321,16 @@ func _run_client(main: Node) -> void:
 		and shared_prop.global_position.distance_to(host_player.get_hold_position()) < 1.5
 		and shared_prop.get_collision_exceptions().has(host_player)
 	)
+	while (int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 0 or main.get_node("GrabManager").get_interaction_candidate(local_player) != shared_prop) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	main.get_node("GrabManager").request_local_toggle(local_id)
+	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != local_id and Time.get_ticks_msec() < deadline:
+		await process_frame
+	prop_replication_passed = prop_replication_passed and int(shared_prop.get_meta("grab_owner_peer_id", 0)) == local_id and shared_prop.get_collision_exceptions().has(local_player) and not shared_prop.get_collision_exceptions().has(host_player)
+	main.get_node("GrabManager").request_local_toggle(local_id)
+	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
+		await process_frame
+	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().has(host_player) and not shared_prop.get_collision_exceptions().has(local_player)
 	while not host_player.is_knocked_down() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 0 and Time.get_ticks_msec() < deadline:
@@ -404,6 +436,8 @@ func _run_client(main: Node) -> void:
 		await process_frame
 		var authoritative_health := manager.get_health(local_id)
 		var replicated_position := local_player.position
+		var reset_prop := main._network_prop(1) as RigidBody3D
+		rematch_passed = rematch_passed and int(reset_prop.get_meta("grab_owner_peer_id", 0)) == 0 and reset_prop.get_collision_exceptions().is_empty() and main.get_node("GrabManager").get_held_body(local_id) == null
 		local_player.position = Vector3(40, -10, 0)
 		main._eliminate_out_of_bounds()
 		rematch_passed = rematch_passed and manager.get_health(local_id) == authoritative_health

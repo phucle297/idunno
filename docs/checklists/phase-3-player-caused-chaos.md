@@ -1,6 +1,6 @@
 # Phase 3 — Player-Caused Chaos
 
-**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress, milestone3.1 · **Plan checked:** 2026-10-09.
+**Stable phase ID:** `phase_3_player_caused_chaos` · **Status:** in progress;3.1 complete,3.2.1 next · **Plan checked:** 2026-10-09.
 
 ## Outcome and boundaries
 
@@ -42,11 +42,11 @@ These are source observations at planning time, before3.1 implementation, not cu
 **Behavior/owners:** Centralize the existing acquisition eligibility at `GrabManager` so prompt, nearest selection and authoritative request agree on living/controllable state, range, forward direction, permitted body/mass and unobstructed reach. Keep release available even if the held body moves out of acquisition range or behind cover. Preserve one player/one body ownership and sender-derived identity; do not create a new generic interaction framework.
 
 - [x] Establish boundary expectations using real wall/doorway/prop geometry; reject grabbing through a wall and allow a reachable prop through an open doorway. Heavy/anchored objects remain uncarryable; use DESIGN's lightweight2–8kg/medium10–25kg classes rather than arbitrary per-prop behavior.
-- [ ] Align contextual eligibility and acquisition at the existing source of truth. Diagnose repeated-toggle behavior before adding rate limiting; protect authoritative state without rejecting ordinary deliberate release/re-grab.
-- [ ] Verify collision exceptions end on release and are consistent for a predicted local holder versus an observing client. Reject stale ownership across destruction, reset and disconnect.
-- [ ] Measure repeated carry/release near a wall, ramp and another player; establish velocity/impulse bounds through actual motion. Add a clamp only at the owner where unsafe behavior is reproduced, with centralized tunables; a single easy spring test is not the safety gate.
+- [x] Align contextual eligibility and acquisition at the existing source of truth. Diagnose repeated-toggle behavior before adding rate limiting; protect authoritative state without rejecting ordinary deliberate release/re-grab.
+- [x] Verify collision exceptions end on release and are consistent for a predicted local holder versus an observing client. Reject stale ownership across destruction, reset and disconnect.
+- [x] Measure repeated carry/release near a wall, ramp and another player; establish velocity/impulse bounds through actual motion. Add a clamp only at the owner where unsafe behavior is reproduced, with centralized tunables; a single easy spring test is not the safety gate.
 
-**First slice:** shared eligibility and observer collision synchronization implemented. Unit acquisition/release and destroyed-prop replacement pass39 checks; the destruction test reproduces freed-object cast errors before the fix. Original authority probe now uses the representative12kg crate instead of an ineligible default1kg body, with authority assertions unchanged. Full executed results are recorded in root progress. The remaining checkbox portions (repeated-toggle/motion, both network-holder/update orders and held-state rematch cleanup) keep milestone3.1 and its gate open.
+**Complete2026-10-09:** shared eligibility, observer collision synchronization and destroyed-prop cleanup implemented. Final grab218 checks include100 immediate toggles and nine240-tick wall/ramp/player scenarios across2/12/25kg: each actually acquires3–4 times, peak6.686m/s/9.841rad/s/0.111m per tick, no floor/wall tunneling or stale ownership/exclusions. Initial speed failures came from the fixture walking off its20m floor; diagnostic owner/position trace and corrected80m floor/original physics prove no grab launch in these cases. Speculative clamp removed; no new rate limiter or production tuning. Real two-process ENet host→client→host transfer uses sender-derived toggle RPC; five rematches free actually held old props and restore unowned replacements. Separate controlled snapshot-ingress probe covers both roster orders and direct90→8→90 ownership changes; not latency/loss evidence. Full34-suite/five-network-group/settings-restart regression passes; known shutdown-only ObjectDB/resources diagnostics retained. Evidence in root progress; no new package/deployment/native-Windows or human-feel pass.
 
 **Acceptance:** Rejected acquisition changes neither owner nor body transform; contention yields exactly one owner; valid input remains responsive; no wall teleport, explosive launch, leftover collision exception or stuck ownership through five rematches.
 
@@ -154,7 +154,7 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 ## Phase exit gates
 
-All gates below are **not run** for Phase3. Existing Phase2 passes support the baseline only.
+`safe_grab_ownership_and_release` is **passed** for Phase3 after3.1's executed checks. All remaining gates are **not run**. Existing Phase2 passes support the baseline only.
 
 | Gate | Required evidence |
 | --- | --- |
