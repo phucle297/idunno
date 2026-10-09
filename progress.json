@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T12:18:18Z",
+  "updated_at": "2026-10-09T12:24:58Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -148,6 +148,12 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-09",
+      "check": "User garage crop/source inspection and Flood pacing planning; JSON/diff validation",
+      "status": "passed",
+      "result": "Cropped image matches ParkingGarage UpperShelter:8x6m canopy cannot meet pillars at x±5.5/z±4.5, verified unsupported geometry; plan inset supports/beam frame in existing4.3a, no asset/code correction yet. User reports Flood too easy/long, build/session unspecified. Source defaults6+35+5+5≈51s, head-submersion damage and prop-only current confirmed. Existing4.1/4.4 backlog now compares baseline refuge/idle time against shorter-rise20–25s candidate, staged surge and warned refuge relocation, then later current/crate ideas. Preserve escape fairness, authority/budgets, manual waiver and single existing next action. Planning only; no runtime test, difficulty pass, export or deploy."
+    },
     {
       "date": "2026-10-09",
       "command": "native Windows test_map_safety.gd720p windowed/1080p fullscreen; scratch terrain_cover_audit.gd; PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (initial and final)",
