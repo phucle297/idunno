@@ -1,14 +1,16 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T02:38:14Z",
+  "updated_at": "2026-10-09T09:49:05Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
     "directory": "docs/old-docs",
-    "filename_pattern": "progress-{phase-slug}.json",
+    "filename_pattern": "{phase-slug}/progress.json",
     "rule": "When the current phase is completed, move its full progress and validation evidence to the archive before creating a fresh progress.json for the next phase."
   },
-  "previous_phase_archive": "docs/old-docs/progress-phase-1-ui-identity-and-feedback.json",
+  "previous_phase_archive": "docs/old-docs/phase-1-ui-identity-and-feedback/progress.json",
+  "checklist": "docs/checklists/phase-2-human-playtest-and-core-feel.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
     "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
@@ -587,6 +589,12 @@
       "result": "Owner authorizes deploy. Normal main push of0d10b289520f43889dd19cf5beba9c2abbaaea92 triggers https://github.com/phucle297/idunno/actions/runs/37875109067; observed completed/success for both build and Tokyo EC2 SSM deployment. Exact-build HTTPS unknown-room Join changes409 incompatible_version to404 unknown_room, without allocating a room. Includes prior2.3 resolution/cursor fixes. Windows exported twice with identical payload hashes; actual release EXE60-frame headless launch logs exact revision/exit0. Native Radeon860M exact-PCK player72 assertions, settings restart3/recovery/two-peer five rematches pass. Initial runner blocked by process execution policy after successful smoke/player tests; rerun with process-only Bypass passes, no persistent policy change. Four-file ZIP CRC/exact bytes pass, SHA2567b0eaefbc7b59fe64510b59275bba28b406f701fac421d2fb644e57c31dbaa9b. Windows folder C:/Users/permees/Downloads/DisasterParty-public-0d10b28; logs/ZIP .amp/in/artifacts/earthquake-deploy/. Old0c79ebe clients no longer match public server. No direct AWS changes or new human Internet/Earthquake acceptance claim. Evidence-only follow-up push skips CI to preserve deployed revision."
     }
   ],
+  "documentation_validation": {
+    "date": "2026-10-09",
+    "command": "Python byte comparisons of Git originals and split sections; Markdown path/anchor and active progress pointer checks; jq empty progress.json docs/old-docs/phase-*/progress.json; git diff --check",
+    "status": "passed",
+    "result": "26 relative links/anchors and active pointers pass; four moved historical decision/progress payloads remain byte-identical, completed Phase0/1 and future Phase3–6 sections split losslessly. Phase2 now distinguishes completed2.2.8b synthetic implementation from pending2.2.8c human acceptance; parent task and all gameplay gates unchanged. Added NEED_REAL_CHECK.md, per-phase checklists/archive indexes, AGENTS policy and organizing-phase-tracking skill. Documentation-only delivery; no runtime change, deployment or new human acceptance."
+  },
   "blockers": [
     "Task2.2.8 synthetic fixed/jitter/loss traversal and native regression pass; current0d10b28 public deployment and matching Windows delivery include movement,2.3 display/cursor and living airborne-recovery corrections. Separate-network2/4-player movement/aim confirmation remains open; recovery correction up to0.9m is measured, not human smoothness acceptance. Separate20-player defect remains unexplained and beyond supported1–4 playtest scope.",
     "Milestone2.3 fixes reproduced actor-spawn cursor stealing and proven shared-world preview-light accumulation; actual X11 solo/host/dedicated recovery, native Windows pointer/focus and corrected preview checks pass. Original X connection loss and cleanup diagnostics remain unclassified: no original first-failure/display lifecycle evidence, and current normal-exit runs do not reproduce it. Physical mixed-DPI monitor switching remains unexecuted; no production lighting change or inferred X-loss cause.",

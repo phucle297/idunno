@@ -16,6 +16,7 @@ Deliver the smallest coherent improvement in the current milestone without expan
 5. Run the narrowest meaningful automated check, then launch or render representative gameplay when visuals or interactions changed.
 6. Record commands and honest results in `progress.json`. Mark a check `passed` only after executing it; use `failed`, `blocked`, or `not_run` otherwise.
 7. Set exactly one concrete `next_action` for the next session.
+8. Follow the active phase's `docs/checklists/{phase-slug}.md`; `docs/implementation-checklist.md` is the index. Keep user/device/Internet acceptance in root `NEED_REAL_CHECK.md` and record build-specific human evidence before closing its corresponding gate.
 
 ## Planning Hierarchy
 
@@ -31,10 +32,11 @@ After every required milestone and gate passes:
 
 1. Record the final completion evidence in root `progress.json`.
 2. Derive a lowercase hyphenated phase slug from the stable phase ID, such as `phase-1-ui-identity-and-feedback`.
-3. Create `docs/old-docs/progress-{phase-slug}.json`. Stop if that path already exists; never replace historical phase evidence.
-4. Preserve the completed phase's full milestones, tasks, validation log, blockers, and changed files in the archive. Set `source_of_truth` to `false` and add archive metadata with phase ID, title, status, timestamp, and `superseded_by: "../../progress.json"`.
+3. Create `docs/old-docs/{phase-slug}/progress.json`. Stop if that path already exists; never replace historical phase evidence.
+4. Preserve the completed phase's full milestones, tasks, validation log, blockers, and changed files in the archive. Set `source_of_truth` to `false` and add archive metadata with phase ID, title, status, timestamp, and `superseded_by: "../../../progress.json"`. Move its checklist and decision log into the same directory as `checklist.md` and `decisions.md`, preserving their content and updating navigation links.
 5. Replace root `progress.json` with a fresh file for only the next phase. Include the workflow schema, `previous_phase_archive`, active phase/milestone/task, empty new-phase validation and changed-file state, blockers, and exactly one executable next action.
 6. Validate both files with `jq empty` and confirm the archive is complete while root state contains no completed-phase diary.
+7. Update the checklist/archive indexes and reconcile `NEED_REAL_CHECK.md`; never drop unresolved human checks or infer passes from automation.
 
 ## Scope Rules
 

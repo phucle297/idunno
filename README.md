@@ -5,10 +5,11 @@ A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 Development is specification-led:
 
 - `docs/old-docs/PROMPT.md` archives the original development prompt.
-- `docs/old-docs/progress-{phase-slug}.json` preserves immutable completed-phase evidence.
+- `docs/old-docs/{phase-slug}/` groups completed-phase checklists, decisions and immutable progress evidence; see `docs/old-docs/README.md`.
 - `DESIGN.md` is the local Disaster Party Design Bible.
 - `progress.json` is the single source of truth for only the active phase, milestone, optional task, validation evidence, blockers, and next action.
-- `docs/implementation-checklist.md` is the human-readable roadmap and current execution checklist without replacing the design plan.
+- `docs/implementation-checklist.md` indexes the individual phase checklists in `docs/checklists/`, without replacing the design plan.
+- `NEED_REAL_CHECK.md` lists the user/device/Internet checks still needed, with matching-build instructions and a result-reporting format.
 
 All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. **Phase 1 — UI Identity and Feedback** adds the Toy Broadcast HUD, warnings, lobby, spectator/results presentation, local pause, saved settings, and continuous map perimeter with authoritative out-of-bounds elimination. Both phases are complete; detailed evidence is archived under `docs/old-docs/`, and `progress.json` now tracks Phase 2 — Human Playtest and Core Feel. See `GUIDE.md` for play instructions and current limitations.
 

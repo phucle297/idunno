@@ -1,6 +1,11 @@
 # Phase 2 — Human Playtest and Core Feel: Implementation Decisions
 
-Only active-phase decisions belong here. Completed-phase decisions are preserved in [Phase 0 — Init Project](old-docs/decisions-phase-0-init-project.md) and [Phase 1 — UI Identity and Feedback](old-docs/decisions-phase-1-ui-identity-and-feedback.md). Archive this log by phase when Phase 2 closes; never overwrite historical archives.
+Only active-phase decisions belong here. Completed-phase decisions are preserved in [Phase 0 — Init Project](old-docs/phase-0-init-project/decisions.md) and [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/decisions.md). Archive this log by phase when Phase 2 closes; never overwrite historical archives.
+
+## 2026-10-09 — Phase checklist navigation and real-user acceptance
+
+- User requests separate phase checklists and phase-grouped archives. `docs/implementation-checklist.md` becomes the index; active/planned phases use `docs/checklists/{phase-slug}.md`. Completed Phase0/1 checklist, decisions and progress live together under `docs/old-docs/{phase-slug}/`. Historical decision/progress payloads remain byte-identical; old path strings inside them are historical, with current navigation documented in the archive index.
+- Root `NEED_REAL_CHECK.md` lists immediate Windows Internet movement/session/settings checks, physical display conditions and later Phase2 human baseline/follow-up, with build-specific reporting. This does not invalidate the owner's earlier Internet/audio confirmation, close untested human gates or authorize server restarts/deployment. Completed tasks remain in the active phase checklist until that phase closes; synthetic movement validation and remaining physical feel acceptance are explicitly separated.
 
 ## 2026-10-07 — Phase 2 planning and evidence boundary
 
