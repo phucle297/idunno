@@ -129,6 +129,15 @@ func _test_acquisition_eligibility() -> void:
 	crate.position.z -= 0.01
 	_expect(manager.get_interaction_candidate(player_one) == null and not manager.request_grab(1, crate), "Just outside range is rejected by both paths")
 	crate.position = Vector3(0, 0.4, -1)
+	# Real prop assemblies rest with the body origin on the floor surface; the
+	# floor must not read as an acquisition obstruction at that boundary.
+	var resting_collision := crate.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D
+	resting_collision.position.y = 0.3
+	crate.position = Vector3(0, 0, -1)
+	_expect(manager.get_interaction_candidate(player_one) == crate and manager.request_grab(1, crate), "A floor-resting bottom-origin prop must remain acquirable")
+	manager.release_grab(1)
+	resting_collision.position.y = 0.0
+	crate.position = Vector3(0, 0.4, -1)
 	var wall := StaticBody3D.new()
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()

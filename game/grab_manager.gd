@@ -110,7 +110,10 @@ func _can_acquire(player: PartyPlayer, body: RigidBody3D) -> bool:
 	var distance := offset.length()
 	if distance > Tuning.GRAB_RANGE or distance <= 0.001 or player.get_grab_direction().dot(offset / distance) < Tuning.GRAB_MIN_FORWARD_DOT:
 		return false
-	var query := PhysicsRayQueryParameters3D.create(origin, body.global_position, player.collision_mask, [player.get_rid(), body.get_rid()])
+	# Stop inside the target: a floor-resting prop's origin lies on the floor
+	# surface, so a ray ending there spuriously reports the floor as blocking.
+	var ray_end := origin + offset * 0.85
+	var query := PhysicsRayQueryParameters3D.create(origin, ray_end, player.collision_mask, [player.get_rid(), body.get_rid()])
 	query.hit_from_inside = true
 	return player.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
