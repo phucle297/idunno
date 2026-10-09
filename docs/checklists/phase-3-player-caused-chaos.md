@@ -90,10 +90,10 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_3_1_prop_role_feasibility` · **Owners:** Main crate assembly, Flood, Player and existing prop replication.
 
-- [ ] First measure unheld upright/tilted crate behavior during water rise and current with an actual passenger. Track player/prop position, floor contact, head exposure, health and correction displacement; do not derive expected outcomes from private force fields.
-- [ ] Exercise boarding, walking off, another player grabbing/releasing, wall/ramp contact, Tornado/Meteor disturbance and water drainage. Separate a supported standing player from the holder's collision exception; holding one's own foothold cannot levitate/rescue the capsule.
-- [ ] Test two clients and synthetic delay/jitter/loss: server-approved footing must not become a client-only elevator or repeated replay launch. Present-world collision replay is a known limit; do not start historical rigidbody rollback merely to save this candidate.
-- [ ] Record go/no-go with bounded tunables and contrary cases. If floating support is unstable or requires a new vehicle/rollback system, defer the buoyant role explicitly and evaluate a dry-ground step/escape-aid role using the same crate. A fallback must independently demonstrate a useful route and pass the same lifecycle/network contract; it is not a floating-role pass.
+- [x] First measure unheld upright/tilted crate behavior during water rise and current with an actual passenger. Track player/prop position, floor contact, head exposure, health and correction displacement; do not derive expected outcomes from private force fields.
+- [x] Exercise boarding, walking off, another player grabbing/releasing, wall/ramp contact, Tornado/Meteor disturbance and water drainage. Separate a supported standing player from the holder's collision exception; holding one's own foothold cannot levitate/rescue the capsule.
+- [x] Test two clients and synthetic delay/jitter/loss: server-approved footing must not become a client-only elevator or repeated replay launch. Present-world collision replay is a known limit; do not start historical rigidbody rollback merely to save this candidate.
+- [x] Record go/no-go with bounded tunables and contrary cases. If floating support is unstable or requires a new vehicle/rollback system, defer the buoyant role explicitly and evaluate a dry-ground step/escape-aid role using the same crate. A fallback must independently demonstrate a useful route and pass the same lifecycle/network contract; it is not a floating-role pass.
 
 **Acceptance:** Select one role that measurably changes a feasible escape choice versus ignoring the prop, remains optional and fits the physics/network budget. Document deferred candidate reasons; do not ship a role based only on buoyancy visuals.
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T19:46:02Z",
+  "updated_at": "2026-10-09T22:59:59Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_3_player_caused_chaos",
     "milestone": "milestone_3_3_useful_survival_prop",
-    "task": "task_3_3_1_prop_role_feasibility"
+    "task": "task_3_3_2_prop_role_integration"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -69,7 +69,7 @@
         "title": "One Useful Survival Prop",
         "status": "in_progress",
         "dependencies": ["milestone_3_2_readable_carrying"],
-        "tasks": {"task_3_3_1_prop_role_feasibility": "in_progress", "task_3_3_2_prop_role_integration": "planned"},
+        "tasks": {"task_3_3_1_prop_role_feasibility": "completed", "task_3_3_2_prop_role_integration": "planned"},
         "gates": {"one_useful_prop_role_validated": "not_run"}
       },
       "milestone_3_4_bounded_shove_decision": {
@@ -220,11 +220,29 @@
       "command": "Final Task3.2.2 validation at GRAB_HOLD_DISTANCE=1.0: grab/map/prediction/latency and full UI regression",
       "status": "passed",
       "result": "GRAB_MANAGER_OK checks295; MAP_SAFETY_OK checks175; NETWORK_PREDICTION_OK checks21. MOVEMENT_LATENCY_OK response-bound with correction maxima0.217m/0.550m/1.088m at added RTT0/100/200ms and zero settled error. PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh passes UI_REGRESSION_OK suites35/matrices5/persistence_restart=passed. Milestone3.2 gate carry_tradeoff_and_prediction_agreement is passed;3.3.1 is next. Shutdown-only ObjectDB/resources diagnostics remain unchanged."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Fix grab acquisition ray for floor-resting props and rerun GRAB_MANAGER fixture",
+      "status": "passed",
+      "result": "Acquisition rays now end at origin + offset * 0.85 so floor-resting crates (origin on the floor) are not rejected by Plaza floor hits. GRAB_MANAGER_OK checks=296. Committed as bde3362."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Task3.3.1 prop-role feasibility experiment tests/test_prop_role_feasibility.gd",
+      "status": "passed",
+      "result": "PROP_ROLE_FEASIBILITY_OK checks=198 (log .amp/in/artifacts/phase-3-prop/feasibility-3-3-1.log). Buoyant upright/tilted crate with real passenger: supported 75/80, dry head 80/80, health 100, drift 15.19/15.17m, max_speed 1.64m/s, drainage walk-off free. Grab boundaries: holder_on_own_crate=false, passenger lift 0.36m, held crate top 0.97 vs jump apex 1.65 (boardable), released boarding=true. Wall contact contained (max x=9.56 vs Hall west face 9.85). Ramp contact: dropped crate rests on walking surface (clearance -0.01) and 9m/s shove crosses without tunneling (min clearance -0.01); containment is not a ramp property — flood peak 3.5m floats a crate over the slab and a grounded crate passes beneath the 0.94 underside (contrary case recorded). Disturbance bounded: meteor 0.21, tornado 0.39m/s. Dry-ground role: crate-only apex 2.00 < 2.2 refuge, no-crate mount 1.41 < 1.7, full boost route completed."
+    },
+    {
+      "date": "2026-10-09",
+      "command": "Task3.3.1 networked prop footing fixture plus 3x movement-latency matrix (0/100/200ms, ±30ms jitter, loss every 20)",
+      "status": "passed",
+      "result": "Footing fixture (owner standing on a server-placed prop at y=30): authority-approved elevated footing, prop-footed hop ≤1.6m landing back on prop, step-off settle, corrections <1.5m; footing-window corrections stayed ≤0.225m in all runs and run 3 passed MOVEMENT_LATENCY_OK response-bound. Contrary evidence preserved: runs 1–2 had flaky unrelated failures (reconciliation measurement count, carry launch 1.508 vs 1.5 bound, one no-motion trial) and a ~14m correction in the run_traversal knockdown window in ~3/9 cases (known 3.2-era intermittent class, never in footing windows). Logs: .amp/in/artifacts/movement-latency/footing-run{1,2,3}-summary.log. Go/no-go recorded in docs/decisions.md: dry-ground step/escape-aid selected, buoyant floating foothold deferred on measured 15m drift."
     }
   ],
   "blockers": [
     "Phase2's unclassified X-loss/rematch/20-player observations and unexecuted native/release acceptance remain preserved in previous_phase_archive. They are not marked fixed or passed; current support remains1–4 and user manual waiver remains in force."
   ],
-  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/toy_character_visual.gd", "game/main.gd", "scenes/main.tscn", "assets/manifest.json", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/test_player_integration.gd", "tests/test_carry_presentation.gd", "tests/test_gameplay_hud.gd", "tests/test_milestone_1_1.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
-  "next_action": "Run Task3.3.1 buoyant foothold/escape-aid feasibility experiment with an actual passenger, water rise/current, holder versus passenger collision and two-client delay/loss checks; record go/no-go and then integrate only the selected role."
+  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/toy_character_visual.gd", "game/main.gd", "scenes/main.tscn", "assets/manifest.json", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/test_player_integration.gd", "tests/test_carry_presentation.gd", "tests/test_gameplay_hud.gd", "tests/test_milestone_1_1.gd", "tests/movement_latency_peer.gd", "tests/test_prop_role_feasibility.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
+  "next_action": "Task3.3.2: integrate only the selected dry-ground step/escape-aid role — a small bounded crate boost-step placement with shared toy materials and a short contextual cue — then verify wet/dry boundaries, asymmetric passenger/holder states, five rematches and rerun the latency/traversal matrix with recorded correction maxima."
 }
