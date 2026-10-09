@@ -131,6 +131,8 @@ If this backlog is later activated, define rendered/regression and build-specifi
 
 Depends on 2.2 and 2.3; collect baseline evidence before changing core feel.
 
+Preparation2026-10-09: executable baseline protocol, per-round/death report template and known-fix verification table are ready in [RC-2.4-BASELINE](../../NEED_REAL_CHECK.md#rc-24-baseline--ghi-nhận-gameplay-trước-khi-chỉnh-feel). User requests finishing2.4–2.6, but no matching-build human session evidence or approved6–8 capacity is available. Status is blocked, not complete. Combine3–4 baseline observations with remaining2.2 human checks where actually observed; preserve2.2/2.3 prerequisites. Automated checks do not count as uncoached death explanations, voluntary rematches or a human baseline.
+
 - [ ] Run an initial 3–4-person session, then a 6–8-person session on separate Windows PCs joining Internet rooms by ID using matching packages. Aim for at least three normal rounds per session; record actual counts and early endings rather than forcing an 8–12-minute outcome. Keep debug/demo launches out of competitive rounds.
 - [ ] Before play, record client/server builds and hardware, server region, input devices, resolution/V-Sync, network latency/setup and prior familiarity. Include a brief traversal/prop/camera check through doors, stairs and each elevation route; test controller navigation and physical warning audibility where devices are available.
 - [ ] Observe without coaching once the controls are introduced. For each death, record time, authoritative cause, what the player thought happened before explanation, warning noticed and escape attempted. Log camera blockage, client responsiveness, unfair/stuck recovery, spectator downtime, disconnects and frame-pacing complaints with reproduction context.
@@ -142,6 +144,8 @@ Acceptance: real sessions at both group sizes, per-round observations and player
 
 Depends on 2.4; create ordered tasks from actual findings, not speculative tuning.
 
+Preparation2026-10-09: agent/user ownership and matching-build before/after procedure are ready in [RC-2.5-FEEL](../../NEED_REAL_CHECK.md#rc-25-feel--xác-nhận-từng-sửa-có-mục-tiêu). Blocked on baseline findings; no speed, damage, camera or pacing tuning is justified yet. Do not relabel prior2.2 corrections as completed2.5 work. If baseline supports no change, document the evidence and explicit no-change decision instead of inventing a fix.
+
 - [ ] Prioritize reproduced issues by severity, recurrence and impact on comprehension/control. Tune movement in `game/player_tuning.gd`, camera in the existing player scene/controller, and pacing in MatchManager/Director/disaster metadata; keep authority, solo exception, recovery protection and physics budgets intact. Do not tune speculatively before observations.
 - [ ] Change one coherent issue at a time; record the hypothesis, baseline, values changed and before/after evidence. Re-run affected behavior tests and network checks; inspect renders for appearance changes and native Windows overlap throughput plus default-V-Sync pacing for performance changes.
 
@@ -150,6 +154,8 @@ Acceptance: recurring high-impact issues prioritized with reproduction evidence,
 ### Milestone 2.6 — Follow-Up Validation and Phase Review
 
 Depends on 2.5; retest affected scenarios and normal rounds at both group sizes and compare with the baseline.
+
+Preparation2026-10-09: denominator-aware death-clarity, voluntary-rematch and recurring-pattern checks plus return-to2.5 criteria are ready in [RC-2.6-FOLLOWUP](../../NEED_REAL_CHECK.md#rc-26-followup--so-sánh-với-baseline-và-quyết-định-đóng-phase). Blocked on baseline/fix outcome and humans, not passed from bots/regression. Group6–8 remains separately blocked by supported capacity; do not raise caps or deploy to satisfy a checklist. Phase2 remains open.
 
 - [ ] Repeat the affected scenario and normal rounds with humans. Proposed expansion gate: at least 80% of sampled deaths correctly explained without coaching (report numerator/denominator), a majority independently willing to rematch in each follow-up group, and at least two distinct emergent causal patterns recurring across rounds. Record contrary evidence; do not treat small-sample results as statistical proof.
 

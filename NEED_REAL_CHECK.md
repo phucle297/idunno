@@ -41,9 +41,60 @@
 
 Chưa phải yêu cầu nâng capacity ngay: scope playtest hiện tại là 1–4 người. Nhóm 6–8 chỉ chạy khi prerequisites/capacity đã được chấp thuận và xác thực.
 
-- [ ] **RC-2.4-BASELINE:** tổ chức baseline nhóm 3–4 và sau đó 6–8 người theo [Milestone 2.4](docs/checklists/phase-2-human-playtest-and-core-feel.md#milestone-24--human-playtest-baseline); ghi build/hardware/network/input, nguyên nhân chết người chơi tự giải thích trước khi coaching, nhu cầu rematch tự nguyện, thời lượng và các chuỗi chaos lặp lại. Controller navigation/physical audio chỉ ghi đạt khi có thiết bị và đã thử.
-- [ ] **RC-2.5-FEEL:** sau các sửa core feel, user thử bằng thiết bị thật để xác nhận phản hồi/comfort cải thiện; không suy ra từ test automation hoặc chỉnh tuning.
-- [ ] **RC-2.6-FOLLOWUP:** chạy follow-up theo [Milestone 2.6](docs/checklists/phase-2-human-playtest-and-core-feel.md#milestone-26--follow-up-validation-and-phase-review); báo số death explanation đúng (mục tiêu ≥80%), người tự muốn rematch (đa số), ít nhất hai emergent patterns lặp lại và mọi lỗi control/session còn gặp. Chưa có phiên thì để unchecked.
+### RC-2.4-BASELINE — Ghi nhận gameplay trước khi chỉnh feel
+
+**Trạng thái:** chờ người chơi thật; chưa có báo cáo baseline đủ build/điều kiện. Agent không thay bằng bot hoặc tự suy ra game vui từ regression. Có thể gộp phiên này với RC-2.2-MOVEMENT/SESSION để không bắt user thử hai lần; chỉ đóng mục thực sự đã quan sát. Bản baseline hiện dùng folder ở đầu tài liệu; chưa có bản mới trong đợt chuẩn bị này.
+
+- [ ] Nhóm3–4 người trên Windows/mạng riêng: hướng tới3 round bình thường; ghi số người/round thực tế nếu thiếu người hoặc phải dừng. Không dùng demo/debug ép hazard/thắng cho kết quả baseline.
+- [ ] Trước round đầu: ghi build client/server, ngày giờ, từng máy/GPU, resolution/DPI/V-Sync, chuột/controller, mạng/RTT nếu có và người đã biết chơi hay chưa. Mỗi người thử chạy/sprint/đổi hướng/nhảy,4 đường lên cao, cửa/chỗ trú, cầm/thả prop và camera trước khi bắt đầu.
+- [ ] Sau mỗi lần chết, hỏi **trước khi giải thích**: “Bạn nghĩ chết vì gì? Có thấy/nghe cảnh báo không? Bạn đã định chạy đâu?” Ghi câu trả lời và nguyên nhân hiển thị; nếu nguyên nhân thực chưa rõ thì ghi chưa xác minh, không chấm đúng theo suy đoán.
+- [ ] Cuối mỗi round: ghi thời lượng, người bị mất input/giật/stuck/camera che, thời gian spectate khó chịu nếu có; hỏi có muốn chơi tiếp không. Tách người tự muốn rematch khỏi round được yêu cầu để test.
+- [ ] Ghi thời điểm và chuỗi ít nhất các tình huống đáng nhớ nếu xảy ra, ví dụ Flood→lên mái→Meteor→ngã/knockdown; ghi cả round không có tình huống vui. Không cần quay video; chỉ quay khi người tham gia đồng ý.
+- [ ] Nhóm6–8: **đang chờ hỗ trợ capacity được phê duyệt và kiểm chứng**, không thực hiện trên server1–4 hiện tại chỉ để tick. Chưa đủ nhóm này thì gate đầy đủ2.4 vẫn mở; không tự tăng player cap/deploy.
+
+Mẫu ngắn để gửi (lặp cho mỗi round/death):
+
+```text
+RC-2.4-BASELINE — ngày/giờ — build — số người/mạng — máy/input/display
+Round: số | thời lượng | disconnect/input/camera/giật | tự muốn rematch: x/n
+Death: thời điểm | nguyên nhân hiển thị/đã xác minh | người chơi tự giải thích
+Warning: nhìn/nghe được? | đường thoát đã thử | thấy công bằng/khó hiểu ở đâu?
+Moment: thời điểm | chuỗi sự kiện | có lặp ở round khác không?
+Ưu tiên sửa theo người chơi: ...
+```
+
+### RC-2.5-FEEL — Xác nhận từng sửa có mục tiêu
+
+**Agent làm sau baseline:** phân loại findings theo mức chặn chơi/tần suất/ảnh hưởng; tái hiện ở owner hiện có, sửa một vấn đề đã chứng minh và chạy regression/render trước/sau. User không phải chẩn đoán code. Chưa có findings baseline nên không đổi speed/camera/damage/pacing theo phỏng đoán; các fix movement/death đã giao thuộc2.2, không tự tính là kết quả2.5.
+
+- [ ] Khi agent giao build/fix cụ thể: lặp đúng thao tác/route/hazard gây vấn đề với cùng điều kiện gần nhất; ghi bản trước và bản sau, tần suất trước/sau, cảm giác phản hồi/camera/warning và lỗi mới nếu có.
+- [ ] Nếu fix thay đổi wire/build, tất cả người chơi và server phải matching. Chỉ thử Internet sau deployment được cho phép; không trộn bản hoặc yêu cầu user tự restart server.
+- [ ] Chỉ xác nhận “cải thiện” cho tình huống thực sự đã thử. Nếu baseline không có vấn đề cần sửa, ghi bằng chứng và quyết định no-change riêng; không tạo một tuning để đánh dấu milestone xong.
+
+### RC-2.6-FOLLOWUP — So sánh với baseline và quyết định đóng phase
+
+**Trạng thái:** phụ thuộc baseline2.4 và kết quả xử lý2.5; chưa có follow-up để chấm. Dùng build đã giao sau fixes (hoặc cùng build nếu có quyết định no-change có bằng chứng), ghi version/điều kiện trước khi chơi.
+
+- [ ] Lặp tình huống đã sửa rồi chơi round bình thường ở các nhóm đã đủ prerequisites; so với baseline cùng mẫu trên. Ghi số người/round thực tế, không ép round đạt8–12 phút; báo thời lượng thực so với mục tiêu.
+- [ ] Death clarity: số lần người chơi tự giải thích đúng / tổng số death có nguyên nhân xác minh được; mục tiêu≥80%. Không có mẫu hoặc chưa xác minh nguyên nhân thì chưa đủ kết luận, không coi0/0 là đạt.
+- [ ] Rematch: số người độc lập muốn chơi tiếp / tổng số được hỏi, phải là đa số trong mỗi nhóm; phân biệt với5 rematch do facilitator yêu cầu để regression.
+- [ ] Emergence: ít nhất2 kiểu chuỗi sự kiện khác nhau lặp qua các round; gửi ví dụ/thời điểm, không tính2 lần cùng một chuỗi là2 kiểu.
+- [ ] Không còn lỗi chặn phiên/điều khiển chưa xử lý. Nếu còn spinning, invisible living body, kẹt đường không thoát, mất click hoặc disconnect lặp, gửi bước tái hiện; agent quay lại2.5, chưa đóng phase.
+- [ ] Nhóm6–8 chưa đủ hỗ trợ/thiết bị thì ghi blocked riêng; passing nhóm3–4 không thay thế gate cả hai nhóm.
+
+## Các vấn đề cần xác nhận — không phải tất cả là lỗi hiện còn
+
+| Mục | Bằng chứng hiện có | User cần kiểm tra / điều kiện |
+| --- | --- | --- |
+| Lag/tự xoay multiplayer | Cause yaw feedback đã sửa; prediction có synthetic latency/jitter/loss và native regression | RC-2.2-MOVEMENT trên matching build mới; quan sát aim khi thả input và giật khi đi/đổi hướng |
+| Nhân vật vô hình sau knockdown/death | Các lỗi đã tái hiện, sửa, deploy; chưa có xác nhận gameplay mới từ user | Khi còn sống, hồi phục trên không rồi chạy/nhảy thấy model; sau chết không điều khiển body; rematch khôi phục |
+| Recovery bị giật | Fixture từng đo correction tối đa0.9m; không phải kết luận mọi trận giật0.9m | Ghi cảm giác/thời điểm/RTT khi knockdown kết thúc, nhất là gần cầu thang/props |
+| Owner không thấy round rematch | Recheck2026-10-09 có1 assertion owner fail; server/guest qua, isolated và full rerun không đổi code đều qua; cause chưa rõ | Trong RC-2.2-SESSION/2.4 ghi nếu bấm Rematch mà owner vẫn ở Results hoặc các máy lệch round; agent điều tra logs, user không cần tự tái tạo race |
+| Model/địa hình/camera | Chưa có audit đầy đủ chuyển động và các route thật; không kết luận model hỏng từ source | Ghi clipping/tay-chân rời/đổi animation đột ngột, bước chân trượt, lối lên mái/kẹt cửa/camera che nếu gặp; agent tái hiện trước sửa |
+| EXE không nhớ settings | Chưa được chứng minh là bug; editor/exact-PCK restart pass nhưng actual-EXE automation inconclusive | RC-2.2-SETTINGS: đổi bằng UI, thoát hẳn, mở lại và ghi giá trị; không cần redesign Settings |
+| X11 display loss / mixed-DPI | X loss chưa tái hiện; physical mixed-monitor chưa thử | RC-2.3-DISPLAY khi có thiết bị hoặc lỗi tái diễn; không cần cố làm crash |
+
+Các lỗi scale20 người, capacity lớn, hiện tượng Meteor/heartbeat từng thất bại rồi pass chưa rõ cause là phần agent phải điều tra nếu tái diễn/trước mở rộng; **không yêu cầu user chạy20 người hoặc tự sửa hạ tầng**. Giữ log lịch sử trong progress, không dùng checklist này để tuyên bố đã sửa.
 
 ## Cách báo kết quả
 
