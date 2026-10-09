@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T01:46:06Z",
+  "updated_at": "2026-10-09T02:21:14Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -573,6 +573,12 @@
       "check": "Task2.3.2 controlled preview-light diagnosis and original capture workflow rerun",
       "status": "passed",
       "result": "Read original2.2.3 thread T-01a1157e-607f-7018-bf1e-024358ebba9d: unprocessed root PNGs, four then five Main copies share one World3D. Same-camera/resolution/renderer diagnostic changes only other copies' Sun visibility; original four directional lights produce gray/washed materials, single production-energy1.0 Sun restores colors. Each Main really has its own global Sun despite200m spatial separation. Fix only test_dedicated_server._capture to render selected peer's Sun, not production energy/environment. Original five-state720p/1080p workflow passes132 checks per run and exact framebuffer/visibility assertions; inspected all ten final captures. Existing long shared-winner heading uses intentional ellipsis/tooltip, unchanged. Headless107-check control rerun passes. Logs/images preview-diagnostic/ and preview-final/ under milestone-2-3; no X-loss fix inferred."
+    },
+    {
+      "date": "2026-10-09",
+      "check": "Living-player airborne knockdown recovery red/green, native Windows and full source regression",
+      "status": "passed",
+      "result": "Owner clarifies living avatar falls then controls resume invisibly; screenshot33HP/one survivor, distinct from corrected elimination movement. Airborne timer expiry exits knockdown before floor-gated cleanup executes; remove only floor requirement to restore visual/remove ragdoll when controls recover. New airborne-expiry and subsequent running/landing/jumping assertions fail before/pass after. Headless player69/native Windows Radeon860M72 checks; full source34 suites/five network groups/settings restart pass. Rendered actual Main/Earthquake three pulses/85HP fixture verifies recovery, both final captures inspected. Logs .amp/in/artifacts/earthquake-recovery/. Known headless shutdown-only diagnostics retained. Validated source, no public deployment; old release executables lack fix. Milestone2.3 original X-loss classification stays blocked."
     }
   ],
   "blockers": [

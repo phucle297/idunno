@@ -198,6 +198,20 @@ func _test_knockdown_recovery() -> void:
 	_expect(not player.is_knocked_down(), "Knockdown must recover after the bounded duration")
 	_expect(player.ragdoll_body_count() == 0, "Recovery must clean up the cosmetic ragdoll")
 	_expect(player.get_node("Visual").visible, "Recovery must restore the upright visual")
+	# Earthquake can knock a living player off an elevated route. Expiry must
+	# restore the visible actor even when the capsule has not landed yet.
+	player.reset_for_match(Vector3(0.0, 40.0, 0.0))
+	player.apply_knockdown(Vector3(3.0, 2.0, -1.0))
+	for index in 90:
+		await physics_frame
+		player.apply_movement_input(Vector2.RIGHT, true, false, false, DELTA)
+	_expect(not player.is_on_floor() and not player.is_knocked_down(), "Airborne knockdown must expire before landing")
+	_expect(player.visual.visible and player.ragdoll_body_count() == 0, "Airborne recovery must not leave a movable invisible capsule and abandoned ragdoll")
+	var recovered_position := player.position
+	for index in 120:
+		await physics_frame
+		player.apply_movement_input(Vector2.RIGHT, true, false, true, DELTA)
+	_expect(player.position.x > recovered_position.x + 2.0 and player.visual.visible and player.ragdoll_body_count() == 0, "Running and landing/jumping after airborne recovery must retain the visible actor")
 
 
 func _test_default_scene_offline_input() -> void:

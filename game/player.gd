@@ -333,7 +333,7 @@ func _process_knockdown(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 5.0 * delta)
 	velocity.z = move_toward(velocity.z, 0.0, 5.0 * delta)
 	move_and_slide()
-	if _knockdown_remaining <= 0.0 and is_on_floor():
+	if _knockdown_remaining <= 0.0:
 		_clear_cosmetic_ragdoll()
 		_update_capsule(false)
 
