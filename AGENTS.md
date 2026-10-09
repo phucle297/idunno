@@ -7,6 +7,7 @@ Before implementation work:
 3. Load `.agents/skills/advancing-disaster-party/SKILL.md` for implementation, planning, or session handoff work.
 4. Load `.agents/skills/validating-game-assets/SKILL.md` before downloading, generating, importing, changing, or approving an asset.
 5. Load `.agents/skills/organizing-phase-tracking/SKILL.md` when splitting/moving phase documents, reconciling checkboxes, recording user acceptance, or closing a phase. Keep user checks in `NEED_REAL_CHECK.md`, phase checklists separate, and completed-phase documents grouped in `old-docs` as specified below.
+6. Load the Amp User Skill `planning-project-phases` when creating/revising planning, phase/milestone/task hierarchy, or consolidating stale documents. Apply this repository's `organizing-phase-tracking` skill for its specific paths and acceptance policy; do not reset progress or rewrite DESIGN during document cleanup.
 
 Do not rewrite the design plan. Record only active-phase implementation decisions in `docs/decisions.md` and executable work in `docs/checklists/{phase-slug}.md`; `docs/implementation-checklist.md` is the navigation index. Record user/device/network acceptance separately in root `NEED_REAL_CHECK.md`, with build and conditions; do not substitute automated evidence for human acceptance. Keep completed tasks of an active phase in its checklist for context. Move completed-phase checklist, decisions and progress together to `docs/old-docs/{phase-slug}/`, preserve evidence, and link archives from the active log. Never overwrite an existing archive.
 

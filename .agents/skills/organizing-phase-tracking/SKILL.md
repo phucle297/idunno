@@ -7,6 +7,8 @@ description: Organizes Disaster Party phase checklists, completed-phase archives
 
 Keep implementation evidence, human acceptance and historical phase records distinct.
 
+For creating or revising plans and phase/milestone/task decomposition, load the Amp User Skill `planning-project-phases`. It supplies the reusable planning/document-cleanup workflow; this local skill supplies Disaster Party paths and project-specific constraints. Keep DESIGN authoritative, inspect actual implementation before planning, and preserve stable IDs and open acceptance gates.
+
 ## Sources and layout
 
 - Read root `AGENTS.md`, `DESIGN.md`, `progress.json` and `docs/implementation-checklist.md` before changing tracking.

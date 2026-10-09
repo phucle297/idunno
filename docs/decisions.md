@@ -6,6 +6,7 @@ Only active-phase decisions belong here. Completed-phase decisions are preserved
 
 - User requests separate phase checklists and phase-grouped archives. `docs/implementation-checklist.md` becomes the index; active/planned phases use `docs/checklists/{phase-slug}.md`. Completed Phase0/1 checklist, decisions and progress live together under `docs/old-docs/{phase-slug}/`. Historical decision/progress payloads remain byte-identical; old path strings inside them are historical, with current navigation documented in the archive index.
 - Root `NEED_REAL_CHECK.md` lists immediate Windows Internet movement/session/settings checks, physical display conditions and later Phase2 human baseline/follow-up, with build-specific reporting. This does not invalidate the owner's earlier Internet/audio confirmation, close untested human gates or authorize server restarts/deployment. Completed tasks remain in the active phase checklist until that phase closes; synthetic movement validation and remaining physical feel acceptance are explicitly separated.
+- User additionally requests reusable planning/phase/milestone/document-cleanup guidance published on Amp. Created `planning-project-phases` in the personal Amp User Skills repository and pushed it with explicit authorization; retain `organizing-phase-tracking` locally for Disaster Party-specific paths/policy. AGENTS names both triggers. This is skill publication, not gameplay implementation or deployment.
 
 ## 2026-10-07 — Phase 2 planning and evidence boundary
 

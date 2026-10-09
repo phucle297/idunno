@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-09T09:49:05Z",
+  "updated_at": "2026-10-09T09:53:21Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -591,6 +591,12 @@
   ],
   "documentation_validation": {
     "date": "2026-10-09",
+    "planning_skill_publication": {
+      "name": "planning-project-phases",
+      "repository": "https://ampcode.com/git/@permees/-/skills",
+      "status": "passed",
+      "result": "User-authorized personal Amp skill publication: frontmatter/name/description/length and planning/phase/milestone/task/archive/real-check scope assertions pass; git diff --cached --check passes and push to personal main succeeds. AGENTS and local organizing-phase-tracking now reference the reusable skill; gameplay phase/gates/next action unchanged."
+    },
     "command": "Python byte comparisons of Git originals and split sections; Markdown path/anchor and active progress pointer checks; jq empty progress.json docs/old-docs/phase-*/progress.json; git diff --check",
     "status": "passed",
     "result": "26 relative links/anchors and active pointers pass; four moved historical decision/progress payloads remain byte-identical, completed Phase0/1 and future Phase3–6 sections split losslessly. Phase2 now distinguishes completed2.2.8b synthetic implementation from pending2.2.8c human acceptance; parent task and all gameplay gates unchanged. Added NEED_REAL_CHECK.md, per-phase checklists/archive indexes, AGENTS policy and organizing-phase-tracking skill. Documentation-only delivery; no runtime change, deployment or new human acceptance."
