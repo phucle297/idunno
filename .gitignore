@@ -21,3 +21,7 @@ infra/**/*.tfvars.json
 infra/**/*.pem
 infra/**/backend.hcl
 infra/**/crash.log
+
+# Python bytecode from test/tool imports
+__pycache__/
+*.pyc

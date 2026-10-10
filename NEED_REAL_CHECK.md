@@ -2,7 +2,7 @@
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.
 
-`progress.json` giữ trạng thái Phase3 và quyết định miễn acceptance; [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
+`progress.json` giữ trạng thái Phase4 (mở nhưng chờ user chỉ đạo); [archive Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành; Phase3 hoàn thành với limitation được ghi nhận rõ bên dưới. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
 
 ## Bản đã giao gần nhất
 
@@ -10,6 +10,7 @@ Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công
 - Build: `0d10b289520f43889dd19cf5beba9c2abbaaea92`; endpoint: `https://server.permees.com`.
 - Khi có bản mới, client/server cần matching. Bỏ checklist không cho phép tăng capacity, restart/deploy server hoặc đổi hạ tầng. Scope playtest vẫn1–4 người.
 - Xác nhận Internet/audio của bản trước do user cung cấp vẫn được giữ; không suy thành xác nhận cho mọi bản sau.
+- Playtest Phase3 (chưa publish/deploy, dùng để user tự check): `.amp/in/artifacts/phase-3-packages/` — `DisasterParty-Windows-f82a5cb.zip` và `DisasterParty-Linux-server-f82a5cb.tar.gz`, cùng payload `DisasterParty.pck`; hướng dẫn điều khiển/ghi nhận bug nằm trong file `PLAYTEST-NOTES.md` kèm gói.
 
 ## Nếu gặp bug
 

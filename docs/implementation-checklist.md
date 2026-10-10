@@ -7,12 +7,11 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 3 — Player-Caused Chaos | In progress: 3.1–3.2 complete,3.3 next | [Phase 3](checklists/phase-3-player-caused-chaos.md) |
-| 4 — Disaster Remix and Toy Town Interaction | Planned | [Phase 4](checklists/phase-4-disaster-remix-and-toy-town-interaction.md) |
+| 4 — Disaster Remix and Toy Town Interaction | Active next; paused for the owner's Phase 3 self-check | [Phase 4](checklists/phase-4-disaster-remix-and-toy-town-interaction.md) |
 | 5 — Session Distribution and Release Readiness | Planned | [Phase 5](checklists/phase-5-session-distribution-and-release-readiness.md) |
 | 6 — Cosmetic Loot-Box Drops and Customization | Planned | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
 
-Phase3 has six ordered milestones: safe interaction → carrying → one useful prop → optional shove decision → two interruptible emotes → integrated validation/packages. User-authorized activation preserves Phase2's unfinished gates, not a closure or an invented pass; its checklist stays at the original path as a deferred reference. Current status and next action live only in root progress.
+Phase3 (safe interaction → carrying → one useful prop → optional shove decision → two interruptible emotes → integrated validation/packages) completed on 2026-10-10 and is archived; all seven of its gates passed on executed evidence with recorded device-bound limitations. User-authorized activation preserved Phase2's unfinished gates, not a closure or an invented pass; its checklist stays at the original path as a deferred reference. Current status and next action live only in root progress.
 
 ## Completed phases
 
@@ -20,6 +19,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 - [Phase 0 — Init Project](old-docs/phase-0-init-project/checklist.md)
 - [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/checklist.md)
+- [Phase 3 — Player-Caused Chaos](old-docs/phase-3-player-caused-chaos/checklist.md) · [decisions](old-docs/phase-3-player-caused-chaos/decisions.md) · [evidence](old-docs/phase-3-player-caused-chaos/progress.json)
 
 ## Tracking rules
 

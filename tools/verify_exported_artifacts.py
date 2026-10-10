@@ -5,7 +5,7 @@ Usage: verify_exported_artifacts.py SHA256SUMS.txt
 
 Standard library only; runs identically on Windows and Linux. Exits non-zero on
 any mismatch. Used by tests/run_windows_package_checks.ps1 and by the export
-verification recorded in docs/checklists/phase-3-player-caused-chaos.md.
+verification recorded in docs/old-docs/phase-3-player-caused-chaos/checklist.md.
 """
 import hashlib
 import struct
