@@ -115,11 +115,11 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_4_1_shove_experiment` · **Owners:** Player/Main server input boundary, centralized tuning, existing knockdown/recovery state.
 
-- [ ] Prototype one explicit short-range forward shove, with server validation of sender, live active-match state, range, direction, line of sight and cooldown. Pick at most one target by a deterministic rule; do not enable hard player collision as a substitute.
-- [ ] Start with no HP damage and no routine knockdown. Clamp accepted horizontal impulse and prevent arbitrary client direction/magnitude/target IDs. No homing, sprint stacking, airborne launch or shove through cover.
-- [ ] Add a short server-owned protection window against player shoves after recovery/accepted shove so alternating attackers cannot chain-lock a target. Protection must not create immunity to disaster damage or silently disable existing Earthquake/Tornado/Meteor behavior.
-- [ ] Test spam, opposing attackers, simultaneous requests, angle/range boundaries, stationary and moving targets, stairs/roof edges, death/spectator and rematch. Check whether victim retains a genuine opportunity to move/escape between accepted effects.
-- [ ] Record include/defer decision based on reproducible scenarios and available user feedback: omit if combat dominates route/disaster decisions or fairness needs substantial new systems. No user session/checklist is required to make an honest technical go/no-go decision under the waiver.
+- [x] Prototype one explicit short-range forward shove, with server validation of sender, live active-match state, range, direction, line of sight and cooldown. Pick at most one target by a deterministic rule; do not enable hard player collision as a substitute.
+- [x] Start with no HP damage and no routine knockdown. Clamp accepted horizontal impulse and prevent arbitrary client direction/magnitude/target IDs. No homing, sprint stacking, airborne launch or shove through cover.
+- [x] Add a short server-owned protection window against player shoves after recovery/accepted shove so alternating attackers cannot chain-lock a target. Protection must not create immunity to disaster damage or silently disable existing Earthquake/Tornado/Meteor behavior.
+- [x] Test spam, opposing attackers, simultaneous requests, angle/range boundaries, stationary and moving targets, stairs/roof edges, death/spectator and rematch. Check whether victim retains a genuine opportunity to move/escape between accepted effects.
+- [x] Record include/defer decision based on reproducible scenarios and available user feedback: omit if combat dominates route/disaster decisions or fairness needs substantial new systems. No user session/checklist is required to make an honest technical go/no-go decision under the waiver.
 
 ### Task 3.4.2 — Integrate only if included
 
