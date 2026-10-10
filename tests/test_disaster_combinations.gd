@@ -112,6 +112,57 @@ func _run() -> void:
 	meteor.cleanup()
 	flood.cleanup()
 	director.cleanup()
+
+	# Task 4.2a gate: Earthquake + Flood persistent refuge collapse. Named
+	# wiring enables refuge pressure, seeded collapse removes meaningful
+	# elevated surfaces first, paired options keep one escape standing, damage
+	# telegraphs before collider loss, and deaths keep clear causes.
+	var earthquake := main.get_node("Earthquake") as Earthquake
+	earthquake.set_process(false)
+	flood.warning_duration = 0.5
+	flood.rise_duration = 0.5
+	flood.hold_duration = 12.0
+	flood.drain_duration = 0.5
+	_expect(flood.start_warning(), "Flood must start for the refuge-collapse composition")
+	_expect(earthquake.start_warning(), "Earthquake must start beside Flood")
+	_expect(earthquake.refuge_pressure, "Flood + Earthquake wiring must enable refuge pressure")
+	_expect("FLOOD + EARTHQUAKE — REFUGES ARE CRUMBLING" in "\n".join(main._active_disaster_lines()), "HUD must name the Flood + Earthquake interaction")
+	flood.tick(flood.warning_duration + 0.05)
+	earthquake.tick(earthquake.warning_duration + 0.02)
+	_expect(earthquake.phase == Earthquake.Phase.ACTIVE, "Earthquake must run collapse pulses beside the rising flood")
+	for pulse in 8:
+		earthquake.tick(0.8)
+	await process_frame
+	await _capture("eq-flood-refuge-collapse")
+	earthquake.tick(10.0)
+	_expect(not earthquake.is_active() and flood.is_active(), "Flood must outlive the quake so late refuges stay pressured")
+	var broken_pairs := {}
+	var broken_elevated := 0
+	for candidate in main.get_node("Sandbox").get_children():
+		if not (candidate is BreakableStructure):
+			continue
+		var section := candidate as BreakableStructure
+		if section.structure_state == BreakableStructure.StructureState.BROKEN:
+			_expect(section.route_role != BreakableStructure.ROLE_DECORATIVE, "Collapse must remove meaningful surfaces, not decoration")
+			if section.route_role == BreakableStructure.ROLE_ELEVATED:
+				broken_elevated += 1
+			if not section.pair_group.is_empty():
+				broken_pairs[section.pair_group] = int(broken_pairs.get(section.pair_group, 0)) + 1
+	_expect(broken_elevated >= 1, "Flood pressure must collapse at least one elevated refuge surface")
+	for group in broken_pairs:
+		_expect(int(broken_pairs[group]) <= 1, "Paired group %s must keep one option standing" % group)
+	var ground_player := main.get_node("Player") as PartyPlayer
+	ground_player.position = Vector3(0.0, 0.05, 7.0)
+	# Transition ticks reset _state_elapsed before applying water effects, so
+	# cross into HOLDING first, then tick the drowning window on its own.
+	flood.tick(flood.rise_duration + 0.05)
+	manager.players[1].health = 40.0
+	manager.players[1].cause_of_death = ""
+	flood.tick(9.0)
+	_expect(not manager.is_player_alive(1), "Standing in the flood with refuges collapsing must be lethal")
+	_expect(manager.get_cause_of_death(1) == "Flood", "Death during the composition must name the readable cause")
+	flood.cleanup()
+	earthquake.cleanup()
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	main.free()
 	await process_frame
@@ -123,6 +174,14 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _capture(state: String) -> void:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--capture-dir="):
+			DirAccess.make_dir_recursive_absolute(argument.trim_prefix("--capture-dir="))
+			var path := argument.trim_prefix("--capture-dir=").path_join("compositions-%s-%dx%d.png" % [state, root.size.x, root.size.y])
+			_expect(root.get_texture().get_image().save_png(path) == OK, "Save review capture")
 
 
 func _expect(condition: bool, message: String) -> void:

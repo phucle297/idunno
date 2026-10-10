@@ -78,6 +78,75 @@ func _run() -> void:
 	_expect(earthquake.start_warning(), "A cleaned Earthquake must be reusable")
 	earthquake.cleanup()
 
+	# Task 4.2a: seeded persistent collapse with audited route roles.
+	var sections := _sections_by_id()
+	sections["section_0"].route_role = BreakableStructure.ROLE_ELEVATED
+	sections["section_0"].pair_group = "roofs"
+	sections["section_1"].route_role = BreakableStructure.ROLE_ELEVATED
+	sections["section_1"].pair_group = "roofs"
+	sections["section_2"].route_role = BreakableStructure.ROLE_TRAVERSAL
+	sections["section_2"].pair_group = "crossings"
+	sections["section_3"].route_role = BreakableStructure.ROLE_TRAVERSAL
+	sections["section_3"].pair_group = "crossings"
+
+	# Same seed reproduces the collapse pattern; different seeds vary it.
+	var states_a := _run_quake(earthquake, 424242, false)
+	_reset_sections()
+	var states_b := _run_quake(earthquake, 424242, false)
+	_reset_sections()
+	var states_c := _run_quake(earthquake, 424243, false)
+	_expect(states_a == states_b, "Same seed must reproduce the same collapse pattern")
+	_expect(states_c != states_a, "Different seeds must produce different collapse patterns")
+
+	# Meaningful loss only: broken surfaces are real route/refuge pieces while
+	# the broken cap and the preserve-one guard hold for every paired group.
+	var broken_ids: Array = states_c.keys().filter(func(id: String) -> bool: return int(states_c[id]) == BreakableStructure.StructureState.BROKEN)
+	_expect(broken_ids.size() >= 1 and broken_ids.size() <= earthquake.max_broken_sections, "Collapse must lose real surfaces within the broken cap")
+	for id: String in broken_ids:
+		_expect(sections[id].route_role != BreakableStructure.ROLE_DECORATIVE, "Seeded collapse must target meaningful surfaces, not decoration")
+	var broken_by_group := {}
+	for id: String in broken_ids:
+		var group: String = sections[id].pair_group
+		broken_by_group[group] = int(broken_by_group.get(group, 0)) + 1
+	for group: String in ["roofs", "crossings"]:
+		_expect(int(broken_by_group.get(group, 0)) <= 1, "Paired group %s must keep one option standing" % group)
+
+	# Visible telegraph then real collider loss.
+	_reset_sections()
+	var probe_section := sections["section_5"] as BreakableStructure
+	var probe_ray := PhysicsRayQueryParameters3D.create(probe_section.global_position + Vector3(0.0, 2.0, 0.0), probe_section.global_position + Vector3(0.0, -2.0, 0.0))
+	await physics_frame
+	_expect(not world.get_world_3d().direct_space_state.intersect_ray(probe_ray).is_empty(), "An intact section must block a physics probe")
+	probe_section.apply_damage(false)
+	_expect(probe_section._visual.visible and absf(probe_section._visual.rotation.z) > 0.01 and not probe_section._collision.disabled, "Damage must telegraph with a visible tilt before collider loss")
+	probe_section.apply_damage(false)
+	await physics_frame
+	_expect(not probe_section._visual.visible and probe_section._collision.disabled, "Collapse must hide the mesh and disable the collider")
+	_expect(world.get_world_3d().direct_space_state.intersect_ray(probe_ray).is_empty(), "A broken section must actually lose its collider")
+
+	# Preserve-one guard: the last piece of a paired group never breaks.
+	_reset_sections()
+	(sections["section_0"] as BreakableStructure).set_structure_state(BreakableStructure.StructureState.BROKEN, false)
+	(sections["section_1"] as BreakableStructure).set_structure_state(BreakableStructure.StructureState.DAMAGED, false)
+	var guarded := _run_quake(earthquake, 999, true)
+	_expect(int(guarded["section_1"]) != BreakableStructure.StructureState.BROKEN, "The last piece of a paired refuge group must never break")
+
+	# Consecutive quakes never rebuild within the round; rematch restores all.
+	_reset_sections()
+	var first_round := _run_quake(earthquake, 5150, true)
+	var second_round := _run_quake(earthquake, 5151, true)
+	var rebuilt := false
+	for id: String in first_round:
+		if int(first_round[id]) == BreakableStructure.StructureState.BROKEN and int(second_round[id]) != BreakableStructure.StructureState.BROKEN:
+			rebuilt = true
+	_expect(not rebuilt, "Broken surfaces must stay broken across consecutive quakes in one round")
+	for cycle in 5:
+		for section in get_nodes_in_group("breakable_structure"):
+			(section as BreakableStructure).reset_structure()
+		await process_frame
+		_expect(earthquake.get_structure_states().values().all(func(state: int) -> bool: return state == BreakableStructure.StructureState.INTACT), "Rematch cycle %d must restore every section" % (cycle + 1))
+		_expect(get_nodes_in_group("earthquake_debris").is_empty(), "Rematch cycle %d must clear collapse debris" % (cycle + 1))
+
 	if failures.is_empty():
 		print("EARTHQUAKE_OK checks=%d pulses=%d sections=6" % [checks, earthquake.pulse_count])
 		quit(0)
@@ -85,6 +154,31 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _sections_by_id() -> Dictionary:
+	var result := {}
+	for candidate in get_nodes_in_group("breakable_structure"):
+		result[(candidate as BreakableStructure).piece_id] = candidate
+	return result
+
+
+func _reset_sections() -> void:
+	for candidate in get_nodes_in_group("breakable_structure"):
+		(candidate as BreakableStructure).reset_structure()
+
+
+func _run_quake(quake: Earthquake, seed_value: int, pressure: bool) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	quake.set_refuge_pressure(pressure)
+	quake.start_disaster(rng)
+	quake.tick(quake.warning_duration + 0.02)
+	for index in 12:
+		quake.tick(0.8)
+	quake.tick(10.0)
+	quake.set_refuge_pressure(false)
+	return quake.get_structure_states().duplicate()
 
 
 func _add_prop(parent: Node3D) -> RigidBody3D:

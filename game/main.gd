@@ -88,6 +88,7 @@ func _ready() -> void:
 	flood.configure(match_manager)
 	tornado.configure(match_manager)
 	earthquake.configure(match_manager)
+	earthquake.set_structure_root($Sandbox)
 	lightning.configure(match_manager)
 	fire.configure(match_manager)
 	$ShoveManager.configure(match_manager, $GrabManager)
@@ -96,6 +97,10 @@ func _ready() -> void:
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
 	fire.warning_started.connect(_on_fire_warning_started)
+	flood.warning_started.connect(_on_flood_warning_started)
+	flood.finished.connect(_on_flood_finished)
+	earthquake.warning_started.connect(_on_earthquake_warning_started)
+	earthquake.finished.connect(_on_earthquake_finished)
 	disaster_director.configure(match_manager)
 	disaster_director.register_disaster(meteor_shower)
 	disaster_director.register_disaster(flood)
@@ -1054,6 +1059,13 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	fire.apply_presentation_snapshot(disasters.get("fire", {}))
 
 
+func _has_nonintact_structures() -> bool:
+	for state: int in earthquake.get_structure_states().values():
+		if state != BreakableStructure.StructureState.INTACT:
+			return true
+	return false
+
+
 func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
 	snapshot.map_id = map_id
@@ -1068,7 +1080,9 @@ func _create_playable_snapshot() -> Dictionary:
 		disasters.flood = flood.create_presentation_snapshot()
 	if tornado.is_active():
 		disasters.tornado = tornado.create_presentation_snapshot()
-	if earthquake.is_active():
+	# Structure states stay synchronized for the whole round (including after
+	# the quake finishes and for mid-round joiners), not just while it runs.
+	if earthquake.is_active() or _has_nonintact_structures():
 		disasters.earthquake = earthquake.create_presentation_snapshot()
 	if lightning.is_active():
 		disasters.lightning = lightning.create_presentation_snapshot()
@@ -1158,15 +1172,18 @@ func _active_disaster_lines() -> Array[String]:
 	# Interactions replace their constituent chips, including effects that outlive a strike.
 	var electric := flood.phase != Flood.Phase.IDLE and flood.electrified_remaining > 0.0
 	var wind := fire.phase == Fire.Phase.ACTIVE and fire.wind_active
+	var collapse := flood.is_active() and earthquake.is_active()
 	if electric:
 		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER")
 	if wind:
 		lines.append("TORNADO + FIRE — WIND IS SPREADING FLAMES")
+	if collapse:
+		lines.append("FLOOD + EARTHQUAKE — REFUGES ARE CRUMBLING")
 	for entry: Array in [
 		["METEOR", meteor_shower, false],
-		["FLOOD", flood, electric],
+		["FLOOD", flood, electric or collapse],
 		["TORNADO", tornado, wind],
-		["EARTHQUAKE", earthquake, false],
+		["EARTHQUAKE", earthquake, collapse],
 		["LIGHTNING", lightning, electric],
 		["FIRE", fire, wind],
 	]:
@@ -1192,6 +1209,24 @@ func _on_tornado_finished() -> void:
 func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 	if tornado.phase == Tornado.Phase.ACTIVE:
 		fire.set_wind_active(true)
+
+
+func _on_flood_warning_started(_duration: float) -> void:
+	if earthquake.is_active():
+		earthquake.set_refuge_pressure(true)
+
+
+func _on_flood_finished() -> void:
+	earthquake.set_refuge_pressure(false)
+
+
+func _on_earthquake_warning_started(_duration: float) -> void:
+	if flood.is_active():
+		earthquake.set_refuge_pressure(true)
+
+
+func _on_earthquake_finished() -> void:
+	earthquake.set_refuge_pressure(false)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1888,10 +1923,10 @@ func _build_toy_town() -> Dictionary:
 	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, -3.3), PALETTE.amber)
 	_add_world_label("ParkRouteLabel", "UP", Vector3(15.0, 0.8, 0.0), PALETTE.amber)
 	# Panel tops meet the surrounding 4.855m roof; no raised walking obstacle.
-	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.735, -13.0), PALETTE.cream)
-	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.735, -13.0), PALETTE.cream)
-	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal)
-	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal)
+	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.735, -13.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "town_roof_refuges")
+	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.735, -13.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "town_roof_refuges")
+	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
+	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
 	_add_town_props()
@@ -1949,7 +1984,7 @@ func _build_toy_harbor() -> Dictionary:
 	_add_static_box("BoardwalkSouth", Vector3(64.0, 0.05, 6.0), Vector3(0.0, 0.025, 22.0), PALETTE.sand)
 	# Sheltered warehouse: two exits (north/south doorways) and a roof refuge.
 	_add_open_building("Warehouse", Vector3(0.0, 0.0, -18.0), Vector2(16.0, 12.0), 4.5, PALETTE.amber)
-	_add_breakable_structure("roof_panel_warehouse", "RoofPanelWarehouse", Vector3(2.0, 0.24, 2.0), Vector3(0.0, 4.735, -18.0), PALETTE.cream)
+	_add_breakable_structure("roof_panel_warehouse", "RoofPanelWarehouse", Vector3(2.0, 0.24, 2.0), Vector3(0.0, 4.735, -18.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED)
 	# Crane deck: high refuge supported on visible pillars, ramp plus edge drop.
 	_add_static_box("CraneDeck", Vector3(10.0, 0.35, 8.0), Vector3(0.0, 4.68, -2.0), PALETTE.coral)
 	$Sandbox/CraneDeck.add_to_group("landmark")
@@ -1964,13 +1999,13 @@ func _build_toy_harbor() -> Dictionary:
 	$Sandbox/DockWest.add_to_group("landmark")
 	_add_static_box("DockEast", Vector3(12.0, 3.75, 10.0), Vector3(18.0, 1.875, 9.0), PALETTE.teal)
 	$Sandbox/DockEast.add_to_group("landmark")
-	_add_breakable_structure("gangway_west", "GangwayWest", Vector3(12.0, 0.25, 1.5), Vector3(-6.0, 3.625, 9.0), PALETTE.cream)
-	_add_breakable_structure("gangway_east", "GangwayEast", Vector3(12.0, 0.25, 1.5), Vector3(6.0, 3.625, 9.0), PALETTE.cream)
+	_add_breakable_structure("gangway_west", "GangwayWest", Vector3(12.0, 0.25, 1.5), Vector3(-6.0, 3.625, 9.0), PALETTE.cream, BreakableStructure.ROLE_TRAVERSAL, "harbor_crossing")
+	_add_breakable_structure("gangway_east", "GangwayEast", Vector3(12.0, 0.25, 1.5), Vector3(6.0, 3.625, 9.0), PALETTE.cream, BreakableStructure.ROLE_TRAVERSAL, "harbor_crossing")
 	# Cargo platforms carry breakable lids like the Toy Town roof panels.
 	_add_static_box("CargoPlatformWest", Vector3(7.0, 2.6, 6.0), Vector3(-16.0, 1.3, -16.0), PALETTE.amber)
 	_add_static_box("CargoPlatformEast", Vector3(7.0, 2.6, 6.0), Vector3(16.0, 1.3, -16.0), PALETTE.amber)
-	_add_breakable_structure("cargo_lid_west", "CargoLidWest", Vector3(7.2, 0.24, 6.2), Vector3(-16.0, 2.72, -16.0), PALETTE.cream)
-	_add_breakable_structure("cargo_lid_east", "CargoLidEast", Vector3(7.2, 0.24, 6.2), Vector3(16.0, 2.72, -16.0), PALETTE.cream)
+	_add_breakable_structure("cargo_lid_west", "CargoLidWest", Vector3(7.2, 0.24, 6.2), Vector3(-16.0, 2.72, -16.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "harbor_cargo_refuges")
+	_add_breakable_structure("cargo_lid_east", "CargoLidEast", Vector3(7.2, 0.24, 6.2), Vector3(16.0, 2.72, -16.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "harbor_cargo_refuges")
 	_add_ramp("WarehouseRoofRamp", 3.0, Vector3(0.0, 0.05, -29.3), Vector3(0.0, 4.855, -24.3))
 	# Ramp tops meet the deck/dock faces flush; burying the top edge under the
 	# platform blocks the walker at the step-up seam.
@@ -2219,13 +2254,13 @@ func _add_box_to(parent: Node3D, node_name: String, size: Vector3, position: Vec
 	return body
 
 
-func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
+func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3, position: Vector3, color: Color, role: String = BreakableStructure.ROLE_DECORATIVE, group: String = "") -> void:
 	var structure := BreakableStructure.new()
 	structure.name = node_name
 	structure.position = position
 	structure.add_to_group("breakable_structure")
 	$Sandbox.add_child(structure)
-	structure.configure(piece_id, size, color)
+	structure.configure(piece_id, size, color, role, group)
 
 
 func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:

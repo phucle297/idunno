@@ -7,8 +7,14 @@ enum StructureState {
 	BROKEN
 }
 
+const ROLE_ELEVATED := "elevated"
+const ROLE_TRAVERSAL := "traversal"
+const ROLE_DECORATIVE := "decorative"
+
 var piece_id := ""
 var structure_state := StructureState.INTACT
+var route_role := ROLE_DECORATIVE
+var pair_group := ""
 var _size := Vector3.ONE
 var _intact_color := Color.WHITE
 var _visual: MeshInstance3D
@@ -16,10 +22,12 @@ var _collision: CollisionShape3D
 var _debris: RigidBody3D
 
 
-func configure(id: String, size: Vector3, color: Color) -> void:
+func configure(id: String, size: Vector3, color: Color, role: String = ROLE_DECORATIVE, group: String = "") -> void:
 	piece_id = id
 	_size = size
 	_intact_color = color
+	route_role = role
+	pair_group = group
 	build_visuals()
 
 

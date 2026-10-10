@@ -27,16 +27,26 @@ var phase := Phase.IDLE
 var warning_remaining := 0.0
 var active_remaining := 0.0
 var pulse_count := 0
+var refuge_pressure := false
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _pulse_remaining := 0.0
 var _rng := RandomNumberGenerator.new()
 var _effect: Node3D
+var _structure_root: Node
 
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func set_structure_root(root: Node) -> void:
+	_structure_root = root
+
+
+func set_refuge_pressure(active: bool) -> void:
+	refuge_pressure = active
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -117,6 +127,7 @@ func cleanup() -> void:
 	warning_remaining = 0.0
 	active_remaining = 0.0
 	_pulse_remaining = 0.0
+	refuge_pressure = false
 
 
 func active_effect_count() -> int:
@@ -203,24 +214,69 @@ func _damage_structure() -> void:
 	for section in _sections():
 		if section.structure_state == BreakableStructure.StructureState.BROKEN:
 			broken_count += 1
-		else:
-			candidates.append(section)
+			continue
+		# Preserve-one-option guard: never break the last piece of a paired
+		# route/refuge group, so at least one reachable escape stays available.
+		if section.structure_state == BreakableStructure.StructureState.DAMAGED and _partner_already_broken(section):
+			continue
+		candidates.append(section)
 	if candidates.is_empty():
 		return
-	var section := candidates[_rng.randi_range(0, candidates.size() - 1)]
+	var preferred := _preferred_sections(candidates)
+	var section := preferred[_rng.randi_range(0, preferred.size() - 1)]
 	if section.structure_state == BreakableStructure.StructureState.DAMAGED and broken_count >= max_broken_sections:
 		return
 	if section.apply_damage(true):
 		structure_changed.emit(section.piece_id, section.structure_state)
 
 
+func _partner_already_broken(section: BreakableStructure) -> bool:
+	if section.pair_group.is_empty():
+		return false
+	for other in _sections():
+		if other != section and other.pair_group == section.pair_group and other.structure_state == BreakableStructure.StructureState.BROKEN:
+			return true
+	return false
+
+
+func _preferred_sections(candidates: Array[BreakableStructure]) -> Array[BreakableStructure]:
+	var best_score := 0
+	var scores: Array[int] = []
+	for section in candidates:
+		var score := _collapse_score(section)
+		scores.append(score)
+		best_score = maxi(best_score, score)
+	var preferred: Array[BreakableStructure] = []
+	for index in candidates.size():
+		if scores[index] == best_score:
+			preferred.append(candidates[index])
+	return preferred
+
+
+func _collapse_score(section: BreakableStructure) -> int:
+	# Meaningful loss over decorative damage; flood refuge pressure pushes the
+	# seeded target choice toward elevated standing surfaces first.
+	if section.route_role == BreakableStructure.ROLE_DECORATIVE:
+		return 1
+	if section.route_role == BreakableStructure.ROLE_ELEVATED:
+		return 3 if refuge_pressure else 2
+	return 2
+
+
 func _sections() -> Array[BreakableStructure]:
 	var result: Array[BreakableStructure] = []
 	if not is_inside_tree():
 		return result
-	for candidate in get_tree().get_nodes_in_group("breakable_structure"):
-		if candidate is BreakableStructure:
-			result.append(candidate)
+	if is_instance_valid(_structure_root):
+		# Scoped discovery keeps server and client sandboxes from cross-talking
+		# when two instances live in one tree (network test fixtures).
+		for candidate in _structure_root.get_children():
+			if candidate is BreakableStructure:
+				result.append(candidate)
+	else:
+		for candidate in get_tree().get_nodes_in_group("breakable_structure"):
+			if candidate is BreakableStructure:
+				result.append(candidate)
 	result.sort_custom(func(a: BreakableStructure, b: BreakableStructure) -> bool: return a.piece_id < b.piece_id)
 	return result
 

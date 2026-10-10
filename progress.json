@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_2_behavior_changing_disaster_compositions",
-    "task": "task_4_2a_earthquake_flood_persistent_refuge_collapse"
+    "task": "task_4_2b_tornado_meteor_tagged_impact_debris"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -89,7 +89,7 @@
         "title": "More Behavior-Changing Disaster Compositions",
         "status": "in_progress",
         "tasks": {
-          "task_4_2a_earthquake_flood_persistent_refuge_collapse": "planned: persistent seeded roof/bridge collapse for the Earthquake+Flood composition (ordered follow-up 4.2a): audit breakable sections against elevated traversal, server-select seeded meaningful targets with a preserve-one-reachable-escape guard, replicate stable structure states and synchronize late state, telegraph damage to collapse; gate seed variety/same-seed replay, actual collider loss, consecutive quakes without rebuilding, client agreement, visible warning-to-collider loss with relocation opportunity, clear death causes and five-rematch reset",
+          "task_4_2a_earthquake_flood_persistent_refuge_collapse": "completed: persistent seeded refuge collapse for Earthquake+Flood. game/breakable_structure.gd carries route_role (ROLE_ELEVATED/ROLE_TRAVERSAL/ROLE_DECORATIVE) and pair_group tags (Toy Town roofs/bridges/awnings/signs, Harbor warehouse roof/gangway/cargo lids); game/earthquake.gd adds refuge_pressure-driven tiered target selection (elevated surfaces collapse first under flood pressure) with a preserve-one-pair guard, per-quake seeded selection from the seeded director replay record, telegraphed damage-to-collapse, and set_structure_root scoping that fixes latent two-sandbox group cross-talk; game/main.gd wires flood/earthquake warning events to refuge pressure, shows the FLOOD + EARTHQUAKE - REFUGES ARE CRUMBLING composition line, and keeps earthquake structure states in _create_playable_snapshot while any piece is non-intact so late joiners restore exact damaged/broken state. Gates EARTHQUAKE_OK checks=48 (roles/pairs, same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state broken-piece sync), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected capture (behavior beyond two simultaneous effects, flood outlives the quake under pressure, clear Flood death cause, paired options standing). max_broken_sections=2 intentionally unchanged; eligibility/cap tuning is milestone 4.4's measured work.",
           "task_4_2b_tornado_meteor_tagged_impact_debris": "planned: Tornado+Meteor composition with bounded tagged impact debris picked up by active winds; gate observable behavior beyond two simultaneous effects, server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup and multiplayer agreement within the 32-body budget",
           "task_4_2c_fire_earthquake_burning_collapse_debris": "planned: evaluate Fire+Earthquake where burning breakable sections drop short-lived damaging debris with an explicit cue, via named events/shared hazard queries; gate separately like 4.2b and keep or report evaluation outcome honestly"
         }
@@ -233,19 +233,24 @@
       "command": "godot --headless --path . --script res://tests/test_{meteor_shower,flood,tornado,disaster_combinations}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (twice)",
       "status": "passed",
       "result": "task_4_1b implemented and gated: METEOR_SHOWER_OK checks=76, FLOOD_OK checks=60, TORNADO_OK checks=48, DISASTER_COMBINATIONS_OK checks=31 covering bounded variant selection from seeded RNGs, same-seed parameter replay, snapshot round-trip of variant parameters to a client-role ENet instance, meteor >=1.2s per-strike warning floor and single-finish sequences, monotonic bounded surge curve, solo-before-combination with multi-strike sequences counting as one solo round, and five-rematch variant/effect cleanup. Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Honest note: the first full run failed only in the two-process playable-scene network client (stalled ~17s under suite load and missed the 0.5s wind observation window; identical server timeline, no script errors); isolated rerun and the second full run were green, so it is recorded as a load-timing flake, not masked. Logs .scratch/test_{meteor_shower,flood,tornado,disaster_combinations}-41b.log, .scratch/ui_regression_41b{,_rerun}.log, .scratch/playable_net_rerun1.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{earthquake,map_identity,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_2a implemented and gated: EARTHQUAKE_OK checks=48 (route roles/pairs on fixture sections, per-quake seeded collapse with same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one-pair escape guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state sync of broken pieces and rubble via create/apply_playable_snapshot), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected compositions-eq-flood-refuge-collapse capture (named flood/earthquake wiring sets refuge pressure, HUD composition line, flood outlives the quake with refuges collapsing, clear Flood death cause, paired options standing). set_structure_root scoping fixes latent two-sandbox group cross-talk in network fixtures. Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Logs .scratch/test_{earthquake,map_identity,disaster_combinations}.log, .scratch/full_gate_42a.log."
     }
   ],
   "blockers": [],
   "changed_files": [
-    "game/meteor_shower.gd",
-    "game/flood.gd",
-    "game/tornado.gd",
-    "tests/test_meteor_shower.gd",
-    "tests/test_flood.gd",
-    "tests/test_tornado.gd",
+    "game/breakable_structure.gd",
+    "game/earthquake.gd",
+    "game/main.gd",
+    "tests/test_earthquake.gd",
+    "tests/test_map_identity.gd",
     "tests/test_disaster_combinations.gd",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Build task_4_2a: persistent seeded roof/bridge collapse for the Earthquake+Flood composition - audit breakable sections against elevated traversal, server-select seeded meaningful targets while preserving a reachable escape, keep broken surfaces broken within the round across consecutive quakes, replicate stable structure states with late-join synchronization, and gate seed variety/same-seed replay, collider loss, client agreement, visible warning-to-collider loss with relocation, clear death causes and five-rematch reset."
+  "next_action": "Build task_4_2b: Tornado+Meteor bounded tagged impact debris - meteor impacts eject a bounded tagged debris set only while wind is active (wind state wired from named tornado events, mirroring fire's wind handling), active winds carry debris through the shared grabbable force loop without cross-hazard coupling, server-only bounded damage with an explicit Impact Debris cause, and debris positions replicated to clients as visuals only; gate behavior beyond two simultaneous effects, server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup and multiplayer agreement within the 32-body budget."
 }

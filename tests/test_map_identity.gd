@@ -74,6 +74,25 @@ func _run() -> void:
 	_expect(not server.request_map_change("toy_town"), "Map identity must freeze after countdown")
 	_expect(server.get_map_id() == "toy_harbor", "An active match must not rebuild the map")
 
+	# Task 4.2a: stable structure states travel in every playable snapshot and
+	# land on clients even after the quake itself has finished (late-state sync).
+	var server_roof: BreakableStructure = server.get_node("Sandbox/RoofPanelWarehouse") as BreakableStructure
+	var client_roof: BreakableStructure = client.get_node("Sandbox/RoofPanelWarehouse") as BreakableStructure
+	server_roof.set_structure_state(BreakableStructure.StructureState.DAMAGED, false)
+	server_roof.set_structure_state(BreakableStructure.StructureState.BROKEN, false)
+	_expect(not server.earthquake.is_active(), "Fixture must sync structure states after the quake finished")
+	var structure_snapshot: Dictionary = server._create_playable_snapshot()
+	_expect(structure_snapshot.disasters.has("earthquake"), "Non-intact structure states must travel in every playable snapshot")
+	var client_api := SceneMultiplayer.new()
+	var client_peer := ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 39999)
+	client_api.multiplayer_peer = client_peer
+	set_multiplayer(client_api, client.get_path())
+	client._apply_match_snapshot(structure_snapshot)
+	_expect(client_roof.structure_state == BreakableStructure.StructureState.BROKEN, "Clients must converge on the server's broken structure state")
+	_expect(client_roof._collision.disabled and not client_roof._visual.visible, "Client structures must show the same collider loss")
+	_expect(server.earthquake.get_structure_states() == client.earthquake.get_structure_states(), "Server and client must agree on every structure state")
+
 	_finish()
 
 
