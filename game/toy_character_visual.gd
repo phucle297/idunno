@@ -4,6 +4,7 @@ extends Node3D
 const REQUIRED_CLIPS := [
 	"idle", "walk", "run", "jump_takeoff", "falling", "landing",
 	"crouch_idle", "crouch_walk", "holding_idle", "holding_walk", "get_up",
+	"shove",
 ]
 const SUIT_COLORS := [
 	Color("31c5df"), Color("f28a3c"), Color("9b72e8"),
@@ -140,6 +141,37 @@ func _create_clip(clip_name: String) -> Animation:
 	var animation := Animation.new()
 	animation.length = _clip_duration(clip_name)
 	animation.loop_mode = Animation.LOOP_LINEAR if clip_name in ["idle", "walk", "run", "falling", "crouch_idle", "crouch_walk", "holding_idle", "holding_walk"] else Animation.LOOP_NONE
+	if clip_name == "shove":
+		# One bounded forward arm thrust with a short lunge stance; the clip is
+		# one-shot and returns to ordinary locomotion on the next frame pick.
+		# The arm spread and torso lean keep the cue readable from the rear
+		# gameplay camera, where a pure forward thrust hides behind the torso.
+		var thrust := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(thrust, NodePath("LeftArm:rotation"))
+		animation.track_insert_key(thrust, 0.0, Vector3.ZERO)
+		animation.track_insert_key(thrust, 0.1, Vector3(1.35, 0.0, 0.55))
+		animation.track_insert_key(thrust, animation.length, Vector3.ZERO)
+		var thrust_mirror := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(thrust_mirror, NodePath("RightArm:rotation"))
+		animation.track_insert_key(thrust_mirror, 0.0, Vector3.ZERO)
+		animation.track_insert_key(thrust_mirror, 0.1, Vector3(1.35, 0.0, -0.55))
+		animation.track_insert_key(thrust_mirror, animation.length, Vector3.ZERO)
+		var lean := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(lean, NodePath("Torso:rotation"))
+		animation.track_insert_key(lean, 0.0, Vector3.ZERO)
+		animation.track_insert_key(lean, 0.1, Vector3(-0.28, 0.0, 0.0))
+		animation.track_insert_key(lean, animation.length, Vector3.ZERO)
+		var lunge := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(lunge, NodePath("LeftLeg:rotation"))
+		animation.track_insert_key(lunge, 0.0, Vector3.ZERO)
+		animation.track_insert_key(lunge, 0.1, Vector3(0.3, 0.0, 0.0))
+		animation.track_insert_key(lunge, animation.length, Vector3.ZERO)
+		var lunge_mirror := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(lunge_mirror, NodePath("RightLeg:rotation"))
+		animation.track_insert_key(lunge_mirror, 0.0, Vector3.ZERO)
+		animation.track_insert_key(lunge_mirror, 0.1, Vector3(-0.3, 0.0, 0.0))
+		animation.track_insert_key(lunge_mirror, animation.length, Vector3.ZERO)
+		return animation
 	if clip_name in ["holding_idle", "holding_walk"]:
 		var hold_base := 1.05 if clip_name == "holding_idle" else 1.15
 		var hold_swing := 0.04 if clip_name == "holding_idle" else 0.08
@@ -198,6 +230,7 @@ func get_clip_duration(clip_name: String) -> float:
 func _clip_duration(clip_name: String) -> float:
 	match clip_name:
 		"idle", "holding_idle", "crouch_idle": return 2.0
+		"shove": return 0.3
 		"walk", "holding_walk", "crouch_walk": return 0.8
 		"run": return 0.55
 		"jump_takeoff": return 0.15

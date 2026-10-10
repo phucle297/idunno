@@ -31,8 +31,9 @@ func _run() -> void:
 	hud.present_major_warning("flood", 2.0)
 	hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
+	hud.present_shove_state(1.0)
 	hud.set_spectating_visible(true)
-	for control: Control in [hud.health_card, hud.get_node("AlivePill"), hud.timer_card, hud.hazard_tray, hud.warning_banner, hud.personal_danger, hud.context_prompt, hud.spectator_card]:
+	for control: Control in [hud.health_card, hud.get_node("AlivePill"), hud.timer_card, hud.hazard_tray, hud.warning_banner, hud.personal_danger, hud.context_prompt, hud.spectator_card, hud.shove_pill]:
 		_expect(not control.visible, "Later presenter calls must not re-enable gameplay UI beneath results: %s" % control.name)
 	hud.set_spectating_visible(false)
 	hud.present_match_status(125, "SURVIVE", false)
@@ -70,6 +71,28 @@ func _run() -> void:
 	_expect(hud.warning_countdown.text == "1 s", "A live warning must never display zero before the phase changes")
 	hud.present_major_warning("")
 	_expect(not hud.warning_banner.visible and hud.hazard_tray.offset_top == 120.0, "Clearing a warning must hide the banner and restore the tray")
+	hud.present_shove_state(-1.0)
+	_expect(not hud.shove_pill.visible, "No active cooldown must hide the shove pill")
+	hud.present_shove_state(0.0)
+	_expect(hud.shove_pill.visible and hud.shove_state_label.text == "READY", "A cleared cooldown must present ready shove feedback")
+	hud.present_shove_state(1.4)
+	_expect(hud.shove_state_label.text == "1.4s", "An active cooldown must present its remaining seconds")
+	hud.present_major_warning("meteor", 2.0)
+	hud.present_hazards(["METEOR"])
+	await process_frame
+	_expect(not hud.shove_pill.get_global_rect().intersects(hud.warning_banner.get_global_rect()), "The shove pill must not obscure the major warning")
+	_expect(not hud.shove_pill.get_global_rect().intersects(hud.hazard_tray.get_global_rect()), "The shove pill must not obscure hazard chips")
+	_expect(not hud.shove_pill.get_global_rect().intersects(hud.health_card.get_global_rect()) and not hud.shove_pill.get_global_rect().intersects(hud.timer_card.get_global_rect()), "The shove pill must not obscure vitals or the timer")
+	hud.present_lobby_overlay(true)
+	hud.present_shove_state(1.4)
+	_expect(not hud.shove_pill.visible, "The lobby must suppress the shove pill")
+	hud.present_lobby_overlay(false)
+	hud.present_match_status(0, "ENTER TO REMATCH", true)
+	hud.present_shove_state(1.4)
+	_expect(not hud.shove_pill.visible, "Results must suppress the shove pill")
+	hud.present_match_status(125, "SURVIVE", false)
+	hud.present_major_warning("")
+	hud.present_hazards([])
 	main.disaster_director.cleanup()
 	main.meteor_shower.start_warning(Vector3.ZERO)
 	main.flood.start_warning()
@@ -287,7 +310,7 @@ func _capture(state: String) -> void:
 			if hud.personal_danger.visible:
 				_expect(Rect2(24, 24, 1232, 672).encloses(hud.personal_danger.get_global_rect()), "Personal danger must fit within the safe area")
 				_expect(hud.personal_danger.get_global_rect().encloses(hud.danger_action.get_global_rect()), "Personal danger instructions must fit the card")
-				for panel: Control in [hud.health_card, hud.timer_card, hud.hazard_tray, hud.warning_banner]:
+				for panel: Control in [hud.health_card, hud.timer_card, hud.hazard_tray, hud.warning_banner, hud.shove_pill]:
 					_expect(not hud.personal_danger.get_global_rect().intersects(panel.get_global_rect()), "Personal danger must not overlap other HUD cards")
 			var path := argument.trim_prefix("--capture-dir=").path_join("warning-%s-%dx%d.png" % [state, root.size.x, root.size.y])
 			_expect(root.get_texture().get_image().save_png(path) == OK, "The warning review capture must save successfully")

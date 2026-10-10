@@ -26,6 +26,11 @@ class MeasuredMain extends "res://game/main.gd":
 	var sent_inputs := []
 	var received_inputs := []
 	var authority_inputs := []
+	var shove_applications := 0
+	var shove_state_responses: Array = []
+	var _shove_state_report: Array = []
+	var _shove_state_requester := 0
+	var _shove_state_expected := 0
 
 	# Deterministic test-only geometry, NOT Toy Town stairs: elevated 24x24m
 	# floor at y=30 and three 0.2m risers, 0.4m treads, 2m top landing.
@@ -77,6 +82,9 @@ class MeasuredMain extends "res://game/main.gd":
 				position = Vector3(0, 30.65, 0) # Server-approved standing height on the prop top.
 			if id != owner_id:
 				position = Vector3(0, 30.05, -0.5) if kind == "contact" else Vector3(-6, 30.05, 0)
+			if kind == "shove":
+				# Owner shoves the stationary peer through the real request path.
+				position = Vector3(0, 30.05, 0.6) if id == owner_id else Vector3(0, 30.05, -1.1)
 			_player_nodes[id].reset_for_match(position)
 		if kind == "carry" and multiplayer.is_server():
 			var prop := _network_prop(1)
@@ -113,6 +121,50 @@ class MeasuredMain extends "res://game/main.gd":
 	func trigger_knockdown() -> void:
 		if multiplayer.is_server():
 			_player_nodes[multiplayer.get_remote_sender_id()].apply_knockdown(Vector3.ZERO)
+
+	@rpc("any_peer", "call_remote", "reliable")
+	func reposition_shove() -> void:
+		if multiplayer.is_server():
+			for id in _player_nodes:
+				_player_nodes[id].reset_for_match(Vector3(0, 30.05, 0.6) if id == fixture_owner else Vector3(0, 30.05, -1.1))
+
+	@rpc("any_peer", "call_remote", "reliable")
+	func fetch_shove_state() -> void:
+		if not multiplayer.is_server():
+			return
+		# ENet is client-server: the server aggregates every peer's report and
+		# delivers one result; clients never RPC each other directly.
+		_shove_state_requester = multiplayer.get_remote_sender_id()
+		_shove_state_expected = _player_nodes.size() + 1
+		_shove_state_report.clear()
+		_collect_shove_state(1, shove_applications, _shove_sequences())
+		for id in _player_nodes:
+			report_shove_state.rpc_id(id)
+
+	@rpc("authority", "call_remote", "reliable")
+	func report_shove_state() -> void:
+		shove_state_reply.rpc_id(1, multiplayer.get_unique_id(), shove_applications, _shove_sequences())
+
+	@rpc("any_peer", "call_remote", "reliable")
+	func shove_state_reply(reporter_id: int, applications: int, sequences: Dictionary) -> void:
+		if multiplayer.is_server():
+			_collect_shove_state(reporter_id, applications, sequences)
+
+	func _collect_shove_state(reporter_id: int, applications: int, sequences: Dictionary) -> void:
+		_shove_state_report.append({"peer": reporter_id, "applications": applications, "sequences": sequences})
+		if _shove_state_report.size() == _shove_state_expected:
+			shove_state_result.rpc_id(_shove_state_requester, _shove_state_report)
+
+	@rpc("authority", "call_remote", "reliable")
+	func shove_state_result(reports: Array) -> void:
+		shove_state_responses = reports
+
+	func _shove_sequences() -> Dictionary:
+		var shove := get_node("ShoveManager")
+		var sequences := {}
+		for id in _player_nodes:
+			sequences[str(id)] = shove.get_last_shove_sequence(id)
+		return sequences
 
 	@rpc("any_peer", "call_remote", "reliable")
 	func fetch_trace() -> void:
@@ -239,6 +291,7 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	main.install_fixture()
+	main.get_node("ShoveManager").shove_effect_applied.connect(func(_a: int, _b: int) -> void: main.shove_applications += 1)
 	if role == "server":
 		# Disable selection before ACTIVE, not after a hazard has already started.
 		main.disaster_director.set_process(false)
@@ -371,6 +424,7 @@ func _run() -> void:
 			await run_traversal(player)
 			await run_carry(player)
 			await run_footing(player)
+			await run_shove(player)
 			main.end_traversal.rpc_id(1)
 			await wait_for(func(): return main.traversal_done)
 		else:
@@ -517,6 +571,71 @@ func run_footing(player: PartyPlayer) -> void:
 	var corrections: Array = main.corrections.slice(correction_start)
 	require(not corrections.is_empty() and corrections.max() < 1.5, "Prop footing cannot produce repeated large prediction launches")
 	var record := {"fixture": "footing", "origin": [origin.x, origin.y, origin.z], "stand_y_range": [stand_min, stand_max], "authority_stand_y_range": [authority_stand_min, authority_stand_max], "hop_peak_m": hop_peak, "settled_error_m": settled_error, "corrections_m": corrections, "local_trajectory": main.trajectory.duplicate(true), "authority_trajectory": main.authoritative_trace.duplicate(true)}
+	main.traversal.append(record)
+	print("TRAVERSAL " + JSON.stringify(record))
+
+
+func run_shove(player: PartyPlayer) -> void:
+	main.measuring = false
+	main.fixture_ready = ""
+	main.setup_fixture.rpc_id(1, "shove")
+	await wait_for(func(): return main.fixture_ready == "shove")
+	player.set_camera_yaw(0.0)
+	await create_timer(0.8).timeout
+	require(player.is_on_floor(), "Shove fixture must start grounded")
+	main.arm_fixture.rpc_id(1)
+	await wait_for(func(): return main.fixture_armed)
+	var victim_id := 0
+	for id in main._player_nodes:
+		if id != 1 and id != main.multiplayer.get_unique_id():
+			victim_id = id
+	var victim := main._player_nodes.get(victim_id) as PartyPlayer
+	if victim == null:
+		print("SHOVE_FIXTURE_DIAG self=%s keys=%s" % [main.multiplayer.get_unique_id(), str(main._player_nodes.keys())])
+	require(victim != null, "Shove fixture needs the remote victim player node")
+	var shove_manager := main.get_node("ShoveManager") as ShoveManager
+	var correction_start: int = main.corrections.size()
+	var trial_records := []
+	for shove_trial in 3:
+		if shove_trial > 0:
+			# Server-authoritative re-placement keeps the deterministic geometry
+			# while cooldown and protection expire on their own timers.
+			main.reposition_shove.rpc_id(1)
+			await create_timer(2.8).timeout
+			await wait_for(func(): return not shove_manager.is_protected(victim_id))
+		var seq_before := shove_manager.get_last_shove_sequence(victim_id)
+		var request_stamp := Time.get_ticks_usec() / 1000.0
+		main.mark("shove_request", shove_trial)
+		shove_manager.request_local_shove(main.multiplayer.get_unique_id())
+		var response := -1.0
+		var speed_peak := 0.0
+		var settle_ticks := 30
+		var wait_deadline := Time.get_ticks_msec() + 3000
+		while Time.get_ticks_msec() < wait_deadline:
+			await process_frame
+			speed_peak = maxf(speed_peak, Vector2(victim.velocity.x, victim.velocity.z).length())
+			if response < 0.0 and shove_manager.get_last_shove_sequence(victim_id) > seq_before:
+				response = Time.get_ticks_usec() / 1000.0 - request_stamp
+				main.mark("shove_effect", shove_trial)
+			if response >= 0.0:
+				settle_ticks -= 1
+				if settle_ticks <= 0:
+					break
+		require(response >= 0.0, "Accepted shove effect must reach the requester")
+		require(shove_manager.get_last_shove_sequence(victim_id) == seq_before + 1, "Exactly one sequenced application per accepted shove")
+		require(shove_manager.is_protected(victim_id), "Accepted shove must replicate the victim protection window")
+		require(speed_peak > 2.0, "Observer must see the bounded victim impulse")
+		require(not shove_manager.apply_replicated_shove(main.multiplayer.get_unique_id(), victim_id, seq_before + 1, 0.0, -1.0), "Duplicate delivery must be suppressed on the requester")
+		trial_records.append({"trial": shove_trial, "response_ms": response, "speed_peak_mps": speed_peak})
+	require(main.shove_applications == 3, "Requester must apply exactly one effect per accepted shove")
+	main.shove_state_responses.clear()
+	main.fetch_shove_state.rpc_id(1)
+	await wait_for(func(): return main.shove_state_responses.size() >= 3)
+	var agreement := true
+	for response_record: Dictionary in main.shove_state_responses:
+		agreement = agreement and int(response_record.applications) == 3 and int(response_record.sequences.get(str(victim_id), 0)) == 3
+	require(agreement, "Server and both clients must agree on exactly three sequenced applications")
+	var record := {"fixture": "shove", "trials": trial_records, "shove_applications_local": main.shove_applications, "state_responses": main.shove_state_responses.duplicate(true), "corrections_m": main.corrections.slice(correction_start), "local_trajectory": main.trajectory.duplicate(true)}
 	main.traversal.append(record)
 	print("TRAVERSAL " + JSON.stringify(record))
 

@@ -15,6 +15,7 @@ var world: Node3D
 var manager: ManagerScript
 var shove: ShoveScript
 var players: Dictionary = {}
+var cue_count := 0
 
 
 func _initialize() -> void:
@@ -33,6 +34,8 @@ func _run() -> void:
 	await _test_state_and_death_gates()
 	await _test_recovery_protection()
 	await _test_protection_scope()
+	await _test_replication_contract()
+	await _test_held_sender_rule()
 	await _test_rematch_reset()
 	if failures.is_empty():
 		print("SHOVE_OK checks=%d" % checks)
@@ -65,6 +68,7 @@ func _build_world() -> void:
 	shove = ShoveScript.new()
 	world.add_child(shove)
 	shove.configure(manager)
+	shove.shove_effect_applied.connect(_on_shove_cue)
 	for peer_id in [1, 2, 3]:
 		var player := _add_player(Vector3(0.0, 0.05, peer_id * 3.0))
 		players[peer_id] = player
@@ -72,6 +76,10 @@ func _build_world() -> void:
 		_expect(manager.set_player_ready(peer_id, true), "Player %d must ready up" % peer_id)
 		_expect(shove.register_player(peer_id, player), "Player %d must register with the shove boundary" % peer_id)
 	_expect(manager.start_match(), "Shove test match must start")
+
+
+func _on_shove_cue(_shover_id: int, _victim_id: int) -> void:
+	cue_count += 1
 
 
 func _add_static_box(size: Vector3, position: Vector3) -> StaticBody3D:
@@ -241,6 +249,59 @@ func _test_protection_scope() -> void:
 	_expect(is_equal_approx(manager.get_health(2), health_before - 10.0), "Shove protection must not block disaster damage")
 	players[2].apply_knockdown(Vector3(4.0, 1.0, 0.0))
 	_expect(players[2].is_knocked_down(), "Shove protection must not disable disaster knockdown")
+
+
+func _test_replication_contract() -> void:
+	await _setup_open_pair()
+	players[2].velocity = Vector3.ZERO
+	var cues_before := cue_count
+	# One application path with per-victim monotonic sequencing: a duplicated
+	# or reordered delivery under loss must never apply twice.
+	_expect(shove.apply_replicated_shove(1, 2, 50, 0.0, -1.0), "A fresh sequenced shove effect must apply on every peer")
+	_expect(is_equal_approx(players[2].velocity.z, -6.0) and absf(players[2].velocity.y) < 0.01, "The replicated effect applies the same bounded horizontal impulse")
+	_expect(not shove.apply_replicated_shove(1, 2, 50, 0.0, -1.0), "A duplicate delivery must be suppressed")
+	_expect(not shove.apply_replicated_shove(1, 2, 41, 0.0, -1.0), "A stale reordered delivery must be suppressed")
+	_expect(is_equal_approx(players[2].velocity.z, -6.0) and cue_count == cues_before + 1, "Suppressed duplicates change nothing and cue exactly once")
+	shove.reset_state()
+	_expect(not shove.apply_replicated_shove(1, 2, 50, 0.0, -1.0), "Rematch reset must not let stale sequences reapply")
+	_expect(shove.apply_replicated_shove(1, 2, 51, 0.0, -1.0), "Sequencing stays monotonic across rematches")
+	# The arm cue is the accepted effect's readable body cue on every peer.
+	var shover: PartyPlayer = players[1]
+	shover.play_shove_cue()
+	shover._process(DELTA)
+	_expect(shover.character.current_clip == "shove", "An accepted shove plays the readable arm cue")
+	for tick in 24:
+		shover._process(DELTA)
+	_expect(shover.character.current_clip != "shove", "The shove cue is one-shot and returns to locomotion")
+
+
+func _test_held_sender_rule() -> void:
+	await _setup_open_pair()
+	shove.reset_state()
+	var grab := preload("res://game/grab_manager.gd").new()
+	world.add_child(grab)
+	for peer_id in [1, 2, 3]:
+		_expect(grab.register_player(peer_id, players[peer_id]), "Grab boundary must register for the held-sender rule")
+	var prop := _add_rigid_box(Vector3(0.5, 0.5, 0.5), Vector3(0.0, 0.35, -1.0), 4.0)
+	_expect(grab.request_grab(1, prop), "The shover must hold a prop for the held-sender boundary")
+	shove.configure(manager, grab)
+	_expect(not shove.request_shove(1), "No shove while holding a prop")
+	grab.release_grab(1)
+	_expect(shove.request_shove(1), "Releasing the prop restores the shove")
+
+
+func _add_rigid_box(size: Vector3, position: Vector3, mass: float) -> RigidBody3D:
+	var body := RigidBody3D.new()
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	body.mass = mass
+	body.add_to_group("grabbable")
+	world.add_child(body)
+	body.global_position = position
+	return body
 
 
 func _test_rematch_reset() -> void:

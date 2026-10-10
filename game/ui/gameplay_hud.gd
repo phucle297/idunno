@@ -13,6 +13,7 @@ enum FloodExposure {
 }
 
 const MAX_HAZARD_CHIPS := 2
+const UITokens = preload("res://game/ui/ui_tokens.gd")
 const WARNING_COPY := {
 	"meteor": ["METEOR INCOMING", "MOVE OUT OF THE IMPACT RING"],
 	"flood": ["FLOOD INCOMING", "REACH HIGH GROUND"],
@@ -26,6 +27,8 @@ const WARNING_COPY := {
 @onready var health_label: Label = $HealthCard/Content/MetricRow/Health
 @onready var health_bar: ProgressBar = $HealthCard/Content/HealthBar
 @onready var alive_label: Label = $AlivePill/Content/Alive
+@onready var shove_pill: PanelContainer = $ShovePill
+@onready var shove_state_label: Label = $ShovePill/Content/State
 @onready var timer_card: PanelContainer = $TimerCard
 @onready var timer_label: Label = $TimerCard/Content/Timer
 @onready var state_label: Label = $TimerCard/Content/State
@@ -99,6 +102,18 @@ func present_vitals(health: float, alive_count: int, player_count: int) -> void:
 	health_label.text = "%d" % _presented_health
 	health_bar.value = clampf(health, health_bar.min_value, health_bar.max_value)
 	alive_label.text = "%d / %d" % [alive_count, player_count]
+
+
+func present_shove_state(cooldown_remaining: float) -> void:
+	shove_pill.visible = cooldown_remaining >= 0.0 and not _lobby_open and not _results_visible and not _spectating
+	if not shove_pill.visible:
+		return
+	if cooldown_remaining <= 0.0:
+		shove_state_label.text = "READY"
+		shove_state_label.add_theme_color_override("font_color", UITokens.GRASS)
+	else:
+		shove_state_label.text = "%.1fs" % cooldown_remaining
+		shove_state_label.add_theme_color_override("font_color", UITokens.WARNING)
 
 
 func present_match_status(remaining_seconds: int, state_text: String, results_visible: bool) -> void:

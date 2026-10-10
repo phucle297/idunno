@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://game/ui/disaster_icon.gd" id="14_icon"]
 [ext_resource type="Script" path="res://game/ui/lobby_roster.gd" id="15_roster"]
 [ext_resource type="Script" path="res://game/ui/results_table.gd" id="16_results"]
+[ext_resource type="Script" path="res://game/shove_manager.gd" id="17_shove"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -39,6 +40,9 @@ script = ExtResource("8_director")
 
 [node name="GrabManager" type="Node" parent="."]
 script = ExtResource("4_grab")
+
+[node name="ShoveManager" type="Node" parent="."]
+script = ExtResource("17_shove")
 
 [node name="MeteorShower" type="Node3D" parent="."]
 script = ExtResource("5_meteor")
@@ -117,6 +121,31 @@ text = "SURVIVORS"
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "1 / 1"
+
+[node name="ShovePill" type="PanelContainer" parent="Interface"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 80.0
+offset_right = -24.0
+offset_bottom = 124.0
+grow_horizontal = 0
+theme_type_variation = &"HudPill"
+
+[node name="Content" type="HBoxContainer" parent="Interface/ShovePill"]
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Caption" type="Label" parent="Interface/ShovePill/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SHOVE"
+
+[node name="State" type="Label" parent="Interface/ShovePill/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "READY"
 
 [node name="HealthCard" type="PanelContainer" parent="Interface"]
 anchors_preset = 2

@@ -144,9 +144,68 @@ func _run() -> void:
 	_expect(not player.is_knocked_down() and player.visual.visible, "Recovery must restore the visible actor")
 	_expect(player.character.current_clip == "get_up", "Recovery must show get_up before locomotion resumes")
 	if is_instance_valid(player.character._animation_player):
-		player.character._animation_player.seek(0.3, true)
+		# get_up limb-swing peaks at 0.0/0.5/1.0s; 0.5s is the readable mid pose.
+		player.character._animation_player.seek(0.5, true)
 		player.character._animation_player.pause()
+	var recovery_arm := player.character.get_node("LeftArm") as Node3D
+	_expect(recovery_arm.rotation.x < -0.5, "Recovery cue must hold a readable limb swing at the review frame")
 	await _capture("knockdown-recovery")
+
+	# Shove cue review: bounded forward arm thrust at gameplay distance with
+	# hazard warnings present, and the cooldown pill clear of them.
+	var shove_manager := main.get_node("ShoveManager") as ShoveManager
+	var victim := (load("res://scenes/player.tscn") as PackedScene).instantiate() as PartyPlayer
+	victim.name = "ShoveVictim"
+	main.add_child(victim)
+	victim.set_physics_process(false)
+	victim.set_process(false)
+	victim.set_process_unhandled_input(false)
+	victim.set_camera_yaw(0.0)
+	if is_instance_valid(review_crate):
+		review_crate.global_position = Vector3(10.0, 0.3, 0.0)
+	player.reset_for_match(Vector3.ZERO)
+	player.set_camera_yaw(0.0)
+	victim.reset_for_match(Vector3(0.9, 0.0, -1.2))
+	for _tick in 5:
+		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		victim.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+	main.match_manager.state = MatchManager.MatchState.LOBBY
+	main.match_manager.register_player(2, "Victim")
+	main.match_manager.set_player_ready(1, true)
+	main.match_manager.set_player_ready(2, true)
+	_expect(main.match_manager.start_match(), "Shove cue review needs a live active match")
+	player.configure_shoving(shove_manager)
+	victim.configure_shoving(shove_manager)
+	_expect(shove_manager.register_player(1, player) and shove_manager.register_player(2, victim), "Shove review fixture must register both players")
+	player.set_process(true)
+	_expect(shove_manager.request_shove(1), "Shove review fixture must accept a bounded in-range shove")
+	for _cue_frame in 3:
+		await main.get_tree().process_frame
+	_expect(player.character.current_clip == "shove", "Accepted shove must play the dedicated shove clip")
+	player.set_process(false)
+	# Drive the victim's knockback a few ticks with the shover frozen in the
+	# thrust pose so one frame reads as a shove at gameplay distance.
+	for _knockback_tick in 10:
+		victim.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		await physics_frame
+	_expect(is_instance_valid(player.character._animation_player), "The toy visual must own a runtime animation player")
+	player.character._animation_player.seek(0.1, true)
+	player.character._animation_player.pause()
+	var shove_left_arm := player.character.get_node("LeftArm") as Node3D
+	var shove_right_arm := player.character.get_node("RightArm") as Node3D
+	_expect(shove_left_arm.rotation.x > 1.0 and shove_right_arm.rotation.x > 1.0, "Shove cue must thrust both arms forward")
+	var shove_torso := player.character.get_node("Torso") as Node3D
+	_expect(shove_torso.rotation.x < -0.2, "Shove cue must lean the torso forward for rear-camera readability")
+	main.gameplay_hud.present_lobby_overlay(false)
+	main.gameplay_hud.present_shove_state(1.4)
+	main.gameplay_hud.present_major_warning("meteor", 2.0)
+	var shove_hazard_lines: Array[String] = ["METEOR"]
+	main.gameplay_hud.present_hazards(shove_hazard_lines)
+	await process_frame
+	_expect(not main.gameplay_hud.shove_pill.get_global_rect().intersects(main.gameplay_hud.warning_banner.get_global_rect()), "The shove pill must not obscure the major warning")
+	_expect(not main.gameplay_hud.shove_pill.get_global_rect().intersects(main.gameplay_hud.hazard_tray.get_global_rect()), "The shove pill must not obscure hazard chips")
+	_frame_review("shove-cue")
+	await _capture("shove-cue")
 
 	_finish()
 
@@ -155,6 +214,13 @@ func _capture(state: String) -> void:
 	if capture_dir.is_empty():
 		return
 	_frame_review(state)
+	# Instantiated player scenes bring their own camera into the tree; keep the
+	# dedicated review camera authoritative for the capture. player.tscn marks
+	# its camera current = true, so every other camera must be released.
+	for camera in _collect_cameras(root):
+		camera.current = camera == review_camera
+	review_camera.make_current()
+	_expect(review_camera.is_current(), "Capture must render through the review camera: %s" % state)
 	await process_frame
 	if state == "carry-airborne" and is_instance_valid(review_crate):
 		review_crate.global_position = review_player.get_hold_position()
@@ -163,6 +229,15 @@ func _capture(state: String) -> void:
 	_expect(root.size == review_size and image.get_size() == review_size, "Capture framebuffer must match the requested review resolution")
 	var path := capture_dir.path_join("%s-%dx%d.png" % [state, root.size.x, root.size.y])
 	_expect(image.save_png(path) == OK, "Carry review capture must save: %s" % state)
+
+
+func _collect_cameras(node: Node) -> Array[Camera3D]:
+	var cameras: Array[Camera3D] = []
+	if node is Camera3D:
+		cameras.append(node)
+	for child in node.get_children():
+		cameras.append_array(_collect_cameras(child))
+	return cameras
 
 
 func _frame_review(state: String) -> void:
@@ -174,6 +249,9 @@ func _frame_review(state: String) -> void:
 	elif state in ["carry-walk", "knockdown-recovery"]:
 		review_camera.global_position = review_player.global_position + Vector3(3.4, 1.65, 0.0)
 		review_camera.look_at(review_player.global_position + Vector3(0.0, 1.0, 0.0))
+	elif state == "shove-cue":
+		review_camera.global_position = review_player.global_position + Vector3(3.6, 1.7, -1.4)
+		review_camera.look_at(review_player.global_position + Vector3(0.3, 1.0, -1.1))
 	else:
 		review_camera.global_position = review_player.global_position + Vector3(1.2, 1.65, -3.2)
 		review_camera.look_at(review_player.global_position + Vector3(0.0, 1.0, -0.6))

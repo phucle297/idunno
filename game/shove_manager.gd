@@ -1,48 +1,70 @@
 class_name ShoveManager
 extends Node
 
-# Task 3.4.1 bounded shove prototype: one explicit short-range forward shove.
-# The client sends only a request; the server derives everything else. The
-# target is picked by a deterministic nearest rule (ties by peer id), the
-# accepted effect is one fixed clamped horizontal impulse, and accepted shoves
-# plus knockdown recovery grant the victim a short protection window so
+# Task 3.4 bounded shove: one explicit short-range forward shove. The client
+# sends only a request; the server derives everything else. The target is
+# picked by a deterministic nearest rule (ties by peer id), the accepted
+# effect is one fixed clamped horizontal impulse, and accepted shoves plus
+# knockdown recovery grant the victim a short protection window so
 # alternating attackers cannot chain-lock. No HP damage, no routine knockdown,
-# no client-chosen direction/magnitude/target.
+# no client-chosen direction/magnitude/target. After server acceptance the
+# effect is replicated once per monotonically sequenced shove so every peer
+# applies the same bounded impulse exactly once (duplicates and stale packets
+# are suppressed).
 
 const Tuning = preload("res://game/player_tuning.gd")
+
+signal shove_effect_applied(shover_id: int, victim_id: int)
 
 var _players: Dictionary = {}
 var _cooldown_until: Dictionary = {}
 var _protection_until: Dictionary = {}
 var _was_knocked_down: Dictionary = {}
+var _last_shove_sequence: Dictionary = {}
 var _match_manager: MatchManager = null
+var _grab_manager: GrabManager = null
 
 
-func configure(match_manager: MatchManager) -> void:
+func configure(match_manager: MatchManager, grab_manager: GrabManager = null) -> void:
 	_match_manager = match_manager
+	_grab_manager = grab_manager
 
 
 func register_player(peer_id: int, player: PartyPlayer) -> bool:
-	if not _can_mutate() or peer_id <= 0 or not is_instance_valid(player) or _players.has(peer_id):
+	if peer_id <= 0 or not is_instance_valid(player):
 		return false
+	if _players.has(peer_id):
+		# Idempotent for the same copy (spawn paths register on every peer);
+		# a different copy for one peer id is stale and must not be accepted.
+		return _players[peer_id] == player
 	_players[peer_id] = player
 	_was_knocked_down[peer_id] = player.is_knocked_down()
+	player.configure_shoving(self)
 	return true
 
 
 func unregister_player(peer_id: int) -> bool:
-	if not _can_mutate() or not _players.has(peer_id):
+	if not _players.has(peer_id):
 		return false
 	_players.erase(peer_id)
 	_cooldown_until.erase(peer_id)
 	_protection_until.erase(peer_id)
 	_was_knocked_down.erase(peer_id)
+	_last_shove_sequence.erase(peer_id)
 	return true
 
 
 func reset_state() -> void:
-	if not _can_mutate():
-		return
+	_cooldown_until.clear()
+	_protection_until.clear()
+	for peer_id: int in _players:
+		_was_knocked_down[peer_id] = (_players[peer_id] as PartyPlayer).is_knocked_down()
+	if _can_mutate() and multiplayer.has_multiplayer_peer():
+		_replicate_reset.rpc()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_reset() -> void:
 	_cooldown_until.clear()
 	_protection_until.clear()
 	for peer_id: int in _players:
@@ -50,8 +72,6 @@ func reset_state() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if not _can_mutate():
-		return
 	# Knockdown recovery starts the same protection window an accepted shove
 	# grants, so a recovering player cannot be immediately re-shoved. This
 	# covers only shove acceptance: disasters still damage and knock down.
@@ -94,7 +114,9 @@ func request_shove(peer_id: int) -> bool:
 	if now < float(_protection_until.get(victim_peer, 0.0)):
 		return false
 	# Fixed server-derived effect: horizontal push away from the shover with
-	# clamped impulse and clamped result speed. No vertical component.
+	# clamped impulse and clamped result speed. No vertical component. The
+	# same formula runs on every peer from the replicated direction so the
+	# accepted effect agrees without replaying local prediction.
 	var direction := victim.global_position - shover.global_position
 	direction.y = 0.0
 	if direction.length_squared() < 0.0001:
@@ -103,13 +125,48 @@ func request_shove(peer_id: int) -> bool:
 	if direction.length_squared() < 0.0001:
 		return false
 	direction = direction.normalized()
+	_cooldown_until[peer_id] = now + Tuning.SHOVE_COOLDOWN
+	var sequence := int(_last_shove_sequence.get(victim_peer, 0)) + 1
+	var applied := apply_replicated_shove(peer_id, victim_peer, sequence, direction.x, direction.z)
+	if applied and multiplayer.has_multiplayer_peer():
+		_replicate_shove.rpc(peer_id, victim_peer, sequence, direction.x, direction.z)
+	return applied
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_shove(shover_id: int, victim_id: int, sequence: int, direction_x: float, direction_z: float) -> void:
+	apply_replicated_shove(shover_id, victim_id, sequence, direction_x, direction_z)
+
+
+# Single application path for server acceptance and client replication.
+# A per-victim monotonic sequence suppresses duplicate application under
+# loss/reordering; client responsiveness can never authorize a second impulse.
+func apply_replicated_shove(shover_id: int, victim_id: int, sequence: int, direction_x: float, direction_z: float) -> bool:
+	if sequence <= int(_last_shove_sequence.get(victim_id, 0)):
+		return false
+	var victim := _players.get(victim_id) as PartyPlayer
+	if not is_instance_valid(victim):
+		return false
+	var direction := Vector3(direction_x, 0.0, direction_z)
+	if direction.length_squared() < 0.0001:
+		return false
+	direction = direction.normalized()
 	var horizontal := Vector3(victim.velocity.x, 0.0, victim.velocity.z)
 	horizontal = (horizontal + direction * Tuning.SHOVE_IMPULSE).limit_length(Tuning.SHOVE_MAX_HORIZONTAL_SPEED)
 	victim.velocity.x = horizontal.x
 	victim.velocity.z = horizontal.z
-	_cooldown_until[peer_id] = now + Tuning.SHOVE_COOLDOWN
-	_protection_until[victim_peer] = now + Tuning.SHOVE_PROTECTION
+	_last_shove_sequence[victim_id] = sequence
+	_protection_until[victim_id] = _now() + Tuning.SHOVE_PROTECTION
+	shove_effect_applied.emit(shover_id, victim_id)
 	return true
+
+
+func get_cooldown_remaining(peer_id: int) -> float:
+	return maxf(0.0, float(_cooldown_until.get(peer_id, 0.0)) - _now())
+
+
+func get_last_shove_sequence(peer_id: int) -> int:
+	return int(_last_shove_sequence.get(peer_id, 0))
 
 
 func is_protected(peer_id: int) -> bool:
@@ -118,6 +175,9 @@ func is_protected(peer_id: int) -> bool:
 
 func _sender_eligible(peer_id: int, shover: PartyPlayer) -> bool:
 	if not is_instance_valid(shover) or not shover.can_grab_objects() or not shover.is_on_floor():
+		return false
+	# Default rule: no shove while holding a prop. The server owns it.
+	if is_instance_valid(_grab_manager) and is_instance_valid(_grab_manager.get_held_body(peer_id)):
 		return false
 	if is_instance_valid(_match_manager):
 		if _match_manager.state != MatchManager.MatchState.ACTIVE or not _match_manager.is_player_alive(peer_id):

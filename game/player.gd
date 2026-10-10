@@ -19,6 +19,8 @@ var _ragdoll: Node3D
 var _is_eliminated := false
 var _get_up_remaining := 0.0
 var _grab_manager: Node
+var _shove_manager: Node
+var _shove_cue_remaining := 0.0
 var _peer_id := 1
 var carrying_medium := false
 var local_input_blocked := false
@@ -43,7 +45,10 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(character) or _is_eliminated or is_knocked_down():
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
-	if _get_up_remaining > 0.0:
+	if _shove_cue_remaining > 0.0:
+		_shove_cue_remaining = maxf(0.0, _shove_cue_remaining - _delta)
+		character.play_clip("shove")
+	elif _get_up_remaining > 0.0:
 		_get_up_remaining = maxf(0.0, _get_up_remaining - _delta)
 		character.play_clip("get_up")
 	elif not is_on_floor():
@@ -85,6 +90,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if not local_input_blocked and Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
 		_grab_manager.request_local_toggle(_peer_id)
+	if not local_input_blocked and Input.is_action_just_pressed("shove") and is_instance_valid(_shove_manager):
+		_shove_manager.request_local_shove(_peer_id)
 	if _has_active_network_session():
 		return
 	if not local_input_blocked and Input.is_action_just_pressed("knockdown_test"):
@@ -295,6 +302,14 @@ func configure_grabbing(manager: Node, peer_id: int) -> void:
 	_peer_id = peer_id
 	character.set_cosmetic_variant((peer_id - 1) % 4)
 	character.set_player_color(peer_id - 1)
+
+
+func configure_shoving(manager: Node) -> void:
+	_shove_manager = manager
+
+
+func play_shove_cue() -> void:
+	_shove_cue_remaining = 0.3
 
 
 func release_held_object() -> void:

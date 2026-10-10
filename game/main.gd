@@ -80,6 +80,8 @@ func _ready() -> void:
 	earthquake.configure(match_manager)
 	lightning.configure(match_manager)
 	fire.configure(match_manager)
+	$ShoveManager.configure(match_manager, $GrabManager)
+	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
 	lightning.struck.connect(_on_lightning_struck)
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
@@ -441,6 +443,7 @@ func _on_server_disconnected() -> void:
 	gameplay_hud.present_hazards([])
 	gameplay_audio.reset_for_match()
 	match_manager.prepare_lobby()
+	$ShoveManager.reset_state()
 	for peer_id: int in match_manager.players.keys():
 		for component: Node in [$GrabManager, meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
 			component.unregister_player(peer_id)
@@ -500,6 +503,7 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	_player_nodes.erase(peer_id)
+	$ShoveManager.unregister_player(peer_id)
 	if is_instance_valid(player) and player != $Player:
 		player.queue_free()
 
@@ -507,6 +511,8 @@ func _remove_network_player(peer_id: int) -> void:
 func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
+	player.configure_shoving($ShoveManager)
+	$ShoveManager.register_player(peer_id, player)
 	pause_settings.apply_player_preferences(player)
 	var camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
 	camera.current = peer_id == multiplayer.get_unique_id()
@@ -755,10 +761,17 @@ func _empty_movement_input() -> Dictionary:
 	}
 
 
+func _on_shove_effect_applied(shover_id: int, _victim_id: int) -> void:
+	var shover := _player_nodes.get(shover_id) as PartyPlayer
+	if is_instance_valid(shover):
+		shover.play_shove_cue()
+
+
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
 	return (
 		match_manager.register_player(peer_id, player_name)
 		and $GrabManager.register_player(peer_id, player)
+		and $ShoveManager.register_player(peer_id, player)
 		and meteor_shower.register_player(peer_id, player)
 		and flood.register_player(peer_id, player)
 		and tornado.register_player(peer_id, player)
@@ -801,6 +814,10 @@ func _process(delta: float) -> void:
 		return
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	gameplay_hud.present_vitals(match_manager.get_health(local_peer_id), match_manager.get_alive_count(), match_manager.players.size())
+	var shove_state := -1.0
+	if match_manager.state == MatchManager.MatchState.ACTIVE and match_manager.is_player_alive(local_peer_id):
+		shove_state = $ShoveManager.get_cooldown_remaining(local_peer_id)
+	gameplay_hud.present_shove_state(shove_state)
 	_update_flood_feedback(local_peer_id)
 	var remaining: int = ceili(maxf(match_manager.match_duration - match_manager.elapsed_time, 0.0))
 	gameplay_hud.present_match_status(
@@ -1398,6 +1415,7 @@ func return_to_lobby() -> bool:
 	gameplay_audio.reset_for_match()
 	_reset_sandbox()
 	match_manager.prepare_lobby()
+	$ShoveManager.reset_state()
 	var peer_ids: Array[int] = get_network_player_ids()
 	if not _network_mode:
 		peer_ids = [1]
