@@ -60,7 +60,7 @@
   "phase": {
     "id": "phase_3_player_caused_chaos",
     "title": "Player-Caused Chaos",
-    "status": "in_progress",
+    "status": "completed",
     "dependencies": [
       "phase_2_human_playtest_and_core_feel"
     ],
@@ -140,7 +140,7 @@
       },
       "milestone_3_6_integrated_chaos_validation": {
         "title": "Integrated Chaos Regression and Matching Delivery",
-        "status": "planned",
+        "status": "completed",
         "dependencies": [
           "milestone_3_1_safe_interaction_contract",
           "milestone_3_2_readable_carrying",
@@ -149,8 +149,8 @@
           "milestone_3_5_interruptible_emotes"
         ],
         "gates": {
-          "supported_multiplayer_lifecycle_and_performance": "not_run",
-          "matching_packages_and_reviewable_visuals": "not_run"
+          "supported_multiplayer_lifecycle_and_performance": "passed",
+          "matching_packages_and_reviewable_visuals": "passed"
         }
       }
     }
@@ -389,6 +389,12 @@
       "command": "python3 -m zipfile / tar czf bundles from .scratch/export-run1 + integrity/parity checks + tools/verify_exported_artifacts.py on extracted copies",
       "status": "pass",
       "result": "Matching bundles in .amp/in/artifacts/phase-3-packages/: DisasterParty-Windows-f82a5cb.zip (sha256 6a326ae8...) and DisasterParty-Linux-server-f82a5cb.tar.gz (sha256 c2b32f98...). Both archives pass integrity tests; extracted copies pass PLAYTEST_ARTIFACTS_OK; shipped PCK byte-identical across client/server (a4fe08ed...). Short control/bug-report notes committed as docs/playtest-notes.md and included as PLAYTEST-NOTES.md in both archives, deliberately outside SHA256SUMS.txt (runtime payload manifest unchanged). No GitHub Release, no EC2 deployment, no infra change, no server restart; [skip ci] pushes continue and deployment/publishing awaits separate scoped user approval."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=.tools/godot/... bash tests/run_ui_regression.sh; targeted test_{dedicated_server,grab_manager,flood,player_colliders,player_integration,network_prediction}.gd; GODOT_BIN=... python3 tests/run_movement_latency_test.py",
+      "status": "pass",
+      "result": "UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed at PLAYER_COUNTS=4 with strict runtime-error checks (PLAYABLE_SCALE_MATRIX_OK players=4; dedicated 33/57/67 checks, five rematches, movement+recovery passed). Targeted rechecks: DEDICATED_SERVER_OK checks=107 rematches=5 owner_transfer, GRAB_MANAGER_OK checks=300, FLOOD_OK checks=35, PLAYER_COLLIDERS_OK checks=153, PLAYER_INTEGRATION_OK checks=76, NETWORK_PREDICTION_OK checks=21. MOVEMENT_LATENCY_OK measurement-only: 0/100/200ms added RTT, input-to-motion median 6.5-13.7ms, correction p95 <= 0.108m. Gate results recorded: supported_multiplayer_lifecycle_and_performance=passed (1-4 integration, authoritative agreement, five rematches/recovery, strict regression, recorded 4-player frame/body budget; 60FPS/16.67ms unmet on llvmpipe so no throughput claim - hardware-GPU check stays in NEED_REAL_CHECK.md) and matching_packages_and_reviewable_visuals=passed (repeated hashes, exact-PCK audit, standalone release lifecycle, inspected captures; native-Windows execution reserved for the owner device self-check per user instruction; no publication/deployment)."
     }
   ],
   "blockers": [
@@ -425,5 +431,5 @@
     "tests/test_phase1.gd",
     "tests/test_emotes.gd"
   ],
-  "next_action": "Run the 3.6 milestone gate validation (checklist item 2): PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh with strict runtime-error checks, plus targeted dedicated/grab/Flood/player/prediction and movement-latency suites; record gates supported_multiplayer_lifecycle_and_performance and matching_packages_and_reviewable_visuals."
+  "next_action": "Phase rollover: archive Phase 3 to docs/old-docs/phase-3-player-caused-chaos/ (progress.json source_of_truth=false, move checklist+decisions), open Phase 4 in root progress with exactly one next action, update indexes and NEED_REAL_CHECK.md, then stop per the user (owner will self-check; no final sweep)."
 }
