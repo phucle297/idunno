@@ -14,6 +14,11 @@ enum Phase {
 
 const DISASTER_NAME := "Earthquake"
 const DAMAGE_CAUSE := "Earthquake"
+const BURNING_RUBBLE_CAUSE := "Burning Rubble"
+# Burning zones are ground areas: collapse debris ignites when it comes from
+# a section over or beside one, measured horizontally so height never hides a
+# burning section.
+const BURNING_RUBBLE_RADIUS := 6.0
 
 @export var warning_duration := 4.0
 @export var active_duration := 8.0
@@ -22,6 +27,10 @@ const DAMAGE_CAUSE := "Earthquake"
 @export var player_velocity_cap := 4.5
 @export var prop_impulse_max := 12.0
 @export var max_broken_sections := 2
+@export var burning_rubble_lifetime := 6.0
+@export var burning_rubble_hit_speed := 4.0
+@export var burning_rubble_hit_radius := 1.0
+@export var burning_rubble_damage := 20.0
 
 var phase := Phase.IDLE
 var warning_remaining := 0.0
@@ -35,6 +44,9 @@ var _pulse_remaining := 0.0
 var _rng := RandomNumberGenerator.new()
 var _effect: Node3D
 var _structure_root: Node
+var _burning_positions: Array[Vector3] = []
+var _burning_rubble: Array[Dictionary] = []
+var _burning_rubble_visuals: Array[MeshInstance3D] = []
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -47,6 +59,18 @@ func set_structure_root(root: Node) -> void:
 
 func set_refuge_pressure(active: bool) -> void:
 	refuge_pressure = active
+
+
+func set_burning_positions(positions: Array[Vector3]) -> void:
+	if not _can_mutate():
+		return
+	_burning_positions.clear()
+	for burning_position in positions:
+		_burning_positions.append(burning_position)
+
+
+func burning_rubble_count() -> int:
+	return _burning_rubble.size()
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -98,9 +122,12 @@ func start_warning() -> bool:
 
 
 func tick(delta: float) -> void:
-	if not _can_mutate() or phase == Phase.IDLE:
+	if not _can_mutate():
 		return
 	var safe_delta := maxf(delta, 0.0)
+	_update_burning_rubble(safe_delta)
+	if phase == Phase.IDLE:
+		return
 	if phase == Phase.WARNING:
 		warning_remaining = maxf(warning_remaining - safe_delta, 0.0)
 		_update_effect()
@@ -120,6 +147,12 @@ func tick(delta: float) -> void:
 
 
 func cleanup() -> void:
+	_clear_burning_rubble()
+	_burning_positions.clear()
+	_reset_phase_state()
+
+
+func _reset_phase_state() -> void:
 	if is_instance_valid(_effect):
 		_effect.queue_free()
 	_effect = null
@@ -143,6 +176,7 @@ func create_presentation_snapshot() -> Dictionary:
 		"warning_remaining": warning_remaining,
 		"active_remaining": active_remaining,
 		"structure_states": structure_states,
+		"burning_rubble": _burning_rubble_positions(),
 	}
 
 
@@ -163,6 +197,7 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	var sections := _sections()
 	for index in mini(structure_states.size(), sections.size()):
 		sections[index].set_structure_state(int(structure_states[index]), false)
+	_apply_burning_rubble_presentation(snapshot.get("burning_rubble", PackedVector3Array()))
 	return true
 
 
@@ -228,6 +263,8 @@ func _damage_structure() -> void:
 		return
 	if section.apply_damage(true):
 		structure_changed.emit(section.piece_id, section.structure_state)
+		if section.structure_state == BreakableStructure.StructureState.BROKEN:
+			_maybe_ignite_rubble(section)
 
 
 func _partner_already_broken(section: BreakableStructure) -> bool:
@@ -333,9 +370,136 @@ func _update_effect() -> void:
 func _finish() -> void:
 	if is_instance_valid(_match_manager) and _match_manager.state == MatchManager.MatchState.ACTIVE:
 		_match_manager.record_disaster_survived()
-	cleanup()
+	# Burning rubble outlives the quake's active window and expires on its own
+	# short lifetime; only a full cleanup clears it early.
+	_reset_phase_state()
 	finished.emit()
 
 
 func _can_mutate() -> bool:
 	return not multiplayer.has_multiplayer_peer() or multiplayer.is_server()
+
+
+func _maybe_ignite_rubble(section: BreakableStructure) -> void:
+	if _burning_positions.is_empty():
+		return
+	var body := section.get_debris()
+	if not is_instance_valid(body) or body.is_queued_for_deletion():
+		return
+	var rubble_flat := Vector2(body.global_position.x, body.global_position.z)
+	for burning_position in _burning_positions:
+		var burning_flat := Vector2(burning_position.x, burning_position.z)
+		if rubble_flat.distance_to(burning_flat) <= BURNING_RUBBLE_RADIUS:
+			# Explicit cue: ember-tinted glow on the quake rubble marks it as the
+			# short-lived damaging kind rather than ordinary harmless debris.
+			for child in body.get_children():
+				if child is MeshInstance3D:
+					child.material_override = _make_burning_material(1.2)
+			var visual := _make_burning_visual()
+			body.add_child(visual)
+			body.add_to_group("burning_rubble")
+			body.set_meta("burning_rubble", true)
+			# Hot collapse debris tumbles out of the burning area instead of
+			# hiding inside the flames.
+			var outward := (body.global_position - burning_position) * Vector3(1.0, 0.0, 1.0)
+			if outward.length() > 0.01:
+				outward = outward.normalized()
+			else:
+				outward = Vector3.RIGHT
+			body.apply_central_impulse((outward * 3.0 + Vector3.UP * 1.5) * body.mass)
+			_burning_rubble.append({"body": body, "age": 0.0, "hits": {}})
+			_burning_rubble_visuals.append(visual)
+			return
+
+
+func _update_burning_rubble(delta: float) -> void:
+	var index := _burning_rubble.size() - 1
+	while index >= 0:
+		var rubble := _burning_rubble[index]
+		var body := rubble.get("body") as RigidBody3D
+		var expired := true
+		if is_instance_valid(body) and not body.is_queued_for_deletion():
+			rubble["age"] = float(rubble.get("age", 0.0)) + delta
+			expired = float(rubble["age"]) >= burning_rubble_lifetime
+			if not expired and body.linear_velocity.length() >= burning_rubble_hit_speed:
+				var hits := rubble.get("hits") as Dictionary
+				for peer_id: int in _players:
+					if hits.has(peer_id):
+						continue
+					var player := _players[peer_id] as Node3D
+					if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+						continue
+					if player.global_position.distance_to(body.global_position) > burning_rubble_hit_radius:
+						continue
+					hits[peer_id] = true
+					_match_manager.apply_damage(peer_id, burning_rubble_damage, BURNING_RUBBLE_CAUSE)
+		if expired:
+			if is_instance_valid(body):
+				body.queue_free()
+			_remove_burning_visual_at(index)
+			_burning_rubble.remove_at(index)
+		index -= 1
+
+
+func _clear_burning_rubble() -> void:
+	for rubble in _burning_rubble:
+		var body := rubble.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			body.queue_free()
+	_burning_rubble.clear()
+	for visual in _burning_rubble_visuals:
+		if is_instance_valid(visual):
+			visual.queue_free()
+	_burning_rubble_visuals.clear()
+
+
+func _remove_burning_visual_at(index: int) -> void:
+	if index >= _burning_rubble_visuals.size():
+		return
+	var visual := _burning_rubble_visuals[index]
+	if is_instance_valid(visual):
+		visual.queue_free()
+	_burning_rubble_visuals.remove_at(index)
+
+
+func _make_burning_visual() -> MeshInstance3D:
+	var visual := MeshInstance3D.new()
+	visual.name = "BurningRubbleVisual"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.72, 0.72, 0.72)
+	mesh.material = _make_burning_material(2.5)
+	visual.mesh = mesh
+	return visual
+
+
+func _make_burning_material(emission_energy: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.22, 0.12, 0.1, 1.0)
+	material.emission_enabled = true
+	material.emission = Color(1.0, 0.16, 0.04, 1.0)
+	material.emission_energy_multiplier = emission_energy
+	return material
+
+
+func _burning_rubble_positions() -> PackedVector3Array:
+	var positions := PackedVector3Array()
+	for rubble in _burning_rubble:
+		var body := rubble.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			positions.append(body.global_position)
+	return positions
+
+
+func _apply_burning_rubble_presentation(positions: PackedVector3Array) -> void:
+	# Presentation-only detached markers mirroring the authoritative rubble;
+	# server physics and damage never touch these.
+	for visual in _burning_rubble_visuals:
+		if is_instance_valid(visual):
+			visual.queue_free()
+	_burning_rubble_visuals.clear()
+	for value in positions:
+		var rubble_position: Vector3 = value
+		var visual := _make_burning_visual()
+		visual.position = rubble_position
+		add_child(visual)
+		_burning_rubble_visuals.append(visual)

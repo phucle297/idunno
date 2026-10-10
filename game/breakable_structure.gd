@@ -71,6 +71,10 @@ func reset_structure() -> void:
 	set_structure_state(StructureState.INTACT)
 
 
+func get_debris() -> RigidBody3D:
+	return _debris
+
+
 func _apply_visual_state() -> void:
 	if not is_instance_valid(_visual) or not is_instance_valid(_collision):
 		return

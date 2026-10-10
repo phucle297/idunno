@@ -97,6 +97,8 @@ func _ready() -> void:
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
 	fire.warning_started.connect(_on_fire_warning_started)
+	fire.zone_ignited.connect(_on_fire_zone_ignited)
+	fire.finished.connect(_on_fire_finished)
 	flood.warning_started.connect(_on_flood_warning_started)
 	flood.finished.connect(_on_flood_finished)
 	earthquake.warning_started.connect(_on_earthquake_warning_started)
@@ -1174,6 +1176,7 @@ func _active_disaster_lines() -> Array[String]:
 	var wind := fire.phase == Fire.Phase.ACTIVE and fire.wind_active
 	var collapse := flood.is_active() and earthquake.is_active()
 	var debris := meteor_shower.impact_debris_count() > 0 or (tornado.is_active() and meteor_shower.is_active())
+	var burning := earthquake.burning_rubble_count() > 0 or (fire.is_active() and earthquake.is_active())
 	if electric:
 		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER")
 	if wind:
@@ -1182,13 +1185,15 @@ func _active_disaster_lines() -> Array[String]:
 		lines.append("FLOOD + EARTHQUAKE — REFUGES ARE CRUMBLING")
 	if debris:
 		lines.append("TORNADO + METEOR — IMPACT DEBRIS IS FLYING")
+	if burning:
+		lines.append("FIRE + EARTHQUAKE — BURNING RUBBLE IS FALLING")
 	for entry: Array in [
 		["METEOR", meteor_shower, debris],
 		["FLOOD", flood, electric or collapse],
 		["TORNADO", tornado, wind or debris],
-		["EARTHQUAKE", earthquake, collapse],
+		["EARTHQUAKE", earthquake, collapse or burning],
 		["LIGHTNING", lightning, electric],
-		["FIRE", fire, wind],
+		["FIRE", fire, wind or burning],
 	]:
 		if entry[1].is_active() and not entry[2]:
 			lines.append(entry[0])
@@ -1216,6 +1221,24 @@ func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 		fire.set_wind_active(true)
 
 
+func _on_fire_zone_ignited(_zone_id: int, _position: Vector3) -> void:
+	_sync_burning_positions()
+
+
+func _on_fire_finished() -> void:
+	_sync_burning_positions()
+
+
+func _sync_burning_positions() -> void:
+	# Shared hazard query: Earthquake learns which areas are burning without
+	# keeping a Fire reference, so collapses there drop damaging burning rubble.
+	var positions: Array[Vector3] = []
+	for zone_id: int in fire.get_burning_zone_ids():
+		var burning_position: Vector3 = fire.zone_positions[zone_id]
+		positions.append(burning_position)
+	earthquake.set_burning_positions(positions)
+
+
 func _on_flood_warning_started(_duration: float) -> void:
 	if earthquake.is_active():
 		earthquake.set_refuge_pressure(true)
@@ -1226,6 +1249,7 @@ func _on_flood_finished() -> void:
 
 
 func _on_earthquake_warning_started(_duration: float) -> void:
+	_sync_burning_positions()
 	if flood.is_active():
 		earthquake.set_refuge_pressure(true)
 

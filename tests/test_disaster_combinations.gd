@@ -230,6 +230,111 @@ func _run() -> void:
 	meteor.cleanup()
 	await process_frame
 	_expect(meteor.impact_debris_count() == 0 and get_nodes_in_group("meteor_impact_debris").is_empty(), "Composition cleanup must remove tagged impact debris")
+
+	# Task 4.2c gate: Fire + Earthquake burning collapse debris. Burning
+	# zones feed the shared hazard query through named fire events, seeded
+	# collapse inside one ignites short-lived ember-tagged rubble with a
+	# clear cause, and clients replicate it as visuals only.
+	# The previous gate's kill finished the single-player match; restart it
+	# through the real lobby flow.
+	_expect(manager.prepare_lobby(), "The fixture must re-enter the lobby between composition gates")
+	_expect(manager.set_player_ready(1, true), "The fixture player must ready up again")
+	_expect(manager.start_match(), "The fixture match must restart for the burning-rubble gate")
+	player.position = Vector3(0.0, 0.05, 20.0)
+	earthquake.active_duration = 18.0
+	# Probe seeded quakes until a collapse lands inside a fire zone, then
+	# replay that exact seed beside real burning zones so the ignition is
+	# deterministic without special-casing the map.
+	var chosen_seed := -1
+	var chosen_zone := -1
+	var chosen_pulses := 0
+	for candidate_seed in [11, 22, 33, 44, 55, 66, 77, 88]:
+		if chosen_seed >= 0:
+			break
+		_reset_breakables(main)
+		earthquake.cleanup()
+		var probe_rng := RandomNumberGenerator.new()
+		probe_rng.seed = candidate_seed
+		earthquake.start_disaster(probe_rng)
+		earthquake.tick(earthquake.warning_duration + 0.02)
+		for pulse in 14:
+			earthquake.tick(0.8)
+			for section in _sandbox_breakables(main):
+				if section.structure_state != BreakableStructure.StructureState.BROKEN:
+					continue
+				var zone := _nearest_fire_zone(fire, section.global_position)
+				if zone >= 0:
+					chosen_seed = candidate_seed
+					chosen_zone = zone
+					chosen_pulses = pulse + 1
+					break
+			if chosen_seed >= 0:
+				break
+	earthquake.cleanup()
+	_expect(chosen_seed >= 0, "The probe must find a seeded collapse inside a fire zone")
+	_reset_breakables(main)
+	_expect(fire.start_warning(chosen_zone), "Fire must ignite the zone beside the seeded collapse")
+	fire.tick(fire.warning_duration + 0.05)
+	_expect(fire.get_burning_zone_ids().has(chosen_zone), "The chosen zone must reach its burning state")
+	_expect(not earthquake._burning_positions.is_empty(), "Named fire events must feed the shared burning query")
+	var synced_zone := false
+	for burning_position in earthquake._burning_positions:
+		if burning_position.distance_to(fire.zone_positions[chosen_zone]) < 0.01:
+			synced_zone = true
+	_expect(synced_zone, "Earthquake must receive the burning zone position through named events")
+	var replay_rng := RandomNumberGenerator.new()
+	replay_rng.seed = chosen_seed
+	_expect(earthquake.start_disaster(replay_rng), "The seeded collapse must replay beside the burning zone")
+	_expect("FIRE + EARTHQUAKE — BURNING RUBBLE IS FALLING" in "\n".join(main._active_disaster_lines()), "HUD must name the Fire + Earthquake interaction")
+	earthquake.tick(earthquake.warning_duration + 0.02)
+	for pulse in chosen_pulses:
+		earthquake.tick(0.8)
+	_expect(earthquake.burning_rubble_count() >= 1, "Seeded collapse inside the burning area must ignite its rubble")
+	_expect(get_nodes_in_group("burning_rubble").size() == earthquake.burning_rubble_count(), "Every live rubble body must carry its composition tag")
+	var rubble := get_first_node_in_group("burning_rubble") as RigidBody3D
+	_expect(bool(rubble.get_meta("burning_rubble", false)), "Burning rubble must carry its composition meta")
+	_expect(is_instance_valid(rubble.get_node_or_null("BurningRubbleVisual")), "Burning rubble must show its explicit ember cue")
+	await process_frame
+	for step in 4:
+		await physics_frame
+	await _capture("fire-eq-burning-rubble")
+	# Multiplayer agreement: clients replicate burning rubble as visuals only.
+	var client_root := Node3D.new()
+	root.add_child(client_root)
+	var client_api := SceneMultiplayer.new()
+	var client_peer := ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 39997)
+	client_api.multiplayer_peer = client_peer
+	set_multiplayer(client_api, client_root.get_path())
+	var client_quake := Earthquake.new()
+	client_root.add_child(client_quake)
+	client_quake.set_process(false)
+	var rubble_snapshot := earthquake.create_presentation_snapshot()
+	_expect((rubble_snapshot["burning_rubble"] as PackedVector3Array).size() == earthquake.burning_rubble_count(), "Snapshots must replicate every live burning-rubble position")
+	_expect(client_quake.apply_presentation_snapshot(rubble_snapshot), "Client must accept replicated burning rubble")
+	_expect(client_quake.burning_rubble_count() == 0, "Clients must never hold authoritative rubble bodies")
+	_expect(client_quake._burning_rubble_visuals.size() == earthquake.burning_rubble_count(), "Client rubble must match the server's count as visuals")
+	client_quake.tick(0.5)
+	_expect(client_quake.burning_rubble_count() == 0, "Client ticks must never run authoritative rubble logic")
+	# Server-side damage with a clear cause; the kill stays last so the match
+	# only ends after this gate's live checks.
+	var safe_health := manager.get_health(1)
+	earthquake.tick(0.1)
+	_expect(is_equal_approx(manager.get_health(1), safe_health), "Players away from burning rubble must stay safe")
+	var lethal_rubble := get_first_node_in_group("burning_rubble") as RigidBody3D
+	manager.players[1].health = 10.0
+	lethal_rubble.sleeping = false
+	lethal_rubble.linear_velocity = Vector3(8.0, 0.0, 0.0)
+	lethal_rubble.global_position = player.global_position + Vector3(0.0, 0.2, 0.0)
+	earthquake.tick(0.1)
+	_expect(not manager.is_player_alive(1) and manager.get_cause_of_death(1) == Earthquake.BURNING_RUBBLE_CAUSE, "Lethal burning rubble must name Burning Rubble as its cause")
+	var burning_bodies := get_nodes_in_group("grabbable").size() + get_nodes_in_group("earthquake_debris").size()
+	_expect(burning_bodies <= 32, "Burning rubble must stay inside the 32-authoritative-body budget (got %d)" % burning_bodies)
+	earthquake.cleanup()
+	fire.cleanup()
+	await process_frame
+	_expect(earthquake.burning_rubble_count() == 0, "Composition cleanup must clear burning rubble")
+	_expect(get_nodes_in_group("burning_rubble").is_empty(), "Composition cleanup must remove tagged rubble bodies")
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	main.free()
 	await process_frame
@@ -249,6 +354,31 @@ func _capture(state: String) -> void:
 			DirAccess.make_dir_recursive_absolute(argument.trim_prefix("--capture-dir="))
 			var path := argument.trim_prefix("--capture-dir=").path_join("compositions-%s-%dx%d.png" % [state, root.size.x, root.size.y])
 			_expect(root.get_texture().get_image().save_png(path) == OK, "Save review capture")
+
+
+func _sandbox_breakables(main: Node) -> Array:
+	var result: Array = []
+	for candidate in main.get_node("Sandbox").get_children():
+		if candidate is BreakableStructure:
+			result.append(candidate)
+	return result
+
+
+func _reset_breakables(main: Node) -> void:
+	for candidate in _sandbox_breakables(main):
+		(candidate as BreakableStructure).reset_structure()
+
+
+func _nearest_fire_zone(fire: Fire, position: Vector3) -> int:
+	var best_zone := -1
+	var best_distance := Earthquake.BURNING_RUBBLE_RADIUS
+	for zone_id in fire.zone_positions.size():
+		var zone_position: Vector3 = fire.zone_positions[zone_id]
+		var distance := Vector2(position.x, position.z).distance_to(Vector2(zone_position.x, zone_position.z))
+		if distance <= best_distance:
+			best_distance = distance
+			best_zone = zone_id
+	return best_zone
 
 
 func _expect(condition: bool, message: String) -> void:
