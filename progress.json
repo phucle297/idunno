@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_2_behavior_changing_disaster_compositions",
-    "task": "task_4_2b_tornado_meteor_tagged_impact_debris"
+    "task": "task_4_2c_fire_earthquake_burning_collapse_debris"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -90,7 +90,7 @@
         "status": "in_progress",
         "tasks": {
           "task_4_2a_earthquake_flood_persistent_refuge_collapse": "completed: persistent seeded refuge collapse for Earthquake+Flood. game/breakable_structure.gd carries route_role (ROLE_ELEVATED/ROLE_TRAVERSAL/ROLE_DECORATIVE) and pair_group tags (Toy Town roofs/bridges/awnings/signs, Harbor warehouse roof/gangway/cargo lids); game/earthquake.gd adds refuge_pressure-driven tiered target selection (elevated surfaces collapse first under flood pressure) with a preserve-one-pair guard, per-quake seeded selection from the seeded director replay record, telegraphed damage-to-collapse, and set_structure_root scoping that fixes latent two-sandbox group cross-talk; game/main.gd wires flood/earthquake warning events to refuge pressure, shows the FLOOD + EARTHQUAKE - REFUGES ARE CRUMBLING composition line, and keeps earthquake structure states in _create_playable_snapshot while any piece is non-intact so late joiners restore exact damaged/broken state. Gates EARTHQUAKE_OK checks=48 (roles/pairs, same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state broken-piece sync), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected capture (behavior beyond two simultaneous effects, flood outlives the quake under pressure, clear Flood death cause, paired options standing). max_broken_sections=2 intentionally unchanged; eligibility/cap tuning is milestone 4.4's measured work.",
-          "task_4_2b_tornado_meteor_tagged_impact_debris": "planned: Tornado+Meteor composition with bounded tagged impact debris picked up by active winds; gate observable behavior beyond two simultaneous effects, server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup and multiplayer agreement within the 32-body budget",
+          "task_4_2b_tornado_meteor_tagged_impact_debris": "completed: Tornado+Meteor bounded tagged impact debris. game/meteor_shower.gd arms impact debris via set_wind_active (named tornado events wired in main beside fire's handlers, no cross-hazard coupling): wind-armed impacts eject 3 tagged bodies (grabbable + meteor_impact_debris + meta) with capped radial impulses, bounded to 6 alive with a 10s lifetime; hits damage at most once per debris per player at >=5 m/s within 1m (25 HP, bounded knockback, explicit Impact Debris cause, server-side only); clients render visuals-only chunks at replicated snapshot positions including the post-sequence IDLE window. Tornado carries debris through the existing shared grabbable force loop untouched. HUD shows TORNADO + METEOR - IMPACT DEBRIS IS FLYING. Gates METEOR_SHOWER_OK checks=111 (solo-debris-free control, spawn bounds/tags/impulse caps, slow-no-damage, once-per-player damage, clear lethal cause, client-only visuals with inert client ticks, alive cap, expiry, five-rematch debris/wind cleanup) and DISASTER_COMBINATIONS_OK checks=60 rendered with inspected capture (named-event wind arming, physics-stepped wind pickup beyond ballistic ejection, clear Impact Debris death cause, distant player untouched, 32-body budget with quake rubble). Fixture note: player deaths finish 1-3 participant fixture matches, so gates restart between compositions through prepare_lobby/set_player_ready/start_match and keep lethal asserts last.",
           "task_4_2c_fire_earthquake_burning_collapse_debris": "planned: evaluate Fire+Earthquake where burning breakable sections drop short-lived damaging debris with an explicit cue, via named events/shared hazard queries; gate separately like 4.2b and keep or report evaluation outcome honestly"
         }
       },
@@ -239,18 +239,22 @@
       "command": "godot --headless --path . --script res://tests/test_{earthquake,map_identity,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "task_4_2a implemented and gated: EARTHQUAKE_OK checks=48 (route roles/pairs on fixture sections, per-quake seeded collapse with same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one-pair escape guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state sync of broken pieces and rubble via create/apply_playable_snapshot), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected compositions-eq-flood-refuge-collapse capture (named flood/earthquake wiring sets refuge pressure, HUD composition line, flood outlives the quake with refuges collapsing, clear Flood death cause, paired options standing). set_structure_root scoping fixes latent two-sandbox group cross-talk in network fixtures. Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Logs .scratch/test_{earthquake,map_identity,disaster_combinations}.log, .scratch/full_gate_42a.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{meteor_shower,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_2b implemented and gated: METEOR_SHOWER_OK checks=111 impacts=15 (solo-debris-free control, bounded wind-armed spawns with tags and impulse caps, slow-debris no-damage, once-per-player damage, clear Impact Debris lethal cause, client visuals-only replication with inert client ticks, alive cap and expiry, five-rematch debris/wind cleanup), DISASTER_COMBINATIONS_OK checks=60 rendered with inspected compositions-tornado-meteor-impact-debris capture (named tornado events arm debris, physics-stepped wind pickup toward the funnel beyond ballistic ejection, distant player untouched, 32-body budget with quake rubble). Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Logs .scratch/test_{meteor_shower,disaster_combinations}.log, .scratch/full_gate_42b.log."
     }
   ],
   "blockers": [],
   "changed_files": [
-    "game/breakable_structure.gd",
-    "game/earthquake.gd",
+    "game/meteor_shower.gd",
     "game/main.gd",
-    "tests/test_earthquake.gd",
-    "tests/test_map_identity.gd",
+    "tests/test_meteor_shower.gd",
     "tests/test_disaster_combinations.gd",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Build task_4_2b: Tornado+Meteor bounded tagged impact debris - meteor impacts eject a bounded tagged debris set only while wind is active (wind state wired from named tornado events, mirroring fire's wind handling), active winds carry debris through the shared grabbable force loop without cross-hazard coupling, server-only bounded damage with an explicit Impact Debris cause, and debris positions replicated to clients as visuals only; gate behavior beyond two simultaneous effects, server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup and multiplayer agreement within the 32-body budget."
+  "next_action": "Evaluate task_4_2c: Fire+Earthquake burning collapse debris - burning breakable sections (pieces inside active fire zones, shared positions pushed via named fire events into earthquake.set_burning_positions) drop short-lived damaging rubble with an explicit ember cue and HUD line; gate like 4.2b (behavior beyond two simultaneous effects, server-only damage/impulses, clear cause-of-death feedback, valid escape route, five-rematch cleanup, multiplayer agreement) and keep or report the evaluation outcome honestly."
 }

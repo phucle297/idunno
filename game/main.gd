@@ -1173,16 +1173,19 @@ func _active_disaster_lines() -> Array[String]:
 	var electric := flood.phase != Flood.Phase.IDLE and flood.electrified_remaining > 0.0
 	var wind := fire.phase == Fire.Phase.ACTIVE and fire.wind_active
 	var collapse := flood.is_active() and earthquake.is_active()
+	var debris := meteor_shower.impact_debris_count() > 0 or (tornado.is_active() and meteor_shower.is_active())
 	if electric:
 		lines.append("FLOOD + LIGHTNING — ELECTRIFIED WATER")
 	if wind:
 		lines.append("TORNADO + FIRE — WIND IS SPREADING FLAMES")
 	if collapse:
 		lines.append("FLOOD + EARTHQUAKE — REFUGES ARE CRUMBLING")
+	if debris:
+		lines.append("TORNADO + METEOR — IMPACT DEBRIS IS FLYING")
 	for entry: Array in [
-		["METEOR", meteor_shower, false],
+		["METEOR", meteor_shower, debris],
 		["FLOOD", flood, electric or collapse],
-		["TORNADO", tornado, wind],
+		["TORNADO", tornado, wind or debris],
 		["EARTHQUAKE", earthquake, collapse],
 		["LIGHTNING", lightning, electric],
 		["FIRE", fire, wind],
@@ -1199,11 +1202,13 @@ func _on_lightning_struck(target: Vector3) -> void:
 func _on_tornado_activated() -> void:
 	if fire.is_active():
 		fire.set_wind_active(true)
+	meteor_shower.set_wind_active(true)
 
 
 func _on_tornado_finished() -> void:
 	if fire.is_active():
 		fire.set_wind_active(false)
+	meteor_shower.set_wind_active(false)
 
 
 func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:

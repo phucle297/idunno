@@ -121,15 +121,81 @@ func _run() -> void:
 	_expect(client_meteor.target_position == meteor.target_position, "Replicated Meteor must match the server's current strike target")
 	meteor.cleanup()
 
+	# Task 4.2b: Tornado + Meteor bounded tagged impact debris. Solo impacts
+	# stay debris-free; wind-armed impacts eject a bounded tagged set that
+	# damages only server-side with an explicit cause and expires quickly.
+	# Move survivors clear of the control impacts and seeded rematch strikes so
+	# incidental damage cannot finish the fixture match mid-gate.
+	players[1].position = Vector3(30.0, 0.0, 30.0)
+	players[2].position = Vector3(34.0, 0.0, 30.0)
+	_expect(meteor.start_warning(Vector3.ZERO), "Solo control warning must start")
+	meteor.tick(meteor.warning_remaining + 0.05)
+	meteor.tick(meteor.impact_visual_duration + 0.05)
+	_expect(meteor.impact_debris_count() == 0, "Solo Meteor impacts must stay debris-free")
+	_expect(meteor.set_wind_active(true), "Wind state must arm impact debris")
+	_expect(not meteor.set_wind_active(true), "Re-arming the same wind state must not churn")
+	_expect(meteor.start_warning(Vector3.ZERO), "Wind-armed warning must start")
+	meteor.tick(meteor.warning_remaining + 0.05)
+	_expect(meteor.impact_debris_count() == MeteorScript.IMPACT_DEBRIS_COUNT, "Wind-armed impacts must eject the bounded debris count")
+	var first_debris := meteor._impact_debris[0]["body"] as RigidBody3D
+	_expect(first_debris.is_in_group("grabbable") and first_debris.is_in_group("meteor_impact_debris") and bool(first_debris.get_meta("impact_debris", false)), "Impact debris must carry shared-force and composition tags")
+	_expect(first_debris.linear_velocity.length() <= meteor.prop_impulse_max / first_debris.mass + 0.001, "Debris ejection must stay impulse-capped")
+	# Slow debris never damages; fast debris hits once per player with a clear cause.
+	first_debris.linear_velocity = Vector3.ZERO
+	first_debris.global_position = players[2].global_position + Vector3(0.0, 0.2, 0.0)
+	meteor.tick(0.1)
+	_expect(is_equal_approx(manager.get_health(3), 100.0), "Slow impact debris must not damage players")
+	first_debris.linear_velocity = Vector3(8.0, 0.0, 0.0)
+	meteor.tick(0.1)
+	_expect(is_equal_approx(manager.get_health(3), 75.0), "Fast impact debris must apply its bounded damage once")
+	meteor.tick(0.2)
+	_expect(is_equal_approx(manager.get_health(3), 75.0), "One debris body must not re-hit the same player")
+
+	# Multiplayer agreement: clients render debris as visuals only.
+	var debris_snapshot := meteor.create_presentation_snapshot()
+	_expect((debris_snapshot["impact_debris"] as PackedVector3Array).size() == meteor.impact_debris_count(), "Snapshots must replicate every live debris position")
+	_expect(client_meteor.apply_presentation_snapshot(debris_snapshot), "Client must accept replicated impact debris")
+	_expect(client_meteor.impact_debris_count() == 0, "Clients must never hold authoritative debris bodies")
+	_expect(client_meteor._impact_debris_visuals.size() == meteor.impact_debris_count(), "Client debris must match the server's bounded count as visuals")
+	client_meteor.tick(0.5)
+	_expect(client_meteor.impact_debris_count() == 0, "Client ticks must never run authoritative debris logic")
+
+	# Expiry keeps the body budget bounded; repeated impacts respect the alive cap.
+	meteor.tick(meteor.impact_visual_duration + 0.05)
+	for repeat in 2:
+		_expect(meteor.start_warning(Vector3(6.0, 0.0, 6.0)), "Repeat wind-armed warning %d must start" % (repeat + 1))
+		meteor.tick(meteor.warning_remaining + 0.05)
+		_expect(meteor.impact_debris_count() <= MeteorScript.IMPACT_DEBRIS_MAX_ALIVE, "Alive debris must stay inside the bounded cap")
+		meteor.tick(meteor.impact_visual_duration + 0.05)
+	meteor.tick(meteor.impact_debris_lifetime + 0.1)
+	await process_frame
+	_expect(meteor.impact_debris_count() == 0, "Impact debris must expire after its bounded lifetime")
+
 	# Five rematch cycles clear variant strike state and effects.
 	for cycle in 5:
 		var cycle_rng := RandomNumberGenerator.new()
 		cycle_rng.seed = 4200 + cycle
+		meteor.set_wind_active(true)
 		_expect(meteor.start_disaster(cycle_rng), "Rematch cycle %d must start Meteor" % (cycle + 1))
+		meteor.tick(meteor.warning_remaining + 0.05)
+		_expect(meteor.impact_debris_count() == MeteorScript.IMPACT_DEBRIS_COUNT, "Rematch cycle %d must spawn impact debris under wind" % (cycle + 1))
 		meteor.cleanup()
 		_expect(meteor.strike_points.is_empty() and meteor.phase == MeteorScript.Phase.IDLE, "Rematch cycle %d must clear Meteor variant strike state" % (cycle + 1))
+		_expect(meteor.impact_debris_count() == 0 and not meteor.wind_active, "Rematch cycle %d must clear impact debris and wind state" % (cycle + 1))
 	await process_frame
 	_expect(meteor.active_effect_count() == 0, "Five rematch cycles must leave no Meteor effects")
+	_expect(get_nodes_in_group("meteor_impact_debris").is_empty(), "Five rematch cycles must leave no tagged impact debris")
+	# A lethal debris hit names its cause. The kill runs last so it cannot end
+	# the fixture match before the rematch cycles above.
+	_expect(meteor.set_wind_active(true), "Wind state must re-arm for the lethal-hit check")
+	_expect(meteor.start_warning(Vector3.ZERO), "Lethal-hit warning must start")
+	meteor.tick(meteor.warning_remaining + 0.05)
+	var kill_debris := meteor._impact_debris[0]["body"] as RigidBody3D
+	manager.players[3].health = 10.0
+	kill_debris.linear_velocity = Vector3(9.0, 0.0, 0.0)
+	kill_debris.global_position = players[2].global_position
+	meteor.tick(0.1)
+	_expect(not manager.is_player_alive(3) and manager.get_cause_of_death(3) == "Impact Debris", "Lethal debris hits must name Impact Debris as their cause")
 
 	if failures.is_empty():
 		print("METEOR_SHOWER_OK checks=%d impacts=%d" % [checks, meteor.impact_count])

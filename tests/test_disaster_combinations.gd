@@ -163,6 +163,73 @@ func _run() -> void:
 	_expect(manager.get_cause_of_death(1) == "Flood", "Death during the composition must name the readable cause")
 	flood.cleanup()
 	earthquake.cleanup()
+
+	# Task 4.2b gate: Tornado + Meteor bounded tagged impact debris. Named
+	# tornado events arm impact debris, active winds pick it up through the
+	# shared force loop, server-side hits damage with a clear cause, and the
+	# authoritative body budget stays bounded.
+	# The previous composition's drowning kill finished the single-player
+	# match; restart it through the real lobby flow for this gate.
+	_expect(manager.prepare_lobby(), "The fixture must re-enter the lobby between composition gates")
+	_expect(manager.set_player_ready(1, true), "The fixture player must ready up again")
+	_expect(manager.start_match(), "The fixture match must restart for the next composition gate")
+	# Keep the player clear of the impact and debris while the composition runs.
+	player.position = Vector3(0.0, 0.05, 13.0)
+	tornado.travel_speed = 4.0
+	_expect(tornado.start_warning(Vector3(-13.0, 0.0, -9.0), Vector3(13.0, 0.0, 9.0)), "Tornado must start for the impact-debris composition")
+	tornado.tick(tornado.warning_duration + 0.05)
+	_expect(tornado.phase == Tornado.Phase.ACTIVE, "Tornado must reach its active wind phase")
+	_expect(meteor.wind_active, "Named tornado events must arm Meteor impact debris")
+	# Advance the tornado into the impact area so the composition reads as one
+	# scene in the review capture.
+	for step in 14:
+		tornado.tick(0.3)
+	_expect(meteor.start_warning(Vector3(0.0, 0.06, 5.0)), "Meteor must strike under active wind")
+	meteor.tick(maxf(meteor.warning_duration, MeteorShower.MINIMUM_STRIKE_WARNING) + 0.05)
+	_expect(meteor.impact_debris_count() == MeteorShower.IMPACT_DEBRIS_COUNT, "Wind-armed impacts must eject the bounded tagged debris count")
+	_expect("TORNADO + METEOR — IMPACT DEBRIS IS FLYING" in "\n".join(main._active_disaster_lines()), "HUD must name the Tornado + Meteor interaction while both run")
+	await process_frame
+	await _capture("tornado-meteor-impact-debris")
+	# Winds must pick up tagged debris through the shared grabbable force loop.
+	var carry_index := 0
+	for entry: Dictionary in meteor._impact_debris:
+		var body := entry.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			body.sleeping = false
+			body.linear_velocity = Vector3.ZERO
+			body.global_position = tornado.global_position + Vector3(3.0 + carry_index * 1.6, 5.0, 0.0)
+		carry_index += 1
+	for step in 8:
+		tornado.tick(0.15)
+		await physics_frame
+	var carried := 0
+	for entry: Dictionary in meteor._impact_debris:
+		var body := entry.get("body") as RigidBody3D
+		if not is_instance_valid(body):
+			continue
+		var inward := tornado.global_position - body.global_position
+		inward.y = 0.0
+		if inward.length() > 0.01 and body.linear_velocity.dot(inward.normalized()) > 1.0:
+			carried += 1
+	_expect(carried >= 1, "Active winds must pick up tagged impact debris toward the tornado")
+	# Server-side bounded damage: distant players stay safe first, then a
+	# close hit names its cause. The kill stays last so the match only ends
+	# after this gate's live checks.
+	player.position = Vector3(24.0, 0.05, 22.0)
+	meteor.tick(0.1)
+	_expect(is_equal_approx(manager.get_health(1), 100.0), "Players away from the bounded debris must stay safe")
+	var hurt_debris := meteor._impact_debris[0]["body"] as RigidBody3D
+	hurt_debris.linear_velocity = Vector3(10.0, 0.0, 0.0)
+	hurt_debris.global_position = player.global_position + Vector3(0.0, 0.2, 0.0)
+	manager.players[1].health = 10.0
+	meteor.tick(0.1)
+	_expect(not manager.is_player_alive(1) and manager.get_cause_of_death(1) == "Impact Debris", "Lethal debris must name Impact Debris as its cause")
+	var loose_bodies := get_nodes_in_group("grabbable").size() + get_nodes_in_group("earthquake_debris").size()
+	_expect(loose_bodies <= 32, "Impact debris must stay inside the 32-authoritative-body budget (got %d)" % loose_bodies)
+	tornado.cleanup()
+	meteor.cleanup()
+	await process_frame
+	_expect(meteor.impact_debris_count() == 0 and get_nodes_in_group("meteor_impact_debris").is_empty(), "Composition cleanup must remove tagged impact debris")
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	main.free()
 	await process_frame

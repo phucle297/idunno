@@ -13,12 +13,15 @@ enum Phase {
 
 const TelegraphScene = preload("res://assets/generated/VFX_MeteorTelegraph_v001.tscn")
 const IMPACT_CAUSE := "Meteor"
+const IMPACT_DEBRIS_CAUSE := "Impact Debris"
 const DISASTER_NAME := "Meteor Shower"
 const MINIMUM_STRIKE_WARNING := 1.2
 const CLUSTER_STRIKE_COUNT := 3
 const CLUSTER_RADIUS := 5.0
 const LANE_STRIKE_COUNT := 4
 const LANE_SPACING := 5.0
+const IMPACT_DEBRIS_COUNT := 3
+const IMPACT_DEBRIS_MAX_ALIVE := 6
 
 enum Variant {
 	CLUSTER,
@@ -32,6 +35,11 @@ enum Variant {
 @export var player_impulse_max := 8.0
 @export var prop_impulse_max := 18.0
 @export var impact_visual_duration := 0.65
+@export var impact_debris_mass := 3.0
+@export var impact_debris_hit_speed := 5.0
+@export var impact_debris_hit_radius := 1.0
+@export var impact_debris_damage := 25.0
+@export var impact_debris_lifetime := 10.0
 
 var phase := Phase.IDLE
 var warning_remaining := 0.0
@@ -40,6 +48,7 @@ var impact_count := 0
 var strike_half_extent := 18.0
 var variant := Variant.CLUSTER
 var strike_points: Array[Vector3] = []
+var wind_active := false
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -47,6 +56,8 @@ var _effect: Node3D
 var _impact_remaining := 0.0
 var _countdown: Label3D
 var _strike_index := 0
+var _impact_debris: Array[Dictionary] = []
+var _impact_debris_visuals: Array[MeshInstance3D] = []
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -55,6 +66,21 @@ func configure(match_manager: MatchManager) -> void:
 
 func set_strike_area(half_extent: float) -> void:
 	strike_half_extent = half_extent
+
+
+func set_wind_active(active: bool) -> bool:
+	if not _can_mutate() or wind_active == active:
+		return false
+	wind_active = active
+	return true
+
+
+func impact_debris_count() -> int:
+	var alive := 0
+	for entry: Dictionary in _impact_debris:
+		if is_instance_valid(entry.get("body")):
+			alive += 1
+	return alive
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -135,6 +161,7 @@ func tick(delta: float) -> void:
 	if not _can_mutate():
 		return
 	var safe_delta := maxf(delta, 0.0)
+	_update_impact_debris(safe_delta)
 	if phase == Phase.WARNING:
 		warning_remaining = maxf(warning_remaining - safe_delta, 0.0)
 		_update_warning_visual()
@@ -148,6 +175,12 @@ func tick(delta: float) -> void:
 
 
 func cleanup() -> void:
+	_reset_strike_state()
+	_clear_impact_debris()
+	wind_active = false
+
+
+func _reset_strike_state() -> void:
 	_clear_effect()
 	phase = Phase.IDLE
 	warning_remaining = 0.0
@@ -170,6 +203,7 @@ func create_presentation_snapshot() -> Dictionary:
 		"variant": int(variant),
 		"strike_points": PackedVector3Array(strike_points),
 		"strike_index": _strike_index,
+		"impact_debris": _debris_positions(),
 	}
 
 
@@ -177,9 +211,6 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
 		return false
 	var next_phase := clampi(int(snapshot.get("phase", Phase.IDLE)), Phase.IDLE, Phase.IMPACT)
-	if next_phase == Phase.IDLE:
-		cleanup()
-		return true
 	var previous_phase := phase
 	var previous_target := target_position
 	target_position = snapshot.get("target_position", Vector3.ZERO)
@@ -190,6 +221,10 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	for point: Vector3 in snapshot.get("strike_points", PackedVector3Array()):
 		strike_points.append(point)
 	_strike_index = int(snapshot.get("strike_index", 0))
+	if next_phase == Phase.IDLE:
+		_reset_strike_state()
+		_apply_debris_presentation(snapshot.get("impact_debris", PackedVector3Array()))
+		return true
 	if not is_instance_valid(_effect) or (next_phase == Phase.WARNING and not target_position.is_equal_approx(previous_target)):
 		_clear_effect()
 		_spawn_telegraph()
@@ -200,6 +235,7 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 		if previous_phase != Phase.IMPACT or _effect.get_node_or_null("ImpactFlash") == null:
 			_show_impact_visual()
 		_update_impact_visual()
+	_apply_debris_presentation(snapshot.get("impact_debris", PackedVector3Array()))
 	return true
 
 
@@ -317,6 +353,8 @@ func _apply_impact() -> void:
 				owner.release_held_object()
 		body.sleeping = false
 		body.apply_central_impulse(_radial_impulse(body.global_position, distance, prop_impulse_max))
+	if wind_active:
+		_spawn_impact_debris()
 	impacted.emit(target_position)
 
 
@@ -371,7 +409,7 @@ func _finish_impact() -> void:
 		return
 	if is_instance_valid(_match_manager) and _match_manager.state == MatchManager.MatchState.ACTIVE:
 		_match_manager.record_disaster_survived()
-	cleanup()
+	_reset_strike_state()
 	finished.emit()
 
 
@@ -395,6 +433,118 @@ func _radial_impulse(position: Vector3, distance: float, maximum: float) -> Vect
 	var proximity := clampf(1.0 - distance / impact_radius, 0.0, 1.0)
 	var strength := lerpf(maximum * 0.25, maximum, proximity)
 	return (direction + Vector3.UP * 0.45).normalized() * strength
+
+
+func _spawn_impact_debris() -> void:
+	for index in IMPACT_DEBRIS_COUNT:
+		if _impact_debris.size() >= IMPACT_DEBRIS_MAX_ALIVE:
+			var oldest: Dictionary = _impact_debris.pop_front()
+			var oldest_body := oldest.get("body") as RigidBody3D
+			if is_instance_valid(oldest_body):
+				oldest_body.queue_free()
+		var body := RigidBody3D.new()
+		body.name = "ImpactDebris%d_%d" % [impact_count, index]
+		body.mass = impact_debris_mass
+		body.collision_layer = 4
+		body.add_to_group("grabbable")
+		body.add_to_group("meteor_impact_debris")
+		body.set_meta("impact_debris", true)
+		var angle := TAU * (float(index) + 0.5) / float(IMPACT_DEBRIS_COUNT)
+		var offset := Vector3(cos(angle), 0.0, sin(angle)) * direct_hit_radius * 0.5
+		body.position = target_position + offset + Vector3.UP * 0.35
+		body.add_child(_create_debris_visual())
+		var collision := CollisionShape3D.new()
+		var shape := SphereShape3D.new()
+		shape.radius = 0.3
+		collision.shape = shape
+		body.add_child(collision)
+		add_child(body)
+		body.apply_central_impulse(_radial_impulse(body.global_position, direct_hit_radius * 0.5, prop_impulse_max))
+		_impact_debris.append({"body": body, "age": 0.0, "hits": {}})
+
+
+func _update_impact_debris(delta: float) -> void:
+	if _impact_debris.is_empty():
+		return
+	var expired: Array[Dictionary] = []
+	for entry: Dictionary in _impact_debris:
+		var body := entry.get("body") as RigidBody3D
+		if not is_instance_valid(body):
+			expired.append(entry)
+			continue
+		entry["age"] = float(entry.get("age", 0.0)) + delta
+		if float(entry["age"]) >= impact_debris_lifetime:
+			expired.append(entry)
+			continue
+		if body.linear_velocity.length() < impact_debris_hit_speed:
+			continue
+		var hits: Dictionary = entry.get("hits", {})
+		for peer_id: int in _players:
+			if hits.has(peer_id):
+				continue
+			var player := _players[peer_id] as Node3D
+			if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+				continue
+			if body.global_position.distance_to(player.global_position) > impact_debris_hit_radius:
+				continue
+			hits[peer_id] = true
+			_match_manager.apply_damage(peer_id, impact_debris_damage, IMPACT_DEBRIS_CAUSE)
+			if _match_manager.is_player_alive(peer_id):
+				var knock := (body.linear_velocity.normalized() + Vector3.UP * 0.25).normalized()
+				player.apply_knockdown(knock * minf(body.linear_velocity.length() * 0.5, player_impulse_max))
+	for entry: Dictionary in expired:
+		_impact_debris.erase(entry)
+		var body := entry.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			body.queue_free()
+
+
+func _clear_impact_debris() -> void:
+	for entry: Dictionary in _impact_debris:
+		var body := entry.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			body.queue_free()
+	_impact_debris.clear()
+	_apply_debris_presentation(PackedVector3Array())
+
+
+func _debris_positions() -> PackedVector3Array:
+	var positions := PackedVector3Array()
+	for entry: Dictionary in _impact_debris:
+		var body := entry.get("body") as RigidBody3D
+		if is_instance_valid(body):
+			positions.append(body.global_position)
+	return positions
+
+
+func _apply_debris_presentation(positions: PackedVector3Array) -> void:
+	while _impact_debris_visuals.size() > positions.size():
+		var visual := _impact_debris_visuals.pop_back() as MeshInstance3D
+		if is_instance_valid(visual):
+			visual.queue_free()
+	while _impact_debris_visuals.size() < positions.size():
+		var visual := _create_debris_visual()
+		visual.name = "ImpactDebrisVisual%d" % _impact_debris_visuals.size()
+		add_child(visual)
+		_impact_debris_visuals.append(visual)
+	for index in mini(_impact_debris_visuals.size(), positions.size()):
+		if is_instance_valid(_impact_debris_visuals[index]):
+			_impact_debris_visuals[index].global_position = positions[index]
+
+
+func _create_debris_visual() -> MeshInstance3D:
+	var visual := MeshInstance3D.new()
+	var chunk := BoxMesh.new()
+	chunk.size = Vector3(0.55, 0.42, 0.5)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("49566a")
+	material.roughness = 0.82
+	material.emission_enabled = true
+	material.emission = Color("e07a3c")
+	material.emission_energy_multiplier = 0.7
+	chunk.material = material
+	visual.mesh = chunk
+	return visual
 
 
 func _horizontal_distance(a: Vector3, b: Vector3) -> float:
