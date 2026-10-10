@@ -8,6 +8,13 @@ const RECENT_HISTORY_EXCLUSION := 2
 @export var initial_delay := 10.0
 @export var recovery_duration := 4.0
 @export var overlap_delay := 8.0
+# Later rounds run faster, never meaner: intensity shortens the scheduling
+# gaps only. Damage, warnings and force bounds never scale with intensity.
+# Recovery protection is the bounded scale itself: with the default gaps the
+# fastest tier stays at a readable 2s/4s, and fixture/test overrides stay
+# authoritative instead of being floored.
+@export var mid_pacing_scale := 0.75
+@export var late_pacing_scale := 0.5
 
 var running := false
 var selection_history: Array[String] = []
@@ -69,10 +76,11 @@ func tick(delta: float) -> void:
 	if not is_instance_valid(_match_manager) or _match_manager.state != MatchManager.MatchState.ACTIVE:
 		cleanup()
 		return
+	var pacing := get_pacing()
 	var previous_active_count := _active.size()
 	_refresh_active()
 	if _active.size() < previous_active_count:
-		_next_start_in = recovery_duration if _active.is_empty() else overlap_delay
+		_next_start_in = float(pacing["recovery"]) if _active.is_empty() else float(pacing["overlap"])
 	_next_start_in = maxf(_next_start_in - maxf(delta, 0.0), 0.0)
 	if _next_start_in > 0.0 or _active.size() >= _maximum_simultaneous():
 		return
@@ -82,7 +90,24 @@ func tick(delta: float) -> void:
 		return
 	var chosen := _pick_candidate(candidates)
 	if try_start_disaster(chosen):
-		_next_start_in = overlap_delay
+		_next_start_in = float(pacing["overlap"])
+
+
+func get_pacing() -> Dictionary:
+	# The pacing curve: the opening keeps its forgiving baseline while later
+	# intensity tiers shorten recovery and overlap gaps. The solo exception,
+	# compatibility rules and warning telegraphs are untouched by pacing.
+	var intensity := get_intensity()
+	var scale := 1.0
+	if intensity >= 4:
+		scale = late_pacing_scale
+	elif intensity >= 3:
+		scale = mid_pacing_scale
+	return {
+		"intensity": intensity,
+		"recovery": recovery_duration * scale,
+		"overlap": overlap_delay * scale,
+	}
 
 
 func get_replay_record() -> Dictionary:

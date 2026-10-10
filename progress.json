@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_4_harder_but_fair_survival",
-    "task": "task_4_4a_survival_pacing_curve"
+    "task": "task_4_4b_hard_preset_and_human_gates"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -105,7 +105,11 @@
       },
       "milestone_4_4_harder_but_fair_survival": {
         "title": "Harder but Fair Survival",
-        "status": "in_progress"
+        "status": "in_progress",
+        "tasks": {
+          "task_4_4a_survival_pacing_curve": "completed: intensity-paced survival pacing curve. game/disaster_director.gd adds get_pacing(): the forgiving 4s/8s recovery/overlap baseline holds through the first five minutes, then intensity 3 shortens gaps 0.75x and intensity 4+ 0.5x (readable 2s/4s at defaults). Later rounds get stronger through frequency and pair scheduling only - damage values, warning durations and force bounds are structurally untouched and asserted; tier thresholds (120/300/480/540s), solo-before-combination and no-immediate-repeat are unchanged. Recovery protection is the bounded scale; explicit fixture overrides stay authoritative (no gap floor, which broke the director fixture's zero-delay contract). Gates SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s (two alternating equal-lethality hazards, same seeds, damage-per-event constant, frequency rising; five same-seed rematches replay identical death timing; tier boundaries both sides, solo exception and incompatible pairs at the fastest tier, all six hazard telegraphs preserved with Meteor at its 1.2s floor) and DISASTER_DIRECTOR_OK checks=115 unchanged, plus the full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Match duration stays configurable at 600s for the 8-12min target.",
+          "task_4_4b_hard_preset_and_human_gates": "planned: owner-selected Hard room/match preset replicated before countdown (lobby-boundary owner action + playable/session snapshot field like map identity, with a readable lobby display), applied to the pacing curve; gate Normal/Hard death timing, preset replication agreement, warning boundaries, combination compatibility and network performance, and record the human comparison (death timing, uncoached cause recognition, escape attempts, voluntary rematches) in NEED_REAL_CHECK.md without claiming it passed"
+        }
       }
     }
   },
@@ -251,17 +255,20 @@
       "command": "godot --headless --path . --script res://tests/test_{earthquake,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "task_4_2c implemented and gated: EARTHQUAKE_OK checks=88, DISASTER_COMBINATIONS_OK checks=82 headless / 85 rendered with inspected compositions-fire-eq-burning-rubble capture; full gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{survival_pacing,disaster_director}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_4a implemented and gated: SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s, DISASTER_DIRECTOR_OK checks=115 unchanged; full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
     }
   ],
   "blockers": [],
   "changed_files": [
-    "game/breakable_structure.gd",
-    "game/earthquake.gd",
-    "game/main.gd",
-    "tests/test_earthquake.gd",
-    "tests/test_disaster_combinations.gd",
+    "game/disaster_director.gd",
+    "tests/test_survival_pacing.gd",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Implement milestone_4_4: tune the survival pacing curve from executed survival/death evidence (first ~2 minutes forgiving; later stronger/faster via frequency, recovery and compatible-pair scheduling - no silent damage multipliers and no removed warnings), add an owner-selected Hard room/match preset replicated before countdown, preserve telegraph minimums (meteor >= 1.2s), navigable escapes, bounded forces, recovery protection and the solo exception, then gate Normal/Hard boundary regressions, combination compatibility and network replication; record the human comparison gates in NEED_REAL_CHECK.md without claiming them passed."
+  "next_action": "Implement task_4_4b: owner-selected Hard room/match preset replicated before countdown (owner action at the lobby boundary + snapshot field with lobby display, mirroring map identity), applied to the pacing curve with bounded gaps; gate Normal/Hard death timing and preset replication, warning boundaries, combination compatibility and network performance, then record the human Normal/Hard comparison gates in NEED_REAL_CHECK.md and roll the phase over per AGENTS.md."
 }
