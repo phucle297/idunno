@@ -23,6 +23,7 @@ func _run() -> void:
 	_test_carry_movement()
 	_test_range_and_contention()
 	await _test_bounded_spring()
+	await _test_passenger_holder_role_asymmetry()
 	_test_lifecycle_releases()
 	await _test_repeated_carry_motion()
 	_test_disconnect_release()
@@ -200,6 +201,55 @@ func _test_bounded_spring() -> void:
 	var final_distance := crate.global_position.distance_to(player_one.get_hold_position())
 	_expect(final_distance < initial_distance, "The bounded spring must pull the body toward the hold target")
 	_expect(crate.linear_velocity.length() < 8.0, "The hold spring must keep a medium prop at a bounded practical speed")
+
+
+func _test_passenger_holder_role_asymmetry() -> void:
+	# Role boundary on both sides: a held crate supports another player but
+	# never its own holder; release flips the boundary for the holder.
+	manager.set_physics_process(false)
+	manager.release_all()
+	crate.mass = 12.0
+	crate.freeze = true
+	crate.transform = Transform3D(Basis.IDENTITY, Vector3(0.0, 0.4, -1.0))
+	crate.linear_velocity = Vector3.ZERO
+	crate.angular_velocity = Vector3.ZERO
+	crate.freeze = false
+	player_one.reset_for_match(Vector3(0.0, 0.05, 0.2))
+	player_two.reset_for_match(Vector3(1.2, 0.05, -1.0))
+	player_one.set_camera_yaw(0.0)
+	_expect(manager.request_grab(1, crate), "Holder must acquire the role crate")
+	# Passenger side: another player stands on the held crate.
+	player_two.position = Vector3(0.0, 1.05, -1.0)
+	player_two.velocity = Vector3.ZERO
+	for tick in 90:
+		player_one.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		player_two.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		await physics_frame
+	_expect(player_two.position.y > 0.55, "A passenger must stay supported by a held crate")
+	# Holder side: the holder's own collision exception denies self-foothold.
+	player_two.position = Vector3(1.2, 0.05, -1.0)
+	player_two.velocity = Vector3.ZERO
+	player_one.position = Vector3(0.0, 1.05, -1.0)
+	player_one.velocity = Vector3.ZERO
+	for tick in 90:
+		player_one.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		player_two.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		await physics_frame
+	_expect(player_one.position.y < 0.35, "A holder must not stand on their own held crate")
+	manager.release_grab(1)
+	player_one.position = Vector3(0.0, 1.05, -1.0)
+	player_one.velocity = Vector3.ZERO
+	for tick in 90:
+		player_one.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		await physics_frame
+	_expect(player_one.position.y > 0.55, "Release must restore the holder's own footing on the crate")
+	manager.release_all()
+	manager.set_physics_process(true)
+	player_one.reset_for_match(Vector3.ZERO)
+	player_two.reset_for_match(Vector3(0.2, 0.0, 0.0))
+	crate.freeze = true
+	crate.position = Vector3(0.0, 0.4, -1.0)
+	crate.freeze = false
 
 
 func _test_lifecycle_releases() -> void:

@@ -1,18 +1,21 @@
 extends SceneTree
 
-# Task 3.3.1 go/no-go physics experiment for the useful survival prop role.
-# Real crates, capsules, Flood/Tornado/Meteor and grab ownership are measured
+# Task 3.3.1 go/no-go physics experiment for the useful survival prop role,
+# kept as the 3.3.2 integration regression against real map geometry. Real
+# crates, capsules, Flood/Tornado/Meteor and grab ownership are measured
 # through observable motion. Buoyant measurements print decision evidence and
 # assert only safety invariants; the dry-ground step/escape-aid role asserts
 # both sides of its reach boundary against the real Pocket Park refuge.
 
 const STEP := 1.0 / 60.0
 const CRATE_TOP_OFFSET := 0.6
-const MOCK_MOUNT_HEIGHT := 1.7
+const BOOST_STEP_HEIGHT := 1.7
 const REFUGE_HEIGHT := 2.2
 
 var checks := 0
 var failures: Array[String] = []
+var capture_dir := ""
+var review_size := Vector2i(1280, 720)
 var _main: Node3D
 var _flood: Flood
 var _meteor: MeteorShower
@@ -26,6 +29,14 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--capture-dir="):
+			capture_dir = argument.trim_prefix("--capture-dir=")
+		elif argument.begins_with("--review-size="):
+			var size_text := argument.trim_prefix("--review-size=")
+			var separator := size_text.find("x")
+			if separator > 0:
+				review_size = Vector2i(size_text.left(separator).to_int(), size_text.substr(separator + 1).to_int())
 	_main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_main)
 	await physics_frame
@@ -45,6 +56,13 @@ func _run() -> void:
 	_register_trio()
 	_holder = _main._player_nodes[2]
 	_passenger = _main._player_nodes[3]
+	if not capture_dir.is_empty():
+		root.size = review_size
+		var camera := Camera3D.new()
+		_main.add_child(camera)
+		camera.global_position = Vector3(27.5, 5.0, 20.5)
+		camera.look_at(Vector3(21.5, 1.6, 14.5))
+		camera.make_current()
 
 	await _scenario_buoyant_support(false)
 	await _scenario_buoyant_support(true)
@@ -305,21 +323,27 @@ func _scenario_dry_ground_role() -> void:
 		"Crate boost alone must stay below the 2.2m refuge (measured %.2f)" % crate_only_peak
 	)
 	print("PROP_ROLE_EVIDENCE crate_only_jump_apex=%.2f refuge=%.2f" % [crate_only_peak, REFUGE_HEIGHT])
-	# Mock fixed step for the fallback evaluation; 3.3.2 ships real map geometry.
-	var mount := _mock_mount()
+	# Integrated step geometry (3.3.2): same size/position the route
+	# measurements were taken against, now shipped in the sandbox.
+	var mount := _main.get_node_or_null("Sandbox/EscapeStep") as StaticBody3D
+	_expect(is_instance_valid(mount), "The integrated escape-aid step must exist in the sandbox")
+	if not is_instance_valid(mount):
+		return
 	_place(crate, Vector3(23.2, 0.35, 14.5), Vector3.ZERO)
-	_passenger.reset_for_match(Vector3(25.2, 0.05, 14.5))
+	# Approach from the crate-free south side so the no-crate mount attempt
+	# (and its capture) cannot read as an accidental crate boost.
+	_passenger.reset_for_match(Vector3(25.2, 0.05, 12.0))
 	await _settle(20)
-	var without_peak := await _walk_peak(_passenger, Vector3(22.2, 0.0, 14.5), 60)
+	var without_peak := await _walk_peak(_passenger, Vector3(22.2, 0.0, 12.5), 60)
 	_expect(
-		without_peak < MOCK_MOUNT_HEIGHT - 0.15,
-		"Ground jump must not mount the %.1fm boost step without a crate (measured %.2f)" % [MOCK_MOUNT_HEIGHT, without_peak]
+		without_peak < BOOST_STEP_HEIGHT - 0.15,
+		"Ground jump must not mount the %.1fm boost step without a crate (measured %.2f)" % [BOOST_STEP_HEIGHT, without_peak]
 	)
-	print("PROP_ROLE_EVIDENCE no_crate_mount_peak=%.2f mount=%.2f" % [without_peak, MOCK_MOUNT_HEIGHT])
+	print("PROP_ROLE_EVIDENCE no_crate_mount_peak=%.2f mount=%.2f" % [without_peak, BOOST_STEP_HEIGHT])
+	await _capture("prop-route-failure")
 	var route := await _boost_route(crate, mount)
 	_expect(route, "The dry-ground step/escape-aid route must be completed with the same crate")
-	print("PROP_ROLE_EVIDENCE boost_route=%s crate=%s mount_top=%.2f refuge=%.2f" % ["completed" if route else "failed", crate.name, MOCK_MOUNT_HEIGHT, REFUGE_HEIGHT])
-	mount.free()
+	print("PROP_ROLE_EVIDENCE boost_route=%s crate=%s mount_top=%.2f refuge=%.2f" % ["completed" if route else "failed", crate.name, BOOST_STEP_HEIGHT, REFUGE_HEIGHT])
 
 
 func _boost_route(crate: RigidBody3D, mount: StaticBody3D) -> bool:
@@ -328,28 +352,24 @@ func _boost_route(crate: RigidBody3D, mount: StaticBody3D) -> bool:
 	await _settle(20)
 	if not await _board_crate(crate, _passenger):
 		return false
-	var on_mount := await _jump_onto(_passenger, Vector3(21.0, MOCK_MOUNT_HEIGHT, 14.5), _toward(_passenger, mount.global_position))
+	await _capture("prop-route-use-crate")
+	var on_mount := await _jump_onto(_passenger, Vector3(21.0, BOOST_STEP_HEIGHT, 14.5), _toward(_passenger, mount.global_position))
 	if not on_mount:
 		return false
-	return await _jump_onto(_passenger, Vector3(19.0, REFUGE_HEIGHT, 14.5), _toward(_passenger, Vector3(19.0, REFUGE_HEIGHT, 14.5)))
+	await _capture("prop-route-use-step")
+	if not await _jump_onto(_passenger, Vector3(19.0, REFUGE_HEIGHT, 14.5), _toward(_passenger, Vector3(19.0, REFUGE_HEIGHT, 14.5))):
+		return false
+	await _capture("prop-route-use-refuge")
+	return true
 
 
-func _mock_mount() -> StaticBody3D:
-	var body := StaticBody3D.new()
-	body.name = "MockBoostMount"
-	var mesh_instance := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.8, MOCK_MOUNT_HEIGHT, 5.0)
-	mesh_instance.mesh = mesh
-	body.add_child(mesh_instance)
-	var collision := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = mesh.size
-	collision.shape = shape
-	body.add_child(collision)
-	_main.add_child(body)
-	body.global_position = Vector3(21.9, MOCK_MOUNT_HEIGHT * 0.5, 14.5)
-	return body
+func _capture(state: String) -> void:
+	if capture_dir.is_empty():
+		return
+	await RenderingServer.frame_post_draw
+	var image := root.get_texture().get_image()
+	var path := capture_dir.path_join("%s-%dx%d.png" % [state, root.size.x, root.size.y])
+	_expect(image.save_png(path) == OK, "Prop role capture must save: %s" % state)
 
 
 func _board_crate(crate: RigidBody3D, passenger: PartyPlayer) -> bool:

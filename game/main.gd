@@ -1585,6 +1585,13 @@ func _build_sandbox() -> void:
 	_add_static_box("PocketParkPlatform", Vector3(10.0, 2.2, 8.0), Vector3(15.0, 1.1, 14.0), PALETTE.teal)
 	$Sandbox/PocketParkPlatform.add_to_group("landmark")
 	_add_world_label("PocketParkLabel", "POCKET PARK", Vector3(15.0, 3.0, 18.2), PALETTE.cream)
+	# Optional dry-ground escape-aid route: a crate boost is required to mount
+	# this step, and the step reaches the Pocket Park platform. The ParkRamp
+	# stays the normal refuge route without any prop.
+	_add_static_box("EscapeStep", Vector3(1.8, 1.7, 5.0), Vector3(21.9, 0.85, 14.5), PALETTE.cream)
+	$Sandbox/EscapeStep.add_to_group("elevation_route")
+	$Sandbox/EscapeStep.add_to_group("escape_aid")
+	_add_world_label("EscapeStepLabel", "CRATE UP", Vector3(21.9, 2.35, 14.5), PALETTE.amber)
 	_add_ramp("ShopRoofRamp", 3.0, Vector3(-16.0, 0.0, -29.3), Vector3(-16.0, 4.855, -18.3))
 	_add_ramp("HallRoofRamp", 3.0, Vector3(16.0, 0.0, -29.3), Vector3(16.0, 4.855, -19.3))
 	_add_ramp("GarageRamp", 4.0, Vector3(-15.0, 0.0, -3.0), Vector3(-15.0, 2.575, 9.0))
@@ -1602,7 +1609,9 @@ func _build_sandbox() -> void:
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
 	_add_town_props()
 
-	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(5.0, 0.4, -3.0)]
+	# Crate3 spawns at the escape-aid route base so the measured crate-boost
+	# step route is real on the map; crates1-2 remain plaza play props.
+	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(23.2, 0.4, 14.5)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
 

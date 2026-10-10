@@ -101,9 +101,9 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_3_2_prop_role_integration` · **Owners:** existing prop constructor/Flood as applicable; generator/manifest only if readability requires geometry changes.
 
-- [ ] Place a small bounded set where its selected role has a real use; distinguish function with shared toy silhouette/materials and a short contextual cue, not a new item UI or texture family.
-- [ ] Verify wet/dry boundaries, passenger/holder states and actual escape success against the unchanged controller. Flood grace, electricity, damage/death and other hazards still apply normally; no permanent safety or immunity flag.
-- [ ] Restore exact spawn/shape/role/owner state on five rematches and clear any added role state on drain/disconnect/death as appropriate. Do not spawn unbounded replacement props.
+- [x] Place a small bounded set where its selected role has a real use; distinguish function with shared toy silhouette/materials and a short contextual cue, not a new item UI or texture family.
+- [x] Verify wet/dry boundaries, passenger/holder states and actual escape success against the unchanged controller. Flood grace, electricity, damage/death and other hazards still apply normally; no permanent safety or immunity flag.
+- [x] Restore exact spawn/shape/role/owner state on five rematches and clear any added role state on drain/disconnect/death as appropriate. Do not spawn unbounded replacement props.
 
 **Validation:** Extend `test_flood.gd`, grab/player tests and existing real-network fixture with asymmetric passenger/holder cases and both sides of role boundaries. Capture use and failure states. If the selected role changes moving-world collision, rerun the latency/traversal matrix and record correction maxima. Gate on observable route/health/state outcomes, not new helper call order.
 

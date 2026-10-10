@@ -115,13 +115,18 @@ func _run_server(main: Node) -> void:
 	while grab_manager.get_grab_owner(shared_prop) != client_id and Time.get_ticks_msec() < deadline:
 		await process_frame
 	prop_replication_passed = prop_replication_passed and grab_manager.get_grab_owner(shared_prop) == client_id and shared_prop.get_collision_exceptions().has(client_player) and not shared_prop.get_collision_exceptions().has(host_player)
+	# Asymmetric role boundary: the prop set stays bounded and only the
+	# current holder's exclusion applies on the shared copy.
+	prop_replication_passed = prop_replication_passed and get_nodes_in_group("network_prop").size() == 3
 	while grab_manager.get_grab_owner(shared_prop) != 0 and Time.get_ticks_msec() < deadline:
 		await process_frame
+	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().is_empty()
 	shared_prop.freeze = true
 	shared_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
 	shared_prop.linear_velocity = Vector3.ZERO
 	shared_prop.freeze = false
 	prop_replication_passed = prop_replication_passed and grab_manager.request_grab(1, shared_prop)
+	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().has(host_player) and not shared_prop.get_collision_exceptions().has(client_player)
 	await create_timer(0.3).timeout
 	host_player.apply_knockdown(Vector3(2.0, 1.0, 0.0))
 	await create_timer(0.7).timeout
@@ -210,6 +215,21 @@ func _run_server(main: Node) -> void:
 		rematch_passed = rematch_passed and main.restart_network_match()
 		var new_prop := main._network_prop(1) as RigidBody3D
 		rematch_passed = rematch_passed and not is_instance_valid(old_prop) and grab_manager.get_held_body(1) == null and not new_prop.has_meta("grab_owner_peer_id") and new_prop.get_collision_exceptions().is_empty()
+		# Exact spawn/shape/role restore and no replacement-prop growth.
+		var new_shape: BoxShape3D = null
+		for child: Node in new_prop.get_children():
+			if child is CollisionShape3D:
+				new_shape = (child as CollisionShape3D).shape as BoxShape3D
+		rematch_passed = (
+			rematch_passed
+			and get_nodes_in_group("network_prop").size() == 3
+			and absf(new_prop.global_position.x) < 0.01
+			and absf(new_prop.global_position.y - 0.4) < 0.05
+			and absf(new_prop.global_position.z - 5.7) < 0.01
+			and new_prop.mass == 12.0
+			and is_instance_valid(new_shape) and new_shape.size == Vector3(0.6, 0.6, 0.6)
+			and is_instance_valid(main.get_node_or_null("Sandbox/EscapeStep"))
+		)
 		await create_timer(0.3).timeout
 		rematch_passed = (
 			rematch_passed

@@ -80,6 +80,30 @@ func _run() -> void:
 	flood.tick(1.0)
 	_expect(is_equal_approx(manager.get_health(1), 94.0), "Re-submersion must receive a fresh breathing grace period")
 
+	# 3.3.2 role boundaries (asymmetric two-player case): at refuge-height
+	# water the escape-aid elevation keeps its passenger dry while a grounded
+	# player drowns; at the3.5m peak the elevation confers no safety, and
+	# electrified water still damages flooded players at that elevation.
+	low_player.position.y = 1.7
+	high_player.position.y = 0.0
+	flood._set_water_level(2.2)
+	flood._apply_water_effects(2.5, 2.2, 0.0)
+	_expect(is_equal_approx(manager.get_health(1), 94.0), "Escape-aid elevation must keep its passenger dry at refuge-height water")
+	_expect(is_equal_approx(manager.get_health(2), 94.0), "A grounded player at the same water level must drown")
+	# Wet/dry prop boundary: water forces apply only below the water line.
+	prop.position = Vector3(6.0, 2.4, 0.0)
+	prop.sleeping = true
+	flood._apply_water_effects(0.5, flood.water_level, 0.0)
+	_expect(prop.sleeping, "A dry prop above the water line must receive no water forces")
+	prop.position = Vector3(6.0, 1.0, 0.0)
+	flood._apply_water_effects(0.5, flood.water_level, 0.0)
+	_expect(not prop.sleeping, "A submerged prop must be woken by water forces")
+	flood._set_water_level(flood.target_level)
+	flood._apply_water_effects(2.5, flood.target_level, 0.0)
+	_expect(is_equal_approx(manager.get_health(1), 88.0), "Peak flood must drown a player on the escape-aid elevation after breathing grace")
+	flood._apply_water_effects(0.5, flood.target_level, 0.5)
+	_expect(is_equal_approx(manager.get_health(1), 69.5), "Electrified water must damage a flooded player even at escape-aid elevation")
+
 	flood.cleanup()
 	await process_frame
 	_expect(flood.phase == FloodScript.Phase.IDLE and flood.active_effect_count() == 0, "Cleanup must remove Flood state and visual")
