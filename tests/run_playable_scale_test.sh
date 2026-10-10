@@ -44,7 +44,7 @@ run_player_count() {
 
   cat "$server_log"
   for ((client_index = 1; client_index <= client_count; client_index++)); do
-    grep -E "PLAYABLE_SCALE_CLIENT_OK|PLAYABLE_SCALE_MOVEMENT_DIAGNOSTIC|Playable scale client failed|ERROR:|WARNING:" "$log_dir/client-$client_index.log" || true
+    grep -E "PLAYABLE_SCALE_CLIENT_OK|PLAYABLE_SCALE_MOVEMENT_DIAGNOSTIC|SCALE_SPECTATOR|Playable scale client failed|ERROR:|WARNING:" "$log_dir/client-$client_index.log" || true
   done
 
   if grep -q 'above the MTU' "$server_log"; then
@@ -56,8 +56,14 @@ run_player_count() {
     return 1
   fi
 
-  grep -q "NETWORK_RESULTS_SCALE_OK players=$player_count exact_rankings_and_cells=passed" "$server_log"
-  grep -q "PLAYABLE_SCALE_SERVER_OK players=$player_count movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" "$server_log"
+  if [[ "$player_count" -ge 2 ]]; then
+    grep -q "NETWORK_RESULTS_SCALE_OK players=$player_count exact_rankings_and_cells=passed" "$server_log"
+    grep -q "PLAYABLE_SCALE_SERVER_OK players=$player_count movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" "$server_log"
+  else
+    # Solo ranked sessions cannot start (ready-up and the authority API both
+    # require two players), so the 1-player contract is lobby guards.
+    grep -q "PLAYABLE_SCALE_SERVER_OK players=1 lobby_guards=passed solo_start_blocked=passed in_match_actions_rejected=passed disconnect_cleanup=passed" "$server_log"
+  fi
   for ((client_index = 1; client_index <= client_count; client_index++)); do
     grep -q "PLAYABLE_SCALE_CLIENT_OK players=$player_count" "$log_dir/client-$client_index.log"
   done
