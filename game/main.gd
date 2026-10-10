@@ -22,6 +22,7 @@ const PROP_SNAPSHOT_INTERVAL := 0.1
 const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
+const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -1025,6 +1026,11 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 		# prune that just-spawned player.
 		if sequence <= _roster_snapshot_floor:
 			return
+	# Map identity is server-selected and must be loaded before the match
+	# state it belongs to; apply it before anything else in the payload.
+	var incoming_map := String(snapshot.get("map_id", map_id))
+	if incoming_map != map_id:
+		set_map_id(incoming_map)
 	var previous_owner := _room_owner_id
 	var previous_state := match_manager.state
 	_dedicated_server = bool(snapshot.get("dedicated_server", false))
@@ -1050,6 +1056,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 
 func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
+	snapshot.map_id = map_id
 	if _dedicated_server:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
@@ -1252,6 +1259,8 @@ func _execute_owner_action(sender_id: int, action: String, revision: int) -> boo
 			return restart_network_match()
 		"lobby":
 			return return_to_lobby()
+	if action.begins_with("map:"):
+		return request_map_change(action.trim_prefix("map:"))
 	return false
 
 
@@ -1292,6 +1301,10 @@ func _configure_lobby_ui() -> void:
 		else:
 			start_local_match()
 	)
+	var map_select: OptionButton = $Interface/LobbyPanel/MapSelect
+	for map_id_option: String in MAP_IDS:
+		map_select.add_item(MAP_TITLES.get(map_id_option, map_id_option))
+	map_select.item_selected.connect(func(index: int) -> void: request_map_change(MAP_IDS[index]))
 	$Interface/ResultsPanel/Actions/Rematch.pressed.connect(func() -> void:
 		if _network_mode:
 			restart_network_match()
@@ -1366,7 +1379,7 @@ func _input(event: InputEvent) -> void:
 
 func _lobby_focus_controls() -> Array[Control]:
 	var controls: Array[Control] = []
-	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "PlayerList", "ConnectionMode", "Close"]:
+	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "MapSelect", "PlayerList", "ConnectionMode", "Close"]:
 		var control: Control = $Interface/LobbyPanel.get_node(node_name)
 		if control.visible and control.focus_mode != Control.FOCUS_NONE and not (control is Button and control.disabled):
 			controls.append(control)
@@ -1534,6 +1547,13 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
 	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
 	panel.get_node("Start").disabled = (not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false
+	var map_select: OptionButton = panel.get_node("MapSelect")
+	map_select.visible = in_lobby
+	panel.get_node("MapLabel").visible = in_lobby
+	map_select.disabled = room_client.busy or (_network_mode and not can_control_session())
+	var map_index: int = MAP_IDS.find(map_id)
+	if map_index >= 0 and map_select.selected != map_index:
+		map_select.select(map_index)
 	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id, _room_owner_id if _dedicated_server else 1, "OWNER" if _dedicated_server else "HOST")
 	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"
 	if in_lobby and (_network_mode or lobby_demo):
@@ -1595,16 +1615,8 @@ func return_to_lobby() -> bool:
 	_local_emote_cooldown_until.clear()
 	_emote_sequences.clear()
 	_emote_seen_sequences.clear()
-	var peer_ids: Array[int] = get_network_player_ids()
-	if not _network_mode:
-		peer_ids = [1]
-	for index: int in peer_ids.size():
-		var peer_id := peer_ids[index]
-		var player := _player_nodes.get(peer_id) as PartyPlayer
-		if not is_instance_valid(player):
-			return false
-		var spawn_position: Vector3 = map_anchors.spawn_origin if peer_id == 1 else _network_spawn_position(index)
-		player.reset_for_match(spawn_position)
+	if not _reseat_players_for_map():
+		return false
 	_set_lobby_visible(true)
 	if not _network_mode:
 		$Interface/LobbyPanel/Status.text = "Start solo play or create/join a LAN lobby"
@@ -1782,12 +1794,40 @@ func set_map_id(id: String) -> bool:
 	# Rebuild through the reset path so the previous map's geometry is freed
 	# instead of stacking a second sandbox on top of it.
 	_reset_sandbox()
+	# Players joined under the previous map; reseat them on the new map's
+	# spawn anchors so nobody starts embedded in the new geometry.
+	_reseat_players_for_map()
 	return true
+
+
+func request_map_change(id: String) -> bool:
+	# Map identity changes only at the lobby boundary, before countdown.
+	if id not in MAP_IDS or id == map_id or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	if not _network_mode or multiplayer.is_server():
+		return set_map_id(id)
+	if can_control_session():
+		return _send_owner_action("map:" + id)
+	return false
 
 
 func _build_sandbox() -> void:
 	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
 	_apply_map_anchors(anchors)
+
+
+func _reseat_players_for_map() -> bool:
+	var peer_ids: Array[int] = get_network_player_ids()
+	if not _network_mode:
+		peer_ids = [1]
+	for index: int in peer_ids.size():
+		var peer_id := peer_ids[index]
+		var player := _player_nodes.get(peer_id) as PartyPlayer
+		if not is_instance_valid(player):
+			return false
+		var spawn_position: Vector3 = map_anchors.spawn_origin if peer_id == 1 else _network_spawn_position(index)
+		player.reset_for_match(spawn_position)
+	return true
 
 
 func _apply_map_anchors(anchors: Dictionary) -> void:

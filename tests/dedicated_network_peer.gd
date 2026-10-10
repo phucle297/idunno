@@ -44,6 +44,8 @@ func _server(main: Node) -> void:
 		if id != owner_id:
 			guest_id = id
 	_expect(owner_id > 1 and guest_id > 1 and not main.match_manager.players.has(1), "Only clients may participate")
+	await _wait_until(func() -> bool: return main.get_map_id() == "toy_harbor", "Server must load the owner-selected map before countdown")
+	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Server map anchors must follow map identity")
 	var origins := {}
 	for id: int in main.get_network_player_ids():
 		origins[id] = main._player_nodes[id].global_position
@@ -64,6 +66,7 @@ func _server(main: Node) -> void:
 		await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Owner rematch RPC must restart cycle %d" % (cycle + 1))
 		main.disaster_director.cleanup()
 		_expect(main.match_manager.get_health(guest_id) == 100.0 and main.get_room_owner_id() == owner_id, "Rematch must preserve owner and restore guest")
+		_expect(main.get_map_id() == "toy_harbor", "Rematches must keep the selected map")
 		# Hold ACTIVE long enough for both clients to observe the new round.
 		await create_timer(0.25).timeout
 	await create_timer(0.5).timeout
@@ -80,6 +83,12 @@ func _client(main: Node) -> void:
 	var local_id: int = main.multiplayer.get_unique_id()
 	_expect(main.can_control_session() == (role == "owner"), "Only first client is room owner")
 	_test_camera_snapshot_ownership(main, local_id)
+	if role == "owner":
+		_expect(main.request_map_change("toy_harbor"), "Owner must request the server-selected map")
+	else:
+		_expect(not main.request_map_change("toy_harbor"), "Guest cannot change the map")
+	await _wait_until(func() -> bool: return main.get_map_id() == "toy_harbor", "Clients must load the owner-selected map before countdown")
+	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Client map anchors must follow map identity")
 	main.set_local_ready(true)
 	if role == "owner":
 		await _wait_until(func() -> bool: return main.match_manager.can_start_match(), "Both clients must ready")

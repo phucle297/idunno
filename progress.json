@@ -35,8 +35,8 @@
   },
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
-    "milestone": "milestone_4_3_map_variety_one_additional_map_at_a_time",
-    "task": "task_4_3c_server_selected_map_identity"
+    "milestone": "milestone_4_1_randomized_replayable_disaster_rounds",
+    "task": "task_4_1a_seeded_selection_and_replayable_history"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -79,7 +79,11 @@
     "milestones": {
       "milestone_4_1_randomized_replayable_disaster_rounds": {
         "title": "Randomized, Replayable Disaster Rounds",
-        "status": "planned"
+        "status": "in_progress",
+        "tasks": {
+          "task_4_1a_seeded_selection_and_replayable_history": "planned: retain server-only seeded director selection, record seed and selection history for replaying failures, compare repeated-round histories then add recent-history exclusion/weighting with guaranteed eligible fallback; gate seed diversity, same-seed reproduction, no immediate repeat/forbidden overlap and five-rematch history reset",
+          "task_4_1b_replicated_hazard_variants": "planned: bounded variants within existing hazard owners (meteor clusters vs moving lanes, flood rise/current patterns, tornado paths) selected server-side and replicated with their gameplay parameters; gate variant parameter replication, early solo hazards before combinations and five-rematch variant/effect cleanup"
+        }
       },
       "milestone_4_2_behavior_changing_disaster_compositions": {
         "title": "More Behavior-Changing Disaster Compositions",
@@ -87,11 +91,11 @@
       },
       "milestone_4_3_map_variety_one_additional_map_at_a_time": {
         "title": "Map Variety, One Additional Map at a Time",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_4_3a_ground_the_garage_silhouette": "completed: user feedback 2026-10-09 - four inset deck-to-canopy columns and four corner beam braces in game/main.gd::_add_parking_garage keep deck/ramp/canopy geometry; _check_garage_canopy gate passes (mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado cover with open deck uncovered, deck walk head<4.65m, camera clearance, five-rematch restoration, post-rematch deck walk) at MAP_SAFETY_OK checks=251 headless / checks=277 rendered with inspected interior/overview captures",
           "task_4_3b_build_toy_harbor_with_map_owned_anchors": "completed: Toy Harbor built from the modular kit (two-exit warehouse with breakable roof panel, crane deck on pillars with ramp/edge drop, docks with breakable two-piece gangway, cargo platforms with breakable lids, four ramps) and map-owned anchors now drive spawn/tornado/meteor/lightning/fire wiring through _apply_map_anchors; set_map_id rebuilds via _reset_sandbox (stacked-map collision bug fixed), ramp tops meet platform faces flush, dock tops at 3.75m exceed the 3.5m flood peak. Two-map gate MAP_VARIETY_OK checks=303 headless / 307 rendered: anchor schema+wiring, 20-spawn probe, four walk-only routes, two walked exits per refuge, flood escape per spawn group (alive, health held), no-universal-safe checks, five rematches restoring breakables/props/map identity; captures inspected. Supported regression UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed.",
-          "task_4_3c_server_selected_map_identity": "planned: server-selected map identity at the lobby/rematch boundary replicated to every client before countdown; deterministic map-load tests"
+          "task_4_3c_server_selected_map_identity": "completed: map identity travels in every playable snapshot and _apply_match_snapshot loads a differing map before match state so all clients converge before countdown (including mid-round joiners; same-identity snapshots never rebuild); request_map_change is the LOBBY-only boundary (local/host direct, dedicated owners via _send_owner_action(\"map:<id>\") validated by _execute_owner_action); set_map_id reseats players on the new map spawn anchors via _reseat_players_for_map (shared with return_to_lobby); lobby panel gains an owner MAP selector with the stack retightened to fit 720p while keeping the four-row roster fit. MAP_IDENTITY_OK checks=22; DEDICATED_NETWORK SERVER/OWNER/GUEST OK (40/60/70 checks, 5 rematches keep the map) over real ENet; LOBBY_ROSTER_OK 124, LOBBY_PRESENTATION_OK 40 with inspected captures; full supported regression UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed."
         }
       },
       "milestone_4_4_harder_but_fair_survival": {
@@ -206,18 +210,22 @@
       "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Supported gate after the map-ownership refactor and Toy Harbor: UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed (39 includes the new test_map_variety suite), with MAP_SAFETY_OK checks=251 in-suite and all network/chaos/dedicated groups green. Log .scratch/regression_after_harbor.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate after task 4.3c: UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed (40 includes tests/test_map_identity.gd), DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed including the owner-requested map switch replicated to both clients before countdown and kept through five rematches. Also rerun individually green: MAP_IDENTITY_OK checks=22, MAP_VARIETY_OK checks=303, MAP_SAFETY_OK checks=251, LOBBY_ROSTER_OK checks=124, LOBBY_PRESENTATION_OK checks=40, ROOM_UI_OK checks=64. Log .scratch/regression_after_43c.log."
     }
   ],
   "blockers": [],
   "changed_files": [
     "game/main.gd",
-    "game/tornado.gd",
-    "game/meteor_shower.gd",
-    "game/lightning.gd",
-    "game/fire.gd",
-    "tests/test_map_variety.gd",
+    "scenes/main.tscn",
+    "tests/test_map_identity.gd",
+    "tests/dedicated_network_peer.gd",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Build task_4_3c: server-selected map id in the playable session/match snapshot applied by clients before countdown, owner lobby map selection, and deterministic map-load tests."
+  "next_action": "Build task_4_1a: retain server-only seeded director selection in game/disaster_director.gd, record seed and selection history for replaying failures, compare repeated-round histories before adding recent-history exclusion/weighting with guaranteed eligible fallback, and extend tests/test_disaster_director.gd for seed diversity, same-seed reproduction, no immediate repeat/forbidden overlap and five-rematch history reset."
 }
