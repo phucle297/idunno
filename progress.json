@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_1_randomized_replayable_disaster_rounds",
-    "task": "task_4_1a_seeded_selection_and_replayable_history"
+    "task": "task_4_1b_replicated_hazard_variants"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -81,7 +81,7 @@
         "title": "Randomized, Replayable Disaster Rounds",
         "status": "in_progress",
         "tasks": {
-          "task_4_1a_seeded_selection_and_replayable_history": "planned: retain server-only seeded director selection, record seed and selection history for replaying failures, compare repeated-round histories then add recent-history exclusion/weighting with guaranteed eligible fallback; gate seed diversity, same-seed reproduction, no immediate repeat/forbidden overlap and five-rematch history reset",
+          "task_4_1a_seeded_selection_and_replayable_history": "completed: game/disaster_director.gd start_directing(seed) randomizes at <0 or reseeds at >=0 and captures the effective seed; get_replay_record() returns {seed, selection_history, duration_seconds, final_intensity, total_selections} live and retains the finished round across cleanup/rematch resets; one structured DISASTER_REPLAY line per finished match logs seed+history. Measured baseline (scratch probe, 5 seeds x 80 selections, removed after) showed 29 distance-2 repeats (36%), so RECENT_HISTORY_EXCLUSION=2 now prefers candidates outside the last two selections with full-pool fallback (no stalls/fixed scripts). Gate DISASTER_DIRECTOR_OK checks=115: same-seed history equality, different-seed divergence, record retention, no adjacent/distance-2 repeats with 3-4 eligible, two-disaster fallback schedules, five rematch cycles clearing live history and retaining per-round records.",
           "task_4_1b_replicated_hazard_variants": "planned: bounded variants within existing hazard owners (meteor clusters vs moving lanes, flood rise/current patterns, tornado paths) selected server-side and replicated with their gameplay parameters; gate variant parameter replication, early solo hazards before combinations and five-rematch variant/effect cleanup"
         }
       },
@@ -216,16 +216,21 @@
       "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Supported gate after task 4.3c: UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed (40 includes tests/test_map_identity.gd), DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed including the owner-requested map switch replicated to both clients before countdown and kept through five rematches. Also rerun individually green: MAP_IDENTITY_OK checks=22, MAP_VARIETY_OK checks=303, MAP_SAFETY_OK checks=251, LOBBY_ROSTER_OK checks=124, LOBBY_PRESENTATION_OK checks=40, ROOM_UI_OK checks=64. Log .scratch/regression_after_43c.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "timeout 120 godot --headless --path . --script res://tests/test_disaster_director.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_1a implemented and gated: DISASTER_DIRECTOR_OK checks=115 (same-seed replay equality, seed divergence, finished-record retention across cleanup, no adjacent/distance-2 repeats, two-disaster full-pool fallback, five rematch cycles with fresh history and per-round records), then UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed including DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Scratch history probe removed after measuring 29/80 distance-2 repeats (36%) on uniform picking. Logs .scratch/disaster_director_41a.log and .scratch/ui_regression_41a.log."
     }
   ],
   "blockers": [],
   "changed_files": [
+    "game/disaster_director.gd",
     "game/main.gd",
-    "scenes/main.tscn",
-    "tests/test_map_identity.gd",
-    "tests/dedicated_network_peer.gd",
+    "tests/test_disaster_director.gd",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Build task_4_1a: retain server-only seeded director selection in game/disaster_director.gd, record seed and selection history for replaying failures, compare repeated-round histories before adding recent-history exclusion/weighting with guaranteed eligible fallback, and extend tests/test_disaster_director.gd for seed diversity, same-seed reproduction, no immediate repeat/forbidden overlap and five-rematch history reset."
+  "next_action": "Build task_4_1b: bounded server-selected disaster variants (meteor clusters vs moving lanes, flood rise/current patterns, tornado paths from map presets) inside the existing hazard owners, replicated with their gameplay parameters through presentation snapshots, gated for variant parameter replication, early solo hazards before combinations and five-rematch variant/effect cleanup."
 }

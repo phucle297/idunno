@@ -3,12 +3,16 @@ extends Node
 
 signal disaster_started(disaster_name: String, intensity: int, active_disasters: Array[String])
 
+const RECENT_HISTORY_EXCLUSION := 2
+
 @export var initial_delay := 10.0
 @export var recovery_duration := 4.0
 @export var overlap_delay := 8.0
 
 var running := false
 var selection_history: Array[String] = []
+var last_seed := 0
+var finished_replay_record: Dictionary = {}
 
 var _match_manager: MatchManager
 var _disasters: Dictionary = {}
@@ -47,10 +51,13 @@ func start_directing(seed: int = -1) -> bool:
 	if _match_manager.state != MatchManager.MatchState.ACTIVE or _disasters.is_empty():
 		return false
 	_reset_runtime_state()
-	if seed >= 0:
-		_rng.seed = seed
-	else:
+	var effective_seed := seed
+	if effective_seed < 0:
 		_rng.randomize()
+		effective_seed = int(_rng.seed)
+	else:
+		_rng.seed = effective_seed
+	last_seed = effective_seed
 	running = true
 	_next_start_in = initial_delay
 	return true
@@ -73,9 +80,17 @@ func tick(delta: float) -> void:
 	if candidates.is_empty():
 		_next_start_in = 1.0
 		return
-	var chosen: String = candidates[_rng.randi_range(0, candidates.size() - 1)]
+	var chosen := _pick_candidate(candidates)
 	if try_start_disaster(chosen):
 		_next_start_in = overlap_delay
+
+
+func get_replay_record() -> Dictionary:
+	# While running this is the live record; after cleanup it retains the last
+	# finished round so failures can still be replayed from its seed/history.
+	if running or not selection_history.is_empty():
+		return {"seed": last_seed, "selection_history": selection_history.duplicate()}
+	return finished_replay_record.duplicate()
 
 
 func try_start_disaster(disaster_name: String) -> bool:
@@ -163,6 +178,26 @@ func _eligible_candidates() -> Array[String]:
 	return candidates
 
 
+func _pick_candidate(candidates: Array[String]) -> String:
+	# Prefer selections outside the recent history window; if every candidate
+	# is recent (small eligible sets), fall back to the full eligible pool so
+	# scheduling never stalls or turns into a fixed script.
+	var fresh: Array[String] = []
+	for disaster_name in candidates:
+		if not _was_recently_selected(disaster_name):
+			fresh.append(disaster_name)
+	var pool: Array[String] = fresh if not fresh.is_empty() else candidates
+	return pool[_rng.randi_range(0, pool.size() - 1)]
+
+
+func _was_recently_selected(disaster_name: String) -> bool:
+	var window := mini(RECENT_HISTORY_EXCLUSION, selection_history.size())
+	for offset in window:
+		if selection_history[selection_history.size() - 1 - offset] == disaster_name:
+			return true
+	return false
+
+
 func _refresh_active() -> void:
 	var still_active: Array[String] = []
 	for disaster_name in _active:
@@ -198,6 +233,8 @@ func _maximum_simultaneous() -> int:
 
 
 func _reset_runtime_state() -> void:
+	if not selection_history.is_empty():
+		finished_replay_record = {"seed": last_seed, "selection_history": selection_history.duplicate()}
 	selection_history.clear()
 	_active.clear()
 	_completed_solo.clear()

@@ -2,6 +2,13 @@
 
 Root [progress](../progress.json) owns active state; the [Phase 4 checklist](checklists/phase-4-disaster-remix-and-toy-town-interaction.md) owns the detailed plan. Prior decisions and evidence remain in the [Phase 3 archive](old-docs/phase-3-player-caused-chaos/decisions.md) and the [Phase2 suspended snapshot](old-docs/phase-2-human-playtest-and-core-feel/decisions.md), not a completed-phase claim for Phase2.
 
+## 2026-10-10 — Task 4.1a: seeded selection and replayable history
+
+- `start_directing(seed)` randomizes at `seed < 0` or reseeds deterministically at `seed >= 0`, and captures the effective seed (the RNG's readback when auto-seeded). `get_replay_record()` returns `{seed, selection_history, duration_seconds, final_intensity, total_selections}` while a round runs and keeps the finished round's record across `cleanup()` and rematch resets; one structured `DISASTER_REPLAY seed=... history=[...]` line per finished match (dedicated server and local) logs the same data for failure replay.
+- Recent-history exclusion was adopted only after measuring repetition as the checklist requires: a scratch probe (5 seeds × 80 selections, deleted after measuring) showed uniform picking produces 29 distance-2 repeats (36%). `RECENT_HISTORY_EXCLUSION = 2` now prefers candidates outside the last two selections and falls back to the full eligible pool when all are recent, so schedules never stall and never become a fixed script.
+- `tests/test_disaster_director.gd` grows to 115 checks: same-seed history equality and different-seed divergence through a fresh-manager `_schedule` helper, replay-record retention, no adjacent or distance-2 repeats when eligible sets allow, a 12-selection two-disaster fallback schedule (alternating, never stalling), and five rematch cycles that clear live history while retaining each round's own seed/history record.
+- Evidence: `DISASTER_DIRECTOR_OK checks=115`, then supported gate `UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed`.
+
 ## 2026-10-10 — Task 4.3c: server-selected map identity
 
 - Map identity travels in every playable snapshot (`snapshot.map_id`), and `_apply_match_snapshot` loads a differing map before applying the match state it belongs to, so every client converges on the server's map before the countdown — including clients that join mid-round. Applying only on difference keeps same-identity snapshots from rebuilding the sandbox; `tests/test_map_identity.gd` asserts that determinism.

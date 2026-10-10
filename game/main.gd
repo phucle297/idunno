@@ -1635,6 +1635,11 @@ func _restart_authoritative_match() -> bool:
 
 
 func _on_match_finished(winner_ids: Array[int]) -> void:
+	# Server-side round record for replaying failures: same seed + selection
+	# history reproduces the configured scenario.
+	var replay: Dictionary = disaster_director.get_replay_record()
+	if not replay.is_empty():
+		print("DISASTER_REPLAY seed=%d history=%s" % [int(replay.get("seed", -1)), str(replay.get("selection_history", []))])
 	if _dedicated_server and multiplayer.is_server():
 		return
 	gameplay_hud.set_spectating_visible(false)
