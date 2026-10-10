@@ -46,6 +46,7 @@ var _pending_local_movement_snapshot: Dictionary = {}
 var _match_snapshot_remaining := 0.0
 var _match_snapshot_sequence := 0
 var _last_match_snapshot_sequence := 0
+var _roster_snapshot_floor := 0
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
@@ -309,6 +310,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	_network_mode = true
 	_network_role = "client"
 	_last_match_snapshot_sequence = 0
+	_roster_snapshot_floor = 0
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
@@ -376,7 +378,8 @@ func _on_network_peer_connected(peer_id: int) -> void:
 			peer_id,
 			existing_peer_id,
 			String(match_manager.players[existing_peer_id].name),
-			existing_player.position
+			existing_player.position,
+			_match_snapshot_sequence
 		)
 	var spawn_position := _network_spawn_position(_player_nodes.size())
 	var player_name := "Player %d" % peer_id
@@ -390,7 +393,7 @@ func _on_network_peer_connected(peer_id: int) -> void:
 	if _dedicated_server and _room_owner_id == 0:
 		_room_owner_id = peer_id
 		_session_revision += 1
-	_spawn_network_player.rpc(peer_id, player_name, spawn_position)
+	_spawn_network_player.rpc(peer_id, player_name, spawn_position, _match_snapshot_sequence)
 
 
 func _on_network_peer_disconnected(peer_id: int) -> void:
@@ -481,7 +484,8 @@ func _spawn_server_network_player(peer_id: int, player_name: String, spawn_posit
 
 
 @rpc("authority", "call_remote", "reliable")
-func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3) -> void:
+func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3, spawn_sequence: int = 0) -> void:
+	_roster_snapshot_floor = maxi(_roster_snapshot_floor, spawn_sequence)
 	if _player_nodes.has(peer_id):
 		_configure_network_player(_player_nodes[peer_id] as PartyPlayer, peer_id, spawn_position)
 		return
@@ -824,6 +828,12 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 		if sequence <= _last_match_snapshot_sequence:
 			return
 		_last_match_snapshot_sequence = sequence
+		# Spawns and snapshots travel on different channels, so a lost and
+		# resent snapshot can arrive after a spawn it predates. A snapshot
+		# from before the newest spawn must never rewrite the roster and
+		# prune that just-spawned player.
+		if sequence <= _roster_snapshot_floor:
+			return
 	var previous_owner := _room_owner_id
 	var previous_state := match_manager.state
 	_dedicated_server = bool(snapshot.get("dedicated_server", false))

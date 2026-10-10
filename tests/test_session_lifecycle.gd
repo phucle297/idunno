@@ -67,6 +67,28 @@ func _run() -> void:
 	main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 100, 300)
 	await create_timer(0.1).timeout
 	main._spawn_network_player(2, "Remote Player", Vector3(4, 0, 4))
+	# Spawns and roster snapshots travel on different channels: a snapshot
+	# created before a spawn must never prune that player when it arrives late.
+	main._spawn_network_player(3, "Late Player", Vector3(6, 0, 4), 10)
+	var roster_arrays := {
+		"state": MatchManager.MatchState.LOBBY,
+		"player_ids": PackedInt32Array([1, 2]),
+		"player_ready": PackedByteArray([1, 1]),
+		"player_health": PackedFloat32Array([100.0, 100.0]),
+		"player_alive": PackedByteArray([1, 1]),
+		"player_damage": PackedFloat32Array([0.0, 0.0]),
+		"player_elimination_time": PackedFloat32Array([0.0, 0.0]),
+		"player_causes": PackedStringArray(["", ""]),
+		"player_disasters_survived": PackedInt32Array([0, 0]),
+	}
+	var stale_snapshot: Dictionary = roster_arrays.duplicate(true)
+	stale_snapshot.match_sequence = 8
+	main._apply_match_snapshot(stale_snapshot)
+	_expect(main._player_nodes.has(2) and main._player_nodes.has(3), "A pre-spawn roster snapshot arriving late must not prune newer spawns")
+	var leave_snapshot: Dictionary = roster_arrays.duplicate(true)
+	leave_snapshot.match_sequence = 11
+	main._apply_match_snapshot(leave_snapshot)
+	_expect(main._player_nodes.has(2) and not main._player_nodes.has(3), "Newer roster snapshots must still prune departed players")
 	main.flood.apply_presentation_snapshot({"phase": Flood.Phase.HOLDING, "water_level": 1.0, "electrified_remaining": 2.0})
 	server.close()
 	server_api.multiplayer_peer = null
