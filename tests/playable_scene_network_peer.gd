@@ -527,6 +527,7 @@ func _run_client(main: Node) -> void:
 	var shove_passed := (
 		observed_shove_seq == 1
 		and shove_manager.is_protected(local_id)
+		and shove_manager.get_cooldown_remaining(1) > 0.0
 		and shove_cue_seen
 		and (shove_speed_peak > 1.0 or shove_displacement > 0.15)
 		and not shove_manager.apply_replicated_shove(1, local_id, 1, 0.0, -1.0)

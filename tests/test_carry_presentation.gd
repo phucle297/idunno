@@ -197,7 +197,11 @@ func _run() -> void:
 	var shove_torso := player.character.get_node("Torso") as Node3D
 	_expect(shove_torso.rotation.x < -0.2, "Shove cue must lean the torso forward for rear-camera readability")
 	main.gameplay_hud.present_lobby_overlay(false)
-	main.gameplay_hud.present_shove_state(1.4)
+	# Present a fresh accepted replica, not a hard-coded countdown: clients
+	# must receive the shover cooldown along with the victim's impulse.
+	_expect(shove_manager.apply_replicated_shove(1, 2, 2, 0.0, -1.0), "Shove review must accept the fresh replicated effect")
+	main.gameplay_hud.present_shove_state(shove_manager.get_cooldown_remaining(1))
+	_expect(main.gameplay_hud.shove_pill.visible and main.gameplay_hud.shove_state_label.text == "2.0s", "Accepted replica must present the two-second shove cooldown")
 	main.gameplay_hud.present_major_warning("meteor", 2.0)
 	var shove_hazard_lines: Array[String] = ["METEOR"]
 	main.gameplay_hud.present_hazards(shove_hazard_lines)

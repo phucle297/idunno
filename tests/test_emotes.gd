@@ -189,6 +189,28 @@ func _test_grab_and_carry_cancel() -> void:
 	main._tick_server_emotes()
 	_expect(player.get_emote_id() == 0, "Carrying a medium must cancel the emote")
 	player.carrying_medium = false
+	# Lightweight props have no speed penalty, but still occupy the hands.
+	var prop := RigidBody3D.new()
+	prop.mass = 4.0
+	prop.freeze = true
+	prop.add_to_group("grabbable")
+	main.add_child(prop)
+	prop.global_position = player.get_grab_origin() + player.get_grab_direction()
+	var grab := main.get_node("GrabManager") as GrabManager
+	_clear_cooldowns()
+	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
+	_expect(grab.request_grab(1, prop), "Lightweight emote fixture must actually acquire the prop")
+	main._tick_server_emotes()
+	_expect(player.get_emote_id() == 0, "Acquiring a lightweight prop must cancel the emote on the server")
+	_clear_cooldowns()
+	main.request_local_emote(1, PartyPlayer.EMOTE_CHEER)
+	_expect(player.get_emote_id() == 0, "Holding a lightweight prop must reject emote requests")
+	grab.release_grab(1)
+	_clear_cooldowns()
+	main.request_local_emote(1, PartyPlayer.EMOTE_CHEER)
+	_expect(player.get_emote_id() == PartyPlayer.EMOTE_CHEER, "Releasing a lightweight prop must restore emotes")
+	player.cancel_emote()
+	prop.queue_free()
 
 
 func _test_shove_cancels_both() -> void:

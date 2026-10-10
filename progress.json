@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T11:58:00Z",
+  "updated_at": "2026-10-10T12:50:51Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -93,8 +93,61 @@
       }
     }
   },
-  "validation_log": [],
+  "phase_3_followup_review": {
+    "authorization": "2026-10-10 owner: Double check all phase 3. Fix bugs if needed",
+    "status": "in_progress",
+    "scope": "Recheck completed Phase 3 without starting Phase 4 or rewriting historical archives.",
+    "findings": [
+      "Reproduced: shove reach ignored vertical separation, accepting a target 6m above the grounded sender.",
+      "Reproduced: replicated accepted shove did not set the shover cooldown, so client HUD reported READY during server cooldown.",
+      "Reproduced: lightweight 4kg held props did not cancel or reject emotes because eligibility used only the medium-speed-penalty flag."
+    ]
+  },
+  "validation_log": [
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{shove,emotes}.gd (new regressions before fixes)",
+      "status": "failed",
+      "result": "Shove assertions reproduce out-of-reach elevation acceptance and absent replicated cooldown; emote assertions reproduce lightweight acquisition cancellation and holding rejection failures. Existing assertions preserved. Logs .scratch/phase3-{shove,emotes}-red.log. Targeted fixes implemented; green/full validation pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_shove.gd; godot --headless --path . --script res://tests/test_emotes.gd (after fixes)",
+      "status": "passed",
+      "result": "SHOVE_OK checks=70 and EMOTES_OK checks=55. All new regressions green with existing range/cone/cover/ramp, impulse/cooldown/protection, rematch/duplicate and emote interruption checks intact. Known shutdown-only resource diagnostics retained. Full regression, real ENet cooldown, latency and rendered checks still pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50 --output .scratch/phase3-latency; python3 -m unittest discover -s tests -p 'test_*.py' -v",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound, all 0/100/200ms cases passed; correction p95 <=0.217m and max <=0.825m in reported movement samples; carry/footing/shove/traversal fixture assertions pass. 14 Python tests pass including real room-service/ENet security. Added an explicit requesting-client cooldown assertion afterward; final latency rerun pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720|1920x1080 --script res://tests/test_carry_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-3-recheck/{720p,1080p} --review-size=...; view_media shove-cue at both sizes",
+      "status": "passed",
+      "result": "CARRY_PRESENTATION_OK checks=73 at both resolutions; rendered fixture now consumes the fresh accepted replica's real cooldown and asserts visible 2.0s text rather than injecting 1.4. Both inspected shove captures show SHOVE 2.0s (not READY), forward pose, readable METEOR warning and no HUD overlap. Carry/emote/interruption montage also reviewed; knockdown-interrupt capture depicts get_up after recovery, not the ragdoll interval (fixture explicitly tests that interval before capture). Linux/llvmpipe captures, not native Windows."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; GODOT_BIN=$(command -v godot) bash tests/run_container_network_test.sh",
+      "status": "passed",
+      "result": "Final source run: UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed, SHOVE70/EMOTES55/CARRY_PRESENTATION40, real ENet replica cooldown, 1/2/4 chaos scenario, five rematches, dedicated recovery/owner transfer and unchanged 300-check grab/175-check map/199-check prop role pass. Docker: CONTAINER_NETWORK_OK rooms=2 clients_per_room=2 rematches=5; CONTAINER_SOURCE_REGRESSION_OK and CONTAINER_VALIDATION_SLICE_OK; 4/8 source scale pass. Beyond-supported20 diagnostic still rejects the 1396-byte snapshot exceeding1392 MTU, kept non-gating and not a20-player claim. Logs .scratch/phase3-double-check-final.log and .scratch/phase3-containers.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (first run)",
+      "status": "failed",
+      "result": "Four-player two-room managed lifecycle reaches five rematches, then ALPHA physics-work p95=24.397ms exceeds16.67ms. This run overlapped the final source regression; scheduling contention is a hypothesis, not a proven cause. Rerunning the unchanged harness alone before deciding. No threshold relaxation or product tuning. Log .scratch/phase3-managed.log; profile .scratch/disaster-managed-19926-4/server-ALPHA.json."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (isolated rerun, four-player stage)",
+      "status": "passed",
+      "result": "MANAGED_CONTAINER_OK rooms=2 players_per_room=4 rematches=5 isolation=passed failures=passed profile=passed. Unchanged16.67ms gate passes in both rooms: ALPHA physics-work p95=10.370ms, BRAVO6.129ms,120 warmup/600 samples. First24.397ms failure did not recur without concurrent source tests; contention remains a plausible explanation rather than a proven product cause. The script's beyond-supported8-player stage is still running. Metrics .scratch/disaster-managed-25193-4/metrics.json."
+    }
+  ],
   "blockers": [],
-  "changed_files": [],
-  "next_action": "Hold for the owner's Phase 3 self-check and bug reports (playtest bundles in .amp/in/artifacts/phase-3-packages/); when the owner directs, start Phase 4's first work unit per docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md (user-feedback4.3a garage grounding and the Flood pacing baseline are the listed priorities)."
+  "changed_files": ["game/main.gd", "game/shove_manager.gd", "tests/test_shove.gd", "tests/test_emotes.gd", "tests/playable_scene_network_peer.gd", "tests/test_carry_presentation.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "progress.json"],
+  "next_action": "Complete Phase 3 follow-up validation (targeted red/green, full 1/2/4 regression, latency, containers, presentation and package checks); keep Phase 4 paused."
 }

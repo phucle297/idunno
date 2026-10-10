@@ -624,6 +624,7 @@ func run_shove(player: PartyPlayer) -> void:
 		require(response >= 0.0, "Accepted shove effect must reach the requester")
 		require(shove_manager.get_last_shove_sequence(victim_id) == seq_before + 1, "Exactly one sequenced application per accepted shove")
 		require(shove_manager.is_protected(victim_id), "Accepted shove must replicate the victim protection window")
+		require(shove_manager.get_cooldown_remaining(main.multiplayer.get_unique_id()) > 0.0, "Accepted shove must show cooldown on the requesting client")
 		require(speed_peak > 2.0, "Observer must see the bounded victim impulse")
 		require(not shove_manager.apply_replicated_shove(main.multiplayer.get_unique_id(), victim_id, seq_before + 1, 0.0, -1.0), "Duplicate delivery must be suppressed on the requester")
 		trial_records.append({"trial": shove_trial, "response_ms": response, "speed_peak_mps": speed_peak})

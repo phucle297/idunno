@@ -150,6 +150,12 @@ func _test_range_angle_cover() -> void:
 	var outside_cone := Vector3(sin(deg_to_rad(61.0)), 0.05, -cos(deg_to_rad(61.0))) * 1.5
 	await _place(players[2], outside_cone, Vector3.ZERO)
 	_expect(not shove.request_shove(1), "A target outside the forward cone must be rejected")
+	await _setup_open_pair()
+	# Clear sight and nearby in plan view, but far outside arm reach vertically.
+	players[2].position = Vector3(0.0, 6.0, -1.5)
+	players[2].velocity = Vector3.ZERO
+	await physics_frame
+	_expect(not shove.request_shove(1), "A target 6m above the shover must be outside shove reach")
 	shove.reset_state()
 	# Within range but separated by the cover wall (z=0 slab).
 	await _place(players[1], Vector3(20.0, 0.05, 1.0), Vector3(20.0, 0.05, -1.0))
@@ -259,6 +265,7 @@ func _test_replication_contract() -> void:
 	# or reordered delivery under loss must never apply twice.
 	_expect(shove.apply_replicated_shove(1, 2, 50, 0.0, -1.0), "A fresh sequenced shove effect must apply on every peer")
 	_expect(is_equal_approx(players[2].velocity.z, -6.0) and absf(players[2].velocity.y) < 0.01, "The replicated effect applies the same bounded horizontal impulse")
+	_expect(shove.get_cooldown_remaining(1) > 1.9, "Accepted replicated shoves must show the shover cooldown on observers")
 	_expect(not shove.apply_replicated_shove(1, 2, 50, 0.0, -1.0), "A duplicate delivery must be suppressed")
 	_expect(not shove.apply_replicated_shove(1, 2, 41, 0.0, -1.0), "A stale reordered delivery must be suppressed")
 	_expect(is_equal_approx(players[2].velocity.z, -6.0) and cue_count == cues_before + 1, "Suppressed duplicates change nothing and cue exactly once")

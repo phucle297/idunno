@@ -849,6 +849,8 @@ func _can_start_emote(peer_id: int, emote_id: int, mirrored: bool) -> bool:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	if not is_instance_valid(player) or not player.can_grab_objects() or player.carrying_medium or player.is_crouched() or not player.is_on_floor():
 		return false
+	if is_instance_valid($GrabManager.get_held_body(peer_id)):
+		return false
 	if match_manager.state != MatchManager.MatchState.ACTIVE or not match_manager.is_player_alive(peer_id):
 		return false
 	var now := _emote_now()
@@ -923,6 +925,7 @@ func _tick_server_emotes() -> void:
 			or player.is_knocked_down()
 			or not player.can_grab_objects()
 			or player.carrying_medium
+			or is_instance_valid($GrabManager.get_held_body(peer_id))
 			or player.is_crouched()
 			or not player.is_on_floor()
 			or match_manager.get_health(peer_id) < float(state.health)

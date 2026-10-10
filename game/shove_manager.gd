@@ -131,7 +131,6 @@ func request_shove(peer_id: int) -> bool:
 	if direction.length_squared() < 0.0001:
 		return false
 	direction = direction.normalized()
-	_cooldown_until[peer_id] = now + Tuning.SHOVE_COOLDOWN
 	var sequence := int(_last_shove_sequence.get(victim_peer, 0)) + 1
 	var applied := apply_replicated_shove(peer_id, victim_peer, sequence, direction.x, direction.z)
 	if applied and multiplayer.has_multiplayer_peer():
@@ -168,6 +167,7 @@ func apply_replicated_shove(shover_id: int, victim_id: int, sequence: int, direc
 	victim.velocity.x = horizontal.x
 	victim.velocity.z = horizontal.z
 	_last_shove_sequence[victim_id] = sequence
+	_cooldown_until[shover_id] = _now() + Tuning.SHOVE_COOLDOWN
 	_protection_until[victim_id] = _now() + Tuning.SHOVE_PROTECTION
 	shove_effect_applied.emit(shover_id, victim_id)
 	return true
@@ -226,6 +226,8 @@ func _pick_target(shover: PartyPlayer) -> int:
 		if not is_instance_valid(candidate) or candidate == shover or not _victim_eligible(candidate_id, candidate):
 			continue
 		var offset := candidate.global_position - shover.global_position
+		if offset.length() > Tuning.SHOVE_RANGE:
+			continue
 		offset.y = 0.0
 		var distance := offset.length()
 		if distance <= 0.01 or distance > Tuning.SHOVE_RANGE:
