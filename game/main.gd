@@ -1898,6 +1898,22 @@ func _add_parking_garage() -> void:
 	for x in [-5.5, 5.5]:
 		for z in [-4.5, 4.5]:
 			_add_box_to(root, "Pillar_%s_%s" % [x, z], Vector3(0.7, 4.8, 0.7), Vector3(x, 2.4, z), PALETTE.slate)
+	# Ground the coral canopy: inset columns run from the deck surface to the
+	# canopy underside, and corner braces tie the canopy frame to the outer
+	# pillar tops so the silhouette reads as one supported beam frame.
+	var canopy_half := Vector2(4.0, 3.0)
+	var deck_top := 2.575
+	var canopy_bottom := 4.65
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			var column_height := canopy_bottom - deck_top
+			_add_box_to(root, "CanopySupport_%s_%s" % [sx, sz], Vector3(0.5, column_height, 0.5), Vector3(3.4 * sx, (deck_top + canopy_bottom) * 0.5, 2.4 * sz), PALETTE.slate)
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			var canopy_corner := Vector3(canopy_half.x * sx, 4.8, canopy_half.y * sz)
+			var pillar_top := Vector3(5.5 * sx, 4.8, 4.5 * sz)
+			var brace := _add_box_to(root, "CanopyBrace_%s_%s" % [sx, sz], Vector3(2.5, 0.26, 0.38), (canopy_corner + pillar_top) * 0.5, PALETTE.slate)
+			brace.rotation.y = -atan2(pillar_top.z - canopy_corner.z, pillar_top.x - canopy_corner.x)
 	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 4.8, 0.0), PALETTE.coral)
 	_add_label_to(root, "GarageLabel", "PARKING", Vector3(0.0, 3.4, 6.15), PALETTE.cream)
 

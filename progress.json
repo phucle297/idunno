@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T12:57:33Z",
+  "updated_at": "2026-10-10T14:59:29Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_3_map_variety_one_additional_map_at_a_time",
-    "task": "task_4_3a_ground_the_garage_silhouette"
+    "task": "task_4_3b_build_toy_harbor_with_map_owned_anchors"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -50,6 +50,11 @@
     "previous_phase_status": "completed",
     "review": "Phase3 completed with all seven gates passed on executed evidence (see previous_phase_archive). Recorded limitations stay open in NEED_REAL_CHECK.md: 60FPS hardware-GPU throughput, native-Windows package/capture execution, physical audio and Internet feel. Phase4 opens as the active plan but paused: no Phase4 implementation starts until the owner directs it after their own check. No publication or deployment occurred or is authorized."
   },
+  "phase_4_start": {
+    "date": "2026-10-10",
+    "authorization": "User: 'Implement Phase 4 untill done' - implement the phase through its milestone gates, then roll over. Supersedes the paused hold in phase_transition; no deployment/publication is authorized.",
+    "order": "Follow the checklist order and milestone hierarchy: finish the active milestone4.3 (Toy Town4.3a done; Toy Harbor + server map selection next), then remaining milestones, keeping budgets, solo continuation and honest limits."
+  },
   "engine": {
     "name": "Godot",
     "version": "4.7.2-stable",
@@ -60,7 +65,7 @@
   "phase": {
     "id": "phase_4_disaster_remix_and_toy_town_interaction",
     "title": "Disaster Remix and Toy Town Interaction",
-    "status": "planned",
+    "status": "in_progress",
     "dependencies": [
       "phase_3_player_caused_chaos"
     ],
@@ -82,9 +87,11 @@
       },
       "milestone_4_3_map_variety_one_additional_map_at_a_time": {
         "title": "Map Variety, One Additional Map at a Time",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
-          "task_4_3a_ground_the_garage_silhouette": "planned: user feedback 2026-10-09 - unsupported garage canopy (game/main.gd::_add_parking_garage); connect with readable supports preserving deck/ramp sheltered traversal"
+          "task_4_3a_ground_the_garage_silhouette": "completed: user feedback 2026-10-09 - four inset deck-to-canopy columns and four corner beam braces in game/main.gd::_add_parking_garage keep deck/ramp/canopy geometry; _check_garage_canopy gate passes (mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado cover with open deck uncovered, deck walk head<4.65m, camera clearance, five-rematch restoration, post-rematch deck walk) at MAP_SAFETY_OK checks=251 headless / checks=277 rendered with inspected interior/overview captures",
+          "task_4_3b_build_toy_harbor_with_map_owned_anchors": "planned: compact Toy Harbor map from the existing modular kit (docks and cargo platforms, sheltered warehouse with two exits, multiple high escape routes) with map-owned spawn/shelter/breakable/hazard anchors; two-map gate for spawns/routes/refuge exits/flood escape/hazard coverage/five rematches",
+          "task_4_3c_server_selected_map_identity": "planned: server-selected map identity at the lobby/rematch boundary replicated to every client before countdown; deterministic map-load tests"
         }
       },
       "milestone_4_4_harder_but_fair_survival": {
@@ -175,9 +182,21 @@
       "command": "tools/export_playtest.sh windows|linux-server .scratch/phase3-export-{a,b}/TARGET; tools/verify_exported_artifacts.py; diff SHA256SUMS.txt; cmp client/server PCK; tests/run_release_linux_test.py; ZIP/tar extraction audits",
       "status": "passed",
       "result": "Four exports from clean committed03176ff6383fcb9ce57a6e618a3b56c3e7696b60 pass90-entry exact-PCK audits; repeated hashes identical per target and client/server PCK identical (SHA2561c150cdd0b3f68c31108f8108496f3d8079f78ffe6825b4aea55bea2a16d2593). RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent all pass on the actual release binary. Refreshed archives in .amp/in/artifacts/phase-3-recheck-packages/ pass integrity and extracted-copy audits: Windows ZIP SHA256a76e8e9f22ff8fbc88171f54670a576254930659257715740e64e0d9f8515f9c; Linux tar.gz SHA25603ca52126d4130ae604997a2545842f23a2326f7ac271a97ac509bd09b3714e3. Native Windows execution not available; no publication/deployment."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_map_safety.gd; xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_map_safety.gd -- --capture-dir=.amp/in/artifacts/phase-4/garage-canopy; view_media GarageCanopyInterior/Overview",
+      "status": "passed",
+      "result": "task_4_3a implemented: MAP_SAFETY_OK checks=251 headless and checks=277 rendered. Four inset deck-to-canopy columns (2.575m to 4.65m at ±3.4/±2.4) plus four corner beam braces (canopy frame ±4/±3 to pillar tops ±5.5/±4.5) keep deck/ramp/canopy geometry. New _check_garage_canopy gate passes mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado-cover queries with open garage deck uncovered, deck walk head<4.65m, gameplay-camera clearance, five-rematch restoration and post-rematch deck walk. Captures inspected: interior camera untrapped with clear deck/HUD; overview reads as a supported beam frame (right-side braces occluded at that angle, geometry asserted by test). Fixture finding: freeze/unfreeze crate teleports can lose their transform when a physics-step burst follows a rendered frame, restoring the stale spring-lag pose that pinned descent routes; fixture now uses plain teleports reasserted on physics steps with a settle assertion. Game prop snapshots are kinematic-frozen and unaffected. Logs .scratch/map_safety_{headless,rendered}.log; captures .amp/in/artifacts/phase-4/garage-canopy/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate: UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed, including MAP_SAFETY_OK checks=251 in-suite and all prior network/chaos/dedicated groups. An earlier default-matrix run passed everything through the beyond-supported 8-player chaos stages, then failed at the known 20-player snapshot-MTU guard ('Oversized unreliable snapshot in 20-player session'); unchanged, non-gating, support remains 1-4. Log .scratch/ui_regression_supported.log."
     }
   ],
   "blockers": [],
-  "changed_files": ["game/main.gd", "game/shove_manager.gd", "tests/test_shove.gd", "tests/test_emotes.gd", "tests/playable_scene_network_peer.gd", "tests/test_carry_presentation.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "progress.json"],
-  "next_action": "Hold for the owner's feedback on the refreshed Phase 3 packages in .amp/in/artifacts/phase-3-recheck-packages/; keep Phase 4 paused until directed."
+  "changed_files": ["game/main.gd", "tests/test_map_safety.gd", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "docs/decisions.md", "progress.json"],
+  "next_action": "Build task_4_3b: the compact Toy Harbor map from the existing modular kit with map-owned spawn/shelter/breakable/hazard anchors, then its two-map gate (reachable spawns, four elevation routes, two exits per refuge, flood escape per spawn group, no universally safe location, hazard coverage, five rematches)."
 }

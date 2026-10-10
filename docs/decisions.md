@@ -2,7 +2,14 @@
 
 Root [progress](../progress.json) owns active state; the [Phase 4 checklist](checklists/phase-4-disaster-remix-and-toy-town-interaction.md) owns the detailed plan. Prior decisions and evidence remain in the [Phase 3 archive](old-docs/phase-3-player-caused-chaos/decisions.md) and the [Phase2 suspended snapshot](old-docs/phase-2-human-playtest-and-core-feel/decisions.md), not a completed-phase claim for Phase2.
 
-No Phase4 implementation decisions yet; work is paused for the owner's Phase3 self-check (2026-10-10).
+## 2026-10-10 — Phase 4 directed; task 4.3a grounded garage canopy
+
+Owner directive "Implement Phase 4 untill done" supersedes the paused hold: implement the phase through its milestone gates, then roll over. Work follows the checklist order and milestone hierarchy (finish the active milestone4.3 before starting another).
+
+- `_add_parking_garage` now ties the coral canopy into one supported beam frame: four inset0.5m square columns run from the2.575m deck surface to the4.65m canopy underside at (±3.4, ±2.4), and four corner beam braces connect the canopy frame corners (±4, ±3) to the outer pillar tops (±5.5, ±4.5). Deck, ramp, canopy geometry and sheltered-traversal clearance are unchanged; the open deck intentionally keeps no indoor Tornado cover. Node names use integer sign suffixes because Godot sanitizes `.` in node names and broke float-suffixed lookups.
+- `tests/test_map_safety.gd` adds a `_check_garage_canopy` gate between elevation routes and roof breakage: mesh/collider agreement and exact column span, brace reach to both endpoints, unchanged Shop/Hall cover queries with the open deck uncovered, deck walk with head below4.65m, gameplay-camera clearance (via `global_position`; the earlier local-`position` check was a test bug), interior/overview captures, and five-rematch restoration with a post-rematch deck walk.
+- Fixture-only finding, not a game-code change: `freeze=true` → set transform → `freeze=false` crate teleports can lose the transform when a physics-step burst follows a rendered frame (llvmpipe capture runs), unfreezing the stale spring-lag pose where it blocked descent routes. Engine probes show both freeze-set and plain sets stick in calm steps. The fixture now uses plain teleports reasserted on physics steps plus a settle assertion, so any future loss fails loudly instead of pinning a route. `game/main.gd` prop snapshots keep bodies kinematic-frozen and are unaffected.
+- Evidence: `MAP_SAFETY_OK checks=251` headless and `checks=277` rendered with inspected `GarageCanopyInterior`/`GarageCanopyOverview` captures; supported `PLAYER_COUNTS='1 2 4'` regression is `UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed`. A default-matrix run still reaches the known, non-gating20-player snapshot-MTU failure; support remains1–4.
 
 ## 2026-10-10 — User-requested Phase 3 follow-up
 

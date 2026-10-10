@@ -25,6 +25,7 @@ func _run() -> void:
 	await _check_elevation_routes(main, player)
 	await _check_elevation_routes(main, player, true)
 	player.set_camera_yaw(0.0)
+	await _check_garage_canopy(main, player)
 	await _check_roof_breakage(main, player)
 	_expect(main.get_node("Sandbox").get_node_or_null("BoundaryNorth") != null, "Map requires a continuous perimeter, not separated north fences")
 	if not main.has_method("_eliminate_out_of_bounds"):
@@ -151,11 +152,9 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 		var crate_spawn := crate.global_transform
 		if carrying:
 			player.set_camera_yaw(atan2(-direction.x, -direction.y))
-			crate.freeze = true
 			crate.global_position = player.get_hold_position()
 			crate.linear_velocity = Vector3.ZERO
 			crate.angular_velocity = Vector3.ZERO
-			crate.freeze = false
 			_expect(main.get_node("GrabManager").request_grab(1, crate) and player.carrying_medium, "Acquire actual medium crate before ramp ascent")
 		var ascent_ticks := 0
 		for tick in (360 if carrying else 240):
@@ -179,11 +178,24 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 			player.set_camera_yaw(0.0)
 			# The existing straight-line descent checks an unobstructed route.
 			# Remove the fixture's dropped obstacle, not a gameplay collision rule.
-			crate.freeze = true
-			crate.global_transform = crate_spawn
+			# A plain teleport: the freeze/unfreeze pair can lose the transform
+			# set when a physics-step burst follows, restoring the stale body
+			# position (reproduced only in rendered capture runs).
+			crate.rotation = crate_spawn.basis.get_euler()
 			crate.linear_velocity = Vector3.ZERO
 			crate.angular_velocity = Vector3.ZERO
-			crate.freeze = false
+			crate.global_position = crate_spawn.origin
+			# Commit the restore on physics-step contexts: an immediate set can
+			# be lost when a burst of physics steps follows a rendered frame,
+			# leaving the cargo at the lagged hold pose on the route (this is
+			# what pinned the Park descent in capture runs). Reassert it.
+			for settle_tick in 5:
+				await physics_frame
+				crate.rotation = crate_spawn.basis.get_euler()
+				crate.linear_velocity = Vector3.ZERO
+				crate.angular_velocity = Vector3.ZERO
+				crate.global_position = crate_spawn.origin
+			_expect(crate.global_position.distance_to(crate_spawn.origin) < 0.5, "Fixture cargo must settle at its spawn away from the route: %s" % crate.global_position)
 		_expect(Vector2(goal.x - player.position.x, goal.z - player.position.z).length() < 0.25 and absf(player.position.y - goal.y) < 0.05 and player.is_on_floor(), "Walk without jumps must reach the actual refuge via %s: %s" % [route_name, player.position])
 		await _capture(route_name + ("CarryArrival" if carrying else ""))
 		_expect(main.get_node("Flood").start_warning(), "Start actual Flood at the reached refuge")
@@ -201,8 +213,71 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 			await physics_frame
 			if remaining.length() < 0.1 and player.is_on_floor() and player.position.y < 0.1:
 				break
-		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop" % route_name)
+		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop carry=%s position=%s on_floor=%s" % [route_name, carrying, player.position, player.is_on_floor()])
 	player.reset_for_match(Vector3.ZERO)
+
+
+func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
+	var garage := main.get_node("Sandbox/ParkingGarage") as Node3D
+	var canopy := garage.get_node("UpperShelter") as StaticBody3D
+	var canopy_collider := canopy.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D
+	_expect((canopy_collider.shape as BoxShape3D).size == Vector3(8.0, 0.3, 6.0) and canopy.position == Vector3(0.0, 4.8, 0.0), "Garage canopy keeps its sheltered-deck geometry")
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			var column := garage.get_node_or_null("CanopySupport_%s_%s" % [sx, sz]) as StaticBody3D
+			_expect(column != null, "Canopy corner %s,%s needs an inset support column" % [sx, sz])
+			if column == null:
+				continue
+			var mesh_size := ((column.find_children("*", "MeshInstance3D", false, false)[0] as MeshInstance3D).mesh as BoxMesh).size
+			var collider_size := ((column.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D).shape as BoxShape3D).size
+			_expect(mesh_size.is_equal_approx(collider_size), "Support column mesh and collider must agree at %s,%s" % [sx, sz])
+			_expect(absf(column.position.y + mesh_size.y * 0.5 - 4.65) < 0.01 and absf(column.position.y - mesh_size.y * 0.5 - 2.575) < 0.01, "Support column must span deck surface to canopy underside at %s,%s" % [sx, sz])
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			var brace := garage.get_node_or_null("CanopyBrace_%s_%s" % [sx, sz]) as StaticBody3D
+			_expect(brace != null, "Canopy corner %s,%s needs a beam brace to the pillar tops" % [sx, sz])
+			if brace == null:
+				continue
+			var brace_center := Vector2(brace.position.x, brace.position.z)
+			_expect(brace_center.distance_to(Vector2(4.0 * sx, 3.0 * sz)) < 1.3 and brace_center.distance_to(Vector2(5.5 * sx, 4.5 * sz)) < 1.3, "Beam brace must reach both canopy frame and pillar top at %s,%s" % [sx, sz])
+	var tornado := main.get_node("Tornado") as Tornado
+	_expect(tornado.is_position_covered(Vector3(-16.0, 1.0, -13.0)) and tornado.is_position_covered(Vector3(16.0, 1.0, -13.0)), "Shop and Hall interiors keep their tornado cover queries")
+	_expect(not tornado.is_position_covered(Vector3(-15.0, 3.0, 15.0)), "Open garage deck beneath the canopy must not claim indoor cover")
+	# Walking beneath the canopy keeps head clearance without movement snags.
+	player.reset_for_match(Vector3(-15.0, 2.75, 9.2))
+	await _walk_roof(player, Vector2(-15.0, 15.0), 180)
+	_expect(player.is_on_floor() and absf(player.position.y - 2.575) < 0.05, "Deck walk under the canopy stays on the deck without jumping")
+	_expect(player.get_head_sample_position().y < 4.65, "Player head stays below the canopy underside")
+	var gameplay_camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
+	gameplay_camera.make_current()
+	main._process(0.0)
+	var camera_position := gameplay_camera.global_position
+	_expect(camera_position.y > 2.575 and absf(camera_position.x) < 32 and absf(camera_position.z) < 32, "Gameplay camera keeps clearance under the canopy instead of trapping in geometry: %s" % camera_position)
+	await _capture("GarageCanopyInterior")
+	var overview := Camera3D.new()
+	main.add_child(overview)
+	overview.position = Vector3(-26.0, 12.0, 26.0)
+	overview.look_at(Vector3(-15.0, 3.5, 15.0))
+	overview.make_current()
+	main.gameplay_hud.hide()
+	await _capture("GarageCanopyOverview")
+	main.gameplay_hud.show()
+	overview.free()
+	for round_index in 5:
+		main.match_manager.apply_damage(1, 1000, "Fixture")
+		_expect(main.restart_local_match(), "Canopy fixture round %d must rematch" % (round_index + 1))
+		main.disaster_director.cleanup()
+		var rebuilt := main.get_node("Sandbox/ParkingGarage") as Node3D
+		for sx in [-1, 1]:
+			for sz in [-1, 1]:
+				_expect(rebuilt.get_node_or_null("CanopySupport_%s_%s" % [sx, sz]) != null, "Rematch %d restores canopy support %s,%s" % [round_index + 1, sx, sz])
+		for sx in [-1, 1]:
+			for sz in [-1, 1]:
+				_expect(rebuilt.get_node_or_null("CanopyBrace_%s_%s" % [sx, sz]) != null, "Rematch %d restores canopy brace %s,%s" % [round_index + 1, sx, sz])
+	player.reset_for_match(Vector3(-15.0, 2.75, 9.2))
+	await _walk_roof(player, Vector2(-15.0, 15.0), 180)
+	_expect(player.is_on_floor() and absf(player.position.y - 2.575) < 0.05 and player.get_head_sample_position().y < 4.65, "Five rematches later the sheltered deck traversal still works")
+	gameplay_camera.make_current()
 
 
 func _check_roof_breakage(main: Node3D, player: PartyPlayer) -> void:
@@ -294,6 +369,7 @@ func _capture(state: String) -> void:
 			await process_frame
 			await RenderingServer.frame_post_draw
 			var path := argument.trim_prefix("--capture-dir=").path_join("map-safety-%s-%dx%d.png" % [state, root.size.x, root.size.y])
+			DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 			_expect(root.get_texture().get_image().save_png(path) == OK, "Save review capture")
 
 
