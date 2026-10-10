@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T12:50:51Z",
+  "updated_at": "2026-10-10T12:57:33Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -95,13 +95,19 @@
   },
   "phase_3_followup_review": {
     "authorization": "2026-10-10 owner: Double check all phase 3. Fix bugs if needed",
-    "status": "in_progress",
+    "status": "completed",
     "scope": "Recheck completed Phase 3 without starting Phase 4 or rewriting historical archives.",
     "findings": [
-      "Reproduced: shove reach ignored vertical separation, accepting a target 6m above the grounded sender.",
-      "Reproduced: replicated accepted shove did not set the shover cooldown, so client HUD reported READY during server cooldown.",
-      "Reproduced: lightweight 4kg held props did not cancel or reject emotes because eligibility used only the medium-speed-penalty flag."
-    ]
+      "Fixed and regression-verified: shove reach ignored vertical separation, accepting a target 6m above the grounded sender.",
+      "Fixed and regression-verified on observers/requesting clients: replicated accepted shove did not set the shover cooldown, so client HUD reported READY during server cooldown.",
+      "Fixed and regression-verified: lightweight 4kg held props did not cancel or reject emotes because eligibility used only the medium-speed-penalty flag."
+    ],
+    "remaining_limits": [
+      "60FPS rendering target still fails on the orb's llvmpipe software renderer; native hardware-GPU throughput and display pacing remain unverified, not passed.",
+      "Native Windows executable/captures, physical audio and Internet/human feel cannot be certified by Linux-orb automation.",
+      "Support remains1–4. Managed8-player diagnostic fails room creation with503 (cause unverified);20-player source diagnostic fails the known snapshot MTU guard. No capacity increase."
+    ],
+    "packages": ".amp/in/artifacts/phase-3-recheck-packages/ (matching03176ff Windows/Linux payloads; local only, no publication/deployment)"
   },
   "validation_log": [
     {
@@ -145,9 +151,33 @@
       "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (isolated rerun, four-player stage)",
       "status": "passed",
       "result": "MANAGED_CONTAINER_OK rooms=2 players_per_room=4 rematches=5 isolation=passed failures=passed profile=passed. Unchanged16.67ms gate passes in both rooms: ALPHA physics-work p95=10.370ms, BRAVO6.129ms,120 warmup/600 samples. First24.397ms failure did not recur without concurrent source tests; contention remains a plausible explanation rather than a proven product cause. The script's beyond-supported8-player stage is still running. Metrics .scratch/disaster-managed-25193-4/metrics.json."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (isolated rerun, eight-player diagnostic)",
+      "status": "failed",
+      "result": "Supported4-player stage passes, then beyond-supported8-player stage fails /v1/rooms/create with503 instead of200. All private clients prepared; service log includes DEDICATED_SERVER_READY capacity8 but no admitted roster (server-ALPHA stateLOBBY ids[]). Cause not established; do not relabel it as the earlier import-timeout failure or a pass. Preserve current1–4 support. Log .scratch/phase3-managed-isolated.log and .scratch/disaster-managed-25193-8/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50 --output .scratch/phase3-latency-final (isolated)",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound. Explicit requesting-client shove cooldown assertion passes in all3 shove trials at every delay, alongside observer sequence/protection/impulse agreement, carry/footing/traversal. Input-to-motion maximum20.342ms (<50ms), reported correction p95<=0.217m/max<=0.780m. Logs/structured records retained under .scratch/phase3-latency-final/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720|1920x1080 --script res://tests/profile_overlap.gd (isolated, V-Sync disabled)",
+      "status": "failed",
+      "result": "Both executed profiles validate the representative scenario (OVERLAP_PROFILE_COMPLETE,4 players/3 props/2 hazard lines,7 authoritative bodies/4 cosmetic visuals,stable UI,120 warmup/600 samples) but correctly exit1 on60FPS target miss. Linux Compatibility/llvmpipe software renderer:720p frame p95=76.56ms/physics p95=1.05ms;1080p frame p95=147.94ms/physics p95=1.31ms. No hardware-GPU or display-pacing claim; no change to thresholds or speculative tuning. Logs .scratch/phase3-profile-{1280x720,1920x1080}.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "tools/export_playtest.sh windows|linux-server .scratch/phase3-export-{a,b}/TARGET; tools/verify_exported_artifacts.py; diff SHA256SUMS.txt; cmp client/server PCK; tests/run_release_linux_test.py; ZIP/tar extraction audits",
+      "status": "passed",
+      "result": "Four exports from clean committed03176ff6383fcb9ce57a6e618a3b56c3e7696b60 pass90-entry exact-PCK audits; repeated hashes identical per target and client/server PCK identical (SHA2561c150cdd0b3f68c31108f8108496f3d8079f78ffe6825b4aea55bea2a16d2593). RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent all pass on the actual release binary. Refreshed archives in .amp/in/artifacts/phase-3-recheck-packages/ pass integrity and extracted-copy audits: Windows ZIP SHA256a76e8e9f22ff8fbc88171f54670a576254930659257715740e64e0d9f8515f9c; Linux tar.gz SHA25603ca52126d4130ae604997a2545842f23a2326f7ac271a97ac509bd09b3714e3. Native Windows execution not available; no publication/deployment."
     }
   ],
   "blockers": [],
   "changed_files": ["game/main.gd", "game/shove_manager.gd", "tests/test_shove.gd", "tests/test_emotes.gd", "tests/playable_scene_network_peer.gd", "tests/test_carry_presentation.gd", "tests/movement_latency_peer.gd", "docs/decisions.md", "progress.json"],
-  "next_action": "Complete Phase 3 follow-up validation (targeted red/green, full 1/2/4 regression, latency, containers, presentation and package checks); keep Phase 4 paused."
+  "next_action": "Hold for the owner's feedback on the refreshed Phase 3 packages in .amp/in/artifacts/phase-3-recheck-packages/; keep Phase 4 paused until directed."
 }
