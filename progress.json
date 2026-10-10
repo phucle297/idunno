@@ -383,6 +383,12 @@
       "command": "GODOT_BIN=.tools/godot/... bash tools/export_playtest.sh {windows,linux-server} DIR (x2 runs) + diff SHA256SUMS.txt + python3 tools/verify_exported_artifacts.py + python3 tests/run_release_linux_test.py .scratch/export-run1/linux-server --log ... --port 29870",
       "status": "pass",
       "result": "Exports from clean f82a5cbca02be43c78c67bf8db8984af4fbf335e: byte-identical SHA256SUMS across repeated runs for both targets, one shared PCK (a4fe08ed...) across Windows/Linux. Exact-PCK audit: 90 entries incl. project.binary, scenes/main.tscn, 54 compiled game scripts; zero tests/tools/docs/source/reference paths; tampered-copy negative check rejected. Created tools/verify_exported_artifacts.py (the ps1 native-check harness referenced it but it was never committed); validated on all four bundles. RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent all passed on the real exported binary (release-runtime lifecycle, distinct from editor-driven PCK fixtures and release input/network/feel). Windows exe cannot run in the Linux orb; native Windows smoke stays device-side (ps1 harness + EXE launch in NEED_REAL_CHECK.md). Installed official Godot 4.7.2 export templates into the orb (machine-local tooling)."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 -m zipfile / tar czf bundles from .scratch/export-run1 + integrity/parity checks + tools/verify_exported_artifacts.py on extracted copies",
+      "status": "pass",
+      "result": "Matching bundles in .amp/in/artifacts/phase-3-packages/: DisasterParty-Windows-f82a5cb.zip (sha256 6a326ae8...) and DisasterParty-Linux-server-f82a5cb.tar.gz (sha256 c2b32f98...). Both archives pass integrity tests; extracted copies pass PLAYTEST_ARTIFACTS_OK; shipped PCK byte-identical across client/server (a4fe08ed...). Short control/bug-report notes committed as docs/playtest-notes.md and included as PLAYTEST-NOTES.md in both archives, deliberately outside SHA256SUMS.txt (runtime payload manifest unchanged). No GitHub Release, no EC2 deployment, no infra change, no server restart; [skip ci] pushes continue and deployment/publishing awaits separate scoped user approval."
     }
   ],
   "blockers": [
@@ -419,5 +425,5 @@
     "tests/test_phase1.gd",
     "tests/test_emotes.gd"
   ],
-  "next_action": "3.6 item 6: assemble matching client/server bundles (Windows ZIP + Linux TAR from the verified exports) with short control and bug-report notes; publish nothing (no GitHub Release, no EC2 deploy, no server restart), request scoped approval only after local work is ready."
+  "next_action": "Run the 3.6 milestone gate validation (checklist item 2): PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh with strict runtime-error checks, plus targeted dedicated/grab/Flood/player/prediction and movement-latency suites; record gates supported_multiplayer_lifecycle_and_performance and matching_packages_and_reviewable_visuals."
 }
