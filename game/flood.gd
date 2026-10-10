@@ -17,6 +17,17 @@ enum Phase {
 const DAMAGE_CAUSE := "Flood"
 const ELECTRIC_DAMAGE_CAUSE := "Electrified Flood"
 const DISASTER_NAME := "Flood"
+const CARDINAL_DIRECTIONS: Array[Vector3] = [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]
+
+enum RisePattern {
+	STEADY,
+	SURGE
+}
+
+enum CurrentPattern {
+	CALM,
+	DRIFT
+}
 
 @export var warning_duration := 6.0
 @export var start_level := -0.5
@@ -38,6 +49,9 @@ var warning_remaining := 0.0
 var water_level := -0.5
 var electrified_remaining := 0.0
 var electrified_target := Vector3.ZERO
+var rise_pattern := RisePattern.STEADY
+var current_pattern := CurrentPattern.DRIFT
+var current_direction := Vector3.RIGHT
 
 var _phase_elapsed := 0.0
 var _match_manager: MatchManager
@@ -63,7 +77,10 @@ func get_disaster_metadata() -> Dictionary:
 	}
 
 
-func start_disaster(_rng: RandomNumberGenerator) -> bool:
+func start_disaster(rng: RandomNumberGenerator) -> bool:
+	rise_pattern = RisePattern.STEADY if rng.randi_range(0, 1) == 0 else RisePattern.SURGE
+	current_pattern = CurrentPattern.CALM if rng.randi_range(0, 1) == 0 else CurrentPattern.DRIFT
+	current_direction = CARDINAL_DIRECTIONS[rng.randi_range(0, CARDINAL_DIRECTIONS.size() - 1)]
 	return start_warning()
 
 
@@ -118,7 +135,7 @@ func tick(delta: float) -> void:
 		Phase.RISING:
 			var previous_level := water_level
 			_phase_elapsed = minf(_phase_elapsed + safe_delta, rise_duration)
-			_set_water_level(lerpf(start_level, target_level, _phase_elapsed / maxf(rise_duration, 0.001)))
+			_set_water_level(_rise_level(_phase_elapsed))
 			_apply_water_effects(safe_delta, previous_level, electrified_delta)
 			if _phase_elapsed >= rise_duration:
 				phase = Phase.HOLDING
@@ -163,6 +180,9 @@ func cleanup() -> void:
 	water_level = start_level
 	electrified_remaining = 0.0
 	electrified_target = Vector3.ZERO
+	rise_pattern = RisePattern.STEADY
+	current_pattern = CurrentPattern.DRIFT
+	current_direction = Vector3.RIGHT
 	_phase_elapsed = 0.0
 	_submerged_time.clear()
 	_water_material = null
@@ -190,6 +210,9 @@ func create_presentation_snapshot() -> Dictionary:
 		"water_level": water_level,
 		"electrified_remaining": electrified_remaining,
 		"electrified_target": electrified_target,
+		"rise_pattern": int(rise_pattern),
+		"current_pattern": int(current_pattern),
+		"current_direction": current_direction,
 		"submerged_peer_ids": submerged_peer_ids,
 		"submerged_times": submerged_times,
 	}
@@ -206,6 +229,9 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
 	electrified_remaining = maxf(float(snapshot.get("electrified_remaining", 0.0)), 0.0)
 	electrified_target = snapshot.get("electrified_target", Vector3.ZERO)
+	rise_pattern = clampi(int(snapshot.get("rise_pattern", RisePattern.STEADY)), RisePattern.STEADY, RisePattern.SURGE)
+	current_pattern = clampi(int(snapshot.get("current_pattern", CurrentPattern.DRIFT)), CurrentPattern.CALM, CurrentPattern.DRIFT)
+	current_direction = snapshot.get("current_direction", Vector3.RIGHT)
 	var submerged_peer_ids: PackedInt32Array = snapshot.get("submerged_peer_ids", PackedInt32Array())
 	var submerged_times: PackedFloat32Array = snapshot.get("submerged_times", PackedFloat32Array())
 	_submerged_time.clear()
@@ -264,10 +290,28 @@ func _apply_water_effects(delta: float, previous_water_level: float, electrified
 		body.sleeping = false
 		var depth := clampf(water_level - body.global_position.y, 0.0, 1.0)
 		var lift := minf(body.mass * buoyancy_acceleration * depth, buoyancy_force_max)
-		var desired_current := Vector3(current_speed, 0.0, 0.0)
+		var desired_current := _current_vector()
 		var drag := (desired_current - Vector3(body.linear_velocity.x, 0.0, body.linear_velocity.z)) * body.mass
 		var damping := -body.linear_velocity * body.mass * 0.35
 		body.apply_central_force(Vector3.UP * lift + drag.limit_length(drag_force_max) + damping.limit_length(drag_force_max))
+
+
+func _rise_level(elapsed: float) -> float:
+	var progress := clampf(elapsed / maxf(rise_duration, 0.001), 0.0, 1.0)
+	var fraction := progress
+	if rise_pattern == RisePattern.SURGE:
+		# Bounded two-stage surge: quick first swell, short plateau, final push.
+		if progress <= 0.45:
+			fraction = (progress / 0.45) * 0.65
+		elif progress <= 0.60:
+			fraction = 0.65
+		else:
+			fraction = 0.65 + ((progress - 0.60) / 0.40) * 0.35
+	return lerpf(start_level, target_level, fraction)
+
+
+func _current_vector() -> Vector3:
+	return current_direction.normalized() * current_speed if current_pattern == CurrentPattern.DRIFT else Vector3.ZERO
 
 
 func _player_head_height(player: Node3D) -> float:

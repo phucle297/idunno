@@ -110,6 +110,74 @@ func _run() -> void:
 	_expect(flood.start_warning(), "A cleaned Flood must be reusable")
 	flood.cleanup()
 
+	# Task 4.1b: bounded server-selected rise/current variants with replicated
+	# gameplay parameters and deterministic replay from the round seed.
+	var rng_a := RandomNumberGenerator.new()
+	rng_a.seed = 4111
+	_expect(flood.start_disaster(rng_a), "Seeded Flood must start")
+	var rise_a: FloodScript.RisePattern = flood.rise_pattern
+	var current_a: FloodScript.CurrentPattern = flood.current_pattern
+	var direction_a := flood.current_direction
+	_expect(rise_a == FloodScript.RisePattern.STEADY or rise_a == FloodScript.RisePattern.SURGE, "Flood must select a bounded rise pattern")
+	_expect(current_a == FloodScript.CurrentPattern.CALM or current_a == FloodScript.CurrentPattern.DRIFT, "Flood must select a bounded current pattern")
+	_expect(direction_a in FloodScript.CARDINAL_DIRECTIONS, "Flood current direction must come from the bounded cardinal set")
+	flood.cleanup()
+	var rng_b := RandomNumberGenerator.new()
+	rng_b.seed = 4111
+	_expect(flood.start_disaster(rng_b), "Seeded Flood replay must start")
+	_expect(flood.rise_pattern == rise_a and flood.current_pattern == current_a and flood.current_direction == direction_a, "Same seed must reproduce the same Flood variant parameters")
+	flood.cleanup()
+
+	# SURGE is a monotonic bounded two-stage curve that still reaches the
+	# configured target level and beats STEADY early.
+	flood.rise_pattern = FloodScript.RisePattern.SURGE
+	flood.rise_duration = 4.0
+	var surge_levels: Array[float] = []
+	for sample in [0.0, 1.8, 2.2, 3.0, 4.0]:
+		surge_levels.append(flood._rise_level(sample))
+	_expect(surge_levels[0] <= surge_levels[1] and surge_levels[1] <= surge_levels[2] and surge_levels[2] <= surge_levels[3] and surge_levels[3] <= surge_levels[4], "Surge rise must stay monotonic")
+	_expect(is_equal_approx(surge_levels[4], flood.target_level), "Surge rise must reach the configured target level")
+	var surge_mid := flood._rise_level(1.0)
+	flood.rise_pattern = FloodScript.RisePattern.STEADY
+	_expect(surge_mid > flood._rise_level(1.0), "Surge must beat steady rise early without changing the target")
+	flood.rise_duration = 35.0
+
+	flood.current_pattern = FloodScript.CurrentPattern.CALM
+	_expect(flood._current_vector().is_zero_approx(), "Calm flood must apply no lateral current")
+	flood.current_pattern = FloodScript.CurrentPattern.DRIFT
+	flood.current_direction = Vector3.FORWARD
+	_expect(flood._current_vector().is_equal_approx(Vector3(0.0, 0.0, -flood.current_speed)), "Drift current must follow the selected bounded direction")
+	flood.current_direction = Vector3.RIGHT
+
+	# Variant parameters replicate through presentation snapshots.
+	flood.rise_pattern = FloodScript.RisePattern.SURGE
+	flood.current_pattern = FloodScript.CurrentPattern.CALM
+	flood.current_direction = Vector3.FORWARD
+	_expect(flood.start_warning(), "Flood must run for the replication gate")
+	var client_root := Node3D.new()
+	root.add_child(client_root)
+	var client_api := SceneMultiplayer.new()
+	var client_peer := ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 39999)
+	client_api.multiplayer_peer = client_peer
+	set_multiplayer(client_api, client_root.get_path())
+	var client_flood := FloodScript.new()
+	client_root.add_child(client_flood)
+	var flood_snapshot := flood.create_presentation_snapshot()
+	_expect(client_flood.apply_presentation_snapshot(flood_snapshot), "Client must accept replicated Flood variant parameters")
+	_expect(client_flood.rise_pattern == flood.rise_pattern and client_flood.current_pattern == flood.current_pattern and client_flood.current_direction == flood.current_direction, "Replicated Flood must match the server's rise/current parameters")
+	flood.cleanup()
+
+	# Five rematch cycles clear variant state and effects.
+	for cycle in 5:
+		var cycle_rng := RandomNumberGenerator.new()
+		cycle_rng.seed = 4300 + cycle
+		_expect(flood.start_disaster(cycle_rng), "Rematch cycle %d must start Flood" % (cycle + 1))
+		flood.cleanup()
+		_expect(flood.phase == FloodScript.Phase.IDLE and flood.rise_pattern == FloodScript.RisePattern.STEADY and flood.current_pattern == FloodScript.CurrentPattern.DRIFT, "Rematch cycle %d must clear Flood variant state" % (cycle + 1))
+	await process_frame
+	_expect(flood.active_effect_count() == 0, "Five rematch cycles must leave no Flood effects")
+
 	if failures.is_empty():
 		print("FLOOD_OK checks=%d water_level=%.1f" % [checks, flood.water_level])
 		quit(0)

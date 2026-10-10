@@ -62,6 +62,54 @@ func _run() -> void:
 	_expect(tornado.start_warning(Vector3(-2.0, 0.0, 0.0), Vector3(2.0, 0.0, 0.0)), "A cleaned Tornado must be reusable")
 	tornado.cleanup()
 
+	# Task 4.1b: server-selected paths from the map preset list, replicated
+	# with their gameplay parameters and replayable from the round seed.
+	tornado.set_path_presets([
+		[Vector3(-10.0, 0.0, -4.0), Vector3(10.0, 0.0, -4.0)],
+		[Vector3(-10.0, 0.0, 4.0), Vector3(10.0, 0.0, 4.0)],
+	])
+	var rng_a := RandomNumberGenerator.new()
+	rng_a.seed = 4121
+	_expect(tornado.start_disaster(rng_a), "Seeded Tornado must start from map presets")
+	var preset_a := tornado.path_preset_index
+	var reversed_a := tornado.path_reversed
+	_expect(preset_a >= 0 and preset_a < 2, "Tornado path must come from the map preset list")
+	var expected_path: Array = tornado.path_presets[preset_a]
+	if reversed_a:
+		_expect(tornado.start_position == expected_path[1] and tornado.end_position == expected_path[0], "A reversed variant must run the map path backwards")
+	else:
+		_expect(tornado.start_position == expected_path[0] and tornado.end_position == expected_path[1], "A forward variant must run the map path as authored")
+	tornado.cleanup()
+	var rng_b := RandomNumberGenerator.new()
+	rng_b.seed = 4121
+	_expect(tornado.start_disaster(rng_b), "Seeded Tornado replay must start")
+	_expect(tornado.path_preset_index == preset_a and tornado.path_reversed == reversed_a, "Same seed must reproduce the same Tornado path parameters")
+
+	# Path parameters replicate through presentation snapshots.
+	var client_root := Node3D.new()
+	root.add_child(client_root)
+	var client_api := SceneMultiplayer.new()
+	var client_peer := ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 39999)
+	client_api.multiplayer_peer = client_peer
+	set_multiplayer(client_api, client_root.get_path())
+	var client_tornado := TornadoScript.new()
+	client_root.add_child(client_tornado)
+	var tornado_snapshot := tornado.create_presentation_snapshot()
+	_expect(client_tornado.apply_presentation_snapshot(tornado_snapshot), "Client must accept replicated Tornado path parameters")
+	_expect(client_tornado.path_preset_index == tornado.path_preset_index and client_tornado.path_reversed == tornado.path_reversed and client_tornado.start_position == tornado.start_position and client_tornado.end_position == tornado.end_position, "Replicated Tornado must match the server's selected map path")
+	tornado.cleanup()
+
+	# Five rematch cycles clear variant state and effects.
+	for cycle in 5:
+		var cycle_rng := RandomNumberGenerator.new()
+		cycle_rng.seed = 4400 + cycle
+		_expect(tornado.start_disaster(cycle_rng), "Rematch cycle %d must start Tornado" % (cycle + 1))
+		tornado.cleanup()
+		_expect(tornado.phase == TornadoScript.Phase.IDLE and tornado.path_preset_index == -1, "Rematch cycle %d must clear Tornado variant state" % (cycle + 1))
+	await process_frame
+	_expect(tornado.active_effect_count() == 0, "Five rematch cycles must leave no Tornado effects")
+
 	if failures.is_empty():
 		print("TORNADO_OK checks=%d throws=%d" % [checks, tornado.throw_count])
 		quit(0)

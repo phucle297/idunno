@@ -77,6 +77,41 @@ func _run() -> void:
 	fire.cleanup()
 	await process_frame
 	_expect(get_nodes_in_group("burning_debris").is_empty(), "Combination cleanup must not leak dynamic burning debris")
+
+	# Task 4.1b gate: a multi-strike variant sequence counts as one solo round,
+	# and combinations may form only after every participant has completed a
+	# solo round (solo hazards before combinations, even at max intensity).
+	var meteor := main.get_node("MeteorShower") as MeteorShower
+	meteor.set_process(false)
+	manager.elapsed_time = 400.0
+	director.initial_delay = 0.0
+	director.recovery_duration = 0.0
+	_expect(director.start_directing(411), "Director must start for the solo-before-combination gate")
+	_expect(director.try_start_disaster("Meteor Shower"), "Meteor must start as an early solo hazard")
+	_expect(not director.try_start_disaster("Flood"), "A second disaster must wait while the solo sequence is unfinished")
+	var guard := 0
+	while meteor.is_active() and guard < 40:
+		meteor.tick(3.0)
+		guard += 1
+	_expect(not meteor.is_active(), "The Meteor variant sequence must complete")
+	_expect(director.has_completed_solo("Meteor Shower"), "A full multi-strike sequence must count as one completed solo round")
+	flood.warning_duration = 0.5
+	flood.rise_duration = 0.5
+	flood.hold_duration = 0.5
+	flood.drain_duration = 0.5
+	_expect(director.try_start_disaster("Flood"), "Flood may start its own solo round after Meteor's sequence")
+	_expect(not director.try_start_disaster("Meteor Shower"), "A combination must wait until every participant has completed a solo round")
+	flood.tick(flood.warning_duration + 0.05)
+	flood.tick(flood.rise_duration + 0.05)
+	flood.tick(flood.hold_duration + 0.05)
+	flood.tick(flood.drain_duration + 0.05)
+	_expect(not flood.is_active() and director.has_completed_solo("Flood"), "Flood's solo round must complete before combinations")
+	_expect(director.try_start_disaster("Meteor Shower"), "Solo-completed Meteor may start beside Flood")
+	_expect(director.try_start_disaster("Flood"), "Solo-completed Flood may join the combination")
+	_expect(director.get_active_disaster_names().size() == 2, "The combination must hold exactly two active disasters")
+	meteor.cleanup()
+	flood.cleanup()
+	director.cleanup()
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	main.free()
 	await process_frame

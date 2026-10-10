@@ -31,6 +31,8 @@ var end_position := Vector3.ZERO
 var active_duration := 0.0
 var active_elapsed := 0.0
 var throw_count := 0
+var path_preset_index := -1
+var path_reversed := false
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -63,7 +65,11 @@ func get_disaster_metadata() -> Dictionary:
 func start_disaster(rng: RandomNumberGenerator) -> bool:
 	if path_presets.is_empty():
 		return false
-	var path: Array = path_presets[rng.randi_range(0, path_presets.size() - 1)]
+	path_preset_index = rng.randi_range(0, path_presets.size() - 1)
+	path_reversed = (rng.randi_range(0, 1) == 1)
+	var path: Array = path_presets[path_preset_index]
+	if path_reversed:
+		return start_warning(path[1], path[0])
 	return start_warning(path[0], path[1])
 
 
@@ -149,6 +155,8 @@ func cleanup() -> void:
 	warning_remaining = 0.0
 	active_elapsed = 0.0
 	active_duration = 0.0
+	path_preset_index = -1
+	path_reversed = false
 	_core_exposure.clear()
 	_thrown_players.clear()
 
@@ -166,6 +174,8 @@ func create_presentation_snapshot() -> Dictionary:
 		"active_duration": active_duration,
 		"active_elapsed": active_elapsed,
 		"position": global_position,
+		"path_preset_index": path_preset_index,
+		"path_reversed": path_reversed,
 	}
 
 
@@ -180,6 +190,8 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
 	start_position = snapshot.get("start_position", Vector3.ZERO)
 	end_position = snapshot.get("end_position", Vector3.ZERO)
+	path_preset_index = int(snapshot.get("path_preset_index", -1))
+	path_reversed = bool(snapshot.get("path_reversed", false))
 	active_duration = maxf(float(snapshot.get("active_duration", 0.0)), 0.0)
 	active_elapsed = clampf(float(snapshot.get("active_elapsed", 0.0)), 0.0, active_duration)
 	if not is_instance_valid(_effect):

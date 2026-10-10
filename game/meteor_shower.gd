@@ -14,6 +14,16 @@ enum Phase {
 const TelegraphScene = preload("res://assets/generated/VFX_MeteorTelegraph_v001.tscn")
 const IMPACT_CAUSE := "Meteor"
 const DISASTER_NAME := "Meteor Shower"
+const MINIMUM_STRIKE_WARNING := 1.2
+const CLUSTER_STRIKE_COUNT := 3
+const CLUSTER_RADIUS := 5.0
+const LANE_STRIKE_COUNT := 4
+const LANE_SPACING := 5.0
+
+enum Variant {
+	CLUSTER,
+	LANE
+}
 
 @export var warning_duration := 2.5
 @export var impact_radius := 3.0
@@ -28,12 +38,15 @@ var warning_remaining := 0.0
 var target_position := Vector3.ZERO
 var impact_count := 0
 var strike_half_extent := 18.0
+var variant := Variant.CLUSTER
+var strike_points: Array[Vector3] = []
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _effect: Node3D
 var _impact_remaining := 0.0
 var _countdown: Label3D
+var _strike_index := 0
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -55,7 +68,29 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
-	return start_warning(Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent)))
+	if not _can_mutate() or phase != Phase.IDLE or not is_instance_valid(_match_manager):
+		return false
+	if _match_manager.state != MatchManager.MatchState.ACTIVE:
+		return false
+	variant = Variant.CLUSTER if rng.randi_range(0, 1) == 0 else Variant.LANE
+	strike_points.clear()
+	_strike_index = 0
+	var cluster_margin := maxf(strike_half_extent - CLUSTER_RADIUS, 0.0)
+	if variant == Variant.CLUSTER:
+		var center := Vector3(rng.randf_range(-cluster_margin, cluster_margin), 0.06, rng.randf_range(-cluster_margin, cluster_margin))
+		for index in CLUSTER_STRIKE_COUNT:
+			var angle := rng.randf_range(0.0, TAU)
+			var radius := sqrt(rng.randf()) * CLUSTER_RADIUS
+			strike_points.append(_bounded_point(center + Vector3(cos(angle), 0.0, sin(angle)) * radius))
+	else:
+		var angle := rng.randf_range(0.0, TAU)
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var lane_margin := maxf(strike_half_extent - LANE_SPACING * LANE_STRIKE_COUNT * 0.5, 0.0)
+		var center := Vector3(rng.randf_range(-lane_margin, lane_margin), 0.06, rng.randf_range(-lane_margin, lane_margin))
+		for index in LANE_STRIKE_COUNT:
+			var offset := (float(index) - float(LANE_STRIKE_COUNT - 1) * 0.5) * LANE_SPACING
+			strike_points.append(_bounded_point(center + direction * offset))
+	return _begin_strike(strike_points[0])
 
 
 func is_active() -> bool:
@@ -81,11 +116,18 @@ func start_warning(target: Vector3) -> bool:
 		return false
 	if _match_manager.state != MatchManager.MatchState.ACTIVE:
 		return false
+	strike_points.clear()
+	_strike_index = 0
+	strike_points.append(target)
+	return _begin_strike(target)
+
+
+func _begin_strike(target: Vector3) -> bool:
 	target_position = Vector3(target.x, maxf(target.y, 0.06), target.z)
-	warning_remaining = warning_duration
+	warning_remaining = maxf(warning_duration, MINIMUM_STRIKE_WARNING)
 	phase = Phase.WARNING
 	_spawn_telegraph()
-	warning_started.emit(target_position, warning_duration)
+	warning_started.emit(target_position, warning_remaining)
 	return true
 
 
@@ -106,13 +148,13 @@ func tick(delta: float) -> void:
 
 
 func cleanup() -> void:
-	if is_instance_valid(_effect):
-		_effect.queue_free()
-	_effect = null
-	_countdown = null
+	_clear_effect()
 	phase = Phase.IDLE
 	warning_remaining = 0.0
 	_impact_remaining = 0.0
+	variant = Variant.CLUSTER
+	strike_points.clear()
+	_strike_index = 0
 
 
 func active_effect_count() -> int:
@@ -125,6 +167,9 @@ func create_presentation_snapshot() -> Dictionary:
 		"warning_remaining": warning_remaining,
 		"target_position": target_position,
 		"impact_remaining": _impact_remaining,
+		"variant": int(variant),
+		"strike_points": PackedVector3Array(strike_points),
+		"strike_index": _strike_index,
 	}
 
 
@@ -136,10 +181,17 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 		cleanup()
 		return true
 	var previous_phase := phase
+	var previous_target := target_position
 	target_position = snapshot.get("target_position", Vector3.ZERO)
 	warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
 	_impact_remaining = maxf(float(snapshot.get("impact_remaining", 0.0)), 0.0)
-	if not is_instance_valid(_effect):
+	variant = clampi(int(snapshot.get("variant", Variant.CLUSTER)), Variant.CLUSTER, Variant.LANE)
+	strike_points.clear()
+	for point: Vector3 in snapshot.get("strike_points", PackedVector3Array()):
+		strike_points.append(point)
+	_strike_index = int(snapshot.get("strike_index", 0))
+	if not is_instance_valid(_effect) or (next_phase == Phase.WARNING and not target_position.is_equal_approx(previous_target)):
+		_clear_effect()
 		_spawn_telegraph()
 	phase = next_phase
 	if phase == Phase.WARNING:
@@ -312,10 +364,26 @@ func _update_impact_visual() -> void:
 
 
 func _finish_impact() -> void:
+	if _strike_index + 1 < strike_points.size():
+		_strike_index += 1
+		_clear_effect()
+		_begin_strike(strike_points[_strike_index])
+		return
 	if is_instance_valid(_match_manager) and _match_manager.state == MatchManager.MatchState.ACTIVE:
 		_match_manager.record_disaster_survived()
 	cleanup()
 	finished.emit()
+
+
+func _bounded_point(point: Vector3) -> Vector3:
+	return Vector3(clampf(point.x, -strike_half_extent, strike_half_extent), 0.06, clampf(point.z, -strike_half_extent, strike_half_extent))
+
+
+func _clear_effect() -> void:
+	if is_instance_valid(_effect):
+		_effect.queue_free()
+	_effect = null
+	_countdown = null
 
 
 func _radial_impulse(position: Vector3, distance: float, maximum: float) -> Vector3:
