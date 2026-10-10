@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T04:45:00Z",
+  "updated_at": "2026-10-10T08:45:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -35,8 +35,8 @@
   },
   "current": {
     "phase": "phase_3_player_caused_chaos",
-    "milestone": "milestone_3_5_interruptible_emotes",
-    "task": "milestone_3_5_interruptible_emotes"
+    "milestone": "milestone_3_6_integrated_chaos_validation",
+    "task": "milestone_3_6_integrated_chaos_validation"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -129,13 +129,13 @@
       },
       "milestone_3_5_interruptible_emotes": {
         "title": "Two Interruptible Social Emotes",
-        "status": "planned",
+        "status": "completed",
         "dependencies": [
           "milestone_3_2_readable_carrying",
           "milestone_3_4_bounded_shove_decision"
         ],
         "gates": {
-          "two_interruptible_emotes_validated": "not_run"
+          "two_interruptible_emotes_validated": "passed"
         }
       },
       "milestone_3_6_integrated_chaos_validation": {
@@ -347,6 +347,12 @@
       "command": "Task3.4.2 presentation captures at 1280x720 and 1920x1080 (xvfb-run, Dummy audio)",
       "status": "passed",
       "result": "CARRY_PRESENTATION_OK checks=45 at both resolutions; captures in .amp/in/artifacts/phase-3-shove/: carry-idle/walk/crouch/airborne, release, knockdown-recovery, shove-cue. Shove cue review confirms the shover in the forward arm-thrust + lunge pose with the victim displaced mid-knockback and the SHOVE 1.4s pill clear of the METEOR warning and hazard chips; knockdown-recovery shows the readable get_up limb swing with no HUD overlap. Presentation fixes made to reach that evidence: the shove clip thrust was flipped to positive rotation.x (it previously raised the arms behind the actor) with widened arm spread and a forward Torso lean for rear-camera readability, review captures now release every scene camera (player.tscn marks its camera current = true and a spawned victim stole the viewport), and the get_up review frame freezes at the 0.5s limb-swing peak instead of the 0.3s zero crossing. Human visual/feel acceptance remains with the user per the waiver; not claimed here."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "tests/test_emotes.gd; tests/test_phase1.gd; tests/test_shove.gd; tests/test_session_lifecycle.gd; tests/test_gameplay_hud.gd; tests/test_carry_presentation.gd (720p/1080p captures); tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50; tests/run_playable_scene_network_test.sh; PLAYER_COUNTS=4 tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "EMOTES_OK checks=51 (server-validated identity and request rate with 1.5s cooldown, immediate cancel on movement/jump/crouch/grab/accepted shove, damage/knockdown/death/rematch override, delayed start cannot resurrect a cancelled emote, carrying rejects requests, no aim change or movement lock, per-peer monotonic sequences with stale/duplicate suppression); PHASE1_TESTS_OK checks=39 with the 14-clip contract (shove/wave/cheer registered alongside the 11 preserved clips); SHOVE_OK checks=68; SESSION_LIFECYCLE_OK checks=54; GAMEPLAY_HUD_OK checks=116; CARRY_PRESENTATION_OK checks=71 at 1280x720 and 1920x1080 with emote-wave/emote-cheer/emote-interrupt-carry/emote-interrupt-knockdown captures in .amp/in/artifacts/phase-3-shove/ (wave pose inspected at both resolutions; cheer outward V verified by world-space arm/head probes — arm meshes at x=±0.315 clear the head at x=0); MOVEMENT_LATENCY_OK response-bound; PLAYABLE_SCENE_NETWORK_PEERS_OK three consecutive green runs with network_rematches=5 and two-client emote agreement (identity, early replicated cancellation under 700ms, no delayed-start resurrection); UI_REGRESSION_OK suites=38/matrices=5/persistence_restart=passed. Root-cause fixes shipped with the unit for three pre-existing races the new phase timing exposed: ShoveManager now records the pre-impulse origin/impulse at apply time and the lethal no longer lands in the shove tick (death froze the victim before it integrated, making knockback observation depend on RPC flush timing); the server pauses 0.3s after a lethal so the death state replicates before restart (death and reset snapshots otherwise landed in one flush and clients never observed the elimination window); rematch assertions pin observed sequence and presentation at wait-exit, and ShoveManager validates registry entries before casting since roster churn can free avatars while registered. Local emote presentation is skipped by authority check (get_multiplayer_authority == local peer), not node identity, because the host avatar differs per peer. Human/audio/network-feel acceptance remains with the user under the waiver; not claimed here."
     }
   ],
   "blockers": [
@@ -380,7 +386,8 @@
     "game/ui/gameplay_hud.gd",
     "project.godot",
     "tests/test_session_lifecycle.gd",
-    "tests/test_phase1.gd"
+    "tests/test_phase1.gd",
+    "tests/test_emotes.gd"
   ],
-  "next_action": "Milestone3.5: implement two interruptible emotes (wave/cheer) with server-validated emote identity and request rate, immediate cancellation on movement/jump/crouch/grab/accepted shove, override on damage/knockdown/death/rematch, no movement lock or aim change, clip-contract and variant preservation, two-client agreement checks and 720p/1080p interruption-pose captures."
+  "next_action": "Milestone 3.6: run the integrated chaos regression (1/2/4-player scenario, container network tests, four-player performance profiling with p95 against 16.67ms) and produce matching Windows/Linux packages with payload hashes, release smoke and standalone lifecycle evidence; publish nothing."
 }

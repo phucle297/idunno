@@ -4,6 +4,11 @@ extends CharacterBody3D
 const Tuning = preload("res://game/player_tuning.gd")
 const RagdollScene = preload("res://game/cosmetic_ragdoll.gd")
 
+const EMOTE_WAVE := 1
+const EMOTE_CHEER := 2
+const EMOTE_CLIPS := {EMOTE_WAVE: "wave", EMOTE_CHEER: "cheer"}
+const EMOTE_DURATIONS := {EMOTE_WAVE: 1.2, EMOTE_CHEER: 1.0}
+
 @onready var visual: Node3D = $Visual
 @onready var collider: CollisionShape3D = $CollisionShape3D
 @onready var camera_pivot: Node3D = $CameraPivot
@@ -21,6 +26,9 @@ var _get_up_remaining := 0.0
 var _grab_manager: Node
 var _shove_manager: Node
 var _shove_cue_remaining := 0.0
+var _emote_gateway: Node
+var _emote_id := 0
+var _emote_remaining := 0.0
 var _peer_id := 1
 var carrying_medium := false
 var local_input_blocked := false
@@ -53,6 +61,14 @@ func _process(_delta: float) -> void:
 		character.play_clip("get_up")
 	elif not is_on_floor():
 		character.play_clip("jump_takeoff" if velocity.y > 0.0 else "falling")
+	elif _emote_id != 0 and not carrying_medium:
+		# Cosmetic social emote; never locks movement or aim. Local input,
+		# carry, shove and knockdown cancel it immediately.
+		_emote_remaining = maxf(0.0, _emote_remaining - _delta)
+		if _emote_remaining <= 0.0:
+			_emote_id = 0
+		else:
+			character.play_clip(EMOTE_CLIPS[_emote_id])
 	elif carrying_medium:
 		character.play_clip("holding_walk" if horizontal_speed > 0.2 else "holding_idle")
 	elif _is_crouched:
@@ -89,9 +105,14 @@ func _physics_process(delta: float) -> void:
 	if _is_eliminated or not accepts_local_input():
 		return
 	if not local_input_blocked and Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
+		cancel_emote()
 		_grab_manager.request_local_toggle(_peer_id)
 	if not local_input_blocked and Input.is_action_just_pressed("shove") and is_instance_valid(_shove_manager):
 		_shove_manager.request_local_shove(_peer_id)
+	if not local_input_blocked and Input.is_action_just_pressed("emote_wave"):
+		request_emote(EMOTE_WAVE)
+	if not local_input_blocked and Input.is_action_just_pressed("emote_cheer"):
+		request_emote(EMOTE_CHEER)
 	if _has_active_network_session():
 		return
 	if not local_input_blocked and Input.is_action_just_pressed("knockdown_test"):
@@ -118,6 +139,8 @@ func apply_movement_input(
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
+	if _emote_id != 0 and (input_2d.length_squared() > 0.0001 or jump_pressed or crouched):
+		cancel_emote()
 	# The first replay tick starts from server contact, not the client's future contact.
 	var grounded := is_on_floor() if grounded_override < 0 else grounded_override != 0
 	if grounded:
@@ -212,6 +235,7 @@ func apply_knockdown(impulse: Vector3) -> void:
 	if _is_eliminated or _knockdown_remaining > 0.0:
 		return
 	release_held_object()
+	cancel_emote()
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
 	_spawn_cosmetic_ragdoll(velocity, impulse)
@@ -275,11 +299,13 @@ func set_eliminated(eliminated: bool) -> void:
 
 func reset_for_match(spawn_position: Vector3) -> void:
 	release_held_object()
+	cancel_emote()
 	if is_instance_valid(_ragdoll):
 		_ragdoll.queue_free()
 		_ragdoll = null
 	_knockdown_remaining = 0.0
 	_get_up_remaining = 0.0
+	_shove_cue_remaining = 0.0
 	_is_crouched = false
 	_is_eliminated = false
 	_coyote_remaining = 0.0
@@ -310,6 +336,29 @@ func configure_shoving(manager: Node) -> void:
 
 func play_shove_cue() -> void:
 	_shove_cue_remaining = 0.3
+
+
+func configure_emotes(gateway: Node) -> void:
+	_emote_gateway = gateway
+
+
+func request_emote(emote_id: int) -> void:
+	if is_instance_valid(_emote_gateway):
+		_emote_gateway.request_local_emote(_peer_id, emote_id)
+
+
+func start_emote(emote_id: int, duration: float) -> void:
+	_emote_id = emote_id
+	_emote_remaining = duration
+
+
+func cancel_emote() -> void:
+	_emote_id = 0
+	_emote_remaining = 0.0
+
+
+func get_emote_id() -> int:
+	return _emote_id
 
 
 func release_held_object() -> void:

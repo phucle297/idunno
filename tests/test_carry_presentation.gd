@@ -207,6 +207,89 @@ func _run() -> void:
 	_frame_review("shove-cue")
 	await _capture("shove-cue")
 
+	# Social emote review: readable wave and cheer poses at gameplay
+	# distance, then the emote presentation yielding to carry and knockdown.
+	main.gameplay_hud.present_shove_state(-1.0)
+	main.gameplay_hud.present_major_warning("")
+	var no_hazards: Array[String] = []
+	main.gameplay_hud.present_hazards(no_hazards)
+	victim.visible = false
+	player.reset_for_match(Vector3.ZERO)
+	player.set_camera_yaw(0.0)
+	for _tick in 5:
+		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+	await process_frame
+	main._local_emote_cooldown_until.clear()
+	main._server_emote_cooldown_until.clear()
+	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
+	player._process(DELTA)
+	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave review must start through the real request path")
+	_expect(player.character.current_clip == "wave", "Wave review must play the wave clip")
+	if is_instance_valid(player.character._animation_player):
+		# Wave arm reaches its readable raised pose at 0.15s.
+		player.character._animation_player.seek(0.15, true)
+		player.character._animation_player.pause()
+	var wave_arm := player.character.get_node("RightArm") as Node3D
+	_expect(wave_arm.rotation.x > 2.0 and wave_arm.rotation.z < -0.4, "Wave cue must raise the arm in a readable wave pose")
+	await _capture("emote-wave")
+
+	main._local_emote_cooldown_until.clear()
+	main._server_emote_cooldown_until.clear()
+	main.request_local_emote(1, PartyPlayer.EMOTE_CHEER)
+	player._process(DELTA)
+	_expect(player.character.current_clip == "cheer", "Cheer review must play the cheer clip")
+	if is_instance_valid(player.character._animation_player):
+		# Cheer V-arms peak at 0.12s.
+		player.character._animation_player.seek(0.12, true)
+		player.character._animation_player.pause()
+	var cheer_left_arm := player.character.get_node("LeftArm") as Node3D
+	var cheer_right_arm := player.character.get_node("RightArm") as Node3D
+	_expect(cheer_left_arm.rotation.x > 2.0 and cheer_right_arm.rotation.x > 2.0, "Cheer cue must bounce both arms into a readable V")
+	_expect(cheer_left_arm.rotation.z < -0.4 and cheer_right_arm.rotation.z > 0.4, "Cheer arms must splay outward into a readable V")
+	await _capture("emote-cheer")
+
+	# The emote must yield to a held medium: acquiring the crate cancels it
+	# and the holding pose takes over immediately.
+	main._local_emote_cooldown_until.clear()
+	main._server_emote_cooldown_until.clear()
+	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
+	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave must start before the carry interrupt")
+	review_crate.freeze = true
+	review_crate.global_position = player.get_hold_position()
+	review_crate.linear_velocity = Vector3.ZERO
+	review_crate.angular_velocity = Vector3.ZERO
+	review_crate.freeze = false
+	_expect(grab_manager.request_grab(1, review_crate) and player.carrying_medium, "Carry interrupt must acquire the medium")
+	main._tick_server_emotes()
+	_expect(player.get_emote_id() == 0, "Carrying a medium must cancel the emote")
+	player._process(DELTA)
+	_expect(player.character.current_clip == "holding_idle", "Carry interrupt must present the holding pose")
+	if is_instance_valid(player.character._animation_player):
+		player.character._animation_player.seek(0.0, true)
+		player.character._animation_player.pause()
+	await _capture("emote-interrupt-carry")
+
+	# Knockdown must cancel the emote, and recovery presents get_up without
+	# the emote resuming.
+	grab_manager.release_grab(1)
+	player.carrying_medium = false
+	main._local_emote_cooldown_until.clear()
+	main._server_emote_cooldown_until.clear()
+	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
+	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave must start before the knockdown interrupt")
+	player.apply_knockdown(Vector3(1.0, 0.0, 0.0))
+	_expect(player.get_emote_id() == 0 and not player.visual.visible, "Knockdown must cancel the emote and hide the upright visual")
+	for _tick in 120:
+		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		await physics_frame
+	_expect(not player.is_knocked_down() and player.get_emote_id() == 0, "Recovery must not resume the cancelled emote")
+	_expect(player.character.current_clip == "get_up", "Knockdown interrupt must present get_up")
+	if is_instance_valid(player.character._animation_player):
+		# get_up limb-swing peaks at 0.0/0.5/1.0s; 0.5s is the readable mid pose.
+		player.character._animation_player.seek(0.5, true)
+		player.character._animation_player.pause()
+	await _capture("emote-interrupt-knockdown")
+
 	_finish()
 
 
@@ -252,6 +335,11 @@ func _frame_review(state: String) -> void:
 	elif state == "shove-cue":
 		review_camera.global_position = review_player.global_position + Vector3(3.6, 1.7, -1.4)
 		review_camera.look_at(review_player.global_position + Vector3(0.3, 1.0, -1.1))
+	elif state in ["emote-wave", "emote-cheer"]:
+		# A 3/4 view keeps both the forward arm swing and the lateral
+		# splay readable; pure side or frontal views foreshorten one axis.
+		review_camera.global_position = review_player.global_position + Vector3(2.2, 1.7, -2.4)
+		review_camera.look_at(review_player.global_position + Vector3(0.0, 1.15, -0.6))
 	else:
 		review_camera.global_position = review_player.global_position + Vector3(1.2, 1.65, -3.2)
 		review_camera.look_at(review_player.global_position + Vector3(0.0, 1.0, -0.6))

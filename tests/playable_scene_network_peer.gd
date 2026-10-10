@@ -99,6 +99,17 @@ func _run_server(main: Node) -> void:
 	active_passed = active_passed and not paused and manager.elapsed_time > pause_time + 0.2 and main._movement_inputs[1].direction == Vector2.ZERO and host_player.local_input_blocked
 	main.pause_settings.back()
 	print("NETWORK_HOST_PAUSE_OK=%s" % active_passed)
+	# Social emote replication contract: the observer must see the host's
+	# wave identity, and an early authoritative cancel (host movement) must
+	# terminate it well before the 1.2s one-shot clip would end on its own.
+	host_player.request_emote(PartyPlayer.EMOTE_WAVE)
+	var emote_passed := host_player.get_emote_id() == PartyPlayer.EMOTE_WAVE
+	await create_timer(0.25).timeout
+	Input.action_press("move_left")
+	await create_timer(0.15).timeout
+	Input.action_release("move_left")
+	emote_passed = emote_passed and host_player.get_emote_id() == 0
+	_phase_mark("server", "emote", main, host_player)
 	var grab_manager := main.get_node("GrabManager") as GrabManager
 	var shared_prop := main._network_prop(1) as RigidBody3D
 	shared_prop.freeze = true
@@ -202,8 +213,11 @@ func _run_server(main: Node) -> void:
 	host_player.set_camera_yaw(atan2(-shove_offset.x, -shove_offset.z))
 	var shove_passed := shove_manager.request_shove(1)
 	shove_passed = shove_passed and shove_manager.get_last_shove_sequence(client_id) == 1 and shove_manager.is_protected(client_id)
-	var lethal_passed := manager.apply_damage(client_id, 75.0, "Network test")
+	# Delay the lethal so the knockback integrates on every peer before death
+	# freezes the body. Killing in the shove tick made motion observation
+	# depend on the flush timing between the two reliable RPCs.
 	await create_timer(0.5).timeout
+	var lethal_passed := manager.apply_damage(client_id, 75.0, "Network test")
 	_phase_mark("server", "lethal", main, client_player)
 	lethal_passed = (
 		lethal_passed
@@ -214,9 +228,17 @@ func _run_server(main: Node) -> void:
 		and (main.get_node("Interface/ResultsPanel") as Panel).visible
 		and main.get_node("Interface/ResultsPanel/Table").rows[client_id].get_node("Outcome").text == "Network test"
 	)
+	# Let the death replicate and present before restarting. Without this
+	# window the death and reset snapshots land in one flush and clients
+	# never observe the elimination state this test exists to verify.
+	await create_timer(0.3).timeout
 	var rematch_passed := true
 	for rematch_index: int in 5:
 		_phase_mark("server", "rematch_%d" % rematch_index, main, client_player)
+		client_player = main.get_node_or_null("NetworkPlayer%d" % client_id) as PartyPlayer
+		if not is_instance_valid(client_player) or not is_instance_valid(host_player):
+			rematch_passed = false
+			break
 		var old_prop := main._network_prop(1) as RigidBody3D
 		old_prop.freeze = true
 		old_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
@@ -278,12 +300,12 @@ func _run_server(main: Node) -> void:
 		and main.get_node_or_null("NetworkPlayer%d" % client_id) == null
 		and _registries_accept_removed_peer(main, client_id)
 	)
-	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed and cleanup_passed
+	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and emote_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed and cleanup_passed
 	if passed:
 		print("NETWORK_HOST_LOBBY_OK start_gating=passed readiness=passed hud_suppression=passed")
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d emote_replication=passed" % client_id)
 	else:
-		push_error("Playable server validation failed spawn=%s movement=%s active=%s props=%s ragdoll=%s disasters=%s nonlethal=%s shove=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
+		push_error("Playable server validation failed spawn=%s movement=%s active=%s emote=%s props=%s ragdoll=%s disasters=%s nonlethal=%s shove=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, emote_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	await create_timer(0.1).timeout
 	main.free()
@@ -352,6 +374,26 @@ func _run_client(main: Node) -> void:
 	active_passed = active_passed and not paused and manager.elapsed_time > pause_time and local_player.local_input_blocked
 	main.pause_settings.back()
 	print("NETWORK_CLIENT_PAUSE_OK=%s" % active_passed)
+	# Observe the host's wave identity and agree on its early termination:
+	# the replicated authoritative cancel must clear the observer's copy far
+	# sooner than the 1.2s one-shot, and no delayed start may resurrect it.
+	var emote_deadline := Time.get_ticks_msec() + 2500
+	while host_player.get_emote_id() == 0 and Time.get_ticks_msec() < emote_deadline:
+		await process_frame
+	var emote_observed: int = host_player.get_emote_id()
+	var emote_observed_at := Time.get_ticks_msec()
+	while host_player.get_emote_id() != 0 and Time.get_ticks_msec() < emote_deadline:
+		await process_frame
+	var emote_terminate_ms := Time.get_ticks_msec() - emote_observed_at
+	await create_timer(0.3).timeout
+	var emote_passed: bool = (
+		emote_observed == PartyPlayer.EMOTE_WAVE
+		and emote_terminate_ms < 700
+		and host_player.get_emote_id() == 0
+	)
+	if not emote_passed:
+		print("EMOTE_OBSERVATION_DIAGNOSTIC observed=%d terminate_ms=%d lingering=%d" % [emote_observed, emote_terminate_ms, host_player.get_emote_id()])
+	_phase_mark("client", "emote", main, local_player)
 	var shared_prop := main._network_prop(1) as RigidBody3D
 	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -460,26 +502,51 @@ func _run_client(main: Node) -> void:
 	while shove_manager.get_last_shove_sequence(local_id) < 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	# Pin the observation at wait-exit: the server's next rematch shove may
-	# already replicate while the 30-frame cue/velocity window below runs.
+	# already replicate while the cue/velocity window below runs.
 	var observed_shove_seq: int = shove_manager.get_last_shove_sequence(local_id)
 	var shove_speed_peak := 0.0
+	var shove_displacement := 0.0
 	var shove_cue_seen := false
-	for tick in 30:
+	# Displacement is measured from the origin recorded at application time
+	# on this peer, not from wait-exit: a late observation would otherwise
+	# measure only residual motion and read zero on an already-frozen body.
+	var shove_origin := shove_manager.get_last_shove_origin(local_id)
+	var shove_window_end := Time.get_ticks_msec() + 400
+	while Time.get_ticks_msec() < shove_window_end:
 		await process_frame
 		if is_instance_valid(local_player):
+			# Displacement is the robust knockback signal: the impulse lives
+			# in velocity only until the next reconcile overwrites it, while
+			# the knocked position persists in every later snapshot.
 			shove_speed_peak = maxf(shove_speed_peak, Vector2(local_player.velocity.x, local_player.velocity.z).length())
+			shove_displacement = maxf(shove_displacement, (local_player.global_position - shove_origin).length())
 		shove_cue_seen = shove_cue_seen or host_player.character.current_clip == "shove"
+		if shove_displacement > 0.15 and shove_cue_seen:
+			break
 	_phase_mark("client", "shove_observed", main, local_player)
 	var shove_passed := (
 		observed_shove_seq == 1
 		and shove_manager.is_protected(local_id)
 		and shove_cue_seen
-		and shove_speed_peak > 1.0
+		and (shove_speed_peak > 1.0 or shove_displacement > 0.15)
 		and not shove_manager.apply_replicated_shove(1, local_id, 1, 0.0, -1.0)
 	)
 	if not shove_passed:
-		print("SHOVE_OBSERVATION_DIAGNOSTIC seq=%d observed_seq=%d protected=%s cue=%s peak=%f replay_rejected=%s local_valid=%s" % [shove_manager.get_last_shove_sequence(local_id), observed_shove_seq, shove_manager.is_protected(local_id), shove_cue_seen, shove_speed_peak, not shove_manager.apply_replicated_shove(1, local_id, 1, 0.0, -1.0), is_instance_valid(local_player)])
+		print("SHOVE_OBSERVATION_DIAGNOSTIC seq=%d observed_seq=%d protected=%s cue=%s peak=%f displacement=%f impulse=%f replay_rejected=%s local_valid=%s" % [shove_manager.get_last_shove_sequence(local_id), observed_shove_seq, shove_manager.is_protected(local_id), shove_cue_seen, shove_speed_peak, shove_displacement, shove_manager.get_last_shove_impulse_speed(local_id), not shove_manager.apply_replicated_shove(1, local_id, 1, 0.0, -1.0), is_instance_valid(local_player)])
 	while manager.is_player_alive(local_id) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	# Death presentation (HUD, spectator, results) trails the authoritative
+	# state by a frame or two; settle it before asserting.
+	var lethal_settle_end := Time.get_ticks_msec() + 500
+	while (
+		Time.get_ticks_msec() < lethal_settle_end
+		and manager.state == MatchManager.MatchState.RESULTS
+		and (
+			main.gameplay_hud.get_presented_alive_counts() != Vector2i(1, 2)
+			or main.gameplay_hud.get_presented_health() != 0
+			or main.get_node("Interface/ResultsPanel/Table").rows[local_id].get_node("Outcome").text != "Network test"
+		)
+	):
 		await process_frame
 	await process_frame
 	var lethal_passed: bool = (
@@ -494,11 +561,19 @@ func _run_client(main: Node) -> void:
 		and main.get_node("Interface/ResultsPanel/Table").rows[local_id].get_node("Outcome").text == "Network test"
 		and (main.get_node("Interface/ResultsPanel/Prompt") as Label).text == "WAITING FOR HOST TO START REMATCH"
 	)
+	if not lethal_passed:
+		print("LETHAL_DIAGNOSTIC state=%d health=%f alive=%d visual=%s spectator=%s hud_health=%d hud_alive=%s panel=%s outcome=%s prompt=%s" % [manager.state, manager.get_health(local_id), manager.get_alive_count(), local_player.visual.visible if is_instance_valid(local_player) else false, main.spectator_controller.active, main.gameplay_hud.get_presented_health(), main.gameplay_hud.get_presented_alive_counts(), (main.get_node("Interface/ResultsPanel") as Panel).visible, (main.get_node("Interface/ResultsPanel/Table") as Control).rows[local_id].get_node("Outcome").text, (main.get_node("Interface/ResultsPanel/Prompt") as Label).text])
 	var rematch_passed := true
 	for rematch_index: int in 5:
 		while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 			await process_frame
 		await process_frame
+		# A roster rebuild during the restart can replace the avatar node;
+		# never keep iterating on a freed reference.
+		local_player = main.get_node_or_null("NetworkPlayer%d" % local_id) as PartyPlayer
+		rematch_passed = rematch_passed and is_instance_valid(local_player)
+		if not is_instance_valid(local_player):
+			break
 		var authoritative_health := manager.get_health(local_id)
 		var replicated_position := local_player.position
 		var reset_prop := main._network_prop(1) as RigidBody3D
@@ -519,30 +594,43 @@ func _run_client(main: Node) -> void:
 		var expected_shove_seq := rematch_index + 2
 		while shove_manager.get_last_shove_sequence(local_id) < expected_shove_seq and Time.get_ticks_msec() < deadline:
 			await process_frame
+		# Pin the replica's seq at wait-exit: the server's next shove can
+		# replicate while the RESULTS window below runs. The server asserts
+		# the exact per-rematch count; the replica asserts monotonic arrival
+		# plus duplicate rejection for the seq it observed.
+		var observed_rematch_seq: int = shove_manager.get_last_shove_sequence(local_id)
 		rematch_passed = (
 			rematch_passed
-			and shove_manager.get_last_shove_sequence(local_id) == expected_shove_seq
+			and observed_rematch_seq >= expected_shove_seq
 			and shove_manager.is_protected(local_id)
-			and not shove_manager.apply_replicated_shove(1, local_id, expected_shove_seq, 0.0, -1.0)
+			and not shove_manager.apply_replicated_shove(1, local_id, observed_rematch_seq, 0.0, -1.0)
 		)
 		while manager.state != MatchManager.MatchState.RESULTS and Time.get_ticks_msec() < deadline:
 			await process_frame
-		await process_frame
+		# Pin the presented elimination at wait-exit for the same reason:
+		# the host can restart the next rematch before these asserts run.
 		var rematch_outcome: String = main.get_node("Interface/ResultsPanel/Table").rows[local_id].get_node("Outcome").text
+		var rematch_state: int = manager.state
+		var rematch_visual_hidden := not local_player.visual.visible
+		var rematch_spectating: bool = main.spectator_controller.active
+		var rematch_panel_visible := (main.get_node("Interface/ResultsPanel") as Panel).visible
 		rematch_passed = (
 			rematch_passed
-			and manager.state == MatchManager.MatchState.RESULTS
-			and not local_player.visual.visible
-			and main.spectator_controller.active
-			and (main.get_node("Interface/ResultsPanel") as Panel).visible
+			and rematch_state == MatchManager.MatchState.RESULTS
+			and rematch_visual_hidden
+			and rematch_spectating
+			and rematch_panel_visible
 			and rematch_outcome == "Out of bounds"
 		)
-	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed
+		if not rematch_passed:
+			print("REMATCH_DIAGNOSTIC index=%d state=%d alive=%d seq=%d outcome=%s ids=%s" % [rematch_index, manager.state, manager.get_alive_count(), shove_manager.get_last_shove_sequence(local_id), rematch_outcome, main.get_network_player_ids()])
+			break
+	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and emote_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed
 	if passed:
 		print("NETWORK_CLIENT_LOBBY_OK local_host_markers=passed client_start_rejected=passed readiness=passed")
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 emote_replication=passed" % local_id)
 	else:
-		push_error("Playable client validation failed spawn=%s movement=%s active=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s shove=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
+		push_error("Playable client validation failed spawn=%s movement=%s active=%s emote=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s shove=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, emote_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	await create_timer(0.1).timeout

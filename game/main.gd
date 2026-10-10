@@ -13,6 +13,7 @@ const PALETTE := {
 const UITokens = preload("res://game/ui/ui_tokens.gd")
 const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
+const Tuning = preload("res://game/player_tuning.gd")
 const DEFAULT_NETWORK_PORT := 29730
 const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
@@ -47,6 +48,11 @@ var _match_snapshot_remaining := 0.0
 var _match_snapshot_sequence := 0
 var _last_match_snapshot_sequence := 0
 var _roster_snapshot_floor := 0
+var _emote_sequences: Dictionary = {}
+var _emote_seen_sequences: Dictionary = {}
+var _server_emote_states: Dictionary = {}
+var _server_emote_cooldown_until: Dictionary = {}
+var _local_emote_cooldown_until: Dictionary = {}
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
@@ -444,6 +450,11 @@ func _on_server_disconnected() -> void:
 	gameplay_audio.reset_for_match()
 	match_manager.prepare_lobby()
 	$ShoveManager.reset_state()
+	_server_emote_states.clear()
+	_server_emote_cooldown_until.clear()
+	_local_emote_cooldown_until.clear()
+	_emote_sequences.clear()
+	_emote_seen_sequences.clear()
 	for peer_id: int in match_manager.players.keys():
 		for component: Node in [$GrabManager, meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
 			component.unregister_player(peer_id)
@@ -503,6 +514,11 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	_player_nodes.erase(peer_id)
+	_server_emote_states.erase(peer_id)
+	_server_emote_cooldown_until.erase(peer_id)
+	_local_emote_cooldown_until.erase(peer_id)
+	_emote_sequences.erase(peer_id)
+	_emote_seen_sequences.erase(peer_id)
 	$ShoveManager.unregister_player(peer_id)
 	if is_instance_valid(player) and player != $Player:
 		player.queue_free()
@@ -511,6 +527,7 @@ func _remove_network_player(peer_id: int) -> void:
 func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
+	player.configure_emotes(self)
 	player.configure_shoving($ShoveManager)
 	$ShoveManager.register_player(peer_id, player)
 	pause_settings.apply_player_preferences(player)
@@ -520,6 +537,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 func _physics_process(delta: float) -> void:
 	_eliminate_out_of_bounds()
+	_tick_server_emotes()
 	if not _network_mode:
 		return
 	var local_peer_id := multiplayer.get_unique_id()
@@ -761,13 +779,164 @@ func _empty_movement_input() -> Dictionary:
 	}
 
 
-func _on_shove_effect_applied(shover_id: int, _victim_id: int) -> void:
+func _on_shove_effect_applied(shover_id: int, victim_id: int) -> void:
 	var shover := _player_nodes.get(shover_id) as PartyPlayer
 	if is_instance_valid(shover):
 		shover.play_shove_cue()
+		shover.cancel_emote()
+	var victim := _player_nodes.get(victim_id) as PartyPlayer
+	if is_instance_valid(victim):
+		victim.cancel_emote()
+	_cancel_emote_authoritatively(shover_id)
+	_cancel_emote_authoritatively(victim_id)
+
+
+# Social emotes are cosmetic, server-validated and event-replicated. The
+# local player's presentation is input-driven (started and cancelled without
+# a round trip); remote presentation follows authoritative start/cancel
+# events guarded by a per-player monotonic sequence, so a delayed start can
+# never restart an emote after an authoritative cancellation or death.
+func request_local_emote(peer_id: int, emote_id: int) -> void:
+	if not _can_start_emote(peer_id, emote_id, true):
+		# Mirror-rejected presses are dropped outright: they neither consume
+		# the request cooldown nor disturb an emote that is still playing.
+		return
+	_local_emote_cooldown_until[peer_id] = _emote_now() + Tuning.EMOTE_REQUEST_COOLDOWN
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	if is_instance_valid(player):
+		player.start_emote(emote_id, float(PartyPlayer.EMOTE_DURATIONS[emote_id]))
+	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
+		_accept_emote(peer_id, emote_id)
+	else:
+		_request_emote.rpc_id(1, emote_id)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_emote(emote_id: int) -> void:
+	_accept_emote(multiplayer.get_remote_sender_id(), emote_id)
+
+
+func _accept_emote(peer_id: int, emote_id: int) -> void:
+	var seq := int(_emote_sequences.get(peer_id, 0)) + 1
+	_emote_sequences[peer_id] = seq
+	if not multiplayer.is_server():
+		return
+	var server_accepted := _can_start_emote(peer_id, emote_id, false)
+	# Every arriving request consumes the server-side rate limit, even a
+	# rejected one, so a modified client cannot spam past the cooldown.
+	_server_emote_cooldown_until[peer_id] = _emote_now() + Tuning.EMOTE_REQUEST_COOLDOWN
+	if not server_accepted:
+		# A rejection is an idempotent cancel: it clears any mirrored local
+		# preview and keeps the per-player sequence monotonic for late events.
+		if _network_mode:
+			_replicate_emote_cancel.rpc(peer_id, seq)
+		_apply_emote_cancel(peer_id, seq)
+		return
+	_server_emote_states[peer_id] = {
+		"id": emote_id,
+		"seq": seq,
+		"expires": _emote_now() + float(PartyPlayer.EMOTE_DURATIONS[emote_id]),
+		"health": match_manager.get_health(peer_id),
+	}
+	if _network_mode:
+		_replicate_emote_start.rpc(peer_id, emote_id, seq)
+	_apply_emote_start(peer_id, emote_id, seq)
+
+
+func _can_start_emote(peer_id: int, emote_id: int, mirrored: bool) -> bool:
+	if not PartyPlayer.EMOTE_DURATIONS.has(emote_id):
+		return false
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	if not is_instance_valid(player) or not player.can_grab_objects() or player.carrying_medium or player.is_crouched() or not player.is_on_floor():
+		return false
+	if match_manager.state != MatchManager.MatchState.ACTIVE or not match_manager.is_player_alive(peer_id):
+		return false
+	var now := _emote_now()
+	if now < float((_local_emote_cooldown_until if mirrored else _server_emote_cooldown_until).get(peer_id, 0.0)):
+		return false
+	return true
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_emote_start(peer_id: int, emote_id: int, seq: int) -> void:
+	_apply_emote_start(peer_id, emote_id, seq)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_emote_cancel(peer_id: int, seq: int) -> void:
+	_apply_emote_cancel(peer_id, seq)
+
+
+func _apply_emote_start(peer_id: int, emote_id: int, seq: int) -> void:
+	if seq <= int(_emote_seen_sequences.get(peer_id, 0)):
+		return
+	_emote_seen_sequences[peer_id] = seq
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	if not is_instance_valid(player):
+		return
+	if player.get_multiplayer_authority() == multiplayer.get_unique_id():
+		# The local player's presentation is input-driven; authoritative
+		# starts only confirm identity to observers. On clients the local
+		# avatar is a NetworkPlayer node, so this must key on authority.
+		return
+	player.start_emote(emote_id, float(PartyPlayer.EMOTE_DURATIONS[emote_id]))
+
+
+func _apply_emote_cancel(peer_id: int, seq: int) -> void:
+	if seq <= int(_emote_seen_sequences.get(peer_id, 0)):
+		return
+	_emote_seen_sequences[peer_id] = seq
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	if is_instance_valid(player):
+		player.cancel_emote()
+
+
+func _cancel_emote_authoritatively(peer_id: int) -> void:
+	if _network_mode and not multiplayer.is_server():
+		return
+	if not _server_emote_states.has(peer_id):
+		return
+	_server_emote_states.erase(peer_id)
+	var seq := int(_emote_sequences.get(peer_id, 0)) + 1
+	_emote_sequences[peer_id] = seq
+	if _network_mode:
+		_replicate_emote_cancel.rpc(peer_id, seq)
+	_apply_emote_cancel(peer_id, seq)
+
+
+func _tick_server_emotes() -> void:
+	if _server_emote_states.is_empty():
+		return
+	var now := _emote_now()
+	for peer_id: int in _server_emote_states.keys():
+		var state: Dictionary = _server_emote_states[peer_id]
+		var player := _player_nodes.get(peer_id) as PartyPlayer
+		var input: Dictionary = _movement_inputs.get(peer_id, {})
+		var input_active := not input.is_empty() and (
+			(input.direction as Vector2).length_squared() > 0.0001
+			or bool(input.jump_pressed) or bool(input.crouched)
+		)
+		if (
+			now >= float(state.expires)
+			or not is_instance_valid(player)
+			or not match_manager.is_player_alive(peer_id)
+			or player.is_knocked_down()
+			or not player.can_grab_objects()
+			or player.carrying_medium
+			or player.is_crouched()
+			or not player.is_on_floor()
+			or match_manager.get_health(peer_id) < float(state.health)
+			or input_active
+		):
+			_cancel_emote_authoritatively(peer_id)
+
+
+func _emote_now() -> float:
+	return Time.get_ticks_msec() / 1000.0
 
 
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
+	player.configure_emotes(self)
 	return (
 		match_manager.register_player(peer_id, player_name)
 		and $GrabManager.register_player(peer_id, player)
@@ -1416,6 +1585,11 @@ func return_to_lobby() -> bool:
 	_reset_sandbox()
 	match_manager.prepare_lobby()
 	$ShoveManager.reset_state()
+	_server_emote_states.clear()
+	_server_emote_cooldown_until.clear()
+	_local_emote_cooldown_until.clear()
+	_emote_sequences.clear()
+	_emote_seen_sequences.clear()
 	var peer_ids: Array[int] = get_network_player_ids()
 	if not _network_mode:
 		peer_ids = [1]

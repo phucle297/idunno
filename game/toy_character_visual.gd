@@ -4,7 +4,7 @@ extends Node3D
 const REQUIRED_CLIPS := [
 	"idle", "walk", "run", "jump_takeoff", "falling", "landing",
 	"crouch_idle", "crouch_walk", "holding_idle", "holding_walk", "get_up",
-	"shove",
+	"shove", "wave", "cheer",
 ]
 const SUIT_COLORS := [
 	Color("31c5df"), Color("f28a3c"), Color("9b72e8"),
@@ -172,6 +172,55 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(lunge_mirror, 0.1, Vector3(-0.3, 0.0, 0.0))
 		animation.track_insert_key(lunge_mirror, animation.length, Vector3.ZERO)
 		return animation
+	if clip_name == "wave":
+		# One-shot social emote: right arm raised with a bounded side-to-side
+		# wave, returning to rest so locomotion resumes cleanly.
+		var wave_arm := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(wave_arm, NodePath("RightArm:rotation"))
+		animation.track_insert_key(wave_arm, 0.0, Vector3.ZERO)
+		animation.track_insert_key(wave_arm, 0.15, Vector3(2.5, 0.0, -0.5))
+		animation.track_insert_key(wave_arm, 0.4, Vector3(2.5, 0.0, -0.85))
+		animation.track_insert_key(wave_arm, 0.65, Vector3(2.5, 0.0, -0.15))
+		animation.track_insert_key(wave_arm, 0.9, Vector3(2.5, 0.0, -0.85))
+		animation.track_insert_key(wave_arm, 1.05, Vector3(2.5, 0.0, -0.35))
+		animation.track_insert_key(wave_arm, animation.length, Vector3.ZERO)
+		return animation
+	if clip_name == "cheer":
+		# One-shot social emote: both arms bounce up in a V with a small
+		# counter-swing in the legs; ends at rest for locomotion handoff.
+		var cheer_left := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(cheer_left, NodePath("LeftArm:rotation"))
+		animation.track_insert_key(cheer_left, 0.0, Vector3.ZERO)
+		# Negative z splays the raised left arm outward; positive z would
+		# fold it across the face like the holding pose.
+		animation.track_insert_key(cheer_left, 0.12, Vector3(2.7, 0.0, -0.55))
+		animation.track_insert_key(cheer_left, 0.35, Vector3(2.35, 0.0, -0.45))
+		animation.track_insert_key(cheer_left, 0.6, Vector3(2.7, 0.0, -0.55))
+		animation.track_insert_key(cheer_left, 0.85, Vector3(2.35, 0.0, -0.45))
+		animation.track_insert_key(cheer_left, animation.length, Vector3.ZERO)
+		var cheer_right := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(cheer_right, NodePath("RightArm:rotation"))
+		animation.track_insert_key(cheer_right, 0.0, Vector3.ZERO)
+		animation.track_insert_key(cheer_right, 0.12, Vector3(2.7, 0.0, 0.55))
+		animation.track_insert_key(cheer_right, 0.35, Vector3(2.35, 0.0, 0.45))
+		animation.track_insert_key(cheer_right, 0.6, Vector3(2.7, 0.0, 0.55))
+		animation.track_insert_key(cheer_right, 0.85, Vector3(2.35, 0.0, 0.45))
+		animation.track_insert_key(cheer_right, animation.length, Vector3.ZERO)
+		var cheer_left_leg := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(cheer_left_leg, NodePath("LeftLeg:rotation"))
+		animation.track_insert_key(cheer_left_leg, 0.0, Vector3.ZERO)
+		animation.track_insert_key(cheer_left_leg, 0.35, Vector3(0.12, 0.0, 0.0))
+		animation.track_insert_key(cheer_left_leg, 0.6, Vector3.ZERO)
+		animation.track_insert_key(cheer_left_leg, 0.85, Vector3(0.12, 0.0, 0.0))
+		animation.track_insert_key(cheer_left_leg, animation.length, Vector3.ZERO)
+		var cheer_right_leg := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(cheer_right_leg, NodePath("RightLeg:rotation"))
+		animation.track_insert_key(cheer_right_leg, 0.0, Vector3.ZERO)
+		animation.track_insert_key(cheer_right_leg, 0.35, Vector3(-0.12, 0.0, 0.0))
+		animation.track_insert_key(cheer_right_leg, 0.6, Vector3.ZERO)
+		animation.track_insert_key(cheer_right_leg, 0.85, Vector3(-0.12, 0.0, 0.0))
+		animation.track_insert_key(cheer_right_leg, animation.length, Vector3.ZERO)
+		return animation
 	if clip_name in ["holding_idle", "holding_walk"]:
 		var hold_base := 1.05 if clip_name == "holding_idle" else 1.15
 		var hold_swing := 0.04 if clip_name == "holding_idle" else 0.08
@@ -236,6 +285,8 @@ func _clip_duration(clip_name: String) -> float:
 		"jump_takeoff": return 0.15
 		"landing": return 0.2
 		"get_up": return 1.0
+		"wave": return 1.2
+		"cheer": return 1.0
 		_: return 0.6
 
 

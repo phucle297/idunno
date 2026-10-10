@@ -46,7 +46,7 @@ func _check_assets() -> void:
 	_expect(is_equal_approx((character.to_local(right_arm.global_position).x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 0.56), "Character shoulder width must be 0.56 m")
 	_expect(character.get_node("Head").position.y + 0.215 <= 1.605, "Character exceeds 1.60 m tolerance")
 	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
-	_expect((character as ToyCharacterVisual).get_animation_names().size() == 12, "Character must provide all 12 required animation clips")
+	_expect((character as ToyCharacterVisual).get_animation_names().size() == 14, "Character must provide all 14 required animation clips")
 	for variant in 4:
 		(character as ToyCharacterVisual).set_cosmetic_variant(variant)
 		_expect((character as ToyCharacterVisual).cosmetic_variant == variant, "Character cosmetic variant %d must be selectable" % variant)
