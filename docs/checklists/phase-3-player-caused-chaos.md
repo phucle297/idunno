@@ -125,9 +125,11 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 **ID:** `task_3_4_2_shove_integration` · **Conditional** · **Depends on:** passing3.4.1.
 
-- [ ] Add one distinct input, minimal ready/cooldown feedback and readable arm/body cue. Carrying, emote interruption and input blocking have explicit rules; default to no shove while holding a prop, knocked down, dead or in menus.
-- [ ] Replicate authoritative accepted effect and protection state where prediction needs it; suppress duplicate application under loss/reordering. Client responsiveness cannot authorize a second impulse or damage.
-- [ ] Validate two-client victim/observer agreement under the existing delay/jitter/loss matrix and five rematches. Inspect supported gameplay-distance cues without obscuring warnings.
+- [x] Add one distinct input, minimal ready/cooldown feedback and readable arm/body cue. Carrying, emote interruption and input blocking have explicit rules; default to no shove while holding a prop, knocked down, dead or in menus.
+- [x] Replicate authoritative accepted effect and protection state where prediction needs it; suppress duplicate application under loss/reordering. Client responsiveness cannot authorize a second impulse or damage.
+- [x] Validate two-client victim/observer agreement under the existing delay/jitter/loss matrix and five rematches. Inspect supported gameplay-distance cues without obscuring warnings.
+
+**Complete2026-10-10:** `shove` input (G) routes through `request_local_shove`; the server-side sender gate rejects carrying, knocked-down, eliminated, airborne, non-ACTIVE and cooled-down senders, and `local_input_blocked` stops menu-time initiation. The top-right `ShovePill` shows `READY` or a `1.4s`-style countdown and is suppressed in lobby/results/spectator views. The cue is a one-shot procedural `shove` clip: forward arm thrust plus lunge, corrected to thrust toward the actor's front (the prototype sign raised the arms behind the body), with widened arm spread and a forward torso lean so it reads at the rear gameplay camera. `apply_replicated_shove` is the single application path for acceptance and replication with per-victim monotonic sequence suppression; `test_session_lifecycle` locks the cross-channel fix where a stale snapshot could prune a just-spawned player. Evidence: `SESSION_LIFECYCLE_OK checks=54`, `SHOVE_OK checks=68`, `GAMEPLAY_HUD_OK checks=116`, `PHASE1_TESTS_OK checks=39`, `CARRY_PRESENTATION_OK checks=45` with reviewed `.amp/in/artifacts/phase-3-shove/` captures at720p/1080p, `MOVEMENT_LATENCY_OK response-bound` matrix, `PLAYABLE_SCENE_NETWORK_PEERS_OK` ×3 with five rematches and two-client shove agreement, `UI_REGRESSION_OK suites=36`. Human fun/fairness feel remains unclaimed under the waiver.
 
 **Acceptance:** Either the included mechanic passes cooldown, no-damage, bounded-force, anti-chain-lock and authority gates, or it is explicitly deferred with no residual action/RPC/UI/assets. A third-party request cannot move another player without passing server checks. No claim of human fun/fairness without observation.
 
@@ -158,7 +160,7 @@ These are source observations at planning time, before3.1 implementation, not cu
 
 ## Phase exit gates
 
-`safe_grab_ownership_and_release` and `carry_tradeoff_and_prediction_agreement` are **passed** for Phase3 after3.1–3.2's executed checks. Remaining gates are **not run**. Existing Phase2 passes support the baseline only.
+`safe_grab_ownership_and_release`, `carry_tradeoff_and_prediction_agreement`, `one_useful_prop_role_validated` and `shove_include_or_defer_decision` are **passed** for Phase3 after3.1–3.4's executed checks. Remaining gates are **not run**. Existing Phase2 passes support the baseline only.
 
 | Gate | Required evidence |
 | --- | --- |

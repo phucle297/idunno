@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T01:35:00Z",
+  "updated_at": "2026-10-10T04:45:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -12,16 +12,31 @@
   "checklist": "docs/checklists/phase-3-player-caused-chaos.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
-    "hierarchy": ["phase", "milestone", "task"],
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
     "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
-    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
-    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
     "phase": "phase_3_player_caused_chaos",
-    "milestone": "milestone_3_4_bounded_shove_decision",
-    "task": "task_3_4_2_shove_integration"
+    "milestone": "milestone_3_5_interruptible_emotes",
+    "task": "milestone_3_5_interruptible_emotes"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -46,51 +61,97 @@
     "id": "phase_3_player_caused_chaos",
     "title": "Player-Caused Chaos",
     "status": "in_progress",
-    "dependencies": ["phase_2_human_playtest_and_core_feel"],
+    "dependencies": [
+      "phase_2_human_playtest_and_core_feel"
+    ],
     "goal": "Safe readable carrying, one useful survival prop, an explicit optional fair-shove decision and two interruptible emotes for supported1–4 players; preserve authoritative gameplay and bounded physics.",
-    "budgets": {"supported_players": 4, "authoritative_loose_bodies": 32, "grabbable_props": 12, "active_disasters": 2},
+    "budgets": {
+      "supported_players": 4,
+      "authoritative_loose_bodies": 32,
+      "grabbable_props": 12,
+      "active_disasters": 2
+    },
     "milestones": {
       "milestone_3_1_safe_interaction_contract": {
         "title": "Safe Interaction Contract",
         "status": "completed",
-        "dependencies": ["phase_2_human_playtest_and_core_feel"],
+        "dependencies": [
+          "phase_2_human_playtest_and_core_feel"
+        ],
         "scope": "Shared acquisition eligibility, obstruction/mass checks, authority/ownership/release consistency and repeated-carry safety at existing GrabManager/Main owners.",
         "acceptance": "Prompt and server agree; no through-wall acquisition, heavy carry, stale ownership/collision exception or explosive repeated carry/release; contention, lifecycle and five rematches pass.",
-        "gates": {"safe_grab_ownership_and_release": "passed"}
+        "gates": {
+          "safe_grab_ownership_and_release": "passed"
+        }
       },
       "milestone_3_2_readable_carrying": {
         "title": "Readable Carrying with a Survival Tradeoff",
         "status": "completed",
-        "dependencies": ["milestone_3_1_safe_interaction_contract"],
-        "tasks": {"task_3_2_1_carry_movement": "completed", "task_3_2_2_carry_presentation": "completed"},
-        "gates": {"carry_tradeoff_and_prediction_agreement": "passed"}
+        "dependencies": [
+          "milestone_3_1_safe_interaction_contract"
+        ],
+        "tasks": {
+          "task_3_2_1_carry_movement": "completed",
+          "task_3_2_2_carry_presentation": "completed"
+        },
+        "gates": {
+          "carry_tradeoff_and_prediction_agreement": "passed"
+        }
       },
       "milestone_3_3_useful_survival_prop": {
         "title": "One Useful Survival Prop",
         "status": "completed",
-        "dependencies": ["milestone_3_2_readable_carrying"],
-        "tasks": {"task_3_3_1_prop_role_feasibility": "completed", "task_3_3_2_prop_role_integration": "completed"},
-        "gates": {"one_useful_prop_role_validated": "passed"}
+        "dependencies": [
+          "milestone_3_2_readable_carrying"
+        ],
+        "tasks": {
+          "task_3_3_1_prop_role_feasibility": "completed",
+          "task_3_3_2_prop_role_integration": "completed"
+        },
+        "gates": {
+          "one_useful_prop_role_validated": "passed"
+        }
       },
       "milestone_3_4_bounded_shove_decision": {
         "title": "Optional Fair Shove Decision",
-        "status": "in_progress",
-        "dependencies": ["milestone_3_3_useful_survival_prop"],
-        "tasks": {"task_3_4_1_shove_experiment": "completed: prototype at game/shove_manager.gd + tests/test_shove.gd passed SHOVE_OK checks=53; decision INCLUDE the shove (DESIGN sanctions it once network movement is reliable; the 3.3 gate and latency matrix provide that stability and the prototype's fairness result is clean)", "task_3_4_2_shove_integration": "in_progress: integrate accepted-shove input, cue and replication, then run the two-client delay/jitter/loss matrix and five rematch checks"},
+        "status": "completed",
+        "dependencies": [
+          "milestone_3_3_useful_survival_prop"
+        ],
+        "tasks": {
+          "task_3_4_1_shove_experiment": "completed: prototype at game/shove_manager.gd + tests/test_shove.gd passed SHOVE_OK checks=53; decision INCLUDE the shove (DESIGN sanctions it once network movement is reliable; the 3.3 gate and latency matrix provide that stability and the prototype's fairness result is clean)",
+          "task_3_4_2_shove_integration": "completed: shove input (G) + ShovePill READY/cooldown feedback + procedural shove cue integrated; server-accepted effect and protection replicate with per-victim monotonic-sequence duplicate suppression. Session-lifecycle roster-ordering hole fixed and regression-tested. Evidence: SESSION_LIFECYCLE_OK checks=54, SHOVE_OK checks=68, GAMEPLAY_HUD_OK checks=116, PHASE1_TESTS_OK checks=39, CARRY_PRESENTATION_OK checks=45 with reviewed 720p/1080p captures, MOVEMENT_LATENCY_OK response-bound matrix, PLAYABLE_SCENE_NETWORK_PEERS_OK x3 with network_rematches=5, UI_REGRESSION_OK suites=36"
+        },
         "conditional": "Decision required; integration only if experiment passes. Deferral is recorded, not an unexecuted gameplay pass.",
-        "gates": {"shove_include_or_defer_decision": "not_run"}
+        "gates": {
+          "shove_include_or_defer_decision": "passed"
+        }
       },
       "milestone_3_5_interruptible_emotes": {
         "title": "Two Interruptible Social Emotes",
         "status": "planned",
-        "dependencies": ["milestone_3_2_readable_carrying", "milestone_3_4_bounded_shove_decision"],
-        "gates": {"two_interruptible_emotes_validated": "not_run"}
+        "dependencies": [
+          "milestone_3_2_readable_carrying",
+          "milestone_3_4_bounded_shove_decision"
+        ],
+        "gates": {
+          "two_interruptible_emotes_validated": "not_run"
+        }
       },
       "milestone_3_6_integrated_chaos_validation": {
         "title": "Integrated Chaos Regression and Matching Delivery",
         "status": "planned",
-        "dependencies": ["milestone_3_1_safe_interaction_contract", "milestone_3_2_readable_carrying", "milestone_3_3_useful_survival_prop", "milestone_3_4_bounded_shove_decision", "milestone_3_5_interruptible_emotes"],
-        "gates": {"supported_multiplayer_lifecycle_and_performance": "not_run", "matching_packages_and_reviewable_visuals": "not_run"}
+        "dependencies": [
+          "milestone_3_1_safe_interaction_contract",
+          "milestone_3_2_readable_carrying",
+          "milestone_3_3_useful_survival_prop",
+          "milestone_3_4_bounded_shove_decision",
+          "milestone_3_5_interruptible_emotes"
+        ],
+        "gates": {
+          "supported_multiplayer_lifecycle_and_performance": "not_run",
+          "matching_packages_and_reviewable_visuals": "not_run"
+        }
       }
     }
   },
@@ -262,11 +323,64 @@
       "command": "timeout 240 godot --headless --path . --script res://tests/test_shove.gd",
       "status": "passed",
       "result": "SHOVE_OK checks=53. Task3.4.1 bounded shove prototype validates every requested boundary with real geometry: no HP damage and no routine knockdown; deterministic nearest-target selection with ties by peer id; 2.2m range accepts 2.1m and rejects 2.4m, the 60-degree cone rejects 61 degrees and behind, and the cover wall rejects through-wall acceptance; fixed 6.0 horizontal impulse clamped to 8.0 with zero vertical on moving targets and on roof/ramp edges; 2.0s sender cooldown rejects 9 of 10 spam requests; 2.5s victim protection rejects a simultaneous second attacker while the victim keeps a measured 0.3m+ movement escape window, and alternating attackers cannot chain-lock; knockdown recovery grants the same protection; protection never blocks disasters (apply_damage_batch/apply_knockdown still land); non-ACTIVE match, eliminated players and airborne senders reject; rematch reset_state clears both windows and accepts fresh shoves. Decision: INCLUDE, per DESIGN.md's sanction once network movement is reliable (3.3 gate + latency matrix)."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_session_lifecycle.gd after roster-ordering fix",
+      "status": "passed",
+      "result": "SESSION_LIFECYCLE_OK checks=54. Fixed a real cross-channel ordering hole: a lost+resent stale match snapshot (unreliable_ordered ch2) could arrive after a reliable spawn (ch0) and prune the just-spawned player. _spawn_network_player now stamps spawns with _match_snapshot_sequence and _apply_match_snapshot early-returns at sequence <= _roster_snapshot_floor. Regression: stale seq-8 snapshot must not prune a spawn-stamped-10 player; seq-11 roster still prunes. Root cause proven with a print_stack diagnostic (apply_session_snapshot -> apply_match_snapshot -> remove_network_player) before the fix."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "Task3.4.2 integration suites: test_shove, test_gameplay_hud, test_phase1, test_carry_presentation",
+      "status": "passed",
+      "result": "SHOVE_OK checks=68, GAMEPLAY_HUD_OK checks=116 (ShovePill READY/1.4s cooldown text, lobby/results suppression, no overlap with warning banner/hazard tray/health/timer), PHASE1_TESTS_OK checks=39 (12-clip contract with the new shove clip), CARRY_PRESENTATION_OK checks=24 headless. Input action shove (G) routes through request_local_shove; _sender_eligible rejects carrying, knocked-down, eliminated, airborne, non-ACTIVE and cooled-down senders server-side; local_input_blocked gates menu input."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50; tests/run_playable_scene_network_test.sh x3; PLAYER_COUNTS=4 tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound in all three delay cases with shove fixtures included; PLAYABLE_SCENE_NETWORK_PEERS_OK three consecutive runs with network_rematches=5 and two-client shove agreement (sequence, protection, cue, victim displacement, replay rejection); UI_REGRESSION_OK suites=36/matrices=5/persistence_restart=passed. Contrary evidence preserved: one ~13.8m owner correction at 100ms outside fixture windows (known intermittent class) and two earlier playable-test intermittents (disaster-wait desync, shove observation race) documented in the test comments. Milestone3.4 gate shove_include_or_defer_decision passes; included mechanic clears authority, cooldown, no-damage, bounded-force and anti-chain-lock gates."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "Task3.4.2 presentation captures at 1280x720 and 1920x1080 (xvfb-run, Dummy audio)",
+      "status": "passed",
+      "result": "CARRY_PRESENTATION_OK checks=45 at both resolutions; captures in .amp/in/artifacts/phase-3-shove/: carry-idle/walk/crouch/airborne, release, knockdown-recovery, shove-cue. Shove cue review confirms the shover in the forward arm-thrust + lunge pose with the victim displaced mid-knockback and the SHOVE 1.4s pill clear of the METEOR warning and hazard chips; knockdown-recovery shows the readable get_up limb swing with no HUD overlap. Presentation fixes made to reach that evidence: the shove clip thrust was flipped to positive rotation.x (it previously raised the arms behind the actor) with widened arm spread and a forward Torso lean for rear-camera readability, review captures now release every scene camera (player.tscn marks its camera current = true and a spawned victim stole the viewport), and the get_up review frame freezes at the 0.5s limb-swing peak instead of the 0.3s zero crossing. Human visual/feel acceptance remains with the user per the waiver; not claimed here."
     }
   ],
   "blockers": [
     "Phase2's unclassified X-loss/rematch/20-player observations and unexecuted native/release acceptance remain preserved in previous_phase_archive. They are not marked fixed or passed; current support remains1–4 and user manual waiver remains in force."
   ],
-  "changed_files": ["progress.json", "game/grab_manager.gd", "game/player.gd", "game/player_tuning.gd", "game/toy_character_visual.gd", "game/main.gd", "game/shove_manager.gd", "scenes/main.tscn", "assets/manifest.json", "tests/test_grab_manager.gd", "tests/test_network_prediction.gd", "tests/test_map_safety.gd", "tests/test_player_integration.gd", "tests/test_carry_presentation.gd", "tests/test_gameplay_hud.gd", "tests/test_milestone_1_1.gd", "tests/movement_latency_peer.gd", "tests/test_prop_role_feasibility.gd", "tests/test_flood.gd", "tests/playable_scene_network_peer.gd", "tests/test_shove.gd", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-3-player-caused-chaos.md"],
-  "next_action": "Task3.4.2: integrate the accepted shove with input action, cooldown/arm cue, server-accepted effect and protection-state replication plus duplicate suppression, then run the two-client delay/jitter/loss matrix and five rematch checks."
+  "changed_files": [
+    "progress.json",
+    "game/grab_manager.gd",
+    "game/player.gd",
+    "game/player_tuning.gd",
+    "game/toy_character_visual.gd",
+    "game/main.gd",
+    "game/shove_manager.gd",
+    "scenes/main.tscn",
+    "assets/manifest.json",
+    "tests/test_grab_manager.gd",
+    "tests/test_network_prediction.gd",
+    "tests/test_map_safety.gd",
+    "tests/test_player_integration.gd",
+    "tests/test_carry_presentation.gd",
+    "tests/test_gameplay_hud.gd",
+    "tests/test_milestone_1_1.gd",
+    "tests/movement_latency_peer.gd",
+    "tests/test_prop_role_feasibility.gd",
+    "tests/test_flood.gd",
+    "tests/playable_scene_network_peer.gd",
+    "tests/test_shove.gd",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "docs/checklists/phase-3-player-caused-chaos.md",
+    "game/ui/gameplay_hud.gd",
+    "project.godot",
+    "tests/test_session_lifecycle.gd",
+    "tests/test_phase1.gd"
+  ],
+  "next_action": "Milestone3.5: implement two interruptible emotes (wave/cheer) with server-validated emote identity and request rate, immediate cancellation on movement/jump/crouch/grab/accepted shove, override on damage/knockdown/death/rematch, no movement lock or aim change, clip-contract and variant preservation, two-client agreement checks and 720p/1080p interruption-pose captures."
 }
