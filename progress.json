@@ -377,6 +377,12 @@
       "command": "xvfb-run godot --path . --audio-driver Dummy --resolution 1280x720|1920x1080 --script res://tests/{test_carry_presentation,test_prop_role_feasibility,test_gameplay_hud,test_spectator_presentation,test_results_actions}.gd -- --capture-dir=.amp/in/artifacts/phase-3-final/{720p,1080p} --review-size=... (5 suites x 2 resolutions) + visual review of all categories",
       "status": "pass",
       "result": "Captures green at both resolutions into .amp/in/artifacts/phase-3-final/{720p,1080p} (44 PNGs each). Review verdicts: spectator/eliminated card and results/rematch actions clean (REMATCH/RETURN TO LOBBY/SETTINGS legible); warning-overlap readable (FLOOD INCOMING/REACH HIGH GROUND banner + METEOR/FLOOD chips legible; accepted design characteristics: yellow ring on yellow ground, semi-transparent chips, in-world countdown numeral over head); carry readable (crate at 1.0m hold distance, release prompt clear; sandbox ramp edge crosses head silhouette from capture camera angle - scene geometry behind character, same composition accepted in 3.2); shove cue visible (mid-ground shover thrust + pill clear of warnings; numeric pose asserts pass); emote-cheer clean; emote-wave captured mid-swing this run (peak frame reviewed in 3.5 set; contract verified by test_emotes). Prop route documented as 3 stage frames (crate/step/refuge). Native-Windows capture inspection recorded as device check in NEED_REAL_CHECK.md (orb captures are Linux/llvmpipe)."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=.tools/godot/... bash tools/export_playtest.sh {windows,linux-server} DIR (x2 runs) + diff SHA256SUMS.txt + python3 tools/verify_exported_artifacts.py + python3 tests/run_release_linux_test.py .scratch/export-run1/linux-server --log ... --port 29870",
+      "status": "pass",
+      "result": "Exports from clean f82a5cbca02be43c78c67bf8db8984af4fbf335e: byte-identical SHA256SUMS across repeated runs for both targets, one shared PCK (a4fe08ed...) across Windows/Linux. Exact-PCK audit: 90 entries incl. project.binary, scenes/main.tscn, 54 compiled game scripts; zero tests/tools/docs/source/reference paths; tampered-copy negative check rejected. Created tools/verify_exported_artifacts.py (the ps1 native-check harness referenced it but it was never committed); validated on all four bundles. RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent all passed on the real exported binary (release-runtime lifecycle, distinct from editor-driven PCK fixtures and release input/network/feel). Windows exe cannot run in the Linux orb; native Windows smoke stays device-side (ps1 harness + EXE launch in NEED_REAL_CHECK.md). Installed official Godot 4.7.2 export templates into the orb (machine-local tooling)."
     }
   ],
   "blockers": [
@@ -413,5 +419,5 @@
     "tests/test_phase1.gd",
     "tests/test_emotes.gd"
   ],
-  "next_action": "3.6 item 5: run tools/export_playtest.sh windows|linux-server from clean committed HEAD, diff the two SHA256SUMS.txt, check exact-PCK content, run release smoke + standalone Linux lifecycle on the built binaries; Windows exe cannot run in the orb - record honestly."
+  "next_action": "3.6 item 6: assemble matching client/server bundles (Windows ZIP + Linux TAR from the verified exports) with short control and bug-report notes; publish nothing (no GitHub Release, no EC2 deploy, no server restart), request scoped approval only after local work is ready."
 }
