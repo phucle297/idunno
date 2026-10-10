@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10T14:59:29Z",
+  "updated_at": "2026-10-10",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_4_disaster_remix_and_toy_town_interaction",
     "milestone": "milestone_4_3_map_variety_one_additional_map_at_a_time",
-    "task": "task_4_3b_build_toy_harbor_with_map_owned_anchors"
+    "task": "task_4_3c_server_selected_map_identity"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -90,7 +90,7 @@
         "status": "in_progress",
         "tasks": {
           "task_4_3a_ground_the_garage_silhouette": "completed: user feedback 2026-10-09 - four inset deck-to-canopy columns and four corner beam braces in game/main.gd::_add_parking_garage keep deck/ramp/canopy geometry; _check_garage_canopy gate passes (mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado cover with open deck uncovered, deck walk head<4.65m, camera clearance, five-rematch restoration, post-rematch deck walk) at MAP_SAFETY_OK checks=251 headless / checks=277 rendered with inspected interior/overview captures",
-          "task_4_3b_build_toy_harbor_with_map_owned_anchors": "planned: compact Toy Harbor map from the existing modular kit (docks and cargo platforms, sheltered warehouse with two exits, multiple high escape routes) with map-owned spawn/shelter/breakable/hazard anchors; two-map gate for spawns/routes/refuge exits/flood escape/hazard coverage/five rematches",
+          "task_4_3b_build_toy_harbor_with_map_owned_anchors": "completed: Toy Harbor built from the modular kit (two-exit warehouse with breakable roof panel, crane deck on pillars with ramp/edge drop, docks with breakable two-piece gangway, cargo platforms with breakable lids, four ramps) and map-owned anchors now drive spawn/tornado/meteor/lightning/fire wiring through _apply_map_anchors; set_map_id rebuilds via _reset_sandbox (stacked-map collision bug fixed), ramp tops meet platform faces flush, dock tops at 3.75m exceed the 3.5m flood peak. Two-map gate MAP_VARIETY_OK checks=303 headless / 307 rendered: anchor schema+wiring, 20-spawn probe, four walk-only routes, two walked exits per refuge, flood escape per spawn group (alive, health held), no-universal-safe checks, five rematches restoring breakables/props/map identity; captures inspected. Supported regression UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed.",
           "task_4_3c_server_selected_map_identity": "planned: server-selected map identity at the lobby/rematch boundary replicated to every client before countdown; deterministic map-load tests"
         }
       },
@@ -194,9 +194,30 @@
       "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Supported gate: UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed, including MAP_SAFETY_OK checks=251 in-suite and all prior network/chaos/dedicated groups. An earlier default-matrix run passed everything through the beyond-supported 8-player chaos stages, then failed at the known 20-player snapshot-MTU guard ('Oversized unreliable snapshot in 20-player session'); unchanged, non-gating, support remains 1-4. Log .scratch/ui_regression_supported.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "timeout 560 godot --headless --path . --script res://tests/test_map_variety.gd; xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_map_variety.gd -- --capture-dir=.amp/in/artifacts/phase-4/map-variety; view_media map-variety-toy_{town,harbor}{Gameplay,Overview}",
+      "status": "passed",
+      "result": "Two-map gate passes: MAP_VARIETY_OK checks=303 headless and checks=307 rendered. Per map: anchor schema plus hazard wiring (tornado/meteor/lightning/fire pulled from map anchors, Sandbox meta), 20-spawn geometry probe, four walk-only elevation routes with y/xz arrival asserts, two walked exits per refuge, flood escape per spawn group (peak 3.5m reached, alive, health held), no-universal-safe anchor checks (refuges in strike areas and tornado reach, cover inside strike areas, fire zone coverage span), and five rematches restoring every breakable/prop and map identity. Gameplay/overview captures inspected: Toy Town unchanged/clean; Toy Harbor reads with grounded warehouse, crane deck on pillars, docks, ramps and cargo (functional connections walk-proven; low gameplay angle makes the gangway bridge seam ambiguous, noted cosmetic). Root causes fixed during the gate: set_map_id rebuilt without freeing the previous sandbox (stacked maps caused phantom collision and ejections; now routes through _reset_sandbox), ramp tops buried under deck/dock faces blocked walkers at the step-up seam (now flush), dock tops raised to 3.75 above the 3.5 flood peak so docks are real elevation refuges, and the flood escape assert now requires alive+health-held rather than a fragile absolute 100 that earlier groups could poison. Captures .amp/in/artifacts/phase-4/map-variety/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate after the map-ownership refactor and Toy Harbor: UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed (39 includes the new test_map_variety suite), with MAP_SAFETY_OK checks=251 in-suite and all network/chaos/dedicated groups green. Log .scratch/regression_after_harbor.log."
     }
   ],
   "blockers": [],
-  "changed_files": ["game/main.gd", "tests/test_map_safety.gd", "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md", "docs/decisions.md", "progress.json"],
-  "next_action": "Build task_4_3b: the compact Toy Harbor map from the existing modular kit with map-owned spawn/shelter/breakable/hazard anchors, then its two-map gate (reachable spawns, four elevation routes, two exits per refuge, flood escape per spawn group, no universally safe location, hazard coverage, five rematches)."
+  "changed_files": [
+    "game/main.gd",
+    "game/tornado.gd",
+    "game/meteor_shower.gd",
+    "game/lightning.gd",
+    "game/fire.gd",
+    "tests/test_map_variety.gd",
+    "docs/decisions.md",
+    "progress.json"
+  ],
+  "next_action": "Build task_4_3c: server-selected map id in the playable session/match snapshot applied by clients before countdown, owner lobby map selection, and deterministic map-load tests."
 }

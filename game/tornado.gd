@@ -37,6 +37,12 @@ var _players: Dictionary = {}
 var _core_exposure: Dictionary = {}
 var _thrown_players: Dictionary = {}
 var _cover_volumes: Array[AABB] = []
+var path_presets: Array = [
+	[Vector3(-24.0, 0.0, -12.0), Vector3(24.0, 0.0, 12.0)],
+	[Vector3(24.0, 0.0, -12.0), Vector3(-24.0, 0.0, 12.0)],
+	[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
+	[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)]
+]
 var _effect: Node3D
 
 
@@ -55,13 +61,9 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
-	var paths := [
-		[Vector3(-24.0, 0.0, -12.0), Vector3(24.0, 0.0, 12.0)],
-		[Vector3(24.0, 0.0, -12.0), Vector3(-24.0, 0.0, 12.0)],
-		[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
-		[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)]
-	]
-	var path: Array = paths[rng.randi_range(0, paths.size() - 1)]
+	if path_presets.is_empty():
+		return false
+	var path: Array = path_presets[rng.randi_range(0, path_presets.size() - 1)]
 	return start_warning(path[0], path[1])
 
 
@@ -87,6 +89,16 @@ func unregister_player(peer_id: int) -> bool:
 
 func add_cover_volume(volume: AABB) -> void:
 	_cover_volumes.append(volume)
+
+
+func set_cover_volumes(volumes: Array) -> void:
+	_cover_volumes.clear()
+	for volume in volumes:
+		_cover_volumes.append(volume as AABB)
+
+
+func set_path_presets(paths: Array) -> void:
+	path_presets = paths.duplicate()
 
 
 func start_warning(path_start: Vector3, path_end: Vector3) -> bool:

@@ -55,6 +55,8 @@ var warning_remaining := 0.0
 var active_remaining := 0.0
 var propagation_remaining := 0.0
 var wind_active := false
+var zone_positions: Array = ZONE_POSITIONS.duplicate()
+var zone_neighbors: Array = ZONE_NEIGHBORS.duplicate()
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -74,6 +76,19 @@ func configure(match_manager: MatchManager) -> void:
 	_reset_zone_states()
 
 
+func set_zone_layout(positions: Array, neighbors: Array) -> bool:
+	if positions.is_empty() or positions.size() != neighbors.size():
+		return false
+	for links in neighbors:
+		for neighbor in links:
+			if neighbor < 0 or neighbor >= positions.size():
+				return false
+	zone_positions = positions.duplicate()
+	zone_neighbors = neighbors.duplicate()
+	_reset_zone_states()
+	return true
+
+
 func get_disaster_metadata() -> Dictionary:
 	return {
 		"name": DISASTER_NAME,
@@ -86,7 +101,7 @@ func get_disaster_metadata() -> Dictionary:
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
 	_rng.seed = rng.randi()
-	return start_warning(_rng.randi_range(0, ZONE_POSITIONS.size() - 1))
+	return start_warning(_rng.randi_range(0, zone_positions.size() - 1))
 
 
 func is_active() -> bool:
@@ -110,7 +125,7 @@ func unregister_player(peer_id: int) -> bool:
 func start_warning(zone_id: int) -> bool:
 	if not _can_mutate() or phase != Phase.IDLE or not is_instance_valid(_match_manager):
 		return false
-	if _match_manager.state != MatchManager.MatchState.ACTIVE or zone_id < 0 or zone_id >= ZONE_POSITIONS.size():
+	if _match_manager.state != MatchManager.MatchState.ACTIVE or zone_id < 0 or zone_id >= zone_positions.size():
 		return false
 	_reset_zone_states()
 	phase = Phase.WARNING
@@ -243,7 +258,7 @@ func _apply_fire_damage(delta: float) -> void:
 		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
 			continue
 		for zone_id in get_burning_zone_ids():
-			var zone := ZONE_POSITIONS[zone_id] as Vector3
+			var zone := zone_positions[zone_id] as Vector3
 			if Vector2(player.global_position.x - zone.x, player.global_position.z - zone.z).length() <= zone_radius:
 				damage_events.append({"peer_id": peer_id, "amount": damage_per_second * delta, "cause": DAMAGE_CAUSE})
 				break
@@ -254,7 +269,7 @@ func _apply_fire_damage(delta: float) -> void:
 func _warn_next_zone() -> void:
 	var candidates: Array[int] = []
 	for burning_zone in get_burning_zone_ids():
-		for neighbor: int in ZONE_NEIGHBORS[burning_zone]:
+		for neighbor: int in zone_neighbors[burning_zone]:
 			if _zone_states[neighbor] == ZoneState.SAFE and neighbor not in candidates:
 				candidates.append(neighbor)
 	if candidates.is_empty():
@@ -269,7 +284,7 @@ func _ignite_pending_zone() -> void:
 	if _pending_zone < 0:
 		return
 	_zone_states[_pending_zone] = ZoneState.BURNING
-	zone_ignited.emit(_pending_zone, ZONE_POSITIONS[_pending_zone])
+	zone_ignited.emit(_pending_zone, zone_positions[_pending_zone])
 	_pending_zone = -1
 	_sync_wind_debris()
 
@@ -280,7 +295,7 @@ func _current_propagation_interval() -> float:
 
 func _reset_zone_states() -> void:
 	_zone_states = PackedByteArray()
-	_zone_states.resize(ZONE_POSITIONS.size())
+	_zone_states.resize(zone_positions.size())
 	_zone_states.fill(ZoneState.SAFE)
 
 
@@ -301,7 +316,7 @@ func _sync_wind_debris() -> void:
 	_burning_debris.collision_layer = 4
 	_burning_debris.add_to_group("grabbable")
 	_burning_debris.add_to_group("burning_debris")
-	_burning_debris.position = ZONE_POSITIONS[burning_zones[0]] + Vector3.UP * 0.55
+	_burning_debris.position = zone_positions[burning_zones[0]] + Vector3.UP * 0.55
 	_burning_debris.add_child(_create_burning_debris_visual())
 	var collision := CollisionShape3D.new()
 	var shape := SphereShape3D.new()
@@ -355,10 +370,10 @@ func _spawn_effect() -> void:
 	_warning_material = _zone_material(Color("ffbf3f"), 0.82)
 	_fire_material = _zone_material(Color("f06438"), 0.95)
 	_amber_material = _zone_material(Color("ffbf3f"), 0.95)
-	for zone_id in ZONE_POSITIONS.size():
+	for zone_id in zone_positions.size():
 		var zone := Node3D.new()
 		zone.name = "Zone%d" % zone_id
-		zone.position = ZONE_POSITIONS[zone_id]
+		zone.position = zone_positions[zone_id]
 		var ring := MeshInstance3D.new()
 		ring.name = "Ring"
 		var ring_mesh := TorusMesh.new()

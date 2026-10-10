@@ -27,6 +27,7 @@ var phase := Phase.IDLE
 var warning_remaining := 0.0
 var target_position := Vector3.ZERO
 var impact_count := 0
+var strike_half_extent := 18.0
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -37,6 +38,10 @@ var _countdown: Label3D
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func set_strike_area(half_extent: float) -> void:
+	strike_half_extent = half_extent
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -50,7 +55,7 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
-	return start_warning(Vector3(rng.randf_range(-18.0, 18.0), 0.06, rng.randf_range(-18.0, 18.0)))
+	return start_warning(Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent)))
 
 
 func is_active() -> bool:

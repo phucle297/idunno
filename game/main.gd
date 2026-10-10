@@ -21,6 +21,7 @@ const MATCH_SNAPSHOT_INTERVAL := 0.1
 const PROP_SNAPSHOT_INTERVAL := 0.1
 const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
+const MAP_IDS := ["toy_town", "toy_harbor"]
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -62,6 +63,8 @@ var room_client: Node
 var _direct_ip_mode := false
 var _room_id := ""
 var _room_connection_remaining := 0.0
+var map_id := "toy_town"
+var map_anchors: Dictionary = {}
 
 
 func _ready() -> void:
@@ -73,7 +76,7 @@ func _ready() -> void:
 	_configure_ui_theme()
 	_build_lighting()
 	_build_sandbox()
-	$Player.position = Vector3(0.0, 0.05, 7.0)
+	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)
@@ -92,8 +95,6 @@ func _ready() -> void:
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
 	fire.warning_started.connect(_on_fire_warning_started)
-	tornado.add_cover_volume(AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)))
-	tornado.add_cover_volume(AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)))
 	disaster_director.configure(match_manager)
 	disaster_director.register_disaster(meteor_shower)
 	disaster_director.register_disaster(flood)
@@ -956,7 +957,8 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 func _network_spawn_position(index: int) -> Vector3:
 	var column := index % 5
 	var row := index / 5
-	return Vector3((column - 2) * 1.5, 0.05, 7.0 + row * 1.5)
+	var origin: Vector3 = map_anchors.spawn_origin
+	return origin + Vector3((column - 2) * 1.5, 0.0, row * 1.5)
 
 
 func _process(delta: float) -> void:
@@ -1601,7 +1603,7 @@ func return_to_lobby() -> bool:
 		var player := _player_nodes.get(peer_id) as PartyPlayer
 		if not is_instance_valid(player):
 			return false
-		var spawn_position := Vector3(0.0, 0.05, 7.0) if peer_id == 1 else _network_spawn_position(index)
+		var spawn_position: Vector3 = map_anchors.spawn_origin if peer_id == 1 else _network_spawn_position(index)
 		player.reset_for_match(spawn_position)
 	_set_lobby_visible(true)
 	if not _network_mode:
@@ -1767,7 +1769,38 @@ func _build_lighting() -> void:
 	$Sun.light_energy = 1.0
 
 
+func get_map_id() -> String:
+	return map_id
+
+
+func set_map_id(id: String) -> bool:
+	if id not in MAP_IDS:
+		return false
+	if id == map_id:
+		return true
+	map_id = id
+	# Rebuild through the reset path so the previous map's geometry is freed
+	# instead of stacking a second sandbox on top of it.
+	_reset_sandbox()
+	return true
+
+
 func _build_sandbox() -> void:
+	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
+	_apply_map_anchors(anchors)
+
+
+func _apply_map_anchors(anchors: Dictionary) -> void:
+	map_anchors = anchors
+	$Sandbox.set_meta("map_anchors", anchors)
+	tornado.set_cover_volumes(anchors.cover_volumes)
+	tornado.set_path_presets(anchors.tornado_paths)
+	meteor_shower.set_strike_area(anchors.strike_half_extent)
+	lightning.set_strike_area(anchors.strike_half_extent)
+	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
+
+
+func _build_map_base() -> void:
 	_add_static_box("Ground", Vector3(64.0, 0.4, 64.0), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
 	for side: String in ["North", "South", "West", "East"]:
 		var horizontal := side == "North" or side == "South"
@@ -1780,6 +1813,10 @@ func _build_sandbox() -> void:
 		size.y = 0.2
 		center.y = 3.1
 		_add_static_box("BoundaryCap" + side, size, center, PALETTE.slate)
+
+
+func _build_toy_town() -> Dictionary:
+	_build_map_base()
 	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
@@ -1819,6 +1856,126 @@ func _build_sandbox() -> void:
 	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(23.2, 0.4, 14.5)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
+	return {
+		"map_id": "toy_town",
+		"spawn_origin": Vector3(0.0, 0.05, 7.0),
+		"cover_volumes": [
+			AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)),
+			AABB(Vector3(11.0, 0.0, -18.0), Vector3(10.0, 4.5, 10.0)),
+		],
+		"tornado_paths": [
+			[Vector3(-24.0, 0.0, -12.0), Vector3(24.0, 0.0, 12.0)],
+			[Vector3(24.0, 0.0, -12.0), Vector3(-24.0, 0.0, 12.0)],
+			[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
+			[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)],
+		],
+		"strike_half_extent": 18.0,
+		"fire_zones": [
+			Vector3(-12.0, 0.08, -5.0), Vector3(-5.0, 0.08, -5.0), Vector3(2.0, 0.08, -5.0), Vector3(9.0, 0.08, -5.0),
+			Vector3(-12.0, 0.08, 5.0), Vector3(-5.0, 0.08, 5.0), Vector3(2.0, 0.08, 5.0), Vector3(9.0, 0.08, 5.0),
+		],
+		"fire_zone_neighbors": [[1, 4], [0, 2, 5], [1, 3, 6], [2, 7], [0, 5], [1, 4, 6], [2, 5, 7], [3, 6]],
+		"elevation_routes": [
+			{"name": "ShopRoofRamp", "low": Vector3(-16.0, 0.0, -29.3), "high": Vector3(-16.0, 4.855, -18.3)},
+			{"name": "HallRoofRamp", "low": Vector3(16.0, 0.0, -29.3), "high": Vector3(16.0, 4.855, -19.3)},
+			{"name": "GarageRamp", "low": Vector3(-15.0, 0.0, -3.0), "high": Vector3(-15.0, 2.575, 9.0)},
+			{"name": "ParkRamp", "low": Vector3(15.0, 0.05, 0.0), "high": Vector3(15.0, 2.2, 10.0)},
+		],
+		"refuges": [
+			{"name": "Shop", "kind": "shelter", "center": Vector3(-16.0, 0.0, -13.0), "exits": [Vector3(-16.0, 0.0, -19.5), Vector3(-16.0, 0.0, -6.5)]},
+			{"name": "Hall", "kind": "shelter", "center": Vector3(16.0, 0.0, -13.0), "exits": [Vector3(16.0, 0.0, -20.5), Vector3(16.0, 0.0, -5.5)]},
+			{"name": "ShopRoof", "kind": "elevation", "center": Vector3(-16.0, 4.855, -16.0), "exits": [Vector3(-16.0, 4.855, -18.3), Vector3(-16.0, 4.855, -8.5)]},
+			{"name": "HallRoof", "kind": "elevation", "center": Vector3(16.0, 4.855, -17.0), "exits": [Vector3(16.0, 4.855, -19.3), Vector3(16.0, 4.855, -7.0)]},
+			{"name": "GarageDeck", "kind": "elevation", "center": Vector3(-15.0, 2.575, 15.0), "exits": [Vector3(-15.0, 2.575, 9.3), Vector3(-15.0, 2.575, 20.7)]},
+			{"name": "PocketPark", "kind": "elevation", "center": Vector3(15.0, 2.2, 14.0), "exits": [Vector3(15.0, 2.2, 10.3), Vector3(15.0, 2.2, 17.7)]},
+		],
+		"spawn_groups": [
+			{"name": "plaza_west", "spawn": Vector3(-2.0, 0.05, 7.0), "waypoints": [Vector3(-15.0, 0.05, -4.0)], "route": "GarageRamp"},
+			{"name": "plaza_east", "spawn": Vector3(2.0, 0.05, 7.0), "waypoints": [Vector3(15.0, 0.05, -1.0)], "route": "ParkRamp"},
+		],
+	}
+
+
+func _build_toy_harbor() -> Dictionary:
+	_build_map_base()
+	# Shallow decorative basin between the docks; the floor stays walkable so
+	# flood/ground gameplay remains authoritative on real collision.
+	_add_static_box("HarborBasin", Vector3(30.0, 0.06, 16.0), Vector3(0.0, 0.03, 7.0), PALETTE.teal)
+	_add_static_box("BoardwalkSouth", Vector3(64.0, 0.05, 6.0), Vector3(0.0, 0.025, 22.0), PALETTE.sand)
+	# Sheltered warehouse: two exits (north/south doorways) and a roof refuge.
+	_add_open_building("Warehouse", Vector3(0.0, 0.0, -18.0), Vector2(16.0, 12.0), 4.5, PALETTE.amber)
+	_add_breakable_structure("roof_panel_warehouse", "RoofPanelWarehouse", Vector3(2.0, 0.24, 2.0), Vector3(0.0, 4.735, -18.0), PALETTE.cream)
+	# Crane deck: high refuge supported on visible pillars, ramp plus edge drop.
+	_add_static_box("CraneDeck", Vector3(10.0, 0.35, 8.0), Vector3(0.0, 4.68, -2.0), PALETTE.coral)
+	$Sandbox/CraneDeck.add_to_group("landmark")
+	for x in [-4.0, 4.0]:
+		for z in [-5.0, 1.0]:
+			_add_static_box("CranePillar_%s_%s" % [x, z], Vector3(0.7, 4.5, 0.7), Vector3(x, 2.25, z), PALETTE.slate)
+	_add_world_label("CraneDeckLabel", "CRANE DECK", Vector3(0.0, 5.3, -2.0), PALETTE.cream)
+	# Dock platforms with a breakable two-piece gangway across the basin.
+	# Dock tops sit at 3.75, above the 3.5 flood peak, so the docks are real
+	# elevation refuges instead of flood traps.
+	_add_static_box("DockWest", Vector3(12.0, 3.75, 10.0), Vector3(-18.0, 1.875, 9.0), PALETTE.teal)
+	$Sandbox/DockWest.add_to_group("landmark")
+	_add_static_box("DockEast", Vector3(12.0, 3.75, 10.0), Vector3(18.0, 1.875, 9.0), PALETTE.teal)
+	$Sandbox/DockEast.add_to_group("landmark")
+	_add_breakable_structure("gangway_west", "GangwayWest", Vector3(12.0, 0.25, 1.5), Vector3(-6.0, 3.625, 9.0), PALETTE.cream)
+	_add_breakable_structure("gangway_east", "GangwayEast", Vector3(12.0, 0.25, 1.5), Vector3(6.0, 3.625, 9.0), PALETTE.cream)
+	# Cargo platforms carry breakable lids like the Toy Town roof panels.
+	_add_static_box("CargoPlatformWest", Vector3(7.0, 2.6, 6.0), Vector3(-16.0, 1.3, -16.0), PALETTE.amber)
+	_add_static_box("CargoPlatformEast", Vector3(7.0, 2.6, 6.0), Vector3(16.0, 1.3, -16.0), PALETTE.amber)
+	_add_breakable_structure("cargo_lid_west", "CargoLidWest", Vector3(7.2, 0.24, 6.2), Vector3(-16.0, 2.72, -16.0), PALETTE.cream)
+	_add_breakable_structure("cargo_lid_east", "CargoLidEast", Vector3(7.2, 0.24, 6.2), Vector3(16.0, 2.72, -16.0), PALETTE.cream)
+	_add_ramp("WarehouseRoofRamp", 3.0, Vector3(0.0, 0.05, -29.3), Vector3(0.0, 4.855, -24.3))
+	# Ramp tops meet the deck/dock faces flush; burying the top edge under the
+	# platform blocks the walker at the step-up seam.
+	_add_ramp("CraneRamp", 3.5, Vector3(0.0, 0.05, 8.5), Vector3(0.0, 4.855, 2.05))
+	_add_ramp("DockRampWest", 3.0, Vector3(-18.0, 0.05, 20.0), Vector3(-18.0, 3.75, 14.05))
+	_add_ramp("DockRampEast", 3.0, Vector3(18.0, 0.05, 20.0), Vector3(18.0, 3.75, 14.05))
+	_add_world_label("WarehouseRouteLabel", "ROOF ACCESS", Vector3(0.0, 1.0, -29.6), PALETTE.amber)
+	_add_world_label("CraneRouteLabel", "UP", Vector3(0.0, 0.8, 8.8), PALETTE.amber)
+	_add_world_label("DockWestRouteLabel", "UP", Vector3(-18.0, 0.8, 20.3), PALETTE.amber)
+	_add_world_label("DockEastRouteLabel", "UP", Vector3(18.0, 0.8, 20.3), PALETTE.amber)
+	_add_tree("TreeHarborWest", Vector3(-26.0, 0.0, -26.0))
+	_add_tree("TreeHarborEast", Vector3(26.0, 0.0, -26.0))
+	_add_world_label("HarborLabel", "TOY HARBOR", Vector3(0.0, 1.2, 27.5), PALETTE.cream)
+	var crate_positions := [Vector3(-6.0, 0.4, 20.0), Vector3(6.0, 0.4, 20.0), Vector3(0.0, 0.4, -8.0)]
+	for index in crate_positions.size():
+		_add_physics_crate(crate_positions[index], index + 1)
+	return {
+		"map_id": "toy_harbor",
+		"spawn_origin": Vector3(0.0, 0.05, 22.0),
+		"cover_volumes": [AABB(Vector3(-7.5, 0.0, -23.5), Vector3(15.0, 4.5, 11.0))],
+		"tornado_paths": [
+			[Vector3(-24.0, 0.0, -24.0), Vector3(24.0, 0.0, 24.0)],
+			[Vector3(24.0, 0.0, -24.0), Vector3(-24.0, 0.0, 24.0)],
+			[Vector3(-24.0, 0.0, 6.0), Vector3(24.0, 0.0, 6.0)],
+			[Vector3(6.0, 0.0, -24.0), Vector3(6.0, 0.0, 24.0)],
+		],
+		"strike_half_extent": 18.0,
+		"fire_zones": [
+			Vector3(-12.0, 0.08, 0.0), Vector3(-5.0, 0.08, 0.0), Vector3(2.0, 0.08, 0.0), Vector3(9.0, 0.08, 0.0),
+			Vector3(-12.0, 0.08, 10.0), Vector3(-5.0, 0.08, 10.0), Vector3(2.0, 0.08, 10.0), Vector3(9.0, 0.08, 10.0),
+		],
+		"fire_zone_neighbors": [[1, 4], [0, 2, 5], [1, 3, 6], [2, 7], [0, 5], [1, 4, 6], [2, 5, 7], [3, 6]],
+		"elevation_routes": [
+			{"name": "WarehouseRoofRamp", "low": Vector3(0.0, 0.05, -29.3), "high": Vector3(0.0, 4.855, -24.3)},
+			{"name": "CraneRamp", "low": Vector3(0.0, 0.05, 8.5), "high": Vector3(0.0, 4.855, 2.05)},
+			{"name": "DockRampWest", "low": Vector3(-18.0, 0.05, 20.0), "high": Vector3(-18.0, 3.75, 14.05)},
+			{"name": "DockRampEast", "low": Vector3(18.0, 0.05, 20.0), "high": Vector3(18.0, 3.75, 14.05)},
+		],
+		"refuges": [
+			{"name": "Warehouse", "kind": "shelter", "center": Vector3(0.0, 0.0, -18.0), "exits": [Vector3(0.0, 0.0, -25.5), Vector3(0.0, 0.0, -10.5)]},
+			{"name": "WarehouseRoof", "kind": "elevation", "center": Vector3(0.0, 4.855, -18.0), "exits": [Vector3(0.0, 4.855, -24.3), Vector3(0.0, 4.855, -11.7)]},
+			{"name": "CraneDeck", "kind": "elevation", "center": Vector3(0.0, 4.855, -2.0), "exits": [Vector3(0.0, 4.855, 1.7), Vector3(0.0, 4.855, -5.9)]},
+			{"name": "DockWest", "kind": "elevation", "center": Vector3(-18.0, 3.75, 9.0), "exits": [Vector3(-18.0, 3.75, 14.05), Vector3(-12.3, 3.75, 9.0)]},
+			{"name": "DockEast", "kind": "elevation", "center": Vector3(18.0, 3.75, 9.0), "exits": [Vector3(18.0, 3.75, 14.05), Vector3(12.3, 3.75, 9.0)]},
+		],
+		"spawn_groups": [
+			{"name": "boardwalk_west", "spawn": Vector3(-4.0, 0.05, 22.0), "waypoints": [Vector3(-18.0, 0.05, 20.5)], "route": "DockRampWest"},
+			{"name": "boardwalk_east", "spawn": Vector3(4.0, 0.05, 22.0), "waypoints": [Vector3(0.0, 0.05, 8.5)], "route": "CraneRamp"},
+		],
+	}
 
 
 func _reset_sandbox() -> void:
