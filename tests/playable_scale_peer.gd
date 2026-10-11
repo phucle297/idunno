@@ -105,9 +105,16 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 			start_positions[peer_id] = player.global_position
 	main._set_lobby_visible(false)
 	Input.action_press("move_left")
+	print("SCALE_MOVEMENT_WINDOW role=server start_ms=%d physics_frame=%d" % [Time.get_ticks_msec(), Engine.get_physics_frames()])
 	probe.begin_movement.rpc()
 	await create_timer(1.5).timeout
 	Input.action_release("move_left")
+	print("SCALE_MOVEMENT_WINDOW role=server end_ms=%d physics_frame=%d" % [Time.get_ticks_msec(), Engine.get_physics_frames()])
+	for peer_id: int in peer_ids:
+		if peer_id == 1:
+			continue
+		var packet_peer: ENetPacketPeer = root.multiplayer.multiplayer_peer.get_peer(peer_id)
+		print("SCALE_THROTTLE peer=%d throttle=%d rtt=%d variance=%d" % [peer_id, packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE), packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME_VARIANCE)])
 	var movement_passed := true
 	for peer_id: int in peer_ids:
 		var player := _player_for_peer(main, peer_id)
@@ -299,8 +306,10 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	var host_start := host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO
 	main._set_lobby_visible(false)
 	Input.action_press("move_right")
+	print("SCALE_MOVEMENT_WINDOW role=client peer=%d start_ms=%d physics_frame=%d host=%s" % [local_id, Time.get_ticks_msec(), Engine.get_physics_frames(), host_start])
 	await create_timer(1.5).timeout
 	Input.action_release("move_right")
+	print("SCALE_MOVEMENT_WINDOW role=client peer=%d end_ms=%d physics_frame=%d host=%s" % [local_id, Time.get_ticks_msec(), Engine.get_physics_frames(), host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO])
 	var movement_passed := (
 		is_instance_valid(local_player)
 		and local_player.global_position.distance_to(local_start) >= 0.5

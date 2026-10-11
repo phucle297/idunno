@@ -58,3 +58,26 @@ Root [progress](../progress.json) owns active state; the [Phase 5 checklist](che
 - Commit subsequent validation evidence separately without changing runtime
   source. Record the exact exported revision rather than pretending the bundle
   includes later tracking-only commits. Keep bundles local and hashes reviewable.
+- Final local bundles export application revision
+  `f14791ecd5a5d38ef7252193d04648b44d879662`; extracted release/PCK checks and
+  copied ZIP hashes pass. Delivery is a fresh Downloads folder, not publication.
+  Exact hashes/sizes live in root progress. Milestone5.1 is complete locally;
+  next investigate the historical full4/8/20 movement failure, without relaxing
+  assertions or increasing the supported four-player limit. Production is unchanged.
+
+## 2026-10-11 — 5.2a Loaded movement transport investigation
+
+- Reproduce the full fixture with process affinity to two CPUs, not relaxed
+  assertions. The local failure has unchanged remote host positions despite
+  local prediction and server movement. ENet throttle0 corresponds to missing
+  moving-host packets; a temporary server deceleration0 control restores all19
+  client movement checks. Do not ship that override: it bypasses congestion
+  response rather than making replication robust. Remove runtime instrumentation.
+- Independently, `_apply_match_snapshot` sends1592 unreliable bytes at20 players,
+  over the1392 MTU. Even the successful movement control remains a failed scale
+  gate. Both problems must be resolved before claiming20-player readiness.
+- Retain fixture-only timing/ENet statistics and raw per-peer logs. Four-player
+  two-CPU regression passes after control removal. Historical CI attribution is
+  still conditional; local reproduction does not inspect the original process.
+- Continue with congestion-safe recovery and bounded live-state packets. No
+  production/runtime change, capacity increase, push or deployment in this slice.

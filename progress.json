@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-11T17:15:00Z",
+  "updated_at": "2026-10-11T18:08:55Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -35,8 +35,8 @@
   },
   "current": {
     "phase": "phase_5_session_distribution_and_release_readiness",
-    "milestone": "milestone_5_1_windows_package_hardening_and_failure_ux",
-    "task": "task_5_1c_distribution_bundle"
+    "milestone": "milestone_5_2_stable_multiplayer_capacity",
+    "task": "task_5_2b_congestion_safe_replication"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -74,7 +74,7 @@
     "milestones": {
       "milestone_5_1_windows_package_hardening_and_failure_ux": {
         "title": "Windows Package Hardening and Failure UX",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_5_1a_package_integrity_and_launcher": {
             "title": "Fail-closed Windows launcher and mandatory export audit",
@@ -86,7 +86,7 @@
               "exported_pck_settings_recovery_five_rematches": "passed",
               "linux_release_regression": "passed"
             },
-            "delivery": "Implementation validated locally only. Application repository changes are uncommitted/unpushed; exports use an isolated scratch-repository validation snapshot, not a distributed build. No deployment or publication."
+            "delivery": "Application revision f14791ecd5a5d38ef7252193d04648b44d879662 is committed on phase-5-package-hardening and exported into matching Windows/Linux ZIPs. ZIP delivery remains local; owner subsequently authorizes committing and pushing this non-deploying branch. No deployment or public ZIP publication."
           },
           "task_5_1b_exported_room_failure_recovery": {
             "title": "Run room-ID lookup/admission/disconnect failures against the exported Windows payload",
@@ -99,18 +99,56 @@
           },
           "task_5_1c_distribution_bundle": {
             "title": "Produce the final same-revision client/server playtest bundles",
-            "status": "in_progress",
+            "status": "completed",
             "acceptance_gates": {
-              "committed_revision_export_and_zip_audit": "not_run",
-              "delivery": "not_run"
+              "committed_revision_export_and_zip_audit": "passed",
+              "delivery": "passed"
             },
-            "scope": "Export from the approved committed revision and package only the manifest-listed runtime files plus SHA256SUMS.txt; no public upload, deployment or supported-capacity increase."
+            "scope": "Export from the approved committed revision and package only the manifest-listed runtime files plus SHA256SUMS.txt; no public upload, deployment or supported-capacity increase.",
+            "delivery": {
+              "source_revision": "f14791ecd5a5d38ef7252193d04648b44d879662",
+              "directory": "C:/Users/permees/Downloads/DisasterParty-Phase5-f14791e",
+              "evidence_directory": ".amp/in/artifacts/phase5-distribution",
+              "windows": {
+                "file": "DisasterParty-Windows-Phase5-f14791e.zip",
+                "bytes": 38398786,
+                "sha256": "2f150ac1385b38711b06dc27471f608a378ae80eec3591c5540a09c1f9b9f1f6"
+              },
+              "linux_server": {
+                "file": "DisasterParty-LinuxServer-Phase5-f14791e.zip",
+                "bytes": 28728393,
+                "sha256": "90caa544d7fa4e33327fa903b831af1cb396dea76bbf67d110da67a9f3d52dc7"
+              },
+              "limits": "Local ZIP delivery only. Clients require a matching server revision and cannot join an older deployed server. Internet admission, physical audio and human acceptance remain unverified. Tracking-only edits after export do not change the exported application revision."
+            }
           }
         }
       },
       "milestone_5_2_stable_multiplayer_capacity": {
         "title": "Stable Multiplayer Capacity",
-        "status": "planned"
+        "status": "in_progress",
+        "tasks": {
+          "task_5_2a_reproduce_and_isolate": {
+            "title": "Reproduce loaded movement failure and isolate transport loss",
+            "status": "completed",
+            "acceptance_gates": {
+              "unchanged_assertion_loaded_reproduction": "passed",
+              "transport_loss_control": "passed",
+              "supported_four_player_regression": "passed"
+            },
+            "result": "Two-CPU local full4/8/20 run reproduces unchanged host positions on clients. Receipt instrumentation shows affected clients receive no moving-host snapshots; server ENet throttle reaches0. Temporary server-side deceleration0 control restores all19 clients' movement and server movement, but the strict matrix still rejects a separate1592-byte live-state packet over1392 MTU. Control and runtime instrumentation removed. This isolates the local failure mechanism, not the exact historical CI run. Runtime source remains unchanged; retained fixture diagnostics do not relax assertions."
+          },
+          "task_5_2b_congestion_safe_replication": {
+            "title": "Resolve transport starvation and oversized live-state packets",
+            "status": "planned",
+            "acceptance_gates": {
+              "loaded_full_4_8_20_matrix": "failed",
+              "bounded_unreliable_packets": "failed",
+              "supported_capacity_regression": "not_run"
+            },
+            "scope": "Use the proven throttle/receipt evidence to fix replication without disabling congestion protection or weakening movement/timing assertions; bound active-state packets and rerun full4/8/20 on two CPUs and unrestricted CPUs. Keep supported playtests at1–4 until separately authorized."
+          }
+        }
       },
       "milestone_5_3_room_service_and_steam_integration": {
         "title": "Room Service Hardening and Steam Integration Evaluation",
@@ -170,10 +208,34 @@
       "command": "Temporary native Windows loopback HTTP/UDP fixture plus target-window PostMessage/PrintWindow automation of unchanged DisasterParty.exe; view_media default, unknown room, mismatch, invalid ticket, timeout and retry captures",
       "status": "passed",
       "result": "Untouched c19167a release EXE, native Windows AMD Radeon860M/Compatibility, 1280x720, Dummy audio: real POST requests carry matching revision/protocol. Inspected default/UNKNOWN42/MISMATCH42/INVALID42/TIMEOUT42 captures show readable Room not found, Build mismatch, Invalid room-service ticket and Request a new ticket statuses. Targeted mouse retry from the same timed-out process sends edited ID TIMERETRYOUT42 and receives404 with restored controls; field horizontally clips its long ID, while credential-free HTTP log records the full ID. Evidence .amp/in/artifacts/phase5/release-ui-cached-5.1b/ and release-ui-retry-5.1b/. Earlier scratch attempts had focus loss, synthetic-key punctuation/navigation issues and a transient null MainWindowHandle; discarded ambient captures were not proof. Caching a valid HWND and targeting messages/capture to it avoids global input and desktop content. All owned release/fixture processes closed. No public request/deployment; Internet admission, physical audio and successful native release re-admission remain unverified."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "tools/export_playtest.sh windows .amp/in/phase5-delivery-windows; repeat Windows export and compare SHA256SUMS.txt; tools/export_playtest.sh linux-server .amp/in/phase5-delivery-linux; manifest-only ZIP creation, fresh extraction and artifact audits; native check-phase5-launch.ps1; tests/run_windows_package_checks.ps1 -Port 29980; python3 tests/run_release_linux_test.py .amp/in/phase5-delivery-extract-linux --log .amp/in/artifacts/phase5-distribution/linux-release.log --port 29970; sha256sum -c SHA256SUMS.txt in fresh Downloads folder",
+      "status": "passed",
+      "result": "Final application revision f14791ecd5a5d38ef7252193d04648b44d879662, Godot4.7.2. Repeated Windows hashes match. Audits pass Windows6/Linux4 hashed runtime files, PCK format4/90 entries; ZIPs contain only those files plus SHA256SUMS.txt. Extracted native Windows Play.cmd launches standalone EXE and prints matching identity. Native editor-driver PCK checks pass settings39/restart3, lifecycle56, rendered ROOM_UI148 at720p and five two-peer rematches. Inspected default/recovery captures have readable non-overlapping controls. Extracted Linux RELEASE_MANAGED_LINUX_OK passes standalone, version rejection, create/join, crash/retry, SIGTERM, reclaimed ports and no cache. Both ZIP copies in C:/Users/permees/Downloads/DisasterParty-Phase5-f14791e pass SHA256 verification. Evidence .amp/in/artifacts/phase5-distribution/. No push, publication, deployment or capacity increase; editor-driver checks do not certify Internet release gameplay or physical audio."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "PLAYER_COUNTS='4 8 20' GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh; same command with PORT=29840 taskset -c0,1; targeted20 runs with temporary receipt counters and ENet throttle statistics",
+      "status": "failed",
+      "result": "Unrestricted4/8 movement and20 movement pass, but20 runner rejects1592-byte unreliable _apply_match_snapshot over1392 MTU. Two-CPU full4/8/20 reproduces20 movement=false; separate instrumented20 run has server movement=true/clients=false. Failed peers1155359625 and80228219 have throttle0 and unchanged host positions; only11/8 total movement receipts, latest host packet atspawn. Other clients have up to192 receipts and moving-host packets. Windows overlap roughly89–90 physics ticks, so a short mismatched observation window does not explain this reproduction. Logs .amp/in/artifacts/phase5-scale-{baseline,two-cpu,window,receipts,throttle-valid}.log and corresponding peer folders. Temporary diagnostic parse error was corrected; it is not gameplay evidence."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "Temporary server _on_network_peer_connected throttle_configure(5000,2,0); PLAYER_COUNTS=20 GODOT_BIN=$(command -v godot) PORT=29840 taskset -c0,1 tests/run_playable_scale_test.sh; remove control and receipt counters; PLAYER_COUNTS=4 repeat on two CPUs; git diff -- game/main.gd; git diff --check",
+      "status": "passed",
+      "result": "Valid server-only control retains throttle32 for all19 peers; server and19 clients pass movement and five rematches. Strict20 runner still exits1 solely for oversized live-state packet: not a green scale gate. Earlier invalid client-side preconnection control failed admission and left server suspended after an index error; owned hung process terminated and that run excluded from conclusions. All temporary throttle/runtime changes removed, game/main.gd diff empty. Final supported4-player matrix exits0 with PLAYABLE_SCALE_MATRIX_OK players=4; no parser/runtime errors. Retain test-only timing/throttle diagnostics. Logs phase5-scale-server-control.log and phase5-scale-final-four.log; no active fixture processes, deployment or capacity change."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "PLAYER_COUNTS=4 GODOT_BIN=$(command -v godot) PORT=29840 taskset -c0,1 tests/run_playable_scale_test.sh; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_windows_package.py -v; jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "Owner-requested pre-push check: four-player two-CPU matrix passes movement, chaos, exact results, spectating, five rematches and disconnect cleanup on server/all3 clients; no script/runtime errors. Native Windows integrity regression passes1 test. JSON and whitespace checks pass. Twenty-player gates remain failed, not fixed by diagnostics. Push is scoped to phase-5-package-hardening; main-only deployment workflow inspected and unchanged. Evidence .amp/in/artifacts/phase5-prepush-four.log."
     }
   ],
   "implementation_authorization": "2026-10-11 owner: Continue work phase 5. Supersedes the prior hold for owner direction; preserves Phase 4 evidence gaps and human waiver. No deployment, publication or capacity increase authorized.",
-  "delivery_authorization": "2026-10-11 owner Continue answers the explicit request to commit on a non-deploying branch. Commit validated Phase 5 changes on phase-5-package-hardening and prepare local matching bundles; no push to main, deployment or publication.",
+  "delivery_authorization": "2026-10-11 owner: check, commit and push. Commit checked diagnostics/tracking and push phase-5-package-hardening, including its existing package implementation commit. Do not merge or push main, deploy, publish ZIPs or increase capacity. Local bundles retain the exact earlier application revision.",
   "blockers": [],
   "changed_files": [
     "tools/windows/Play.cmd",
@@ -183,11 +245,12 @@
     "tests/test_windows_package.py",
     "tests/test_room_ui.gd",
     "tests/run_windows_package_checks.ps1",
+    "tests/playable_scale_peer.gd",
     "README.md",
     "GUIDE.md",
     "docs/checklists/phase-5-session-distribution-and-release-readiness.md",
     "docs/decisions.md",
     "progress.json"
   ],
-  "next_action": "Finish task_5_1c: commit on phase-5-package-hardening, export matching Windows/Linux bundles from that revision, audit manifest-only ZIPs and run standalone package checks without deployment."
+  "next_action": "Implement congestion-safe replication recovery and bounded live-state packets for task5.2b, using retained throttle/receipt controls; rerun the unchanged full4/8/20 fixture under two-CPU load without disabling congestion protection or raising supported capacity."
 }

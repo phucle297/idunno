@@ -13,8 +13,8 @@ Root `progress.json` owns task status, executed evidence and the next action.
 
 ### 5.1a — Package integrity and launcher
 
-Implemented and locally verified; final committed-revision distribution remains
-5.1c, not a claim that the validation snapshot is ready for Internet admission.
+Implemented and locally verified; final committed-revision local distribution
+is recorded in 5.1c. Internet admission remains separately unverified.
 
 - Export the same-revision play guide, `Play.cmd` and `Verify-Package.ps1` with
   the EXE/PCK/build identity/checksum manifest.
@@ -47,8 +47,42 @@ without restarting. These are local synthetic endpoints, not Internet admission.
 
 ### 5.1c — Distribution bundle
 
+Completed locally on 2026-10-11 from application revision
+`f14791ecd5a5d38ef7252193d04648b44d879662`. Matching Windows/Linux ZIPs and
+`SHA256SUMS.txt` are in `C:/Users/permees/Downloads/DisasterParty-Phase5-f14791e`;
+exact sizes/hashes and evidence paths are recorded in root `progress.json`.
+Fresh extracted packages pass audits, native Windows standalone launch and
+editor-driver settings/recovery/room-failure/five-rematch checks, plus the Linux
+release lifecycle gate. Copied ZIP hashes pass. No push or deployment occurred;
+the older deployed server cannot admit these clients unless its revision matches.
+
 - Export matching Windows/Linux bundles from the approved committed revision;
   ZIP only manifest-listed runtime files plus `SHA256SUMS.txt`, not developer logs.
 - Audit the extracted bundle and repeat standalone launch; record full identity
   and artifact hashes. Check client/server revision equality before admission.
 - Record delivery separately from implementation; no public upload/deployment.
+
+## Milestone 5.2 — Stable Multiplayer Capacity
+
+### 5.2a — Reproduce and isolate (completed investigation)
+
+- Full4/8/20 runs retain all original movement, rematch and MTU assertions.
+  Unrestricted CPUs pass movement but fail20 on a1592-byte unreliable live-state
+  packet (1392 MTU). Two-CPU affinity reproduces unchanged host positions.
+- Temporary receipt counters show affected peers receive no moving-host packets;
+  server ENet throttle reaches0. A server-only deceleration0 control keeps throttle32
+  and restores movement on all19 clients plus the server. The control still fails
+  the strict MTU gate; it is diagnostic evidence, not a congestion-safe fix.
+- Remove all temporary runtime counters/throttle changes. Keep fixture-only
+  timing, physics-frame and ENet-statistic logs; final four-player two-CPU run
+  passes with five rematches. Exact commands/results are in root progress.
+- This reproduces a similar local failure and isolates its transport cause;
+  it does not establish the exact cause of the historical CI run.
+
+### 5.2b — Congestion-safe replication (pending)
+
+- Resolve unreliable movement starvation without disabling congestion protection
+  or weakening movement assertions/time windows. Bound active-state packets.
+- Require the unchanged full4/8/20 matrix on two CPUs and unrestricted CPUs,
+  including MTU rejection and all19 client markers; retain four-player controls.
+- Do not increase supported capacity, publish or deploy from these experiments.
