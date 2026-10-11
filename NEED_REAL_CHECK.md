@@ -2,7 +2,7 @@
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.
 
-`progress.json` giữ trạng thái Phase4 (mở nhưng chờ user chỉ đạo); [archive Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành; Phase3 hoàn thành với limitation được ghi nhận rõ bên dưới. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
+`progress.json` giữ trạng thái Phase5 (mở nhưng chờ user chỉ đạo); [archive Phase4](docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json), [archive Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành; Phase3 và Phase4 hoàn thành với limitation/human gate mở được ghi nhận rõ bên dưới. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
 
 ## Bản đã giao gần nhất
 
@@ -25,7 +25,7 @@ Không bắt buộc recording hay mẫu báo cáo dài. Agent sẽ tái hiện, 
 
 ## Kiểm tra Phase4 cần người chơi thật (không chặn bug report)
 
-Milestone 4.4 yêu cầu so sánh Normal/Hard với người thật. Agent đã đo bằng mô phỏng cùng seed và cùng tier (Normal chết sau 24.0s, Hard sau 21.0s ở cùng hazard lethality — Hard mạnh hơn chỉ nhờ nhịp độ, không nhân damage; cùng run, độ phân giải 0.5s), nhưng không thay thế cảm giác thật và không claim mục nào pass. Chơi 1–4 người, ghi theo format báo bug ngắn ở trên:
+Phase4 đã hoàn thành và archive (2026-10-11); các mục dưới đây vẫn MỞ cho đến khi có người chơi thật xác nhận — automation không thay thế được. Milestone 4.4 yêu cầu so sánh Normal/Hard với người thật. Agent đã đo bằng mô phỏng cùng seed và cùng tier (Normal chết sau 24.0s, Hard sau 21.0s ở cùng hazard lethality — Hard mạnh hơn chỉ nhờ nhịp độ, không nhân damage; cùng run, độ phân giải 0.5s), nhưng không thay thế cảm giác thật và không claim mục nào pass. Chơi 1–4 người, ghi theo format báo bug ngắn ở trên:
 
 - **So sánh thời điểm chết Normal/Hard:** chọn preset trong lobby (PRESET), chơi cùng map vài hiệp mỗi chế độ, ghi thời gian sống sót. "Harder" không đồng nghĩa "tốt hơn" — báo nếu Hard thấy unfair, stun-lock hoặc ngược lại thấy chả khác gì.
 - **Nhận diện nguyên nhân chết không cần hướng dẫn:** sau mỗi lần chết hỏi "vì sao?" — mong người chơi đọc được cause (Flood/Tornado/Meteor/Impact Debris/Burning Rubble/Earthquake/Lightning/Fire) từ cảnh báo và HUD mà không ai giải thích. Báo nếu cause khó hiểu.

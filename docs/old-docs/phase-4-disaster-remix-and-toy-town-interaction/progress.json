@@ -1,0 +1,317 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-11T00:29:22Z",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "{phase-slug}/progress.json",
+    "rule": "Archive completed phases without overwriting history. The explicit user-authorized Phase2 suspension is separately labeled deferred_not_completed; its unfinished gates remain unchanged."
+  },
+  "previous_phase_archive": "docs/old-docs/phase-3-player-caused-chaos/progress.json",
+  "checklist": "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_4_disaster_remix_and_toy_town_interaction",
+    "milestone": "milestone_4_4_harder_but_fair_survival",
+    "task": "task_4_4b_hard_preset_and_human_gates"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4–2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4–2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "phase_transition": {
+    "date": "2026-10-10",
+    "authorization": "User: 'Khi nao xong phase 3 thi dung k can verify lai dau toi se tu check sau' - complete Phase 3, stop without a final verification sweep; the owner performs their own check.",
+    "previous_phase_status": "completed",
+    "review": "Phase3 completed with all seven gates passed on executed evidence (see previous_phase_archive). Recorded limitations stay open in NEED_REAL_CHECK.md: 60FPS hardware-GPU throughput, native-Windows package/capture execution, physical audio and Internet feel. Phase4 opens as the active plan but paused: no Phase4 implementation starts until the owner directs it after their own check. No publication or deployment occurred or is authorized."
+  },
+  "phase_4_start": {
+    "date": "2026-10-10",
+    "authorization": "User: 'Implement Phase 4 untill done' - implement the phase through its milestone gates, then roll over. Supersedes the paused hold in phase_transition; no deployment/publication is authorized.",
+    "order": "Follow the checklist order and milestone hierarchy: finish the active milestone4.3 (Toy Town4.3a done; Toy Harbor + server map selection next), then remaining milestones, keeping budgets, solo continuation and honest limits."
+  },
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "phase": {
+    "id": "phase_4_disaster_remix_and_toy_town_interaction",
+    "title": "Disaster Remix and Toy Town Interaction",
+    "status": "completed",
+    "dependencies": [
+      "phase_3_player_caused_chaos"
+    ],
+    "goal": "Improve disaster variety/interactions, make the existing Toy Town terrain a useful survival playset and tune survival pacing within existing budgets. Detail per docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md; keep this file concise until work begins.",
+    "budgets": {
+      "supported_players": 4,
+      "authoritative_loose_bodies": 32,
+      "grabbable_props": 12,
+      "active_disasters": 2
+    },
+    "milestones": {
+      "milestone_4_1_randomized_replayable_disaster_rounds": {
+        "title": "Randomized, Replayable Disaster Rounds",
+        "status": "completed",
+        "tasks": {
+          "task_4_1a_seeded_selection_and_replayable_history": "completed: game/disaster_director.gd start_directing(seed) randomizes at <0 or reseeds at >=0 and captures the effective seed; get_replay_record() returns {seed, selection_history} live and retains the finished round across cleanup/rematch resets; one structured DISASTER_REPLAY line per finished match logs seed+history. Measured baseline (scratch probe, 5 seeds x 80 selections, removed after) showed 29 distance-2 repeats (36%), so RECENT_HISTORY_EXCLUSION=2 now prefers candidates outside the last two selections with full-pool fallback (no stalls/fixed scripts). Gate DISASTER_DIRECTOR_OK checks=115: same-seed history equality, different-seed divergence, record retention, no adjacent/distance-2 repeats with 3-4 eligible, two-disaster fallback schedules, five rematch cycles clearing live history and retaining per-round records.",
+          "task_4_1b_replicated_hazard_variants": "completed: bounded variants live in the existing hazard owners and are selected server-side from the seeded director RNG. Meteor CLUSTER (3 scattered strikes in a bounded 5m disc) vs LANE (4 strikes at 5m spacing along a bounded line), each strike keeping the >=1.2s telegraph floor and the whole sequence counting as one solo event (finished/survival record only after the last strike). Flood rise pattern STEADY vs bounded two-stage SURGE (quick swell, short plateau, final push to the same target) and current pattern CALM vs DRIFT with a cardinal direction (props keep their bounded water forces). Tornado path preset index + forward/reverse direction from the map preset list. All replicate with their gameplay parameters through create/apply_presentation_snapshot; same-seed replay reproduces variant+parameters; five rematch cycles clear variant state and effects. Gates: METEOR_SHOWER_OK checks=76, FLOOD_OK checks=60, TORNADO_OK checks=48 (bounded counts, monotonic surge curve, snapshot round-trip to a client-role ENet peer, rematch cleanup), DISASTER_COMBINATIONS_OK checks=31 (multi-strike sequence counts as one completed solo round; combinations form only after every participant completes solo, asserted at max intensity)."
+        }
+      },
+      "milestone_4_2_behavior_changing_disaster_compositions": {
+        "title": "More Behavior-Changing Disaster Compositions",
+        "status": "completed",
+        "tasks": {
+          "task_4_2a_earthquake_flood_persistent_refuge_collapse": "completed: persistent seeded refuge collapse for Earthquake+Flood. game/breakable_structure.gd carries route_role (ROLE_ELEVATED/ROLE_TRAVERSAL/ROLE_DECORATIVE) and pair_group tags (Toy Town roofs/bridges/awnings/signs, Harbor warehouse roof/gangway/cargo lids); game/earthquake.gd adds refuge_pressure-driven tiered target selection (elevated surfaces collapse first under flood pressure) with a preserve-one-pair guard, per-quake seeded selection from the seeded director replay record, telegraphed damage-to-collapse, and set_structure_root scoping that fixes latent two-sandbox group cross-talk; game/main.gd wires flood/earthquake warning events to refuge pressure, shows the FLOOD + EARTHQUAKE - REFUGES ARE CRUMBLING composition line, and keeps earthquake structure states in _create_playable_snapshot while any piece is non-intact so late joiners restore exact damaged/broken state. Gates EARTHQUAKE_OK checks=48 (roles/pairs, same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state broken-piece sync), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected capture (behavior beyond two simultaneous effects, flood outlives the quake under pressure, clear Flood death cause, paired options standing). max_broken_sections=2 intentionally unchanged; eligibility/cap tuning is milestone 4.4's measured work.",
+          "task_4_2b_tornado_meteor_tagged_impact_debris": "completed: Tornado+Meteor bounded tagged impact debris. game/meteor_shower.gd arms impact debris via set_wind_active (named tornado events wired in main beside fire's handlers, no cross-hazard coupling): wind-armed impacts eject 3 tagged bodies (grabbable + meteor_impact_debris + meta) with capped radial impulses, bounded to 6 alive with a 10s lifetime; hits damage at most once per debris per player at >=5 m/s within 1m (25 HP, bounded knockback, explicit Impact Debris cause, server-side only); clients render visuals-only chunks at replicated snapshot positions including the post-sequence IDLE window. Tornado carries debris through the existing shared grabbable force loop untouched. HUD shows TORNADO + METEOR - IMPACT DEBRIS IS FLYING. Gates METEOR_SHOWER_OK checks=111 (solo-debris-free control, spawn bounds/tags/impulse caps, slow-no-damage, once-per-player damage, clear lethal cause, client-only visuals with inert client ticks, alive cap, expiry, five-rematch debris/wind cleanup) and DISASTER_COMBINATIONS_OK checks=60 rendered with inspected capture (named-event wind arming, physics-stepped wind pickup beyond ballistic ejection, clear Impact Debris death cause, distant player untouched, 32-body budget with quake rubble). Fixture note: player deaths finish 1-3 participant fixture matches, so gates restart between compositions through prepare_lobby/set_player_ready/start_match and keep lethal asserts last.",
+          "task_4_2c_fire_earthquake_burning_collapse_debris": "completed: Fire+Earthquake burning collapse debris (evaluation verdict: keep). game/main.gd pushes burning fire-zone positions into earthquake.set_burning_positions on fire.zone_ignited/fire.finished/earthquake.warning_started (shared hazard query; Earthquake holds no Fire reference) and shows the FIRE + EARTHQUAKE - BURNING RUBBLE IS FALLING composition line with constituent chips suppressed. game/earthquake.gd ignites quake rubble when a section collapses within 6.0m horizontally of a burning zone (ground-area measure so height never hides a burning section), tagging the body (burning_rubble group + meta), ember-tinting its mesh with a hot core cue and tumbling it out of the flame cluster. Burning rubble is server-owned: 6s lifetime, 4.0 m/s hit threshold, 1.0m radius, 20 HP at most once per player with explicit Burning Rubble cause via apply_damage; it outlives the quake's active window (_finish resets phase state only; full cleanup clears rubble and burning positions) and clients replicate positions as visuals-only markers with inert client ticks. Gates EARTHQUAKE_OK checks=88 (ignite/tag/cue, slow-no-damage, bounded once-per-player damage, distant-player safety, client visuals-only snapshot round-trip, rubble outliving the quake then expiring at 6s, five-rematch ignition+cleanup) and DISASTER_COMBINATIONS_OK checks=82 headless / checks=85 rendered with inspected capture compositions-fire-eq-burning-rubble-1280x720.png (named-event wiring, HUD line, deterministic seeded-replay collapse igniting rubble without map special-casing, clear Burning Rubble death cause kept last, distant player untouched, 32-body budget, cleanup). Full gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+        }
+      },
+      "milestone_4_3_map_variety_one_additional_map_at_a_time": {
+        "title": "Map Variety, One Additional Map at a Time",
+        "status": "completed",
+        "tasks": {
+          "task_4_3a_ground_the_garage_silhouette": "completed: user feedback 2026-10-09 - four inset deck-to-canopy columns and four corner beam braces in game/main.gd::_add_parking_garage keep deck/ramp/canopy geometry; _check_garage_canopy gate passes (mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado cover with open deck uncovered, deck walk head<4.65m, camera clearance, five-rematch restoration, post-rematch deck walk) at MAP_SAFETY_OK checks=251 headless / checks=277 rendered with inspected interior/overview captures",
+          "task_4_3b_build_toy_harbor_with_map_owned_anchors": "completed: Toy Harbor built from the modular kit (two-exit warehouse with breakable roof panel, crane deck on pillars with ramp/edge drop, docks with breakable two-piece gangway, cargo platforms with breakable lids, four ramps) and map-owned anchors now drive spawn/tornado/meteor/lightning/fire wiring through _apply_map_anchors; set_map_id rebuilds via _reset_sandbox (stacked-map collision bug fixed), ramp tops meet platform faces flush, dock tops at 3.75m exceed the 3.5m flood peak. Two-map gate MAP_VARIETY_OK checks=303 headless / 307 rendered: anchor schema+wiring, 20-spawn probe, four walk-only routes, two walked exits per refuge, flood escape per spawn group (alive, health held), no-universal-safe checks, five rematches restoring breakables/props/map identity; captures inspected. Supported regression UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed.",
+          "task_4_3c_server_selected_map_identity": "completed: map identity travels in every playable snapshot and _apply_match_snapshot loads a differing map before match state so all clients converge before countdown (including mid-round joiners; same-identity snapshots never rebuild); request_map_change is the LOBBY-only boundary (local/host direct, dedicated owners via _send_owner_action(\"map:<id>\") validated by _execute_owner_action); set_map_id reseats players on the new map spawn anchors via _reseat_players_for_map (shared with return_to_lobby); lobby panel gains an owner MAP selector with the stack retightened to fit 720p while keeping the four-row roster fit. MAP_IDENTITY_OK checks=22; DEDICATED_NETWORK SERVER/OWNER/GUEST OK (40/60/70 checks, 5 rematches keep the map) over real ENet; LOBBY_ROSTER_OK 124, LOBBY_PRESENTATION_OK 40 with inspected captures; full supported regression UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed."
+        }
+      },
+      "milestone_4_4_harder_but_fair_survival": {
+        "title": "Harder but Fair Survival",
+        "status": "completed",
+        "tasks": {
+          "task_4_4a_survival_pacing_curve": "completed: intensity-paced survival pacing curve. game/disaster_director.gd adds get_pacing(): the forgiving 4s/8s recovery/overlap baseline holds through the first five minutes, then intensity 3 shortens gaps 0.75x and intensity 4+ 0.5x (readable 2s/4s at defaults). Later rounds get stronger through frequency and pair scheduling only - damage values, warning durations and force bounds are structurally untouched and asserted; tier thresholds (120/300/480/540s), solo-before-combination and no-immediate-repeat are unchanged. Recovery protection is the bounded scale; explicit fixture overrides stay authoritative (no gap floor, which broke the director fixture's zero-delay contract). Gates SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s (two alternating equal-lethality hazards, same seeds, damage-per-event constant, frequency rising; five same-seed rematches replay identical death timing; tier boundaries both sides, solo exception and incompatible pairs at the fastest tier, all six hazard telegraphs preserved with Meteor at its 1.2s floor) and DISASTER_DIRECTOR_OK checks=115 unchanged, plus the full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Match duration stays configurable at 600s for the 8-12min target.",
+          "task_4_4b_hard_preset_and_human_gates": "completed: owner-selected Hard preset with the human gates recorded, not claimed. The room owner picks Normal/Hard in the lobby before countdown through a preset: owner action at the lobby boundary (revision-checked replays mirror map identity), a match_preset field rides every playable/session snapshot so clients converge, the choice freezes after countdown, and the lobby shows a preset select. Hard multiplies the bounded pacing scales by 0.6 - damage values, warning durations, telegraphs and force bounds stay structurally untouched and asserted. Gates SURVIVAL_PACING_OK checks=69 normal_death=30.0s late_death=24.0s hard_death=21.0s (same tier/seed, identical 10 HP/s damage rate, five same-seed Hard replays identical; the death-timing fixture ticks at 0.5s because 1s fixture ticks quantized away the preset gap difference), MAP_IDENTITY_OK checks=42 (preset snapshot field, request/owner actions before countdown, client convergence, non-owner and stale-revision rejections, freeze after countdown), DISASTER_DIRECTOR_OK checks=115 unchanged, plus the full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Human Normal/Hard death timing and feel, uncoached cause recognition, escape attempts and voluntary rematches are recorded in NEED_REAL_CHECK.md and await real players."
+        }
+      }
+    }
+  },
+  "phase_3_followup_review": {
+    "authorization": "2026-10-10 owner: Double check all phase 3. Fix bugs if needed",
+    "status": "completed",
+    "scope": "Recheck completed Phase 3 without starting Phase 4 or rewriting historical archives.",
+    "findings": [
+      "Fixed and regression-verified: shove reach ignored vertical separation, accepting a target 6m above the grounded sender.",
+      "Fixed and regression-verified on observers/requesting clients: replicated accepted shove did not set the shover cooldown, so client HUD reported READY during server cooldown.",
+      "Fixed and regression-verified: lightweight 4kg held props did not cancel or reject emotes because eligibility used only the medium-speed-penalty flag."
+    ],
+    "remaining_limits": [
+      "60FPS rendering target still fails on the orb's llvmpipe software renderer; native hardware-GPU throughput and display pacing remain unverified, not passed.",
+      "Native Windows executable/captures, physical audio and Internet/human feel cannot be certified by Linux-orb automation.",
+      "Support remains1–4. Managed8-player diagnostic fails room creation with503 (cause unverified);20-player source diagnostic fails the known snapshot MTU guard. No capacity increase."
+    ],
+    "packages": ".amp/in/artifacts/phase-3-recheck-packages/ (matching03176ff Windows/Linux payloads; local only, no publication/deployment)"
+  },
+  "validation_log": [
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{shove,emotes}.gd (new regressions before fixes)",
+      "status": "failed",
+      "result": "Shove assertions reproduce out-of-reach elevation acceptance and absent replicated cooldown; emote assertions reproduce lightweight acquisition cancellation and holding rejection failures. Existing assertions preserved. Logs .scratch/phase3-{shove,emotes}-red.log. Targeted fixes implemented; green/full validation pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_shove.gd; godot --headless --path . --script res://tests/test_emotes.gd (after fixes)",
+      "status": "passed",
+      "result": "SHOVE_OK checks=70 and EMOTES_OK checks=55. All new regressions green with existing range/cone/cover/ramp, impulse/cooldown/protection, rematch/duplicate and emote interruption checks intact. Known shutdown-only resource diagnostics retained. Full regression, real ENet cooldown, latency and rendered checks still pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50 --output .scratch/phase3-latency; python3 -m unittest discover -s tests -p 'test_*.py' -v",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound, all 0/100/200ms cases passed; correction p95 <=0.217m and max <=0.825m in reported movement samples; carry/footing/shove/traversal fixture assertions pass. 14 Python tests pass including real room-service/ENet security. Added an explicit requesting-client cooldown assertion afterward; final latency rerun pending."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720|1920x1080 --script res://tests/test_carry_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-3-recheck/{720p,1080p} --review-size=...; view_media shove-cue at both sizes",
+      "status": "passed",
+      "result": "CARRY_PRESENTATION_OK checks=73 at both resolutions; rendered fixture now consumes the fresh accepted replica's real cooldown and asserts visible 2.0s text rather than injecting 1.4. Both inspected shove captures show SHOVE 2.0s (not READY), forward pose, readable METEOR warning and no HUD overlap. Carry/emote/interruption montage also reviewed; knockdown-interrupt capture depicts get_up after recovery, not the ragdoll interval (fixture explicitly tests that interval before capture). Linux/llvmpipe captures, not native Windows."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; GODOT_BIN=$(command -v godot) bash tests/run_container_network_test.sh",
+      "status": "passed",
+      "result": "Final source run: UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed, SHOVE70/EMOTES55/CARRY_PRESENTATION40, real ENet replica cooldown, 1/2/4 chaos scenario, five rematches, dedicated recovery/owner transfer and unchanged 300-check grab/175-check map/199-check prop role pass. Docker: CONTAINER_NETWORK_OK rooms=2 clients_per_room=2 rematches=5; CONTAINER_SOURCE_REGRESSION_OK and CONTAINER_VALIDATION_SLICE_OK; 4/8 source scale pass. Beyond-supported20 diagnostic still rejects the 1396-byte snapshot exceeding1392 MTU, kept non-gating and not a20-player claim. Logs .scratch/phase3-double-check-final.log and .scratch/phase3-containers.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (first run)",
+      "status": "failed",
+      "result": "Four-player two-room managed lifecycle reaches five rematches, then ALPHA physics-work p95=24.397ms exceeds16.67ms. This run overlapped the final source regression; scheduling contention is a hypothesis, not a proven cause. Rerunning the unchanged harness alone before deciding. No threshold relaxation or product tuning. Log .scratch/phase3-managed.log; profile .scratch/disaster-managed-19926-4/server-ALPHA.json."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (isolated rerun, four-player stage)",
+      "status": "passed",
+      "result": "MANAGED_CONTAINER_OK rooms=2 players_per_room=4 rematches=5 isolation=passed failures=passed profile=passed. Unchanged16.67ms gate passes in both rooms: ALPHA physics-work p95=10.370ms, BRAVO6.129ms,120 warmup/600 samples. First24.397ms failure did not recur without concurrent source tests; contention remains a plausible explanation rather than a proven product cause. The script's beyond-supported8-player stage is still running. Metrics .scratch/disaster-managed-25193-4/metrics.json."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (isolated rerun, eight-player diagnostic)",
+      "status": "failed",
+      "result": "Supported4-player stage passes, then beyond-supported8-player stage fails /v1/rooms/create with503 instead of200. All private clients prepared; service log includes DEDICATED_SERVER_READY capacity8 but no admitted roster (server-ALPHA stateLOBBY ids[]). Cause not established; do not relabel it as the earlier import-timeout failure or a pass. Preserve current1–4 support. Log .scratch/phase3-managed-isolated.log and .scratch/disaster-managed-25193-8/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "python3 tests/run_movement_latency_test.py --trials 3 --delays 0 100 200 --jitter-ms 30 --loss-every 20 --max-response-ms 50 --output .scratch/phase3-latency-final (isolated)",
+      "status": "passed",
+      "result": "MOVEMENT_LATENCY_OK response-bound. Explicit requesting-client shove cooldown assertion passes in all3 shove trials at every delay, alongside observer sequence/protection/impulse agreement, carry/footing/traversal. Input-to-motion maximum20.342ms (<50ms), reported correction p95<=0.217m/max<=0.780m. Logs/structured records retained under .scratch/phase3-latency-final/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720|1920x1080 --script res://tests/profile_overlap.gd (isolated, V-Sync disabled)",
+      "status": "failed",
+      "result": "Both executed profiles validate the representative scenario (OVERLAP_PROFILE_COMPLETE,4 players/3 props/2 hazard lines,7 authoritative bodies/4 cosmetic visuals,stable UI,120 warmup/600 samples) but correctly exit1 on60FPS target miss. Linux Compatibility/llvmpipe software renderer:720p frame p95=76.56ms/physics p95=1.05ms;1080p frame p95=147.94ms/physics p95=1.31ms. No hardware-GPU or display-pacing claim; no change to thresholds or speculative tuning. Logs .scratch/phase3-profile-{1280x720,1920x1080}.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "tools/export_playtest.sh windows|linux-server .scratch/phase3-export-{a,b}/TARGET; tools/verify_exported_artifacts.py; diff SHA256SUMS.txt; cmp client/server PCK; tests/run_release_linux_test.py; ZIP/tar extraction audits",
+      "status": "passed",
+      "result": "Four exports from clean committed03176ff6383fcb9ce57a6e618a3b56c3e7696b60 pass90-entry exact-PCK audits; repeated hashes identical per target and client/server PCK identical (SHA2561c150cdd0b3f68c31108f8108496f3d8079f78ffe6825b4aea55bea2a16d2593). RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent all pass on the actual release binary. Refreshed archives in .amp/in/artifacts/phase-3-recheck-packages/ pass integrity and extracted-copy audits: Windows ZIP SHA256a76e8e9f22ff8fbc88171f54670a576254930659257715740e64e0d9f8515f9c; Linux tar.gz SHA25603ca52126d4130ae604997a2545842f23a2326f7ac271a97ac509bd09b3714e3. Native Windows execution not available; no publication/deployment."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_map_safety.gd; xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_map_safety.gd -- --capture-dir=.amp/in/artifacts/phase-4/garage-canopy; view_media GarageCanopyInterior/Overview",
+      "status": "passed",
+      "result": "task_4_3a implemented: MAP_SAFETY_OK checks=251 headless and checks=277 rendered. Four inset deck-to-canopy columns (2.575m to 4.65m at ±3.4/±2.4) plus four corner beam braces (canopy frame ±4/±3 to pillar tops ±5.5/±4.5) keep deck/ramp/canopy geometry. New _check_garage_canopy gate passes mesh/collider agreement, exact span, brace reach, unchanged Shop/Hall tornado-cover queries with open garage deck uncovered, deck walk head<4.65m, gameplay-camera clearance, five-rematch restoration and post-rematch deck walk. Captures inspected: interior camera untrapped with clear deck/HUD; overview reads as a supported beam frame (right-side braces occluded at that angle, geometry asserted by test). Fixture finding: freeze/unfreeze crate teleports can lose their transform when a physics-step burst follows a rendered frame, restoring the stale spring-lag pose that pinned descent routes; fixture now uses plain teleports reasserted on physics steps with a settle assertion. Game prop snapshots are kinematic-frozen and unaffected. Logs .scratch/map_safety_{headless,rendered}.log; captures .amp/in/artifacts/phase-4/garage-canopy/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate: UI_REGRESSION_OK suites=38 matrices=5 persistence_restart=passed, including MAP_SAFETY_OK checks=251 in-suite and all prior network/chaos/dedicated groups. An earlier default-matrix run passed everything through the beyond-supported 8-player chaos stages, then failed at the known 20-player snapshot-MTU guard ('Oversized unreliable snapshot in 20-player session'); unchanged, non-gating, support remains 1-4. Log .scratch/ui_regression_supported.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "timeout 560 godot --headless --path . --script res://tests/test_map_variety.gd; xvfb-run -a godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_map_variety.gd -- --capture-dir=.amp/in/artifacts/phase-4/map-variety; view_media map-variety-toy_{town,harbor}{Gameplay,Overview}",
+      "status": "passed",
+      "result": "Two-map gate passes: MAP_VARIETY_OK checks=303 headless and checks=307 rendered. Per map: anchor schema plus hazard wiring (tornado/meteor/lightning/fire pulled from map anchors, Sandbox meta), 20-spawn geometry probe, four walk-only elevation routes with y/xz arrival asserts, two walked exits per refuge, flood escape per spawn group (peak 3.5m reached, alive, health held), no-universal-safe anchor checks (refuges in strike areas and tornado reach, cover inside strike areas, fire zone coverage span), and five rematches restoring every breakable/prop and map identity. Gameplay/overview captures inspected: Toy Town unchanged/clean; Toy Harbor reads with grounded warehouse, crane deck on pillars, docks, ramps and cargo (functional connections walk-proven; low gameplay angle makes the gangway bridge seam ambiguous, noted cosmetic). Root causes fixed during the gate: set_map_id rebuilt without freeing the previous sandbox (stacked maps caused phantom collision and ejections; now routes through _reset_sandbox), ramp tops buried under deck/dock faces blocked walkers at the step-up seam (now flush), dock tops raised to 3.75 above the 3.5 flood peak so docks are real elevation refuges, and the flood escape assert now requires alive+health-held rather than a fragile absolute 100 that earlier groups could poison. Captures .amp/in/artifacts/phase-4/map-variety/."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate after the map-ownership refactor and Toy Harbor: UI_REGRESSION_OK suites=39 matrices=5 persistence_restart=passed (39 includes the new test_map_variety suite), with MAP_SAFETY_OK checks=251 in-suite and all network/chaos/dedicated groups green. Log .scratch/regression_after_harbor.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "PLAYER_COUNTS=\"1 2 4\" GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Supported gate after task 4.3c: UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed (40 includes tests/test_map_identity.gd), DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed including the owner-requested map switch replicated to both clients before countdown and kept through five rematches. Also rerun individually green: MAP_IDENTITY_OK checks=22, MAP_VARIETY_OK checks=303, MAP_SAFETY_OK checks=251, LOBBY_ROSTER_OK checks=124, LOBBY_PRESENTATION_OK checks=40, ROOM_UI_OK checks=64. Log .scratch/regression_after_43c.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "timeout 120 godot --headless --path . --script res://tests/test_disaster_director.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_1a implemented and gated: DISASTER_DIRECTOR_OK checks=115 (same-seed replay equality, seed divergence, finished-record retention across cleanup, no adjacent/distance-2 repeats, two-disaster full-pool fallback, five rematch cycles with fresh history and per-round records), then UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed including DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Scratch history probe removed after measuring 29/80 distance-2 repeats (36%) on uniform picking. Logs .scratch/disaster_director_41a.log and .scratch/ui_regression_41a.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{meteor_shower,flood,tornado,disaster_combinations}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (twice)",
+      "status": "passed",
+      "result": "task_4_1b implemented and gated: METEOR_SHOWER_OK checks=76, FLOOD_OK checks=60, TORNADO_OK checks=48, DISASTER_COMBINATIONS_OK checks=31 covering bounded variant selection from seeded RNGs, same-seed parameter replay, snapshot round-trip of variant parameters to a client-role ENet instance, meteor >=1.2s per-strike warning floor and single-finish sequences, monotonic bounded surge curve, solo-before-combination with multi-strike sequences counting as one solo round, and five-rematch variant/effect cleanup. Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Honest note: the first full run failed only in the two-process playable-scene network client (stalled ~17s under suite load and missed the 0.5s wind observation window; identical server timeline, no script errors); isolated rerun and the second full run were green, so it is recorded as a load-timing flake, not masked. Logs .scratch/test_{meteor_shower,flood,tornado,disaster_combinations}-41b.log, .scratch/ui_regression_41b{,_rerun}.log, .scratch/playable_net_rerun1.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{earthquake,map_identity,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_2a implemented and gated: EARTHQUAKE_OK checks=48 (route roles/pairs on fixture sections, per-quake seeded collapse with same-seed replay and seed divergence, telegraph tilt before mesh/collider loss proven with a physics ray probe, preserve-one-pair escape guard, consecutive quakes never rebuild, five rematch restore with debris cleanup), MAP_IDENTITY_OK checks=27 (client agreement including late-state sync of broken pieces and rubble via create/apply_playable_snapshot), DISASTER_COMBINATIONS_OK checks=45 rendered with inspected compositions-eq-flood-refuge-collapse capture (named flood/earthquake wiring sets refuge pressure, HUD composition line, flood outlives the quake with refuges collapsing, clear Flood death cause, paired options standing). set_structure_root scoping fixes latent two-sandbox group cross-talk in network fixtures. Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Logs .scratch/test_{earthquake,map_identity,disaster_combinations}.log, .scratch/full_gate_42a.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{meteor_shower,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_2b implemented and gated: METEOR_SHOWER_OK checks=111 impacts=15 (solo-debris-free control, bounded wind-armed spawns with tags and impulse caps, slow-debris no-damage, once-per-player damage, clear Impact Debris lethal cause, client visuals-only replication with inert client ticks, alive cap and expiry, five-rematch debris/wind cleanup), DISASTER_COMBINATIONS_OK checks=60 rendered with inspected compositions-tornado-meteor-impact-debris capture (named tornado events arm debris, physics-stepped wind pickup toward the funnel beyond ballistic ejection, distant player untouched, 32-body budget with quake rubble). Supported gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Logs .scratch/test_{meteor_shower,disaster_combinations}.log, .scratch/full_gate_42b.log."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{earthquake,disaster_combinations}.gd plus rendered disaster_combinations; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_2c implemented and gated: EARTHQUAKE_OK checks=88, DISASTER_COMBINATIONS_OK checks=82 headless / 85 rendered with inspected compositions-fire-eq-burning-rubble capture; full gate UI_REGRESSION_OK suites=40 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    },
+    {
+      "date": "2026-10-10",
+      "command": "godot --headless --path . --script res://tests/test_{survival_pacing,disaster_director}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_4a implemented and gated: SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s, DISASTER_DIRECTOR_OK checks=115 unchanged; full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "godot --headless --path . --script res://tests/test_{survival_pacing,map_identity,disaster_director}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_4b implemented and gated: SURVIVAL_PACING_OK checks=69 normal_death=30.0s late_death=24.0s hard_death=21.0s (same tier/seed, 0.5s fixture resolution), MAP_IDENTITY_OK checks=42, DISASTER_DIRECTOR_OK checks=115 unchanged; full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    }
+  ],
+  "blockers": [],
+  "changed_files": [
+    "NEED_REAL_CHECK.md",
+    "docs/checklists/phase-4-disaster-remix-and-toy-town-interaction.md",
+    "docs/decisions.md",
+    "game/breakable_structure.gd",
+    "game/disaster_director.gd",
+    "game/earthquake.gd",
+    "game/fire.gd",
+    "game/flood.gd",
+    "game/lightning.gd",
+    "game/main.gd",
+    "game/meteor_shower.gd",
+    "game/shove_manager.gd",
+    "game/tornado.gd",
+    "progress.json",
+    "scenes/main.tscn",
+    "tests/dedicated_network_peer.gd",
+    "tests/movement_latency_peer.gd",
+    "tests/playable_scene_network_peer.gd",
+    "tests/test_carry_presentation.gd",
+    "tests/test_disaster_combinations.gd",
+    "tests/test_disaster_director.gd",
+    "tests/test_earthquake.gd",
+    "tests/test_emotes.gd",
+    "tests/test_flood.gd",
+    "tests/test_map_identity.gd",
+    "tests/test_map_identity.gd.uid",
+    "tests/test_map_safety.gd",
+    "tests/test_map_variety.gd",
+    "tests/test_map_variety.gd.uid",
+    "tests/test_meteor_shower.gd",
+    "tests/test_shove.gd",
+    "tests/test_survival_pacing.gd",
+    "tests/test_tornado.gd"
+  ],
+  "next_action": "Roll the completed Phase 4 over per AGENTS.md and the advancing-disaster-party skill: create docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/{progress.json,decisions.md,checklist.md} without overwriting any archive, mark the archive source_of_truth: false with its phase id/title/completion and archive timestamp, replace root progress.json with a fresh active file linking the archive and exactly one next action, validate both JSON files, update docs/implementation-checklist.md navigation and reconcile NEED_REAL_CHECK.md, then commit and push.",
+  "archive": {
+    "phase_id": "phase_4_disaster_remix_and_toy_town_interaction",
+    "title": "Disaster Remix and Toy Town Interaction",
+    "status": "completed",
+    "archived_at": "2026-10-11T00:29:22Z",
+    "reason": "All four required milestones (4.1-4.4) and their gates completed on executed evidence under the user instruction 'Implement Phase 4 untill done'. The Normal/Hard human comparison gates (death-timing feel, uncoached cause recognition, escape attempts, voluntary rematches) remain open in NEED_REAL_CHECK.md and are not claimed; the 2026-10-09 user acceptance waiver applies. No publication or deployment occurred.",
+    "superseded_by": "../../../progress.json"
+  }
+}
