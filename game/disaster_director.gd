@@ -4,6 +4,7 @@ extends Node
 signal disaster_started(disaster_name: String, intensity: int, active_disasters: Array[String])
 
 const RECENT_HISTORY_EXCLUSION := 2
+const MATCH_PRESETS := ["normal", "hard"]
 
 @export var initial_delay := 10.0
 @export var recovery_duration := 4.0
@@ -15,11 +16,14 @@ const RECENT_HISTORY_EXCLUSION := 2
 # authoritative instead of being floored.
 @export var mid_pacing_scale := 0.75
 @export var late_pacing_scale := 0.5
+# Owner-selected Hard preset: harder through shorter gaps only.
+@export var hard_pacing_scale := 0.6
 
 var running := false
 var selection_history: Array[String] = []
 var last_seed := 0
 var finished_replay_record: Dictionary = {}
+var match_preset := "normal"
 
 var _match_manager: MatchManager
 var _disasters: Dictionary = {}
@@ -103,11 +107,21 @@ func get_pacing() -> Dictionary:
 		scale = late_pacing_scale
 	elif intensity >= 3:
 		scale = mid_pacing_scale
+	if match_preset == "hard":
+		scale *= hard_pacing_scale
 	return {
 		"intensity": intensity,
+		"preset": match_preset,
 		"recovery": recovery_duration * scale,
 		"overlap": overlap_delay * scale,
 	}
+
+
+func set_match_preset(preset: String) -> bool:
+	if not _can_mutate() or preset not in MATCH_PRESETS:
+		return false
+	match_preset = preset
+	return true
 
 
 func get_replay_record() -> Dictionary:

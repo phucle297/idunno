@@ -48,6 +48,19 @@ func _run() -> void:
 	client._apply_match_snapshot(server._create_playable_snapshot())
 	_expect(is_instance_valid(gangway) and gangway == client.get_node("Sandbox/GangwayWest"), "Same map identity must not rebuild the sandbox")
 
+	# Task 4.4b: the owner-selected match preset rides the same pre-countdown
+	# snapshot contract as map identity.
+	_expect(server.get_match_preset() == "normal", "Default match preset must be normal")
+	_expect(String(server._create_playable_snapshot().get("match_preset", "")) == "normal", "Playable snapshot must carry the match preset")
+	_expect(server.request_match_preset("hard"), "The lobby must accept a preset change before countdown")
+	_expect(server.get_match_preset() == "hard", "Preset changes must apply at the lobby boundary")
+	_expect(server.disaster_director.match_preset == "hard", "The director must schedule with the selected preset")
+	_expect(not server.request_match_preset("nightmare"), "Invalid presets must be rejected")
+	_expect(not server.request_match_preset("hard"), "Re-selecting the current preset must be a no-op rejection")
+	client._apply_match_snapshot(server._create_playable_snapshot())
+	_expect(client.get_match_preset() == "hard", "Clients must converge on the server-selected preset before countdown")
+	_expect(client.match_manager.state == MatchManager.MatchState.LOBBY, "Preset convergence must happen before the countdown")
+
 	# Local lobby switching and request validation.
 	_expect(server.request_map_change("toy_town"), "Local lobby must accept a map change")
 	_expect(server.get_map_id() == "toy_town", "Local map change must apply immediately")
@@ -64,6 +77,10 @@ func _run() -> void:
 	_expect(not server._execute_owner_action(2, "map:toy_harbor", 6), "Stale-revision map requests must be rejected")
 	_expect(server._execute_owner_action(2, "map:toy_harbor", 7), "Owner map request must reach the server map switch")
 	_expect(server.get_map_id() == "toy_harbor", "Owner map request must apply at the lobby boundary")
+	_expect(not server._execute_owner_action(3, "preset:normal", 7), "Non-owner preset requests must be rejected")
+	_expect(not server._execute_owner_action(2, "preset:normal", 6), "Stale-revision preset requests must be rejected")
+	_expect(server._execute_owner_action(2, "preset:normal", 7), "Owner preset request must reach the server preset switch")
+	_expect(server.get_match_preset() == "normal", "Owner preset request must apply at the lobby boundary")
 
 	# Once the countdown runs, map identity freezes for the round.
 	server._network_mode = false
@@ -73,6 +90,8 @@ func _run() -> void:
 	_expect(server.match_manager.start_match(), "Fixture match must start")
 	_expect(not server.request_map_change("toy_town"), "Map identity must freeze after countdown")
 	_expect(server.get_map_id() == "toy_harbor", "An active match must not rebuild the map")
+	_expect(not server.request_match_preset("hard"), "Match presets must freeze after countdown")
+	_expect(server.get_match_preset() == "normal", "An active match must keep its preset")
 
 	# Task 4.2a: stable structure states travel in every playable snapshot and
 	# land on clients even after the quake itself has finished (late-state sync).

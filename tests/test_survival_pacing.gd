@@ -142,7 +142,7 @@ func _run() -> void:
 	_expect(normal["death_time"] > 0.0 and late_run["death_time"] > 0.0, "Both pacing runs must end in a readable death")
 	_expect(late_run["duration"] < normal["duration"], "Late tiers must kill sooner through pacing gaps alone")
 	_expect(late_run["frequency"] > normal["frequency"], "Late tiers must raise hazard frequency")
-	_expect(normal["damage_per_event"] == 10.0 and late_run["damage_per_event"] == 10.0, "Pacing must never silently multiply damage")
+	_expect(normal["damage_per_second"] == 10.0 and late_run["damage_per_second"] == 10.0, "Pacing must never silently multiply damage")
 	_expect(normal["cause"] in ["Rival A", "Rival B"] and late_run["cause"] in ["Rival A", "Rival B"], "Death causes must name a real hazard at every pace")
 
 	# Rematch reproducibility: the same seed replays the same death timing.
@@ -150,16 +150,32 @@ func _run() -> void:
 		var replay := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
 		_expect(is_equal_approx(float(replay["death_time"]), float(late_run["death_time"])), "Rematch cycle %d must replay identical death timing from the same seed" % (cycle + 1))
 
+	# Owner-selected Hard preset: harder through shorter gaps only. It must
+	# kill sooner than Normal at the same tier and seed while damage stays
+	# identical, and its gaps stay bounded and positive.
+	_expect(director.set_match_preset("hard"), "Authority must accept the Hard preset")
+	_expect(not director.set_match_preset("nightmare"), "Unknown presets must be rejected")
+	var hard_run := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
+	_expect(hard_run["death_time"] > 0.0, "The Hard run must end in a readable death")
+	_expect(hard_run["duration"] < late_run["duration"], "Hard must kill sooner than Normal at the same tier and seed")
+	_expect(hard_run["damage_per_second"] == late_run["damage_per_second"], "Hard must never multiply damage")
+	_expect(float(director.get_pacing()["recovery"]) < float(late["recovery"]), "Hard must shorten gaps below Normal at the same tier")
+	_expect(float(director.get_pacing()["recovery"]) >= 1.0, "Hard must keep a readable recovery gap at defaults")
+	for cycle in 5:
+		var hard_replay := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
+		_expect(is_equal_approx(float(hard_replay["death_time"]), float(hard_run["death_time"])), "Hard rematch cycle %d must replay identical death timing" % (cycle + 1))
+
 	# The solo exception and compatibility rules hold even at the fastest tier.
 	var solo_manager := ManagerScript.new()
 	root.add_child(solo_manager)
 	var solo_director := DirectorScript.new()
 	root.add_child(solo_director)
+	_expect(solo_director.configure(solo_manager), "Solo gate must configure its director")
+	_expect(solo_director.set_match_preset("hard"), "Solo gate must run under the Hard preset")
 	solo_manager.register_player(1, "Solo Player")
 	solo_manager.set_player_ready(1, true)
 	solo_manager.start_match()
 	solo_manager.elapsed_time = 480.0
-	_expect(solo_director.configure(solo_manager), "Solo gate must configure its director")
 	var alpha := LethalDisaster.new("Alpha")
 	var omega := LethalDisaster.new("Omega", 1, 0.0, ["Beta"])
 	var beta := LethalDisaster.new("Beta", 1, 0.0, ["Omega"])
@@ -182,7 +198,7 @@ func _run() -> void:
 	solo_director.cleanup()
 
 	if failures.is_empty():
-		print("SURVIVAL_PACING_OK checks=%d normal_death=%.1fs late_death=%.1fs" % [checks, float(normal["duration"]), float(late_run["duration"])])
+		print("SURVIVAL_PACING_OK checks=%d normal_death=%.1fs late_death=%.1fs hard_death=%.1fs" % [checks, float(normal["duration"]), float(late_run["duration"]), float(hard_run["duration"])])
 		quit(0)
 	else:
 		for failure in failures:
@@ -207,19 +223,21 @@ func _simulate_death(manager: MatchManager, director: DisasterDirector, hazards:
 	var start_time := manager.elapsed_time
 	var events := 0
 	while manager.is_player_alive(1) and manager.elapsed_time - start_time < 600.0:
-		manager.elapsed_time += 1.0
-		director.tick(1.0)
+		# Half-second resolution so fixture tick quantization cannot hide the
+		# sub-second gap differences between pacing presets.
+		manager.elapsed_time += 0.5
+		director.tick(0.5)
 		for hazard in hazards:
 			if hazard.is_active():
-				manager.apply_damage(1, hazard.damage_per_second, hazard.disaster_name)
+				manager.apply_damage(1, hazard.damage_per_second * 0.5, hazard.disaster_name)
 				events += 1
-				hazard.step(1.0)
+				hazard.step(0.5)
 	var duration := manager.elapsed_time - start_time
 	var result := {
 		"death_time": manager.elapsed_time if not manager.is_player_alive(1) else -1.0,
 		"duration": duration,
 		"frequency": float(events) / maxf(duration, 0.001),
-		"damage_per_event": rival_damage(hazards),
+		"damage_per_second": rival_damage(hazards),
 		"cause": manager.get_cause_of_death(1),
 	}
 	return result

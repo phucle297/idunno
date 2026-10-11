@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-11",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -105,10 +105,10 @@
       },
       "milestone_4_4_harder_but_fair_survival": {
         "title": "Harder but Fair Survival",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_4_4a_survival_pacing_curve": "completed: intensity-paced survival pacing curve. game/disaster_director.gd adds get_pacing(): the forgiving 4s/8s recovery/overlap baseline holds through the first five minutes, then intensity 3 shortens gaps 0.75x and intensity 4+ 0.5x (readable 2s/4s at defaults). Later rounds get stronger through frequency and pair scheduling only - damage values, warning durations and force bounds are structurally untouched and asserted; tier thresholds (120/300/480/540s), solo-before-combination and no-immediate-repeat are unchanged. Recovery protection is the bounded scale; explicit fixture overrides stay authoritative (no gap floor, which broke the director fixture's zero-delay contract). Gates SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s (two alternating equal-lethality hazards, same seeds, damage-per-event constant, frequency rising; five same-seed rematches replay identical death timing; tier boundaries both sides, solo exception and incompatible pairs at the fastest tier, all six hazard telegraphs preserved with Meteor at its 1.2s floor) and DISASTER_DIRECTOR_OK checks=115 unchanged, plus the full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Match duration stays configurable at 600s for the 8-12min target.",
-          "task_4_4b_hard_preset_and_human_gates": "planned: owner-selected Hard room/match preset replicated before countdown (lobby-boundary owner action + playable/session snapshot field like map identity, with a readable lobby display), applied to the pacing curve; gate Normal/Hard death timing, preset replication agreement, warning boundaries, combination compatibility and network performance, and record the human comparison (death timing, uncoached cause recognition, escape attempts, voluntary rematches) in NEED_REAL_CHECK.md without claiming it passed"
+          "task_4_4b_hard_preset_and_human_gates": "completed: owner-selected Hard preset with the human gates recorded, not claimed. The room owner picks Normal/Hard in the lobby before countdown through a preset: owner action at the lobby boundary (revision-checked replays mirror map identity), a match_preset field rides every playable/session snapshot so clients converge, the choice freezes after countdown, and the lobby shows a preset select. Hard multiplies the bounded pacing scales by 0.6 - damage values, warning durations, telegraphs and force bounds stay structurally untouched and asserted. Gates SURVIVAL_PACING_OK checks=69 normal_death=30.0s late_death=24.0s hard_death=21.0s (same tier/seed, identical 10 HP/s damage rate, five same-seed Hard replays identical; the death-timing fixture ticks at 0.5s because 1s fixture ticks quantized away the preset gap difference), MAP_IDENTITY_OK checks=42 (preset snapshot field, request/owner actions before countdown, client convergence, non-owner and stale-revision rejections, freeze after countdown), DISASTER_DIRECTOR_OK checks=115 unchanged, plus the full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Human Normal/Hard death timing and feel, uncoached cause recognition, escape attempts and voluntary rematches are recorded in NEED_REAL_CHECK.md and await real players."
         }
       }
     }
@@ -261,14 +261,23 @@
       "command": "godot --headless --path . --script res://tests/test_{survival_pacing,disaster_director}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "task_4_4a implemented and gated: SURVIVAL_PACING_OK checks=50 normal_death=28.0s late_death=22.0s, DISASTER_DIRECTOR_OK checks=115 unchanged; full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "godot --headless --path . --script res://tests/test_{survival_pacing,map_identity,disaster_director}.gd; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "task_4_4b implemented and gated: SURVIVAL_PACING_OK checks=69 normal_death=30.0s late_death=24.0s hard_death=21.0s (same tier/seed, 0.5s fixture resolution), MAP_IDENTITY_OK checks=42, DISASTER_DIRECTOR_OK checks=115 unchanged; full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
     }
   ],
   "blockers": [],
   "changed_files": [
     "game/disaster_director.gd",
+    "game/main.gd",
+    "scenes/main.tscn",
+    "tests/test_map_identity.gd",
     "tests/test_survival_pacing.gd",
-    "docs/decisions.md",
-    "progress.json"
+    "NEED_REAL_CHECK.md",
+    "docs/decisions.md"
   ],
-  "next_action": "Implement task_4_4b: owner-selected Hard room/match preset replicated before countdown (owner action at the lobby boundary + snapshot field with lobby display, mirroring map identity), applied to the pacing curve with bounded gaps; gate Normal/Hard death timing and preset replication, warning boundaries, combination compatibility and network performance, then record the human Normal/Hard comparison gates in NEED_REAL_CHECK.md and roll the phase over per AGENTS.md."
+  "next_action": "Roll the completed Phase 4 over per AGENTS.md and the advancing-disaster-party skill: create docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/{progress.json,decisions.md,checklist.md} without overwriting any archive, mark the archive source_of_truth: false with its phase id/title/completion and archive timestamp, replace root progress.json with a fresh active file linking the archive and exactly one next action, validate both JSON files, update docs/implementation-checklist.md navigation and reconcile NEED_REAL_CHECK.md, then commit and push."
 }

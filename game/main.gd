@@ -23,6 +23,8 @@ const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
 const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
+const MATCH_PRESETS := ["normal", "hard"]
+const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -65,6 +67,7 @@ var _direct_ip_mode := false
 var _room_id := ""
 var _room_connection_remaining := 0.0
 var map_id := "toy_town"
+var match_preset := "normal"
 var map_anchors: Dictionary = {}
 
 
@@ -1038,6 +1041,10 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	var incoming_map := String(snapshot.get("map_id", map_id))
 	if incoming_map != map_id:
 		set_map_id(incoming_map)
+	# The match preset rides the same pre-countdown contract as map identity.
+	var incoming_preset := String(snapshot.get("match_preset", match_preset))
+	if incoming_preset != match_preset:
+		set_match_preset(incoming_preset)
 	var previous_owner := _room_owner_id
 	var previous_state := match_manager.state
 	_dedicated_server = bool(snapshot.get("dedicated_server", false))
@@ -1071,6 +1078,7 @@ func _has_nonintact_structures() -> bool:
 func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
 	snapshot.map_id = map_id
+	snapshot.match_preset = match_preset
 	if _dedicated_server:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
@@ -1325,6 +1333,8 @@ func _execute_owner_action(sender_id: int, action: String, revision: int) -> boo
 			return return_to_lobby()
 	if action.begins_with("map:"):
 		return request_map_change(action.trim_prefix("map:"))
+	if action.begins_with("preset:"):
+		return request_match_preset(action.trim_prefix("preset:"))
 	return false
 
 
@@ -1369,6 +1379,10 @@ func _configure_lobby_ui() -> void:
 	for map_id_option: String in MAP_IDS:
 		map_select.add_item(MAP_TITLES.get(map_id_option, map_id_option))
 	map_select.item_selected.connect(func(index: int) -> void: request_map_change(MAP_IDS[index]))
+	var preset_select: OptionButton = $Interface/LobbyPanel/PresetSelect
+	for preset_option: String in MATCH_PRESETS:
+		preset_select.add_item(MATCH_PRESET_TITLES.get(preset_option, preset_option))
+	preset_select.item_selected.connect(func(index: int) -> void: request_match_preset(MATCH_PRESETS[index]))
 	$Interface/ResultsPanel/Actions/Rematch.pressed.connect(func() -> void:
 		if _network_mode:
 			restart_network_match()
@@ -1618,6 +1632,13 @@ func _update_lobby_ui() -> void:
 	var map_index: int = MAP_IDS.find(map_id)
 	if map_index >= 0 and map_select.selected != map_index:
 		map_select.select(map_index)
+	var preset_select: OptionButton = panel.get_node("PresetSelect")
+	preset_select.visible = in_lobby
+	panel.get_node("PresetLabel").visible = in_lobby
+	preset_select.disabled = room_client.busy or (_network_mode and not can_control_session())
+	var preset_index: int = MATCH_PRESETS.find(match_preset)
+	if preset_index >= 0 and preset_select.selected != preset_index:
+		preset_select.select(preset_index)
 	panel.get_node("PlayerList").present_players(match_manager.players, local_peer_id, _room_owner_id if _dedicated_server else 1, "OWNER" if _dedicated_server else "HOST")
 	panel.get_node("Ready").text = "UNREADY" if match_manager.is_player_ready(local_peer_id) else "READY UP"
 	if in_lobby and (_network_mode or lobby_demo):
@@ -1877,6 +1898,32 @@ func request_map_change(id: String) -> bool:
 		return set_map_id(id)
 	if can_control_session():
 		return _send_owner_action("map:" + id)
+	return false
+
+
+func get_match_preset() -> String:
+	return match_preset
+
+
+func set_match_preset(preset: String) -> bool:
+	if preset not in MATCH_PRESETS:
+		return false
+	if preset == match_preset:
+		return true
+	match_preset = preset
+	# The director schedules server-side; clients only mirror the display.
+	disaster_director.set_match_preset(preset)
+	return true
+
+
+func request_match_preset(preset: String) -> bool:
+	# Match presets change only at the lobby boundary, before countdown.
+	if preset not in MATCH_PRESETS or preset == match_preset or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	if not _network_mode or multiplayer.is_server():
+		return set_match_preset(preset)
+	if can_control_session():
+		return _send_owner_action("preset:" + preset)
 	return false
 
 

@@ -22,3 +22,13 @@ Không bắt buộc recording hay mẫu báo cáo dài. Agent sẽ tái hiện, 
 
 - **60FPS throughput trên GPU thật:** profile kịch bản 4 người + prop + chồng hazard của `tests/profile_overlap.gd` (720p/1080p, V-Sync off, p95 ≤ 16.67ms) trên máy có GPU/driver thật. Orb chỉ đo được llvmpipe (software rasterizer) nên không đưa ra claim throughput; pacing với V-Sync mặc định cũng cần màn hình vật lý (Xvfb không có vblank). Không cần làm trước khi báo bug.
 - **Capture trên Windows gốc:** các ảnh review phase cuối nằm trong `.amp/in/artifacts/phase-3-final/` được chụp trên Linux orb (llvmpipe). Muốn xác nhận giao diện đúng như bản Windows thì chạy build Windows và xem giúp các trạng thái: carry/prop, emote, shove cue, hazard chồng nhau, spectator/eliminated, rematch — chỉ cần báo khác biệt nếu thấy.
+
+## Kiểm tra Phase4 cần người chơi thật (không chặn bug report)
+
+Milestone 4.4 yêu cầu so sánh Normal/Hard với người thật. Agent đã đo bằng mô phỏng cùng seed và cùng tier (Normal chết sau 24.0s, Hard sau 21.0s ở cùng hazard lethality — Hard mạnh hơn chỉ nhờ nhịp độ, không nhân damage; cùng run, độ phân giải 0.5s), nhưng không thay thế cảm giác thật và không claim mục nào pass. Chơi 1–4 người, ghi theo format báo bug ngắn ở trên:
+
+- **So sánh thời điểm chết Normal/Hard:** chọn preset trong lobby (PRESET), chơi cùng map vài hiệp mỗi chế độ, ghi thời gian sống sót. "Harder" không đồng nghĩa "tốt hơn" — báo nếu Hard thấy unfair, stun-lock hoặc ngược lại thấy chả khác gì.
+- **Nhận diện nguyên nhân chết không cần hướng dẫn:** sau mỗi lần chết hỏi "vì sao?" — mong người chơi đọc được cause (Flood/Tornado/Meteor/Impact Debris/Burning Rubble/Earthquake/Lightning/Fire) từ cảnh báo và HUD mà không ai giải thích. Báo nếu cause khó hiểu.
+- **Thử thoát hiểm:** trong lúc cảnh báo hỏi người chơi có thấy đường thoát/cao điểm không, có thử đi tới đó không; báo nếu cảnh báo không đủ rõ để quyết định (đặc biệt combo Fire+Earthquake với rubble cháy).
+- **Tự nguyện chơi lại:** sau hiệp đầu hỏi có muốn rematch/chơi tiếp không và vì sao; record phản hồi ngược.
+- **Thời lượng thực tế:** ghi thời lượng mỗi hiệp (target 8–12 phút; `match_duration` hiện 600s và configurable) kèm số người/mạng/máy.

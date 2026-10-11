@@ -510,6 +510,20 @@ offset_top = 520.0
 offset_right = 360.0
 offset_bottom = 556.0
 
+[node name="PresetLabel" type="Label" parent="Interface/LobbyPanel"]
+offset_left = 20.0
+offset_top = 483.0
+offset_right = 110.0
+offset_bottom = 501.0
+theme_override_font_sizes/font_size = 14
+text = "PRESET"
+
+[node name="PresetSelect" type="OptionButton" parent="Interface/LobbyPanel"]
+offset_left = 120.0
+offset_top = 480.0
+offset_right = 360.0
+offset_bottom = 516.0
+
 [node name="Close" type="Button" parent="Interface/LobbyPanel"]
 offset_left = 192.0
 offset_top = 564.0
