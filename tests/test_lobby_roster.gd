@@ -118,6 +118,9 @@ func _check_geometry(roster: ScrollContainer) -> void:
 	var panel: Control = roster.get_parent()
 	_expect(panel.get_global_rect().encloses(roster.get_global_rect()), "Roster must remain inside lobby panel")
 	_expect(not roster.get_global_rect().intersects(panel.get_node("Status").get_global_rect()), "Scrollable rows must not overlap connection status")
+	_expect(not panel.get_node("Status").get_global_rect().intersects(panel.get_node("PresetSelect").get_global_rect()), "Preset row must not overlap connection status")
+	_expect(not panel.get_node("Status").get_global_rect().intersects(panel.get_node("MapSelect").get_global_rect()), "Map row must not overlap connection status")
+	_expect(not panel.get_node("PresetSelect").get_global_rect().intersects(panel.get_node("MapSelect").get_global_rect()), "Preset and map rows must not overlap")
 
 
 func _capture(state: String) -> void:

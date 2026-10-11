@@ -90,7 +90,14 @@
       }
     }
   },
-  "validation_log": [],
+  "validation_log": [
+    {
+      "date": "2026-10-11",
+      "command": "godot --headless --path . --script res://tests/test_lobby_roster.gd; xvfb-run godot --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-4; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Post-archive Phase 4 visual fix: rendered capture inspection found the 4.4b PRESET row placed on top of LobbyPanel/Status. scenes/main.tscn now seats PRESET+MAP side by side on one row using the panel's two-column pattern at measured theme minimums (OptionButton 39px), keeps the 4-row roster at 248px and the status line in its own row; tests/test_lobby_roster.gd adds Status/Preset/Map non-overlap regression asserts. LOBBY_ROSTER_OK checks=130, LOBBY_PRESENTATION_OK checks=40 with inspected capture (no overlaps at 720p), full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    }
+  ],
   "blockers": [],
   "changed_files": [],
   "next_action": "Hold for the owner's direction before starting Phase 5 implementation (Phase 4 is complete and archived; its human comparison gates remain open in NEED_REAL_CHECK.md for real players 1-4). When directed, start Phase 5's first work unit per docs/checklists/phase-5-session-distribution-and-release-readiness.md: harden the Phase 2 Windows package for release/distribution with robust failure UX and the playtest export, which is not deferred."
