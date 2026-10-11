@@ -68,15 +68,20 @@ func _run() -> void:
 	main.room_client._completed(HTTPRequest.RESULT_CANT_CONNECT, 0, [], PackedByteArray())
 	_expect("unavailable" in panel.get_node("Status").text, "Transport errors must be retryable")
 	await _capture("service-error")
+	var build: String = ProjectSettings.get_setting("build/revision", "development")
 	for invalid: Dictionary in [
-		{"protocol": 2, "build": "development"},
-		{"protocol": 1, "build": "old"},
-		{"protocol": 1, "build": "development", "port": 1},
-		{"protocol": 1, "build": "development", "room_id": "VALID", "address": "127.0.0.1", "port": 65536, "token": "token"},
-		{"protocol": 1, "build": "development", "room_id": "VALID", "address": "127.0.0.1", "port": 1.5, "token": "token"},
+		{"protocol": 2, "build": build},
+		{"protocol": 1, "build": build + "-mismatch"},
+		{"protocol": 1, "build": build, "port": 1},
+		{"protocol": 1, "build": build, "room_id": "VALID", "address": "127.0.0.1", "port": 65536, "token": "token"},
+		{"protocol": 1, "build": build, "room_id": "VALID", "address": "127.0.0.1", "port": 1.5, "token": "token"},
 	]:
 		main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 200, [], JSON.stringify(invalid).to_utf8_buffer())
+		var expected := "Build mismatch" if invalid.protocol != 1 or invalid.build != build else "Invalid room-service ticket"
+		_expect(expected in panel.get_node("Status").text, "Invalid response must exercise its specific validation branch, not a coincidental build mismatch")
 		_expect(not main.is_network_session() and main._create_playable_snapshot() == before, "Invalid/incompatible response must not create a UDP connection or reset gameplay")
+	main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 200, [], "null".to_utf8_buffer())
+	_expect("Invalid room-service response" in panel.get_node("Status").text and not main.is_network_session(), "Non-object JSON must fail closed before admission")
 	main.room_client.busy = true
 	main._update_lobby_ui()
 	_expect(not panel.get_node("RoomId").editable and panel.get_node("Join").disabled and panel.get_node("ConnectionMode").disabled, "Pending lookup must prevent duplicate/mode-changing requests")
@@ -91,7 +96,7 @@ func _run() -> void:
 	# An open UDP sink never returns an ENet handshake: exercise the UI deadline.
 	var sink := PacketPeerUDP.new()
 	_expect(sink.bind(0, "127.0.0.1") == OK, "Timeout fixture must reserve an unused UDP endpoint")
-	main._on_room_ticket_received({"room_id": "FRIENDS-42", "address": "127.0.0.1", "port": sink.get_local_port(), "token": "unused-ticket"})
+	main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 200, [], JSON.stringify({"protocol": 1, "build": build, "room_id": "FRIENDS-42", "address": "127.0.0.1", "port": sink.get_local_port(), "token": "unused-ticket"}).to_utf8_buffer())
 	_expect(main.is_network_session() and main._room_connection_remaining == 10.0, "Ticket must start a bounded connection attempt")
 	main._process(9.9)
 	_expect(main.is_network_session(), "Connection must not time out before the deadline")
@@ -154,6 +159,18 @@ func _run() -> void:
 	_expect(panel.visible and panel.get_node("RoomId").editable and panel.get_node("Join").visible and not panel.get_node("Join").disabled and main.get_network_player_ids() == [1], "Room loss must restore editable ID/retry and exactly one offline participant")
 	_expect("Room server disconnected" in panel.get_node("Status").text, "Room loss must not instruct users to enter raw IP")
 	await _capture("recovery")
+	var recovered: Dictionary = main._create_playable_snapshot().duplicate(true)
+	main.room_client.service_url = "http://127.0.0.1:29800"
+	main.room_client.busy = true
+	main._update_lobby_ui()
+	main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 404, [], JSON.stringify({"error": "unknown_room"}).to_utf8_buffer())
+	_expect("Room not found" in panel.get_node("Status").text and not panel.get_node("Join").disabled and main._create_playable_snapshot() == recovered, "After room loss, a fresh lookup failure must remain retryable without removing the restored offline player")
+	_expect(sink.bind(0, "127.0.0.1") == OK, "Retry fixture must reserve a new UDP endpoint")
+	main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 200, [], JSON.stringify({"protocol": 1, "build": build, "room_id": "FRESH-42", "address": "127.0.0.1", "port": sink.get_local_port(), "token": "fresh-ticket"}).to_utf8_buffer())
+	_expect(main.is_network_session() and main._room_id == "FRESH-42", "A fresh compatible ticket must start a new admission attempt after room loss")
+	main._process(10.1)
+	_expect(not main.is_network_session() and main.get_network_player_ids() == [1], "Failed fresh admission must recover again without restarting the client")
+	sink.close()
 	main.gameplay_audio.reset_for_match()
 	main.multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	main.free()

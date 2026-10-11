@@ -4,8 +4,8 @@
 Usage: verify_exported_artifacts.py SHA256SUMS.txt
 
 Standard library only; runs identically on Windows and Linux. Exits non-zero on
-any mismatch. Used by tests/run_windows_package_checks.ps1 and by the export
-verification recorded in docs/old-docs/phase-3-player-caused-chaos/checklist.md.
+any mismatch. Required by tools/export_playtest.sh before export success.
+Player-side Windows integrity checks use the shipped Verify-Package.ps1.
 """
 import hashlib
 import struct
@@ -15,7 +15,7 @@ from pathlib import Path
 
 REQUIRED_FILES = {"DisasterParty.pck", "BUILD.txt"}
 BINARY_FILES = {"DisasterParty.exe", "DisasterParty.x86_64"}
-OPTIONAL_FILES = {"room_service.py"}
+WINDOWS_FILES = {"PLAYTEST.txt", "Play.cmd", "Verify-Package.ps1"}
 FORBIDDEN_PREFIXES = (
     "res://tests/", "res://tools/", "res://docs/", "res://.agents/",
     "res://.scratch/", "res://.github/", "res://assets/source/",
@@ -63,11 +63,13 @@ def main():
     for line in manifest.read_text().splitlines():
         digest, name = line.split(None, 1)
         assert Path(name).name == name, f"Non-flat manifest entry: {name}"
+        assert name not in files, f"Duplicate manifest entry: {name}"
         files[name] = digest
     names = set(files)
-    assert names & BINARY_FILES, "Missing platform binary"
-    assert names <= (REQUIRED_FILES | BINARY_FILES | OPTIONAL_FILES), f"Unexpected files: {sorted(names)}"
-    assert REQUIRED_FILES <= names, f"Missing files: {sorted(REQUIRED_FILES - names)}"
+    binaries = names & BINARY_FILES
+    assert len(binaries) == 1, "Expected exactly one platform binary"
+    required = REQUIRED_FILES | binaries | (WINDOWS_FILES if "DisasterParty.exe" in binaries else {"room_service.py"})
+    assert names == required, f"Wrong bundle files: missing={sorted(required - names)} unexpected={sorted(names - required)}"
     for name, digest in files.items():
         actual = hashlib.sha256((folder / name).read_bytes()).hexdigest()
         assert actual == digest, f"Hash mismatch: {name}"

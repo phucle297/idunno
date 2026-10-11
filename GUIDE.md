@@ -3,20 +3,37 @@
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
-an operator must configure its room-service URL. No public service is deployed.
-Task 2.2.7 supplies matching Windows/Linux bundles at revision `94ad2fd`, locally
-validated but not Internet-certified. The older `7eb1f25` ZIP has direct-IP UI
-only; do not mix it with the new service. No lobby browser, Steam invites or
-NAT traversal is implemented.
+the configured endpoint is `https://server.permees.com`. Admission requires the
+exact client/server revision, so a freshly exported client cannot join an older
+deployed server. Check `BUILD.txt` and the operator's server revision first.
+The prior package/deployment evidence later in this guide describes historical
+builds, not release certification of a new export. No lobby browser, Steam
+invites or NAT traversal is implemented.
 Same-PC checks do not prove physical LAN or Internet play.
 
 ## Prepare and verify the package
 
 1. Extract the ZIP to a local folder on every PC. Keep `DisasterParty.exe`,
-   `DisasterParty.pck`, `BUILD.txt` and `SHA256SUMS.txt` together; do not run from
-   inside the ZIP or mix files from different builds.
+   `DisasterParty.pck`, `BUILD.txt`, `SHA256SUMS.txt`, `Play.cmd`,
+   `Verify-Package.ps1` and `PLAYTEST.txt` together; do not run from inside the
+   ZIP or mix files from different builds. Phase 5 packages include these seven
+   files; older packages described later in this guide are historical builds.
 2. Compare **Source revision** and **Engine** in `BUILD.txt` on every PC.
-3. Open PowerShell in that folder and verify the delivered files:
+3. Double-click **Play.cmd**. It checks every delivered file before launching,
+   then writes `room-client.log` in the package folder. Missing/corrupt files
+   or a non-writable folder stop launch with re-extraction instructions. The
+   launcher uses built-in Windows PowerShell with a process-only policy override;
+   it does not alter firewall or machine policy. If organizational policy blocks
+   it, ask your administrator; do not disable security controls. Checksums are
+   integrity checks, not signatures: use a trusted source for the complete ZIP.
+
+To verify without launching, open PowerShell in the package folder:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Verify-Package.ps1
+```
+
+For older packages without the verifier, check the delivered hashes manually:
 
 ```powershell
 foreach ($line in Get-Content .\SHA256SUMS.txt) {
@@ -33,7 +50,8 @@ Do not disable antivirus or firewall protection globally.
 
 ## Play alone
 
-Double-click `DisasterParty.exe`, or launch from its package folder:
+Double-click `Play.cmd` for a verified launch, or launch `DisasterParty.exe`
+directly from its package folder (direct launch bypasses integrity checking):
 
 ```powershell
 .\DisasterParty.exe --log-file solo.log
@@ -193,7 +211,7 @@ These are presentation/debug launches, not accelerated competitive matches.
 
 - Source-project localhost sessions are validated. The package has passed standalone Windows launch; physical two-PC LAN and Internet play remain unverified. Do not infer these from native editor-driver checks against the exported PCK. Internet play may require UDP forwarding; router/shared-network changes require permission and are not part of the LAN smoke check.
 - The host owns match state, health, movement, disasters, and winner decisions.
-- There is a packaged Windows build, but no public lobby browser, Steam integration or NAT traversal; create/join uses direct IP.
+- There is a packaged Windows build, but no public lobby browser, Steam integration or NAT traversal; default create/join uses room IDs. Direct IP is an explicitly selected development mode.
 - Only the host can initiate a network rematch; readiness is required before the initial network match, not between rematches.
 - Audio is synthesized placeholder content rather than final authored sound design.
 
@@ -236,8 +254,12 @@ this checklist does not validate the planned room service or dedicated servers.
 The release template does **not** execute external `--script` fixtures. The
 following uses the matching native Windows **editor** only as an external driver
 for the exact shipped PCK (no source-project `--path` and no tests added to the
-package). It covers settings restart/routing, session state and five rematches,
-but does not replace release-runtime UI or physical LAN/audio testing:
+package). It covers settings restart/routing, session state, five rematches and
+room-ID lookup/ticket/admission-timeout/disconnect/fresh-ticket retry behavior.
+The room fixture uses the payload's actual revision and checks specific error
+branches, not a hardcoded development build. It saves native 1280×720 room
+screenshots, but does not replace untouched release-runtime UI or physical
+LAN/Internet/audio testing:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run_windows_package_checks.ps1 `

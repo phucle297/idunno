@@ -37,7 +37,8 @@ No EKS is needed; public deployment and Internet gameplay remain unverified.
 
 Use the official Godot **4.7.2 stable** Linux editor and its matching export
 templates. The build command runs on Linux/WSL with Bash, Git, tar, ripgrep and
-sha256sum. Native Windows is required to validate the resulting executable.
+sha256sum plus Python 3 for the mandatory payload audit. Native Windows is
+required to validate the resulting executable.
 
 Download `Godot_v4.7.2-stable_export_templates.tpz` and `SHA512-SUMS.txt` from
 [the official release](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable).
@@ -65,10 +66,13 @@ GODOT_BIN=$(command -v godot) tools/export_playtest.sh linux-server .scratch/lin
 diff .scratch/linux-a/SHA256SUMS.txt .scratch/linux-b/SHA256SUMS.txt
 ```
 
-The package contains `DisasterParty.exe`, `DisasterParty.pck`, `BUILD.txt` and
-`SHA256SUMS.txt`; import/export logs are developer evidence, not runtime
-dependencies. Tests, generators, documentation, caches and downloaded tools are
-excluded. The executable is unsigned; this is not a Steam or release package.
+The Windows package contains `DisasterParty.exe`, `DisasterParty.pck`, `BUILD.txt`,
+`SHA256SUMS.txt`, `Play.cmd`, `Verify-Package.ps1` and `PLAYTEST.txt` (the same-revision
+play guide). The exporter verifies all manifest hashes, the exact platform file
+set and the PCK's required resources/development-path exclusions before reporting
+success. Import/export logs are developer evidence, not runtime dependencies.
+Tests, generators, caches and downloaded tools are excluded from the PCK.
+The executable is unsigned; this is not a Steam or public release package.
 
 The Linux package substitutes `DisasterParty.x86_64` and adds the same-revision
 `room_service.py`. It runs with `--headless` without an editor, import cache or
@@ -78,9 +82,14 @@ both from the same HEAD, not merely the same tag name. See the
 [operator runbook](GUIDE.md#packaged-server-operator-runbook-task-227) for local
 startup, deployment boundaries and outstanding Internet/listening gates.
 
-Copy those four files to a fresh directory on Windows and double-click
-`DisasterParty.exe`. Keep the PCK beside the EXE. No Godot/editor/repository is
-required. `BUILD.txt` identifies the full source revision and engine; the game
+Copy the seven Windows package files to a fresh writable directory on Windows
+and double-click `Play.cmd`. It verifies the complete bundle before starting,
+rejects incomplete/corrupt manifests and files, and writes `room-client.log` beside
+the executable. No Godot/editor/repository or Python is required on the player PC;
+Windows PowerShell is used with a process-only execution-policy override. Checksums
+detect damaged/mixed files, not malicious replacement: obtain the package from a
+trusted source. Direct EXE launch remains possible but bypasses the launcher check.
+`BUILD.txt` identifies the full source revision and engine; the game
 prints `DISASTER_PARTY_BUILD` on startup. For a standalone launch smoke check:
 
 ```powershell

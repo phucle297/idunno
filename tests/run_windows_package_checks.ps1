@@ -57,6 +57,8 @@ $p = Start-Check 'settings-restart' 'test_pause_settings.gd' "--headless $settin
 Finish-Check $p 'settings-restart' 'PAUSE_SETTINGS_OK checks=3'
 $p = Start-Check 'recovery' 'test_session_lifecycle.gd' "$settings --capture-dir=`"$OutputDir`""
 Finish-Check $p 'recovery' 'SESSION_LIFECYCLE_OK'
+$p = Start-Check 'room-failure-recovery' 'test_room_ui.gd' "$settings --review-resolution=1280x720 --capture-dir=`"$OutputDir`""
+Finish-Check $p 'room-failure-recovery' 'ROOM_UI_OK'
 $server = Start-Check 'server' 'playable_scene_network_peer.gd' "--headless -- --settings-path=user://windows-package-host.cfg --role=server --port=$Port --host-port=$Port"
 try {
     Start-Sleep -Milliseconds 500
@@ -65,4 +67,4 @@ try {
     finally { if (-not $client.HasExited) { Stop-Process -Id $client.Id -Force } }
     Finish-Check $server 'server' 'PLAYABLE_NETWORK_SERVER_OK.*network_rematches=5'
 } finally { if (-not $server.HasExited) { Stop-Process -Id $server.Id -Force } }
-Write-Output 'WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed runtime=native_editor physical_lan=not_run'
+Write-Output 'WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed room_failure_retry=passed runtime=native_editor physical_lan=not_run'

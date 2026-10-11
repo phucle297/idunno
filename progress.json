@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-11T14:23:32Z",
+  "updated_at": "2026-10-11T17:15:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_5_session_distribution_and_release_readiness",
     "milestone": "milestone_5_1_windows_package_hardening_and_failure_ux",
-    "task": "milestone_5_1_windows_package_hardening_and_failure_ux"
+    "task": "task_5_1c_distribution_bundle"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -60,7 +60,7 @@
   "phase": {
     "id": "phase_5_session_distribution_and_release_readiness",
     "title": "Session Distribution and Release Readiness",
-    "status": "planned",
+    "status": "in_progress",
     "dependencies": [
       "phase_4_disaster_remix_and_toy_town_interaction"
     ],
@@ -74,7 +74,39 @@
     "milestones": {
       "milestone_5_1_windows_package_hardening_and_failure_ux": {
         "title": "Windows Package Hardening and Failure UX",
-        "status": "planned"
+        "status": "in_progress",
+        "tasks": {
+          "task_5_1a_package_integrity_and_launcher": {
+            "title": "Fail-closed Windows launcher and mandatory export audit",
+            "status": "completed",
+            "acceptance_gates": {
+              "native_integrity_rejection_and_retry": "passed",
+              "same_snapshot_export_reproducibility": "passed",
+              "native_release_launcher_and_build_identity": "passed",
+              "exported_pck_settings_recovery_five_rematches": "passed",
+              "linux_release_regression": "passed"
+            },
+            "delivery": "Implementation validated locally only. Application repository changes are uncommitted/unpushed; exports use an isolated scratch-repository validation snapshot, not a distributed build. No deployment or publication."
+          },
+          "task_5_1b_exported_room_failure_recovery": {
+            "title": "Run room-ID lookup/admission/disconnect failures against the exported Windows payload",
+            "status": "completed",
+            "acceptance_gates": {
+              "exported_room_failure_retry": "passed",
+              "native_release_failure_ux": "passed"
+            },
+            "scope": "Adapt the existing room-UI fixture to runtime build identity, add it to the native exported-PCK runner, cover failed lookup, invalid tickets, admission deadline and room loss/fresh-ticket retry. Distinguish editor-driver automation from untouched release-executable behavior."
+          },
+          "task_5_1c_distribution_bundle": {
+            "title": "Produce the final same-revision client/server playtest bundles",
+            "status": "in_progress",
+            "acceptance_gates": {
+              "committed_revision_export_and_zip_audit": "not_run",
+              "delivery": "not_run"
+            },
+            "scope": "Export from the approved committed revision and package only the manifest-listed runtime files plus SHA256SUMS.txt; no public upload, deployment or supported-capacity increase."
+          }
+        }
       },
       "milestone_5_2_stable_multiplayer_capacity": {
         "title": "Stable Multiplayer Capacity",
@@ -108,9 +140,54 @@
       "command": "Phase 4 checklist/evidence audit against tests/test_map_variety.gd:101-153, tests/test_disaster_combinations.gd:117-153, game/earthquake.gd:245-277 and game/tornado.gd:17",
       "status": "not_run",
       "result": "Broader acceptance remains only partially substantiated despite the green regression gate. Flood route tests walk to high ground BEFORE starting the warning, so they prove walkability and peak refuge safety, not escape while water rises. Collapse tests/selection preserve one paired piece but do not execute relocation to it under active Flood+Earthquake. The map tornado-reach test accepts distance <=15m while the runtime influence radius defaults to 8m; this assertion is not proof of actual exposure (no safe-camping exploit reproduced). Timed escape, post-collapse relocation and actual refuge exposure need focused executed scenarios before claiming full fairness verification. Archived evidence also lacks Phase 4-specific 2/4-player profiles for both maps; native Windows/GPU 60FPS, physical audio/Internet feel and human Normal/Hard cause recognition/escape/rematch comparisons remain unverified. Preserve the existing human waiver and historical archive; do not retroactively claim these gates passed or start Phase 5 implementation."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_windows_package.py -v (before and after implementation)",
+      "status": "passed",
+      "result": "Initial red run failed because tools/windows/Play.cmd did not exist. Final native Windows PowerShell run passes: complete fixture accepted; missing/corrupt PCK, duplicate/path-traversal/incomplete manifests rejected; restoring all files allows retry. This permanent test exercises the shipped verifier, not executable validity or human Windows UX."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "GODOT_BIN=$(command -v godot) .amp/in/phase5/tools/export_playtest.sh windows .amp/in/phase5-windows-final-{a,b} (separately); diff both SHA256SUMS.txt; export_playtest.sh linux-server .amp/in/phase5-linux-final; python3 tests/run_release_linux_test.py .amp/in/phase5-linux-final --log .amp/in/artifacts/phase5/linux-release.log --port 29970",
+      "status": "passed",
+      "result": "Isolated scratch validation repository snapshot c19167a952753ea77211dc2aa9075485234ea0fa, not application HEAD or a distributed revision. Both Windows exports match every hash; mandatory auditors pass files=6/pck_entries=90 (Windows) and files=4/pck_entries=90 (Linux), PCK format4. Linux release lifecycle marker passes standalone startup, build rejection, create/join, crash/retry, SIGTERM and reclaimed ports without cache. No application-repository commit, push or deployment."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .amp/in/check-phase5-launch.ps1 -PackageDir <Windows-local snapshot package>; check-phase5-failures.ps1; tests/run_windows_package_checks.ps1 -PackageDir <same package> -GodotEditor <Windows-local 4.7.2 editor> -OutputDir <fresh checks> -Port 29980; godot --headless --path . --script res://tests/test_room_ui.gd",
+      "status": "passed",
+      "result": "Native Play.cmd launch from a directory with spaces passes integrity, starts the standalone release EXE with headless/Dummy/quit-after120 flags, prints matching build identity and exits0. Actual launcher rejects corrupt PCK and absent verifier with re-extraction text and no game log/launch. Native editor-driver exported-PCK checks pass settings persistence/recovery and five two-peer rematches; this is not release-client Internet gameplay. Source ROOM_UI_OK checks=64 passes; existing shutdown-only 7 ObjectDB/3 resources warnings remain visible. Evidence .amp/in/artifacts/phase5/{launcher.stdout,room-client.log,corrupt-pck.stdout,missing-verifier.stdout,room-ui.log,windows-pck-checks/}. No appearance changes; no physical audio, Internet or rendered-release acceptance claimed."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "godot --headless --path . --script res://tests/test_room_ui.gd; powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/run_windows_package_checks.ps1 -PackageDir <Windows-local c19167a validation snapshot> -GodotEditor <native 4.7.2 editor> -OutputDir <fresh checks-5.1b> -Port 29980",
+      "status": "passed",
+      "result": "Source ROOM_UI_OK checks=74 and native rendered exported-PCK ROOM_UI_OK checks=148 resolution=1280x720. Full native package runner also passes settings restart, session recovery and five two-peer rematches; final marker adds room_failure_retry=passed. Ticket tests now use runtime revision and assert exact error branch; valid tickets flow through RoomClient before starting admission, and fresh lookup/ticket failure after server loss restores one offline player. Negative control restoring hardcoded development identity fails seven assertions/exit1 against the exported payload as expected, proving these cases no longer pass coincidentally on build mismatch. Control log .amp/in/artifacts/phase5/room-ui-negative.log; native evidence/captures windows-pck-5.1b/. No product gameplay/authority changes."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "Temporary native Windows loopback HTTP/UDP fixture plus target-window PostMessage/PrintWindow automation of unchanged DisasterParty.exe; view_media default, unknown room, mismatch, invalid ticket, timeout and retry captures",
+      "status": "passed",
+      "result": "Untouched c19167a release EXE, native Windows AMD Radeon860M/Compatibility, 1280x720, Dummy audio: real POST requests carry matching revision/protocol. Inspected default/UNKNOWN42/MISMATCH42/INVALID42/TIMEOUT42 captures show readable Room not found, Build mismatch, Invalid room-service ticket and Request a new ticket statuses. Targeted mouse retry from the same timed-out process sends edited ID TIMERETRYOUT42 and receives404 with restored controls; field horizontally clips its long ID, while credential-free HTTP log records the full ID. Evidence .amp/in/artifacts/phase5/release-ui-cached-5.1b/ and release-ui-retry-5.1b/. Earlier scratch attempts had focus loss, synthetic-key punctuation/navigation issues and a transient null MainWindowHandle; discarded ambient captures were not proof. Caching a valid HWND and targeting messages/capture to it avoids global input and desktop content. All owned release/fixture processes closed. No public request/deployment; Internet admission, physical audio and successful native release re-admission remain unverified."
     }
   ],
+  "implementation_authorization": "2026-10-11 owner: Continue work phase 5. Supersedes the prior hold for owner direction; preserves Phase 4 evidence gaps and human waiver. No deployment, publication or capacity increase authorized.",
+  "delivery_authorization": "2026-10-11 owner Continue answers the explicit request to commit on a non-deploying branch. Commit validated Phase 5 changes on phase-5-package-hardening and prepare local matching bundles; no push to main, deployment or publication.",
   "blockers": [],
-  "changed_files": [],
-  "next_action": "Hold for the owner's direction before starting Phase 5 implementation (Phase 4 is complete and archived; its human comparison gates remain open in NEED_REAL_CHECK.md for real players 1-4). When directed, start Phase 5's first work unit per docs/checklists/phase-5-session-distribution-and-release-readiness.md: harden the Phase 2 Windows package for release/distribution with robust failure UX and the playtest export, which is not deferred."
+  "changed_files": [
+    "tools/windows/Play.cmd",
+    "tools/windows/Verify-Package.ps1",
+    "tools/export_playtest.sh",
+    "tools/verify_exported_artifacts.py",
+    "tests/test_windows_package.py",
+    "tests/test_room_ui.gd",
+    "tests/run_windows_package_checks.ps1",
+    "README.md",
+    "GUIDE.md",
+    "docs/checklists/phase-5-session-distribution-and-release-readiness.md",
+    "docs/decisions.md",
+    "progress.json"
+  ],
+  "next_action": "Finish task_5_1c: commit on phase-5-package-hardening, export matching Windows/Linux bundles from that revision, audit manifest-only ZIPs and run standalone package checks without deployment."
 }
