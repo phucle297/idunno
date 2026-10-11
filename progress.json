@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-11T00:29:22Z",
+  "updated_at": "2026-10-11T14:23:32Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -96,6 +96,18 @@
       "command": "godot --headless --path . --script res://tests/test_lobby_roster.gd; xvfb-run godot --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-4; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
       "status": "passed",
       "result": "Post-archive Phase 4 visual fix: rendered capture inspection found the 4.4b PRESET row placed on top of LobbyPanel/Status. scenes/main.tscn now seats PRESET+MAP side by side on one row using the panel's two-column pattern at measured theme minimums (OptionButton 39px), keeps the 4-row roster at 248px and the status line in its own row; tests/test_lobby_roster.gd adds Status/Preset/Map non-overlap regression asserts. LOBBY_ROSTER_OK checks=130, LOBBY_PRESENTATION_OK checks=40 with inspected capture (no overlaps at 720p), full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_{lobby_presentation,disaster_combinations,map_variety}.gd -- --capture-dir=.amp/in/artifacts/phase-4-verification (each script separately); view_media lobby, three compositions and both maps' gameplay/overview captures",
+      "status": "passed",
+      "result": "Owner-requested Phase 4 re-verification on source 2f03594: full gate exits 0, UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; supported playable scale 1/2/4 passes and dedicated movement/recovery passes with five rematches. Phase 4 markers: DIRECTOR115, METEOR111, FLOOD60, TORNADO48, EARTHQUAKE88, COMBINATIONS82, MAP_VARIETY303, MAP_IDENTITY42, SURVIVAL_PACING69 (synthetic normal/late/Hard deaths 30/24/21s). Rendered LOBBY40, COMBINATIONS85 and MAP_VARIETY307 pass on WSL/Linux Compatibility llvmpipe at 720p. Inspected captures show readable non-overlapping HUD/lobby controls and both maps; Harbor distant label is obscured by a beam, and the early Earthquake+Flood capture does not visibly demonstrate peak water. Existing shutdown ObjectDB/resource warnings remain; no parser/runtime failures. Logs .scratch/phase4-{verification,lobby-render,compositions-render,maps-render}.log. No gameplay changes, package export, deployment or capacity increase."
+    },
+    {
+      "date": "2026-10-11",
+      "command": "Phase 4 checklist/evidence audit against tests/test_map_variety.gd:101-153, tests/test_disaster_combinations.gd:117-153, game/earthquake.gd:245-277 and game/tornado.gd:17",
+      "status": "not_run",
+      "result": "Broader acceptance remains only partially substantiated despite the green regression gate. Flood route tests walk to high ground BEFORE starting the warning, so they prove walkability and peak refuge safety, not escape while water rises. Collapse tests/selection preserve one paired piece but do not execute relocation to it under active Flood+Earthquake. The map tornado-reach test accepts distance <=15m while the runtime influence radius defaults to 8m; this assertion is not proof of actual exposure (no safe-camping exploit reproduced). Timed escape, post-collapse relocation and actual refuge exposure need focused executed scenarios before claiming full fairness verification. Archived evidence also lacks Phase 4-specific 2/4-player profiles for both maps; native Windows/GPU 60FPS, physical audio/Internet feel and human Normal/Hard cause recognition/escape/rematch comparisons remain unverified. Preserve the existing human waiver and historical archive; do not retroactively claim these gates passed or start Phase 5 implementation."
     }
   ],
   "blockers": [],
