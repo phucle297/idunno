@@ -65,7 +65,7 @@ var room_admission: Node
 var room_client: Node
 var _direct_ip_mode := false
 var _room_id := ""
-var _room_connection_remaining := 0.0
+var _connection_remaining := 0.0
 var map_id := "toy_town"
 var match_preset := "normal"
 var map_anchors: Dictionary = {}
@@ -331,6 +331,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	_network_role = "client"
 	_last_match_snapshot_sequence = 0
 	_roster_snapshot_floor = 0
+	_connection_remaining = 10.0
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	_configure_network_player($Player, 1, Vector3(0.0, 0.05, 7.0))
@@ -441,7 +442,7 @@ func _on_server_disconnected() -> void:
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	var was_room := not _room_id.is_empty()
 	_room_id = ""
-	_room_connection_remaining = 0.0
+	_connection_remaining = 0.0
 	if is_instance_valid(room_admission):
 		room_admission.reset_client()
 		room_admission.queue_free()
@@ -973,12 +974,12 @@ func _network_spawn_position(index: int) -> Vector3:
 
 
 func _process(delta: float) -> void:
-	if _room_connection_remaining > 0.0:
+	if _connection_remaining > 0.0:
 		if match_manager.players.has(multiplayer.get_unique_id()):
-			_room_connection_remaining = 0.0
+			_connection_remaining = 0.0
 		else:
-			_room_connection_remaining -= delta
-			if _room_connection_remaining <= 0.0:
+			_connection_remaining -= delta
+			if _connection_remaining <= 0.0:
 				multiplayer.multiplayer_peer.close()
 				_on_connection_failed()
 	match_manager.tick_match(delta)
@@ -1552,7 +1553,6 @@ func _on_room_ticket_received(ticket: Dictionary) -> void:
 		_register_server_gameplay_player(1, $Player, "Local Player")
 		_on_room_lookup_failed("Room connection could not start. Request a new ticket and retry.")
 		return
-	_room_connection_remaining = 10.0
 	$Interface/LobbyPanel/Status.text = "Joining room — validating admission"
 	_update_lobby_ui()
 

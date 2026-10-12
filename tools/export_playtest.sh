@@ -50,4 +50,5 @@ fi
 printf 'Disaster Party Playtest\nSource revision: %s\nEngine: %s\nRenderer: Compatibility\nTarget: %s\n\nKeep the executable and DisasterParty.pck together.\nNo editor or repository is required. Build identity is printed in the runtime log.\nUnsigned prototype: no Steam integration. Session readiness is a separate gate.\n' \
   "$REVISION" "$ENGINE" "$PLATFORM" > "$OUTPUT/BUILD.txt"
 (cd "$OUTPUT" && sha256sum "${FILES[@]}" > SHA256SUMS.txt)
+python3 "$ROOT/tools/verify_exported_artifacts.py" "$OUTPUT/SHA256SUMS.txt"
 echo "PLAYTEST_EXPORT_OK target=$TARGET revision=$REVISION output=$OUTPUT"

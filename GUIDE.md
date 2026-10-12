@@ -200,7 +200,7 @@ These are presentation/debug launches, not accelerated competitive matches.
 ## Troubleshooting
 
 - **Can connect but match does not start:** every player must select **READY**, then the host selects **START MATCH** or presses Enter.
-- **Cannot connect:** verify host LAN IPv4, matching UDP port, matching package checksums, private-network firewall permission and Wi-Fi isolation. A failed join restores editable lobby fields; correct them and select **JOIN** again. Allow ENet time to detect a closed/unreachable host; recovery is not necessarily instant.
+- **Cannot connect:** verify host LAN IPv4, matching UDP port, matching package checksums, private-network firewall permission and Wi-Fi isolation. Room and direct-IP joins return to offline play if admission has not completed within 10 seconds. A failed join restores editable lobby fields; correct them and select **JOIN** again (room retries request a fresh ticket). Room-service HTTP lookup has a separate 20-second timeout before UDP joining begins.
 - **Host disconnects:** clients return to an offline lobby with cleared remote players and hazards. Restart/create the host, then use **JOIN** to retry. There is no host migration or automatic competitive-match resume.
 - **Files/resources missing or build identity wrong:** re-extract the complete package, keep PCK beside EXE and rerun checksum checks. Do not repair a package by copying individual files from another revision.
 - **Need logs:** launch with `--log-file host.log` / `client.log` before `--`; attach both logs and `BUILD.txt` when reporting a failure. The startup `DISASTER_PARTY_BUILD` line must agree with the build notes.

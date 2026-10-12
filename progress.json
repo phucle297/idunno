@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-11T14:23:32Z",
+  "updated_at": "2026-10-12T04:45:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_5_session_distribution_and_release_readiness",
     "milestone": "milestone_5_1_windows_package_hardening_and_failure_ux",
-    "task": "milestone_5_1_windows_package_hardening_and_failure_ux"
+    "task": "task_5_1_1_bounded_join_recovery_and_verified_export"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -60,7 +60,7 @@
   "phase": {
     "id": "phase_5_session_distribution_and_release_readiness",
     "title": "Session Distribution and Release Readiness",
-    "status": "planned",
+    "status": "in_progress",
     "dependencies": [
       "phase_4_disaster_remix_and_toy_town_interaction"
     ],
@@ -74,7 +74,19 @@
     "milestones": {
       "milestone_5_1_windows_package_hardening_and_failure_ux": {
         "title": "Windows Package Hardening and Failure UX",
-        "status": "planned"
+        "status": "in_progress",
+        "tasks": {
+          "task_5_1_1_bounded_join_recovery_and_verified_export": {
+            "title": "Bound all UDP joins and verify a fresh Windows playtest export",
+            "status": "in_progress",
+            "acceptance": "Stalled direct-IP and room joins recover after 10 seconds; retry restores controls and offline input; admitted clients remain connected. Export committed Windows payload with hashes and development-path checks."
+          },
+          "task_5_1_2_windows_runtime_and_package_failure_checks": {
+            "title": "Exercise Windows package failure and retry paths through the shipped payload",
+            "status": "planned",
+            "acceptance": "Validate the fresh package on native Windows, extend exported-PCK failure coverage where missing, and distinguish release-executable startup from editor-driver checks and physical LAN acceptance."
+          }
+        }
       },
       "milestone_5_2_stable_multiplayer_capacity": {
         "title": "Stable Multiplayer Capacity",
@@ -91,6 +103,12 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-12",
+      "command": "godot --headless --path . --script res://tests/test_room_ui.gd; same updated fixture against isolated git archive HEAD after editor import",
+      "status": "passed",
+      "result": "ROOM_UI_OK checks=71 on changed code. Unchanged baseline fails direct-IP deadline recovery, editable retry and fresh deadline assertions (with downstream failures because the client remains pending). UDP sink plus deterministic process steps verifies 9.9s/10.1s boundary, same-process retry, room fresh-ticket recovery and admitted-client deadline cancellation. Existing shutdown ObjectDB/resource warnings remain; changed run has no parser/runtime failures. Logs .scratch/phase5-{room-ui,baseline}.log. Full regression and fresh package export pending."
+    },
     {
       "date": "2026-10-11",
       "command": "godot --headless --path . --script res://tests/test_lobby_roster.gd; xvfb-run godot --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-4; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
@@ -111,6 +129,6 @@
     }
   ],
   "blockers": [],
-  "changed_files": [],
-  "next_action": "Hold for the owner's direction before starting Phase 5 implementation (Phase 4 is complete and archived; its human comparison gates remain open in NEED_REAL_CHECK.md for real players 1-4). When directed, start Phase 5's first work unit per docs/checklists/phase-5-session-distribution-and-release-readiness.md: harden the Phase 2 Windows package for release/distribution with robust failure UX and the playtest export, which is not deferred."
+  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md"],
+  "next_action": "Finish task 5.1.1: run the supported 1/2/4-player regression, commit bounded join recovery and export verification, and produce a fresh verified Windows playtest bundle. Owner authorized Phase 5 continuation on 2026-10-12; do not deploy or expand capacity."
 }
