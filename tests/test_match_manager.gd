@@ -1,6 +1,6 @@
 extends SceneTree
 
-const ManagerScript = preload("res://game/match_manager.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
 
 var failures: Array[String] = []
 var checks := 0

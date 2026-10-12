@@ -1,7 +1,7 @@
 class_name GrabManager
 extends Node
 
-const Tuning = preload("res://game/player_tuning.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
 
 var _players: Dictionary = {}
 var _owners: Dictionary = {}

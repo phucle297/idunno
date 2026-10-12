@@ -1,6 +1,6 @@
 extends SceneTree
 
-const SpectatorScript = preload("res://game/spectator_controller.gd")
+const SpectatorScript = preload("res://game/session/spectator_controller.gd")
 
 var failures: Array[String] = []
 var checks := 0

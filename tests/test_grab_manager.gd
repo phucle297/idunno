@@ -1,7 +1,7 @@
 extends SceneTree
 
-const Tuning = preload("res://game/player_tuning.gd")
-const ManagerScript = preload("res://game/grab_manager.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
+const ManagerScript = preload("res://game/player/grab_manager.gd")
 
 var failures: Array[String] = []
 var checks := 0

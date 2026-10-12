@@ -1,8 +1,8 @@
 class_name PartyPlayer
 extends CharacterBody3D
 
-const Tuning = preload("res://game/player_tuning.gd")
-const RagdollScene = preload("res://game/cosmetic_ragdoll.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
+const RagdollScene = preload("res://game/player/cosmetic_ragdoll.gd")
 
 const EMOTE_WAVE := 1
 const EMOTE_CHEER := 2

@@ -100,6 +100,16 @@ not the new readiness gate.
 
 Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the portable binary.
 
+Runtime scripts are grouped by responsibility:
+
+- `game/player/`: movement, tuning, character visuals, cosmetic ragdoll, grabbing and shoving.
+- `game/disasters/`: the disaster director and six hazard implementations.
+- `game/session/`: match state, room discovery/admission and spectating.
+- `game/ui/`: HUD, lobby/results presentation and settings.
+- `game/main.gd`: scene composition and orchestration. Standalone breakable-structure, gameplay-audio and asset-validation scripts remain at the root.
+
+Keep a moved script's `.gd.uid` alongside it and update scene, test and generator references. Scenes stay in `scenes/`; reusable assets stay in `assets/`.
+
 ```bash
 # Regenerate the deterministic Phase 0 reference assets.
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297

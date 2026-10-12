@@ -76,7 +76,7 @@ func _run_client() -> void:
 		push_error("Client timed out connecting to the %d-client server" % client_count)
 		quit(1)
 		return
-	var local_manager := preload("res://game/match_manager.gd").new()
+	var local_manager := preload("res://game/session/match_manager.gd").new()
 	root.add_child(local_manager)
 	var rejected_client_mutation: bool = not local_manager.register_player(999, "Client Injection")
 	probe.submit_ready.rpc_id(1)

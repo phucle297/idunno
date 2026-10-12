@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://game/toy_character_visual.gd" id="1_loqi5"]
+[ext_resource type="Script" path="res://game/player/toy_character_visual.gd" id="1_loqi5"]
 [ext_resource type="Material" path="res://assets/materials/MAT_Cream_v001.tres" id="2_x1c73"]
 [ext_resource type="Material" path="res://assets/materials/MAT_Cyan_v001.tres" id="3_bfjj2"]
 [ext_resource type="Material" path="res://assets/materials/MAT_Slate_v001.tres" id="4_nn63l"]

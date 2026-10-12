@@ -1,7 +1,7 @@
 extends SceneTree
 
-const ManagerScript = preload("res://game/match_manager.gd")
-const EarthquakeScript = preload("res://game/earthquake.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
+const EarthquakeScript = preload("res://game/disasters/earthquake.gd")
 const BreakableScript = preload("res://game/breakable_structure.gd")
 
 var failures: Array[String] = []

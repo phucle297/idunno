@@ -12,7 +12,7 @@ extends Node
 # applies the same bounded impulse exactly once (duplicates and stale packets
 # are suppressed).
 
-const Tuning = preload("res://game/player_tuning.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
 
 signal shove_effect_applied(shover_id: int, victim_id: int)
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T04:50:58Z",
+  "updated_at": "2026-10-12T05:25:23Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -106,6 +106,12 @@
   "validation_log": [
     {
       "date": "2026-10-12",
+      "command": "Compare moved scripts and changed resource/test/generator files against HEAD with only the 17 path substitutions; compare .gd.uid bytes; scan live references; Godot editor re-import via tests/run_ui_regression.sh",
+      "status": "passed",
+      "result": "Owner-authorized folder-only refactor: RELOCATION_ONLY_OK moved_scripts=17 preserved_uids=17 reference_only_files=22 before manifest/README/tracking edits. New groups: game/player (6), game/disasters (7), game/session (4); ui and root orchestration/standalone scripts unchanged. No old paths in live code/scenes/tests/generator/assets; historical evidence intentionally unchanged. Character scene changes only its script reference and manifest SHA256 to 5ff738d498b149c7be0f962bc343732079a303f51d624ca61b149e412c5dd53d. Editor re-import passes without script errors. Full supported regression and fresh isolated exports are running/pending, not yet passed; Phase 5 task5.1.2 remains next after this requested refactor."
+    },
+    {
+      "date": "2026-10-12",
       "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; tools/export_windows.sh .amp/in/artifacts/phase5-windows; godot --headless --main-pack .amp/in/artifacts/phase5-windows/DisasterParty.pck --script $PWD/tests/test_room_ui.gd; native Windows DisasterParty.exe --headless --quit-after 120; python3 -m zipfile -t .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip",
       "status": "passed",
       "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed; SESSION_LIFECYCLE_OK checks=54. Committed source ed419e1966358391faf178c5c183530ad84f4509 exports successfully with PLAYTEST_ARTIFACTS_OK files=3 pck_format=4 pck_entries=90. External Linux editor-driver ROOM_UI_OK checks=71 runs against that Windows PCK with matching build identity. Exact release EXE copied to a disposable Windows-local directory passes WINDOWS_RELEASE_STARTUP_OK runtime=release headless=true, exit 0 and no runtime errors; temporary copy removed after preserving logs. ZIP integrity passes, SHA256=7e8b712359e915142dc9cdf84b30e718b87d501ddf5452490fefcdf58ec2859d. Package .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip. Existing headless suite shutdown ObjectDB/resource warnings remain, not hidden parser/runtime failures. Logs .scratch/phase5-{regression,export,exported-room-ui,windows-startup}.log. Native Windows interactive failure/retry, physical LAN/Internet and performance acceptance remain unverified; no deployment or capacity increase."
@@ -136,6 +142,6 @@
     }
   ],
   "blockers": [],
-  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md"],
+  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/ (17 path-only fixture updates)", "README.md"],
   "next_action": "Implement task 5.1.2: extend tests/run_windows_package_checks.ps1 to exercise room/direct-IP failure and retry against the verified ed419e1 Windows PCK, then run native Windows checks; release-executable headless startup is already proven separately. Preserve physical-session acceptance and four-player capacity; do not deploy."
 }

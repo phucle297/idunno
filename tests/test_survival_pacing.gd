@@ -1,13 +1,13 @@
 extends SceneTree
 
-const ManagerScript = preload("res://game/match_manager.gd")
-const DirectorScript = preload("res://game/disaster_director.gd")
-const MeteorScript = preload("res://game/meteor_shower.gd")
-const FloodScript = preload("res://game/flood.gd")
-const TornadoScript = preload("res://game/tornado.gd")
-const FireScript = preload("res://game/fire.gd")
-const EarthquakeScript = preload("res://game/earthquake.gd")
-const LightningScript = preload("res://game/lightning.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
+const DirectorScript = preload("res://game/disasters/disaster_director.gd")
+const MeteorScript = preload("res://game/disasters/meteor_shower.gd")
+const FloodScript = preload("res://game/disasters/flood.gd")
+const TornadoScript = preload("res://game/disasters/tornado.gd")
+const FireScript = preload("res://game/disasters/fire.gd")
+const EarthquakeScript = preload("res://game/disasters/earthquake.gd")
+const LightningScript = preload("res://game/disasters/lightning.gd")
 
 var failures: Array[String] = []
 var checks := 0

@@ -3,9 +3,9 @@ extends Node
 
 signal client_validated
 
-const ManagerScript = preload("res://game/match_manager.gd")
-const FloodScript = preload("res://game/flood.gd")
-const TornadoScript = preload("res://game/tornado.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
+const FloodScript = preload("res://game/disasters/flood.gd")
+const TornadoScript = preload("res://game/disasters/tornado.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
 
 var role := ""

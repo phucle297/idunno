@@ -1,7 +1,7 @@
 extends SceneTree
 
 const DELTA := 1.0 / 60.0
-const Tuning = preload("res://game/player_tuning.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
 
 var failures: Array[String] = []
 var checks := 0

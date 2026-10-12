@@ -11,9 +11,9 @@ const PALETTE := {
 	"orange": Color("f06438")
 }
 const UITokens = preload("res://game/ui/ui_tokens.gd")
-const SpectatorControllerScript = preload("res://game/spectator_controller.gd")
+const SpectatorControllerScript = preload("res://game/session/spectator_controller.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
-const Tuning = preload("res://game/player_tuning.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
 const DEFAULT_NETWORK_PORT := 29730
 const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
@@ -275,7 +275,7 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 		return ERR_ALREADY_IN_USE
 	var room_config := _argument_value("--room-config=")
 	if dedicated and not room_config.is_empty():
-		room_admission = preload("res://game/room_admission.gd").new()
+		room_admission = preload("res://game/session/room_admission.gd").new()
 		add_child(room_admission)
 		var admission_error: Error = room_admission.configure_server(self, room_config)
 		if admission_error != OK:
@@ -323,7 +323,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	if error != OK:
 		return error
 	if not admission_token.is_empty():
-		room_admission = preload("res://game/room_admission.gd").new()
+		room_admission = preload("res://game/session/room_admission.gd").new()
 		add_child(room_admission)
 		room_admission.configure_client(self, admission_token)
 	multiplayer.multiplayer_peer = peer
@@ -1356,7 +1356,7 @@ func _request_ready(ready: bool) -> void:
 
 
 func _configure_lobby_ui() -> void:
-	room_client = preload("res://game/room_client.gd").new()
+	room_client = preload("res://game/session/room_client.gd").new()
 	add_child(room_client)
 	room_client.service_url = _argument_value("--room-service-url=")
 	if room_client.service_url.is_empty():

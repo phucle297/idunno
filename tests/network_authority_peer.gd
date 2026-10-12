@@ -1,15 +1,15 @@
 extends SceneTree
 
 const TIMEOUT_MSEC := 5000
-const ManagerScript = preload("res://game/match_manager.gd")
-const GrabManagerScript = preload("res://game/grab_manager.gd")
-const MeteorScript = preload("res://game/meteor_shower.gd")
-const FloodScript = preload("res://game/flood.gd")
-const TornadoScript = preload("res://game/tornado.gd")
-const EarthquakeScript = preload("res://game/earthquake.gd")
-const LightningScript = preload("res://game/lightning.gd")
-const FireScript = preload("res://game/fire.gd")
-const DirectorScript = preload("res://game/disaster_director.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
+const GrabManagerScript = preload("res://game/player/grab_manager.gd")
+const MeteorScript = preload("res://game/disasters/meteor_shower.gd")
+const FloodScript = preload("res://game/disasters/flood.gd")
+const TornadoScript = preload("res://game/disasters/tornado.gd")
+const EarthquakeScript = preload("res://game/disasters/earthquake.gd")
+const LightningScript = preload("res://game/disasters/lightning.gd")
+const FireScript = preload("res://game/disasters/fire.gd")
+const DirectorScript = preload("res://game/disasters/disaster_director.gd")
 
 var role := ""
 var port := 29720

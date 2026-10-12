@@ -5,8 +5,8 @@ extends SceneTree
 # targets, stairs/roof edges, death/spectator and rematch, plus the promise
 # that protection covers only shoves and never disasters.
 
-const ManagerScript = preload("res://game/match_manager.gd")
-const ShoveScript = preload("res://game/shove_manager.gd")
+const ManagerScript = preload("res://game/session/match_manager.gd")
+const ShoveScript = preload("res://game/player/shove_manager.gd")
 const DELTA := 1.0 / 60.0
 
 var failures: Array[String] = []
@@ -285,7 +285,7 @@ func _test_replication_contract() -> void:
 func _test_held_sender_rule() -> void:
 	await _setup_open_pair()
 	shove.reset_state()
-	var grab := preload("res://game/grab_manager.gd").new()
+	var grab := preload("res://game/player/grab_manager.gd").new()
 	world.add_child(grab)
 	for peer_id in [1, 2, 3]:
 		_expect(grab.register_player(peer_id, players[peer_id]), "Grab boundary must register for the held-sender rule")
