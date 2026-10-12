@@ -60,7 +60,7 @@
   "phase": {
     "id": "phase_5_session_distribution_and_release_readiness",
     "title": "Session Distribution and Release Readiness",
-    "status": "completed",
+    "status": "in_progress",
     "dependencies": [
       "phase_4_disaster_remix_and_toy_town_interaction"
     ],
@@ -229,13 +229,17 @@
     "tests/",
     "README.md"
   ],
-  "next_action": "Start milestone5.3: audit and harden tools/room_service.py failure modes with unit and managed-container tests, then record the Steam lobby/invite evaluation against the existing discovery/admission boundary. Milestone5.4 follows with measured-demand criteria; no infrastructure apply, DNS change, capacity increase or deployment.",
+  "next_action": "Reopened by owner 'Continue phase 5.' Milestones 5.1-5.4 remain gate-complete; validate owner choice for the supported-playtest-capacity target before aligning budget/CI/room-service default/docs.",
   "archive": {
     "phase_id": "phase_5_session_distribution_and_release_readiness",
     "title": "Session Distribution and Release Readiness",
-    "status": "completed",
+    "status": "deferred_not_completed",
     "archived_at": "2026-10-12T10:15:29Z",
-    "reason": "All four milestones (5.1-5.4) passed on executed evidence under the owner instruction to plan the Phase 5 checklist in detail and implement until done. 20-player movement blackout root-caused to ENet throttle baseline and fixed via throttle_configure; room-service rate-limit cap hardening plus Steam/capacity evaluations recorded. 20-player design capacity passes in automation, but supported playtest capacity stays four and physical LAN/Internet/audio/human acceptance remains open in NEED_REAL_CHECK.md. No deployment, publication, capacity increase or infrastructure change.",
-    "superseded_by": "../../../progress.json"
+    "reason": "Gates-complete checkpoint, not a closure. All four milestones (5.1-5.4) passed on executed evidence under the owner instruction to plan the Phase 5 checklist in detail and implement until done: the 20-player movement blackout was root-caused to the ENet throttle baseline and fixed via throttle_configure, and the room-service rate-limit cap was hardened with the Steam/capacity evaluations recorded. Supported playtest capacity stayed four because the expansion was owner-gated and physical LAN/Internet/human acceptance remained unverified. The owner's later 'Continue phase 5' reopened the phase, so this snapshot is preserved as historical gate evidence and is not falsely a completion.",
+    "superseded_by": "../../../progress.json",
+    "reopened": {
+      "date": "2026-10-12T10:32:25Z",
+      "reason": "Owner 'Continue phase 5' after the premature Phase 6 rollover. Remaining scope: expand supported playtest capacity beyond the temporary four-player limit (design capacity 20 now passes automation); deployment, infrastructure and Steam SDK work stay blocked pending explicit authorization/resources."
+    }
   }
 }

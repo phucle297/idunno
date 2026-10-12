@@ -8,6 +8,12 @@
 | 4 — Disaster Remix and Toy Town Interaction | [Checklist](phase-4-disaster-remix-and-toy-town-interaction/checklist.md) | [Decisions](phase-4-disaster-remix-and-toy-town-interaction/decisions.md) | [Progress](phase-4-disaster-remix-and-toy-town-interaction/progress.json) |
 | 5 — Session Distribution and Release Readiness | [Checklist](phase-5-session-distribution-and-release-readiness/checklist.md) | [Decisions](phase-5-session-distribution-and-release-readiness/decisions.md) | [Progress](phase-5-session-distribution-and-release-readiness/progress.json) |
 
+The Phase5 archive above is a **gates-complete checkpoint**, not a closure: owner "Continue
+phase 5" (2026-10-12) reopened the phase for its remaining supported-playtest-capacity
+expansion, so Phase5 is again the active phase (see root `progress.json` and
+`docs/checklists/phase-5-session-distribution-and-release-readiness.md`). Its archived
+5.1–5.4 evidence is preserved unchanged and is not overwritten.
+
 ## Suspended phase snapshot — not completed
 
 Phase2 was suspended on2026-10-09 for user-authorized Phase3 continuation under the manual-acceptance waiver. Its [full progress](phase-2-human-playtest-and-core-feel/progress.json) retains every unfinished gate and validation result; [decisions](phase-2-human-playtest-and-core-feel/decisions.md) retain the historical body. Its [checklist](../checklists/phase-2-human-playtest-and-core-feel.md) remains at the original path as a deferred reference. This is not a completed-phase archive or a human/release pass.
