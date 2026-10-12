@@ -21,18 +21,23 @@ without changing room-ID joining. No mass-scale infrastructure or optimization
 for hundreds of thousands/millions of users is planned. The source supports playerless
 dedicated hosting, room-owner controls, bounded room allocation/admission and
 room-ID create/join UI with retry recovery. Managed-container validation and
-matching Windows/Linux release packaging have historical local evidence. Earlier
-public build `0d10b28` has deployment/user Internet/audio evidence; this does not
-validate current source or authorize deploying it. Current-build public sessions,
-physical listening and measured production demand remain unverified.
+matching Windows/Linux release packaging have executed evidence. The owner-authorized
+[Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606)
+is deployed at `server.permees.com`; matching Windows/Linux packages are published.
+Public exact-PCK smoke passes two Linux editor-driven clients on one orb/upstream,
+not native Windows or separate-network human acceptance. Earlier public build
+`0d10b28` retains its user Internet/audio evidence; physical listening and measured
+production demand for the new build remain unverified.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
 The selected path now uses the **existing Tokyo EC2**, not Terraform provisioning.
 See [pipeline prerequisites and operation](GUIDE.md#existing-ec2-pipeline-main-only):
 main-only GitHub Actions validates/builds Linux, then deploys through OIDC/SSM.
-No Windows ZIP, GitHub Release or Steam publication is part of this deployment.
+Windows ZIP/GitHub pre-release publication is separate from the Linux deployment
+workflow and was authorized on 2026-10-12. No Steam publication occurred.
 The [earlier Terraform module](infra/ec2/README.md) is an optional reference only.
-No EKS is needed; current-build public deployment and Internet gameplay remain unverified.
+No EKS is needed; EC2 capacity/configuration is unchanged. GPU, audio and separate-network
+Windows acceptance remain unverified; the completed public smoke is not a capacity claim.
 
 ## Windows playtest export
 

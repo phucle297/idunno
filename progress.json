@@ -64,5 +64,16 @@
   "validation_log": [],
   "blockers": [],
   "changed_files": [],
+  "delivery": {
+    "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
+    "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
+    "revision": "bd3b606971ce9cf5470e03c5945d229052eb5ddf",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38272856925",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606",
+    "endpoint": "https://server.permees.com",
+    "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
+  },
   "next_action": "On a Phase 6 implementation request, decompose its checklist and decide drop eligibility, odds, duplicate handling and durable player identity before coding."
 }

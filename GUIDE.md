@@ -3,10 +3,14 @@
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
-an operator must configure its room-service URL. No public service is deployed.
-Task 2.2.7 supplies matching Windows/Linux bundles at revision `94ad2fd`, locally
-validated but not Internet-certified. The older `7eb1f25` ZIP has direct-IP UI
-only; do not mix it with the new service. No lobby browser, Steam invites or
+`https://server.permees.com` is built in. The owner-authorized
+[Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606)
+supplies matching Windows/Linux bundles and deployed server revision
+`bd3b606971ce9cf5470e03c5945d229052eb5ddf`. Download the new Windows ZIP and run
+`DisasterParty.exe`; older bundles are incompatible. Public two-client exact-PCK
+Linux editor-driven smoke passed, not native Windows/separate-network acceptance.
+Task 2.2.7's `94ad2fd` bundles and older `7eb1f25` direct-IP ZIP are historical.
+No lobby browser, Steam invites or
 NAT traversal is implemented.
 Same-PC checks do not prove physical LAN or Internet play.
 
@@ -580,6 +584,17 @@ pass Windows release, physically separate networks, all hazards/props,
 server-loss retry or physical audio/settings gates. No redeploy was needed.
 
 ### Remaining release acceptance
+
+Current package is the [Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606)
+Windows ZIP at revision `bd3b606971ce9cf5470e03c5945d229052eb5ddf`.
+Run the EXE directly; no launcher is required. CI deployment and post-deploy
+public tickets/ENet/roster/Ready/Start/remote movement/owner transfer passed with
+two Linux editor-driven exact-PCK clients on one orb/upstream. EC2 room-count and
+player limits are unchanged. Native Windows, separate-network human sessions,
+GPU and physical audio gates remain unverified; the instructions below describe
+the outstanding acceptance, not a mandatory prerequisite to reporting bugs.
+
+**Historical 2026-10-08 handoff (older build; not the current download):**
 
 The matching Windows package `DisasterParty-Windows-Internet-6fb1e8d.zip` is
 prepared locally and copied to the operator's Windows Downloads directory.
