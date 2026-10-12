@@ -2,10 +2,10 @@
 
 - Harden the Phase 2 Windows package for release/distribution and add robust failure UX; do not defer the playtest export until this phase.
 
-#### Milestone 5.1 — Windows Package Hardening and Failure UX (in progress)
+#### Milestone 5.1 — Windows Package Hardening and Failure UX (technical gates completed 2026-10-12)
 
 - Task 5.1.1 (completed 2026-10-12): bound direct-IP and room UDP joins to 10 seconds until authoritative roster admission; restore offline input and editable retry controls, preserve successful sessions, and export a fresh committed Windows bundle with checksum/PCK verification. Regression: UDP sink before/after deadline, repeated retry, admitted-client control, then supported 1/2/4 network matrices. Package gate: exporter must run `tools/verify_exported_artifacts.py` before reporting success. Evidence: `ROOM_UI_OK checks=71` (source and exported PCK), `UI_REGRESSION_OK suites=41 matrices=5`, `PLAYTEST_ARTIFACTS_OK pck_entries=90`, native Windows release headless startup and ZIP integrity passed. Build `ed419e1`; full evidence and local artifact path in root progress.
-- Task 5.1.2: validate the fresh Windows package's failure/retry paths and release-executable startup. Keep external editor-driver checks distinct from release-runtime startup and physical two-PC LAN acceptance; do not infer Internet/session feel from loopback tests.
+- Task 5.1.2 (completed 2026-10-12): validate the fresh Windows package's failure/retry paths and release-executable startup. Native Windows runner passes against build `e2ede19`: settings39/restart3, recovery56, room UI173 at 720p, two-peer session/five rematches and separate release-EXE headless startup. Corrected malformed-ticket fixtures use the shipped build ID so field validation is actually reached. Corrupted BUILD.txt is rejected before launch. Inspected native room/direct-IP timeout captures show readable retry controls/status. Service error mapping uses injected responses; UDP sink/disconnect checks use real local transport. Keep external editor-driver checks distinct from release-runtime startup and physical two-PC LAN acceptance; do not infer Internet/session feel from loopback tests. Evidence in root progress and `.amp/in/artifacts/phase5-native-checks/`; physical/human acceptance remains unverified under the existing continuation waiver.
 
 #### Later milestones (planned)
 

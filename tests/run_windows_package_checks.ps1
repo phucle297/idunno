@@ -27,7 +27,7 @@ foreach ($line in Get-Content (Join-Path $PackageDir 'SHA256SUMS.txt')) {
     $actual = (Get-FileHash (Join-Path $PackageDir $parts[1]) -Algorithm SHA256).Hash.ToLower()
     if ($actual -ne $parts[0]) { throw "Checksum mismatch: $($parts[1])" }
 }
-"Native editor-driver validation of exported PCK; not release-runtime or physical LAN evidence.`n$notes`n$version" | Set-Content (Join-Path $OutputDir 'evidence.txt')
+"Native editor-driver validation of exported PCK plus separate release-executable headless startup; not release-runtime UI, physical LAN or Internet evidence.`n$notes`n$version" | Set-Content (Join-Path $OutputDir 'evidence.txt')
 function Start-Check($name, $fixture, $extra) {
     $script = Join-Path $PSScriptRoot $fixture
     $args = "--main-pack `"$pack`" --script `"$script`" --log-file `"$OutputDir\$name.log`" --windowed --resolution 1280x720 $extra"
@@ -50,6 +50,10 @@ function Finish-Check($process, $name, $marker) {
     if ($errors) { throw "Runtime errors in ${name}: $errors" }
     Write-Output "$name $marker passed"
 }
+$release = Join-Path $PackageDir 'DisasterParty.exe'
+$p = Start-Process $release -WorkingDirectory $PackageDir -ArgumentList "--headless --quit-after 120 --log-file `"$OutputDir\release-startup.log`"" -PassThru -RedirectStandardOutput "$OutputDir\release-startup.stdout" -RedirectStandardError "$OutputDir\release-startup.stderr"
+$null = $p.Handle
+Finish-Check $p 'release-startup' 'DISASTER_PARTY_BUILD'
 $settings = '-- --settings-path=user://windows-package-check.cfg'
 $p = Start-Check 'settings-save' 'test_pause_settings.gd' "$settings --save-for-restart --capture-dir=`"$OutputDir`""
 Finish-Check $p 'settings-save' 'PAUSE_SETTINGS_OK'
@@ -57,6 +61,8 @@ $p = Start-Check 'settings-restart' 'test_pause_settings.gd' "--headless $settin
 Finish-Check $p 'settings-restart' 'PAUSE_SETTINGS_OK checks=3'
 $p = Start-Check 'recovery' 'test_session_lifecycle.gd' "$settings --capture-dir=`"$OutputDir`""
 Finish-Check $p 'recovery' 'SESSION_LIFECYCLE_OK'
+$p = Start-Check 'room-retry' 'test_room_ui.gd' "$settings --review-resolution=1280x720 --capture-dir=`"$OutputDir`""
+Finish-Check $p 'room-retry' 'ROOM_UI_OK'
 $server = Start-Check 'server' 'playable_scene_network_peer.gd' "--headless -- --settings-path=user://windows-package-host.cfg --role=server --port=$Port --host-port=$Port"
 try {
     Start-Sleep -Milliseconds 500
@@ -65,4 +71,4 @@ try {
     finally { if (-not $client.HasExited) { Stop-Process -Id $client.Id -Force } }
     Finish-Check $server 'server' 'PLAYABLE_NETWORK_SERVER_OK.*network_rematches=5'
 } finally { if (-not $server.HasExited) { Stop-Process -Id $server.Id -Force } }
-Write-Output 'WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed runtime=native_editor physical_lan=not_run'
+Write-Output 'WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed room_retry=passed release_startup=passed runtime=native_editor release_runtime=headless_startup_only physical_lan=not_run internet=not_run'

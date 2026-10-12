@@ -236,8 +236,12 @@ this checklist does not validate the planned room service or dedicated servers.
 The release template does **not** execute external `--script` fixtures. The
 following uses the matching native Windows **editor** only as an external driver
 for the exact shipped PCK (no source-project `--path` and no tests added to the
-package). It covers settings restart/routing, session state and five rematches,
-but does not replace release-runtime UI or physical LAN/audio testing:
+package). It covers settings restart/routing, session state, room/direct-IP
+failure and retry, and five rematches. It also launches the exact release EXE
+separately for a headless startup/identity check. Service error mappings are
+injected responses; UDP connection failures and disconnects use local ENet
+fixtures. These checks do not replace release-runtime UI, physical LAN/audio
+or public Internet testing:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run_windows_package_checks.ps1 `
@@ -251,6 +255,9 @@ Run from the development checkout. Use the editor executable directly, not its
 UNC path. Output must be a fresh directory. The policy
 override applies only to this process, not the machine. Logs identify the payload,
 engine, test markers and evidence limitations; keep any failed checks visible.
+Checksums must match before the game is launched. `release-startup.log` records
+the release process separately from the editor-driven checks; `room-retry.log`
+and `room-ui-*-1280x720.png` record recovery assertions and rendered states.
 
 ## Local room-service development (source checkout only)
 

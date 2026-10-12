@@ -60,6 +60,7 @@ func _run() -> void:
 		"incompatible_version": "Build mismatch", "match_in_progress": "Match in progress",
 		"rate_limited": "Wait a minute", "service_full": "servers are busy",
 		"server_start_failed": "could not start", "server_start_timeout": "startup timed out",
+		"service_stopping": "restarting", "unknown_error": "rejected the request",
 	}
 	for code: String in expected_errors:
 		main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 409, [], JSON.stringify({"error": code}).to_utf8_buffer())
@@ -68,12 +69,13 @@ func _run() -> void:
 	main.room_client._completed(HTTPRequest.RESULT_CANT_CONNECT, 0, [], PackedByteArray())
 	_expect("unavailable" in panel.get_node("Status").text, "Transport errors must be retryable")
 	await _capture("service-error")
+	var build: String = ProjectSettings.get_setting("build/revision", "development")
 	for invalid: Dictionary in [
-		{"protocol": 2, "build": "development"},
+		{"protocol": 2, "build": build},
 		{"protocol": 1, "build": "old"},
-		{"protocol": 1, "build": "development", "port": 1},
-		{"protocol": 1, "build": "development", "room_id": "VALID", "address": "127.0.0.1", "port": 65536, "token": "token"},
-		{"protocol": 1, "build": "development", "room_id": "VALID", "address": "127.0.0.1", "port": 1.5, "token": "token"},
+		{"protocol": 1, "build": build, "port": 1},
+		{"protocol": 1, "build": build, "room_id": "VALID", "address": "127.0.0.1", "port": 65536, "token": "token"},
+		{"protocol": 1, "build": build, "room_id": "VALID", "address": "127.0.0.1", "port": 1.5, "token": "token"},
 	]:
 		main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 200, [], JSON.stringify(invalid).to_utf8_buffer())
 		_expect(not main.is_network_session() and main._create_playable_snapshot() == before, "Invalid/incompatible response must not create a UDP connection or reset gameplay")
@@ -101,6 +103,7 @@ func _run() -> void:
 	main._process(0.2)
 	_expect(not main.is_network_session() and main.get_network_player_ids() == [1] and main.get_node("Player").accepts_local_input(), "Direct-IP deadline must restore exactly one controllable offline player")
 	_expect(panel.get_node("Address").editable and not panel.get_node("Join").disabled and "Connection failed" in panel.get_node("Status").text, "Direct-IP deadline must offer editable address retry")
+	await _capture("direct-ip-timeout")
 	panel.get_node("Join").pressed.emit()
 	_expect(main.is_network_session(), "Direct-IP retry must start in the same process")
 	main._process(10.1)
@@ -112,6 +115,7 @@ func _run() -> void:
 	_expect(main.is_network_session(), "Connection must not time out before the deadline")
 	main._process(0.2)
 	_expect(not main.is_network_session() and main.get_network_player_ids() == [1] and panel.get_node("RoomId").editable and "Request a new ticket" in panel.get_node("Status").text, "Deadline must close ENet and restore solo/fresh-ticket retry")
+	await _capture("room-timeout")
 	sink.close()
 	# One production world/light only. A raw transport fixture supplies a real client ID.
 	var server_root := Node.new()

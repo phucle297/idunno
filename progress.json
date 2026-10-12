@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T05:32:31Z",
+  "updated_at": "2026-10-12T06:41:56Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -35,8 +35,8 @@
   },
   "current": {
     "phase": "phase_5_session_distribution_and_release_readiness",
-    "milestone": "milestone_5_1_windows_package_hardening_and_failure_ux",
-    "task": "task_5_1_2_windows_runtime_and_package_failure_checks"
+    "milestone": "milestone_5_2_stable_multiplayer_capacity",
+    "task": "milestone_5_2_stable_multiplayer_capacity"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -74,7 +74,8 @@
     "milestones": {
       "milestone_5_1_windows_package_hardening_and_failure_ux": {
         "title": "Windows Package Hardening and Failure UX",
-        "status": "in_progress",
+        "status": "completed",
+        "validation_status": "passed",
         "tasks": {
           "task_5_1_1_bounded_join_recovery_and_verified_export": {
             "title": "Bound all UDP joins and verify a fresh Windows playtest export",
@@ -84,7 +85,8 @@
           },
           "task_5_1_2_windows_runtime_and_package_failure_checks": {
             "title": "Exercise Windows package failure and retry paths through the shipped payload",
-            "status": "planned",
+            "status": "completed",
+            "validation_status": "passed",
             "acceptance": "Validate the fresh package on native Windows, extend exported-PCK failure coverage where missing, and distinguish release-executable startup from editor-driver checks and physical LAN acceptance."
           }
         }
@@ -104,6 +106,12 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-12",
+      "command": "Native powershell.exe tests/run_windows_package_checks.ps1 against verified e2ede19 package, Windows-local paths containing spaces, Port29940; repeat with corrupted BUILD.txt; godot --headless --main-pack Windows PCK --script $PWD/tests/test_room_ui.gd; inspect native timeout captures",
+      "status": "passed",
+      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed room_retry=passed release_startup=passed. Native Godot4.7.2 Windows Compatibility / Intel UHD630 / 1280x720: settings39, restart3, SESSION_LIFECYCLE_OK56, ROOM_UI_OK173, two-peer movement/props/ragdoll/hazards/spectating/results/emotes/five rematches pass; all processes report build e2ede19c42ece7f81638931f171f4619299a85ca, no parser/runtime errors. Runner now separates exact release-EXE headless startup from external editor-driver fixtures, adds room/direct-IP timeout retry, and rejects corrupted BUILD.txt before release launch (WINDOWS_CORRUPT_PACKAGE_REJECTED_OK). Malformed-ticket cases use the shipped build identity to reach field validation; restart/unknown service errors are covered. Linux exported-PCK precheck ROOM_UI_OK75 also passes; only existing shutdown resource warnings there. Inspected native room/direct-IP timeout captures have readable retry status and controls, no overlaps/clipping. Service errors are injected HTTP completions; UDP sink, handshake and disconnect fixtures use real local transport. Logs .scratch/phase5-native-{precheck,runner,corrupt-package}.log; captures/logs .amp/in/artifacts/phase5-native-checks/. Disposable Windows-local fixture/package copies removed. Task5.1.2 and milestone5.1 technical gates completed; physical LAN/Internet/audio/human acceptance is not inferred. No runtime/payload change, no fresh export necessary, no deployment or supported-capacity increase."
+    },
     {
       "date": "2026-10-12",
       "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --headless --check-only --script res://tools/asset_generation/generate_assets.gd; tools/export_windows.sh .amp/in/artifacts/folder-refactor-windows; tools/export_playtest.sh linux-server .amp/in/artifacts/folder-refactor-linux; external room/player fixtures against Windows PCK; Linux release and native Windows release --headless --quit-after 120",
@@ -148,6 +156,6 @@
     }
   ],
   "blockers": [],
-  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/", "README.md"],
-  "next_action": "Implement task 5.1.2: extend tests/run_windows_package_checks.ps1 to exercise room/direct-IP failure and retry against the verified e2ede19 Windows PCK at .amp/in/artifacts/folder-refactor-windows, then run native Windows checks; release-executable headless startup is already proven separately. Preserve physical-session acceptance and four-player capacity; do not deploy."
+  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tests/run_windows_package_checks.ps1", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/", "README.md"],
+  "next_action": "Investigate milestone5.2: inspect the retained 20-player movement fixture and failed CI run37770598203 diagnostics, then reproduce the full4/8/20 matrix locally under constrained load before changing the proven owner. Keep supported playtest capacity at four; do not weaken assertions, trigger deployment or claim scale readiness from a single green run."
 }
