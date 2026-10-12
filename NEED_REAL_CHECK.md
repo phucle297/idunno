@@ -8,7 +8,7 @@ Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công
 
 - Windows: `C:\Users\permees\Downloads\DisasterParty-public-0d10b28`.
 - Build: `0d10b289520f43889dd19cf5beba9c2abbaaea92`; endpoint: `https://server.permees.com`.
-- Khi có bản mới, client/server cần matching. Bỏ checklist không cho phép tăng capacity, restart/deploy server hoặc đổi hạ tầng. Scope playtest vẫn1–4 người.
+- Khi có bản mới, client/server cần matching. Bỏ checklist **không cho phép restart/deploy server hoặc đổi hạ tầng** (vẫn cần user duyệt riêng; không làm trong turn này). Scope playtest hỗ trợ đã nâng lên **20 người** (design capacity, automation-validated) theo quyết định user 2026-10-12 "Your call"; kiểm tra người thật/Internet/audio dưới đây vẫn MỞ và automation không thay thế được.
 - Xác nhận Internet/audio của bản trước do user cung cấp vẫn được giữ; không suy thành xác nhận cho mọi bản sau.
 - Playtest Phase3 (chưa publish/deploy, dùng để user tự check): `.amp/in/artifacts/phase-3-packages/` — `DisasterParty-Windows-f82a5cb.zip` và `DisasterParty-Linux-server-f82a5cb.tar.gz`, cùng payload `DisasterParty.pck`; hướng dẫn điều khiển/ghi nhận bug nằm trong file `PLAYTEST-NOTES.md` kèm gói.
 

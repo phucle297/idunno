@@ -7,13 +7,14 @@ owns the reopened plan. Prior decisions remain in the [Phase 5 archive](old-docs
 
 ## Phase 5 reopened (2026-10-12)
 
-Owner "Continue phase 5" reopened the phase after the premature Phase 6 rollover.
-The single open scope item is the supported-playtest-capacity expansion; no decision is
-recorded yet because it is owner-gated:
+Owner "Continue phase 5" reopened the phase after the premature Phase 6 rollover; owner
+then delegated the single remaining scope item with "Your call."
 
-- **Supported-playtest capacity target — OPEN.** The 20-player movement blackout is fixed
-  and the design capacity (20) passes constrained automation, but `NEED_REAL_CHECK.md`
-  still records playtest scope 1–4 and forbids capacity increase/deployment without
-  explicit authorization. Options: 20 (design capacity, automation-validated, physical
-  acceptance still open) vs 8 (conservative step). Deployment and infrastructure changes
-  remain blocked pending separate authorization; Steam SDK/app work needs external credentials.
+- **Supported-playtest capacity target — DECIDED: 20 (design capacity), automation-validated.**
+  The 20-player movement blackout is fixed (`throttle_configure(1000,2,1)`) and passes five
+  consecutive constrained 20-player runs plus the full 4/8/20 matrix; the supported 1/2/4
+  regression and 13 room-service tests also pass. Chose 20 because it is the design-bible
+  capacity and is now evidenced, so an intermediate 8 would only defer the same decision.
+  The claim is labeled automation-validated: physical LAN/Internet/audio/human acceptance
+  stays open in `NEED_REAL_CHECK.md`. Deployment and infrastructure changes remain blocked
+  pending separate authorization; Steam SDK/app work needs external credentials.

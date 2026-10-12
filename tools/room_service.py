@@ -290,7 +290,7 @@ def arguments():
     parser.add_argument("--port-start", type=int, default=29810)
     parser.add_argument("--port-end", type=int, default=29813)
     parser.add_argument("--rooms", type=int, default=4)
-    parser.add_argument("--players", type=int, default=8)
+    parser.add_argument("--players", type=int, default=20)
     parser.add_argument("--token-ttl", type=float, default=20)
     parser.add_argument("--startup-timeout", type=float, default=15)
     parser.add_argument("--heartbeat-timeout", type=float, default=10)

@@ -17,10 +17,11 @@ preserved as historical evidence (not overwritten). Root `progress.json` is auth
 
 ## Remaining scope — owner decision
 
-- [ ] **5.2.4 — Expand supported playtest capacity beyond four.**
-  The 20-player design capacity now passes in automation, but the temporary 1–4 playtest
-  scope is still in force (`NEED_REAL_CHECK.md`) and physical LAN/Internet/human acceptance
-  is unverified. Choose the target (design capacity **20** or conservative **8**), then:
+- [x] **5.2.4 — Expand supported playtest capacity beyond four → 20 (design capacity).**
+  Owner delegated with "Your call"; chose 20 because it is the design-bible capacity and is
+  now evidenced by five consecutive constrained 20-player runs plus the full 4/8/20 matrix.
+  The claim is automation-validated only; physical LAN/Internet/human acceptance stays open
+  in `NEED_REAL_CHECK.md`. Done (2026-10-12):
   1. raise `progress.json` `phase.budgets.supported_players`;
   2. restore the CI scale matrix (`PLAYER_COUNTS`) in `.github/workflows/deploy-existing-ec2.yml`;
   3. align the room-service per-room default in `tools/room_service.py` (`--players`);

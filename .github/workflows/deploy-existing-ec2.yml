@@ -60,8 +60,8 @@ jobs:
       - name: Source regression and admission checks
         shell: bash
         env:
-          # Temporary playtest scope: retain full default matrix for later scale work.
-          PLAYER_COUNTS: '4'
+          # Supported capacity 20: validate the full playable-scale matrix (4/8/20).
+          PLAYER_COUNTS: '4 8 20'
         run: |
           set -euo pipefail
           GODOT_BIN=$(command -v godot)

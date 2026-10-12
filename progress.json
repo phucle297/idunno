@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T10:32:25Z",
+  "updated_at": "2026-10-12T10:47:58Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -66,7 +66,7 @@
     ],
     "goal": "Harden the Windows package for release/distribution with robust failure UX and the playtest export, resolve the intermittent 20-player movement failure before expanding supported playtest capacity, harden the Internet room service and evaluate Steam lobby/invite integration against its existing discovery/admission boundary, and improve server capacity/placement only from measured demand. Milestones5.1-5.4 gates already pass (evidence in phase_5_archive_checkpoint); the remaining scope is the supported-playtest-capacity expansion and its CI/doc/default alignment.",
     "budgets": {
-      "supported_players": 4,
+      "supported_players": 20,
       "authoritative_loose_bodies": 32,
       "grabbable_props": 12,
       "active_disasters": 2
@@ -78,12 +78,12 @@
       },
       "milestone_5_2_stable_multiplayer_capacity": {
         "title": "Stable Multiplayer Capacity",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": {
           "task_5_2_4_expand_supported_playtest_capacity": {
             "title": "Expand supported playtest capacity beyond the temporary four-player scope",
-            "status": "planned",
-            "acceptance": "Owner chooses the supported-playtest capacity target (design capacity20 vs conservative8) and confirms the temporary1-4 scope is lifted; then align progress.budgets.supported_players, the CI scale matrix, the room-service per-room default, and the scope wording in README/NEED_REAL_CHECK, and re-run the full4/8/20 matrix plus the supported regression. Physical LAN/Internet/human acceptance stays open in NEED_REAL_CHECK.md; no deployment or infrastructure change without separate explicit approval."
+            "status": "completed",
+            "acceptance": "Owner delegated with 'Your call'. Chose 20 (design-bible capacity). Aligned progress budget (supported_players 20), restored the full CI scale matrix (PLAYER_COUNTS 4 8 20), set room-service --players default 20, and updated README/NEED_REAL_CHECK scope wording. Evidence: PLAYABLE_SCALE_MATRIX_OK players=4,8,20 (constrained 2-CPU); UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed; room-service 13/13 tests OK. Automation-validated only: physical LAN/Internet/audio/human acceptance stays open; no deployment or infrastructure change."
           }
         }
       },
@@ -97,16 +97,28 @@
       }
     }
   },
-  "validation_log": [],
-  "blockers": [
+  "validation_log": [
     {
-      "id": "owner_capacity_decision",
-      "scope": "supported playtest capacity expansion",
-      "detail": "Phase5's own records make the expansion an owner decision and gate it on physical LAN/Internet/human acceptance, which the orb cannot run. NEED_REAL_CHECK.md still records playtest scope 1-4 and forbids capacity increase, deployment and infrastructure change without explicit authorization.",
-      "status": "blocked"
+      "check": "constrained full scale matrix",
+      "result": "passed",
+      "note": "PLAYABLE_SCALE_MATRIX_OK players=4,8,20 (taskset -c 0,1). Evidence .scratch/phase5-capacity-full-matrix.log.",
+      "command": "taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=30121 tests/run_playable_scale_test.sh"
+    },
+    {
+      "check": "supported regression",
+      "result": "passed",
+      "note": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Evidence .scratch/phase5-capacity-supported-regression.log.",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh"
+    },
+    {
+      "check": "room-service suite",
+      "result": "passed",
+      "note": "13/13 tests OK including real Godot/ENet process fixtures, after --players default raised to 20 (tests pin explicit capacities). Evidence tool output this turn.",
+      "command": "GODOT_BIN=$(command -v godot) PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v"
     }
   ],
+  "blockers": [],
   "changed_files": [],
-  "next_action": "Ask the owner to choose the supported playtest capacity target (design capacity 20 vs conservative 8) and confirm the temporary 1-4 scope is lifted; on confirmation, align the budget/CI matrix/room-service default/docs and re-validate. Deployment, infrastructure and Steam SDK work stay blocked pending explicit authorization/resources.",
+  "next_action": "Archive Phase 5 as completed (all milestones 5.1-5.4 plus the 5.2.4 capacity expansion validated) and roll over to the planned Phase 6; no deployment or infrastructure change.",
   "phase_5_archive_checkpoint": "docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json"
 }
