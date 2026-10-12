@@ -11,6 +11,7 @@ var tick_ms: Array[float] = []
 var physics_ms: Array[float] = []
 var profile := {}
 var release_at := 0
+var control_directory := "/control"
 
 
 func _initialize() -> void:
@@ -18,6 +19,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--control-dir="):
+			control_directory = argument.trim_prefix("--control-dir=")
 	main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	main.name = "Main"
 	root.add_child(main)
@@ -122,14 +126,14 @@ func _summary() -> Dictionary:
 
 
 func _read(path: String) -> Dictionary:
-	if not FileAccess.file_exists("/control/" + path):
+	if not FileAccess.file_exists(control_directory.path_join(path)):
 		return {}
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("/control/" + path))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(control_directory.path_join(path)))
 	return parsed if parsed is Dictionary else {}
 
 
 func _write(path: String, data: Dictionary) -> void:
-	var file := FileAccess.open("/control/" + path + ".tmp", FileAccess.WRITE)
+	var file := FileAccess.open(control_directory.path_join(path + ".tmp"), FileAccess.WRITE)
 	file.store_string(JSON.stringify(data))
 	file.close()
-	DirAccess.rename_absolute("/control/" + path + ".tmp", "/control/" + path)
+	DirAccess.rename_absolute(control_directory.path_join(path + ".tmp"), control_directory.path_join(path))

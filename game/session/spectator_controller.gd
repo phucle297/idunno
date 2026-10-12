@@ -23,9 +23,8 @@ func set_targets(targets: Dictionary) -> void:
 	_targets.clear()
 	_target_ids.clear()
 	for peer_id: int in targets:
-		var target: Node3D = targets[peer_id]
-		if is_instance_valid(target):
-			_targets[peer_id] = target
+		if is_instance_valid(targets[peer_id]):
+			_targets[peer_id] = targets[peer_id]
 			_target_ids.append(peer_id)
 	_target_ids.sort()
 	if _target_ids.is_empty():
@@ -62,6 +61,12 @@ func stop() -> void:
 func _process(_delta: float) -> void:
 	if not active or current_target_id == 0 or not is_instance_valid(_camera_pivot):
 		return
+	# A disconnect can free the target before the next roster/UI refresh.
+	# Validate the Variant before assigning it to a typed Node3D reference.
+	if not is_instance_valid(_targets.get(current_target_id)):
+		set_targets(_targets.duplicate())
+		if current_target_id == 0:
+			return
 	var target: Node3D = _targets.get(current_target_id)
 	if is_instance_valid(target):
 		_camera_pivot.global_position = target.global_position + Vector3(0.0, 1.2, 0.0)

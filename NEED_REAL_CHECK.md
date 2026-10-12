@@ -2,7 +2,7 @@
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.
 
-`progress.json` giữ trạng thái Phase6 (Cosmetic Loot-Box Drops — chờ user chỉ đạo); [archive Phase5](docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json), [archive Phase4](docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json), [archive Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [snapshot Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ toàn bộ kết quả đã chạy và failure chưa rõ nguyên nhân. Phase2 được hoãn, không đánh dấu hoàn thành; Phase3, Phase4 và Phase5 hoàn thành với limitation/human gate mở được ghi nhận rõ bên dưới. Các bản cũ của checklist có trong Git; không xóa lịch sử test hoặc coi failure đã được sửa.
+`progress.json` theo dõi Phase5 validation follow-up; Phase6 chưa triển khai. [Archive Phase5](docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json), [Phase4](docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json), [Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ kết quả lịch sử; Phase2 vẫn hoãn. Kết luận "mọi gate đã pass" trong archive không áp dụng cho GPU thật, capture Windows mới hoặc human/network/audio acceptance chưa chạy. [Audit reconciliation](docs/decisions.md) ghi rõ correction; không sửa/xóa evidence cũ.
 
 ## Bản đã giao gần nhất
 
@@ -21,7 +21,9 @@ Không bắt buộc recording hay mẫu báo cáo dài. Agent sẽ tái hiện, 
 ## Kiểm tra cần thiết bị thật (không chặn bug report)
 
 - **60FPS throughput trên GPU thật:** profile kịch bản 4 người + prop + chồng hazard của `tests/profile_overlap.gd` (720p/1080p, V-Sync off, p95 ≤ 16.67ms) trên máy có GPU/driver thật. Orb chỉ đo được llvmpipe (software rasterizer) nên không đưa ra claim throughput; pacing với V-Sync mặc định cũng cần màn hình vật lý (Xvfb không có vblank). Không cần làm trước khi báo bug.
+- **Trạng thái performance:** số đo Phase3 p95 103/160ms trên llvmpipe không đạt 16.67ms; hoàn thành việc đo không phải pass mục tiêu. Cần profile matching build trên GPU thật, 120 warmup/600 samples ở cả 720p/1080p, ghi GPU/driver/build/map và p95. Chưa xác minh, không bị biến thành pass bởi waiver.
 - **Capture trên Windows gốc:** các ảnh review phase cuối nằm trong `.amp/in/artifacts/phase-3-final/` được chụp trên Linux orb (llvmpipe). Muốn xác nhận giao diện đúng như bản Windows thì chạy build Windows và xem giúp các trạng thái: carry/prop, emote, shove cue, hazard chồng nhau, spectator/eliminated, rematch — chỉ cần báo khác biệt nếu thấy.
+- **Matching build/network:** bản public `0d10b28` có xác nhận lịch sử, không phải bản mới. Khi thử gói follow-up, chạy client và server từ cùng revision trong BUILD.txt; ghi số người, máy/mạng, movement/owner departure/crash retry/audio. Một phòng 20 client loopback không chứng minh nhiều phòng 20 người trên EC2 hoặc Internet thật. Không deploy/restart để thực hiện check nếu chưa được duyệt riêng.
 
 ## Kiểm tra Phase4 cần người chơi thật (không chặn bug report)
 

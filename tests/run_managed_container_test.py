@@ -89,9 +89,14 @@ with response: print(json.dumps({'status':response.status,'body':json.load(respo
     try:
         docker("network", "create", "--internal", prefix)
         start("service", "--suite=managed-service", str(players), service=True)
+        wait(lambda: read("service").get("ready"), "Service private import must prepare", 120)
         for room in ("alpha", "bravo"):
             for index in range(players):
-                start(f"{room}-{index}", "--suite=managed-client", f"--client-id={room}-{index}")
+                label = f"{room}-{index}"
+                start(label, "--suite=managed-client", f"--client-id={label}")
+                # Private editor imports are memory-heavy; admission has not
+                # begun, so serialize preparation without changing match timing.
+                wait(lambda: (directory / f"{label}.prepared").exists(), f"{label}: private import must prepare", 120)
         wait(lambda: read("service").get("ready") and
              all((directory / f"{room}-{i}.prepared").exists() for room in ("alpha", "bravo") for i in range(players)),
              "All private import caches and clients must prepare", 120)

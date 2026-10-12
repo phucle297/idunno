@@ -7,9 +7,14 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 6 — Cosmetic Loot-Box Drops and Customization | Active; holds for owner direction to decompose | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
+| 5 — Validation Follow-up | Active; closes audit gaps | [Follow-up](checklists/phase-5-validation-followup.md) |
+| 6 — Cosmetic Loot-Box Drops and Customization | Planned; not started | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
 
-Phase4 (randomized replayable disaster rounds, behavior-changing compositions, Toy Town/Toy Harbor map variety with server map identity, and harder-but-fair survival pacing with the owner Hard preset) completed on 2026-10-11 and is archived; its milestone gates passed on executed evidence, with the Normal/Hard human comparison gates still open in NEED_REAL_CHECK.md. Phase5 (session distribution and release readiness) completed and archived on 2026-10-12: the 20-player movement blackout was root-caused to the ENet throttle baseline and fixed, the room-service rate-limit cap was hardened, the Steam/capacity evaluations were recorded, and supported playtest capacity was expanded to 20 (design capacity, automation-validated; physical LAN/Internet/human acceptance stays open). Phase3 completed 2026-10-10 with all seven gates passed and device-bound limitations recorded. User-authorized activation preserved Phase2's unfinished gates, not a closure or an invented pass; its checklist stays at the original path as a deferred reference. Current status and next action live only in root progress.
+Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
+summaries are superseded by the [audit reconciliation](decisions.md). Phase 3 hardware
+performance/native captures and Phase 4 human comparison are unverified, not passed.
+The follow-up closes technical scale/fairness coverage separately. Phase 2 remains
+deferred under its continuation waiver. Current state and action live only in root progress.
 
 ## Completed phases
 

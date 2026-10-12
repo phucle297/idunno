@@ -48,6 +48,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	_expect(anchors.strike_half_extent >= 16.0, "%s strike area reaches the playable area" % map_name)
 	# Hazard systems must consume the map anchors, not hardcoded positions.
 	var tornado := main.get_node("Tornado") as Tornado
+	tornado.set_process(false)
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	var lightning := main.get_node("Lightning") as Lightning
 	var fire := main.get_node("Fire") as Fire
@@ -99,28 +100,33 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 			_expect(player.is_on_floor() and Vector2(player.position.x - exit.x, player.position.z - exit.z).length() < 0.4 and absf(player.position.y - exit.y) < 0.35, "%s refuge %s exit %s must be walkable: %s" % [map_name, refuge.name, exit, player.position])
 			player.reset_for_match(Vector3.ZERO)
 	# Flood escape from every spawn group: walk to the group's route and stand
-	# through the full warning/rise/hold cycle without drowning.
+	# through the real warning/rise and a three-second peak window without drowning.
 	for group: Dictionary in anchors.spawn_groups:
 		player.reset_for_match(group.spawn)
 		for settle in 5:
 			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
 			await physics_frame
+		_expect(flood.start_warning(), "%s spawn group %s flood warning precedes escape" % [map_name, group.name])
 		var walked := 0
 		for waypoint: Vector3 in group.waypoints:
-			walked += await _walk_to(main, player, Vector2(waypoint.x, waypoint.z), 480)
+			walked += await _walk_to(main, player, Vector2(waypoint.x, waypoint.z), 480, flood)
 			_expect(Vector2(player.position.x - waypoint.x, player.position.z - waypoint.z).length() < 0.6, "%s spawn group %s must walk waypoint %s: %s" % [map_name, group.name, waypoint, player.position])
 		var route := _route_by_name(anchors, group.route)
 		var high: Vector3 = route.high
-		walked += await _walk_to(main, player, Vector2(high.x, high.z), 480)
+		walked += await _walk_to(main, player, Vector2(high.x, high.z), 480, flood)
 		_expect(player.is_on_floor() and absf(player.position.y - high.y) < 0.35, "%s spawn group %s must reach refuge %s: %s" % [map_name, group.name, group.route, player.position])
-		_expect(walked <= 900, "%s spawn group %s escape stays walkable within the fixture budget: %d ticks" % [map_name, group.name, walked])
-		_expect(flood.start_warning(), "%s spawn group %s flood escape starts" % [map_name, group.name])
+		_expect(walked / 60.0 < flood.warning_duration + flood.rise_duration and main.match_manager.is_player_alive(1), "%s spawn group %s reaches refuge alive before peak: %d ticks" % [map_name, group.name, walked])
 		# The escape contract is "the flood does not drown the player who made
 		# it to high ground": health must hold through the peak while alive.
 		var health_before: float = main.match_manager.get_health(1)
-		flood.tick(flood.warning_duration)
-		flood.tick(flood.rise_duration)
-		flood.tick(3.0)
+		while flood.phase != Flood.Phase.HOLDING and flood.is_active():
+			flood.tick(1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
+		for tick in 180:
+			flood.tick(1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
 		_expect(
 			is_equal_approx(flood.water_level, 3.5)
 				and main.match_manager.is_player_alive(1)
@@ -134,12 +140,21 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	for refuge: Dictionary in anchors.refuges:
 		var center: Vector3 = refuge.center
 		_expect(absf(center.x) <= anchors.strike_half_extent and absf(center.z) <= anchors.strike_half_extent, "%s refuge %s is inside meteor/lightning strike areas" % [map_name, refuge.name])
-		var near_path := false
+		var exposed := false
 		for path: Array in anchors.tornado_paths:
 			var closest := Geometry2D.get_closest_point_to_segment(Vector2(center.x, center.z), Vector2(path[0].x, path[0].z), Vector2(path[1].x, path[1].z))
-			if Vector2(center.x, center.z).distance_to(closest) <= 15.0:
-				near_path = true
-		_expect(near_path, "%s refuge %s stays within tornado reach" % [map_name, refuge.name])
+			if Vector2(center.x, center.z).distance_to(closest) >= tornado.influence_radius:
+				continue
+			player.reset_for_match(center)
+			tornado.start_warning(path[0], path[1])
+			tornado.tick(tornado.warning_duration)
+			for tick in ceili(tornado.active_duration * 60.0):
+				player.velocity = Vector3.ZERO
+				tornado.tick(1.0 / 60.0)
+				if player.velocity.length() > 0.0:
+					exposed = true
+			tornado.cleanup()
+		_expect(exposed, "%s refuge %s receives runtime tornado force inside radius %.1f" % [map_name, refuge.name, tornado.influence_radius])
 	for volume: AABB in anchors.cover_volumes:
 		var outside: bool = volume.position.x > anchors.strike_half_extent or volume.position.x + volume.size.x < -anchors.strike_half_extent or volume.position.z > anchors.strike_half_extent or volume.position.z + volume.size.z < -anchors.strike_half_extent
 		_expect(not outside, "%s sheltered cover must not sit outside the strike areas" % map_name)
@@ -194,13 +209,15 @@ func _bounds_xz(points: Array) -> Vector2:
 	return maximum - minimum
 
 
-func _walk_to(main: Node3D, player: PartyPlayer, target: Vector2, max_ticks: int) -> int:
+func _walk_to(main: Node3D, player: PartyPlayer, target: Vector2, max_ticks: int, flood: Flood = null) -> int:
 	for tick in max_ticks:
+		if flood != null:
+			flood.tick(1.0 / 60.0)
 		var remaining := target - Vector2(player.position.x, player.position.z)
 		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.15 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
 		await physics_frame
 		if remaining.length() <= 0.15:
-			return tick
+			return tick + 1
 	return max_ticks
 
 

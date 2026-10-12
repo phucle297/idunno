@@ -26,6 +26,8 @@ When the same issue occurs repeatedly, verify and record its cause and proven fi
 
 For repeated ENet channel-zero errors during dedicated-room departures, load `recovering-enet-room-disconnects`; preserve dedicated relay-off policy and strict runtime-error checks.
 
+For managed-container private-import OOM/exit137 failures, load `recovering-container-import-memory`; serialize preparation and run heavy validation jobs one at a time.
+
 After completing and validating a feature, milestone, phase, or other coherent work unit, commit its changes and push the current branch to its configured remote before reporting the work complete. Do not include unrelated changes in the commit. Every commit message must follow Conventional Commits (`type(scope): description`), including documentation and workflow-only commits.
 
 Keep generated and third-party asset provenance in `assets/manifest.json`. Do not commit external archives or tools. Prefer deterministic generated assets and the CC0 packs named in the design bible; adapt or replace assets that conflict with its proportions, materials, palette, or gameplay readability.

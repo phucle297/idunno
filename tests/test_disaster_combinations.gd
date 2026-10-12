@@ -24,6 +24,14 @@ func _run() -> void:
 		disaster.set_process(false)
 	player.set_physics_process(false)
 	player.position = Vector3.ZERO
+	main.set_process(false)
+	manager.set_process(false)
+	director.set_process(false)
+	await _check_refuge_relocation(main, player, flood, main.get_node("Earthquake") as Earthquake)
+	_expect(main.set_map_id("toy_town"), "Restore Toy Town after relocation scenarios")
+	_expect(manager.prepare_lobby() and manager.set_player_ready(1, true) and manager.start_match(), "Restart healthy match after relocation scenarios")
+	director.cleanup()
+	player.reset_for_match(Vector3.ZERO)
 
 	flood.rise_duration = 0.1
 	flood.hold_duration = 10.0
@@ -346,6 +354,90 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _check_refuge_relocation(main: Node3D, player: PartyPlayer, flood: Flood, earthquake: Earthquake) -> void:
+	earthquake.set_process(false)
+	player.set_camera_yaw(0.0)
+	for map_id in ["toy_town", "toy_harbor"]:
+		_expect(main.set_map_id(map_id), "Relocation selects %s" % map_id)
+		var manager := main.get_node("MatchManager") as MatchManager
+		_expect(manager.prepare_lobby() and manager.set_player_ready(1, true) and manager.start_match(), "%s relocation starts a healthy match" % map_id)
+		main.disaster_director.cleanup()
+		player.reset_for_match(main.map_anchors.spawn_origin)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 11
+		_expect(flood.start_warning() and earthquake.start_disaster(rng), "%s relocation starts real Flood + Earthquake warnings" % map_id)
+		var collapsed: BreakableStructure = null
+		# Advance at the movement timestep until a real pulse collapses an
+		# elevated paired section; do not force structure damage or teleport
+		# the actor after departure has begun.
+		for tick in ceili((earthquake.warning_duration + earthquake.active_duration) * 60.0):
+			flood.tick(1.0 / 60.0)
+			earthquake.tick(1.0 / 60.0)
+			for section in _sandbox_breakables(main):
+				if section.route_role == BreakableStructure.ROLE_ELEVATED and not section.pair_group.is_empty() and section.structure_state == BreakableStructure.StructureState.BROKEN:
+					collapsed = section
+			if collapsed != null:
+				break
+		_expect(collapsed != null, "%s quake must supply a collapsed refuge departure" % map_id)
+		if collapsed == null:
+			flood.cleanup()
+			earthquake.cleanup()
+			continue
+		var standing: BreakableStructure = null
+		for section in _sandbox_breakables(main):
+			if section != collapsed and section.pair_group == collapsed.pair_group and section.structure_state != BreakableStructure.StructureState.BROKEN:
+				standing = section
+		_expect(standing != null, "%s collapsed refuge keeps a paired destination" % map_id)
+		if standing == null:
+			flood.cleanup()
+			earthquake.cleanup()
+			continue
+		player.reset_for_match(collapsed.global_position + Vector3.UP)
+		var targets: Array[Vector3] = []
+		if map_id == "toy_town":
+			# The 2x2 panel is surrounded by standing roof strips. Escaping the
+			# hole does not require crossing the map to the paired building.
+			targets = [Vector3(collapsed.position.x, 4.855, -16.0)]
+		else:
+			# Cargo lids (2.84m) are below peak water, not Flood refuges.
+			# Reach the standing high end of the authored Warehouse access ramp.
+			targets = [Vector3(collapsed.position.x, 0.05, -29.5), Vector3(0.0, 0.05, -29.5), Vector3(0.0, 4.855, -24.3)]
+		var elapsed := 0
+		var overlap_ticks := 0
+		for target in targets:
+			for tick in ceili((flood.warning_duration + flood.rise_duration) * 60.0):
+				if not manager.is_player_alive(1) or elapsed >= ceili(flood.rise_duration * 60.0):
+					break
+				var remaining := Vector2(target.x - player.position.x, target.z - player.position.z)
+				if remaining.length() < 0.3:
+					break
+				if flood.is_active() and earthquake.is_active():
+					overlap_ticks += 1
+				flood.tick(1.0 / 60.0)
+				earthquake.tick(1.0 / 60.0)
+				player.apply_movement_input(remaining.normalized(), true, false, false, 1.0 / 60.0)
+				await physics_frame
+				elapsed += 1
+			_expect(Vector2(target.x - player.position.x, target.z - player.position.z).length() < 0.4, "%s relocation reaches waypoint %s (actual %s)" % [map_id, target, player.position])
+		for settle in 30:
+			flood.tick(1.0 / 60.0)
+			earthquake.tick(1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			await physics_frame
+		# The eight-second quake may finish during the escape; the contract is
+		# live overlap during relocation and safe arrival before Flood peaks,
+		# not prolonging the quake or requiring arrival before its final pulse.
+		_expect(overlap_ticks > 0 and flood.phase == Flood.Phase.RISING and manager.is_player_alive(1) and player.is_on_floor() and absf(player.position.y - targets[-1].y) < 0.35, "%s reaches standing high ground before peak after %s collapses under Flood + Earthquake; ticks=%d overlap=%d actual=%s" % [map_id, collapsed.name, elapsed, overlap_ticks, player.position])
+		var health_at_refuge := manager.get_health(1)
+		flood.tick(flood.rise_duration)
+		flood.tick(3.0)
+		_expect(is_equal_approx(flood.water_level, flood.target_level) and manager.is_player_alive(1) and manager.get_health(1) == health_at_refuge, "%s relocated player survives peak water without further damage" % map_id)
+		print("REFUGE_RELOCATION map=%s departure=%s destination=%s ticks=%d overlap_ticks=%d health=%.1f position=%s" % [map_id, collapsed.name, targets[-1], elapsed, overlap_ticks, main.match_manager.get_health(1), player.position])
+		flood.cleanup()
+		earthquake.cleanup()
+		_reset_breakables(main)
 
 
 func _capture(state: String) -> void:

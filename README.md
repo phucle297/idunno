@@ -11,19 +11,20 @@ Development is specification-led:
 - `docs/implementation-checklist.md` indexes the individual phase checklists in `docs/checklists/`, without replacing the design plan.
 - `NEED_REAL_CHECK.md` lists the user/device/Internet checks still needed, with matching-build instructions and a result-reporting format.
 
-All work through the validated vertical slice is **Phase 0 — Init Project**. It is implemented and verified through 20-player playable-scene sessions and native Windows performance/audio checks. **Phase 1 — UI Identity and Feedback** adds the Toy Broadcast HUD, warnings, lobby, spectator/results presentation, local pause, saved settings, and continuous map perimeter with authoritative out-of-bounds elimination. Both phases are complete; detailed evidence is archived under `docs/old-docs/`. Root `progress.json` now tracks **Phase 3 — Player-Caused Chaos**: safe interaction3.1 is technically validated; carrying3.2.1 is next. [Phase2 evidence](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) is frozen as deferred, not completed, under user-authorized continuation; no unfinished acceptance gate is passed. Current supported playtest capacity is 20 players (design capacity, automation-validated); physical LAN/Internet/audio/human acceptance remains open in `NEED_REAL_CHECK.md`. See `GUIDE.md` for play instructions and current limitations.
+Phases 0–1 established the vertical slice and UI; Phases 3–5 added player chaos, disaster compositions, map variety and session hardening. Root `progress.json` tracks the **Phase 5 validation follow-up**; Phase 6 cosmetics remain planned. [Phase 2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) remains deferred, not completed. Historical completion summaries are qualified by the audit reconciliation in `docs/decisions.md`: hardware performance, physical/network/audio and human acceptance are not inferred from automated checks. The source supports 20 players per room; player-host scale and a single managed dedicated room are automation-validated, not a production multi-room capacity promise. See `GUIDE.md` and `NEED_REAL_CHECK.md` for build-specific limits.
 
-Phase 2 now plans **Internet-hosted dedicated rooms joined by custom room ID**
-before human playtesting. Start with one Linux server machine, a small HTTPS room
+The implemented session path uses **dedicated rooms joined by custom room ID**.
+It starts with one Linux server machine, a small HTTPS room
 service and one headless Godot process per room; keep room discovery/allocation
 separate from gameplay authority so additional machines can be introduced later
 without changing room-ID joining. No mass-scale infrastructure or optimization
-for hundreds of thousands/millions of users is planned. This is a roadmap change,
-not completed Internet functionality. The source now supports playerless
+for hundreds of thousands/millions of users is planned. The source supports playerless
 dedicated hosting, room-owner controls, bounded room allocation/admission and
 room-ID create/join UI with retry recovery. Managed-container validation and
-matching Windows/Linux release packaging now pass locally. Public Internet
-release-client sessions and physical listening remain unverified.
+matching Windows/Linux release packaging have historical local evidence. Earlier
+public build `0d10b28` has deployment/user Internet/audio evidence; this does not
+validate current source or authorize deploying it. Current-build public sessions,
+physical listening and measured production demand remain unverified.
 See `docs/implementation-checklist.md` for ordered tasks and gates.
 
 The selected path now uses the **existing Tokyo EC2**, not Terraform provisioning.
@@ -31,7 +32,7 @@ See [pipeline prerequisites and operation](GUIDE.md#existing-ec2-pipeline-main-o
 main-only GitHub Actions validates/builds Linux, then deploys through OIDC/SSM.
 No Windows ZIP, GitHub Release or Steam publication is part of this deployment.
 The [earlier Terraform module](infra/ec2/README.md) is an optional reference only.
-No EKS is needed; public deployment and Internet gameplay remain unverified.
+No EKS is needed; current-build public deployment and Internet gameplay remain unverified.
 
 ## Windows playtest export
 
@@ -115,7 +116,7 @@ Keep a moved script's `.gd.uid` alongside it and update scene, test and generato
 godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297
 
 # Run the current automated checks.
-# Or run all 27 suites, persistence restart and five network test groups together:
+# Run all current suites, persistence restart, five network groups and managed 20-client coverage:
 GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh
 # If another local session occupies the default ports, set PORT=29930 for this runner.
 godot --headless --path . --script res://tests/test_phase1.gd
@@ -210,6 +211,6 @@ New arrivals during ACTIVE are rejected; reconnect/rejoin during an active round
 is not supported yet. Server startup failure exits nonzero. This is unauthenticated
 development transport: **do not expose unmanaged servers publicly**. Managed
 rooms enforce pre-registration tickets; discovery/lifecycle and retry instructions
-are in `GUIDE.md`. No public deployment or firewall changes are included.
+are in `GUIDE.md`. This follow-up does not deploy, restart the shared server or change firewalls.
 
 Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results.

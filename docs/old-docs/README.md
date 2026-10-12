@@ -1,5 +1,11 @@
 # Completed-phase archives
 
+These are historical implementation checkpoints, not unconditional current-build
+release/acceptance claims. The [audit reconciliation](../decisions.md) qualifies
+Phase 3 performance/native gates, Phase 4 fairness/human gates and Phase 5 scale,
+deployment/demand and archive-provenance claims. Preserve these payloads unchanged;
+new follow-up evidence belongs in a separately named archive.
+
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
 | 0 — Init Project | [Checklist](phase-0-init-project/checklist.md) | [Decisions](phase-0-init-project/decisions.md) | [Progress](phase-0-init-project/progress.json) |

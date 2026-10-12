@@ -93,6 +93,9 @@ func _run() -> void:
 	main._player_nodes.erase(removed_id)
 	main.match_manager.unregister_player(removed_id)
 	removed_node.free()
+	# Exercise the frame between freeing a peer and publishing its new roster.
+	main.spectator_controller._process(0.0)
+	_expect(main.spectator_controller.current_target_id != removed_id, "A freed target must fall back before the roster refresh")
 	main._update_spectator_ui()
 	_expect(main.spectator_controller.current_target_id != removed_id and hud.spectator_survivors.text == "SPECTATING • 2 SURVIVORS", "Disconnected current target must fall back immediately with updated count")
 	var living_ids: Array = main._living_spectator_targets().keys()

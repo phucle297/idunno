@@ -41,4 +41,5 @@ done
 for script in run_network_authority_test run_four_client_match_test run_playable_scene_network_test run_playable_scale_test run_dedicated_network_test; do
   GODOT_BIN="$GODOT_BIN" "$ROOT/tests/$script.sh"
 done
-printf 'UI_REGRESSION_OK suites=%d matrices=5 persistence_restart=passed\n' "$count"
+GODOT_BIN="$GODOT_BIN" PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT/tests/run_managed_scale_test.py"
+printf 'UI_REGRESSION_OK suites=%d matrices=5 managed_clients=20 persistence_restart=passed\n' "$count"
