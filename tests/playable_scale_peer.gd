@@ -92,12 +92,27 @@ func _run_results_legs(main: Node, probe: PlayableScaleProbe, peer_ids: Array[in
 
 func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
+	var transport := main.multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	var admission_throttle_min := {}
+	var admission_loss_end := {}
+	var sample_admission := func() -> void:
+		for peer_id: int in main.get_network_player_ids():
+			if peer_id == 1:
+				continue
+			var packet_peer := transport.get_peer(peer_id)
+			admission_throttle_min[peer_id] = minf(admission_throttle_min.get(peer_id, 32.0), packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE))
+			admission_loss_end[peer_id] = packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS)
+	process_frame.connect(sample_admission)
 	while main.get_network_player_ids().size() != player_count and Time.get_ticks_msec() < deadline:
 		await process_frame
 	# Spawn RPCs can arrive before the authoritative match roster. Movement is
 	# intentionally neutral until that roster confirms the local player is alive.
 	while probe.movement_ready.size() != player_count - 1 and Time.get_ticks_msec() < deadline:
 		await process_frame
+	process_frame.disconnect(sample_admission)
+	for peer_id: int in admission_throttle_min:
+		var packet_peer := transport.get_peer(peer_id)
+		print("SCALE_ADMISSION peer=%d throttle_min=%s loss_end=%s throttle_limit=%s interval=%s deceleration=%s" % [peer_id, admission_throttle_min[peer_id], admission_loss_end.get(peer_id, -1.0), packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE_LIMIT), packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE_INTERVAL), packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE_DECELERATION)])
 	var peer_ids: Array[int] = main.get_network_player_ids()
 	var manager := main.get_node("MatchManager") as MatchManager
 	var spawn_passed := peer_ids.size() == player_count and manager.players.size() == player_count and probe.movement_ready.size() == player_count - 1
@@ -109,7 +124,6 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 			start_positions[peer_id] = player.global_position
 	main._set_lobby_visible(false)
 	var throttle_min := {}
-	var transport := main.multiplayer.multiplayer_peer as ENetMultiplayerPeer
 	for peer_id: int in peer_ids:
 		if peer_id != 1:
 			throttle_min[peer_id] = transport.get_peer(peer_id).get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE)
@@ -128,7 +142,7 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	print("SCALE_TRANSPORT_WINDOW wall_msec=%d physics_frames=%d lobby_snapshot_sends=%d" % [Time.get_ticks_msec() - movement_wall_start, Engine.get_physics_frames() - movement_physics_start, main._match_snapshot_sequence - movement_snapshot_start])
 	for peer_id: int in throttle_min:
 		var packet_peer := transport.get_peer(peer_id)
-		print("SCALE_TRANSPORT peer=%d throttle_min=%s throttle_end=%s rtt=%s baseline_rtt=%s variance=%s" % [peer_id, throttle_min[peer_id], packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE), packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME_VARIANCE)])
+		print("SCALE_TRANSPORT peer=%d throttle_min=%s throttle_end=%s loss=%s rtt=%s baseline_rtt=%s variance=%s" % [peer_id, throttle_min[peer_id], packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE), packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS), packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME_VARIANCE)])
 	var movement_passed := true
 	for peer_id: int in peer_ids:
 		var player := _player_for_peer(main, peer_id)

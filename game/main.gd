@@ -20,6 +20,9 @@ const MOVEMENT_INPUT_LIMIT := 1.0
 const MATCH_SNAPSHOT_INTERVAL := 0.1
 const PROP_SNAPSHOT_INTERVAL := 0.1
 const MAX_UNRELIABLE_MATCH_SNAPSHOT_BYTES := 1200
+const ENET_THROTTLE_INTERVAL_MSEC := 1000
+const ENET_THROTTLE_ACCELERATION := 2
+const ENET_THROTTLE_DECELERATION := 1
 const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
@@ -394,6 +397,14 @@ func _start_requested_network_session() -> Error:
 func _on_network_peer_connected(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
+	# ENet's throttle re-seeds its RTT baseline only once per 5000 ms by default,
+	# so a fast-joining peer latches a quiet-time baseline whose tiny variance
+	# makes every admission-burst ACK look like congestion, ratcheting unreliable
+	# sends (movement snapshots) down to zero for the whole window. Re-seed faster
+	# and decelerate gently, keeping acceleration so recovery matches collapse.
+	# This retains congestion backoff; it does not disable throttling.
+	if multiplayer.multiplayer_peer is ENetMultiplayerPeer:
+		(multiplayer.multiplayer_peer as ENetMultiplayerPeer).get_peer(peer_id).throttle_configure(ENET_THROTTLE_INTERVAL_MSEC, ENET_THROTTLE_ACCELERATION, ENET_THROTTLE_DECELERATION)
 	for existing_peer_id: int in _player_nodes:
 		var existing_player := _player_nodes[existing_peer_id] as PartyPlayer
 		_spawn_network_player.rpc_id(
