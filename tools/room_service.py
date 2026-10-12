@@ -47,9 +47,14 @@ class RoomService:
     def rate_limit(self, address):
         with self.lock:
             now = time.monotonic()
-            self.rates = {ip: times for ip, times in self.rates.items() if times[-1] > now - 60}
-            times = self.rates.setdefault(address, [])
-            if len(times) >= 30 or len(self.rates) > 1024:
+            self.rates = {ip: times for ip, times in self.rates.items() if times and times[-1] > now - 60}
+            times = self.rates.get(address)
+            if times is None:
+                if len(self.rates) >= 1024:
+                    raise Rejected("rate_limited", 429)
+                times = []
+                self.rates[address] = times
+            if len(times) >= 30:
                 raise Rejected("rate_limited", 429)
             times.append(now)
 

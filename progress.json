@@ -98,15 +98,23 @@
       },
       "milestone_5_3_room_service_and_steam_integration": {
         "title": "Room Service Hardening and Steam Integration Evaluation",
-        "status": "in_progress"
+        "status": "completed",
+        "validation_status": "passed"
       },
       "milestone_5_4_measured_capacity_and_placement": {
         "title": "Measured Capacity and Placement",
-        "status": "planned"
+        "status": "completed",
+        "validation_status": "passed"
       }
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-12",
+      "command": "GODOT_BIN=$(command -v godot) PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v; Python isolation of old rate_limit cap behavior",
+      "status": "passed",
+      "result": "Room-service hardening: audit found the 1024-address rate-limit cap leaves an empty registry entry for a rejected address, crashing the next prune with an unhandled IndexError (reproduced against the old limiter). Fixed rate_limit to prune empty/stale entries, check the cap before recording a new address, and never retain an empty entry. Regression test test_rate_limit_global_cap_does_not_poison_registry added; it fails on old code and passes on new. Full suite: 13/13 tests pass including real Godot/ENet process fixtures. Steam lobby/invite evaluated and recorded (invite reuses existing room-ID+token admission; lobby browser needs App ID/SDK and must keep HTTPS version/capacity gating; Steam relay conflicts with authoritative ENet/UDP, so it is held). Milestone5.4: demand signals and add/relocate thresholds defined; no public deployment means measured demand is zero, so no capacity/placement change is justified; room-ID client UX confirmed machine-count-independent. No runtime gameplay change, no deployment, no infra apply. Evidence .scratch/phase5-room-service-tests.log."
+    },
     {
       "date": "2026-10-12",
       "command": "Constrained two-CPU 20-player runs with connection-through-admission ENet throttle/loss sampling (SCALE_ADMISSION/SCALE_TRANSPORT); five consecutive 20-player runs after throttle_configure(1000,2,1); full constrained 4/8/20 matrix; supported PLAYER_COUNTS='1 2 4' tests/run_ui_regression.sh",

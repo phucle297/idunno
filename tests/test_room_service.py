@@ -105,6 +105,14 @@ class Contract(unittest.TestCase):
         self.rejects("rate_limited", lambda: self.service.rate_limit("127.0.0.1"))
         self.assertNotIn(token, repr(self.room))
 
+    def test_rate_limit_global_cap_does_not_poison_registry(self):
+        # Reaching the 1024-address cap must reject the next address without
+        # leaving an empty entry that crashes the following prune (IndexError).
+        for index in range(1024):
+            self.service.rates[f"10.{index // 256}.{index % 256}.1"] = [time.monotonic()]
+        self.rejects("rate_limited", lambda: self.service.rate_limit("10.255.255.255"))
+        self.service.rate_limit("10.0.0.1")  # A subsequent request must not raise.
+
     def test_response_cancellation_is_not_an_application_failure(self):
         for stage in ("headers", "body"):
             for error in (BrokenPipeError, ConnectionResetError, OSError):
