@@ -7,10 +7,9 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 5 — Session Distribution and Release Readiness | Active; holds for owner direction to start | [Phase 5](checklists/phase-5-session-distribution-and-release-readiness.md) |
-| 6 — Cosmetic Loot-Box Drops and Customization | Planned | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
+| 6 — Cosmetic Loot-Box Drops and Customization | Active; holds for owner direction to decompose | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
 
-Phase4 (randomized replayable disaster rounds, behavior-changing compositions, Toy Town/Toy Harbor map variety with server map identity, and harder-but-fair survival pacing with the owner Hard preset) completed on 2026-10-11 and is archived; its milestone gates passed on executed evidence, with the Normal/Hard human comparison gates still open in NEED_REAL_CHECK.md. Phase3 completed 2026-10-10 with all seven gates passed and device-bound limitations recorded. User-authorized activation preserved Phase2's unfinished gates, not a closure or an invented pass; its checklist stays at the original path as a deferred reference. Current status and next action live only in root progress.
+Phase4 (randomized replayable disaster rounds, behavior-changing compositions, Toy Town/Toy Harbor map variety with server map identity, and harder-but-fair survival pacing with the owner Hard preset) completed on 2026-10-11 and is archived; its milestone gates passed on executed evidence, with the Normal/Hard human comparison gates still open in NEED_REAL_CHECK.md. Phase5 (session distribution and release readiness) completed on 2026-10-12: the 20-player movement blackout was root-caused to the ENet throttle baseline and fixed, the room-service rate-limit cap was hardened, and the Steam/capacity evaluations were recorded with supported capacity unchanged at four. Phase3 completed 2026-10-10 with all seven gates passed and device-bound limitations recorded. User-authorized activation preserved Phase2's unfinished gates, not a closure or an invented pass; its checklist stays at the original path as a deferred reference. Current status and next action live only in root progress.
 
 ## Completed phases
 
@@ -20,6 +19,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 - [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/checklist.md)
 - [Phase 3 — Player-Caused Chaos](old-docs/phase-3-player-caused-chaos/checklist.md) · [decisions](old-docs/phase-3-player-caused-chaos/decisions.md) · [evidence](old-docs/phase-3-player-caused-chaos/progress.json)
 - [Phase 4 — Disaster Remix and Toy Town Interaction](old-docs/phase-4-disaster-remix-and-toy-town-interaction/checklist.md) · [decisions](old-docs/phase-4-disaster-remix-and-toy-town-interaction/decisions.md) · [evidence](old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json)
+- [Phase 5 — Session Distribution and Release Readiness](old-docs/phase-5-session-distribution-and-release-readiness/checklist.md) · [decisions](old-docs/phase-5-session-distribution-and-release-readiness/decisions.md) · [evidence](old-docs/phase-5-session-distribution-and-release-readiness/progress.json)
 
 ## Tracking rules
 

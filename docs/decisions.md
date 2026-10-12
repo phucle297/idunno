@@ -1,53 +1,5 @@
 # Disaster Party — Active Decisions
 
-Root [progress](../progress.json) owns active state; the [Phase 5 checklist](checklists/phase-5-session-distribution-and-release-readiness.md) owns the detailed plan. Prior decisions and evidence remain in the [Phase 4 archive](old-docs/phase-4-disaster-remix-and-toy-town-interaction/decisions.md), the [Phase 3 archive](old-docs/phase-3-player-caused-chaos/decisions.md) and the [Phase2 suspended snapshot](old-docs/phase-2-human-playtest-and-core-feel/decisions.md), not a completed-phase claim for Phase2.
+Root [progress](progress.json) owns active state; the [Phase 6 checklist](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) owns the detailed plan. Prior decisions remain in the [Phase 5 archive](old-docs/phase-5-session-distribution-and-release-readiness/decisions.md), the [Phase 4 archive](old-docs/phase-4-disaster-remix-and-toy-town-interaction/decisions.md), the [Phase 3 archive](old-docs/phase-3-player-caused-chaos/decisions.md) and the [Phase2 suspended snapshot](old-docs/phase-2-human-playtest-and-core-feel/decisions.md).
 
-## 2026-10-12 — Bounded joins and checked playtest exports
-
-Owner's “Continue implement” starts Phase 5 milestone 5.1. Reuse the existing room admission deadline in `join_game` for every client connection, including direct-IP and launcher joins. Both transports must appear in the authoritative roster within 10 seconds; a transport handshake alone is not admission. Recovery remains mode-specific (fresh ticket for rooms, address retry for direct IP), clears remote state and restores one offline player. No new timer subsystem or timeout setting is needed.
-
-The exporter now invokes the existing artifact verifier after writing checksums, before its success marker, so missing payload entries, hash mismatches or development-path leaks cannot silently pass an export. Windows native runtime and physical-session acceptance remain separate checks. Keep capacity at four; commits use `[skip ci]` to avoid the main-branch deployment workflow because this request does not authorize deployment.
-
-## 2026-10-12 — Responsibility-based script folders
-
-Owner explicitly requests the proposed folder-only refactor before continuing Phase 5. Move six player/controller/interaction scripts to `game/player/`, seven director/hazard scripts to `game/disasters/`, and four match/room/spectator scripts to `game/session/`; preserve existing `game/ui/` and root orchestration/standalone scripts. Move all 17 `.gd.uid` files unchanged. Update runtime, scene, test, generator and current asset-provenance references; refresh the character scene's manifest checksum because its script path changed, not its geometry or animation. Historical progress and archived documents retain their original paths as evidence for their original revisions. Do not split `main.gd`, change behavior or reorganize assets/scenes/tests in this work unit.
-
-## 2026-10-12 — Native Windows package failure gate
-
-Extend the existing package runner rather than create another harness: run the exact release EXE headlessly, then settings/recovery/room UI and five-rematch fixtures through the matching native editor with the shipped PCK. No runtime code or payload changes are needed; reuse verified build `e2ede19`. Ticket-validation fixtures must use the payload's build ID except in deliberate mismatch cases, so invalid fields are not masked by an earlier build rejection. Capture both direct-IP and room admission timeout recovery. Label service-response injection, actual local ENet transport, release headless startup and physical-session acceptance separately. Task5.1.2 and milestone5.1 technical gates pass; advance to the known intermittent 20-player movement investigation without increasing supported capacity or claiming human/Internet acceptance.
-
-## 2026-10-12 — Bound unreliable match snapshots, retain failing scale gate
-
-Two-CPU full4/8/20 reproduction exposes a separate packet-sizing defect: an active match snapshot is 1592 bytes against ENet's 1392-byte datagram MTU. Cap serialized active snapshots at 1200 bytes for unreliable delivery, leaving header margin; larger payloads reuse the existing reliable session RPC and sequence guard. Do not add a chunking protocol or alter movement authority, snapshot frequency or supported capacity.
-
-Five post-change constrained20-player runs have no MTU warnings and pass rematches, but three still fail client host-movement observation. Failure-only diagnostics establish that the fixture and registered host refer to the same node, local input advances, and the client remains in LOBBY with its panel hidden. This does not establish a startup reset, stale-node or original CI cause. Keep all displacement assertions, report failed runs alongside passing runs, and leave milestone5.2 in progress. Supported capacity stays four; trace movement receipt/application and observation timing next.
-
-## 2026-10-12 — Isolate transport suppression without bypassing congestion control
-
-Temporary callback counters establish no movement-snapshot receipt during failing windows, not a presentation-node mismatch. A failed destination's ENet throttle is zero; three diagnostic controls with throttle deceleration disabled pass. This supports transport suppression in the constrained reproduction, not a proven explanation of every historical failure or proof of which producer causes startup pressure. Restore normal ENet settings: disabling congestion control is not a production fix.
-
-Reject unchanged-lobby deduplication as the movement solution: three alternating baseline/candidate pairs reduce reliable lobby sends from11 to0/0/1 but candidates fail3/3 while baseline fails1/3. Remove the candidate, temporary runtime counters and override; retain only fixture throttle/window and acknowledgement diagnostics. Final supported1/2/4 matrix passes. Investigate initial admission traffic and sustained movement-snapshot load next, keeping displacement assertions, four-player capacity and no-deployment policy intact.
-
-## 2026-10-12 — Root cause: ENet outer throttling baseline suppress, not packet loss
-
-Admission-window instrumentation (`SCALE_ADMISSION`) shows fast-joining20-player peers collapse the server's ENet `PEER_PACKET_THROTTLE` to0 with `PEER_PACKET_LOSS` at0. Reading the Godot4.7.2 ENet source confirms it is not congestion in the loss sense: `lastRoundTripTime`/`lastRoundTripTimeVariance` are re-seeded only once per `packetThrottleInterval` (default5000 ms) from the interval's `lowestRoundTripTime`, while `enet_peer_throttle` runs on every ACK comparing the instantaneous RTT against that stale baseline and decrements whenever `rtt > lastRoundTripTime + 2*lastRoundTripTimeVariance`. A fast joiner latches a quiet-time baseline (~12 ms, variance~7 ms, threshold26 ms); the admission burst then makes nearly every ACK exceed it, ratcheting throttle32->0 in ~16 ACKs and holding it there for the full5 s window. Throttled unreliable drops never increment `packetsLost`, which is why loss reads0.
-
-The fix is `throttle_configure` per accepted peer: interval1000 ms (re-seed the baseline five times faster so the variance headroom tracks the burst) and deceleration1 (a transient burst cannot slam throttle to0 before re-seed), keeping acceleration2 so recovery tracks collapse. This retains congestion backoff — genuine sustained RTT growth still reduces unreliable sends — but removes the stale-baseline stall that starved movement snapshots. Five consecutive constrained two-CPU20-player runs pass, the full constrained4/8/20 matrix passes, and the supported1/2/4 regression plus dedicated movement/five-rematch recovery stays green. Batching admission spawns and scaling movement cadence were both attempted and reverted: neither alone reduced admission throttle collapse, so the throttle tuning is the shipped root-cause fix and the traffic shape is unchanged.
-
-## 2026-10-12 — Room-service rate-limit cap hardening
-
-Auditing `tools/room_service.py` found one provable defect: when the global IP table reaches its 1024-address cap, `rate_limit` inserts an empty timestamp list for the rejected address and then raises, so the next request's prune (`times[-1]`) crashes with an unhandled `IndexError`. Fix the limiter to prune empty/stale entries, check the address cap before recording a new address, and never leave an empty entry behind; add `test_rate_limit_global_cap_does_not_poison_registry` (fails on the old code with the reproduced `IndexError`). Full `test_room_service.py` suite (13 tests, including real Godot/ENet process fixtures) passes. No endpoint or admission behavior change.
-
-## 2026-10-12 — Steam lobby/invite evaluation against the discovery/admission boundary
-
-The existing boundary is `game/session/room_client.gd` (HTTPS discovery returns `address`, `port`, `token` and validates build/protocol) and `game/session/room_admission.gd` (the token authenticates the ENet connect before any peer/player registration); gameplay stays server-authoritative ENet/UDP. Against that boundary, Steam can only be introduced as a discovery carrier, not an admission replacement:
-
-- **Invite (lowest-risk reuse):** an invite payload can carry the opaque, already-validated `room_id` (never the `token`); the invited client still performs the HTTPS lookup to enforce build/version/capacity and obtain a fresh token, then does ENet admission unchanged. This adds no new trust or transport surface.
-- **Lobby browser:** requires a Steam App ID, Steamworks SDK (GodotSteam GDExtension) and a lobby-owner client hosting lobby metadata. A lobby connected over Steam must still flow through the HTTPS ticket path for version/capacity gating; putting the admission token in public lobby metadata would bypass admission, so it must not.
-- **Steam Networking P2P relay/NAT traversal:** replaces or augments the authoritative ENet/UDP transport, changing the loss/traffic model and invalidating the 5.2 ENet throttle tuning. Checklist already defers NAT traversal; holding it preserves the validated transport.
-
-Recorded as an evaluation only. No Steam SDK, App ID, account/identity, ranking or NAT-traversal work in this milestone.
-
-## 2026-10-12 — Capacity and placement stay demand-driven (measured demand is zero)
-
-Define the demand signals (room create/join rate, peak concurrent rooms, per-room admission success, and per-room CPU/UDP on the runtime host) and the thresholds that would justify a change: add capacity when peak concurrent rooms exceed the host's room slots with margin or per-room CPU/UDP exceeds budget at the p95; relocate when median join RTT from a region exceeds target. The room service is not publicly deployed, so measured demand is zero and no capacity/placement change is justified. Room-ID client UX is already machine-count-independent: `game/session/room_client.gd` consumes only `address`/`port`/`token`/`room_id` from the ticket and `room_id` normalization is machine-agnostic, so adding a machine requires no client change. No infrastructure apply, DNS change or provisioning.
+_No active-phase decisions recorded yet for Phase 6._

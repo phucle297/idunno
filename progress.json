@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T10:06:22Z",
+  "updated_at": "2026-10-12T10:15:29Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -8,8 +8,8 @@
     "filename_pattern": "{phase-slug}/progress.json",
     "rule": "Archive completed phases without overwriting history. The explicit user-authorized Phase2 suspension is separately labeled deferred_not_completed; its unfinished gates remain unchanged."
   },
-  "previous_phase_archive": "docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json",
-  "checklist": "docs/checklists/phase-5-session-distribution-and-release-readiness.md",
+  "previous_phase_archive": "docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json",
+  "checklist": "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": [
@@ -34,9 +34,9 @@
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
-    "phase": "phase_5_session_distribution_and_release_readiness",
-    "milestone": "milestone_5_3_room_service_and_steam_integration",
-    "task": "milestone_5_3_room_service_and_steam_integration"
+    "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
+    "milestone": "milestone_6_1_cosmetic_loot_drops_and_customization",
+    "task": "milestone_6_1_cosmetic_loot_drops_and_customization"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -45,10 +45,10 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "phase_transition": {
-    "date": "2026-10-11",
-    "authorization": "User: 'Implement Phase 4 untill done' - complete Phase 4 through its milestone gates and roll the phase over per AGENTS.md; no deployment, publication, capacity or infrastructure change is authorized.",
+    "date": "2026-10-12",
+    "authorization": "Owner: 'Check current status, plan the Phase 5 checklist in detail, then implement until done.' Phase 5 completed through all milestone gates and rolled over per AGENTS.md; Phase 6 opens as planned and holds for owner direction before implementation.",
     "previous_phase_status": "completed",
-    "review": "Phase4 completed with milestones 4.1-4.4 gated on executed evidence (see previous_phase_archive). Human gates stay open in NEED_REAL_CHECK.md: Normal/Hard death-timing feel, uncoached cause recognition, escape attempts and voluntary rematches, plus the carried-over 60FPS throughput, native-Windows capture, physical audio and Internet-feel checks. Phase5 opens as the planned active phase but holds for owner direction before implementation."
+    "review": "Phase5 completed with milestones 5.1-5.4 gated on executed evidence (see previous_phase_archive). 20-player design capacity now passes in automation via the ENet throttle fix, but supported playtest capacity stays four and physical LAN/Internet/audio/human acceptance remains open in NEED_REAL_CHECK.md. Phase6 is the planned active phase; drop eligibility/odds, duplicate handling and durable player-identity storage must be decided before implementation."
   },
   "engine": {
     "name": "Godot",
@@ -58,13 +58,13 @@
     "target": "Windows PC"
   },
   "phase": {
-    "id": "phase_5_session_distribution_and_release_readiness",
-    "title": "Session Distribution and Release Readiness",
-    "status": "in_progress",
+    "id": "phase_6_cosmetic_loot_box_drops_and_customization",
+    "title": "Cosmetic Loot-Box Drops and Customization",
+    "status": "planned",
     "dependencies": [
-      "phase_4_disaster_remix_and_toy_town_interaction"
+      "phase_5_session_distribution_and_release_readiness"
     ],
-    "goal": "Harden the Windows package for release/distribution with robust failure UX and the playtest export, resolve the intermittent 20-player movement failure before expanding supported playtest capacity, harden the Internet room service and evaluate Steam lobby/invite integration against its existing discovery/admission boundary, and improve server capacity/placement only from measured demand. Detail per docs/checklists/phase-5-session-distribution-and-release-readiness.md; keep this file concise until work begins.",
+    "goal": "Add earned cosmetic loot-box drops that unlock character models/costumes with a small initial catalog, opening/reward preview, owned view and equip flow; rewards stay cosmetic-only and server-authoritative with replay/duplicate protection. Detail per docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md; keep this file concise until work begins.",
     "budgets": {
       "supported_players": 4,
       "authoritative_loose_bodies": 32,
@@ -72,141 +72,14 @@
       "active_disasters": 2
     },
     "milestones": {
-      "milestone_5_1_windows_package_hardening_and_failure_ux": {
-        "title": "Windows Package Hardening and Failure UX",
-        "status": "completed",
-        "validation_status": "passed",
-        "tasks": {
-          "task_5_1_1_bounded_join_recovery_and_verified_export": {
-            "title": "Bound all UDP joins and verify a fresh Windows playtest export",
-            "status": "completed",
-            "validation_status": "passed",
-            "acceptance": "Stalled direct-IP and room joins recover after 10 seconds; retry restores controls and offline input; admitted clients remain connected. Export committed Windows payload with hashes and development-path checks."
-          },
-          "task_5_1_2_windows_runtime_and_package_failure_checks": {
-            "title": "Exercise Windows package failure and retry paths through the shipped payload",
-            "status": "completed",
-            "validation_status": "passed",
-            "acceptance": "Validate the fresh package on native Windows, extend exported-PCK failure coverage where missing, and distinguish release-executable startup from editor-driver checks and physical LAN acceptance."
-          }
-        }
-      },
-      "milestone_5_2_stable_multiplayer_capacity": {
-        "title": "Stable Multiplayer Capacity",
-        "status": "completed",
-        "validation_status": "passed"
-      },
-      "milestone_5_3_room_service_and_steam_integration": {
-        "title": "Room Service Hardening and Steam Integration Evaluation",
-        "status": "completed",
-        "validation_status": "passed"
-      },
-      "milestone_5_4_measured_capacity_and_placement": {
-        "title": "Measured Capacity and Placement",
-        "status": "completed",
-        "validation_status": "passed"
+      "milestone_6_1_cosmetic_loot_drops_and_customization": {
+        "title": "Cosmetic Loot-Box Drops and Customization",
+        "status": "planned"
       }
     }
   },
-  "validation_log": [
-    {
-      "date": "2026-10-12",
-      "command": "GODOT_BIN=$(command -v godot) PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v; Python isolation of old rate_limit cap behavior",
-      "status": "passed",
-      "result": "Room-service hardening: audit found the 1024-address rate-limit cap leaves an empty registry entry for a rejected address, crashing the next prune with an unhandled IndexError (reproduced against the old limiter). Fixed rate_limit to prune empty/stale entries, check the cap before recording a new address, and never retain an empty entry. Regression test test_rate_limit_global_cap_does_not_poison_registry added; it fails on old code and passes on new. Full suite: 13/13 tests pass including real Godot/ENet process fixtures. Steam lobby/invite evaluated and recorded (invite reuses existing room-ID+token admission; lobby browser needs App ID/SDK and must keep HTTPS version/capacity gating; Steam relay conflicts with authoritative ENet/UDP, so it is held). Milestone5.4: demand signals and add/relocate thresholds defined; no public deployment means measured demand is zero, so no capacity/placement change is justified; room-ID client UX confirmed machine-count-independent. No runtime gameplay change, no deployment, no infra apply. Evidence .scratch/phase5-room-service-tests.log."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Constrained two-CPU 20-player runs with connection-through-admission ENet throttle/loss sampling (SCALE_ADMISSION/SCALE_TRANSPORT); five consecutive 20-player runs after throttle_configure(1000,2,1); full constrained 4/8/20 matrix; supported PLAYER_COUNTS='1 2 4' tests/run_ui_regression.sh",
-      "status": "passed",
-      "result": "Root cause proven in Godot 4.7.2 ENet source: per-ACK throttle compares instantaneous RTT against a lastRoundTripTime/lastRoundTripTimeVariance baseline re-seeded only once per 5000ms, so a fast-joining peer latches a quiet-time baseline (~12ms) and the admission burst ratchets unreliable sends to zero with PEER_PACKET_LOSS=0. Fix is throttle_configure(1000,2,1) per accepted peer: faster baseline re-seed and gentler deceleration, congestion backoff retained. Five consecutive constrained 20-player runs pass (movement=passed on all clients); full constrained 4/8/20 matrix passes; UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed, PLAYABLE_SCALE_MATRIX_OK players=1,2,4, DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed. Batching admission spawns and roster-scaled movement cadence were attempted and reverted: neither reduced admission throttle collapse, so throttle tuning is the shipped fix and traffic shape is unchanged. Supported playtest capacity stays four; no deployment. Evidence .scratch/phase5-{admission-baseline,admission-baseline2,throttle-1..5,throttle-matrix,throttle-regression}.log."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=30080 tests/run_playable_scale_test.sh with final test-only diagnostics",
-      "status": "failed",
-      "result": "Final retained code passes4/8 and fails20 only client movement observation (server movement and all other lifecycle checks pass). Two failing clients retain unchanged ACK6->6 and13->13 with host alive/full roster; corresponding ENet destinations throttle_min/end=0. New delivery diagnostic appears in runner output. No runtime source change or throttle override remains; no MTU warning. Evidence .scratch/phase5-transport-final.log and .amp/in/artifacts/phase5-transport-final/. Supported1/2/4 separately passes;20-player gate remains failed."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Constrained20-player receipt/throttle probes; three temporary throttle-deceleration-zero controls; three alternating unchanged/deduplicated-lobby pairs using same fixture; final PLAYER_COUNTS='1 2 4' PORT=30070 GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh",
-      "status": "failed",
-      "result": "Reproduced movement blackout with temporary RPC receipt counter: affected clients receive zero valid movement snapshots during window (22->22,15->15; another run51->51), host alive/full roster, local prediction advances. Exact failed destination in throttle run has ENet throttle_min/end=0, RTT90ms, baseline35ms variance18ms; server executes85 physics frames. Disabling server throttle deceleration only in diagnostic fixture passes3/3 constrained20 runs, supporting throttle-mediated suppression but not identifying which startup traffic causes it. Godot4.7.2 ENet source confirms per-ACK adaptation and peer-wide unreliable discard; logged smoothed RTT is not individual ACK RTT. Normal throttling restored. Lobby dedup experiment reduces movement-window reliable snapshots from11 to0/0/1 yet candidates fail3/3 (baseline fails1/3); one candidate also fails shove. Reject candidate as a solution. Removed all runtime edits, throttle override and temporary receipt instrumentation; retain test-only server throttle/window summaries and client ACK/alive/roster diagnostics. Final supported1/2/4 matrix passes movement, results and five rematches, shell/diff checks pass. Milestone5.2 remains failed; no gameplay/capacity/deployment/package change. Evidence .scratch/phase5-{delivery-before*,receipt-1,throttle-1,throttle-control-*,pair-*,transport-supported}.log and corresponding .amp/in/artifacts/phase5-* peer logs. Temporary isolated baseline editor import crashed during audio import; copied existing import cache and verified MATCH_MANAGER_OK40 before paired runs. Baseline scratch checkout removed after preserving evidence."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (second complete run); bash -n tests/run_playable_scale_test.sh; jq empty progress.json; git diff --check",
-      "status": "passed",
-      "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed. No parser/runtime/assertion failures or MTU warnings; existing shutdown-only ObjectDB/resource warnings remain. Shell syntax, JSON and diff checks pass. Evidence .scratch/phase5-mtu-regression-repeat.log. This validates the bounded-snapshot fix on the supported regression matrix, not20-player readiness; retain the earlier four-player rematch failure as unexplained despite standalone and full reruns passing. Milestone5.2 remains in progress, capacity four, no deployment or new release package."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; failure-only rematch diagnostic added; PLAYER_COUNTS=4 PORT=29980 GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh",
-      "status": "failed",
-      "result": "First full supported regression passes all41 suites, persistence restart, authority/four-client/playable-scene matrices and1/2 playable scale, but four-player server reports rematch=false (all other server checks and client movement pass). Runner stops before dedicated matrix; this full run is not green. Preserve .scratch/phase5-mtu-regression.log and .amp/in/artifacts/phase5-mtu-supported-failed/. Added failure-only cycle/server-state/ack/deadline diagnostic without assertion changes. Standalone four-player rerun passes all five rematches and PLAYABLE_SCALE_MATRIX_OK players=4, no runtime errors; .scratch/phase5-rematch-diagnostic.log and .amp/in/artifacts/phase5-rematch-diagnostic/. Initial rematch cause remains unproven; do not erase failed evidence or infer cause from a passing rerun. Subsequent full regression result recorded separately."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Read failed CI run37770598203; taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=29960 tests/run_playable_scale_test.sh before snapshot change",
-      "status": "failed",
-      "result": "Constrained baseline passes4/8, fails20: server movement=true but rematch=false/clients=false; one client moves locally but observes unchanged host. ENet reports a 1592-byte unreliable match snapshot above its1392-byte MTU, with main.gd:_process backtrace. This is a verified packet-sizing defect, not a proven explanation of original CI (both local/host unchanged). Evidence .scratch/phase5-scale-ci.log, .scratch/phase5-scale-two-cpu-before.log and .amp/in/artifacts/phase5-scale-before/."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Repeat constrained full4/8/20 matrix after1200-byte active-snapshot limit; constrained20-only diagnostic run and three sequential20-player repetitions",
-      "status": "failed",
-      "result": "Oversized active match snapshots now reuse the existing reliable session RPC with1200-byte serialization threshold and header margin; smaller active snapshots retain unreliable delivery. No MTU warnings in these five post-change20-player runs; rematches pass. Full matrix passes4/8 but fails20 host observation; diagnostic20 passes; repeat1/2 fail with three affected clients each and repeat3 passes. Failure diagnostics confirm local input advances and local movement passes, host fixture and registered host are the same /root/Main/Player at unchanged position, lobby hidden and match still LOBBY. No startup reseat/stale-node cause established. Overall20-player gate remains failed; no assertion weakened or capacity increased. Logs .scratch/phase5-scale-{two-cpu-after,diagnostic,repeat-1,repeat-2,repeat-3}.log, preserved peer logs .amp/in/artifacts/phase5-scale-{after,diagnostic,repeat-1,repeat-2,repeat-3}/. Supported regression evidence recorded separately."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Native powershell.exe tests/run_windows_package_checks.ps1 against verified e2ede19 package, Windows-local paths containing spaces, Port29940; repeat with corrupted BUILD.txt; godot --headless --main-pack Windows PCK --script $PWD/tests/test_room_ui.gd; inspect native timeout captures",
-      "status": "passed",
-      "result": "WINDOWS_EXPORTED_PCK_CHECKS_OK settings_restart=passed network_rematches=5 recovery=passed room_retry=passed release_startup=passed. Native Godot4.7.2 Windows Compatibility / Intel UHD630 / 1280x720: settings39, restart3, SESSION_LIFECYCLE_OK56, ROOM_UI_OK173, two-peer movement/props/ragdoll/hazards/spectating/results/emotes/five rematches pass; all processes report build e2ede19c42ece7f81638931f171f4619299a85ca, no parser/runtime errors. Runner now separates exact release-EXE headless startup from external editor-driver fixtures, adds room/direct-IP timeout retry, and rejects corrupted BUILD.txt before release launch (WINDOWS_CORRUPT_PACKAGE_REJECTED_OK). Malformed-ticket cases use the shipped build identity to reach field validation; restart/unknown service errors are covered. Linux exported-PCK precheck ROOM_UI_OK75 also passes; only existing shutdown resource warnings there. Inspected native room/direct-IP timeout captures have readable retry status and controls, no overlaps/clipping. Service errors are injected HTTP completions; UDP sink, handshake and disconnect fixtures use real local transport. Logs .scratch/phase5-native-{precheck,runner,corrupt-package}.log; captures/logs .amp/in/artifacts/phase5-native-checks/. Disposable Windows-local fixture/package copies removed. Task5.1.2 and milestone5.1 technical gates completed; physical LAN/Internet/audio/human acceptance is not inferred. No runtime/payload change, no fresh export necessary, no deployment or supported-capacity increase."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --headless --check-only --script res://tools/asset_generation/generate_assets.gd; tools/export_windows.sh .amp/in/artifacts/folder-refactor-windows; tools/export_playtest.sh linux-server .amp/in/artifacts/folder-refactor-linux; external room/player fixtures against Windows PCK; Linux release and native Windows release --headless --quit-after 120",
-      "status": "passed",
-      "result": "Folder-only refactor at e2ede19c42ece7f81638931f171f4619299a85ca validated: UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed, PLAYABLE_SCALE_MATRIX_OK players=1,2,4, DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed. Generator check-only and PHASE1_TESTS_OK checks=39 pass. Fresh isolated Windows/Linux exports each pass checksum/PCK checks with 90 entries; EXPORTED_SCRIPT_GROUPS_OK confirms all 6 player, 7 disaster and 4 session script remaps in both packages. Windows PCK external Linux-editor fixtures pass ROOM_UI_OK checks=71 and PLAYER_INTEGRATION_OK checks=76. Both native Linux and Windows release headless startup exit 0 with the matching build identity; Windows startup reports WINDOWS_RELEASE_STARTUP_OK. Existing suite shutdown ObjectDB/resource warnings remain; no parser/runtime failures. No UI appearance, gameplay behavior, supported capacity or deployment changes. Evidence .scratch/folder-refactor-*.log; exports .amp/in/artifacts/folder-refactor-{windows,linux}/. Phase 5 task5.1.2 remains planned; this evidence does not establish physical LAN/Internet or interactive Windows acceptance."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "Compare moved scripts and changed resource/test/generator files against HEAD with only the 17 path substitutions; compare .gd.uid bytes; scan live references; Godot editor re-import via tests/run_ui_regression.sh",
-      "status": "passed",
-      "result": "Owner-authorized folder-only refactor: RELOCATION_ONLY_OK moved_scripts=17 preserved_uids=17 reference_only_files=22 before manifest/README/tracking edits. New groups: game/player (6), game/disasters (7), game/session (4); ui and root orchestration/standalone scripts unchanged. No old paths in live code/scenes/tests/generator/assets; historical evidence intentionally unchanged. Character scene changes only its script reference and manifest SHA256 to 5ff738d498b149c7be0f962bc343732079a303f51d624ca61b149e412c5dd53d. Editor re-import passes without script errors. Full supported regression and fresh isolated exports are running/pending, not yet passed; Phase 5 task5.1.2 remains next after this requested refactor."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; tools/export_windows.sh .amp/in/artifacts/phase5-windows; godot --headless --main-pack .amp/in/artifacts/phase5-windows/DisasterParty.pck --script $PWD/tests/test_room_ui.gd; native Windows DisasterParty.exe --headless --quit-after 120; python3 -m zipfile -t .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip",
-      "status": "passed",
-      "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed; SESSION_LIFECYCLE_OK checks=54. Committed source ed419e1966358391faf178c5c183530ad84f4509 exports successfully with PLAYTEST_ARTIFACTS_OK files=3 pck_format=4 pck_entries=90. External Linux editor-driver ROOM_UI_OK checks=71 runs against that Windows PCK with matching build identity. Exact release EXE copied to a disposable Windows-local directory passes WINDOWS_RELEASE_STARTUP_OK runtime=release headless=true, exit 0 and no runtime errors; temporary copy removed after preserving logs. ZIP integrity passes, SHA256=7e8b712359e915142dc9cdf84b30e718b87d501ddf5452490fefcdf58ec2859d. Package .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip. Existing headless suite shutdown ObjectDB/resource warnings remain, not hidden parser/runtime failures. Logs .scratch/phase5-{regression,export,exported-room-ui,windows-startup}.log. Native Windows interactive failure/retry, physical LAN/Internet and performance acceptance remain unverified; no deployment or capacity increase."
-    },
-    {
-      "date": "2026-10-12",
-      "command": "godot --headless --path . --script res://tests/test_room_ui.gd; same updated fixture against isolated git archive HEAD after editor import",
-      "status": "passed",
-      "result": "ROOM_UI_OK checks=71 on changed code. Unchanged baseline fails direct-IP deadline recovery, editable retry and fresh deadline assertions (with downstream failures because the client remains pending). UDP sink plus deterministic process steps verifies 9.9s/10.1s boundary, same-process retry, room fresh-ticket recovery and admitted-client deadline cancellation. Existing shutdown ObjectDB/resource warnings remain; changed run has no parser/runtime failures. Logs .scratch/phase5-{room-ui,baseline}.log. Full regression and fresh package export pending."
-    },
-    {
-      "date": "2026-10-11",
-      "command": "godot --headless --path . --script res://tests/test_lobby_roster.gd; xvfb-run godot --script res://tests/test_lobby_presentation.gd -- --capture-dir=.amp/in/artifacts/phase-4; PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
-      "status": "passed",
-      "result": "Post-archive Phase 4 visual fix: rendered capture inspection found the 4.4b PRESET row placed on top of LobbyPanel/Status. scenes/main.tscn now seats PRESET+MAP side by side on one row using the panel's two-column pattern at measured theme minimums (OptionButton 39px), keeps the 4-row roster at 248px and the status line in its own row; tests/test_lobby_roster.gd adds Status/Preset/Map non-overlap regression asserts. LOBBY_ROSTER_OK checks=130, LOBBY_PRESENTATION_OK checks=40 with inspected capture (no overlaps at 720p), full gate UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed and DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed."
-    },
-    {
-      "date": "2026-10-11",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; godot --path . --audio-driver Dummy --resolution 1280x720 --script res://tests/test_{lobby_presentation,disaster_combinations,map_variety}.gd -- --capture-dir=.amp/in/artifacts/phase-4-verification (each script separately); view_media lobby, three compositions and both maps' gameplay/overview captures",
-      "status": "passed",
-      "result": "Owner-requested Phase 4 re-verification on source 2f03594: full gate exits 0, UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; supported playable scale 1/2/4 passes and dedicated movement/recovery passes with five rematches. Phase 4 markers: DIRECTOR115, METEOR111, FLOOD60, TORNADO48, EARTHQUAKE88, COMBINATIONS82, MAP_VARIETY303, MAP_IDENTITY42, SURVIVAL_PACING69 (synthetic normal/late/Hard deaths 30/24/21s). Rendered LOBBY40, COMBINATIONS85 and MAP_VARIETY307 pass on WSL/Linux Compatibility llvmpipe at 720p. Inspected captures show readable non-overlapping HUD/lobby controls and both maps; Harbor distant label is obscured by a beam, and the early Earthquake+Flood capture does not visibly demonstrate peak water. Existing shutdown ObjectDB/resource warnings remain; no parser/runtime failures. Logs .scratch/phase4-{verification,lobby-render,compositions-render,maps-render}.log. No gameplay changes, package export, deployment or capacity increase."
-    },
-    {
-      "date": "2026-10-11",
-      "command": "Phase 4 checklist/evidence audit against tests/test_map_variety.gd:101-153, tests/test_disaster_combinations.gd:117-153, game/earthquake.gd:245-277 and game/tornado.gd:17",
-      "status": "not_run",
-      "result": "Broader acceptance remains only partially substantiated despite the green regression gate. Flood route tests walk to high ground BEFORE starting the warning, so they prove walkability and peak refuge safety, not escape while water rises. Collapse tests/selection preserve one paired piece but do not execute relocation to it under active Flood+Earthquake. The map tornado-reach test accepts distance <=15m while the runtime influence radius defaults to 8m; this assertion is not proof of actual exposure (no safe-camping exploit reproduced). Timed escape, post-collapse relocation and actual refuge exposure need focused executed scenarios before claiming full fairness verification. Archived evidence also lacks Phase 4-specific 2/4-player profiles for both maps; native Windows/GPU 60FPS, physical audio/Internet feel and human Normal/Hard cause recognition/escape/rematch comparisons remain unverified. Preserve the existing human waiver and historical archive; do not retroactively claim these gates passed or start Phase 5 implementation."
-    }
-  ],
-  "blockers": ["The one earlier four-player rematch=false full-regression result remains cause-unproven; today's supported regression passes all five rematches. Preserved in docs/decisions.md as unexplained recurrence evidence, not a continuation blocker."],
-  "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tests/run_windows_package_checks.ps1", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/", "README.md"],
-  "next_action": "Start milestone5.3: audit and harden tools/room_service.py failure modes with unit and managed-container tests, then record the Steam lobby/invite evaluation against the existing discovery/admission boundary. Milestone5.4 follows with measured-demand criteria; no infrastructure apply, DNS change, capacity increase or deployment."
+  "validation_log": [],
+  "blockers": [],
+  "changed_files": [],
+  "next_action": "Await owner direction to decompose Phase 6, then decide drop eligibility/odds/duplicate handling and durable player-identity storage before implementing the reward/equip flow."
 }
