@@ -72,6 +72,10 @@ func _run_results_legs(main: Node, probe: PlayableScaleProbe, peer_ids: Array[in
 		while (probe.rematch_acks.get(rematch_index, {}) as Dictionary).size() < player_count - 1 and Time.get_ticks_msec() < deadline:
 			await process_frame
 		var cycle_acks: Dictionary = probe.rematch_acks.get(rematch_index, {})
+		if not server_rematch_ok or cycle_acks.size() != player_count - 1 or cycle_acks.values().has(false):
+			print("PLAYABLE_SCALE_REMATCH_DIAGNOSTIC cycle=%d server_ok=%s state=%d alive=%d props=%d acks=%s deadline_remaining_msec=%d" % [
+				rematch_index, server_rematch_ok, manager.state, manager.get_alive_count(), get_nodes_in_group("network_prop").size(),
+				cycle_acks, deadline - Time.get_ticks_msec()])
 		rematch_passed = rematch_passed and cycle_acks.size() == player_count - 1 and not cycle_acks.values().has(false)
 		# End each cycle in RESULTS so the next restart exercises the gate.
 		for peer_id: int in peer_ids:
@@ -311,6 +315,12 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		print("PLAYABLE_SCALE_MOVEMENT_DIAGNOSTIC peer=%d local_start=%s local_end=%s host_start=%s host_end=%s" % [
 			local_id, local_start, local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO,
 			host_start, host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO])
+		var registered_host: PartyPlayer = main._player_nodes.get(1)
+		print("PLAYABLE_SCALE_MOVEMENT_STATE peer=%d local_sequence=%d host_fixture=%s host_registered=%s registered_host_position=%s lobby_visible=%s state=%d" % [
+			local_id, main._local_movement_sequence, host_player.get_path() if is_instance_valid(host_player) else NodePath(),
+			registered_host.get_path() if is_instance_valid(registered_host) else NodePath(),
+			registered_host.global_position if is_instance_valid(registered_host) else Vector3.ZERO,
+			main.get_node("Interface/LobbyPanel").visible, main.match_manager.state])
 	var manager := main.get_node("MatchManager") as MatchManager
 	main.set_local_ready(true)
 	var meteor := main.get_node("MeteorShower") as MeteorShower

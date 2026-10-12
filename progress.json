@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T06:41:56Z",
+  "updated_at": "2026-10-12T07:25:40Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -93,7 +93,8 @@
       },
       "milestone_5_2_stable_multiplayer_capacity": {
         "title": "Stable Multiplayer Capacity",
-        "status": "planned"
+        "status": "in_progress",
+        "validation_status": "failed"
       },
       "milestone_5_3_room_service_and_steam_integration": {
         "title": "Room Service Hardening and Steam Integration Evaluation",
@@ -106,6 +107,30 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-12",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (second complete run); bash -n tests/run_playable_scale_test.sh; jq empty progress.json; git diff --check",
+      "status": "passed",
+      "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed. No parser/runtime/assertion failures or MTU warnings; existing shutdown-only ObjectDB/resource warnings remain. Shell syntax, JSON and diff checks pass. Evidence .scratch/phase5-mtu-regression-repeat.log. This validates the bounded-snapshot fix on the supported regression matrix, not20-player readiness; retain the earlier four-player rematch failure as unexplained despite standalone and full reruns passing. Milestone5.2 remains in progress, capacity four, no deployment or new release package."
+    },
+    {
+      "date": "2026-10-12",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; failure-only rematch diagnostic added; PLAYER_COUNTS=4 PORT=29980 GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh",
+      "status": "failed",
+      "result": "First full supported regression passes all41 suites, persistence restart, authority/four-client/playable-scene matrices and1/2 playable scale, but four-player server reports rematch=false (all other server checks and client movement pass). Runner stops before dedicated matrix; this full run is not green. Preserve .scratch/phase5-mtu-regression.log and .amp/in/artifacts/phase5-mtu-supported-failed/. Added failure-only cycle/server-state/ack/deadline diagnostic without assertion changes. Standalone four-player rerun passes all five rematches and PLAYABLE_SCALE_MATRIX_OK players=4, no runtime errors; .scratch/phase5-rematch-diagnostic.log and .amp/in/artifacts/phase5-rematch-diagnostic/. Initial rematch cause remains unproven; do not erase failed evidence or infer cause from a passing rerun. Subsequent full regression result recorded separately."
+    },
+    {
+      "date": "2026-10-12",
+      "command": "Read failed CI run37770598203; taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=29960 tests/run_playable_scale_test.sh before snapshot change",
+      "status": "failed",
+      "result": "Constrained baseline passes4/8, fails20: server movement=true but rematch=false/clients=false; one client moves locally but observes unchanged host. ENet reports a 1592-byte unreliable match snapshot above its1392-byte MTU, with main.gd:_process backtrace. This is a verified packet-sizing defect, not a proven explanation of original CI (both local/host unchanged). Evidence .scratch/phase5-scale-ci.log, .scratch/phase5-scale-two-cpu-before.log and .amp/in/artifacts/phase5-scale-before/."
+    },
+    {
+      "date": "2026-10-12",
+      "command": "Repeat constrained full4/8/20 matrix after1200-byte active-snapshot limit; constrained20-only diagnostic run and three sequential20-player repetitions",
+      "status": "failed",
+      "result": "Oversized active match snapshots now reuse the existing reliable session RPC with1200-byte serialization threshold and header margin; smaller active snapshots retain unreliable delivery. No MTU warnings in these five post-change20-player runs; rematches pass. Full matrix passes4/8 but fails20 host observation; diagnostic20 passes; repeat1/2 fail with three affected clients each and repeat3 passes. Failure diagnostics confirm local input advances and local movement passes, host fixture and registered host are the same /root/Main/Player at unchanged position, lobby hidden and match still LOBBY. No startup reseat/stale-node cause established. Overall20-player gate remains failed; no assertion weakened or capacity increased. Logs .scratch/phase5-scale-{two-cpu-after,diagnostic,repeat-1,repeat-2,repeat-3}.log, preserved peer logs .amp/in/artifacts/phase5-scale-{after,diagnostic,repeat-1,repeat-2,repeat-3}/. Supported regression evidence recorded separately."
+    },
     {
       "date": "2026-10-12",
       "command": "Native powershell.exe tests/run_windows_package_checks.ps1 against verified e2ede19 package, Windows-local paths containing spaces, Port29940; repeat with corrupted BUILD.txt; godot --headless --main-pack Windows PCK --script $PWD/tests/test_room_ui.gd; inspect native timeout captures",
@@ -155,7 +180,7 @@
       "result": "Broader acceptance remains only partially substantiated despite the green regression gate. Flood route tests walk to high ground BEFORE starting the warning, so they prove walkability and peak refuge safety, not escape while water rises. Collapse tests/selection preserve one paired piece but do not execute relocation to it under active Flood+Earthquake. The map tornado-reach test accepts distance <=15m while the runtime influence radius defaults to 8m; this assertion is not proof of actual exposure (no safe-camping exploit reproduced). Timed escape, post-collapse relocation and actual refuge exposure need focused executed scenarios before claiming full fairness verification. Archived evidence also lacks Phase 4-specific 2/4-player profiles for both maps; native Windows/GPU 60FPS, physical audio/Internet feel and human Normal/Hard cause recognition/escape/rematch comparisons remain unverified. Preserve the existing human waiver and historical archive; do not retroactively claim these gates passed or start Phase 5 implementation."
     }
   ],
-  "blockers": [],
+  "blockers": ["Milestone5.2 scale gate remains failed: intermittent20-player clients observe no host displacement despite local movement and server movement passing. Original CI's unchanged local/host case remains unexplained; the verified match-snapshot MTU fix does not resolve the movement failure.", "One full supported regression reports four-player rematch=false; standalone and complete reruns pass. Cause unproven; failure-only acknowledgement/deadline diagnostics are retained for recurrence."],
   "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tests/run_windows_package_checks.ps1", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/", "README.md"],
-  "next_action": "Investigate milestone5.2: inspect the retained 20-player movement fixture and failed CI run37770598203 diagnostics, then reproduce the full4/8/20 matrix locally under constrained load before changing the proven owner. Keep supported playtest capacity at four; do not weaken assertions, trigger deployment or claim scale readiness from a single green run."
+  "next_action": "Continue milestone5.2 by tracing movement-snapshot receipt and host alive/roster state during the failing20-player observation window under two-CPU load; distinguish delivery, application and fixture timing before changing the proven owner. Preserve4/8/20 assertions, capacity four and no-deployment policy."
 }

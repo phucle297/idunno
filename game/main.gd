@@ -19,6 +19,7 @@ const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
 const MATCH_SNAPSHOT_INTERVAL := 0.1
 const PROP_SNAPSHOT_INTERVAL := 0.1
+const MAX_UNRELIABLE_MATCH_SNAPSHOT_BYTES := 1200
 const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
@@ -992,7 +993,9 @@ func _process(delta: float) -> void:
 			_match_snapshot_sequence += 1
 			var snapshot := _create_playable_snapshot()
 			snapshot.match_sequence = _match_snapshot_sequence
-			if match_manager.state == MatchManager.MatchState.ACTIVE:
+			# Leave room for RPC/ENet headers below the 1392-byte datagram MTU.
+			# Large rosters/hazard payloads use the existing reliable state path.
+			if match_manager.state == MatchManager.MatchState.ACTIVE and var_to_bytes(snapshot).size() <= MAX_UNRELIABLE_MATCH_SNAPSHOT_BYTES:
 				_apply_match_snapshot.rpc(snapshot)
 			else:
 				_apply_session_snapshot.rpc(snapshot)
