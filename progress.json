@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T04:45:00Z",
+  "updated_at": "2026-10-12T04:50:58Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -36,7 +36,7 @@
   "current": {
     "phase": "phase_5_session_distribution_and_release_readiness",
     "milestone": "milestone_5_1_windows_package_hardening_and_failure_ux",
-    "task": "task_5_1_1_bounded_join_recovery_and_verified_export"
+    "task": "task_5_1_2_windows_runtime_and_package_failure_checks"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -78,7 +78,8 @@
         "tasks": {
           "task_5_1_1_bounded_join_recovery_and_verified_export": {
             "title": "Bound all UDP joins and verify a fresh Windows playtest export",
-            "status": "in_progress",
+            "status": "completed",
+            "validation_status": "passed",
             "acceptance": "Stalled direct-IP and room joins recover after 10 seconds; retry restores controls and offline input; admitted clients remain connected. Export committed Windows payload with hashes and development-path checks."
           },
           "task_5_1_2_windows_runtime_and_package_failure_checks": {
@@ -103,6 +104,12 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-12",
+      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; tools/export_windows.sh .amp/in/artifacts/phase5-windows; godot --headless --main-pack .amp/in/artifacts/phase5-windows/DisasterParty.pck --script $PWD/tests/test_room_ui.gd; native Windows DisasterParty.exe --headless --quit-after 120; python3 -m zipfile -t .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip",
+      "status": "passed",
+      "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed; SESSION_LIFECYCLE_OK checks=54. Committed source ed419e1966358391faf178c5c183530ad84f4509 exports successfully with PLAYTEST_ARTIFACTS_OK files=3 pck_format=4 pck_entries=90. External Linux editor-driver ROOM_UI_OK checks=71 runs against that Windows PCK with matching build identity. Exact release EXE copied to a disposable Windows-local directory passes WINDOWS_RELEASE_STARTUP_OK runtime=release headless=true, exit 0 and no runtime errors; temporary copy removed after preserving logs. ZIP integrity passes, SHA256=7e8b712359e915142dc9cdf84b30e718b87d501ddf5452490fefcdf58ec2859d. Package .amp/in/artifacts/DisasterParty-Windows-ed419e1.zip. Existing headless suite shutdown ObjectDB/resource warnings remain, not hidden parser/runtime failures. Logs .scratch/phase5-{regression,export,exported-room-ui,windows-startup}.log. Native Windows interactive failure/retry, physical LAN/Internet and performance acceptance remain unverified; no deployment or capacity increase."
+    },
     {
       "date": "2026-10-12",
       "command": "godot --headless --path . --script res://tests/test_room_ui.gd; same updated fixture against isolated git archive HEAD after editor import",
@@ -130,5 +137,5 @@
   ],
   "blockers": [],
   "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md"],
-  "next_action": "Finish task 5.1.1: run the supported 1/2/4-player regression, commit bounded join recovery and export verification, and produce a fresh verified Windows playtest bundle. Owner authorized Phase 5 continuation on 2026-10-12; do not deploy or expand capacity."
+  "next_action": "Implement task 5.1.2: extend tests/run_windows_package_checks.ps1 to exercise room/direct-IP failure and retry against the verified ed419e1 Windows PCK, then run native Windows checks; release-executable headless startup is already proven separately. Preserve physical-session acceptance and four-player capacity; do not deploy."
 }
