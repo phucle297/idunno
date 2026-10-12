@@ -108,10 +108,27 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		if is_instance_valid(player):
 			start_positions[peer_id] = player.global_position
 	main._set_lobby_visible(false)
+	var throttle_min := {}
+	var transport := main.multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	for peer_id: int in peer_ids:
+		if peer_id != 1:
+			throttle_min[peer_id] = transport.get_peer(peer_id).get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE)
+	var sample_throttle := func() -> void:
+		for peer_id: int in throttle_min:
+			throttle_min[peer_id] = minf(throttle_min[peer_id], transport.get_peer(peer_id).get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE))
+	process_frame.connect(sample_throttle)
+	var movement_wall_start := Time.get_ticks_msec()
+	var movement_physics_start := Engine.get_physics_frames()
+	var movement_snapshot_start: int = main._match_snapshot_sequence
 	Input.action_press("move_left")
 	probe.begin_movement.rpc()
 	await create_timer(1.5).timeout
 	Input.action_release("move_left")
+	process_frame.disconnect(sample_throttle)
+	print("SCALE_TRANSPORT_WINDOW wall_msec=%d physics_frames=%d lobby_snapshot_sends=%d" % [Time.get_ticks_msec() - movement_wall_start, Engine.get_physics_frames() - movement_physics_start, main._match_snapshot_sequence - movement_snapshot_start])
+	for peer_id: int in throttle_min:
+		var packet_peer := transport.get_peer(peer_id)
+		print("SCALE_TRANSPORT peer=%d throttle_min=%s throttle_end=%s rtt=%s baseline_rtt=%s variance=%s" % [peer_id, throttle_min[peer_id], packet_peer.get_statistic(ENetPacketPeer.PEER_PACKET_THROTTLE), packet_peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME), packet_peer.get_statistic(ENetPacketPeer.PEER_LAST_ROUND_TRIP_TIME_VARIANCE)])
 	var movement_passed := true
 	for peer_id: int in peer_ids:
 		var player := _player_for_peer(main, peer_id)
@@ -301,6 +318,7 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	var host_player := _player_for_peer(main, 1)
 	var local_start := local_player.global_position if is_instance_valid(local_player) else Vector3.ZERO
 	var host_start := host_player.global_position if is_instance_valid(host_player) else Vector3.ZERO
+	var acknowledged_start: int = local_player._last_movement_ack if is_instance_valid(local_player) else -1
 	main._set_lobby_visible(false)
 	Input.action_press("move_right")
 	await create_timer(1.5).timeout
@@ -321,6 +339,9 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 			registered_host.get_path() if is_instance_valid(registered_host) else NodePath(),
 			registered_host.global_position if is_instance_valid(registered_host) else Vector3.ZERO,
 			main.get_node("Interface/LobbyPanel").visible, main.match_manager.state])
+		print("PLAYABLE_SCALE_MOVEMENT_DELIVERY peer=%d acknowledged_start=%d acknowledged_end=%d host_alive=%s roster_ids=%s" % [
+			local_id, acknowledged_start, local_player._last_movement_ack if is_instance_valid(local_player) else -1,
+			main.match_manager.is_player_alive(1), main.get_network_player_ids()])
 	var manager := main.get_node("MatchManager") as MatchManager
 	main.set_local_ready(true)
 	var meteor := main.get_node("MeteorShower") as MeteorShower

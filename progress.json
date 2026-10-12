@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T07:25:40Z",
+  "updated_at": "2026-10-12T08:05:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -109,6 +109,18 @@
   "validation_log": [
     {
       "date": "2026-10-12",
+      "command": "taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=30080 tests/run_playable_scale_test.sh with final test-only diagnostics",
+      "status": "failed",
+      "result": "Final retained code passes4/8 and fails20 only client movement observation (server movement and all other lifecycle checks pass). Two failing clients retain unchanged ACK6->6 and13->13 with host alive/full roster; corresponding ENet destinations throttle_min/end=0. New delivery diagnostic appears in runner output. No runtime source change or throttle override remains; no MTU warning. Evidence .scratch/phase5-transport-final.log and .amp/in/artifacts/phase5-transport-final/. Supported1/2/4 separately passes;20-player gate remains failed."
+    },
+    {
+      "date": "2026-10-12",
+      "command": "Constrained20-player receipt/throttle probes; three temporary throttle-deceleration-zero controls; three alternating unchanged/deduplicated-lobby pairs using same fixture; final PLAYER_COUNTS='1 2 4' PORT=30070 GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh",
+      "status": "failed",
+      "result": "Reproduced movement blackout with temporary RPC receipt counter: affected clients receive zero valid movement snapshots during window (22->22,15->15; another run51->51), host alive/full roster, local prediction advances. Exact failed destination in throttle run has ENet throttle_min/end=0, RTT90ms, baseline35ms variance18ms; server executes85 physics frames. Disabling server throttle deceleration only in diagnostic fixture passes3/3 constrained20 runs, supporting throttle-mediated suppression but not identifying which startup traffic causes it. Godot4.7.2 ENet source confirms per-ACK adaptation and peer-wide unreliable discard; logged smoothed RTT is not individual ACK RTT. Normal throttling restored. Lobby dedup experiment reduces movement-window reliable snapshots from11 to0/0/1 yet candidates fail3/3 (baseline fails1/3); one candidate also fails shove. Reject candidate as a solution. Removed all runtime edits, throttle override and temporary receipt instrumentation; retain test-only server throttle/window summaries and client ACK/alive/roster diagnostics. Final supported1/2/4 matrix passes movement, results and five rematches, shell/diff checks pass. Milestone5.2 remains failed; no gameplay/capacity/deployment/package change. Evidence .scratch/phase5-{delivery-before*,receipt-1,throttle-1,throttle-control-*,pair-*,transport-supported}.log and corresponding .amp/in/artifacts/phase5-* peer logs. Temporary isolated baseline editor import crashed during audio import; copied existing import cache and verified MATCH_MANAGER_OK40 before paired runs. Baseline scratch checkout removed after preserving evidence."
+    },
+    {
+      "date": "2026-10-12",
       "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (second complete run); bash -n tests/run_playable_scale_test.sh; jq empty progress.json; git diff --check",
       "status": "passed",
       "result": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; PLAYABLE_SCALE_MATRIX_OK players=1,2,4; DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed. No parser/runtime/assertion failures or MTU warnings; existing shutdown-only ObjectDB/resource warnings remain. Shell syntax, JSON and diff checks pass. Evidence .scratch/phase5-mtu-regression-repeat.log. This validates the bounded-snapshot fix on the supported regression matrix, not20-player readiness; retain the earlier four-player rematch failure as unexplained despite standalone and full reruns passing. Milestone5.2 remains in progress, capacity four, no deployment or new release package."
@@ -182,5 +194,5 @@
   ],
   "blockers": ["Milestone5.2 scale gate remains failed: intermittent20-player clients observe no host displacement despite local movement and server movement passing. Original CI's unchanged local/host case remains unexplained; the verified match-snapshot MTU fix does not resolve the movement failure.", "One full supported regression reports four-player rematch=false; standalone and complete reruns pass. Cause unproven; failure-only acknowledgement/deadline diagnostics are retained for recurrence."],
   "changed_files": ["game/main.gd", "tests/test_room_ui.gd", "tests/run_windows_package_checks.ps1", "tools/export_playtest.sh", "GUIDE.md", "progress.json", "docs/decisions.md", "docs/checklists/phase-5-session-distribution-and-release-readiness.md", "game/player/", "game/disasters/", "game/session/", "scenes/main.tscn", "scenes/player.tscn", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "tools/asset_generation/generate_assets.gd", "tests/", "README.md"],
-  "next_action": "Continue milestone5.2 by tracing movement-snapshot receipt and host alive/roster state during the failing20-player observation window under two-CPU load; distinguish delivery, application and fixture timing before changing the proven owner. Preserve4/8/20 assertions, capacity four and no-deployment policy."
+  "next_action": "Continue milestone5.2 by sampling ENet throttle from connection through admission and counting initial roster/spawn traffic, then compare an admission-batching or snapshot-cadence intervention against unchanged two-CPU20-player runs. Retain normal congestion control and movement assertions; lobby dedup alone is disproven as the solution. Capacity staysfour; no deployment."
 }

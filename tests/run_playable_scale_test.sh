@@ -44,7 +44,7 @@ run_player_count() {
 
   cat "$server_log"
   for ((client_index = 1; client_index <= client_count; client_index++)); do
-    grep -E "PLAYABLE_SCALE_CLIENT_OK|PLAYABLE_SCALE_MOVEMENT_DIAGNOSTIC|PLAYABLE_SCALE_MOVEMENT_STATE|SCALE_SPECTATOR|Playable scale client failed|ERROR:|WARNING:" "$log_dir/client-$client_index.log" || true
+    grep -E "PLAYABLE_SCALE_CLIENT_OK|PLAYABLE_SCALE_MOVEMENT_|SCALE_SPECTATOR|Playable scale client failed|ERROR:|WARNING:" "$log_dir/client-$client_index.log" || true
   done
 
   if grep -q 'above the MTU' "$server_log"; then
