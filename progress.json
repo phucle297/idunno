@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12T10:47:58Z",
+  "updated_at": "2026-10-12T10:52:00Z",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
     "directory": "docs/old-docs",
     "filename_pattern": "{phase-slug}/progress.json",
-    "rule": "Archive completed phases without overwriting history. The explicit user-authorized Phase2 suspension is separately labeled deferred_not_completed; its unfinished gates remain unchanged. The Phase5 archive is a gates-complete checkpoint (5.1-5.4) that was reopened by the owner's 'Continue phase 5' before final phase completion; it is preserved as historical evidence, not a closure."
+    "rule": "Archive completed phases without overwriting history. The explicit user-authorized Phase2 suspension is separately labeled deferred_not_completed; its unfinished gates remain unchanged."
   },
-  "previous_phase_archive": "docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json",
-  "checklist": "docs/checklists/phase-5-session-distribution-and-release-readiness.md",
+  "previous_phase_archive": "docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json",
+  "checklist": "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": [
@@ -34,21 +34,21 @@
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
-    "phase": "phase_5_session_distribution_and_release_readiness",
-    "milestone": "milestone_5_2_stable_multiplayer_capacity",
-    "task": "task_5_2_4_expand_supported_playtest_capacity"
+    "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
+    "milestone": "milestone_6_1_cosmetic_loot_drops_and_customization",
+    "task": "milestone_6_1_cosmetic_loot_drops_and_customization"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
-    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4–2.6",
-    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4–2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "phase_transition": {
     "date": "2026-10-12",
-    "authorization": "Owner: 'Continue phase 5.' The premature Phase6 rollover is corrected: Phase5 is reopened because its supported-playtest-capacity expansion beyond the temporary 1-4 limit remained uncompleted (design capacity 20 now passes in automation, but the expansion is an owner decision and physical LAN/Internet/human acceptance stays open).",
-    "previous_phase_status": "reopened_in_progress",
-    "review": "Phase5 milestones5.1,5.3,5.4 remain complete on executed evidence; milestone5.2's movement-failure fix is complete and validated at20, but its 'expand supported playtest capacity beyond four' clause is reopened as the single remaining owner-gated scope item. Deployment, infrastructure change, Steam SDK/app work and human/physical acceptance remain blocked pending explicit authorization or external resources."
+    "authorization": "Owner 'Continue phase 5' reopened the phase after the earlier premature rollover and delegated the remaining scope item with 'Your call.' Phase5 is now fully complete: milestones5.1-5.4 plus the supported-playtest-capacity expansion to 20 (design capacity, automation-validated). Phase6 opens as planned and holds for owner direction.",
+    "previous_phase_status": "completed",
+    "review": "Phase5 completed with milestones5.1-5.4 gated on executed evidence plus5.2.4 capacity expansion; supported playtest capacity is now20 (automation-validated). Physical LAN/Internet/audio/human acceptance remains open in NEED_REAL_CHECK.md and is not claimed. No deployment, publication or infrastructure change occurred. Phase6 drop eligibility/odds, duplicate handling and durable player-identity storage must be decided before implementation."
   },
   "engine": {
     "name": "Godot",
@@ -58,13 +58,13 @@
     "target": "Windows PC"
   },
   "phase": {
-    "id": "phase_5_session_distribution_and_release_readiness",
-    "title": "Session Distribution and Release Readiness",
-    "status": "in_progress",
+    "id": "phase_6_cosmetic_loot_box_drops_and_customization",
+    "title": "Cosmetic Loot-Box Drops and Customization",
+    "status": "planned",
     "dependencies": [
-      "phase_4_disaster_remix_and_toy_town_interaction"
+      "phase_5_session_distribution_and_release_readiness"
     ],
-    "goal": "Harden the Windows package for release/distribution with robust failure UX and the playtest export, resolve the intermittent 20-player movement failure before expanding supported playtest capacity, harden the Internet room service and evaluate Steam lobby/invite integration against its existing discovery/admission boundary, and improve server capacity/placement only from measured demand. Milestones5.1-5.4 gates already pass (evidence in phase_5_archive_checkpoint); the remaining scope is the supported-playtest-capacity expansion and its CI/doc/default alignment.",
+    "goal": "Add earned cosmetic loot-box drops that unlock character models/costumes with a small initial catalog, opening/reward preview, owned view and equip flow; rewards stay cosmetic-only and server-authoritative with replay/duplicate protection. Detail per docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md; keep this file concise until work begins.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -72,53 +72,14 @@
       "active_disasters": 2
     },
     "milestones": {
-      "milestone_5_1_windows_package_hardening_and_failure_ux": {
-        "title": "Windows Package Hardening and Failure UX",
-        "status": "completed"
-      },
-      "milestone_5_2_stable_multiplayer_capacity": {
-        "title": "Stable Multiplayer Capacity",
-        "status": "completed",
-        "tasks": {
-          "task_5_2_4_expand_supported_playtest_capacity": {
-            "title": "Expand supported playtest capacity beyond the temporary four-player scope",
-            "status": "completed",
-            "acceptance": "Owner delegated with 'Your call'. Chose 20 (design-bible capacity). Aligned progress budget (supported_players 20), restored the full CI scale matrix (PLAYER_COUNTS 4 8 20), set room-service --players default 20, and updated README/NEED_REAL_CHECK scope wording. Evidence: PLAYABLE_SCALE_MATRIX_OK players=4,8,20 (constrained 2-CPU); UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed with DEDICATED_NETWORK_OK movement=passed rematches=5 recovery=passed; room-service 13/13 tests OK. Automation-validated only: physical LAN/Internet/audio/human acceptance stays open; no deployment or infrastructure change."
-          }
-        }
-      },
-      "milestone_5_3_room_service_and_steam_integration": {
-        "title": "Room Service Hardening and Steam Integration Evaluation",
-        "status": "completed"
-      },
-      "milestone_5_4_measured_capacity_and_placement": {
-        "title": "Measured Capacity and Placement",
-        "status": "completed"
+      "milestone_6_1_cosmetic_loot_drops_and_customization": {
+        "title": "Cosmetic Loot-Box Drops and Customization",
+        "status": "planned"
       }
     }
   },
-  "validation_log": [
-    {
-      "check": "constrained full scale matrix",
-      "result": "passed",
-      "note": "PLAYABLE_SCALE_MATRIX_OK players=4,8,20 (taskset -c 0,1). Evidence .scratch/phase5-capacity-full-matrix.log.",
-      "command": "taskset -c 0,1 env GODOT_BIN=$(command -v godot) PLAYER_COUNTS='4 8 20' PORT=30121 tests/run_playable_scale_test.sh"
-    },
-    {
-      "check": "supported regression",
-      "result": "passed",
-      "note": "UI_REGRESSION_OK suites=41 matrices=5 persistence_restart=passed; DEDICATED_NETWORK_OK processes=3 clients=2 movement=passed rematches=5 recovery=passed. Evidence .scratch/phase5-capacity-supported-regression.log.",
-      "command": "PLAYER_COUNTS='1 2 4' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh"
-    },
-    {
-      "check": "room-service suite",
-      "result": "passed",
-      "note": "13/13 tests OK including real Godot/ENet process fixtures, after --players default raised to 20 (tests pin explicit capacities). Evidence tool output this turn.",
-      "command": "GODOT_BIN=$(command -v godot) PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v"
-    }
-  ],
+  "validation_log": [],
   "blockers": [],
   "changed_files": [],
-  "next_action": "Archive Phase 5 as completed (all milestones 5.1-5.4 plus the 5.2.4 capacity expansion validated) and roll over to the planned Phase 6; no deployment or infrastructure change.",
-  "phase_5_archive_checkpoint": "docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json"
+  "next_action": "Await owner direction to decompose Phase 6, then decide drop eligibility/odds/duplicate handling and durable player-identity storage before implementing the reward/equip flow."
 }
