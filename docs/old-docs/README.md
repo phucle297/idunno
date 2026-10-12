@@ -1,7 +1,7 @@
 # Completed-phase archives
 
 These are historical implementation checkpoints, not unconditional current-build
-release/acceptance claims. The [audit reconciliation](../decisions.md) qualifies
+release/acceptance claims. The [audit reconciliation](phase-5-validation-followup/decisions.md) qualifies
 Phase 3 performance/native gates, Phase 4 fairness/human gates and Phase 5 scale,
 deployment/demand and archive-provenance claims. Preserve these payloads unchanged;
 new follow-up evidence belongs in a separately named archive.
@@ -13,6 +13,7 @@ new follow-up evidence belongs in a separately named archive.
 | 3 — Player-Caused Chaos | [Checklist](phase-3-player-caused-chaos/checklist.md) | [Decisions](phase-3-player-caused-chaos/decisions.md) | [Progress](phase-3-player-caused-chaos/progress.json) |
 | 4 — Disaster Remix and Toy Town Interaction | [Checklist](phase-4-disaster-remix-and-toy-town-interaction/checklist.md) | [Decisions](phase-4-disaster-remix-and-toy-town-interaction/decisions.md) | [Progress](phase-4-disaster-remix-and-toy-town-interaction/progress.json) |
 | 5 — Session Distribution and Release Readiness | [Checklist](phase-5-session-distribution-and-release-readiness/checklist.md) | [Decisions](phase-5-session-distribution-and-release-readiness/decisions.md) | [Progress](phase-5-session-distribution-and-release-readiness/progress.json) |
+| 5 — Validation Follow-up | [Checklist](phase-5-validation-followup/checklist.md) | [Decisions](phase-5-validation-followup/decisions.md) | [Progress](phase-5-validation-followup/progress.json) |
 
 ## Suspended phase snapshot — not completed
 

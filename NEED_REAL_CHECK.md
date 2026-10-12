@@ -2,7 +2,7 @@
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.
 
-`progress.json` theo dõi Phase5 validation follow-up; Phase6 chưa triển khai. [Archive Phase5](docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json), [Phase4](docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json), [Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ kết quả lịch sử; Phase2 vẫn hoãn. Kết luận "mọi gate đã pass" trong archive không áp dụng cho GPU thật, capture Windows mới hoặc human/network/audio acceptance chưa chạy. [Audit reconciliation](docs/decisions.md) ghi rõ correction; không sửa/xóa evidence cũ.
+Phase5 validation follow-up đã [archive](docs/old-docs/phase-5-validation-followup/progress.json); `progress.json` giữ Phase6 planned, chưa triển khai. [Archive Phase5](docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json), [Phase4](docs/old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json), [Phase3](docs/old-docs/phase-3-player-caused-chaos/progress.json) và [Phase2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) giữ kết quả lịch sử; Phase2 vẫn hoãn. Kết luận "mọi gate đã pass" trong archive không áp dụng cho GPU thật, capture Windows mới hoặc human/network/audio acceptance chưa chạy. [Audit reconciliation](docs/old-docs/phase-5-validation-followup/decisions.md) ghi rõ correction; không sửa/xóa evidence cũ.
 
 ## Bản đã giao gần nhất
 
@@ -10,6 +10,7 @@ Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công
 - Build: `0d10b289520f43889dd19cf5beba9c2abbaaea92`; endpoint: `https://server.permees.com`.
 - Khi có bản mới, client/server cần matching. Bỏ checklist **không cho phép restart/deploy server hoặc đổi hạ tầng** (vẫn cần user duyệt riêng; không làm trong turn này). Scope playtest hỗ trợ đã nâng lên **20 người** (design capacity, automation-validated) theo quyết định user 2026-10-12 "Your call"; kiểm tra người thật/Internet/audio dưới đây vẫn MỞ và automation không thay thế được.
 - Xác nhận Internet/audio của bản trước do user cung cấp vẫn được giữ; không suy thành xác nhận cho mọi bản sau.
+- Gói follow-up mới (local, **chưa deploy**): `.amp/in/artifacts/phase-5-followup-packages/` — `DisasterParty-Windows-62b69c8.zip`, `DisasterParty-Linux-server-62b69c8.tar.gz`, `PLAYTEST-NOTES.md`. Client/server cùng source revision `62b69c84802d5e79502b44d735df02f428a55e06`, PCK giống hệt; standalone Linux lifecycle pass, Windows native/GPU/audio/Internet chưa xác minh. Không dùng client mới với server public build cũ.
 - Playtest Phase3 (chưa publish/deploy, dùng để user tự check): `.amp/in/artifacts/phase-3-packages/` — `DisasterParty-Windows-f82a5cb.zip` và `DisasterParty-Linux-server-f82a5cb.tar.gz`, cùng payload `DisasterParty.pck`; hướng dẫn điều khiển/ghi nhận bug nằm trong file `PLAYTEST-NOTES.md` kèm gói.
 
 ## Nếu gặp bug

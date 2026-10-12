@@ -1,0 +1,135 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-12",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {
+    "phase_id": "phase_5_validation_followup",
+    "title": "Phase 5 Validation Follow-up",
+    "status": "completed",
+    "archived_at": "2026-10-12",
+    "superseded_by": "../../../progress.json"
+  },
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "{phase-slug}/progress.json",
+    "rule": "Archive completed phases without overwriting history. The explicit user-authorized Phase2 suspension is separately labeled deferred_not_completed; its unfinished gates remain unchanged."
+  },
+  "previous_phase_archive": "docs/old-docs/phase-5-session-distribution-and-release-readiness/progress.json",
+  "checklist": "checklist.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_5_validation_followup",
+    "milestone": "milestone_5_6_matching_packages_and_truthful_tracking",
+    "task": null
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "phase_transition": {
+    "date": "2026-10-12",
+    "authorization": "Owner requests planning and completion after the audit. Open a separately tracked Phase 5 validation follow-up; preserve all existing archives and keep Phase 6 planned.",
+    "previous_phase_status": "historical_completion_claim_qualified_by_audit",
+    "review": "Earlier player-host scale did not prove managed-room scale. Hardware performance and human/physical checks remain unverified/nonblocking under the waiver, not passed. Previous public deployment evidence exists; current demand is unmeasured. No deployment or shared infrastructure change is authorized by this follow-up."
+  },
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "phase": {
+    "id": "phase_5_validation_followup",
+    "title": "Phase 5 Validation Follow-up",
+    "status": "completed",
+    "dependencies": [
+      "phase_5_session_distribution_and_release_readiness"
+    ],
+    "goal": "Close the audit's managed-room scale and fairness coverage gaps, enforce strict scale gating, prepare current matching local packages and reconcile tracking without modifying historical archives or claiming physical/human acceptance. Phase 6 remains planned and is not started.",
+    "budgets": {
+      "supported_players": 20,
+      "authoritative_loose_bodies": 32,
+      "grabbable_props": 12,
+      "active_disasters": 2
+    },
+    "milestones": {
+      "milestone_5_5_managed_scale_and_fairness": {
+        "title": "Managed-room scale, fairness and strict gates",
+        "status": "completed",
+        "tasks": {
+          "task_5_5_1_managed_twenty_client_room": {"status": "completed", "acceptance": "20 real clients admitted through HTTP tickets; full roster, server-observed movement replicated to every client, capacity rejection, five rematches, owner transfer and crash/retry."},
+          "task_5_5_2_fairness_and_container_gates": {"status": "completed", "acceptance": "Timed Flood escape and runtime tornado exposure on both maps; executable relocation under Flood+Earthquake; 20-player container failures cannot be ignored."}
+        }
+      },
+      "milestone_5_6_matching_packages_and_truthful_tracking": {
+        "title": "Integrated regression, matching packages and evidence reconciliation",
+        "status": "completed",
+        "acceptance": "Full regression and local Windows/Linux exports with matching PCK and standalone Linux lifecycle; tracking distinguishes source, package, deployed and physical/human readiness. Existing archives remain unchanged."
+      }
+    }
+  },
+  "validation_log": [
+    {"status": "failed", "command": "python3 tests/run_managed_scale_test.py (first run)", "result": "20-client admission/lifecycle assertions completed but strict log scan caught freed SpectatorController target on owner departure. Evidence .scratch/audit/managed-first.log and peer logs; reproduced owner-free-before-roster frame in existing spectator fixture."},
+    {"status": "passed", "command": "python3 tests/run_managed_scale_test.py; godot --headless --script res://tests/test_spectator_presentation.gd", "result": "After validating target before typed assignment and pruning invalid targets: MANAGED_SCALE_OK clients=20 movement_all_peers=passed rematches=5 owner_transfer=passed crash_retry=passed; SPECTATOR_PRESENTATION_OK checks=30. Loopback only. .scratch/audit/managed-fixed.log and spectator-fixed.log."},
+    {"status": "passed", "command": "godot --headless --fixed-fps 60 --script res://tests/test_disaster_combinations.gd", "result": "DISASTER_COMBINATIONS_OK checks=102. Real seeded collapses, ordinary sprint from departed section to actual standing high ground. Town 40 movement ticks/40 overlap ticks, 90HP; Harbor 463 ticks/256 overlap ticks, 65HP. Both arrive before peak and retain health through peak window. Initial distant-paired-panel destinations failed; rejected as incorrect refuge contract (Harbor cargo lids below peak). Existing shutdown-only resource warning retained. .scratch/audit/fairness-{route,jump,final}.log."},
+    {"status": "passed", "command": "GODOT_BIN=$(command -v godot) bash tests/run_container_network_test.sh", "result": "Started disposable local audit-docker daemon and installed Compose. CONTAINER_NETWORK_OK rooms=2 clients_per_room=2 rematches=5; PLAYABLE_SCALE_MATRIX_OK players=4,8,20; MANAGED_SCALE_OK clients=20; CONTAINER_SOURCE_REGRESSION_OK; CONTAINER_VALIDATION_SLICE_OK. Strict scale assertion/error gating retained. .scratch/audit/container-strict.log."},
+    {"status": "blocked", "command": "python3 tests/run_managed_container_test.py; concurrent full regression and template download", "result": "Historical failed run: two-room/four-player session passed, but concurrent eight-player private imports exhausted orb memory (exit137), leaving disposable containers running. Failed logs preserved: .scratch/audit/managed-containers.log and followup-regression.log. Superseded by serialized validation below, not counted as a pass."},
+    {"status": "passed", "command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_container_test.py (alone, serialized preparation)", "result": "MANAGED_CONTAINER_OK rooms=2 players_per_room=4 and 8 rematches=5 isolation=passed failures=passed profile=passed. 2-CPU/1GiB service, 120 warmup/600 samples: physics p95 1.636/1.727ms (4), 10.121/7.25ms (8); tick p95 20.933/21.05ms (4), 21.395/21.384ms (8). Physics work is under 16.67ms; tick pacing is not perfect60Hz, and no GPU/Internet claim. .scratch/audit/managed-containers-serial.log. OOM recovery/prevention recorded in focused skill."},
+    {"status": "passed", "command": "Updated spectator fixture against old controller in disposable .scratch/audit/spectator-red checkout", "result": "Fails with SCRIPT ERROR: Trying to assign invalid previously freed instance and assertion A freed target must fall back before the roster refresh. Fixed-source fixture passes checks=30; live source never reverted. .scratch/audit/spectator-red.log."},
+    {"status": "passed", "command": "sha512sum -c .scratch/audit/templates.sha512", "result": "Resumed official Godot 4.7.2 export-template download; SHA512 OK. Installed Windows templates. Export and native Windows runtime validation are separate checks."},
+    {"status": "passed", "command": "PLAYER_COUNTS='4 8 20' GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh (alone)", "result": "UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed. MAP_VARIETY_OK checks=303, disaster combinations checks=102 and spectator presentation checks=30. Strict unexpected runtime-error scanning retained; known shutdown-only resource diagnostics remain. .scratch/audit/followup-regression-serial.log."},
+    {"status": "passed", "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -v; bash -n modified shell runners; jq empty progress.json; git diff --check", "result": "13 room-service tests OK; shell syntax, JSON and whitespace valid. Existing historical archive payloads unchanged (only archive index edited). .scratch/audit/room-service-final.log."},
+    {"status": "passed", "command": "tools/export_playtest.sh windows and linux-server (each twice); compare SHA256SUMS.txt and PCK; tests/run_release_linux_test.py", "result": "Committed/pushed source 62b69c84802d5e79502b44d735df02f428a55e06, skip-CI/no deploy. PLAYTEST_ARTIFACTS_OK pck_entries=90 for each target; repeated per-target hashes identical and Windows/Linux PCK byte-identical. RELEASE_MANAGED_LINUX_OK checksum=passed standalone=passed version_rejection=passed create_join=passed crash_retry=passed sigterm=passed port_reclaimed=passed cache_absent=passed. .scratch/audit/release-linux-62b69c8.log. Review ZIP/tar and notes in .amp/in/artifacts/phase-5-followup-packages. Native Windows execution remains unverified."},
+    {"status": "passed", "command": "amp orb service stop audit-docker; remove disposable red checkout", "result": "Thread-created Docker daemon stopped after all checks; disposable old-source checkout removed. No shared server, deployment, infrastructure or publication changed."},
+    {"status": "passed", "command": "Read delivered ZIP/tar payloads and verify manifest hashes, BUILD revision and PCK; validate tracking JSON/links and compare historical files with pre-follow-up Git", "result": "DELIVERY_ARCHIVES_OK checksums=passed revision=matching pck=identical. PHASE_TRACKING_OK links=passed history_unchanged=passed evidence_preserved=passed fresh_phase6=planned. Every older archive payload is byte-identical to 0c44d50; all follow-up validation entries preserved. Root phase6 has empty validation/changed-file logs. git diff --check and jq empty pass."}
+  ],
+  "blockers": [],
+  "changed_files": [
+    "game/session/spectator_controller.gd",
+    "tests/run_managed_scale_test.py",
+    "tests/managed_container_peer.gd",
+    "tests/run_managed_container_test.py",
+    "tests/run_container_network_test.sh",
+    "tools/container-tests/entrypoint.sh",
+    "tests/run_ui_regression.sh",
+    "tests/test_map_variety.gd",
+    "tests/test_disaster_combinations.gd",
+    "tests/test_spectator_presentation.gd",
+    ".agents/skills/recovering-container-import-memory/SKILL.md",
+    "AGENTS.md",
+    "README.md",
+    "NEED_REAL_CHECK.md",
+    "progress.json",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "docs/old-docs/README.md",
+    "docs/old-docs/phase-5-validation-followup/"
+  ],
+  "next_action": "Archive the completed follow-up evidence without overwriting historical archives; leave Phase 6 planned and retain unverified device/human checks."
+}

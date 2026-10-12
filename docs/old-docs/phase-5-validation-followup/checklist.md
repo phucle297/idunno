@@ -1,4 +1,4 @@
-# Phase 5 — Validation Follow-up
+# Phase 5 — Validation Follow-up (completed 2026-10-12)
 
 Owner requests planning and completion of the audit findings. This follow-up supersedes
 overbroad completion summaries, not the historical evidence. Phase 6 remains planned.
@@ -25,13 +25,20 @@ perfect60Hz or real-GPU/Internet evidence.
 
 ## 5.6 — Regression, delivery and truthful records
 
-- [ ] Run full source regression, room-service tests and current release lifecycle.
-- [ ] Export matching Windows/Linux packages from a committed revision; verify hashes/PCK.
-- [ ] Reconcile README/index/active decisions and acceptance wording. Preserve older build
+- [x] Run full source regression, room-service tests and current release lifecycle.
+- [x] Export matching Windows/Linux packages from a committed revision; verify hashes/PCK.
+- [x] Reconcile README/index/active decisions and acceptance wording. Preserve older build
   confirmation, unresolved failures and every existing archive without rewriting it.
-- [ ] Mark real-GPU performance, native Windows interactive capture, physical audio/network
+- [x] Mark real-GPU performance, native Windows interactive capture, physical audio/network
   and human fairness as unverified/nonblocking under the existing waiver, never passed.
-- [ ] Commit/push with `[skip ci]`; no deploy, shared restart, infrastructure or Steam publication.
+- [x] Commit/push with `[skip ci]`; no deploy, shared restart, infrastructure or Steam publication.
 
-Existing Phase 5 archive remains the historical checkpoint. Final follow-up evidence will
-use a new archive directory rather than overwrite it. Current action lives only in root progress.
+Evidence: `UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed`;
+13 room-service tests; repeated Windows/Linux exports have identical per-target hashes and
+byte-identical PCKs. Standalone Linux lifecycle passed every gate. Package source revision
+is `62b69c84802d5e79502b44d735df02f428a55e06`; subsequent closure changes are documentation-only.
+`DELIVERY_ARCHIVES_OK` verifies delivered archive contents/checksums/build identity.
+ZIP/tar and playtest notes are under `.amp/in/artifacts/phase-5-followup-packages/`.
+
+Existing Phase 5 archive remains unchanged. This new archive preserves the follow-up's
+full evidence. Current action lives only in root [progress](../../../progress.json).
