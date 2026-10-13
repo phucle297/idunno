@@ -45,6 +45,7 @@ func _run() -> void:
 		_expect(not panel.get_node("Start").disabled, "Ready owner must have an enabled start button")
 		panel.get_node("Start").pressed.emit()
 	await _wait(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Owner UI start must reach authoritative ACTIVE on both clients")
+	_expect(main.match_manager.get_round_participation().is_empty() and main.match_manager.managed_profile_ids.is_empty(), "Client snapshots must not create managed participation or reveal the authority's profile roster")
 	main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 500, 1500)
 	print("ROOM_UI_ACTIVE role=%s" % role)
 	await _wait(func() -> bool: return not main.is_network_session(), "Killed room process must recover UI")

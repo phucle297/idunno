@@ -173,3 +173,44 @@ Phase 6 checklist/progress. Do not archive the phase or begin reward grants. The
 next action is 6.2.1 immutable authoritative round participation. No schema migration,
 shared data/restart, deployment, release or cosmetic asset/UI change. Commit/push this
 validated test/operations work with `[skip ci]` to avoid unintended deployment.
+
+## 2026-10-13 — Task 6.2.1 authoritative round participation
+
+The owner asks to continue. Capture participation in `MatchManager` at the actual
+start, death, departure and completion boundaries, not in results/UI signal listeners:
+replicated snapshots also emit those signals, and unregistering the final opponent
+can synchronously finish a round. Record departure before erasing the mutable player.
+
+Only profile-enabled managed admission installs the peer/profile binding. Copy that
+binding at start; admission cleanup and identical display names cannot change it.
+Keep the active record and latest completed record separate from `players`; return
+deep copies. Results/lobby resets and a new active rematch do not rewrite completed
+facts. `connected_duration` means alive, connected ACTIVE time before death/leave;
+spectating does not rescue death at 59.99 seconds. Preserve death time and departure
+time independently, including a live-leave flag. Use authoritative elapsed simulation
+time (with timeout clamping), never client clocks or winner rankings.
+
+The loopback-only, room-key-authenticated `/internal/round/start` endpoint issues a
+random round ID and derives the immutable roster from admission reservations. The
+room key binds it to one process instance. Identical current-sequence retries return
+the same ID even after peer cleanup; changed rosters or old sequences reject. Newer
+sequences may skip a missed HTTP request, so a failure does not disable later rematches.
+Godot binds responses by sequence, including a completed round during HTTP flight;
+late replies cannot replace a rematch's ID or an already bound ID. Requests failing
+validation/transport leave the ID empty and log only a non-secret unavailable marker.
+They do not block gameplay or manufacture local IDs. No automatic retry/grant path
+is claimed. Client snapshots contain neither these records nor the identity mapping.
+
+This task retains in-memory facts only: latest completed Godot record and current
+service round binding, not an unbounded history. Crash/restart remains fail-closed.
+Transactional completion, pending delivery/recovery and durable reward receipts are
+6.2.2 work; opening is 6.2.3. No catalog/assets, equip/UI, schema migration, shared
+proxy/store change, deployment, release or new human-acceptance prerequisite.
+
+Clean Godot import, 69 match checks and all 22 service tests pass, including an actual
+two-profile UI/start/crash/retry round issuance. Timing boundaries, identity removal,
+five rematches, stale/conflicting IDs, replay, missed sequences and replacement room
+keys are exercised. Broader regression passed 41 suites, five matrices, persistence
+restart and existing profile-disabled managed20 loopback; this is not profile-enabled
+reward scale or hardware/Internet acceptance. Task 6.2.1 is complete, reward gates
+remain not_run, and 6.2.2 is next. Commit/push with `[skip ci]` to avoid deployment.

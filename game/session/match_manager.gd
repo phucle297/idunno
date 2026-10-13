@@ -5,6 +5,7 @@ signal state_changed(state: MatchState)
 signal health_changed(peer_id: int, health: float)
 signal player_eliminated(peer_id: int, cause: String)
 signal match_finished(winner_ids: Array[int])
+signal round_participation_started(sequence: int, peer_ids: Array[int])
 
 enum MatchState {
 	LOBBY,
@@ -21,6 +22,51 @@ var elapsed_time := 0.0
 var players: Dictionary = {}
 var winner_ids: Array[int] = []
 var _participants_at_start := 0
+var managed_profile_ids: Dictionary = {} # Set only by managed, profile-enabled admission.
+var _round_sequence := 0
+var _round_participation: Dictionary = {}
+var _completed_participation: Dictionary = {}
+
+
+func get_round_participation(completed: bool = false) -> Dictionary:
+	return (_completed_participation if completed else _round_participation).duplicate(true)
+
+
+func bind_round_id(sequence: int, round_id: String) -> void:
+	if not _can_mutate():
+		return
+	for record: Dictionary in [_round_participation, _completed_participation]:
+		if record.get("sequence", 0) == sequence and record.get("round_id", "").is_empty():
+			record["round_id"] = round_id
+
+
+func _start_participation() -> void:
+	_round_participation = {}
+	if managed_profile_ids.is_empty():
+		return
+	var roster: Dictionary = {}
+	var peer_ids: Array[int] = []
+	for peer_id: int in players:
+		if not managed_profile_ids.has(peer_id):
+			return # Incomplete identity cannot become reward evidence.
+		roster[peer_id] = {"profile_id": managed_profile_ids[peer_id], "connected_duration": 0.0,
+			"elimination_time": -1.0, "departure_time": -1.0, "departed_alive": false}
+		peer_ids.append(peer_id)
+	_round_sequence += 1
+	_round_participation = {"sequence": _round_sequence, "round_id": "", "participants": roster,
+		"duration": 0.0, "finished": false}
+	round_participation_started.emit(_round_sequence, peer_ids)
+
+
+func _record_departure(peer_id: int) -> void:
+	if _round_participation.is_empty() or _round_participation.finished:
+		return
+	var participant: Dictionary = _round_participation.participants.get(peer_id, {})
+	if participant.is_empty() or participant.departure_time >= 0.0:
+		return
+	participant.departure_time = elapsed_time
+	participant.departed_alive = participant.elimination_time < 0.0
+	participant.connected_duration = elapsed_time if participant.departed_alive else participant.elimination_time
 
 
 func register_player(peer_id: int, player_name: String) -> bool:
@@ -33,6 +79,8 @@ func register_player(peer_id: int, player_name: String) -> bool:
 func unregister_player(peer_id: int) -> bool:
 	if not _can_mutate() or not players.has(peer_id):
 		return false
+	if state == MatchState.ACTIVE:
+		_record_departure(peer_id)
 	players.erase(peer_id)
 	if state == MatchState.ACTIVE:
 		_evaluate_eliminations()
@@ -92,6 +140,7 @@ func start_match() -> bool:
 	elapsed_time = 0.0
 	winner_ids.clear()
 	_participants_at_start = players.size()
+	_start_participation()
 	_set_state(MatchState.ACTIVE)
 	return true
 
@@ -100,6 +149,11 @@ func tick_match(delta: float) -> void:
 	if not _can_mutate() or state != MatchState.ACTIVE:
 		return
 	elapsed_time = minf(elapsed_time + maxf(delta, 0.0), match_duration)
+	if not _round_participation.is_empty():
+		_round_participation.duration = elapsed_time
+		for participant: Dictionary in _round_participation.participants.values():
+			if participant.departure_time < 0.0 and participant.elimination_time < 0.0:
+				participant.connected_duration = elapsed_time
 	if elapsed_time >= match_duration:
 		_finish_at_timeout()
 
@@ -128,6 +182,8 @@ func apply_damage_batch(events: Array[Dictionary]) -> bool:
 			player.alive = false
 			player.elimination_time = elapsed_time
 			player.cause_of_death = String(event.get("cause", "Unknown"))
+			if not _round_participation.is_empty() and _round_participation.participants.has(peer_id):
+				_round_participation.participants[peer_id].elimination_time = elapsed_time
 		players[peer_id] = player
 		health_changed.emit(peer_id, player.health)
 		if not player.alive:
@@ -335,6 +391,10 @@ func _alive_player_ids() -> Array[int]:
 
 func _finish(winners: Array[int]) -> void:
 	winner_ids = winners
+	if not _round_participation.is_empty():
+		_round_participation.duration = elapsed_time
+		_round_participation.finished = true
+		_completed_participation = _round_participation
 	_set_state(MatchState.RESULTS)
 	match_finished.emit(winner_ids)
 

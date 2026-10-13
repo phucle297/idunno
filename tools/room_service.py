@@ -216,7 +216,7 @@ class RoomService:
             salt = secrets.token_bytes(16)
             room = {"id": room_id, "port": port, "key": secrets.token_urlsafe(32),
                     "salt": salt, "password": hashlib.scrypt(password.encode(), salt=salt, n=16384, r=8, p=1),
-                    "tokens": {}, "peers": {}, "ready": threading.Event(),
+                    "tokens": {}, "peers": {}, "round": {}, "ready": threading.Event(),
                     "heartbeat": time.monotonic(), "empty_since": time.monotonic(),
                     "joinable": True, "process": None}
             self.rooms[room_id] = room
@@ -278,6 +278,30 @@ class RoomService:
             key = data.get("key", "")
             if room is None or not isinstance(key, str) or not hmac.compare_digest(key, room["key"]):
                 raise Rejected("invalid_server", 403)
+            if action == "round/start":
+                if self.profiles is None:
+                    raise Rejected("profiles_unavailable", 503)
+                sequence, peers = data.get("sequence"), data.get("peers")
+                if (type(sequence) is not int or sequence < 1 or not isinstance(peers, list)
+                        or not 1 <= len(peers) <= self.args.players
+                        or any(type(peer) is not int or peer <= 1 for peer in peers)
+                        or len(set(peers)) != len(peers)):
+                    raise Rejected("invalid_round")
+                previous = room.get("round", {})
+                # A retry uses the captured roster even if a heartbeat already
+                # removed a departed player; it cannot mint a second ID.
+                if sequence == previous.get("sequence") and sorted(peers) == previous["peers"]:
+                    return dict(ok=True, round_id=previous["round_id"])
+                # A failed earlier HTTP request must not disable all rematches.
+                if sequence <= previous.get("sequence", 0):
+                    raise Rejected("invalid_round_sequence", 409)
+                roster = {peer: room["peers"].get(peer, {}).get("profile_id", "") for peer in peers}
+                if any(not profile for profile in roster.values()) or len(set(roster.values())) != len(roster):
+                    raise Rejected("invalid_round_roster", 403)
+                room["round"] = dict(sequence=sequence, round_id=secrets.token_hex(16),
+                                     peers=sorted(peers), roster=roster)
+                room["joinable"] = False
+                return dict(ok=True, round_id=room["round"]["round_id"])
             if action == "heartbeat":
                 peers = data.get("peers")
                 if not isinstance(peers, list) or len(peers) > self.args.players or any(type(p) is not int or p <= 1 for p in peers):
@@ -379,10 +403,10 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise Rejected("invalid_body")
             service = self.server.service
-            if self.path in ("/internal/consume", "/internal/heartbeat"):
+            if self.path in ("/internal/consume", "/internal/heartbeat", "/internal/round/start"):
                 if self.client_address[0] != "127.0.0.1":
                     raise Rejected("forbidden", 403)
-                result = service.internal(self.path.rsplit("/", 1)[1], data)
+                result = service.internal(self.path.removeprefix("/internal/"), data)
             elif self.path in ("/v1/rooms/create", "/v1/rooms/join"):
                 service.rate_limit(self.client_address[0])
                 authorization = self.headers.get("Authorization", "")

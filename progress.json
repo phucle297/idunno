@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
     "milestone": "milestone_6_2_authoritative_cosmetic_rewards",
-    "task": "task_6_2_1_round_participation"
+    "task": "task_6_2_2_transactional_grants"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -47,7 +47,7 @@
     "title": "Cosmetic Loot-Box Drops and Customization",
     "status": "in_progress",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Milestone 6.1 identity/store/admission and integrated restart/isolation are complete. Authoritative participation/rewards, new outfits and cosmetic UI remain planned; no paid boxes, currencies, shops or stat changes.",
+    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Milestone 6.1 identity/store/admission and integrated restart/isolation, and task 6.2.1 authoritative participation are complete. Durable rewards, new outfits and cosmetic UI remain planned; no paid boxes, currencies, shops or stat changes.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -70,10 +70,10 @@
       },
       "milestone_6_2_authoritative_cosmetic_rewards": {
         "title": "Authoritative Earned Boxes and Exactly-Once Ledger",
-        "status": "planned",
+        "status": "in_progress",
         "dependencies": ["milestone_6_1_cosmetic_loot_drops_and_customization"],
         "tasks": {
-          "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "planned"},
+          "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "completed"},
           "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "planned"},
           "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "planned"}
         },
@@ -218,6 +218,20 @@
       "status": "passed",
       "commands": "jq empty progress.json; git diff --check; inline Python assertions comparing progress with HEAD and checking completed tasks/gates, next-task pointers and new Markdown anchors",
       "result": "PHASE6_IDENTITY_MILESTONE_CHECK_OK tasks=3 gates=2 next=6.2.1 production_and_archives_unchanged delivery_and_waiver_preserved links=valid. All 6.1 tasks/gates complete; Phase 6 stays in_progress and all later milestone/task/gate payloads remain unchanged/planned/not_run. Current task and one next action point to 6.2.1, not grants. Documented private durable paths, URL scoping and credential loss/reset semantics. No phase archive or mandatory human checklist added; JSON/whitespace pass."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.2.1 authoritative participation and full service regression",
+      "status": "passed",
+      "commands": "godot --headless --editor --path . --quit; godot --headless --path . --script tests/test_match_manager.gd; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "result": "Clean import; MATCH_MANAGER_OK checks=69. All 22 service tests passed in 80.514s. Frozen authenticated roster survives admission/player cleanup; alive connected duration stops at death/leave, distinguishing 59.99/60 and 119.99/120; timeout clamps and live departure records before synchronous finish. Results/lobby and five rematches preserve completed records; copied snapshots, stale/conflicting IDs and unmanaged exclusions pass. Service IDs derive from room-key-authenticated admission bindings, ignore submitted profile/clock/winner claims, are replay-stable and unique across rematches/replacement instances, and tolerate missed sequences without accepting old ones. Real profile-enabled two-client UI/start/crash/retry reaches the internal round endpoint with both identities; clients have no participation/profile roster. No grants, storage migration, appearance/assets, deployment or human acceptance claim. Log: .scratch/phase6-participation/full-service.log. Full gameplay regression pending."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.2.1 full gameplay/network regression and task closure",
+      "status": "passed",
+      "commands": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; jq empty progress.json; git diff --check; inline Python tracking invariants",
+      "result": "UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed; MATCH_MANAGER_OK checks=69; real dedicated authority/movement/recovery/five-rematch checks pass. Managed20 is existing profile-disabled loopback coverage, not profile-enabled rewards/Internet/hardware acceptance. Runner-permitted shutdown-only resource diagnostics remain distinct from script/runtime failures. Log: .scratch/phase6-participation/ui-regression.log. Task 6.2.1 complete; Milestone 6.2 remains in_progress with reward gates not_run. Next task is 6.2.2 transactional completion/receipts, not opening/UI. No grants, new packages, deployment, shared data migration, release or human prerequisite; prior delivery/waiver/archive payloads unchanged."
     }
   ],
   "blockers": [],
@@ -239,7 +253,9 @@
     "GUIDE.md",
     "README.md",
     "docs/implementation-checklist.md",
-    "NEED_REAL_CHECK.md"
+    "NEED_REAL_CHECK.md",
+    "game/session/match_manager.gd",
+    "tests/test_match_manager.gd"
   ],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
@@ -252,5 +268,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Implement task_6_2_1_round_participation: issue a unique managed-room round ID bound to its instance and authenticated start roster, retain immutable connection/elimination/departure facts through results and rematch, and validate authoritative timing boundaries; do not grant rewards, add cosmetic UI or deploy."
+  "next_action": "Implement task_6_2_2_transactional_grants: validate room-instance round IDs and immutable finalized participation, persist completion plus unique round/profile receipts and item reservations atomically, establish the stable reward catalog/pool, and prove timing boundaries, replay/conflict/concurrency and restart recovery; no box opening, cosmetic UI/assets or deployment."
 }

@@ -74,6 +74,43 @@ class Contract(unittest.TestCase):
         self.rejects("invalid_admission", lambda: self.consume(token, peer=8))
         self.rejects("invalid_server", lambda: self.consume(token, key="wrong"))
 
+    def test_round_identity_roster_retry_and_rematches(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data = dict(room_id="ALPHA", key="server-key", sequence=1, peers=[90, 91],
+                        profile_id="spoof", elapsed_time=999999, winner_ids=[91])
+            self.rejects("profiles_unavailable", lambda: self.service.internal("round/start", data))
+            self.service.profiles = ProfileStore(Path(directory) / "profiles.sqlite3")
+            profiles = [self.service.profiles.create()["profile_id"] for _ in range(2)]
+            for peer, profile in zip((90, 91), profiles):
+                token = self.service.issue(self.room, profile)["token"]
+                self.consume(token, peer=peer)
+            for peers in ([], [90, 90], [True], [90, "91"]):
+                self.rejects("invalid_round", lambda: self.service.internal("round/start", dict(data, peers=peers)))
+            self.rejects("invalid_round_roster", lambda: self.service.internal("round/start", dict(data, peers=[90, 92])))
+            self.rejects("invalid_server", lambda: self.service.internal("round/start", dict(data, key="wrong")))
+            ids = set()
+            for sequence in range(1, 7):
+                response = self.service.internal("round/start", dict(data, sequence=sequence))
+                self.assertRegex(response["round_id"], r"^[0-9a-f]{32}$")
+                self.assertNotIn(response["round_id"], ids)
+                ids.add(response["round_id"])
+                self.assertEqual(self.room["round"]["roster"], {90: profiles[0], 91: profiles[1]})
+                self.assertEqual(self.service.internal("round/start", dict(data, sequence=sequence, peers=[91, 90])), response)
+                self.rejects("invalid_round_sequence", lambda: self.service.internal("round/start", dict(data, sequence=sequence, peers=[90])))
+            captured = dict(self.room["round"]["roster"])
+            self.room["peers"].clear()
+            self.assertEqual(self.room["round"]["roster"], captured)
+            self.assertEqual(self.service.internal("round/start", dict(data, sequence=6)), response)
+            self.rejects("invalid_round_sequence", lambda: self.service.internal("round/start", data))
+            # Replacement at the same room ID/port has a new key and fresh sequence.
+            self.service.rooms["ALPHA"] = dict(self.room, key="replacement-key", round={},
+                                               peers={90: {"profile_id": profiles[0], "deadline": 0}})
+            self.rejects("invalid_server", lambda: self.service.internal("round/start", data))
+            replacement = self.service.internal("round/start", dict(data, key="replacement-key", peers=[90]))
+            self.assertNotIn(replacement["round_id"], ids)
+            recovered = self.service.internal("round/start", dict(data, key="replacement-key", peers=[90], sequence=3))
+            self.assertNotEqual(recovered["round_id"], replacement["round_id"], "Missing round request must not prevent a subsequent rematch")
+
     def test_concurrent_reservations_and_stale_heartbeat(self):
         def issue(_):
             with self.service.lock:
@@ -722,6 +759,13 @@ class RealProcesses(unittest.TestCase):
                     self.assertNotEqual(identities[0]["profile_id"], identities[1]["profile_id"])
                     self.assertEqual({value["profile_id"] for value in room["peers"].values()},
                                      {value["profile_id"] for value in identities})
+                    deadline = time.monotonic() + 4
+                    while not room["round"] and time.monotonic() < deadline:
+                        time.sleep(0.05)
+                    self.assertTrue(room["round"], "Real authoritative start must obtain a service round ID")
+                    self.assertEqual(room["round"]["sequence"], 1)
+                    self.assertRegex(room["round"]["round_id"], r"^[0-9a-f]{32}$")
+                    self.assertEqual(set(room["round"]["roster"].values()), {identity["profile_id"] for identity in identities})
                 room["process"].kill()
                 room["process"].wait(timeout=3)
                 self.service.reap()

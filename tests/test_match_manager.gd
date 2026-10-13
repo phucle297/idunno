@@ -18,6 +18,7 @@ func _run() -> void:
 	_test_timeout_ranking_and_tie()
 	_test_disconnect_winner()
 	_test_five_rematches()
+	_test_managed_participation()
 	if failures.is_empty():
 		print("MATCH_MANAGER_OK checks=%d" % checks)
 		quit(0)
@@ -127,6 +128,63 @@ func _ready_manager(peer_ids: Array[int]):
 		manager.set_player_ready(peer_id, true)
 	manager.start_match()
 	return manager
+
+
+func _test_managed_participation() -> void:
+	var manager := ManagerScript.new()
+	root.add_child(manager)
+	var profiles := {10: "first", 20: "second", 30: "third", 40: "fourth"}
+	manager.managed_profile_ids = profiles
+	manager.match_duration = 120.0
+	for peer_id: int in profiles:
+		manager.register_player(peer_id, "Same name")
+		manager.set_player_ready(peer_id, true)
+	manager.start_match()
+	manager.bind_round_id(1, "round-one")
+	manager.tick_match(-5.0)
+	manager.tick_match(59.99)
+	manager.apply_damage(10, 100.0, "Meteor")
+	manager.tick_match(0.01)
+	manager.apply_damage(20, 100.0, "Flood")
+	manager.tick_match(5.0)
+	profiles.erase(10) # Admission forgets identity independently of MatchManager.
+	manager.unregister_player(10)
+	manager.tick_match(54.99)
+	var before_finish := manager.get_round_participation()
+	_expect(is_equal_approx(before_finish.duration, 119.99) and not before_finish.finished, "119.99 must remain distinct from the 120-second completion boundary")
+	manager.tick_match(20.0) # Clamp a large final tick to the authoritative deadline.
+	var record := manager.get_round_participation(true)
+	_expect(record.round_id == "round-one" and record.finished and is_equal_approx(record.duration, 120.0), "Finished managed round must retain its ID and exact authoritative deadline")
+	_expect(record.participants.size() == 4 and record.participants[10].profile_id == "first", "Start identity must survive admission cleanup and mutable player removal")
+	_expect(is_equal_approx(record.participants[10].connected_duration, 59.99) and is_equal_approx(record.participants[10].departure_time, 65.0) and not record.participants[10].departed_alive, "Spectating must not turn an early death into 60 seconds of active participation")
+	_expect(is_equal_approx(record.participants[20].elimination_time, 60.0) and is_equal_approx(record.participants[20].connected_duration, 60.0), "Death at exactly 60 seconds must remain distinguishable from death at 59.99")
+	_expect(record.participants[30].departure_time == -1.0 and is_equal_approx(record.participants[30].connected_duration, 120.0), "Connected survivors must retain the full active duration")
+	manager.unregister_player(20) # Results departure cannot rewrite finished facts.
+	manager.prepare_lobby()
+	_expect(manager.get_round_participation(true) == record, "Results departure and lobby reset must not rewrite completed participation")
+	record.participants.clear()
+	_expect(manager.get_round_participation(true).participants.size() == 4, "Returned snapshots must not expose mutable authority storage")
+	for index in 5:
+		for peer_id: int in manager.players:
+			manager.set_player_ready(peer_id, true)
+		manager.start_match()
+		manager.bind_round_id(1, "stale-reply")
+		_expect(manager.get_round_participation().round_id.is_empty(), "A previous round HTTP reply must not bind a rematch")
+		manager.bind_round_id(index + 2, "rematch-%d" % index)
+		manager.tick_match(60.0)
+		# Two live players: departure synchronously finishes the match.
+		manager.unregister_player(40)
+		var finished := manager.get_round_participation(true)
+		_expect(finished.sequence == index + 2 and finished.round_id == "rematch-%d" % index and finished.finished, "Every rematch must retain its own participation identity")
+		_expect(finished.participants[40].departed_alive and finished.participants[40].elimination_time == -1.0 and finished.participants[40].connected_duration == 60.0, "Live departure must be captured before synchronous finish, not disguised as death")
+		manager.bind_round_id(index + 2, "conflicting-id")
+		_expect(manager.get_round_participation(true) == finished, "An already bound ID must not be replaced")
+		manager.prepare_lobby()
+		manager.register_player(40, "Same name")
+	manager.free()
+	var local = _ready_manager([1, 2])
+	_expect(local.get_round_participation().is_empty(), "Unmanaged local/player-hosted play must not produce reward evidence")
+	local.free()
 
 
 func _expect(condition: bool, message: String) -> void:

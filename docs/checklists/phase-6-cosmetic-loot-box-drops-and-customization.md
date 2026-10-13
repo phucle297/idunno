@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestone 6.1 completed; authoritative round participation (6.2.1) is next**.
+Status: **in progress — Milestone 6.1 and round participation (6.2.1) completed; transactional grants (6.2.2) are next**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -99,10 +99,16 @@ ID: `milestone_6_2_authoritative_cosmetic_rewards`; depends on 6.1.
 Owner: server completion boundary in `game/main.gd`, `MatchManager` signals,
 and the service-owned cosmetic store. Keep reward policy outside disaster/health simulation.
 
-- [ ] **6.2.1 Capture immutable round participation.** Allocate a service-issued unique round
+- [x] **6.2.1 Capture immutable round participation.** Allocate a service-issued unique round
   ID bound to the managed room instance and start roster; record authoritative connection
   duration, elimination and live departure separately from mutable `MatchManager.players`.
   A rematch receives a new ID. Client-supplied names, winner lists or clocks are never evidence.
+  Evidence (2026-10-13): 69 match checks and 22 service tests pass; real profile-enabled
+  two-client Start issues a bound roster/ID. Death/leave and 59.99/60, 119.99/120 timing,
+  immutable copies, replay/stale ID, replacement keys and five rematches are covered.
+  Full regression: 41 suites, five matrices, persistence restart and profile-disabled
+  managed20 loopback pass. No durable completion/grants yet; records are in-memory and
+  missing IDs fail closed. Logs: `.scratch/phase6-participation/`.
 - [ ] **6.2.2 Commit grants transactionally.** Only the authenticated managed process can
   submit its finalized round. Validate roster, eligibility and catalog; commit immutable
   completion plus unique `(round_id, profile_id)` receipts/reservations in one transaction.
