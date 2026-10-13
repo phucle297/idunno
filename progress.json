@@ -3,7 +3,7 @@
   "updated_at": "2026-10-13",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "planned",
+  "workflow_state": "in_progress",
   "archive_policy": {
     "directory": "docs/old-docs",
     "filename_pattern": "{phase-slug}/progress.json",
@@ -19,14 +19,14 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": "phase_7_soft_creature_world_and_interface", "milestone": "7.1", "task": "7.1a"},
+  "current": {"phase": "phase_7_soft_creature_world_and_interface", "milestone": "7.2", "task": "7.2a"},
   "phase": {
     "id": "phase_7_soft_creature_world_and_interface",
     "title": "Soft Creature, Detailed World and Complete Interface",
-    "status": "planned",
+    "status": "in_progress",
     "milestones": [
-      {"id": "7.1", "title": "Representative in-engine foundation", "status": "planned", "tasks": [{"id": "7.1a", "status": "planned"}, {"id": "7.1b", "status": "planned"}, {"id": "7.1c", "status": "planned"}], "gate": {"id": "G7.1", "status": "not_run", "required": true}},
-      {"id": "7.2", "title": "Character animation, ragdoll and eight outfits", "status": "planned", "tasks": [{"id": "7.2a", "status": "planned"}, {"id": "7.2b", "status": "planned"}, {"id": "7.2c", "status": "planned"}], "gate": {"id": "G7.2", "status": "not_run", "required": true}},
+      {"id": "7.1", "title": "Representative in-engine foundation", "status": "completed", "tasks": [{"id": "7.1a", "status": "completed"}, {"id": "7.1b", "status": "completed"}, {"id": "7.1c", "status": "completed"}], "gate": {"id": "G7.1", "status": "passed", "required": true}},
+      {"id": "7.2", "title": "Character animation, ragdoll and eight outfits", "status": "in_progress", "tasks": [{"id": "7.2a", "status": "planned"}, {"id": "7.2b", "status": "planned"}, {"id": "7.2c", "status": "planned"}], "gate": {"id": "G7.2", "status": "not_run", "required": true}},
       {"id": "7.3", "title": "Town construction and usable interiors", "status": "planned", "tasks": [{"id": "7.3a", "status": "planned"}, {"id": "7.3b", "status": "planned"}, {"id": "7.3c", "status": "planned"}], "gate": {"id": "G7.3", "status": "not_run", "required": true}},
       {"id": "7.4", "title": "Harbor parity and disaster presentation", "status": "planned", "gate": {"id": "G7.4", "status": "not_run", "required": true}},
       {"id": "7.5", "title": "Complete interface", "status": "planned", "tasks": [{"id": "7.5a", "status": "planned"}, {"id": "7.5b", "status": "planned"}, {"id": "7.5c", "status": "planned"}, {"id": "7.5d", "status": "planned"}], "gate": {"id": "G7.5", "status": "not_run", "required": true}},
@@ -64,9 +64,14 @@
     "renderer": "Compatibility",
     "target": "Windows PC"
   },
-  "validation_log": [{"scope": "planning_only", "status": "passed", "command": "jq empty progress.json; git diff --check; local plan reference and phase/task consistency check", "result": "Planning files validated; all implementation/runtime/visual gates remain not_run."}],
+  "validation_log": [
+    {"scope": "planning_only", "status": "passed", "command": "jq empty progress.json; git diff --check; local plan reference and phase/task consistency check", "result": "Planning files validated; all implementation/runtime/visual gates remain not_run."},
+    {"scope": "milestone_7.1_character", "status": "passed", "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297; godot --headless --path . --script res://tests/test_phase1.gd", "result": "Soft Creature bean base (two overlapping body spheres + cream face inset + stubby limbs) regenerated deterministically as generator v6; 1808 base triangles, 18 identity bone rests, all 14 clips and eight outfit IDs resolve. test_phase1 971 checks. Outfit triangle counts republished in manifest with matching sha256."},
+    {"scope": "milestone_7.1_camera_and_storefront", "status": "passed", "command": "godot --headless --path . --script res://tests/test_carry_presentation.gd; godot --headless --path . --script res://tests/test_map_safety.gd; godot --headless --path . --script res://tests/test_player_colliders.gd; godot --headless --path . --script res://tests/test_player_integration.gd; godot --headless --path . --script res://tests/test_emotes.gd", "result": "Higher three-quarter camera (pivot y2.2, -0.28 pitch, 6.0 m arm) plus visual-only window facades, awning band and shop counter/shelving. carry 41, map-safety 251, player colliders 153, player integration 294, emotes 55 checks all pass; routes/exits/shelter semantics unchanged."},
+    {"scope": "gate_g7.1_visual", "status": "passed", "command": "xvfb-run godot traversal fly-through stitched to webm with ffmpeg; inspected 720p/1080p gameplay and carry captures", "result": "3 s moving-camera traversal clip (outside shop -> south door -> sales room -> out north door -> roof ramp -> rooftop) inspected; bean visible at world scale, ground and crosshair visible, no clip-through or invisible shelter. 1080p gameplay-behind/indoor and 720p carry/roof/ramp/corner captures present under .amp/in/artifacts/phase7-char and phase7-town."}
+  ],
   "blockers": [],
-  "changed_files": ["docs/checklists/phase-7-soft-creature-world-and-interface.md", "docs/checklists/phase-8-shrinking-survival-zone.md", "docs/implementation-checklist.md", "docs/decisions.md", "progress.json"],
+  "changed_files": ["tools/asset_generation/generate_assets.gd", "game/player/toy_character_visual.gd", "assets/generated/CHR_Base_v001.tscn", "assets/generated/ENV_Wall_2m_v001.tscn", "assets/generated/PROP_Crate_Small_v001.tscn", "assets/generated/VFX_MeteorTelegraph_v001.tscn", "assets/manifest.json", "tests/test_phase1.gd", "game/player/player.gd", "scenes/player.tscn", "game/main.gd", "progress.json"],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
     "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
@@ -89,5 +94,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Implement task 7.1a: generate the plain Soft Creature and representative shop/interior/road material slice through existing owners, then render at actual gameplay scale before expanding assets."
+  "next_action": "Implement milestone 7.2: adapt cosmetic_ragdoll.gd to the bean silhouette (11 bodies/10 joints/55 kg unchanged), keep the body continuous through idle/run/crouch/carry/shove/emotes, then re-verify all eight outfits front/back in motion."
 }

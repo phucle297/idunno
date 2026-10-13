@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: planned; no implementation or visual/runtime gates passed.
+Status: in_progress; milestone 7.1 complete, 7.2 underway.
 
 ## Outcome and execution policy
 
@@ -56,15 +56,15 @@ Owners: `tools/asset_generation/generate_assets.gd`, `game/player/toy_character_
 `assets/generated`, `assets/materials`, `scenes/player.tscn`, `game/player/player.gd`,
 existing town construction in `game/main.gd`.
 
-- [ ] 7.1a Generate one plain Soft Creature with stable face/limb pivots; reuse the
+- [x] 7.1a Generate one plain Soft Creature with stable face/limb pivots; reuse the
   current procedural pipeline and public visual API. Build one representative shop
   facade, sidewalk/road module and interior corner using reusable material/geometry.
-- [ ] 7.1b Render actual camera candidates A/B with current controls, then use high
+- [x] 7.1b Render actual camera candidates A/B with current controls, then use high
   three-quarter B as the implementation default if clearance/readability checks pass.
   Start with 9–12m spring arm, about 30–38° downward pitch, 55–65° FOV. These are tunable
   local presentation values, not the image's asserted coordinates. Do not add overhead
   gameplay mode; retain mouse look, camera-relative movement, sensitivity/invert-Y and shake.
-- [ ] 7.1c Check collision arm retraction and indoor visibility. Add local-only fading
+- [x] 7.1c Check collision arm retraction and indoor visibility. Add local-only fading
   of specifically tagged roof/wall visual meshes if retraction alone fails; never fade
   collision or shelter volumes. Restore opacity on exit, camera ownership transfer,
   spectating, map rebuild and rematch. Avoid scanning every mesh every frame.
