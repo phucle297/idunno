@@ -107,3 +107,37 @@ required. Mark only 6.1.1 and its durable-identity gate complete; 6.1.2 admissio
 and 6.1.3 integrated restart/isolation remain open. No gameplay visual changed.
 Commit/push this local feature with `[skip ci]`: pushing is repository policy, not
 authorization to run the main-branch deployment, migrate shared storage or release.
+
+## 2026-10-13 — Task 6.1.2 identity-bound room admission
+
+Continue the current milestone, without beginning rewards. An opt-in profile-enabled
+service now requires authenticated profiles on Create/Join. The existing room client
+first receives an explicit `profile_required` challenge, creates/fetches its scoped
+profile, then retries with the ID and Authorization header. Profile-disabled services
+keep their existing development contract; credential/store failures never cause an
+anonymous fallback or a replacement identity. No new operator/client mode toggle.
+
+Keep reservations in each room's existing token/peer registry rather than introduce
+a second global profile map. One profile may reserve one ticket or active peer across
+all rooms, checked under the registry lock. Room creation reserves before startup;
+failure removes it and success resets the returned ticket's TTL. Profile database
+authentication runs outside that lock. Expired tokens and incomplete six-second peer
+reservations are reclaimable; admitted departures follow heartbeat cleanup. A stale
+heartbeat touches only its authenticated room instance, not another room's binding.
+
+Consume derives the profile solely from the single-use ticket. ENet carries no durable
+credential. Godot validates the consume body before completing authentication and
+stores identity only server-side, clearing it on disconnect/auth failure. Pending
+requests are tracked by request identity so late callbacks cannot bind/erase a reused
+peer's newer request. Preserve dedicated relay-off, build validation, lobby-only
+admission, bounded requests and service-loss fail-closed behavior.
+
+Twenty service tests pass, including real enabled/disabled room lifecycles, active and
+concurrent duplicates, expiry/replay/wrong-room, cleanup, spoofed consume identities,
+credential/snapshot isolation and two real UI clients Ready/Start/crash/retry. Record
+the initial GDScript Variant inference failure and the passing rerun honestly. Broader
+regression evidence belongs in progress. Integrated service/client restart with room
+admission remains 6.1.3; no reward/equip/catalog mutations are implemented. The existing
+per-address rate backstop includes profiles; no 20-client profile-enabled cold-start
+claim. No appearance change, human acceptance, Windows ACL, shared proxy/store change,
+deployment or release. Commit/push with `[skip ci]` to avoid unintended deployment.

@@ -167,20 +167,37 @@ class RoomService:
             raise Rejected("invalid_password")
         return value
 
-    def issue(self, room):
+    def admission_profile(self, data, authorization):
+        if self.profiles is None:
+            return ""
+        if "profile_id" not in data:
+            raise Rejected("profile_required", 403)
+        # Authenticate outside the registry lock; never trust a client identity.
+        return self.profiles.fetch(data["profile_id"], authorization)["profile_id"]
+
+    def issue(self, room, profile_id=""):
         now = time.monotonic()
-        room["tokens"] = {key: expiry for key, expiry in room["tokens"].items() if expiry > now}
+        for candidate in self.rooms.values():
+            candidate["tokens"] = {key: value for key, value in candidate["tokens"].items() if value["expiry"] > now}
+            candidate["peers"] = {key: value for key, value in candidate["peers"].items()
+                                  if value["deadline"] == 0 or value["deadline"] > now}
+            if profile_id and any(value["profile_id"] == profile_id
+                                  for value in (*candidate["tokens"].values(), *candidate["peers"].values())):
+                raise Rejected("profile_in_use", 409)
         if len(room["peers"]) + len(room["tokens"]) >= self.args.players:
             raise Rejected("room_full", 409)
         token = secrets.token_urlsafe(32)
-        room["tokens"][hashlib.sha256(token.encode()).hexdigest()] = now + self.args.token_ttl
+        room["tokens"][hashlib.sha256(token.encode()).hexdigest()] = {
+            "expiry": now + self.args.token_ttl + (0 if room["ready"].is_set() else self.args.startup_timeout),
+            "profile_id": profile_id}
         return {"protocol": PROTOCOL, "build": self.args.build, "room_id": room["id"],
                 "address": self.args.public_address, "port": room["port"],
                 "token": token, "expires_in": self.args.token_ttl}
 
-    def create(self, data):
+    def create(self, data, authorization=""):
         self.compatible(data)
         password = self.password(data)
+        profile_id = self.admission_profile(data, authorization)
         custom = data.get("room_id", "")
         if not isinstance(custom, str):
             raise Rejected("invalid_room_id")
@@ -206,14 +223,21 @@ class RoomService:
             config = Path(self.directory.name) / (room_id + ".json")
             room["config"] = config
             try:
+                # Reserve before releasing the lock for process startup, so two
+                # simultaneous creates cannot reserve the same profile twice.
+                ticket = self.issue(room, profile_id)
                 with open(config, "x", opener=lambda path, flags: os.open(path, flags, 0o600)) as output:
                     json.dump({"room_id": room_id, "key": room["key"], "url": self.internal_url,
-                               "build": self.args.build, "capacity": self.args.players}, output)
+                               "build": self.args.build, "capacity": self.args.players,
+                               "profiles_enabled": self.profiles is not None}, output)
                 # No shell; executable/project are operator configuration, not request input.
                 # Official release templates reject --path; cwd also works for source editors.
                 room["process"] = subprocess.Popen(
                     [self.args.godot, "--headless", "--",
                      f"--server-port={port}", f"--room-config={config}"], cwd=self.args.project)
+            except Rejected:
+                self.remove(room)
+                raise
             except OSError:
                 self.remove(room)
                 raise Rejected("server_start_failed", 503)
@@ -225,12 +249,15 @@ class RoomService:
             if self.rooms.get(room_id) is not room or room["process"].poll() is not None:
                 raise Rejected("server_start_failed", 503)
             LOG.info("ready room=%s port=%d build=%s", room_id, port, self.args.build)
-            return self.issue(room)
+            # Give the caller the full TTL after startup, not before it.
+            room["tokens"][hashlib.sha256(ticket["token"].encode()).hexdigest()]["expiry"] = time.monotonic() + self.args.token_ttl
+            return ticket
 
-    def join(self, data):
+    def join(self, data, authorization=""):
         self.compatible(data)
         room_id = normalize_id(data.get("room_id"))
         password = self.password(data)
+        profile_id = self.admission_profile(data, authorization)
         with self.lock:
             room = self.rooms.get(room_id)
             if room is None or not room["ready"].is_set():
@@ -240,7 +267,7 @@ class RoomService:
                 raise Rejected("bad_password", 403)
             if not room["joinable"]:
                 raise Rejected("match_in_progress", 409)
-            return self.issue(room)
+            return self.issue(room, profile_id)
 
     def internal(self, action, data):
         with self.lock:
@@ -257,8 +284,8 @@ class RoomService:
                     raise Rejected("invalid_peers")
                 # Keep in-flight authentication reservations across a stale heartbeat.
                 now = time.monotonic()
-                room["peers"] = {peer: (0 if peer in peers else deadline)
-                                 for peer, deadline in room["peers"].items() if peer in peers or deadline > now}
+                room["peers"] = {peer: dict(value, deadline=0 if peer in peers else value["deadline"])
+                                 for peer, value in room["peers"].items() if peer in peers or value["deadline"] > now}
                 room["joinable"] = data.get("joinable") is True
                 room["heartbeat"] = time.monotonic()
                 room["empty_since"] = room["empty_since"] if not room["peers"] else time.monotonic()
@@ -269,11 +296,11 @@ class RoomService:
             if not isinstance(token, str) or len(token) > 128 or type(peer) is not int or peer <= 1:
                 raise Rejected("invalid_admission", 403)
             digest = hashlib.sha256(token.encode()).hexdigest()
-            expiry = room["tokens"].pop(digest, 0)
-            if expiry <= time.monotonic() or peer in room["peers"] or not room["joinable"]:
+            reservation = room["tokens"].pop(digest, None)
+            if reservation is None or reservation["expiry"] <= time.monotonic() or peer in room["peers"] or not room["joinable"]:
                 raise Rejected("invalid_admission", 403)
-            room["peers"][peer] = time.monotonic() + 6
-            return {"ok": True}
+            room["peers"][peer] = {"deadline": time.monotonic() + 6, "profile_id": reservation["profile_id"]}
+            return dict(ok=True, profile_id=reservation["profile_id"]) if self.profiles is not None else {"ok": True}
 
     def remove(self, room):
         if self.rooms.get(room["id"]) is not room:
@@ -296,7 +323,7 @@ class RoomService:
         with self.lock:
             now = time.monotonic()
             for room in list(self.rooms.values()):
-                room["tokens"] = {key: expiry for key, expiry in room["tokens"].items() if expiry > now}
+                room["tokens"] = {key: value for key, value in room["tokens"].items() if value["expiry"] > now}
                 if (room["process"].poll() is not None or now - room["heartbeat"] > self.args.heartbeat_timeout
                         or (not room["peers"] and not room["tokens"] and now - room["empty_since"] > self.args.empty_timeout)):
                     self.remove(room)
@@ -358,7 +385,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = service.internal(self.path.rsplit("/", 1)[1], data)
             elif self.path in ("/v1/rooms/create", "/v1/rooms/join"):
                 service.rate_limit(self.client_address[0])
-                result = service.create(data) if self.path.endswith("create") else service.join(data)
+                authorization = self.headers.get("Authorization", "")
+                result = service.create(data, authorization) if self.path.endswith("create") else service.join(data, authorization)
             elif self.path in ("/v1/profiles/create", "/v1/profiles/fetch"):
                 service.rate_limit(self.client_address[0])
                 result = service.profile(self.path.endswith("create"), data, self.headers.get("Authorization", ""))

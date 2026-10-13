@@ -53,6 +53,11 @@ func _run() -> void:
 			return
 		print("ROOM_ADMISSION_RETRY_OK")
 	if admitted:
+		var private_id: String = options.get("private_profile_id", "")
+		if not private_id.is_empty() and (private_id in JSON.stringify(main._create_playable_snapshot()) or not main.room_admission.profile_ids.is_empty()):
+			push_error("Validated profile identity must remain server-side, not in client snapshots")
+			quit(1)
+			return
 		# Prove this is a gameplay participant, not just a transport handshake.
 		main.set_local_ready(true)
 		await create_timer(1.2).timeout

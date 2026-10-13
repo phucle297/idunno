@@ -19,11 +19,18 @@ const ERRORS := {
 	"server_start_failed": "Room server could not start. Try creating again.",
 	"server_start_timeout": "Room server startup timed out. Try again.",
 	"service_stopping": "Room service is restarting. Try again shortly.",
+	"profile_in_use": "This profile is already connected or has a pending ticket. Leave the room or wait for the ticket to expire.",
+	"invalid_profile_credentials": "Profile credentials were rejected. Keep the saved file; do not reset your identity.",
+	"profile_store_unavailable": "Profile storage is unavailable. Retry without resetting your identity.",
 }
 
 var service_url := ""
 var busy := false
 var request: HTTPRequest
+var profile_client: Node
+var _payload: Dictionary = {}
+var _url := ""
+var _action := ""
 
 
 func _ready() -> void:
@@ -33,6 +40,13 @@ func _ready() -> void:
 	request.max_redirects = 0
 	add_child(request)
 	request.request_completed.connect(_completed)
+	profile_client = preload("res://game/session/profile_client.gd").new()
+	add_child(profile_client)
+	profile_client.profile_received.connect(_profile_received)
+	profile_client.failed.connect(func(message: String) -> void:
+		busy = false
+		_payload.clear()
+		failed.emit(message))
 
 
 func lookup(create: bool, room_id: String, password: String) -> void:
@@ -53,28 +67,58 @@ func lookup(create: bool, room_id: String, password: String) -> void:
 	if password.to_utf8_buffer().size() > 128:
 		failed.emit(ERRORS.invalid_password)
 		return
-	var payload := {"protocol": PROTOCOL, "build": ProjectSettings.get_setting("build/revision", "development"), "room_id": room_id, "password": password}
+	_payload = {"protocol": PROTOCOL, "build": ProjectSettings.get_setting("build/revision", "development"), "room_id": room_id, "password": password}
+	_url = url
+	_action = "/v1/rooms/create" if create else "/v1/rooms/join"
 	busy = true
-	var error := request.request(url + ("/v1/rooms/create" if create else "/v1/rooms/join"), ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload))
+	_send_lookup()
+
+
+func _send_lookup() -> void:
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	if _payload.has("profile_id"):
+		headers.append(profile_client.authorization_header(_url))
+	var error := request.request(_url + _action, headers, HTTPClient.METHOD_POST, JSON.stringify(_payload))
 	if error != OK:
 		busy = false
+		_payload.clear()
 		failed.emit("Room service unavailable. Check the connection and retry.")
+
+
+func _profile_received(profile: Dictionary) -> void:
+	if not busy:
+		return
+	_payload["profile_id"] = profile.profile_id
+	_send_lookup()
 
 
 func cancel() -> void:
 	request.cancel_request()
+	profile_client.cancel()
+	_payload.clear()
 	busy = false
 
 
 func _completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	busy = false
 	if result != HTTPRequest.RESULT_SUCCESS:
+		_payload.clear()
 		failed.emit("Room service unavailable or timed out. Check connection and retry.")
 		return
-	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-	if not parsed is Dictionary:
+	var json := JSON.new()
+	if json.parse(body.get_string_from_utf8()) != OK or not json.data is Dictionary:
+		_payload.clear()
 		failed.emit("Invalid room-service response. Try again or contact the operator.")
 		return
+	var parsed: Dictionary = json.data
+	if code == 403 and parsed.get("error") == "profile_required" and not _payload.is_empty() and not _payload.has("profile_id"):
+		# Explicit challenge only: legacy profile-disabled services stay unchanged.
+		# Bad credentials/storage never fall back to anonymous room discovery.
+		busy = true
+		profile_client.service_url = _url
+		profile_client.ensure_profile()
+		return
+	_payload.clear()
 	if code != 200:
 		failed.emit(ERRORS.get(parsed.get("error", ""), "Room service rejected the request. Try again."))
 		return

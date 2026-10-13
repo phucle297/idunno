@@ -1,5 +1,5 @@
 extends Node
-## Anonymous identity only. Admission binding and reward/equip mutations are later tasks.
+## Anonymous identity owner. Credentials stay out of presentation state and ENet.
 
 signal profile_received(profile: Dictionary)
 signal failed(message: String)
@@ -76,6 +76,12 @@ func cancel() -> void:
 	_identity.clear()
 
 
+func authorization_header(url: String) -> String:
+	if url.trim_suffix("/") != _url or _identity.is_empty():
+		return ""
+	return "Authorization: Bearer " + _identity.credential
+
+
 func _valid_identity(value: Dictionary) -> bool:
 	return (
 		value.get("profile_id") is String and value.get("credential") is String
@@ -135,6 +141,7 @@ func _completed(result: int, code: int, _headers: PackedStringArray, body: Packe
 		if not _valid_identity(parsed) or not _save_identity(parsed):
 			failed.emit("Could not securely save the new profile. No saved identity was replaced.")
 			return
+		_identity = {"profile_id": parsed.profile_id, "credential": parsed.credential}
 	else:
 		if parsed.profile_id != _identity.profile_id:
 			failed.emit("Profile service returned a different identity. Keep your saved file.")

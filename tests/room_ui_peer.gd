@@ -21,6 +21,7 @@ func _run() -> void:
 	main.name = "Main"
 	root.add_child(main)
 	await process_frame
+	main.room_client.profile_client.credential_path = main._argument_value("--profile-path=")
 	panel = main.get_node("Interface/LobbyPanel")
 	main._set_lobby_visible(true)
 	panel.get_node("RoomId").text = " ui-friends "

@@ -19,7 +19,7 @@ from unittest.mock import Mock
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from tools.room_service import RoomService, Server, Handler, Rejected, normalize_id
+from tools.room_service import ProfileStore, RoomService, Server, Handler, Rejected, normalize_id
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -70,7 +70,7 @@ class Contract(unittest.TestCase):
         self.assertEqual(self.consume(token), {"ok": True})
         self.rejects("invalid_admission", lambda: self.consume(token, peer=8))
         token = self.service.issue(self.room)["token"]
-        self.room["tokens"][hashlib.sha256(token.encode()).hexdigest()] = time.monotonic() - 0.001
+        self.room["tokens"][hashlib.sha256(token.encode()).hexdigest()]["expiry"] = time.monotonic() - 0.001
         self.rejects("invalid_admission", lambda: self.consume(token, peer=8))
         self.rejects("invalid_server", lambda: self.consume(token, key="wrong"))
 
@@ -348,9 +348,12 @@ class RealProcesses(unittest.TestCase):
         self.server.server_close()
         self.worker.join()
 
-    def post(self, path, data, status=200):
+    def post(self, path, data, status=200, credential=None):
+        headers = {"Content-Type": "application/json"}
+        if credential is not None:
+            headers["Authorization"] = "Bearer " + credential
         request = Request(f"http://127.0.0.1:{self.server.server_port}{path}",
-                          data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+                          data=json.dumps(data).encode(), headers=headers)
         try:
             response = urlopen(request, timeout=20)
         except HTTPError as error:
@@ -402,7 +405,7 @@ class RealProcesses(unittest.TestCase):
         self.assertFalse(room["peers"], "Disconnect heartbeat must reclaim player capacity")
         expired = self.post("/v1/rooms/join", self.data)
         with self.service.lock:
-            room["tokens"][hashlib.sha256(expired["token"].encode()).hexdigest()] = time.monotonic() - 1
+            room["tokens"][hashlib.sha256(expired["token"].encode()).hexdigest()]["expiry"] = time.monotonic() - 1
         self.peer(expired, accepted=False)
         bravo = self.post("/v1/rooms/create", dict(self.data, room_id="BRAVO"))
         new = self.post("/v1/rooms/join", self.data)
@@ -503,7 +506,89 @@ class RealProcesses(unittest.TestCase):
             playing.result(timeout=12)
             ready_guest.result(timeout=12)
 
+    def test_profile_bound_admission_and_reservation_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.service.profiles = ProfileStore(Path(directory) / "profiles.sqlite3")
+            base = dict(protocol=1, build="development")
+            first = self.post("/v1/profiles/create", base)
+            second = self.post("/v1/profiles/create", base)
+            data = dict(self.data, profile_id=first["profile_id"])
+            for action in ("create", "join"):
+                route = "/v1/rooms/" + action
+                self.assertEqual(self.post(route, self.data, 403)["error"], "profile_required")
+                for credential in (None, second["credential"]):
+                    self.assertEqual(self.post(route, data, 403, credential)["error"], "invalid_profile_credentials")
+            self.service.args.godot = "/not/a/godot"
+            self.post("/v1/rooms/create", data, 503, first["credential"])
+            self.assertFalse(self.service.rooms, "Failed startup must release the profile reservation")
+            self.service.args.godot = shutil.which("godot")
+            ticket = self.post("/v1/rooms/create", data, credential=first["credential"])
+            room = self.service.rooms["ALPHA"]
+            for value in (json.dumps(ticket), room["config"].read_text(), repr(room)):
+                self.assertNotIn(first["credential"], value)
+            self.assertNotIn("profile_id", ticket)
+            self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
+            self.peer(ticket, accepted=False, token="bad-token")
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                playing = pool.submit(self.peer, dict(ticket, private_profile_id=first["profile_id"], hold=3))
+                deadline = time.monotonic() + 5
+                while not any(value["deadline"] == 0 for value in room["peers"].values()) and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                self.assertTrue(any(value["deadline"] == 0 for value in room["peers"].values()), "Real client must finish admission")
+                self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
+                self.peer(ticket, accepted=False)
+                playing.result(timeout=12)
+            deadline = time.monotonic() + 4
+            while room["peers"] and time.monotonic() < deadline:
+                time.sleep(0.05)
+            self.assertFalse(room["peers"])
+            # Concurrent requests across different room IDs must reserve once.
+            def create(name):
+                try:
+                    return self.service.create(dict(data, room_id=name), "Bearer " + first["credential"])
+                except Rejected as error:
+                    return error.code
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(create, ("BRAVO", "CHARLIE")))
+            self.assertEqual(sum(isinstance(value, dict) for value in results), 1)
+            self.assertEqual(results.count("profile_in_use"), 1)
+            other = next(value for value in results if isinstance(value, dict))
+            reserved = self.service.rooms[other["room_id"]]
+            # A consume with a spoofed identity must still bind the ticket owner.
+            consume = dict(room_id=reserved["id"], key=reserved["key"], peer=90,
+                           token=other["token"], profile_id=second["profile_id"])
+            self.assertEqual(self.post("/internal/consume", consume), dict(ok=True, profile_id=first["profile_id"]))
+            self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
+            heartbeat = dict(room_id=reserved["id"], key=reserved["key"], peers=[], joinable=True)
+            self.post("/internal/heartbeat", heartbeat)
+            self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
+            with self.service.lock:
+                reserved["peers"][90]["deadline"] = time.monotonic() - 0.001
+            retry = self.post("/v1/rooms/join", data, credential=first["credential"])
+            # A heartbeat from the old room cannot erase the new room binding.
+            self.post("/internal/heartbeat", heartbeat)
+            self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
+            self.peer(dict(other, token=retry["token"]), accepted=False)
+            self.peer(retry)
+            deadline = time.monotonic() + 4
+            while room["peers"] and time.monotonic() < deadline:
+                time.sleep(0.05)
+            expired = self.post("/v1/rooms/join", data, credential=first["credential"])
+            with self.service.lock:
+                room["tokens"][hashlib.sha256(expired["token"].encode()).hexdigest()]["expiry"] = time.monotonic() - 0.001
+            fresh = self.post("/v1/rooms/join", data, credential=first["credential"])
+            self.peer(expired, accepted=False)
+            self.peer(fresh)
+
     def test_ui_discovery_ready_start_and_crash_retry(self):
+        self.ui_discovery_ready_start_and_crash_retry()
+
+    def test_profile_ui_discovery_ready_start_and_crash_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.service.profiles = ProfileStore(Path(directory) / "profiles.sqlite3")
+            self.ui_discovery_ready_start_and_crash_retry()
+
+    def ui_discovery_ready_start_and_crash_retry(self):
         with tempfile.TemporaryDirectory() as directory:
             processes = []
             logs = []
@@ -518,6 +603,7 @@ class RealProcesses(unittest.TestCase):
                             "--script", "res://tests/room_ui_peer.gd", "--", f"--role={role}",
                             f"--room-service-url=http://127.0.0.1:{self.server.server_port}",
                             f"--retry-ready-file={retry_ready}",
+                            f"--profile-path={Path(directory) / (role + '-profile.json')}",
                         ], stdout=output, stderr=subprocess.STDOUT))
                     if role == "owner":
                         deadline = time.monotonic() + 12
@@ -529,6 +615,12 @@ class RealProcesses(unittest.TestCase):
                     time.sleep(0.05)
                 self.assertTrue(all("ROOM_UI_ACTIVE" in log.read_text() for log in logs), [log.read_text() for log in logs])
                 room = self.service.rooms["UI-FRIENDS"]
+                if self.service.profiles is not None:
+                    identities = [json.loads((Path(directory) / (role + "-profile.json")).read_text())
+                                  for role in ("owner", "guest")]
+                    self.assertNotEqual(identities[0]["profile_id"], identities[1]["profile_id"])
+                    self.assertEqual({value["profile_id"] for value in room["peers"].values()},
+                                     {value["profile_id"] for value in identities})
                 room["process"].kill()
                 room["process"].wait(timeout=3)
                 self.service.reap()
@@ -543,6 +635,11 @@ class RealProcesses(unittest.TestCase):
                     self.assertIn("ROOM_UI_PEER_OK", output)
                     self.assertNotIn("SCRIPT ERROR", output)
                     self.assertEqual([line for line in output.splitlines() if line.startswith("ERROR:") and "resources still in use at exit" not in line], [], output)
+                if self.service.profiles is not None:
+                    for role, identity in zip(("owner", "guest"), identities):
+                        self.assertEqual(json.loads((Path(directory) / (role + "-profile.json")).read_text()), identity,
+                                         "Room crash/retry must retain the saved identity")
+                        self.assertNotIn(identity["credential"], "".join(log.read_text() for log in logs))
             finally:
                 for process in processes:
                     if process.poll() is None:

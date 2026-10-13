@@ -61,6 +61,8 @@ func _run() -> void:
 		"rate_limited": "Wait a minute", "service_full": "servers are busy",
 		"server_start_failed": "could not start", "server_start_timeout": "startup timed out",
 		"service_stopping": "restarting", "unknown_error": "rejected the request",
+		"profile_in_use": "already connected", "invalid_profile_credentials": "do not reset",
+		"profile_store_unavailable": "without resetting",
 	}
 	for code: String in expected_errors:
 		main.room_client._completed(HTTPRequest.RESULT_SUCCESS, 409, [], JSON.stringify({"error": code}).to_utf8_buffer())

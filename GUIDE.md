@@ -311,9 +311,9 @@ necessarily the creator if the creator has not connected yet.
 
 ### Phase 6 profile foundation (Task 6.1.1)
 
-Profiles are **opt-in, local-validation only** at this stage. They are not yet wired
-into Create/Join Room, admission tickets, reward grants or the cosmetic UI. Existing
-room operation is unchanged when `--profile-store` is omitted; profile requests then
+Profiles are **opt-in, local-validation only** at this stage. They now authenticate
+Create/Join Room and admission tickets (Task 6.1.2), but not reward grants or cosmetic UI.
+Existing room operation is unchanged when `--profile-store` is omitted; profile requests then
 return `profiles_unavailable` (503). No shared service/proxy has been changed.
 
 For local development, choose a new private directory outside the checkout's release
@@ -352,7 +352,7 @@ An existing zero-byte file is not treated as a new database. Profile disk I/O do
 hold the room registry lock. Rooms/tickets still disappear on service restart; profiles
 persist only if the same durable store and credential are retained.
 
-`game/session/profile_client.gd` is the tested client owner for the next admission task.
+`game/session/profile_client.gd` is the credential owner used by room discovery.
 It creates/fetches a profile through `ensure_profile()`, emits credential-free state or
 a failure, refuses remote HTTP and redirects, and saves only service URL/ID/credential
 to `user://profile-<service-URL-SHA256>.json`. A temporary file is flushed and renamed,
@@ -371,6 +371,42 @@ No migration from other schema versions or rollback compatibility is implemented
 Do not delete shared data, migrate/deploy/restart a shared service or replace a damaged
 store without separate approval. Reward/pending receipts and equipped mutations remain
 later tasks; `pending: []` here is not a claim of a working reward ledger.
+
+### Identity-bound room admission (Task 6.1.2)
+
+With `--profile-store`, both room routes require a validated `profile_id` in the
+body and matching `Authorization: Bearer …` header. Missing identity returns
+`profile_required` (403); invalid credentials return `invalid_profile_credentials`
+(403), and unavailable storage returns 503. There is no anonymous fallback.
+The shipped room client responds to that explicit challenge by securely creating
+or fetching its service-scoped identity and retrying the lookup. Profile-disabled
+services retain their existing development behavior without creating a profile.
+Direct-IP/player-hosted sessions remain unauthenticated and cannot earn future rewards.
+
+One profile may have **one outstanding ticket or active peer** across the service's
+rooms. Duplicates return `profile_in_use` (409); a copied credential does not grant a
+second seat. Creating a room reserves the identity atomically before process startup;
+startup failure releases it. A returned ticket gets the full configured TTL after
+startup. Cancellation/lost responses retain their reservation until expiry rather
+than minting another identity. Leaving an admitted room releases it through the
+next heartbeat; failed/incomplete authentication reservations expire after six seconds.
+
+ENet sends only the short-lived single-use ticket, never the durable credential.
+Consume resolves the identity from that ticket, ignoring any supplied profile ID,
+and returns it only to the authenticated room process. Godot retains peer-to-profile
+bindings server-side, clears them on disconnect/auth failure, and ignores stale
+HTTP callbacks for replaced authentication requests. Public tickets, gameplay/roster
+snapshots, room configuration and client logs contain no durable profile credentials.
+Old room keys cannot act on replacement instances; heartbeat cleanup in one room
+does not erase another room's newer reservation. Dedicated peer relay stays disabled.
+
+Real HTTP/ENet tests cover malformed/wrong-profile credentials, concurrent duplicate
+reservations, active duplicates, replay/wrong-room/expiry, cleanup and two actual
+lobby clients performing Ready/Start/crash/retry with distinct retained identities.
+Service/client restart as an integrated admission lifecycle remains Task 6.1.3.
+The unchanged 30-request/minute per-address backstop includes profile requests;
+large same-address cold starts are not proven profile-enabled capacity. No proxy,
+shared store, deployment, release or Windows ACL change has been performed.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate

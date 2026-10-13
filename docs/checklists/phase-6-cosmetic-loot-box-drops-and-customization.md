@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Task 6.1.1 implemented and validated; admission binding remains**.
+Status: **in progress — Tasks 6.1.1–6.1.2 implemented and validated; integrated restart/isolation remains**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -62,14 +62,19 @@ needed to keep durable ownership separate from room/process allocation.
   Evidence: five profile tests against real Python/Godot processes pass; service/client
   restart, cross-profile isolation, forged local/server state, corrupt file/store and
   rate-limit checks included. Opt-in schema-1 backend and service-scoped client owner
-  exist; room UI/admission is not yet integrated. Starter ownership/equipped state is
+  exist; room UI/admission was deferred to 6.1.2 below. Starter ownership/equipped state is
   persisted; `pending=[]` is initial state only, with receipt mutations deferred to 6.2.
   See [profile operation contract](../../GUIDE.md#phase-6-profile-foundation-task-611).
-- [ ] **6.1.2 Bind admission to identity.** Authenticate room create/join, bind single-use
+- [x] **6.1.2 Bind admission to identity.** Authenticate room create/join, bind single-use
   tickets to profile and room instance, and return the validated profile to Godot during
   consume. Keep it server-side. Reject a second active connection for the same profile;
   clean reservations on failed admission/disconnect without allowing stale peers to erase
   a new binding. Retain ticket expiry, build match and dedicated relay-off policies.
+  Evidence: 20 room-service tests pass, including real profile-enabled HTTP/ENet admission,
+  concurrent/active duplicates, bounded failed-admission cleanup, expiry/replay/wrong-room,
+  credential-free client snapshots and two real lobby clients Ready/Start/crash/retry.
+  One pending ticket or peer per profile is permitted across all rooms. Profile-disabled
+  development services remain compatible. See [admission contract](../../GUIDE.md#identity-bound-room-admission-task-612).
 - [ ] **6.1.3 Prove restart/isolation.** Restart the service and client against an isolated
   on-disk store; confirm the same identity/state returns while old rooms/tickets still die.
   Confirm a second credential cannot read/mutate the first profile. Document data path,
