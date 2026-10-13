@@ -2471,6 +2471,46 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
 	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
 	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
+	# Readable storefront: recessed window frames flank the entrance and repeat
+	# on the side faces, plus a broad painted awning band beneath them. These are
+	# visual-only and never alter the shelter volume or door clearance.
+	for side: float in [-1.0, 1.0]:
+		var window_x := side * (door_width * 0.5 + (footprint.x - door_width) * 0.25)
+		_add_window_facade(root, "FrontWindow%s" % ("L" if side < 0 else "R"), Vector3(window_x, 2.2, footprint.y * 0.5 + 0.165))
+		_add_window_facade(root, "SideWindow%s" % ("L" if side < 0 else "R"), Vector3(side * (footprint.x * 0.5 + 0.165), 2.2, 0.0), false)
+	_add_detail_box(root, "AwningBand", Vector3(footprint.x * 0.72, 0.28, 0.24), Vector3(0.0, 2.85, footprint.y * 0.5 + 0.02), PALETTE.coral)
+	if node_name == "Shop":
+		# A representative usable interior: counter and shelving along the west
+		# wall, clear of the two 2.4 m doors and the central through-path.
+		_add_detail_box(root, "Counter", Vector3(3.6, 0.9, 0.8), Vector3(-footprint.x * 0.5 + 2.0, 0.45, -2.6), PALETTE.sand)
+		_add_detail_box(root, "ShelfTop", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.5, -2.6), PALETTE.teal)
+		_add_detail_box(root, "ShelfBottom", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.05, -2.6), PALETTE.teal)
+
+
+func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, _cover_vertical := true) -> void:
+	var outward := 0.04 if position.z >= 0.0 else -0.04
+	_add_detail_box(parent, node_name + "Frame", Vector3(2.0, 1.7, 0.1), position + Vector3(0, 0, outward * 0.5), PALETTE.slate)
+	var glass := _add_detail_box(parent, node_name + "Glass", Vector3(1.8, 1.5, 0.02), position + Vector3(0, 0.02, outward), PALETTE.teal)
+	(glass.mesh as BoxMesh).material = _glass_material()
+
+
+func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = _material(color)
+	instance.mesh = mesh
+	instance.position = position
+	parent.add_child(instance)
+	return instance
+
+
+func _glass_material() -> StandardMaterial3D:
+	var material := _material(PALETTE.teal)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(PALETTE.teal, 0.42)
+	return material
 
 
 func _add_parking_garage() -> void:
