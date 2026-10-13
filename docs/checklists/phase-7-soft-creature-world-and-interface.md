@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: in_progress; milestones 7.1-7.2 complete, 7.3 underway.
+Status: in_progress; milestones 7.1-7.3 complete, 7.4 underway.
 
 ## Outcome and execution policy
 
@@ -120,14 +120,14 @@ boundary and garage face separate; validate actual canopy/collision clearance be
 construction. Roofs are not universally safe. School is an intentional Hall content
 change, not a third large landmark wedged into the central plaza.
 
-- [ ] 7.3a Build shared authored wall/window/trim/awning/furniture/road elements. Broad
+- [x] 7.3a Build shared authored wall/window/trim/awning/furniture/road elements. Broad
   bevels and value hierarchy, consistent curbs/crossings/grates/lamps, restrained density.
   Preserve ≥40% unobstructed ground and existing 18×18m plaza; house must not block
   spawn groups or required routes. Merge repeated decorative geometry where practical.
-- [ ] 7.3b Add interiors and actual sight lines. Each primary room has readable purpose,
+- [x] 7.3b Add interiors and actual sight lines. Each primary room has readable purpose,
   grounded furniture, no floor clipping or stairs that stop short of landings. Static
   internal partitions match cover/roof geometry; do not accidentally create a sealed trap.
-- [ ] 7.3c Update map anchors/refuge labels and indoor hazard coverage deliberately.
+- [x] 7.3c Update map anchors/refuge labels and indoor hazard coverage deliberately.
   Keep stable runtime Hall IDs for historical breakables/routes but visible school label.
   Add house cover only where physical roof/walls justify it. Garage's existing `shelter`
   group alone does not grant tornado cover: reconcile explicit cover volumes with geometry.
