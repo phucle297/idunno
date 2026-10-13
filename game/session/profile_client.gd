@@ -2,6 +2,7 @@ extends Node
 ## Anonymous identity owner. Credentials stay out of presentation state and ENet.
 
 signal profile_received(profile: Dictionary)
+signal box_opened(receipt: Dictionary)
 signal failed(message: String)
 
 const PROTOCOL := 1
@@ -20,6 +21,7 @@ var request: HTTPRequest
 var _url := ""
 var _path := ""
 var _identity: Dictionary = {}
+var _opening_box := ""
 
 
 func _ready() -> void:
@@ -34,6 +36,7 @@ func _ready() -> void:
 func ensure_profile() -> void:
 	if busy:
 		return
+	_opening_box = ""
 	_url = service_url.trim_suffix("/")
 	var loopback := RegEx.create_from_string("^http://127\\.0\\.0\\.1:[0-9]{1,5}$").search(_url) != null
 	if not _url.begins_with("https://") and not loopback:
@@ -68,6 +71,21 @@ func ensure_profile() -> void:
 	if request.request(_url + "/v1/profiles/" + action, headers, HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
 		busy = false
 		failed.emit("Profile service unavailable. Retry without resetting your identity.")
+
+
+func open_box(box_id: String) -> void:
+	if busy:
+		return
+	if _identity.is_empty() or service_url.trim_suffix("/") != _url:
+		failed.emit("Fetch your profile before opening a box.")
+		return
+	_opening_box = box_id
+	busy = true
+	var payload := {"protocol": PROTOCOL, "build": ProjectSettings.get_setting("build/revision", "development"),
+		"profile_id": _identity.profile_id, "box_id": box_id}
+	if request.request(_url + "/v1/profiles/open", ["Content-Type: application/json", "Authorization: Bearer " + _identity.credential], HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
+		busy = false
+		failed.emit("Opening unavailable. Retry the same box; no reward was rerolled.")
 
 
 func cancel() -> void:
@@ -126,6 +144,14 @@ func _completed(result: int, code: int, _headers: PackedStringArray, body: Packe
 		return
 	if parsed.get("protocol") != PROTOCOL or parsed.get("build") != ProjectSettings.get_setting("build/revision", "development"):
 		failed.emit(ERRORS.incompatible_version)
+		return
+	if not _opening_box.is_empty():
+		if parsed.get("box_id") != _opening_box or parsed.get("state") != "opened" or not parsed.get("cosmetic_id") is String:
+			failed.emit("Invalid box receipt. Retry the same box.")
+			return
+		box_opened.emit({"box_id": parsed.box_id, "state": "opened", "cosmetic_id": parsed.cosmetic_id,
+			"round_id": parsed.get("round_id", ""), "pool": parsed.get("pool", []),
+			"odds": parsed.get("odds", {}), "catalog_version": parsed.get("catalog_version", 1)})
 		return
 	if not parsed.get("profile_id") is String or not parsed.get("owned") is Array or not parsed.get("equipped") is String or not parsed.get("pending") is Array:
 		failed.emit("Invalid profile-service state.")

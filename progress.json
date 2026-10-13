@@ -20,8 +20,8 @@
   },
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
-    "milestone": "milestone_6_2_authoritative_cosmetic_rewards",
-    "task": "task_6_2_3_open_recovery"
+    "milestone": "milestone_6_3_cosmetic_catalog_and_assets",
+    "task": "task_6_3_1_outfit_catalog"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -70,21 +70,21 @@
       },
       "milestone_6_2_authoritative_cosmetic_rewards": {
         "title": "Authoritative Earned Boxes and Exactly-Once Ledger",
-        "status": "in_progress",
+        "status": "completed",
         "dependencies": ["milestone_6_1_cosmetic_loot_drops_and_customization"],
         "tasks": {
           "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "completed"},
           "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "completed"},
-          "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "planned"}
+          "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "completed"}
         },
         "gates": {
           "eligibility_odds_and_authority": {"required": true, "status": "passed", "evidence": "29 service tests pass: exact 59.99/60 and 119.99/120 boundaries, distinct authenticated start bindings, death/tie/live departure, solo/nonstandard rounds, malformed/spoofed/conflicting completion, owned/reserved exhaustion, every initial RNG index, fractions 1/4→1/1 and four concurrent no-duplicate reservations. Real Godot authority→HTTP→SQLite frozen rematches and post-commit acknowledgement retry preserve eligibility and one grant per profile/round. No human play, full profile-enabled scale or cosmetic assets/UI claim."},
-          "idempotent_grants_open_and_restart": {"required": true, "status": "not_run"}
+          "idempotent_grants_open_and_restart": {"required": true, "status": "passed", "evidence": "30 service tests pass in 87.851s. Concurrent authenticated opens return the same receipt; forced pre-transition failure rolls ownership back; cross-profile access rejects. Actual Godot client opens/refetches and both client/service restart restore identical credentials, owned item and no pending box. HTTP replay returns the original receipt. Grant post-commit acknowledgement loss is covered; open transport loss itself was not injected, but durable open replay is exercised."}
         }
       },
       "milestone_6_3_cosmetic_catalog_and_assets": {
         "title": "Small Cosmetic Catalog and Faithful Assets",
-        "status": "planned",
+        "status": "in_progress",
         "dependencies": ["milestone_6_2_authoritative_cosmetic_rewards"],
         "tasks": {
           "task_6_3_1_outfit_catalog": {"title": "6.3.1 Stable outfit catalog", "status": "planned"},
@@ -128,6 +128,13 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-13",
+      "scope": "6.2.3 authenticated opening and restart",
+      "status": "passed",
+      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "result": "30 tests passed in 87.851s; log .scratch/phase6-opening/full-service.log. Atomic unlock of reserved item, four simultaneous replay-identical opens, rollback, wrong-profile rejection and real HTTP/Godot client/service restart pass. Credentials unchanged; ownership5/pending0 restored without reroll. No visual changes, equipment, deployment or native acceptance claim. Milestone6.2 complete; continue6.3."
+    },
     {
       "date": "2026-10-13",
       "scope": "Read-only baseline inspection for Phase 6 planning",
@@ -282,5 +289,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Implement task_6_2_3_open_recovery: authenticated sealed-box opening must atomically unlock the already reserved item, persist an immutable open receipt, and replay identically after concurrent requests, lost replies and service/client restart; recover pending boxes without rerolls or extra grants, and keep equip/UI/assets/deployment out of scope."
+  "next_action": "Complete Milestone6.3: shared stable eight-outfit catalog, deterministic earned geometry, faithful ragdoll accessories, physics/animation validation and inspected 720p/1080p renders before equipment/UI."
 }

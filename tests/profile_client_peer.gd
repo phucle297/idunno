@@ -11,6 +11,8 @@ func _run() -> void:
 		return
 	var client = (load("res://game/session/profile_client.gd") as GDScript).new()
 	var expected_failure := false
+	var opening := "--open-pending" in OS.get_cmdline_user_args()
+	var owned_count := 4
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--profile-service-url="):
 			client.service_url = argument.trim_prefix("--profile-service-url=")
@@ -18,11 +20,14 @@ func _run() -> void:
 			client.credential_path = argument.trim_prefix("--profile-file=")
 		elif argument == "--expect-failure":
 			expected_failure = true
+		elif argument.begins_with("--owned-count="):
+			owned_count = argument.trim_prefix("--owned-count=").to_int()
 	if client.credential_path.is_empty():
 		quit(1)
 		return
 	var outcome: Dictionary = {}
 	client.profile_received.connect(func(profile: Dictionary) -> void: outcome["profile"] = profile)
+	client.box_opened.connect(func(receipt: Dictionary) -> void: outcome["opened"] = receipt)
 	client.failed.connect(func(message: String) -> void: outcome["failure"] = message)
 	root.add_child(client)
 	client.ensure_profile()
@@ -32,7 +37,20 @@ func _run() -> void:
 	var passed := outcome.has("failure") if expected_failure else outcome.has("profile")
 	if passed and not expected_failure:
 		var profile: Dictionary = outcome.profile
-		passed = not profile.has("credential") and not profile.has("credential_hash") and profile.owned.size() == 4 and profile.pending.is_empty()
+		passed = not profile.has("credential") and not profile.has("credential_hash") and profile.owned.size() == owned_count and (profile.pending.size() == 1 if opening else profile.pending.is_empty())
+		if passed and opening:
+			client.open_box(profile.pending[0].box_id)
+			while not outcome.has("opened") and not outcome.has("failure") and Time.get_ticks_msec() < deadline:
+				await process_frame
+			passed = outcome.has("opened") and not outcome.opened.has("credential")
+			if passed:
+				outcome.erase("profile")
+				client.ensure_profile()
+				while not outcome.has("profile") and not outcome.has("failure") and Time.get_ticks_msec() < deadline:
+					await process_frame
+				passed = outcome.has("profile") and outcome.opened.cosmetic_id in outcome.profile.owned and outcome.profile.pending.is_empty()
+				if passed:
+					print("PROFILE_CLIENT_OPEN_OK")
 		if passed:
 			print("PROFILE_CLIENT_PEER_OK profile_id=%s equipped=%s" % [profile.profile_id, profile.equipped])
 	elif passed:

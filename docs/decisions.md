@@ -262,3 +262,17 @@ Permitted shutdown-only resource diagnostics are not hidden script/runtime failu
 Task 6.2.2 and eligibility/odds/authority gate are complete; the combined grants/open/
 restart gate waits for 6.2.3. No profile-enabled reward-scale, human/GPU/Internet or
 new package/deployment claim. Commit/push with `[skip ci]`; opening/recovery is next.
+
+## 2026-10-13 — Task 6.2.3 opening/recovery
+
+Authenticated opening unlocks the reserved item and transitions the receipt in one
+immediate SQLite transaction. No new schema or RNG call: the original item, pool and
+version reconstruct an identical replay receipt. Godot exposes only filtered public
+receipt fields; a fresh authenticated fetch restores ownership/pending state.
+
+30 service tests pass in 87.851s. Four concurrent opens, pre-transition rollback,
+wrong-profile rejection and real HTTP/Godot open/refetch plus service/client restart
+preserve credentials and the opened receipt (owned5/pending0). Grant acknowledgement
+loss was injected in6.2.2; opening transport loss is not separately injected, but replay
+after restart is exercised. Milestone6.2 is complete. Continue through the remaining
+phase at the owner's request; no deployment/release/shared-store change is authorized.

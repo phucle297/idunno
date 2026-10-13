@@ -446,7 +446,7 @@ The original 21-test identity-foundation suite verifies restart, wrong-profile/c
 unchanged victim state, no replacement profiles and no credentials/tokens in logs.
 Temporary fixture reports are private and deleted, not exports or review artifacts.
 Those foundation checks did not implement rewards; task 6.2.2 adds sealed receipts below.
-Box opening and equip mutations remain unimplemented. No new
+Box opening is implemented below; equip mutations remain unimplemented. No new
 Windows ACL, public-Internet, hardware-performance, package or deployment claim follows
 from these local restart checks.
 
@@ -473,14 +473,28 @@ Selection is uniform among the remaining outfits and saved at grant time. Each s
 receipt exposes its `box_id`, `round_id`, `state`, `catalog_version`, grant-time `pool`
 and exact `odds` numerator/denominator (1/4, 1/3, 1/2, 1/1). It does not expose the
 reserved item or add it to `owned`. Authenticated profile fetch returns pending boxes
-after reconnect/service restart; nothing opens or equips them yet.
+after reconnect/service restart; fetch itself never opens or equips them.
 
 Godot retains frozen completion envelopes across rematches and retries transport/5xx
 failures while the room lives. Issuance is ordered; a lost start reply can recover the
 durable ID after a newer start. Invalid evidence is unavailable, not a local grant.
 Committed receipts survive restart, but unreported/uncommitted completions are not
 recoverable after room death. A restarted service rejects the old room key/registry.
-No UI, opening, remote store migration, proxy change, deployment or release is implied.
+No UI, remote store migration, proxy change, deployment or release is implied.
+
+### Authenticated box opening (Task 6.2.3)
+
+`POST /v1/profiles/open` requires Bearer authentication and exactly `protocol`, `build`,
+`profile_id`, `box_id`. The box must belong to that identity. One immediate SQLite
+transaction adds the previously reserved item to ownership and marks the box opened.
+Opening does not select an item or change saved odds. Concurrent requests and later
+replay return the same immutable receipt, including `cosmetic_id` and grant-time pool.
+Wrong-profile/unknown boxes reject without revealing their contents.
+
+If a reply is lost, retry the same box ID. Authenticated fetch restores ownership and
+remaining sealed boxes after client/service restart. Fetch never creates a replacement
+identity, opens boxes, or equips an outfit. Skipping presentation cannot lose committed
+loot. The service store and original credential are both required for recovery.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate

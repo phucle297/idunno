@@ -114,18 +114,23 @@ class ProfileStore:
         return {"profile_id": profile_id, "credential": credential,
                 "owned": list(self.STARTERS), "equipped": "plain", "pending": []}
 
-    def fetch(self, profile_id, authorization):
+    @staticmethod
+    def authenticate(db, profile_id, authorization):
         if (not isinstance(profile_id, str) or not re.fullmatch(r"[0-9a-f]{32}", profile_id)
                 or not isinstance(authorization, str)
                 or not re.fullmatch(r"Bearer [A-Za-z0-9_-]{43}", authorization)):
             raise Rejected("invalid_profile_credentials", 403)
         digest = hashlib.sha256(authorization[7:].encode()).hexdigest()
+        row = db.execute("SELECT credential_hash, equipped FROM profiles WHERE id=?", (profile_id,)).fetchone()
+        if row is None or not hmac.compare_digest(row[0], digest):
+            raise Rejected("invalid_profile_credentials", 403)
+        return row
+
+    def fetch(self, profile_id, authorization):
         with closing(self.connect()) as db:
             with db:
                 db.execute("BEGIN")
-                row = db.execute("SELECT credential_hash, equipped FROM profiles WHERE id=?", (profile_id,)).fetchone()
-                if row is None or not hmac.compare_digest(row[0], digest):
-                    raise Rejected("invalid_profile_credentials", 403)
+                row = self.authenticate(db, profile_id, authorization)
                 owned = [row[0] for row in db.execute(
                     "SELECT cosmetic_id FROM owned WHERE profile_id=? ORDER BY cosmetic_id", (profile_id,))]
                 if row[1] not in owned:
@@ -134,6 +139,23 @@ class ProfileStore:
                     "SELECT box_id, round_id, pool, catalog_version FROM receipts "
                     "WHERE profile_id=? AND state='sealed' ORDER BY rowid", (profile_id,))]
         return {"profile_id": profile_id, "owned": owned, "equipped": row[1], "pending": pending}
+
+    def open_box(self, profile_id, authorization, box_id):
+        with closing(self.connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            self.authenticate(db, profile_id, authorization)
+            if not isinstance(box_id, str) or not re.fullmatch(r"[0-9a-f]{32}", box_id):
+                raise Rejected("invalid_box", 404)
+            row = db.execute("SELECT round_id,cosmetic_id,pool,catalog_version,state FROM receipts "
+                             "WHERE box_id=? AND profile_id=?", (box_id, profile_id)).fetchone()
+            if row is None:
+                raise Rejected("invalid_box", 404)
+            if row[4] == "sealed":
+                db.execute("INSERT INTO owned VALUES (?,?)", (profile_id, row[1]))
+                db.execute("UPDATE receipts SET state='opened' WHERE box_id=?", (box_id,))
+            receipt = self.public_box(box_id, row[0], row[2], row[3])
+            receipt.update(state="opened", cosmetic_id=row[1])
+            return receipt
 
     @staticmethod
     def public_box(box_id, round_id, pool, version):
@@ -273,9 +295,11 @@ class RoomService:
         if data.get("protocol") != PROTOCOL or data.get("build") != self.args.build:
             raise Rejected("incompatible_version", 409)
 
-    def profile(self, create, data, authorization):
+    def profile(self, action, data, authorization):
         self.compatible(data)
-        expected = {"protocol", "build"} if create else {"protocol", "build", "profile_id"}
+        expected = {"protocol", "build"} if action == "create" else {"protocol", "build", "profile_id"}
+        if action == "open":
+            expected.add("box_id")
         if set(data) != expected:
             raise Rejected("invalid_body")
         with self.lock:
@@ -285,7 +309,10 @@ class RoomService:
                 raise Rejected("profiles_unavailable", 503)
         # SQLite transactions serialize ownership writes. Do not hold the room
         # registry lock during disk I/O: admission/heartbeats must remain live.
-        result = self.profiles.create() if create else self.profiles.fetch(data["profile_id"], authorization)
+        if action == "open":
+            result = self.profiles.open_box(data["profile_id"], authorization, data["box_id"])
+        else:
+            result = self.profiles.create() if action == "create" else self.profiles.fetch(data["profile_id"], authorization)
         return dict(result, protocol=PROTOCOL, build=self.args.build)
 
     def password(self, data):
@@ -555,9 +582,10 @@ class Handler(BaseHTTPRequestHandler):
                 service.rate_limit(self.client_address[0])
                 authorization = self.headers.get("Authorization", "")
                 result = service.create(data, authorization) if self.path.endswith("create") else service.join(data, authorization)
-            elif self.path in ("/v1/profiles/create", "/v1/profiles/fetch"):
+            elif self.path in ("/v1/profiles/create", "/v1/profiles/fetch", "/v1/profiles/open"):
                 service.rate_limit(self.client_address[0])
-                result = service.profile(self.path.endswith("create"), data, self.headers.get("Authorization", ""))
+                action = self.path.rsplit("/", 1)[1]
+                result = service.profile(action, data, self.headers.get("Authorization", ""))
             else:
                 raise Rejected("not_found", 404)
         except Rejected as error:

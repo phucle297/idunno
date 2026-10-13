@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestone 6.1, participation (6.2.1) and sealed grants (6.2.2) completed; open/recovery (6.2.3) is next**.
+Status: **in progress — Milestones 6.1 and 6.2 completed; catalog/assets (6.3) is next**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -125,17 +125,22 @@ and the service-owned cosmetic store. Keep reward policy outside disaster/health
   Authenticated fetch exposes saved box/pool/version/1/N odds, not the reserved item.
   No opening/equip/UI/assets or shared migration/deployment. See [operations](../../GUIDE.md#transactional-reward-grants-task-622)
   and `.scratch/phase6-grants/{final-service,ui-regression}.log`.
-- [ ] **6.2.3 Open/recover.** Authenticated open atomically changes sealed → opened/owned
+- [x] **6.2.3 Open/recover.** Authenticated open atomically changes sealed → opened/owned
   and returns the persisted item. Concurrent opens, response loss and restart cannot
   reroll or grant twice. Fetch pending receipts after reconnect; skipped reveal is not lost loot.
   Catalog IDs reserved in receipts remain resolvable across upgrades.
+  Evidence: 30 service tests pass in 87.851s, including four concurrent identical opens,
+  ownership rollback on failed transition, cross-profile rejection and real Godot open/
+  fetch/service-client restart. Saved credentials and receipt stay identical, owned5 and
+  pending0 restore. Log: `.scratch/phase6-opening/full-service.log`.
 
 **Gate:** exercise exact eligibility/odds boundaries, ties, death/disconnect, all-owned,
 all-reserved, forged completion, same-room/new-round and same-round/replay. Force failure
 before commit and response loss after commit, then restart and check the durable ledger.
 Use integer selection boundaries with controlled RNG in tests, not flaky frequency assertions.
-Grant eligibility/odds/authority has passed; the combined grants/open/restart gate
-remains `not_run` until 6.2.3 proves authenticated exactly-once opening.
+Grant eligibility/odds/authority and combined grants/open/restart gates passed.
+Grant post-commit acknowledgement loss is injected; opening itself is covered by
+concurrent/durable HTTP replay rather than an injected socket-write loss.
 
 **Failure contract:** committed receipts survive client/service restarts. A completed payload
 not yet committed cannot be recovered after its room process dies; do not claim crash-proof

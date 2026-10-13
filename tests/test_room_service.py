@@ -216,7 +216,7 @@ class Rewards(unittest.TestCase):
 
     def fetch(self, index=0):
         identity = self.identities[index]
-        return self.service.profile(False, dict(protocol=1, build="development", profile_id=identity["profile_id"]),
+        return self.service.profile("fetch", dict(protocol=1, build="development", profile_id=identity["profile_id"]),
                                     "Bearer " + identity["credential"])
 
     def rejects(self, code, call):
@@ -325,6 +325,34 @@ class Rewards(unittest.TestCase):
         self.assertEqual(self.fetch(), before)
         self.finish(self.round())
         self.assertEqual(len(self.fetch()["pending"]), 1)
+
+    def test_open_is_authenticated_atomic_and_replay_stable(self):
+        self.finish(self.round())
+        box = self.fetch()["pending"][0]["box_id"]
+        first, second = self.identities
+        payload = dict(protocol=1, build="development", profile_id=first["profile_id"], box_id=box)
+        def opening():
+            return self.service.profile("open", payload, "Bearer " + first["credential"])
+        self.rejects("invalid_profile_credentials", lambda: self.service.profile("open", payload, "Bearer " + second["credential"]))
+        self.rejects("invalid_box", lambda: self.service.profile("open", dict(payload, profile_id=second["profile_id"]), "Bearer " + second["credential"]))
+        with sqlite3.connect(self.path) as db:
+            db.execute("CREATE TRIGGER fail_open BEFORE UPDATE OF state ON receipts BEGIN SELECT RAISE(ABORT,'fixture'); END")
+        with self.assertRaises(sqlite3.IntegrityError):
+            opening()
+        self.assertEqual(len(self.fetch()["owned"]), 4)
+        self.assertEqual(len(self.fetch()["pending"]), 1)
+        with sqlite3.connect(self.path) as db:
+            db.execute("DROP TRIGGER fail_open")
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            opened = list(pool.map(lambda _: opening(), range(4)))
+        self.assertTrue(all(receipt == opened[0] for receipt in opened))
+        self.assertEqual(opened[0]["state"], "opened")
+        self.assertIn(opened[0]["cosmetic_id"], self.fetch()["owned"])
+        self.assertEqual(len(self.fetch()["owned"]), 5)
+        self.assertEqual(self.fetch()["pending"], [])
+        self.assertEqual(len(self.fetch(1)["pending"]), 1)
+        self.service.profiles = ProfileStore(self.path)
+        self.assertEqual(opening(), opened[0])
 
     def test_godot_frozen_delivery_retries_after_commit(self):
         server = Server(("127.0.0.1", 0), self.service)
@@ -474,8 +502,30 @@ class Profiles(unittest.TestCase):
         self.start()
         self.assertEqual(self.post("fetch", query, first["credential"]), before)
         self.assertEqual(self.post("/internal/round/finish", dict(room_id="ALPHA", key="fixture-instance"), status=403)["error"], "invalid_server")
+        path = Path(self.directory.name) / "opening-profile.json"
+        url = f"http://127.0.0.1:{self.port}"
+        path.write_text(json.dumps(dict(service_url=url, profile_id=first["profile_id"], credential=first["credential"])))
+        path.chmod(0o600)
+        saved = path.read_bytes()
+        command = [settings().godot, "--headless", "--path", str(ROOT), "--script", "res://tests/profile_client_peer.gd",
+                   "--", f"--profile-service-url={url}", f"--profile-file={path}"]
+        opened_client = subprocess.run(command + ["--open-pending"], capture_output=True, text=True, timeout=15)
+        self.assertEqual(opened_client.returncode, 0, opened_client.stdout + opened_client.stderr)
+        self.assertIn("PROFILE_CLIENT_OPEN_OK", opened_client.stdout)
+        box_query = dict(query, box_id=before["pending"][0]["box_id"])
+        opened = self.post("open", box_query, first["credential"])
+        self.assertEqual(opened["state"], "opened")
+        port = self.port
+        self.stop()
+        self.start(port=port)
+        self.assertEqual(self.post("open", box_query, first["credential"]), opened)
+        restarted_client = subprocess.run(command + ["--owned-count=5"], capture_output=True, text=True, timeout=15)
+        self.assertEqual(restarted_client.returncode, 0, restarted_client.stdout + restarted_client.stderr)
+        self.assertEqual(path.read_bytes(), saved)
+        self.assertEqual(self.post("fetch", query, first["credential"])["pending"], [])
         for identity in (first, second):
             self.assertNotIn(identity["credential"], self.log.read_text())
+            self.assertNotIn(identity["credential"], opened_client.stdout + opened_client.stderr + restarted_client.stdout + restarted_client.stderr)
 
     def test_godot_client_restart_preserves_credentials_and_rejects_reset(self):
         path = Path(self.directory.name) / "client-profile.json"
