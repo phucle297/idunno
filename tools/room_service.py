@@ -307,6 +307,7 @@ class RoomService:
                     raise Rejected("rate_limited", 429)
                 times = []
                 self.rates[address] = times
+            times[:] = [timestamp for timestamp in times if timestamp > now - 60]
             if len(times) >= 30:
                 raise Rejected("rate_limited", 429)
             times.append(now)

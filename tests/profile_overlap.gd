@@ -17,6 +17,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var pace_default := "--vsync=default" in OS.get_cmdline_user_args()
+	var cosmetics := "--cosmetics" in OS.get_cmdline_user_args()
+	var preview_ui := "--preview" in OS.get_cmdline_user_args()
 	# Native throughput runs disable V-Sync so frame times measure work rather
 	# than display pacing. The --vsync=default pass keeps project pacing and
 	# is reported separately, never as a throughput result.
@@ -26,6 +28,9 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	await process_frame
+	root.size = Vector2i(1920, 1080) if "--1080p" in OS.get_cmdline_user_args() else Vector2i(1280, 720)
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_size(root.size)
 	# Worst supported four-player prop/hazard scenario: four real player
 	# bodies, the three network props launched into physics, and overlapping
 	# flood/tornado hazards started through their real request paths before
@@ -33,6 +38,8 @@ func _run() -> void:
 	var match_manager := main.get_node("MatchManager") as MatchManager
 	var player := main.get_node("Player") as PartyPlayer
 	player.reset_for_match(Vector3(0.0, 0.05, 7.0))
+	if cosmetics:
+		player.character.set_outfit_id("raincoat")
 	# main.tscn boots into a solo ACTIVE match; stage the roster in LOBBY
 	# first so the extra players can register (register_player rejects
 	# during ACTIVE).
@@ -43,6 +50,8 @@ func _run() -> void:
 		main.add_child(extra)
 		extra.reset_for_match(Vector3(float(peer_id) - 3.0, 0.05, 7.0))
 		match_manager.register_player(peer_id, "Profile %d" % peer_id)
+		if cosmetics:
+			extra.character.set_outfit_id(["mechanic", "park_ranger", "meteor_observer"][peer_id - 2])
 	for peer_id: int in [1, 2, 3, 4]:
 		match_manager.set_player_ready(peer_id, true)
 	match_manager.start_match()
@@ -59,6 +68,23 @@ func _run() -> void:
 		if prop is RigidBody3D:
 			props += 1
 			(prop as RigidBody3D).apply_central_impulse(Vector3(2.5, 3.0, 1.5))
+	# Synthetic worst-case preview+overlap stress. Ordinary gameplay never
+	# opens the collection during ACTIVE. Reuse the same preview across selects.
+	var preview_nodes_stable := true
+	if preview_ui:
+		main.collection.show_collection()
+		main.collection.select_outfit("raincoat")
+		await process_frame
+		var preview_id: int = main.collection.preview.get_instance_id()
+		var viewport_id: int = main.collection.viewport.get_instance_id()
+		var node_count: int = main.collection.find_children("*", "", true, false).size()
+		for cycle in 10:
+			main.collection.dismiss()
+			main.collection.show_collection()
+			for outfit: String in ["mechanic", "park_ranger", "meteor_observer", "raincoat"]:
+				main.collection.select_outfit(outfit)
+			await process_frame
+		preview_nodes_stable = preview_id == main.collection.preview.get_instance_id() and viewport_id == main.collection.viewport.get_instance_id() and node_count == main.collection.find_children("*", "", true, false).size()
 	for index in WARMUP_FRAMES:
 		await process_frame
 	# Hazard lifetimes are wall-clock based while the warmup is frame based,
@@ -99,6 +125,7 @@ func _run() -> void:
 		and flood_phase_seen != 0
 		and tornado_phase_seen >= 2
 		and active_lines_seen == 2
+		and preview_nodes_stable
 	)
 	var target_60fps_met := frame_times_ms[_percentile_index(0.95)] <= 16.67
 	var ui_nodes_stable: bool = ui_nodes == main.get_node("Interface").find_children("*", "", true, false)
@@ -126,6 +153,7 @@ func _run() -> void:
 			RenderingServer.get_video_adapter_name(),
 		]
 	)
+	print("COSMETIC_PROFILE outfits=%s preview=%s preview_nodes_stable=%s warmup=%d samples=%d" % [cosmetics, preview_ui, preview_nodes_stable, WARMUP_FRAMES, SAMPLE_FRAMES])
 	main.gameplay_audio.reset_for_match()
 	main.free()
 	# The default-V-Sync pass reports pacing and is scenario-gated only;

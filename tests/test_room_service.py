@@ -142,9 +142,17 @@ class Contract(unittest.TestCase):
         token = self.service.issue(self.room)["token"]
         self.room["joinable"] = False
         self.rejects("invalid_admission", lambda: self.consume(token))
-        for _ in range(30):
+        with patch("tools.room_service.time.monotonic") as clock:
+            for index in range(30):
+                clock.return_value = 100.0 + index
+                self.service.rate_limit("127.0.0.1")
+            clock.return_value = 159.99
+            self.rejects("rate_limited", lambda: self.service.rate_limit("127.0.0.1"))
+            clock.return_value = 160.0
+            self.service.rate_limit("127.0.0.1") # First request expires despite ongoing traffic.
+            self.rejects("rate_limited", lambda: self.service.rate_limit("127.0.0.1"))
+            clock.return_value = 161.0
             self.service.rate_limit("127.0.0.1")
-        self.rejects("rate_limited", lambda: self.service.rate_limit("127.0.0.1"))
         self.assertNotIn(token, repr(self.room))
 
     def test_rate_limit_global_cap_does_not_poison_registry(self):
@@ -625,7 +633,7 @@ class ManagedEquipment(unittest.TestCase):
             self.command(label, "equip", outfit_id="backpack")
         self.wait(lambda: self.read("client-0")["outfit_reply"] == {"outfit_id": "backpack", "sequence": 1, "error": ""}
                   and self.read("client-1")["outfit_reply"] == {"outfit_id": "backpack", "sequence": 3, "error": ""}, "Both equipped")
-        self.wait(lambda: self.read("server-GEAR")["can_start"], "Ready acknowledgements")
+        self.wait(lambda: all(self.read(label).get("can_start") for label in self.LABELS), "Ready snapshots at all peers")
         self.command("client-0", "start")
         self.wait(lambda: all(self.read(label).get("state") == 1 for label in self.LABELS), "Active match")
         self.command("client-1", "equip", outfit_id="cap")
@@ -659,7 +667,7 @@ class ManagedEquipment(unittest.TestCase):
         for cycle in range(5):
             for label in ("client-0", "client-1"):
                 self.command(label, "ready")
-            self.wait(lambda: self.read("server-GEAR")["can_start"], "Rematch readiness")
+            self.wait(lambda: all(self.read(label).get("can_start") for label in self.LABELS), "Rematch readiness at all peers")
             self.command("client-0", "start")
             self.wait(lambda: all(self.read(label).get("state") == 1 for label in self.LABELS), "Rematch active")
             self.command("server-GEAR", "finish")

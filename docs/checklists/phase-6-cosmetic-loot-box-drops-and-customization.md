@@ -217,11 +217,11 @@ Authority reward clock is accelerated in fixtures, not two minutes of human play
 
 ID: `milestone_6_5_cosmetic_regression_and_handoff`; depends on 6.4.
 
-- [ ] **6.5.1 Full lifecycle and scale.** Run existing regression plus reward/profile checks;
+- [x] **6.5.1 Full lifecycle and scale.** Run existing regression plus reward/profile checks;
   actual managed 4/8/20-client appearance agreement, repeated open/equip, disconnect/rejoin,
   owner departure, service restart, and at least five rematches. Run heavy managed/container
   jobs serially. Confirm no loot paths change hazard outcomes or movement budgets.
-- [ ] **6.5.2 Performance/visual review.** Measure representative overlap with the new
+- [x] **6.5.2 Performance/visual review.** Measure representative overlap with the new
   outfits and preview UI (720p/1080p, 120 warmup/600 samples). Record renderer/hardware,
   p95 and scene/player conditions, stable UI node identity and no growing preview resources.
   Orb software rendering is not proof of real-GPU 60 FPS; retain that uncertainty explicitly.
@@ -232,6 +232,22 @@ ID: `milestone_6_5_cosmetic_regression_and_handoff`; depends on 6.4.
   and release lifecycle fixtures: the current export copies only `room_service.py`.
   Document future allowlisted HTTPS profile routes and release-independent data path,
   backup/restore/migration/rollback compatibility; do not apply proxy/data changes remotely.
+
+Evidence: full regression42 suites/five matrices and final34 service tests (102.130s)
+pass. Profile-enabled4/8/20 each pass earned/open/equip agreement, five rematches,
+owner transfer and changed-peer-ID crash/retry. Keep client Ready snapshot waits,
+not just authority readiness (see advancing-disaster-party recovery guidance).
+Rate-limit expiry regression fails old code at60s and passes with timestamp pruning;
+real20 lifecycle retains the30/minute backstop rather than bypassing it.
+
+All four performance measurements completed with stable UI/preview node identity:
+4player bodies,3props,flood/tornado,120warmup600samples. Compatibility/llvmpipeLLVM15,
+Mesa22.3.6 p95 gameplay/preview89.15/102.66ms720p and138.25/168.07ms1080p.
+**60FPS target NOT met:** all profiler exits1; measurement gate completion is not
+throughput acceptance. Preview+ACTIVE overlap is synthetic worst-case stress;
+ordinary collection cannot open midmatch. VSync requested disabled, Xvfb driver
+warns toggling unsupported; no real display/vblank pacing claim. Logs in
+`.scratch/phase6-performance/`; native/GPU/human uncertainty remains nonblocking.
 
 **Phase exit:** all agent-owned milestone gates passed with commands/evidence in progress;
 matching local packages and reviewed UI/gameplay captures available. No paid features,

@@ -311,8 +311,8 @@ necessarily the creator if the creator has not connected yet.
 
 ### Phase 6 profile foundation (Task 6.1.1)
 
-Profiles are **opt-in, local-validation only** at this stage. They now authenticate
-Create/Join Room and admission tickets (Task 6.1.2), but not reward grants or cosmetic UI.
+Profiles are **opt-in, local-validation only** at this stage. They authenticate
+Create/Join Room and admission tickets, reward grants, collection and equipment.
 Existing room operation is unchanged when `--profile-store` is omitted; profile requests then
 return `profiles_unavailable` (503). No shared service/proxy has been changed.
 
@@ -326,7 +326,7 @@ python3 tools/room_service.py --godot "$(command -v godot)" \
   --profile-store "$HOME/.local/share/disaster-party-profiles/profiles.sqlite3"
 ```
 
-The two new POST JSON endpoints require `protocol: 1` and the exact service `build`:
+The profile POST JSON endpoints require `protocol: 1` and the exact service `build`:
 
 - `/v1/profiles/create`: body contains only `protocol` and `build`. Returns a
   service-issued `profile_id`, a one-time returned 256-bit bearer `credential`, four
@@ -335,9 +335,11 @@ The two new POST JSON endpoints require `protocol: 1` and the exact service `bui
 - `/v1/profiles/fetch`: body adds only `profile_id`; send the credential in the
   `Authorization: Bearer …` header, never the URL or a roster. Returns authoritative
   state without credential/hash. Wrong/missing/another profile's credential returns
-  the same `invalid_profile_credentials` (403). No mutation endpoints exist yet.
+  the same `invalid_profile_credentials` (403).
+- `/v1/profiles/open`: body adds `profile_id` and `box_id`; Bearer authentication
+  opens only that profile's saved box. See [opening](#authenticated-box-opening-task-623).
 
-Both use the existing 2 KiB body cap, 32 workers, 30 requests/minute backend backstop,
+All use the existing 2 KiB body cap, 32 workers, 30 requests/minute backend backstop,
 build checks and `Cache-Control: no-store`. Remote operation requires HTTPS termination;
 HTTP is only for loopback validation. A later separately approved proxy change must
 allowlist these exact routes and redact Authorization/request/response bodies. Current
@@ -367,15 +369,26 @@ A lost create response can leave an inaccessible empty starter profile; no rewar
 granted and no recovery guarantee is implied. Never print/copy credentials into logs,
 shell arguments, bug reports, exports or screenshots.
 
-For backup/restore, stop a **local** service before copying its SQLite file; retain
-private permissions and verify restoration with the same disposable test credential.
+For backup/restore, stop a **local** service and all its room writers before copying
+its SQLite file, or use SQLite's online backup API into a new private file; never
+copy a live database with ordinary `cp` (journals/WAL may hold committed data).
+Keep backups outside release trees, mode 0600 in a mode-0700 directory. Verify the
+backup's `PRAGMA quick_check` returns `ok`, `PRAGMA foreign_key_check` returns no
+rows and `PRAGMA user_version` matches the intended code. Restore only while all
+writers are stopped: preserve the current store first, then install the verified
+backup at the configured path with the service user's ownership and permissions.
+Do not mix database and journal/WAL files from different snapshots. Check a private
+restored copy with matching code and the same disposable test credential before
+resuming service; never put credentials or database contents in reports.
 Back up before first starting the upgraded local service: schema 1 → 2 is automatic.
 Older schema-1-only code rejects schema 2; there is no down-migration or lossless rollback
 of new reward receipts. Keep a pre-upgrade backup and matching code, but never restore
 it over newer shared data without approval and an explicit receipt-loss decision.
+Opening/equip use the existing schema 2: a rollback to schema-2-capable code must
+also understand every persisted catalog ID and receipt state; a matching schema
+number alone does not establish catalog/client compatibility.
 Do not delete shared data, migrate/deploy/restart a shared service or replace a damaged
-store without separate approval. Opening boxes and equipped mutations remain later
-tasks; see [transactional grants](#transactional-reward-grants-task-622).
+store without separate approval. See [transactional grants](#transactional-reward-grants-task-622).
 
 ### Identity-bound room admission (Task 6.1.2)
 
@@ -495,6 +508,50 @@ If a reply is lost, retry the same box ID. Authenticated fetch restores ownershi
 remaining sealed boxes after client/service restart. Fetch never creates a replacement
 identity, opens boxes, or equips an outfit. Skipping presentation cannot lose committed
 loot. The service store and original credential are both required for recovery.
+
+### Collection, reveal and lobby equipment (Phase 6 source builds)
+
+Open **COLLECTION** from the lobby or results to browse owned/locked outfits and
+their preview. Offline play offers the four starters only; it neither grants boxes
+nor treats offline choices as durable service ownership. Cosmetics do not change
+hitboxes, movement or reward eligibility. The published Phase 5 package above does
+not include this new source UI.
+
+Select a sealed box to inspect its saved grant-time pool and equal odds, then choose
+**OPEN FREE BOX**. There is no purchase, rarity tier, duplicate or reroll: owned
+outfits and other sealed reservations are excluded at grant time. Once all rewards
+are owned/reserved, there is no new drop. Reveal follows the committed receipt;
+**SKIP** or reduced motion changes presentation only. Retry a lost reply using the
+same box, or refresh the profile to recover ownership.
+
+Select an owned outfit and **EQUIP** in the lobby. Managed equipment requests are
+bound to the actual ENet sender's admitted profile, not a client-selected identity.
+The authority validates ownership and lobby state, persists the change, then
+acknowledges it before the roster/visuals update. Wait for that acknowledgement;
+equipment is not a local optimistic grant. No midmatch equipment change is allowed.
+Results can show the collection, but return to lobby before equipping.
+
+Anonymous credentials are service-scoped bearer secrets, not accounts: there is no
+password reset, account linking, trading or cross-service transfer. Keep the private
+client credential file and durable server store; losing either can lose access to
+earned outfits. A copied credential can impersonate its owner, and one profile
+cannot occupy multiple rooms/tickets simultaneously. Do not delete a rejected file
+to fix a timeout; retry or restore a verified private backup.
+
+For a future separately approved HTTPS rollout, allowlist POST
+`/v1/rooms/create`, `/v1/rooms/join`, `/v1/profiles/create`,
+`/v1/profiles/fetch` and `/v1/profiles/open` only. There is no public equip route:
+`/internal/equip` and all other `/internal/*` remain loopback/private-room-key only.
+Keep Authorization and bodies out of proxy logs and retain edge limits. Configure
+`--profile-store` to a separate durable SQLite path outside versioned bundles and
+disposable room directories; Linux bundles need their matching `room_service.py`
+and `cosmetic_catalog.json` as well as executable/PCK. Export committed HEAD only,
+with fresh output directories and matching Linux/Windows revisions/checksums.
+
+This preparation builds no packages and authorizes no new remote deployment,
+shared-store mutation or release. Historical deployment evidence and outstanding
+human/hardware acceptance (including existing waivers) remain unchanged; local
+source behavior is not new public profile-enabled capacity evidence.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate

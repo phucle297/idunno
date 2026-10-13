@@ -1,7 +1,7 @@
 # Disaster Party — Active Decisions
 
-Phase 6 is in progress: the Task 6.1.1 durable profile/store foundation is implemented.
-Admission binding, rewards, earned assets and cosmetic UI remain unimplemented. Root [progress](../progress.json)
+Phase 6 features and lifecycle are implemented; final local packaging remains active.
+Earlier pending statements below describe their recording-time baseline. Root [progress](../progress.json)
 owns the current state; [its checklist](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md)
 contains the detailed plan and task-level implementation evidence.
 
@@ -291,3 +291,40 @@ meteor-tornado captures inspected720p1080p. PCK93entries includes JSON and boots
 isolated; standalone service reads flat catalog. Export/deploy archive definitions
 include it, but no deployment ran. Full-release templates missing; restore for6.5.
 Native/GPU/Internet/human acceptance remains unclaimed. Continue6.4 equipment/UI.
+
+## 2026-10-13 — Milestone6.4 collection, reveal and equipment
+
+Persist lobby equipment under the actual admitted ENet sender's profile; acknowledge
+before reliable appearance updates. Freeze Start during SQL equipment writes. A transport
+timeout/5xx has unknown commit outcome, so the managed room fails closed and re-admission
+reads durable equipment rather than silently starting with mismatched avatars. Results→
+lobby uses the room-key-authenticated authority state, not lagging heartbeat joinability.
+Offline/player-hosted equipment remains starter-only; player colors/physics stay independent.
+
+Eight-item rotatable preview, owned/locked/equipped and sealed/opened/complete states
+use existing cream/slate UI. Saved grant-time odds differ from next-drop odds; sealed
+reservations remain private. Opening/reveal changes ownership only on an authenticated
+receipt, can skip/honor reduced motion, and does not block rematch. Real2client equipment
+lifecycle and34 service tests pass; seven states reviewed720p1080p with modal keyboard
+focus and35 rendered1080p assertions. Source committed/pushed with skipCI, not deployed.
+
+## 2026-10-13 — Milestone6.5 regression and measured performance
+
+Profile-enabled4/8/20 all pass real authority/client starter+earned appearance agreement,
+reward/open/equip, five rematches, owner departure and changed-peer-ID crash/retry.
+Fixture clock advances authoritative120s; no live human or production-capacity claim.
+Ongoing traffic exposed rate-limit retention beyond60s. Expire individual timestamps,
+preserving30/minute and1024-IP limits; a60s boundary regression fails old code and passes.
+Ready/Start races recurred in scale and equipment fixtures: require clients' Ready
+snapshots before invoking owner Start, not just authority readiness. No forced actions,
+sleep-based repairs or timeout relaxation; prevention recorded in the local advancing skill.
+Final34 service tests pass102.130s; full42-suite/five-matrix regression passes.
+
+Four overlap/preview measurements complete:4bodies3props2hazards120warmup600samples;
+stableUI and same preview/viewport/node count across10 reopens/40selections. llvmpipe
+LLVM15/Mesa22.3.6 p95 gameplay/preview89.15/102.66ms720p,138.25/168.07ms1080p.
+All profiler exits1 because60FPS target is NOT met. The gate is executed measurement/
+review, not hardware throughput acceptance. Preview+ACTIVE is synthetic stress; normal
+UI remains lobby/results-only. Xvfb cannot toggle physical VSync; no native pacing claim.
+Official4.7.2 templates restored withSHA512 verification. Local packages/restart validation
+remain next; no deployment/shared migration/release or new manual prerequisite.

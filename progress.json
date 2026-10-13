@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
     "milestone": "milestone_6_5_cosmetic_regression_and_handoff",
-    "task": "task_6_5_1_lifecycle_scale"
+    "task": "task_6_5_3_packages_handoff"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -47,7 +47,7 @@
     "title": "Cosmetic Loot-Box Drops and Customization",
     "status": "in_progress",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Identity, rewards/opening and faithful outfit assets are complete. Equipment, collection/reveal UI and final packages remain; no paid boxes, currencies, shops or stat changes.",
+    "goal": "Free earned boxes, four starter/four earned outfits, collection/reveal and acknowledged lobby equipment. Features and profile-enabled4/8/20 lifecycle are validated; measured performance and final local packages remain. No paid boxes, currencies, shops or stat changes.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -115,19 +115,40 @@
         "status": "in_progress",
         "dependencies": ["milestone_6_4_collection_reveal_and_equipment"],
         "tasks": {
-          "task_6_5_1_lifecycle_scale": {"title": "6.5.1 Full lifecycle and scale", "status": "in_progress"},
-          "task_6_5_2_performance_visual_review": {"title": "6.5.2 Performance/visual review", "status": "planned"},
-          "task_6_5_3_packages_handoff": {"title": "6.5.3 Matching local packages and operations notes", "status": "planned"}
+          "task_6_5_1_lifecycle_scale": {"title": "6.5.1 Full lifecycle and scale", "status": "completed"},
+          "task_6_5_2_performance_visual_review": {"title": "6.5.2 Performance/visual review", "status": "completed"},
+          "task_6_5_3_packages_handoff": {"title": "6.5.3 Matching local packages and operations notes", "status": "in_progress"}
         },
         "gates": {
-          "regression_managed_4_8_20_and_five_rematches": {"required": true, "status": "not_run"},
-          "measured_performance_and_reviewed_visuals": {"required": true, "status": "not_run"},
+          "regression_managed_4_8_20_and_five_rematches": {"required": true, "status": "passed", "evidence": "Full regression42suites/five matrices/legacymanaged20 passes; final service34 tests pass102.130s after rate-limit fix. Profile-enabled4/8/20 each validate starter/earned appearance at all clients+authority, reward/open/equip, five rematches, owner transfer, crash/retry and changed-peerID durable equipment. Latest4 also checks identical open replay. Loopback and accelerated120s authority clock only, no production capacity/Internet/human claim."},
+          "measured_performance_and_reviewed_visuals": {"required": true, "status": "passed", "evidence": "Measurement/review gate only, NOT60FPS. Compatibility llvmpipe LLVM15/Mesa22.3.6,4player bodies+3props+flood/tornado,120warmup600samples. p95 gameplay/preview=89.15/102.66ms720p and138.25/168.07ms1080p. All four profiler exits1 because target60fps_met=false; scenarios complete/UI nodes stable, same preview/viewport and node count across10 reopen/40selection cycles. Preview+ACTIVE overlap is synthetic stress, ordinary UI cannot open midmatch. VSync requested disabled; Xvfb driver warns toggling unsupported/no physical-vblank pacing claim. Seven UI states and gameplay renders inspected720p1080p; nativeGPU/human acceptance remains unverified/nonblocking under existing waiver."},
           "matching_local_packages_persistent_store_and_handoff": {"required": true, "status": "not_run"}
         }
       }
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-13",
+      "scope": "6.5.2 executed measurements and render review",
+      "status": "passed",
+      "commands": "xvfb-run godot --audio-driver Dummy --script res://tests/profile_overlap.gd -- --cosmetics [--preview] [--1080p]; view_media seven UI states720p1080p",
+      "result": "Measured all4 scenarios; each120warmup600samples,4bodies3props2hazards, stableUI/preview resources. p95 gameplay/preview89.15/102.66ms720p,138.25/168.07ms1080p. All profiler commands exit1 for unmet60FPS target, not script failures; measurement gate complete and target explicitly NOT passed. llvmpipeLLVM15/Mesa22.3.6; VSync requested disabled but Xvfb driver cannot toggle; no native throughput/pacing/human acceptance. Preview overlap stress is fixture-only (not allowed in ordinaryACTIVE). Logs .scratch/phase6-performance/{720p,1080p}-{gameplay,preview}.log. Final default/locked/sealed/unavailable/opened/complete/no-drop captures reviewed and no clipping; actualframebuffer asserted. Templates restored/verified; packaging next, no deployment."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.5.1 final lifecycle, scale and service regression",
+      "status": "passed",
+      "commands": "run_managed_scale_test.py --clients=4/8/20 --profiles serially; full service unittest34; tests/run_ui_regression.sh",
+      "result": "Profile4/8/20 all pass authority/client starter+earned outfit agreement, reward/open/equip/five-rematch/owner-transfer/crash-retry and durable changed-peerID recovery. Latest4 adds exact open replay. Fullservice34 pass102.130s and UIregression42/five matrices passed. One intervening fullservice run failed the same authority-only Ready fixture race in two-client rematch; final waits client snapshots before owner Start and passes without sleeps/timeouts/forced authority actions. Recovery recorded in advancing-disaster-party skill. Logs .scratch/phase6-ui/{scale4-replay,scale8-corrected,scale20-final,full-service-final-corrected,full-regression-final}.log. Measurements underway; no deploy/hardware acceptance."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.5 regression and profile scale hardening",
+      "status": "failed",
+      "commands": "tests/run_ui_regression.sh; run_managed_scale_test.py --clients=4/8 --profiles; unittest -k expiry_match_state",
+      "result": "Full UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed. Profile4 reward/open/equip/five-rematch/owner-transfer/crash-retry passes after fixture waits for client as well as authority Ready snapshots. Profile8 then exposed retained expired rate-limit requests under continuing traffic (429 despite2.1s spacing). Boundary regression fails unchanged code at60s, passes with per-request expired timestamp pruning;30/minute and1024-IP cap retained. Corrected profile8 run active. Official4.7.2 templates SHA512 verified/restored; packages not built yet. Logs .scratch/phase6-ui/{full-regression-final,scale4-final,scale8-final}.log."
+    },
     {
       "date": "2026-10-13",
       "scope": "6.4 equipment, collection/reveal implementation and initial regression",
@@ -303,5 +324,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Finish full regression and run profile-enabled4/8/20 scale serially; then measure outfit/preview performance and export matching local packages without deployment."
+  "next_action": "Commit validated source, repeat matching Linux/Windows exports and verify isolated packaged persistent-store/restart lifecycle; then archive completedPhase6 without inventing a next phase or deploying."
 }

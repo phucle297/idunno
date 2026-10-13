@@ -55,6 +55,10 @@ After every required milestone and gate passes:
 - For tween-duration assertions, pause the tween and use `custom_step` just before and after its specified duration. Wall-clock SceneTreeTimer waits intermittently disagree with rendered tween progress; do not lengthen waits or relax the duration to hide failures. Rerun headless and both rendered resolutions. Use a standalone review camera when SpringArm3D would overwrite its child's transform.
 - For native Windows throughput profiles, explicitly disable V-Sync in the profiler. Omitted `--max-fps` is not sufficient: refresh scheduling can produce false budget failures. Record resolution, renderer/GPU, player count, 120 warmup/600 samples, p95 and stable UI node identity; distinguish uncapped throughput from default-V-Sync frame pacing.
 
+## Managed Ready/Start Fixture Recovery
+
+If a managed fixture stays in LOBBY after Start, inspect both authority and owner's `can_start` snapshots. `start_network_match` rejects locally until its snapshot says all peers are ready; an authority-only wait can race reliable snapshot delivery after lobby return. Proven in both profile-scale and equipment rematches: wait for `can_start` at authority and all real clients before invoking the owner's Start, then require ACTIVE at every peer. Keep real RPCs and strict runtime checks; do not force server Start, add sleeps, retry blindly or lengthen state timeouts. Cover five rematches and changed-peer-ID recovery.
+
 ## Session Handoff
 
 Before stopping, ensure root `progress.json` names active-phase changed files, validation evidence, unresolved blockers, and the next action. Keep entries concise so the active file remains operational rather than becoming a cross-phase diary.
