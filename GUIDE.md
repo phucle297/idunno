@@ -343,8 +343,10 @@ HTTP is only for loopback validation. A later separately approved proxy change m
 allowlist these exact routes and redact Authorization/request/response bodies. Current
 public route policy is unchanged; do not expose `/internal/*` or enable profiles remotely.
 
-Schema 1 uses SQLite transactions to create the profile plus its starter ownership
-atomically. Only credential hashes are stored server-side. Store files are mode 0600;
+Schema 2 uses SQLite transactions to create profiles/starters and persist round/reward
+receipts atomically. Valid schema-1 stores upgrade transactionally without resetting
+identity, ownership or equipment. The durable ledger stores credential and room-instance
+key hashes, not raw secrets. Store files are mode 0600;
 an existing corrupt, incomplete or unsupported schema stops startup nonzero with
 `PROFILE_STORE_STARTUP_FAILED`, without resetting its contents. Missing/unreadable/locked
 storage during requests returns `profile_store_unavailable` (503), not empty ownership.
@@ -367,10 +369,13 @@ shell arguments, bug reports, exports or screenshots.
 
 For backup/restore, stop a **local** service before copying its SQLite file; retain
 private permissions and verify restoration with the same disposable test credential.
-No migration from other schema versions or rollback compatibility is implemented yet.
+Back up before first starting the upgraded local service: schema 1 → 2 is automatic.
+Older schema-1-only code rejects schema 2; there is no down-migration or lossless rollback
+of new reward receipts. Keep a pre-upgrade backup and matching code, but never restore
+it over newer shared data without approval and an explicit receipt-loss decision.
 Do not delete shared data, migrate/deploy/restart a shared service or replace a damaged
-store without separate approval. Reward/pending receipts and equipped mutations remain
-later tasks; `pending: []` here is not a claim of a working reward ledger.
+store without separate approval. Opening boxes and equipped mutations remain later
+tasks; see [transactional grants](#transactional-reward-grants-task-622).
 
 ### Identity-bound room admission (Task 6.1.2)
 
@@ -421,7 +426,7 @@ original TTL is still valid. New authenticated Create/Join succeeds.
 
 Keep these two pieces together across local restarts:
 
-- **Service:** the operator-selected schema-1 SQLite file outside temporary room and
+- **Service:** the operator-selected SQLite file outside temporary room and
   release directories. Back up only after stopping the local service; retain mode0600
   and its private parent. Retain the complete database, not just a copied profile ID.
 - **Client:** its private `user://profile-<service-URL-SHA256>.json` file and the exact
@@ -437,12 +442,45 @@ damaged file only from a verified private backup; shared writes/restarts need ap
 No cloud recovery or cross-device account system exists. Copying a valid bearer file
 transfers access, subject to the same one-ticket/one-peer restriction.
 
-The 21-test service suite verifies restart, wrong-profile/corrupt-file rejection,
+The original 21-test identity-foundation suite verifies restart, wrong-profile/corrupt-file rejection,
 unchanged victim state, no replacement profiles and no credentials/tokens in logs.
 Temporary fixture reports are private and deleted, not exports or review artifacts.
-Rewards, nonempty pending receipts and equip mutations remain unimplemented. No new
+Those foundation checks did not implement rewards; task 6.2.2 adds sealed receipts below.
+Box opening and equip mutations remain unimplemented. No new
 Windows ACL, public-Internet, hardware-performance, package or deployment claim follows
 from these local restart checks.
+
+### Transactional reward grants (Task 6.2.2)
+
+Only the managed profile-enabled authority calls loopback `/internal/round/start` and
+`/internal/round/finish` with its private room key. Never expose those routes publicly.
+Starts persist a unique ID, hashed instance, sequence, authenticated roster and match
+duration. Finish validates that binding and all participation facts. It atomically stores
+the canonical completion, one receipt per round/profile, and private item reservations.
+Identical replay returns the saved response; conflicting evidence cannot reroll.
+SQLite work runs outside the room registry lock, including when the store is busy.
+
+Standard 600-second matches may finish early through normal gameplay. A round needs
+at least two distinct start profiles and 120 seconds elapsed; each recipient needs
+60 seconds alive/connected ACTIVE play and no live departure. Eliminated players may
+depart without forfeiting. Solo, short/nonstandard rounds and live departures record
+explicit no-drop reasons. Winners do not improve odds. Each eligible profile receives
+one free sealed box while an unowned/unreserved outfit remains. Version-1 earned IDs
+are `raincoat`, `mechanic`, `park_ranger`, `meteor_observer`; the four starter IDs remain
+unchanged. These IDs establish the ledger contract, not new visual assets.
+
+Selection is uniform among the remaining outfits and saved at grant time. Each sealed
+receipt exposes its `box_id`, `round_id`, `state`, `catalog_version`, grant-time `pool`
+and exact `odds` numerator/denominator (1/4, 1/3, 1/2, 1/1). It does not expose the
+reserved item or add it to `owned`. Authenticated profile fetch returns pending boxes
+after reconnect/service restart; nothing opens or equips them yet.
+
+Godot retains frozen completion envelopes across rematches and retries transport/5xx
+failures while the room lives. Issuance is ordered; a lost start reply can recover the
+durable ID after a newer start. Invalid evidence is unavailable, not a local grant.
+Committed receipts survive restart, but unreported/uncommitted completions are not
+recoverable after room death. A restarted service rejects the old room key/registry.
+No UI, opening, remote store migration, proxy change, deployment or release is implied.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate

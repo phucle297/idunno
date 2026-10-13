@@ -54,7 +54,7 @@ func _start_participation() -> void:
 		peer_ids.append(peer_id)
 	_round_sequence += 1
 	_round_participation = {"sequence": _round_sequence, "round_id": "", "participants": roster,
-		"duration": 0.0, "finished": false}
+		"duration": 0.0, "match_duration": match_duration, "finished": false}
 	round_participation_started.emit(_round_sequence, peer_ids)
 
 

@@ -19,6 +19,8 @@ func _run() -> void:
 	_test_disconnect_winner()
 	_test_five_rematches()
 	_test_managed_participation()
+	if "--reward-test" in OS.get_cmdline_user_args():
+		await _test_reward_delivery()
 	if failures.is_empty():
 		print("MATCH_MANAGER_OK checks=%d" % checks)
 		quit(0)
@@ -185,6 +187,37 @@ func _test_managed_participation() -> void:
 	var local = _ready_manager([1, 2])
 	_expect(local.get_round_participation().is_empty(), "Unmanaged local/player-hosted play must not produce reward evidence")
 	local.free()
+
+
+func _test_reward_delivery() -> void:
+	var main = load("res://scenes/main.tscn").instantiate()
+	root.add_child(main)
+	main.set_physics_process(false)
+	main.disaster_director.cleanup()
+	_expect(main.host_game(0, 4, true) == OK, "Reward fixture must run actual managed admission on a dedicated authority")
+	var admission: Node = main.room_admission
+	for peer: String in admission.config.fixture_profiles:
+		admission.profile_ids[int(peer)] = admission.config.fixture_profiles[peer]
+		main.match_manager.register_player(int(peer), "Same name")
+	# Complete/rematch before the first HTTP reply; the delivery queue owns both copies.
+	for duration: float in [120.0, 119.99]:
+		main.match_manager.prepare_lobby()
+		for peer: int in main.match_manager.players:
+			main.match_manager.set_player_ready(peer, true)
+		main.match_manager.start_match()
+		main.match_manager.tick_match(duration)
+		main.match_manager.apply_damage(90, 100.0, "Meteor")
+	main.match_manager.prepare_lobby()
+	var deadline := Time.get_ticks_msec() + 7000
+	while not admission.reward_delivery.is_empty() and Time.get_ticks_msec() < deadline:
+		await process_frame
+	_expect(admission.reward_delivery.is_empty(), "Both frozen completions must acknowledge after the forced post-commit reply failure")
+	main.gameplay_audio.reset_for_match()
+	main.multiplayer.multiplayer_peer.close()
+	main.multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	main.free()
+	await process_frame
+	print("ROUND_REWARD_DELIVERY_OK frozen_rematch=passed acknowledgement=passed")
 
 
 func _expect(condition: bool, message: String) -> void:

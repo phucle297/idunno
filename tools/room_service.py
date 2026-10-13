@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import re
@@ -39,10 +40,12 @@ def normalize_id(value):
 class ProfileStore:
     """Durable ownership, separate from the disposable room registry.
 
-    Schema 1 provides starter state only. Reward receipts and equip mutations are
-    later phase tasks; callers cannot supply ownership when creating a profile.
+    Schema 2 adds immutable round completions and sealed reward reservations.
+    Callers cannot supply ownership or choose the reserved outfit.
     """
     STARTERS = ("plain", "cap", "hard_hat", "backpack")
+    EARNED = ("raincoat", "mechanic", "park_ranger", "meteor_observer")
+    CATALOG_VERSION = 1
 
     def __init__(self, path):
         self.path = Path(path).resolve()
@@ -69,7 +72,8 @@ class ProfileStore:
                     db.execute("CREATE TABLE owned (profile_id TEXT NOT NULL REFERENCES profiles(id), "
                                "cosmetic_id TEXT NOT NULL, PRIMARY KEY (profile_id, cosmetic_id))")
                     db.execute("PRAGMA user_version = 1")
-                if db.execute("PRAGMA user_version").fetchone()[0] != 1:
+                version = db.execute("PRAGMA user_version").fetchone()[0]
+                if version not in (1, 2):
                     raise ValueError("unsupported profile store schema; do not reset the store")
                 if db.execute("PRAGMA quick_check").fetchall() != [("ok",)] or db.execute("PRAGMA foreign_key_check").fetchall():
                     raise ValueError("invalid profile store; restore a verified backup")
@@ -80,6 +84,18 @@ class ProfileStore:
                 if db.execute("SELECT 1 FROM profiles p WHERE NOT EXISTS "
                               "(SELECT 1 FROM owned o WHERE o.profile_id=p.id AND o.cosmetic_id=p.equipped) LIMIT 1").fetchone():
                     raise ValueError("equipped cosmetic is not owned")
+                if version == 1:
+                    db.execute("CREATE TABLE rounds (id TEXT PRIMARY KEY, instance TEXT NOT NULL, "
+                               "sequence INTEGER NOT NULL, roster TEXT NOT NULL, match_duration REAL NOT NULL, "
+                               "completion TEXT, response TEXT, UNIQUE(instance, sequence))")
+                    db.execute("CREATE TABLE receipts (round_id TEXT NOT NULL REFERENCES rounds(id), "
+                               "profile_id TEXT NOT NULL REFERENCES profiles(id), box_id TEXT UNIQUE, "
+                               "cosmetic_id TEXT, pool TEXT NOT NULL, catalog_version INTEGER NOT NULL, "
+                               "state TEXT NOT NULL CHECK(state IN ('sealed','opened','no_drop')), reason TEXT NOT NULL, "
+                               "PRIMARY KEY(round_id, profile_id), UNIQUE(profile_id, cosmetic_id))")
+                    db.execute("PRAGMA user_version = 2")
+                db.execute("SELECT id, instance, sequence, roster, match_duration, completion, response FROM rounds LIMIT 0")
+                db.execute("SELECT round_id, profile_id, box_id, cosmetic_id, pool, catalog_version, state, reason FROM receipts LIMIT 0")
 
     def connect(self):
         db = sqlite3.connect(self.path.as_uri() + "?mode=rw", uri=True, timeout=2)
@@ -114,7 +130,118 @@ class ProfileStore:
                     "SELECT cosmetic_id FROM owned WHERE profile_id=? ORDER BY cosmetic_id", (profile_id,))]
                 if row[1] not in owned:
                     raise sqlite3.DatabaseError("equipped cosmetic is not owned")
-        return {"profile_id": profile_id, "owned": owned, "equipped": row[1], "pending": []}
+                pending = [self.public_box(*box) for box in db.execute(
+                    "SELECT box_id, round_id, pool, catalog_version FROM receipts "
+                    "WHERE profile_id=? AND state='sealed' ORDER BY rowid", (profile_id,))]
+        return {"profile_id": profile_id, "owned": owned, "equipped": row[1], "pending": pending}
+
+    @staticmethod
+    def public_box(box_id, round_id, pool, version):
+        pool = json.loads(pool)
+        return dict(box_id=box_id, round_id=round_id, state="sealed", pool=pool,
+                    catalog_version=version, odds=dict(numerator=1, denominator=len(pool)))
+
+    def register_round(self, instance, record):
+        with closing(self.connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT id,roster,match_duration FROM rounds WHERE instance=? AND sequence=?",
+                             (instance, record["sequence"])).fetchone()
+            if row is not None:
+                if sorted(map(int, json.loads(row[1]))) != record["peers"] or row[2] != record["match_duration"]:
+                    raise Rejected("conflicting_round", 409)
+                return row[0]
+            if "round_id" not in record:
+                raise Rejected("invalid_round_sequence", 409)
+            db.execute("INSERT INTO rounds(id,instance,sequence,roster,match_duration) VALUES (?,?,?,?,?)",
+                       (record["round_id"], instance, record["sequence"],
+                        json.dumps(record["roster"], sort_keys=True), record["match_duration"]))
+            return record["round_id"]
+
+    def finalize_round(self, instance, completion):
+        if not isinstance(completion, dict) or not isinstance(completion.get("round_id"), str):
+            raise Rejected("invalid_completion")
+        with closing(self.connect()) as db, db:
+            # Serialize pool selection as well as ownership writes across rooms.
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT instance,sequence,roster,match_duration,completion,response FROM rounds WHERE id=?",
+                             (completion["round_id"],)).fetchone()
+            if row is None or not hmac.compare_digest(instance, row[0]):
+                raise Rejected("invalid_round", 403)
+            roster = json.loads(row[2])
+            normalized = self.validate_completion(completion, row[1], roster, row[3])
+            frozen = json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+            if row[4] is not None:
+                if row[4] != frozen:
+                    raise Rejected("conflicting_completion", 409)
+                return json.loads(row[5])
+            receipts = []
+            for peer, profile_id in roster.items():
+                player = normalized["participants"][peer]
+                reason = "earned"
+                if row[3] != 600.0:
+                    reason = "nonstandard_round"
+                elif len(roster) < 2:
+                    reason = "not_enough_profiles"
+                elif normalized["duration"] < 120.0:
+                    reason = "round_too_short"
+                elif player["connected_duration"] < 60.0:
+                    reason = "participation_too_short"
+                elif player["departed_alive"]:
+                    reason = "left_alive"
+                unavailable = {value[0] for value in db.execute(
+                    "SELECT cosmetic_id FROM owned WHERE profile_id=? UNION "
+                    "SELECT cosmetic_id FROM receipts WHERE profile_id=? AND cosmetic_id IS NOT NULL",
+                    (profile_id, profile_id))}
+                pool = [item for item in self.EARNED if item not in unavailable]
+                if reason == "earned" and not pool:
+                    reason = "all_rewards_earned"
+                box_id = secrets.token_hex(16) if reason == "earned" else None
+                item = pool[secrets.randbelow(len(pool))] if box_id else None
+                pool_json = json.dumps(pool)
+                state = "sealed" if box_id else "no_drop"
+                db.execute("INSERT INTO receipts VALUES (?,?,?,?,?,?,?,?)",
+                           (completion["round_id"], profile_id, box_id, item, pool_json,
+                            self.CATALOG_VERSION, state, reason))
+                receipt = dict(profile_id=profile_id, reason=reason, state=state)
+                if box_id:
+                    receipt.update(self.public_box(box_id, completion["round_id"], pool_json, self.CATALOG_VERSION))
+                receipts.append(receipt)
+            response = dict(ok=True, round_id=completion["round_id"], receipts=receipts)
+            db.execute("UPDATE rounds SET completion=?,response=? WHERE id=?",
+                       (frozen, json.dumps(response), completion["round_id"]))
+            return response
+
+    @staticmethod
+    def validate_completion(value, sequence, roster, match_duration):
+        if (set(value) != {"round_id", "sequence", "participants", "duration", "match_duration", "finished"}
+                or type(value["sequence"]) is not int or value["sequence"] != sequence or value["finished"] is not True
+                or not isinstance(value["participants"], dict) or set(value["participants"]) != set(roster)):
+            raise Rejected("invalid_completion")
+        def number(number, low, high):
+            if type(number) not in (int, float) or not low <= number <= high or not math.isfinite(number):
+                raise Rejected("invalid_completion")
+            return float(number)
+        duration = number(value["duration"], 0, match_duration)
+        if number(value["match_duration"], 0, 3600) != match_duration:
+            raise Rejected("invalid_completion")
+        participants = {}
+        for peer, profile_id in roster.items():
+            player = value["participants"][peer]
+            if (not isinstance(player, dict) or set(player) != {"profile_id", "connected_duration", "elimination_time", "departure_time", "departed_alive"}
+                    or player["profile_id"] != profile_id or type(player["departed_alive"]) is not bool):
+                raise Rejected("invalid_completion")
+            death = number(player["elimination_time"], -1, duration)
+            departure = number(player["departure_time"], -1, duration)
+            connected = number(player["connected_duration"], 0, duration)
+            if (death < 0 and death != -1 or departure < 0 and departure != -1
+                    or death >= 0 and departure >= 0 and departure < death
+                    or player["departed_alive"] != (departure >= 0 and death < 0)
+                    or connected != min(duration, death if death >= 0 else duration, departure if departure >= 0 else duration)):
+                raise Rejected("invalid_completion")
+            participants[peer] = dict(profile_id=profile_id, connected_duration=connected,
+                                      elimination_time=death, departure_time=departure, departed_alive=player["departed_alive"])
+        return dict(round_id=value["round_id"], sequence=sequence, finished=True,
+                    match_duration=match_duration, duration=duration, participants=participants)
 
 
 class RoomService:
@@ -270,6 +397,8 @@ class RoomService:
             return self.issue(room, profile_id)
 
     def internal(self, action, data):
+        if action in ("round/start", "round/finish"):
+            return self.round_request(action, data)
         with self.lock:
             room_id = data.get("room_id")
             if not isinstance(room_id, str):
@@ -278,30 +407,6 @@ class RoomService:
             key = data.get("key", "")
             if room is None or not isinstance(key, str) or not hmac.compare_digest(key, room["key"]):
                 raise Rejected("invalid_server", 403)
-            if action == "round/start":
-                if self.profiles is None:
-                    raise Rejected("profiles_unavailable", 503)
-                sequence, peers = data.get("sequence"), data.get("peers")
-                if (type(sequence) is not int or sequence < 1 or not isinstance(peers, list)
-                        or not 1 <= len(peers) <= self.args.players
-                        or any(type(peer) is not int or peer <= 1 for peer in peers)
-                        or len(set(peers)) != len(peers)):
-                    raise Rejected("invalid_round")
-                previous = room.get("round", {})
-                # A retry uses the captured roster even if a heartbeat already
-                # removed a departed player; it cannot mint a second ID.
-                if sequence == previous.get("sequence") and sorted(peers) == previous["peers"]:
-                    return dict(ok=True, round_id=previous["round_id"])
-                # A failed earlier HTTP request must not disable all rematches.
-                if sequence <= previous.get("sequence", 0):
-                    raise Rejected("invalid_round_sequence", 409)
-                roster = {peer: room["peers"].get(peer, {}).get("profile_id", "") for peer in peers}
-                if any(not profile for profile in roster.values()) or len(set(roster.values())) != len(roster):
-                    raise Rejected("invalid_round_roster", 403)
-                room["round"] = dict(sequence=sequence, round_id=secrets.token_hex(16),
-                                     peers=sorted(peers), roster=roster)
-                room["joinable"] = False
-                return dict(ok=True, round_id=room["round"]["round_id"])
             if action == "heartbeat":
                 peers = data.get("peers")
                 if not isinstance(peers, list) or len(peers) > self.args.players or any(type(p) is not int or p <= 1 for p in peers):
@@ -325,6 +430,45 @@ class RoomService:
                 raise Rejected("invalid_admission", 403)
             room["peers"][peer] = {"deadline": time.monotonic() + 6, "profile_id": reservation["profile_id"]}
             return dict(ok=True, profile_id=reservation["profile_id"]) if self.profiles is not None else {"ok": True}
+
+    def round_request(self, action, data):
+        with self.lock:
+            room_id, key = data.get("room_id"), data.get("key")
+            room = self.rooms.get(room_id) if isinstance(room_id, str) else None
+            if self.closed or room is None or not isinstance(key, str) or not hmac.compare_digest(key, room["key"]):
+                raise Rejected("invalid_server", 403)
+            if self.profiles is None:
+                raise Rejected("profiles_unavailable", 503)
+            instance = hashlib.sha256(key.encode()).hexdigest()
+            if action == "round/start":
+                sequence, peers = data.get("sequence"), data.get("peers")
+                duration = data.get("match_duration", 600.0)
+                if (type(sequence) is not int or sequence < 1 or not isinstance(peers, list)
+                        or not 1 <= len(peers) <= self.args.players
+                        or any(type(peer) is not int or peer <= 1 for peer in peers)
+                        or len(set(peers)) != len(peers) or type(duration) not in (int, float)
+                        or not 0 < duration <= 3600 or not math.isfinite(duration)):
+                    raise Rejected("invalid_round")
+                previous = room.get("round", {})
+                if sequence == previous.get("sequence") and sorted(peers) == previous["peers"] and duration == previous["match_duration"]:
+                    record = previous
+                elif sequence < previous.get("sequence", 0):
+                    # Recover an issued ID after response loss and a fast rematch.
+                    record = dict(sequence=sequence, peers=sorted(peers), match_duration=float(duration))
+                else:
+                    if sequence <= previous.get("sequence", 0):
+                        raise Rejected("invalid_round_sequence", 409)
+                    roster = {peer: room["peers"].get(peer, {}).get("profile_id", "") for peer in peers}
+                    if any(not profile for profile in roster.values()) or len(set(roster.values())) != len(roster):
+                        raise Rejected("invalid_round_roster", 403)
+                    record = dict(sequence=sequence, round_id=secrets.token_hex(16),
+                                  peers=sorted(peers), roster=roster, match_duration=float(duration))
+                    room["round"] = record
+                    room["joinable"] = False
+        # SQLite must never stall room heartbeats/admission under the registry lock.
+        if action == "round/start":
+            return dict(ok=True, round_id=self.profiles.register_round(instance, record))
+        return self.profiles.finalize_round(instance, data.get("completion"))
 
     def remove(self, room):
         if self.rooms.get(room["id"]) is not room:
@@ -397,13 +541,13 @@ class Handler(BaseHTTPRequestHandler):
         status = 200
         try:
             size = int(self.headers.get("Content-Length", "0"))
-            if not 0 < size <= 2048:
+            if not 0 < size <= (16384 if self.path == "/internal/round/finish" else 2048):
                 raise Rejected("invalid_body")
             data = json.loads(self.rfile.read(size))
             if not isinstance(data, dict):
                 raise Rejected("invalid_body")
             service = self.server.service
-            if self.path in ("/internal/consume", "/internal/heartbeat", "/internal/round/start"):
+            if self.path in ("/internal/consume", "/internal/heartbeat", "/internal/round/start", "/internal/round/finish"):
                 if self.client_address[0] != "127.0.0.1":
                     raise Rejected("forbidden", 403)
                 result = service.internal(self.path.removeprefix("/internal/"), data)

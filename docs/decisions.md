@@ -214,3 +214,51 @@ keys are exercised. Broader regression passed 41 suites, five matrices, persiste
 restart and existing profile-disabled managed20 loopback; this is not profile-enabled
 reward scale or hardware/Internet acceptance. Task 6.2.1 is complete, reward gates
 remain not_run, and 6.2.2 is next. Commit/push with `[skip ci]` to avoid deployment.
+
+## 2026-10-13 — Task 6.2.2 transactional sealed reward grants
+
+The owner asks to continue. Keep the standalone service as the persistence owner;
+do not introduce an export dependency or mix loot policy into hazards/physics.
+Schema 2 upgrades valid schema-1 stores atomically, preserving profile credentials,
+owned starters and equipment. Persist each start's ID, hashed room instance, sequence,
+roster and configured duration so a later rematch cannot erase its authority binding.
+Newer starts remain allowed; identical older issued starts recover their durable ID
+without changing lobby joinability. No raw room key belongs in the durable ledger.
+
+Completion accepts only bound identities and internally consistent finite timing facts.
+Normal 600-second configuration, two distinct start profiles, ≥120 elapsed seconds,
+≥60 alive/connected ACTIVE seconds and no live departure determine eligibility.
+Death preserves eligibility; names/winners/difficulty cannot improve odds. Solo,
+nonstandard/short rounds, short participation, live departure and exhausted inventory
+receive saved no-drop reasons, not empty boxes. Aborted/unreported rounds do not grant.
+
+Use one `BEGIN IMMEDIATE` transaction for canonical completion, `(round, profile)`
+receipts and item reservations. A repeated identical completion returns its saved
+response; a conflicting completion rejects. Serialize pool selection across rooms,
+with a unique profile/item constraint as a second invariant. The four starter IDs stay
+unchanged; version-1 earned IDs are raincoat, mechanic, park_ranger and meteor_observer.
+Select uniformly with `secrets.randbelow` over neither-owned-nor-reserved IDs. Persist
+the grant-time pool/version and private item; expose only box metadata and exact 1/N
+odds until opening. Profile fetch recovers sealed boxes without unlocking/equipping.
+
+Godot queues copied completion envelopes across rematches, even completion before
+the start HTTP reply. Serialize ID issuance, bind by sequence and retry transport/5xx
+failures while the room lives. Invalid evidence is terminal/unavailable, not a local
+grant. A room crash loses uncommitted payloads; committed receipts survive service
+restart, but the old room key cannot submit again to the restarted registry. SQLite
+I/O remains outside the registry lock. No UI/open/equip/assets, public proxy/store
+migration, deployment/release, capacity change or mandatory human check is authorized.
+
+First full service regression passes all 29 tests, including six reward fixtures,
+actual Godot→HTTP→SQLite frozen delivery with forced post-commit acknowledgement
+failure and real service restart with nonempty sealed receipts. Controlled selection
+indices and four concurrent grants prove pool depletion without flaky frequency tests.
+Busy-store heartbeat returns in 0.056ms while reward SQL remains blocked; failed
+migration rolls back its partial table and preserves schema-1 identities/equipment.
+Final hardening adds replay/lobby isolation and non-default migration/tie checks.
+Final service regression passes all 29 tests in 87.288s; broader regression passes
+41 suites, five matrices, persistence restart and profile-disabled managed20 loopback.
+Permitted shutdown-only resource diagnostics are not hidden script/runtime failures.
+Task 6.2.2 and eligibility/odds/authority gate are complete; the combined grants/open/
+restart gate waits for 6.2.3. No profile-enabled reward-scale, human/GPU/Internet or
+new package/deployment claim. Commit/push with `[skip ci]`; opening/recovery is next.

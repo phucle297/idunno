@@ -9,6 +9,7 @@ var last_success := 0.0
 var client_token := ""
 var pending: Dictionary = {}
 var profile_ids: Dictionary = {} # Authority-only peer -> service-validated identity.
+var reward_delivery: Dictionary = {} # Frozen start/completion envelopes until acknowledgement.
 
 
 func configure_server(owner: Node, path: String) -> Error:
@@ -29,6 +30,7 @@ func configure_server(owner: Node, path: String) -> Error:
 	if config.get("profiles_enabled", false):
 		main.match_manager.managed_profile_ids = profile_ids
 		main.match_manager.round_participation_started.connect(_start_round)
+		main.match_manager.match_finished.connect(_finish_round)
 	heartbeat = HTTPRequest.new()
 	heartbeat.timeout = 2.0
 	add_child(heartbeat)
@@ -71,25 +73,62 @@ func _forget_peer(peer: int) -> void:
 func _start_round(sequence: int, peer_ids: Array[int]) -> void:
 	if not main.multiplayer.is_server():
 		return
+	reward_delivery[sequence] = {"peers": peer_ids.duplicate(), "match_duration": main.match_manager.match_duration,
+		"round_id": "", "completion": {}, "in_flight": false, "retry_at": 0.0}
+	_submit_round(sequence)
+
+
+func _finish_round(_winners: Array[int]) -> void:
+	if not main.multiplayer.is_server():
+		return
+	var record: Dictionary = main.match_manager.get_round_participation(true)
+	if not record.is_empty() and reward_delivery.has(record.sequence):
+		reward_delivery[record.sequence].completion = record # Copy remains frozen across rematches.
+
+
+func _submit_round(sequence: int) -> void:
+	var delivery: Dictionary = reward_delivery[sequence]
+	var starting: bool = delivery.round_id.is_empty()
+	if delivery.in_flight or (not starting and delivery.completion.is_empty()):
+		return
+	if starting:
+		for earlier: int in reward_delivery:
+			if earlier < sequence and reward_delivery[earlier].round_id.is_empty():
+				return # Preserve issuance order even during same-frame rematches.
+	delivery.in_flight = true
 	var request := HTTPRequest.new()
 	request.timeout = 2.0
-	request.body_size_limit = 4096
+	request.body_size_limit = 65536
 	request.max_redirects = 0
 	add_child(request)
 	var payload := config.duplicate()
-	payload["sequence"] = sequence
-	payload["peers"] = peer_ids
+	var action := "round/start" if starting else "round/finish"
+	if starting:
+		payload["sequence"] = sequence
+		payload["peers"] = delivery.peers
+		payload["match_duration"] = delivery.match_duration
+	else:
+		var completion: Dictionary = delivery.completion.duplicate(true)
+		completion.round_id = delivery.round_id
+		payload["completion"] = completion
 	request.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 		var json := JSON.new()
 		var valid: bool = result == HTTPRequest.RESULT_SUCCESS and code == 200 and json.parse(body.get_string_from_utf8()) == OK and json.data is Dictionary and json.data.get("ok") == true and json.data.get("round_id") is String and RegEx.create_from_string("^[0-9a-f]{32}$").search(json.data.round_id) != null
-		if valid:
-			# Completion may occur during HTTP flight; never bind to a rematch.
+		if valid and starting:
+			delivery.round_id = json.data.round_id
 			main.match_manager.bind_round_id(sequence, json.data.round_id)
-		else:
-			print("ROUND_PARTICIPATION_UNAVAILABLE sequence=%d" % sequence)
+		elif valid and json.data.round_id == delivery.round_id and json.data.get("receipts") is Array:
+			reward_delivery.erase(sequence)
+			print("ROUND_REWARDS_COMMITTED sequence=%d receipts=%d" % [sequence, json.data.receipts.size()])
+		elif result == HTTPRequest.RESULT_SUCCESS and code >= 400 and code < 500:
+			reward_delivery.erase(sequence) # Invalid evidence cannot be repaired by retrying.
+			print("ROUND_REWARDS_UNAVAILABLE sequence=%d" % sequence)
+		delivery.in_flight = false
+		delivery.retry_at = Time.get_ticks_msec() / 1000.0 + 1.0
 		request.queue_free())
-	if request.request(config.url + "round/start", ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
-		print("ROUND_PARTICIPATION_UNAVAILABLE sequence=%d" % sequence)
+	if request.request(config.url + action, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
+		delivery.in_flight = false
+		delivery.retry_at = Time.get_ticks_msec() / 1000.0 + 1.0
 		request.queue_free()
 
 
@@ -144,6 +183,9 @@ func _process(delta: float) -> void:
 		# Fail closed on service loss/restart; room tokens/registry are in-memory.
 		get_tree().quit(1)
 		return
+	for sequence: int in reward_delivery.keys():
+		if Time.get_ticks_msec() / 1000.0 >= reward_delivery[sequence].retry_at:
+			_submit_round(sequence)
 	elapsed -= delta
 	if elapsed > 0.0 or heartbeat.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
 		return

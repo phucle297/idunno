@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
     "milestone": "milestone_6_2_authoritative_cosmetic_rewards",
-    "task": "task_6_2_2_transactional_grants"
+    "task": "task_6_2_3_open_recovery"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -47,7 +47,7 @@
     "title": "Cosmetic Loot-Box Drops and Customization",
     "status": "in_progress",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Milestone 6.1 identity/store/admission and integrated restart/isolation, and task 6.2.1 authoritative participation are complete. Durable rewards, new outfits and cosmetic UI remain planned; no paid boxes, currencies, shops or stat changes.",
+    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Milestone 6.1 identity/store/admission, 6.2.1 authoritative participation and 6.2.2 durable sealed reward grants are complete. Box opening, earned visual outfits, equipment and cosmetic UI remain planned; no paid boxes, currencies, shops or stat changes.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -74,11 +74,11 @@
         "dependencies": ["milestone_6_1_cosmetic_loot_drops_and_customization"],
         "tasks": {
           "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "completed"},
-          "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "planned"},
+          "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "completed"},
           "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "planned"}
         },
         "gates": {
-          "eligibility_odds_and_authority": {"required": true, "status": "not_run"},
+          "eligibility_odds_and_authority": {"required": true, "status": "passed", "evidence": "29 service tests pass: exact 59.99/60 and 119.99/120 boundaries, distinct authenticated start bindings, death/tie/live departure, solo/nonstandard rounds, malformed/spoofed/conflicting completion, owned/reserved exhaustion, every initial RNG index, fractions 1/4→1/1 and four concurrent no-duplicate reservations. Real Godot authority→HTTP→SQLite frozen rematches and post-commit acknowledgement retry preserve eligibility and one grant per profile/round. No human play, full profile-enabled scale or cosmetic assets/UI claim."},
           "idempotent_grants_open_and_restart": {"required": true, "status": "not_run"}
         }
       },
@@ -232,6 +232,20 @@
       "status": "passed",
       "commands": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; jq empty progress.json; git diff --check; inline Python tracking invariants",
       "result": "UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed; MATCH_MANAGER_OK checks=69; real dedicated authority/movement/recovery/five-rematch checks pass. Managed20 is existing profile-disabled loopback coverage, not profile-enabled rewards/Internet/hardware acceptance. Runner-permitted shutdown-only resource diagnostics remain distinct from script/runtime failures. Log: .scratch/phase6-participation/ui-regression.log. Task 6.2.1 complete; Milestone 6.2 remains in_progress with reward gates not_run. Next task is 6.2.2 transactional completion/receipts, not opening/UI. No grants, new packages, deployment, shared data migration, release or human prerequisite; prior delivery/waiver/archive payloads unchanged."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.2.2 transactional grants and full service regression",
+      "status": "passed",
+      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k Rewards -v; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "result": "Clean Godot import; six targeted reward tests pass, then all 29 service tests passed in 87.015s. Schema 2 atomically migrates valid schema-1 profiles, persists room-instance-hashed round starts, frozen completions and unique profile/round receipts; committed sealed boxes survive real service process restart through authenticated HTTP fetch. Eligibility boundaries, death/live leave, solo/nonstandard rounds, malformed/spoofed/conflicting completion, replay after rematch/store reopen, failure before commit, four concurrent no-duplicate grants, all-owned/all-reserved and every initial RNG index pass. Real Godot authority plus real HTTP/SQLite delivers two same-frame rematches before IDs return; injected post-commit acknowledgement failure retries without duplicate grants, with exactly one pending box per profile and the 119.99s round ineligible. Fixture injects already validated identities and advances the authority clock; it is not two minutes of human/live-client play. Existing real profile/ENet/client restart/crash-retry tests pass. Expected occupied-port startup errors are deliberate fixtures, not unexpected runtime errors. No box-open/equip/UI/assets, shared migration/deployment or release. Log: .scratch/phase6-grants/full-service.log. Broader gameplay regression and lock/rollback/catalog hardening review are pending."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.2.2 final hardening, storage isolation and task closure",
+      "status": "passed",
+      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; inline SQLite exclusive-lock/migration-failure probes; jq empty progress.json; git diff --check; tracking/Markdown assertions",
+      "result": "Final 29 service tests passed in 87.288s, including recovered start IDs preserving newer lobby joinability, simultaneous elimination rewards and migration retaining non-default cap. UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed; managed20 remains profile-disabled loopback, not reward scale/hardware/Internet acceptance. Expected occupied-port startup fixture errors and runner-permitted shutdown-only resource diagnostics are distinct from runtime failures. REWARD_BUSY_STORE_HEARTBEAT_OK heartbeat_ms=0.056 pending=1 while SQL stayed blocked; REWARD_MIGRATION_ROLLBACK_OK schema=1 identities_and_equipment=unchanged partial_rounds_table=absent. Logs: .scratch/phase6-grants/{final-service,ui-regression}.log. Schema-1-only rollback cannot read schema 2; documented pre-upgrade private backup and no lossless down-migration. Task 6.2.2 and eligibility/odds/authority gate complete; combined grants/open/restart gate remains not_run until 6.2.3. No open/equip/UI/assets, new package, shared data operation, deployment, release or human prerequisite; prior delivery/waiver/archive payloads preserved."
     }
   ],
   "blockers": [],
@@ -268,5 +282,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Implement task_6_2_2_transactional_grants: validate room-instance round IDs and immutable finalized participation, persist completion plus unique round/profile receipts and item reservations atomically, establish the stable reward catalog/pool, and prove timing boundaries, replay/conflict/concurrency and restart recovery; no box opening, cosmetic UI/assets or deployment."
+  "next_action": "Implement task_6_2_3_open_recovery: authenticated sealed-box opening must atomically unlock the already reserved item, persist an immutable open receipt, and replay identically after concurrent requests, lost replies and service/client restart; recover pending boxes without rerolls or extra grants, and keep equip/UI/assets/deployment out of scope."
 }

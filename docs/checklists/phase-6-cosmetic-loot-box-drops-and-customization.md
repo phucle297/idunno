@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestone 6.1 and round participation (6.2.1) completed; transactional grants (6.2.2) are next**.
+Status: **in progress — Milestone 6.1, participation (6.2.1) and sealed grants (6.2.2) completed; open/recovery (6.2.3) is next**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -107,15 +107,24 @@ and the service-owned cosmetic store. Keep reward policy outside disaster/health
   two-client Start issues a bound roster/ID. Death/leave and 59.99/60, 119.99/120 timing,
   immutable copies, replay/stale ID, replacement keys and five rematches are covered.
   Full regression: 41 suites, five matrices, persistence restart and profile-disabled
-  managed20 loopback pass. No durable completion/grants yet; records are in-memory and
-  missing IDs fail closed. Logs: `.scratch/phase6-participation/`.
-- [ ] **6.2.2 Commit grants transactionally.** Only the authenticated managed process can
+  managed20 loopback pass. At that delivery, no durable completion/grants existed;
+  missing IDs failed closed. Logs: `.scratch/phase6-participation/`. 6.2.2 adds persistence below.
+- [x] **6.2.2 Commit grants transactionally.** Only the authenticated managed process can
   submit its finalized round. Validate roster, eligibility and catalog; commit immutable
   completion plus unique `(round_id, profile_id)` receipts/reservations in one transaction.
   Replayed identical completion returns existing receipts; conflicting payload is rejected.
   Serialize concurrent rounds for one profile so they cannot reserve the same item.
   Establish the eight stable catalog IDs/pool metadata here; their visual assets follow in
   6.3. Persist each box's grant-time pool/odds, and keep its reserved item private until open.
+  Evidence (2026-10-13): all 29 service tests and full 41-suite/five-matrix regression
+  pass. Schema 1 → 2 preserves identity/non-default equip; migration failure rolls back.
+  Tests cover boundary/tie/death/leave, invalid/spoofed/conflicting completion, replay,
+  rollback before commit, post-commit acknowledgement failure in real Godot→HTTP→SQLite,
+  four concurrent no-duplicate grants, every initial selection index, exhausted pools
+  and real service restart with sealed receipts. Busy-store heartbeat stays responsive.
+  Authenticated fetch exposes saved box/pool/version/1/N odds, not the reserved item.
+  No opening/equip/UI/assets or shared migration/deployment. See [operations](../../GUIDE.md#transactional-reward-grants-task-622)
+  and `.scratch/phase6-grants/{final-service,ui-regression}.log`.
 - [ ] **6.2.3 Open/recover.** Authenticated open atomically changes sealed → opened/owned
   and returns the persisted item. Concurrent opens, response loss and restart cannot
   reroll or grant twice. Fetch pending receipts after reconnect; skipped reveal is not lost loot.
@@ -125,6 +134,8 @@ and the service-owned cosmetic store. Keep reward policy outside disaster/health
 all-reserved, forged completion, same-room/new-round and same-round/replay. Force failure
 before commit and response loss after commit, then restart and check the durable ledger.
 Use integer selection boundaries with controlled RNG in tests, not flaky frequency assertions.
+Grant eligibility/odds/authority has passed; the combined grants/open/restart gate
+remains `not_run` until 6.2.3 proves authenticated exactly-once opening.
 
 **Failure contract:** committed receipts survive client/service restarts. A completed payload
 not yet committed cannot be recovered after its room process dies; do not claim crash-proof

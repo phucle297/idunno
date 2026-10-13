@@ -15,7 +15,7 @@ import threading
 import time
 from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -101,7 +101,9 @@ class Contract(unittest.TestCase):
             self.room["peers"].clear()
             self.assertEqual(self.room["round"]["roster"], captured)
             self.assertEqual(self.service.internal("round/start", dict(data, sequence=6)), response)
-            self.rejects("invalid_round_sequence", lambda: self.service.internal("round/start", data))
+            self.room["joinable"] = True
+            self.assertIn(self.service.internal("round/start", data)["round_id"], ids)
+            self.assertTrue(self.room["joinable"], "Recovering an old ID must not close a newer lobby")
             # Replacement at the same room ID/port has a new key and fresh sequence.
             self.service.rooms["ALPHA"] = dict(self.room, key="replacement-key", round={},
                                                peers={90: {"profile_id": profiles[0], "deadline": 0}})
@@ -175,6 +177,195 @@ class Contract(unittest.TestCase):
                     handler.send_response.assert_called_once_with(404)
 
 
+class Rewards(unittest.TestCase):
+    """Service contracts against a disposable, real SQLite store."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.path = Path(self.directory.name) / "profiles.sqlite3"
+        self.service = RoomService(settings(profile_store=self.path, players=4))
+        self.addCleanup(self.service.close)
+        self.room = dict(id="ALPHA", key="reward-server-key", port=29820, tokens={}, peers={},
+                         round={}, joinable=True, ready=threading.Event(), heartbeat=time.monotonic(), empty_since=time.monotonic())
+        self.service.rooms["ALPHA"] = self.room
+        self.addCleanup(self.service.rooms.clear)
+        self.sequence = 0
+        self.new_players()
+
+    def new_players(self, count=2):
+        self.room["peers"].clear()
+        self.room["joinable"] = True
+        self.identities = [self.service.profiles.create() for _ in range(count)]
+        for peer, identity in enumerate(self.identities, 90):
+            token = self.service.issue(self.room, identity["profile_id"])["token"]
+            self.service.internal("consume", dict(room_id="ALPHA", key=self.room["key"], peer=peer, token=token))
+
+    def round(self, duration=120.0, match_duration=600.0):
+        self.sequence += 1
+        response = self.service.internal("round/start", dict(room_id="ALPHA", key=self.room["key"],
+                         sequence=self.sequence, peers=list(self.room["peers"]), match_duration=match_duration))
+        return dict(round_id=response["round_id"], sequence=self.sequence, duration=duration,
+                    match_duration=match_duration, finished=True, participants={
+                        str(peer): dict(profile_id=value["profile_id"], connected_duration=duration,
+                                       elimination_time=-1.0, departure_time=-1.0, departed_alive=False)
+                        for peer, value in self.room["peers"].items()})
+
+    def finish(self, completion, key=None):
+        return self.service.internal("round/finish", dict(room_id="ALPHA", key=key or self.room["key"], completion=completion))
+
+    def fetch(self, index=0):
+        identity = self.identities[index]
+        return self.service.profile(False, dict(protocol=1, build="development", profile_id=identity["profile_id"]),
+                                    "Bearer " + identity["credential"])
+
+    def rejects(self, code, call):
+        with self.assertRaises(Rejected) as error:
+            call()
+        self.assertEqual(error.exception.code, code)
+
+    def test_eligibility_boundaries_death_and_live_departure(self):
+        cases = [(119.99, -1, -1, "round_too_short"), (120, 59.99, -1, "participation_too_short"),
+                 (120, 60, -1, "earned"), (120, 60, 80, "earned"), (120, -1, 120, "left_alive")]
+        for duration, death, departure, reason in cases:
+            with self.subTest(duration=duration, death=death, departure=departure):
+                self.new_players()
+                value = self.round(duration)
+                value["participants"]["90"].update(elimination_time=death, departure_time=departure,
+                    departed_alive=departure >= 0 and death < 0,
+                    connected_duration=min(duration, death if death >= 0 else duration, departure if departure >= 0 else duration))
+                response = self.finish(value)
+                self.assertEqual(response["receipts"][0]["reason"], reason)
+                self.assertEqual(len(self.fetch()["pending"]), int(reason == "earned"))
+        self.new_players()
+        tie = self.round()
+        for player in tie["participants"].values():
+            player["elimination_time"] = 120
+        self.assertEqual([receipt["reason"] for receipt in self.finish(tie)["receipts"]], ["earned", "earned"])
+        self.new_players(1)
+        self.assertEqual(self.finish(self.round())["receipts"][0]["reason"], "not_enough_profiles")
+        self.new_players()
+        self.assertEqual(self.finish(self.round(match_duration=120))["receipts"][0]["reason"], "nonstandard_round")
+
+    def test_forged_conflicting_completion_and_response_loss(self):
+        value = self.round()
+        self.rejects("invalid_server", lambda: self.finish(value, "wrong-key"))
+        for field, invalid in (("duration", float("nan")), ("duration", True), ("duration", 601), ("finished", False),
+                               ("participants", {}), ("sequence", True)):
+            self.rejects("invalid_completion", lambda: self.finish(dict(value, **{field: invalid})))
+        forged = json.loads(json.dumps(value))
+        forged["participants"]["90"]["profile_id"] = self.identities[1]["profile_id"]
+        self.rejects("invalid_completion", lambda: self.finish(forged))
+        forged = json.loads(json.dumps(value))
+        forged["participants"]["90"].update(departure_time=70, connected_duration=70, departed_alive=False)
+        self.rejects("invalid_completion", lambda: self.finish(forged))
+        result = self.finish(value) # The caller can lose this reply after commit.
+        self.round() # Newer start cannot invalidate the previous completion.
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            self.assertEqual(list(pool.map(lambda _: self.finish(value), range(4))), [result] * 4)
+        self.assertEqual(len(self.fetch()["pending"]), 1)
+        altered = json.loads(json.dumps(value))
+        altered["participants"]["90"]["elimination_time"] = 120
+        self.rejects("conflicting_completion", lambda: self.finish(altered))
+        self.service.profiles = ProfileStore(self.path)
+        self.assertEqual(self.finish(value), result)
+        self.assertEqual(len(self.fetch()["pending"]), 1)
+        self.room["key"] = "replacement-key"
+        self.rejects("invalid_round", lambda: self.finish(value))
+
+    def test_atomic_rollback_before_commit(self):
+        value = self.round()
+        with sqlite3.connect(self.path) as db:
+            db.execute("CREATE TRIGGER fail_receipt BEFORE INSERT ON receipts WHEN NEW.profile_id='%s' "
+                       "BEGIN SELECT RAISE(ABORT, 'fixture failure'); END" % self.identities[1]["profile_id"])
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.finish(value)
+        self.assertEqual(self.fetch()["pending"], [])
+        self.assertEqual(self.fetch(1)["pending"], [])
+        with sqlite3.connect(self.path) as db:
+            self.assertIsNone(db.execute("SELECT completion FROM rounds WHERE id=?", (value["round_id"],)).fetchone()[0])
+            db.execute("DROP TRIGGER fail_receipt")
+        self.assertTrue(all(receipt["state"] == "sealed" for receipt in self.finish(value)["receipts"]))
+
+    def test_uniform_index_boundaries_owned_and_reserved_exhaustion(self):
+        earned = ["raincoat", "mechanic", "park_ranger", "meteor_observer"]
+        for index in range(4):
+            self.new_players()
+            with patch("tools.room_service.secrets.randbelow", return_value=index):
+                first = self.finish(self.round())["receipts"][0]
+            with patch("tools.room_service.secrets.randbelow", return_value=0):
+                second = self.finish(self.round())["receipts"][0]
+            self.assertEqual(first["pool"], earned)
+            self.assertEqual(first["odds"], dict(numerator=1, denominator=4))
+            self.assertEqual(second["pool"], [item for item in earned if item != earned[index]])
+            self.assertEqual(second["odds"], dict(numerator=1, denominator=3))
+            self.assertNotIn("cosmetic_id", first, "Reserved item must stay private until open")
+        self.new_players()
+        values = [self.round() for _ in range(4)]
+        with patch("tools.room_service.secrets.randbelow", return_value=0), ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(self.finish, values))
+        self.assertEqual(sorted(result["receipts"][0]["odds"]["denominator"] for result in results), [1, 2, 3, 4])
+        self.assertEqual(len(self.fetch()["pending"]), 4)
+        self.assertEqual(self.finish(self.round())["receipts"][0]["reason"], "all_rewards_earned")
+        self.new_players()
+        with sqlite3.connect(self.path) as db:
+            db.executemany("INSERT INTO owned VALUES (?,?)", [(self.identities[0]["profile_id"], item) for item in earned])
+        self.assertEqual(self.finish(self.round())["receipts"][0]["reason"], "all_rewards_earned")
+        self.assertEqual(self.fetch()["pending"], [])
+
+    def test_schema_one_upgrade_preserves_profile(self):
+        with sqlite3.connect(self.path) as db:
+            db.execute("UPDATE profiles SET equipped='cap' WHERE id=?", (self.identities[0]["profile_id"],))
+        before = self.fetch()
+        with sqlite3.connect(self.path) as db:
+            db.execute("DROP TABLE receipts")
+            db.execute("DROP TABLE rounds")
+            db.execute("PRAGMA user_version=1")
+        self.service.profiles = ProfileStore(self.path)
+        self.assertEqual(self.fetch(), before)
+        self.finish(self.round())
+        self.assertEqual(len(self.fetch()["pending"]), 1)
+
+    def test_godot_frozen_delivery_retries_after_commit(self):
+        server = Server(("127.0.0.1", 0), self.service)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        config = Path(self.directory.name) / "room.json"
+        config.write_text(json.dumps(dict(room_id="ALPHA", key=self.room["key"], build="development", capacity=4,
+            profiles_enabled=True, url=f"http://127.0.0.1:{server.server_port}/internal/",
+            fixture_profiles={str(peer): value["profile_id"] for peer, value in self.room["peers"].items()})))
+        config.chmod(0o600)
+        finalize = self.service.profiles.finalize_round
+        failed_once = threading.Event()
+        def lost_reply(instance, completion):
+            result = finalize(instance, completion)
+            if not failed_once.is_set():
+                failed_once.set()
+                raise sqlite3.OperationalError("fixture post-commit acknowledgement failure")
+            return result
+        self.service.profiles.finalize_round = lost_reply
+        try:
+            result = subprocess.run([settings().godot, "--headless", "--path", str(ROOT),
+                "--script", "res://tests/test_match_manager.gd", "--", "--reward-test", f"--room-config={config}"],
+                capture_output=True, text=True, timeout=14)
+            output = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("ROUND_REWARD_DELIVERY_OK", output)
+            self.assertNotIn("ROUND_REWARDS_UNAVAILABLE", output)
+            self.assertNotIn("SCRIPT ERROR", output)
+            self.assertEqual([line for line in output.splitlines() if line.startswith("ERROR:")
+                              and "resources still in use at exit" not in line], [], output)
+            self.assertTrue(failed_once.is_set(), "Fixture must reach post-commit failure, not just bypass it")
+            for index in range(2):
+                self.assertEqual(len(self.fetch(index)["pending"]), 1, "120s grant must survive the 119.99s rematch and retry without duplication")
+            with sqlite3.connect(self.path) as db:
+                self.assertEqual(db.execute("SELECT COUNT(*) FROM rounds WHERE completion IS NOT NULL").fetchone()[0], 2)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=3)
+
+
 class Profiles(unittest.TestCase):
     """Public HTTP contract against a real service process and persistent file."""
 
@@ -245,7 +436,7 @@ class Profiles(unittest.TestCase):
         self.stop()
         # Non-default persisted equipment fixture, not an implemented equip API.
         with sqlite3.connect(self.store) as db:
-            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 1)
+            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 2)
             self.assertEqual(db.execute("SELECT credential_hash FROM profiles WHERE id=?", (first["profile_id"],)).fetchone()[0],
                              hashlib.sha256(first["credential"].encode()).hexdigest())
             db.execute("UPDATE profiles SET equipped='cap' WHERE id=?", (first["profile_id"],))
@@ -260,6 +451,31 @@ class Profiles(unittest.TestCase):
         self.assertEqual(other["equipped"], "plain")
         self.assertNotIn("credential", restored)
         self.assertNotIn("credential_hash", restored)
+
+    def test_nonempty_reward_receipts_survive_real_service_restart(self):
+        first, second = self.post("create"), self.post("create")
+        self.stop()
+        store = ProfileStore(self.store)
+        round_id = "a" * 32
+        store.register_round("fixture-instance", dict(round_id=round_id, sequence=1, peers=[90, 91], match_duration=600,
+            roster={90: first["profile_id"], 91: second["profile_id"]}))
+        store.finalize_round("fixture-instance", dict(round_id=round_id, sequence=1, duration=120,
+            match_duration=600, finished=True, participants={str(peer): dict(profile_id=identity["profile_id"],
+                connected_duration=120, elimination_time=-1, departure_time=-1, departed_alive=False)
+                for peer, identity in ((90, first), (91, second))}))
+        self.start()
+        query = dict(self.data, profile_id=first["profile_id"])
+        before = self.post("fetch", query, first["credential"])
+        self.assertEqual(len(before["pending"]), 1)
+        self.assertEqual(before["pending"][0]["pool"], ["raincoat", "mechanic", "park_ranger", "meteor_observer"])
+        self.assertEqual(before["pending"][0]["odds"], dict(numerator=1, denominator=4))
+        self.assertNotIn("cosmetic_id", before["pending"][0])
+        self.stop()
+        self.start()
+        self.assertEqual(self.post("fetch", query, first["credential"]), before)
+        self.assertEqual(self.post("/internal/round/finish", dict(room_id="ALPHA", key="fixture-instance"), status=403)["error"], "invalid_server")
+        for identity in (first, second):
+            self.assertNotIn(identity["credential"], self.log.read_text())
 
     def test_godot_client_restart_preserves_credentials_and_rejects_reset(self):
         path = Path(self.directory.name) / "client-profile.json"
