@@ -1,200 +1,207 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://game/player/toy_character_visual.gd" id="1_loqi5"]
-[ext_resource type="Material" path="res://assets/materials/MAT_Cream_v001.tres" id="2_x1c73"]
-[ext_resource type="Material" path="res://assets/materials/MAT_Cyan_v001.tres" id="3_bfjj2"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Cyan_v001.tres" id="2_x1c73"]
+[ext_resource type="Material" path="res://assets/materials/MAT_Cream_v001.tres" id="3_bfjj2"]
 [ext_resource type="Material" path="res://assets/materials/MAT_Slate_v001.tres" id="4_nn63l"]
 [ext_resource type="Material" path="res://assets/materials/MAT_Ink_v001.tres" id="5_ph8gc"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_omqrs"]
 material = ExtResource("2_x1c73")
-radius = 0.24
-height = 0.43
+radius = 0.28
+height = 1.1
 radial_segments = 8
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_jy7im"]
-material = ExtResource("3_bfjj2")
-size = Vector3(0.43, 0.52, 0.28)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_6wst3"]
-material = ExtResource("3_bfjj2")
-radius = 0.09
-height = 0.48
-radial_segments = 12
+[sub_resource type="SphereMesh" id="SphereMesh_jy7im"]
+material = ExtResource("2_x1c73")
+radius = 0.26
+height = 0.44
+radial_segments = 8
 rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_6wst3"]
+material = ExtResource("3_bfjj2")
+size = Vector3(0.3, 0.34, 0.04)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_80txc"]
-material = ExtResource("3_bfjj2")
-radius = 0.1
-height = 0.56
-radial_segments = 12
-rings = 4
-
-[sub_resource type="BoxMesh" id="BoxMesh_g7n46"]
-material = ExtResource("4_nn63l")
-size = Vector3(0.2, 0.16, 0.24)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_fg08o"]
-material = ExtResource("3_bfjj2")
+material = ExtResource("2_x1c73")
 radius = 0.09
-height = 0.48
+height = 0.3
 radial_segments = 12
 rings = 4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_g7n46"]
+material = ExtResource("2_x1c73")
+radius = 0.09
+height = 0.52
+radial_segments = 12
+rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_fg08o"]
+material = ExtResource("4_nn63l")
+size = Vector3(0.22, 0.16, 0.26)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_sytos"]
-material = ExtResource("3_bfjj2")
-radius = 0.1
-height = 0.56
+material = ExtResource("2_x1c73")
+radius = 0.09
+height = 0.3
 radial_segments = 12
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_rb77b"]
-material = ExtResource("4_nn63l")
-size = Vector3(0.2, 0.16, 0.24)
-
-[sub_resource type="SphereMesh" id="SphereMesh_jy6dd"]
-material = ExtResource("5_ph8gc")
-radius = 0.035
-height = 0.07
-radial_segments = 8
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_rb77b"]
+material = ExtResource("2_x1c73")
+radius = 0.09
+height = 0.52
+radial_segments = 12
 rings = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_jy6dd"]
+material = ExtResource("4_nn63l")
+size = Vector3(0.22, 0.16, 0.26)
 
 [sub_resource type="SphereMesh" id="SphereMesh_vprjr"]
 material = ExtResource("5_ph8gc")
 radius = 0.035
-height = 0.07
+height = 0.06
 radial_segments = 8
 rings = 4
 
-[sub_resource type="BoxMesh" id="BoxMesh_l6jc8"]
+[sub_resource type="SphereMesh" id="SphereMesh_l6jc8"]
 material = ExtResource("5_ph8gc")
-size = Vector3(0.09, 0.025, 0.018)
+radius = 0.035
+height = 0.06
+radial_segments = 8
+rings = 4
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1gvxh"]
+[sub_resource type="BoxMesh" id="BoxMesh_1gvxh"]
+material = ExtResource("5_ph8gc")
+size = Vector3(0.1, 0.03, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yw0yg"]
 albedo_color = Color(0.28627452, 0.3372549, 0.41568628, 1)
 roughness = 0.8
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_yw0yg"]
-material = SubResource("StandardMaterial3D_1gvxh")
-top_radius = 0.22
-bottom_radius = 0.25
+[sub_resource type="CylinderMesh" id="CylinderMesh_w7x83"]
+material = SubResource("StandardMaterial3D_yw0yg")
+top_radius = 0.24
+bottom_radius = 0.3
 height = 0.12
 radial_segments = 12
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w7x83"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u35bq"]
 albedo_color = Color(1, 0.7490196, 0.24705882, 1)
 roughness = 0.8
 
-[sub_resource type="SphereMesh" id="SphereMesh_u35bq"]
-material = SubResource("StandardMaterial3D_w7x83")
-radius = 0.27
-height = 0.22
+[sub_resource type="SphereMesh" id="SphereMesh_3rhvq"]
+material = SubResource("StandardMaterial3D_u35bq")
+radius = 0.28
+height = 0.24
 radial_segments = 12
 rings = 4
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3rhvq"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8dhnv"]
 albedo_color = Color(0.8509804, 0.5529412, 0.49019608, 1)
 roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_8dhnv"]
-material = SubResource("StandardMaterial3D_3rhvq")
+[sub_resource type="BoxMesh" id="BoxMesh_q3kx7"]
+material = SubResource("StandardMaterial3D_8dhnv")
 size = Vector3(0.34, 0.4, 0.18)
 
-[sub_resource type="BoxMesh" id="BoxMesh_q3kx7"]
-material = SubResource("StandardMaterial3D_w7x83")
-size = Vector3(0.48, 0.5, 0.06)
+[sub_resource type="BoxMesh" id="BoxMesh_m2h12"]
+material = SubResource("StandardMaterial3D_u35bq")
+size = Vector3(0.5, 0.5, 0.08)
 
-[sub_resource type="TorusMesh" id="TorusMesh_m2h12"]
-material = SubResource("StandardMaterial3D_w7x83")
-inner_radius = 0.2
-outer_radius = 0.27
+[sub_resource type="TorusMesh" id="TorusMesh_rqdjg"]
+material = SubResource("StandardMaterial3D_u35bq")
+inner_radius = 0.24
+outer_radius = 0.32
 rings = 12
 ring_segments = 6
-
-[sub_resource type="BoxMesh" id="BoxMesh_rqdjg"]
-material = SubResource("StandardMaterial3D_w7x83")
-size = Vector3(0.46, 0.4, 0.06)
 
 [sub_resource type="BoxMesh" id="BoxMesh_8jjgk"]
-material = SubResource("StandardMaterial3D_w7x83")
-size = Vector3(0.46, 0.06, 0.34)
+material = SubResource("StandardMaterial3D_u35bq")
+size = Vector3(0.48, 0.42, 0.08)
 
 [sub_resource type="BoxMesh" id="BoxMesh_455ai"]
-material = SubResource("StandardMaterial3D_1gvxh")
-size = Vector3(0.46, 0.1, 0.32)
+material = SubResource("StandardMaterial3D_u35bq")
+size = Vector3(0.48, 0.08, 0.38)
 
 [sub_resource type="BoxMesh" id="BoxMesh_i0hxg"]
-material = SubResource("StandardMaterial3D_3rhvq")
-size = Vector3(0.13, 0.18, 0.12)
+material = SubResource("StandardMaterial3D_yw0yg")
+size = Vector3(0.48, 0.1, 0.34)
 
 [sub_resource type="BoxMesh" id="BoxMesh_tfsom"]
-material = SubResource("StandardMaterial3D_1gvxh")
-size = Vector3(0.32, 0.09, 0.06)
+material = SubResource("StandardMaterial3D_8dhnv")
+size = Vector3(0.13, 0.18, 0.12)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xl3cf"]
+[sub_resource type="BoxMesh" id="BoxMesh_xl3cf"]
+material = SubResource("StandardMaterial3D_yw0yg")
+size = Vector3(0.3, 0.1, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ji051"]
 albedo_color = Color(0.4509804, 0.7176471, 0.6784314, 1)
 roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_ji051"]
-material = SubResource("StandardMaterial3D_xl3cf")
+[sub_resource type="BoxMesh" id="BoxMesh_26kpe"]
+material = SubResource("StandardMaterial3D_ji051")
 size = Vector3(0.1, 0.06, 0.025)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_26kpe"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qm4gb"]
 albedo_color = Color(0.4509804, 0.7176471, 0.6784314, 1)
 roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_qm4gb"]
-material = SubResource("StandardMaterial3D_26kpe")
+[sub_resource type="BoxMesh" id="BoxMesh_twelh"]
+material = SubResource("StandardMaterial3D_qm4gb")
 size = Vector3(0.1, 0.06, 0.025)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_twelh"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0434v"]
 albedo_color = Color(0.8509804, 0.7176471, 0.49411765, 1)
 roughness = 0.8
 
-[sub_resource type="TorusMesh" id="TorusMesh_0434v"]
-material = SubResource("StandardMaterial3D_twelh")
-inner_radius = 0.12
-outer_radius = 0.33
+[sub_resource type="TorusMesh" id="TorusMesh_8lvmu"]
+material = SubResource("StandardMaterial3D_0434v")
+inner_radius = 0.14
+outer_radius = 0.36
 rings = 12
 ring_segments = 6
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8lvmu"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lhew3"]
 albedo_color = Color(0.8509804, 0.7176471, 0.49411765, 1)
 roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_lhew3"]
-material = SubResource("StandardMaterial3D_8lvmu")
-size = Vector3(0.32, 0.13, 0.3)
+[sub_resource type="BoxMesh" id="BoxMesh_hhyd0"]
+material = SubResource("StandardMaterial3D_lhew3")
+size = Vector3(0.34, 0.14, 0.32)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hhyd0"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8ysnc"]
 albedo_color = Color(0.5254902, 0.6627451, 0.40784314, 1)
 roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_8ysnc"]
-material = SubResource("StandardMaterial3D_hhyd0")
+[sub_resource type="BoxMesh" id="BoxMesh_kphuv"]
+material = SubResource("StandardMaterial3D_8ysnc")
 size = Vector3(0.3, 0.32, 0.14)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kphuv"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3rmvk"]
 albedo_color = Color(0.95686275, 0.9019608, 0.78431374, 1)
 roughness = 0.8
 
-[sub_resource type="TorusMesh" id="TorusMesh_3rmvk"]
-material = SubResource("StandardMaterial3D_kphuv")
-inner_radius = 0.22
-outer_radius = 0.28
+[sub_resource type="TorusMesh" id="TorusMesh_lkrs8"]
+material = SubResource("StandardMaterial3D_3rmvk")
+inner_radius = 0.24
+outer_radius = 0.31
 rings = 12
 ring_segments = 6
 
-[sub_resource type="BoxMesh" id="BoxMesh_lkrs8"]
-material = SubResource("StandardMaterial3D_1gvxh")
+[sub_resource type="BoxMesh" id="BoxMesh_t42s4"]
+material = SubResource("StandardMaterial3D_yw0yg")
 size = Vector3(0.32, 0.34, 0.16)
 
-[sub_resource type="BoxMesh" id="BoxMesh_t42s4"]
-material = SubResource("StandardMaterial3D_w7x83")
-size = Vector3(0.04, 0.22, 0.04)
+[sub_resource type="BoxMesh" id="BoxMesh_fkd8b"]
+material = SubResource("StandardMaterial3D_u35bq")
+size = Vector3(0.04, 0.24, 0.04)
 
-[sub_resource type="Animation" id="Animation_fkd8b"]
+[sub_resource type="Animation" id="Animation_hptll"]
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -217,7 +224,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -229,7 +236,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -241,7 +248,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -253,7 +260,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -265,7 +272,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -277,7 +284,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -289,7 +296,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -301,7 +308,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -313,7 +320,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -325,7 +332,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -337,7 +344,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -349,7 +356,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -361,7 +368,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -373,7 +380,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -385,7 +392,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -397,7 +404,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -409,7 +416,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -421,7 +428,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -472,7 +479,7 @@ tracks/22/keys = {
 "values": [Vector3(0, 0, 0), Vector3(-0.12, 0, 0), Vector3(0, 0, 0), Vector3(-0.12, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_hptll"]
+[sub_resource type="Animation" id="Animation_snyyb"]
 length = 2.0
 loop_mode = 1
 tracks/0/type = "value"
@@ -497,7 +504,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -509,7 +516,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -521,7 +528,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -533,7 +540,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -545,7 +552,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -557,7 +564,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -569,7 +576,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -581,7 +588,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -593,7 +600,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -605,7 +612,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -617,7 +624,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -629,7 +636,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -641,7 +648,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -653,7 +660,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -665,7 +672,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -677,7 +684,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -689,7 +696,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -701,7 +708,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -752,7 +759,7 @@ tracks/22/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_snyyb"]
+[sub_resource type="Animation" id="Animation_nhp6g"]
 length = 0.8
 loop_mode = 1
 tracks/0/type = "value"
@@ -777,7 +784,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -789,7 +796,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -801,7 +808,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -813,7 +820,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -825,7 +832,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -837,7 +844,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -849,7 +856,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -861,7 +868,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -873,7 +880,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -885,7 +892,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -897,7 +904,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -909,7 +916,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -921,7 +928,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -933,7 +940,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -945,7 +952,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -957,7 +964,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -969,7 +976,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -981,7 +988,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -1032,7 +1039,7 @@ tracks/22/keys = {
 "values": [Vector3(0.45, 0, 0), Vector3(-0.45, 0, 0), Vector3(0.45, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_nhp6g"]
+[sub_resource type="Animation" id="Animation_qkd2v"]
 length = 0.6
 loop_mode = 1
 tracks/0/type = "value"
@@ -1057,7 +1064,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -1069,7 +1076,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -1081,7 +1088,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -1093,7 +1100,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -1105,7 +1112,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -1117,7 +1124,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -1129,7 +1136,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -1141,7 +1148,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -1153,7 +1160,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -1165,7 +1172,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -1177,7 +1184,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -1189,7 +1196,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -1201,7 +1208,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -1213,7 +1220,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -1225,7 +1232,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -1237,7 +1244,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -1249,7 +1256,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -1261,7 +1268,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -1312,7 +1319,7 @@ tracks/22/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_qkd2v"]
+[sub_resource type="Animation" id="Animation_5rirf"]
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -1335,7 +1342,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -1347,7 +1354,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -1359,7 +1366,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -1371,7 +1378,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -1383,7 +1390,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -1395,7 +1402,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -1407,7 +1414,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -1419,7 +1426,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -1431,7 +1438,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -1443,7 +1450,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -1455,7 +1462,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -1467,7 +1474,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -1479,7 +1486,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -1491,7 +1498,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -1503,7 +1510,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -1515,7 +1522,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -1527,7 +1534,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -1539,7 +1546,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -1590,7 +1597,7 @@ tracks/22/keys = {
 "values": [Vector3(0.5, 0, 0), Vector3(-0.5, 0, 0), Vector3(0.5, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_5rirf"]
+[sub_resource type="Animation" id="Animation_0oxxo"]
 length = 2.0
 loop_mode = 1
 tracks/0/type = "value"
@@ -1615,7 +1622,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -1627,7 +1634,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -1639,7 +1646,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -1651,7 +1658,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -1663,7 +1670,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -1675,7 +1682,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -1687,7 +1694,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -1699,7 +1706,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -1711,7 +1718,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -1723,7 +1730,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -1735,7 +1742,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -1747,7 +1754,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -1759,7 +1766,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -1771,7 +1778,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -1783,7 +1790,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -1795,7 +1802,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -1807,7 +1814,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -1819,7 +1826,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -1870,7 +1877,7 @@ tracks/22/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_0oxxo"]
+[sub_resource type="Animation" id="Animation_brqdr"]
 length = 0.8
 loop_mode = 1
 tracks/0/type = "value"
@@ -1895,7 +1902,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -1907,7 +1914,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -1919,7 +1926,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -1931,7 +1938,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -1943,7 +1950,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -1955,7 +1962,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -1967,7 +1974,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -1979,7 +1986,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -1991,7 +1998,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -2003,7 +2010,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -2015,7 +2022,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -2027,7 +2034,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -2039,7 +2046,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -2051,7 +2058,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -2063,7 +2070,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -2075,7 +2082,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -2087,7 +2094,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -2099,7 +2106,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -2150,7 +2157,7 @@ tracks/22/keys = {
 "values": [Vector3(0.45, 0, 0), Vector3(-0.45, 0, 0), Vector3(0.45, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_brqdr"]
+[sub_resource type="Animation" id="Animation_fpc6q"]
 length = 2.0
 loop_mode = 1
 tracks/0/type = "value"
@@ -2175,7 +2182,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -2187,7 +2194,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -2199,7 +2206,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -2211,7 +2218,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -2223,7 +2230,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -2235,7 +2242,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -2247,7 +2254,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -2259,7 +2266,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -2271,7 +2278,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -2283,7 +2290,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -2295,7 +2302,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -2307,7 +2314,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -2319,7 +2326,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -2331,7 +2338,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -2343,7 +2350,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -2355,7 +2362,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -2367,7 +2374,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -2379,7 +2386,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -2430,7 +2437,7 @@ tracks/22/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_fpc6q"]
+[sub_resource type="Animation" id="Animation_uq7u7"]
 length = 0.15
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -2454,7 +2461,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -2466,7 +2473,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -2478,7 +2485,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -2490,7 +2497,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -2502,7 +2509,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -2514,7 +2521,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -2526,7 +2533,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -2538,7 +2545,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -2550,7 +2557,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -2562,7 +2569,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -2574,7 +2581,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -2586,7 +2593,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -2598,7 +2605,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -2610,7 +2617,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -2622,7 +2629,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -2634,7 +2641,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -2646,7 +2653,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -2658,7 +2665,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -2709,7 +2716,7 @@ tracks/22/keys = {
 "values": [Vector3(0.25, 0, 0), Vector3(-0.25, 0, 0), Vector3(0.25, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_uq7u7"]
+[sub_resource type="Animation" id="Animation_rnau3"]
 length = 0.2
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -2733,7 +2740,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -2745,7 +2752,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -2757,7 +2764,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -2769,7 +2776,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -2781,7 +2788,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -2793,7 +2800,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -2805,7 +2812,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -2817,7 +2824,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -2829,7 +2836,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -2841,7 +2848,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -2853,7 +2860,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -2865,7 +2872,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -2877,7 +2884,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -2889,7 +2896,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -2901,7 +2908,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -2913,7 +2920,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -2925,7 +2932,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -2937,7 +2944,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -2988,7 +2995,7 @@ tracks/22/keys = {
 "values": [Vector3(0.4, 0, 0), Vector3(-0.4, 0, 0), Vector3(0.4, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_rnau3"]
+[sub_resource type="Animation" id="Animation_s0dfa"]
 length = 0.55
 loop_mode = 1
 tracks/0/type = "value"
@@ -3013,7 +3020,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -3025,7 +3032,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -3037,7 +3044,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -3049,7 +3056,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -3061,7 +3068,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -3073,7 +3080,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -3085,7 +3092,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -3097,7 +3104,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -3109,7 +3116,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -3121,7 +3128,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -3133,7 +3140,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -3145,7 +3152,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -3157,7 +3164,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -3169,7 +3176,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -3181,7 +3188,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -3193,7 +3200,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -3205,7 +3212,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -3217,7 +3224,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -3268,7 +3275,7 @@ tracks/22/keys = {
 "values": [Vector3(0.75, 0, 0), Vector3(-0.75, 0, 0), Vector3(0.75, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_s0dfa"]
+[sub_resource type="Animation" id="Animation_ihvav"]
 length = 0.3
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -3316,7 +3323,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.0592405, 0.20037797), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.1034737, 0.13945596), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -3328,70 +3335,142 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.0193546, 0.17022642), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 0.99631387, 0.1286493), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("Accessories/FieldPack:transform")
+tracks/5/path = NodePath("Accessories/RainHood:transform")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.062004, 0.20998852), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1), Transform3D(1, 0, 0, 0, 0.27635562, -0.96105546, 0, 0.96105546, 0.27635562, 0, 1.1897211, -0.031018034), Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
 tracks/6/enabled = true
-tracks/6/path = NodePath("Accessories/ObservationPack:transform")
+tracks/6/path = NodePath("Accessories/HoodBack:transform")
 tracks/6/interp = 1
 tracks/6/loop_wrap = true
 tracks/6/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.0647676, 0.21959907), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.2147169, 0.12827794), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
 tracks/7/enabled = true
-tracks/7/path = NodePath("Accessories/Antenna:transform")
+tracks/7/path = NodePath("Accessories/Goggles:transform")
 tracks/7/interp = 1
 tracks/7/loop_wrap = true
 tracks/7/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0.12, 1.3530842, 0.13669237), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.1726446, -0.37988535), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
 tracks/8/enabled = true
-tracks/8/path = NodePath("LeftLeg:rotation")
+tracks/8/path = NodePath("Accessories/GoggleLens-1:transform")
 tracks/8/interp = 1
 tracks/8/loop_wrap = true
 tracks/8/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0, 0), Vector3(0.3, 0, 0), Vector3(0, 0, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, -0.085, 1.162143, -0.41640544), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
 tracks/9/enabled = true
-tracks/9/path = NodePath("RightLeg:rotation")
+tracks/9/path = NodePath("Accessories/GoggleLens1:transform")
 tracks/9/interp = 1
 tracks/9/loop_wrap = true
 tracks/9/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0.085, 1.162143, -0.41640544), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
+}
+tracks/10/type = "value"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath("Accessories/FieldPack:transform")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.0581844, 0.1628843), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
+}
+tracks/11/type = "value"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("Accessories/ObserverHelmet:transform")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08), Transform3D(1, 0, 0, 0, 0.27635562, -0.96105546, 0, 0.96105546, 0.27635562, 0, 1.2130257, -0.05852984), Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
+}
+tracks/12/type = "value"
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/path = NodePath("Accessories/ObservationPack:transform")
+tracks/12/interp = 1
+tracks/12/loop_wrap = true
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0, 1.060948, 0.17249483), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
+}
+tracks/13/type = "value"
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/path = NodePath("Accessories/Antenna:transform")
+tracks/13/interp = 1
+tracks/13/loop_wrap = true
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26), Transform3D(1, 0, 0, 0, 0.96105546, 0.27635565, 0, -0.27635565, 0.96105546, 0.13, 1.3877069, 0.0785339), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
+}
+tracks/14/type = "value"
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/path = NodePath("LeftLeg:rotation")
+tracks/14/interp = 1
+tracks/14/loop_wrap = true
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0.3, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/path = NodePath("RightLeg:rotation")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
 "values": [Vector3(0, 0, 0), Vector3(-0.3, 0, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_ihvav"]
+[sub_resource type="Animation" id="Animation_2w37i"]
 length = 0.8
 loop_mode = 1
 tracks/0/type = "value"
@@ -3416,7 +3495,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -3428,7 +3507,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -3440,7 +3519,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -3452,7 +3531,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -3464,7 +3543,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -3476,7 +3555,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -3488,7 +3567,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -3500,7 +3579,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -3512,7 +3591,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -3524,7 +3603,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -3536,7 +3615,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -3548,7 +3627,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -3560,7 +3639,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -3572,7 +3651,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -3584,7 +3663,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -3596,7 +3675,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -3608,7 +3687,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -3620,7 +3699,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -3671,7 +3750,7 @@ tracks/22/keys = {
 "values": [Vector3(0.45, 0, 0), Vector3(-0.45, 0, 0), Vector3(0.45, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_2w37i"]
+[sub_resource type="Animation" id="Animation_4iph2"]
 length = 1.2
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -3695,7 +3774,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -3707,7 +3786,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -3719,7 +3798,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -3731,7 +3810,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -3743,7 +3822,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -3755,7 +3834,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -3767,7 +3846,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -3779,7 +3858,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -3791,7 +3870,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -3803,7 +3882,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -3815,7 +3894,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -3827,7 +3906,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -3839,7 +3918,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -3851,7 +3930,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -3863,7 +3942,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -3875,7 +3954,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)]
+"values": [Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -3887,7 +3966,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -3899,7 +3978,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)]
+"values": [Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -3914,84 +3993,88 @@ tracks/19/keys = {
 "values": [Vector3(0, 0, 0), Vector3(2.5, 0, -0.5), Vector3(2.5, 0, -0.85), Vector3(2.5, 0, -0.15), Vector3(2.5, 0, -0.85), Vector3(2.5, 0, -0.35), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_4iph2"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_peyo1"]
 _data = {
-&"cheer": SubResource("Animation_fkd8b"),
-&"crouch_idle": SubResource("Animation_hptll"),
-&"crouch_walk": SubResource("Animation_snyyb"),
-&"falling": SubResource("Animation_nhp6g"),
-&"get_up": SubResource("Animation_qkd2v"),
-&"holding_idle": SubResource("Animation_5rirf"),
-&"holding_walk": SubResource("Animation_0oxxo"),
-&"idle": SubResource("Animation_brqdr"),
-&"jump_takeoff": SubResource("Animation_fpc6q"),
-&"landing": SubResource("Animation_uq7u7"),
-&"run": SubResource("Animation_rnau3"),
-&"shove": SubResource("Animation_s0dfa"),
-&"walk": SubResource("Animation_ihvav"),
-&"wave": SubResource("Animation_2w37i")
+&"cheer": SubResource("Animation_hptll"),
+&"crouch_idle": SubResource("Animation_snyyb"),
+&"crouch_walk": SubResource("Animation_nhp6g"),
+&"falling": SubResource("Animation_qkd2v"),
+&"get_up": SubResource("Animation_5rirf"),
+&"holding_idle": SubResource("Animation_0oxxo"),
+&"holding_walk": SubResource("Animation_brqdr"),
+&"idle": SubResource("Animation_fpc6q"),
+&"jump_takeoff": SubResource("Animation_uq7u7"),
+&"landing": SubResource("Animation_rnau3"),
+&"run": SubResource("Animation_s0dfa"),
+&"shove": SubResource("Animation_ihvav"),
+&"walk": SubResource("Animation_2w37i"),
+&"wave": SubResource("Animation_4iph2")
 }
 
 [node name="CHR_Base_v001" type="Node3D"]
 script = ExtResource("1_loqi5")
 metadata/generator_seed = 297
-metadata/generator_version = 5
+metadata/generator_version = 6
 
 [node name="Head" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.385, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
 mesh = SubResource("SphereMesh_omqrs")
 
 [node name="Torso" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
-mesh = SubResource("BoxMesh_jy7im")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+mesh = SubResource("SphereMesh_jy7im")
+
+[node name="FacePlate" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.245)
+mesh = SubResource("BoxMesh_6wst3")
 
 [node name="LeftArm" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 1.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 1.06, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="LeftArm"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
-mesh = SubResource("CapsuleMesh_6wst3")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13, 0)
+mesh = SubResource("CapsuleMesh_80txc")
 
 [node name="LeftLeg" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.7, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="LeftLeg"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, 0)
-mesh = SubResource("CapsuleMesh_80txc")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.26, 0)
+mesh = SubResource("CapsuleMesh_g7n46")
 
 [node name="LeftShoe" type="MeshInstance3D" parent="LeftLeg"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.025)
-mesh = SubResource("BoxMesh_g7n46")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.43, -0.03)
+mesh = SubResource("BoxMesh_fg08o")
 
 [node name="RightArm" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 1.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 1.06, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="RightArm"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
-mesh = SubResource("CapsuleMesh_fg08o")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13, 0)
+mesh = SubResource("CapsuleMesh_sytos")
 
 [node name="RightLeg" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 0.7, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="RightLeg"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, 0)
-mesh = SubResource("CapsuleMesh_sytos")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.26, 0)
+mesh = SubResource("CapsuleMesh_rb77b")
 
 [node name="RightShoe" type="MeshInstance3D" parent="RightLeg"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.025)
-mesh = SubResource("BoxMesh_rb77b")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.43, -0.03)
+mesh = SubResource("BoxMesh_jy6dd")
 
 [node name="LeftEye" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 1.43, -0.215)
-mesh = SubResource("SphereMesh_jy6dd")
-
-[node name="RightEye" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 1.43, -0.215)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 1.24, -0.26)
 mesh = SubResource("SphereMesh_vprjr")
 
+[node name="RightEye" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, 1.24, -0.26)
+mesh = SubResource("SphereMesh_l6jc8")
+
 [node name="Mouth" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.32, -0.229)
-mesh = SubResource("BoxMesh_l6jc8")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.13, -0.26)
+mesh = SubResource("BoxMesh_1gvxh")
 
 [node name="Skeleton3D" type="Skeleton3D" parent="."]
 bones/0/name = "root"
@@ -4124,130 +4207,130 @@ bones/17/scale = Vector3(1, 1, 1)
 [node name="Accessories" type="Node3D" parent="."]
 
 [node name="Cap" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0)
 visible = false
-mesh = SubResource("CylinderMesh_yw0yg")
+mesh = SubResource("CylinderMesh_w7x83")
 metadata/outfit = 1
 metadata/body = "Head"
 
 [node name="HardHat" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)
 visible = false
-mesh = SubResource("SphereMesh_u35bq")
+mesh = SubResource("SphereMesh_3rhvq")
 metadata/outfit = 2
 metadata/body = "Head"
 
 [node name="Backpack" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0.24)
 visible = false
-mesh = SubResource("BoxMesh_8dhnv")
+mesh = SubResource("BoxMesh_q3kx7")
 metadata/outfit = 3
 metadata/body = "Chest"
 
 [node name="RainCape" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0.18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0.2)
 visible = false
-mesh = SubResource("BoxMesh_q3kx7")
+mesh = SubResource("BoxMesh_m2h12")
 metadata/outfit = 4
 metadata/body = "Chest"
 
 [node name="RainHood" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.45, 0.07)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.18, 0.1)
 visible = false
-mesh = SubResource("TorusMesh_m2h12")
+mesh = SubResource("TorusMesh_rqdjg")
 metadata/outfit = 4
-metadata/body = "Head"
+metadata/body = "Chest"
 
 [node name="HoodBack" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.44, 0.24)
-visible = false
-mesh = SubResource("BoxMesh_rqdjg")
-metadata/outfit = 4
-metadata/body = "Head"
-
-[node name="HoodTop" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, 0.07)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.16, 0.26)
 visible = false
 mesh = SubResource("BoxMesh_8jjgk")
+metadata/outfit = 4
+metadata/body = "Chest"
+
+[node name="HoodTop" type="MeshInstance3D" parent="Accessories"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.71, 0.1)
+visible = false
+mesh = SubResource("BoxMesh_455ai")
 metadata/outfit = 4
 metadata/body = "Head"
 
 [node name="ToolBelt" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)
-visible = false
-mesh = SubResource("BoxMesh_455ai")
-metadata/outfit = 5
-metadata/body = "Pelvis"
-
-[node name="ToolPouch" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.73, 0.02)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.78, 0)
 visible = false
 mesh = SubResource("BoxMesh_i0hxg")
 metadata/outfit = 5
 metadata/body = "Pelvis"
 
-[node name="Goggles" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.54, -0.19)
+[node name="ToolPouch" type="MeshInstance3D" parent="Accessories"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.74, 0.02)
 visible = false
 mesh = SubResource("BoxMesh_tfsom")
 metadata/outfit = 5
-metadata/body = "Head"
+metadata/body = "Pelvis"
+
+[node name="Goggles" type="MeshInstance3D" parent="Accessories"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.26, -0.24)
+visible = false
+mesh = SubResource("BoxMesh_xl3cf")
+metadata/outfit = 5
+metadata/body = "Chest"
 
 [node name="GoggleLens-1" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.54, -0.232)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.085, 1.26, -0.278)
 visible = false
-mesh = SubResource("BoxMesh_ji051")
+mesh = SubResource("BoxMesh_26kpe")
 metadata/outfit = 5
-metadata/body = "Head"
+metadata/body = "Chest"
 
 [node name="GoggleLens1" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.54, -0.232)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 1.26, -0.278)
 visible = false
-mesh = SubResource("BoxMesh_qm4gb")
+mesh = SubResource("BoxMesh_twelh")
 metadata/outfit = 5
-metadata/body = "Head"
+metadata/body = "Chest"
 
 [node name="RangerBrim" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.61, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0)
 visible = false
-mesh = SubResource("TorusMesh_0434v")
+mesh = SubResource("TorusMesh_8lvmu")
 metadata/outfit = 6
 metadata/body = "Head"
 
 [node name="RangerCrown" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)
 visible = false
-mesh = SubResource("BoxMesh_lhew3")
+mesh = SubResource("BoxMesh_hhyd0")
 metadata/outfit = 6
 metadata/body = "Head"
 
 [node name="FieldPack" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.23)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.25)
 visible = false
-mesh = SubResource("BoxMesh_8ysnc")
+mesh = SubResource("BoxMesh_kphuv")
 metadata/outfit = 6
 metadata/body = "Chest"
 
 [node name="ObserverHelmet" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.42, 0.04)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.21, 0.08)
 visible = false
-mesh = SubResource("TorusMesh_3rmvk")
-metadata/outfit = 7
-metadata/body = "Head"
-
-[node name="ObservationPack" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.24)
-visible = false
-mesh = SubResource("BoxMesh_lkrs8")
+mesh = SubResource("TorusMesh_lkrs8")
 metadata/outfit = 7
 metadata/body = "Chest"
 
-[node name="Antenna" type="MeshInstance3D" parent="Accessories"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 1.3, 0.24)
+[node name="ObservationPack" type="MeshInstance3D" parent="Accessories"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.26)
 visible = false
 mesh = SubResource("BoxMesh_t42s4")
 metadata/outfit = 7
 metadata/body = "Chest"
 
+[node name="Antenna" type="MeshInstance3D" parent="Accessories"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.34, 0.26)
+visible = false
+mesh = SubResource("BoxMesh_fkd8b")
+metadata/outfit = 7
+metadata/body = "Chest"
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries/ = SubResource("AnimationLibrary_4iph2")
+libraries/ = SubResource("AnimationLibrary_peyo1")

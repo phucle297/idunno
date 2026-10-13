@@ -66,7 +66,9 @@ func set_player_color(color_index: int) -> void:
 	material.albedo_color = SUIT_COLORS[posmod(color_index, SUIT_COLORS.size())]
 	material.metallic = 0.0
 	material.roughness = 0.8
-	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
+	# The bean head, lower body, arms and legs are one continuous suit color;
+	# only the cream face inset stays neutral so eyes/mouth remain readable.
+	for part_name in ["Head", "Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
 		(get_node(part_name) as MeshInstance3D).material_override = material
 
 
@@ -111,24 +113,24 @@ func _build_accessories() -> void:
 	var cap := MeshInstance3D.new()
 	cap.name = "Cap"
 	var cap_mesh := CylinderMesh.new()
-	cap_mesh.top_radius = 0.22
-	cap_mesh.bottom_radius = 0.25
+	cap_mesh.top_radius = 0.24
+	cap_mesh.bottom_radius = 0.30
 	cap_mesh.height = 0.12
 	cap_mesh.radial_segments = 12
 	cap_mesh.material = slate
 	cap.mesh = cap_mesh
-	cap.position = Vector3(0.0, 1.62, 0.0)
+	cap.position = Vector3(0.0, 1.71, 0.0)
 	accessories.add_child(cap)
 	var hard_hat := MeshInstance3D.new()
 	hard_hat.name = "HardHat"
 	var hard_hat_mesh := SphereMesh.new()
-	hard_hat_mesh.radius = 0.27
-	hard_hat_mesh.height = 0.22
+	hard_hat_mesh.radius = 0.28
+	hard_hat_mesh.height = 0.24
 	hard_hat_mesh.radial_segments = 12
 	hard_hat_mesh.rings = 4
 	hard_hat_mesh.material = amber
 	hard_hat.mesh = hard_hat_mesh
-	hard_hat.position = Vector3(0.0, 1.58, 0.0)
+	hard_hat.position = Vector3(0.0, 1.68, 0.0)
 	accessories.add_child(hard_hat)
 	var backpack := MeshInstance3D.new()
 	backpack.name = "Backpack"
@@ -136,29 +138,29 @@ func _build_accessories() -> void:
 	backpack_mesh.size = Vector3(0.34, 0.40, 0.18)
 	backpack_mesh.material = coral
 	backpack.mesh = backpack_mesh
-	backpack.position = Vector3(0.0, 1.0, 0.22)
+	backpack.position = Vector3(0.0, 1.05, 0.24)
 	accessories.add_child(backpack)
 	cap.set_meta("outfit", 1)
 	hard_hat.set_meta("outfit", 2)
 	backpack.set_meta("outfit", 3)
 	# Open-front silhouettes retain the face and player-identification suit.
-	_costume_box(accessories, "RainCape", 4, Vector3(0.48, 0.50, 0.06), Vector3(0, 0.97, 0.18), amber)
-	_costume_ring(accessories, "RainHood", 4, 0.20, 0.27, Vector3(0, 1.45, 0.07), amber, true)
-	_costume_box(accessories, "HoodBack", 4, Vector3(0.46, 0.40, 0.06), Vector3(0, 1.44, 0.24), amber)
-	_costume_box(accessories, "HoodTop", 4, Vector3(0.46, 0.06, 0.34), Vector3(0, 1.64, 0.07), amber)
-	_costume_box(accessories, "ToolBelt", 5, Vector3(0.46, 0.10, 0.32), Vector3(0, 0.77, 0), slate)
-	_costume_box(accessories, "ToolPouch", 5, Vector3(0.13, 0.18, 0.12), Vector3(0.24, 0.73, 0.02), coral)
-	_costume_box(accessories, "Goggles", 5, Vector3(0.32, 0.09, 0.06), Vector3(0, 1.54, -0.19), slate)
+	_costume_box(accessories, "RainCape", 4, Vector3(0.50, 0.50, 0.08), Vector3(0, 0.95, 0.20), amber)
+	_costume_ring(accessories, "RainHood", 4, 0.24, 0.32, Vector3(0, 1.18, 0.10), amber, true)
+	_costume_box(accessories, "HoodBack", 4, Vector3(0.48, 0.42, 0.08), Vector3(0, 1.16, 0.26), amber)
+	_costume_box(accessories, "HoodTop", 4, Vector3(0.48, 0.08, 0.38), Vector3(0, 1.71, 0.10), amber)
+	_costume_box(accessories, "ToolBelt", 5, Vector3(0.48, 0.10, 0.34), Vector3(0, 0.78, 0), slate)
+	_costume_box(accessories, "ToolPouch", 5, Vector3(0.13, 0.18, 0.12), Vector3(0.24, 0.74, 0.02), coral)
+	_costume_box(accessories, "Goggles", 5, Vector3(0.30, 0.10, 0.06), Vector3(0, 1.26, -0.24), slate)
 	for side in [-1, 1]:
-		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.54, -0.232), _material(Color("73b7ad")))
-	_costume_ring(accessories, "RangerBrim", 6, 0.12, 0.33, Vector3(0, 1.61, 0), _material(Color("d9b77e")))
-	_costume_box(accessories, "RangerCrown", 6, Vector3(0.32, 0.13, 0.30), Vector3(0, 1.68, 0), _material(Color("d9b77e")))
-	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0, 1.0, 0.23), _material(Color("86a968")))
-	_costume_ring(accessories, "ObserverHelmet", 7, 0.22, 0.28, Vector3(0, 1.42, 0.04), _material(Color("f4e6c8")), true)
-	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.24), slate)
-	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.22, 0.04), Vector3(0.12, 1.30, 0.24), amber)
+		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.26, -0.278), _material(Color("73b7ad")))
+	_costume_ring(accessories, "RangerBrim", 6, 0.14, 0.36, Vector3(0, 1.69, 0), _material(Color("d9b77e")))
+	_costume_box(accessories, "RangerCrown", 6, Vector3(0.34, 0.14, 0.32), Vector3(0, 1.75, 0), _material(Color("d9b77e")))
+	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0, 1.0, 0.25), _material(Color("86a968")))
+	_costume_ring(accessories, "ObserverHelmet", 7, 0.24, 0.31, Vector3(0, 1.21, 0.08), _material(Color("f4e6c8")), true)
+	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.26), slate)
+	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.24, 0.04), Vector3(0.13, 1.34, 0.26), amber)
 	for accessory in accessories.get_children():
-		accessory.set_meta("body", "Head" if accessory.position.y > 1.38 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
+		accessory.set_meta("body", "Head" if accessory.position.y > 1.45 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
 
 
 func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:

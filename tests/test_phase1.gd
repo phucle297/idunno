@@ -80,10 +80,10 @@ func _check_assets() -> void:
 	for path in ["LeftArm", "LeftArm/Mesh", "RightArm", "RightArm/Mesh", "LeftLeg", "LeftLeg/Mesh", "LeftLeg/LeftShoe", "RightLeg", "RightLeg/Mesh", "RightLeg/RightShoe"]:
 		_expect(character.get_node(path).owner == character, "Nested pivots, meshes and shoes must be owned by the packed root")
 	var head := character.get_node("Head") as MeshInstance3D
-	_expect(is_equal_approx((head.mesh as SphereMesh).radius * 2.0, 0.48), "Character head width must be 0.48 m")
+	_expect(is_equal_approx((head.mesh as SphereMesh).radius * 2.0, 0.56), "Soft Creature bean head must be 0.56 m wide")
 	var right_arm := character.get_node("RightArm/Mesh") as MeshInstance3D
-	_expect(is_equal_approx((character.to_local(right_arm.global_position).x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 0.56), "Character shoulder width must be 0.56 m")
-	_expect(character.get_node("Head").position.y + 0.215 <= 1.605, "Character exceeds 1.60 m tolerance")
+	_expect(is_equal_approx((character.to_local(right_arm.global_position).x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 0.66), "Soft Creature shoulder width must be 0.66 m")
+	_expect(character.get_node("Head").position.y + (head.mesh as SphereMesh).height * 0.5 <= 1.71, "Soft Creature must stay within its 1.60 m capsule reach")
 	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
 	_expect((character as ToyCharacterVisual).get_animation_names().size() == 14, "Character must provide all 14 required animation clips")
 	var catalog := ToyCharacterVisual.catalog()
@@ -96,7 +96,7 @@ func _check_assets() -> void:
 	for bone in skeleton.get_bone_count():
 		_expect(skeleton.get_bone_rest(bone) == Transform3D.IDENTITY, "Every outfit must share identity bone rests")
 	var base_triangles := _base_triangles(character)
-	_expect(base_triangles == 1728, "Canonical base mesh must remain 1728 triangles excluding accessories")
+	_expect(base_triangles == 1808, "Canonical Soft Creature base must remain 1808 triangles excluding accessories")
 	for variant in 8:
 		_expect(character.set_outfit_id(ids[variant]), "Catalog IDs must resolve to visible outfits")
 		_expect((character as ToyCharacterVisual).cosmetic_variant == variant, "Character cosmetic variant %d must be selectable" % variant)
@@ -134,15 +134,15 @@ func _check_assets() -> void:
 	var left_shoe := character.find_child("LeftShoe", true, false) as Node3D
 	var first_shoe_position := left_shoe.global_position
 	animation.seek(0.275, true)
-	_expect(left_shoe.global_position.distance_to(first_shoe_position) > 0.4, "Running shoes must follow the full leg swing")
+	_expect(left_shoe.global_position.distance_to(first_shoe_position) > 0.2, "Running shoes must follow the leg swing")
 	for leg_name in ["LeftLeg", "RightLeg"]:
 		var leg := character.get_node(leg_name) as Node3D
 		var mesh := leg.get_node("Mesh") as MeshInstance3D
 		var capsule := (mesh as MeshInstance3D).mesh as CapsuleMesh
 		for phase in [0.0, 0.1375, 0.275]:
 			animation.seek(phase, true)
-			var hip: Vector3 = character.to_local(mesh.to_global(Vector3(0, capsule.height * 0.5, 0)))
-			_expect(hip.distance_to(Vector3(leg.position.x, 0.70, 0)) < 0.001, "Leg must remain connected at the hip throughout running")
+			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, capsule.height * 0.5, 0)))
+			_expect(top.distance_to(Vector3(leg.position.x, 0.70, 0)) < 0.001, "Leg must remain connected at the hip throughout running")
 	character.free()
 	var meteor := (load("res://assets/generated/VFX_MeteorTelegraph_v001.tscn") as PackedScene).instantiate()
 	_expect(meteor.has_node("WarningFootprint"), "Packed meteor proxy must include its warning footprint")

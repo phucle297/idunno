@@ -2,7 +2,7 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
-const GENERATOR_VERSION := 5
+const GENERATOR_VERSION := 6
 const CharacterVisualScript = preload("res://game/player/toy_character_visual.gd")
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),
@@ -51,29 +51,38 @@ func _generate_character(materials: Dictionary) -> void:
 	root.set_script(CharacterVisualScript)
 	root.set_meta("generator_seed", seed_value)
 	root.set_meta("generator_version", GENERATOR_VERSION)
-	_add_sphere(root, "Head", 0.24, 0.43, Vector3(0.0, 1.385, 0.0), materials.cream)
-	_add_box(root, "Torso", Vector3(0.43, 0.52, 0.28), Vector3(0.0, 0.96, 0.0), materials.cyan)
+	# Soft Creature B: one continuous bean-shaped head/body with a small cream
+	# face inset and stubby limbs. The bean is formed by two overlapping body-
+	# coloured spheres so there is no distinct neck or shoulder seam; the cream
+	# patch carries only the two dark eyes and mouth. No skin, human head or
+	# fabric anatomy. The head and lower-body bulbs merge into a single rounded
+	# creature silhouette above the hips.
+	_add_sphere(root, "Head", 0.28, 1.1, Vector3(0.0, 1.15, 0.0), materials.cyan)
+	_add_sphere(root, "Torso", 0.26, 0.44, Vector3(0.0, 0.72, 0.0), materials.cyan)
+	# Flattened cream face inset on the front of the bean.
+	_add_box(root, "FacePlate", Vector3(0.30, 0.34, 0.04), Vector3(0.0, 1.2, -0.245), materials.cream)
 	for side in ["Left", "Right"]:
 		var direction := -1.0 if side == "Left" else 1.0
 		var arm := Node3D.new()
 		arm.name = side + "Arm"
-		arm.position = Vector3(direction * 0.19, 1.18, 0.0)
+		arm.position = Vector3(direction * 0.24, 1.06, 0.0)
 		root.add_child(arm)
 		arm.owner = root
-		_add_capsule(arm, "Mesh", 0.09, 0.48, Vector3(0.0, -0.24, 0.0), materials.cyan)
+		_add_capsule(arm, "Mesh", 0.09, 0.30, Vector3(0.0, -0.13, 0.0), materials.cyan)
 		arm.get_node("Mesh").owner = root
 		var leg := Node3D.new()
 		leg.name = side + "Leg"
 		leg.position = Vector3(direction * 0.13, 0.70, 0.0)
 		root.add_child(leg)
 		leg.owner = root
-		_add_capsule(leg, "Mesh", 0.10, 0.56, Vector3(0.0, -0.28, 0.0), materials.cyan)
+		_add_capsule(leg, "Mesh", 0.09, 0.52, Vector3(0.0, -0.26, 0.0), materials.cyan)
 		leg.get_node("Mesh").owner = root
-		_add_box(leg, side + "Shoe", Vector3(0.20, 0.16, 0.24), Vector3(0.0, -0.60, -0.025), materials.slate)
+		_add_box(leg, side + "Shoe", Vector3(0.22, 0.16, 0.26), Vector3(0.0, -0.43, -0.03), materials.slate)
 		leg.get_node(side + "Shoe").owner = root
-	_add_sphere(root, "LeftEye", 0.035, 0.07, Vector3(-0.09, 1.43, -0.215), materials.ink)
-	_add_sphere(root, "RightEye", 0.035, 0.07, Vector3(0.09, 1.43, -0.215), materials.ink)
-	_add_box(root, "Mouth", Vector3(0.09, 0.025, 0.018), Vector3(0.0, 1.32, -0.229), materials.ink)
+	# Eyes and mouth sit on the cream face inset, not directly on the bean body.
+	_add_sphere(root, "LeftEye", 0.035, 0.06, Vector3(-0.08, 1.24, -0.26), materials.ink)
+	_add_sphere(root, "RightEye", 0.035, 0.06, Vector3(0.08, 1.24, -0.26), materials.ink)
+	_add_box(root, "Mouth", Vector3(0.10, 0.03, 0.02), Vector3(0.0, 1.13, -0.26), materials.ink)
 	root.ensure_runtime_setup()
 	_set_owners(root, root)
 	_save_scene(root, "%s/CHR_Base_v001.tscn" % OUTPUT_DIR)
