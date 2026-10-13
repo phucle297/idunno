@@ -2376,6 +2376,8 @@ func _build_toy_harbor() -> Dictionary:
 	_add_tree("TreeHarborWest", Vector3(-26.0, 0.0, -26.0))
 	_add_tree("TreeHarborEast", Vector3(26.0, 0.0, -26.0))
 	_add_world_label("HarborLabel", "TOY HARBOR", Vector3(0.0, 1.2, 27.5), PALETTE.cream)
+	_add_warehouse_interior()
+	_add_harbor_kit()
 	var crate_positions := [Vector3(-6.0, 0.4, 20.0), Vector3(6.0, 0.4, 20.0), Vector3(0.0, 0.4, -8.0)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
@@ -2629,6 +2631,35 @@ func _add_street_detail() -> void:
 			_add_detail_box($Sandbox, "CrossZ%sX%s" % [z, stripe], Vector3(0.9, 0.03, 4.6), Vector3(stripe, 0.075, z), PALETTE.cream)
 	for z: float in [-26.0, -22.0, -18.0, -14.0, -10.0, 14.0, 18.0, 22.0, 26.0]:
 		_add_detail_box($Sandbox, "LaneDash%s" % z, Vector3(0.22, 0.03, 2.0), Vector3(0.0, 0.075, z), PALETTE.cream)
+
+
+func _add_warehouse_interior() -> void:
+	var warehouse := $Sandbox.get_node("Warehouse") as Node3D
+	# Shelving bays along the west wall, a workbench on the east wall and a
+	# crate stack in the north-east corner. Doors and roof panel stay clear.
+	for bay in 3:
+		var z := -3.0 + bay * 3.0
+		_add_detail_box(warehouse, "Rack%d" % bay, Vector3(1.4, 1.6, 0.8), Vector3(-6.6, 0.8, z), PALETTE.slate)
+		_add_detail_box(warehouse, "RackTop%d" % bay, Vector3(1.4, 0.1, 0.8), Vector3(-6.6, 1.62, z), PALETTE.cream)
+	_add_detail_box(warehouse, "Workbench", Vector3(3.0, 0.9, 0.8), Vector3(6.2, 0.45, 2.0), PALETTE.sand)
+	_add_detail_box(warehouse, "CrateStackA", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 0.35, -4.2), PALETTE.coral)
+	_add_detail_box(warehouse, "CrateStackB", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 1.05, -4.2), PALETTE.cream)
+
+
+func _add_harbor_kit() -> void:
+	var deck := $Sandbox.get_node("CraneDeck") as Node3D
+	# A compact tower crane on the CraneDeck: tower, jib, cable and hook so the
+	# refuge reads as a working hoist. Deck top sits at local y 0.175.
+	_add_detail_box(deck, "CraneTower", Vector3(0.5, 1.6, 0.5), Vector3(0.6, 0.975, -2.0), PALETTE.slate)
+	_add_detail_box(deck, "CraneJib", Vector3(6.0, 0.3, 0.3), Vector3(0.6, 1.775, -2.0), PALETTE.amber)
+	_add_detail_box(deck, "CraneCable", Vector3(0.08, 1.1, 0.08), Vector3(3.6, 1.225, -2.0), PALETTE.cream)
+	_add_detail_box(deck, "CraneHook", Vector3(0.3, 0.18, 0.18), Vector3(3.6, 0.585, -2.0), PALETTE.coral)
+	# Dock bollards and a ground-level cargo stack read the working harbor
+	# without entering the gangway faces, ramp seams or basin collision.
+	_add_detail_box($Sandbox, "BollardWest", Vector3(0.5, 0.7, 0.5), Vector3(-20.0, 4.1, 11.0), PALETTE.cream)
+	_add_detail_box($Sandbox, "BollardEast", Vector3(0.5, 0.7, 0.5), Vector3(20.0, 4.1, 11.0), PALETTE.cream)
+	_add_detail_box($Sandbox, "HarborCrateA", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 0.4, -20.5), PALETTE.coral)
+	_add_detail_box($Sandbox, "HarborCrateB", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 1.2, -20.5), PALETTE.cream)
 
 
 func _add_town_props() -> void:

@@ -270,27 +270,29 @@ func _spawn_telegraph() -> void:
 
 func _style_meteor(meteor: MeshInstance3D) -> void:
 	meteor.material_override = load("res://assets/materials/MAT_Slate_v001.tres")
+	# Compact matte rock: a small muted amber hot spot plus a short dust trail
+	# instead of the previous bright orange glow core and long comet cone.
 	var core := MeshInstance3D.new()
 	core.name = "HotCore"
 	var core_mesh := SphereMesh.new()
-	core_mesh.radius = 0.24
-	core_mesh.height = 0.48
-	core_mesh.radial_segments = 8
+	core_mesh.radius = 0.18
+	core_mesh.height = 0.36
+	core_mesh.radial_segments = 7
 	core_mesh.rings = 4
-	core_mesh.material = load("res://assets/materials/MAT_Orange_v001.tres")
+	core_mesh.material = load("res://assets/materials/MAT_Amber_v001.tres")
 	core.mesh = core_mesh
-	core.position = Vector3(0.0, -0.28, 0.30)
+	core.position = Vector3(0.0, -0.26, 0.24)
 	meteor.add_child(core)
 	var trail := MeshInstance3D.new()
 	trail.name = "Trail"
 	var trail_mesh := CylinderMesh.new()
-	trail_mesh.top_radius = 0.04
-	trail_mesh.bottom_radius = 0.18
-	trail_mesh.height = 1.5
-	trail_mesh.radial_segments = 8
-	trail_mesh.material = load("res://assets/materials/MAT_Orange_v001.tres")
+	trail_mesh.top_radius = 0.03
+	trail_mesh.bottom_radius = 0.2
+	trail_mesh.height = 0.55
+	trail_mesh.radial_segments = 7
+	trail_mesh.material = load("res://assets/materials/MAT_Amber_v001.tres")
 	trail.mesh = trail_mesh
-	trail.position.y = 0.95
+	trail.position.y = 0.6
 	meteor.add_child(trail)
 
 
@@ -539,9 +541,12 @@ func _create_debris_visual() -> MeshInstance3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color("49566a")
 	material.roughness = 0.82
+	material.metallic = 0.0
+	# Debris stays matte slate with a faint warm ember rather than the previous
+	# bright orange glow so knocked-out chunks read as scorched rock.
 	material.emission_enabled = true
-	material.emission = Color("e07a3c")
-	material.emission_energy_multiplier = 0.7
+	material.emission = Color("8a5f3a")
+	material.emission_energy_multiplier = 0.22
 	chunk.material = material
 	visual.mesh = chunk
 	return visual
