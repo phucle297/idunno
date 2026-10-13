@@ -19,7 +19,7 @@ var _jump_buffer_remaining := 0.0
 var _knockdown_remaining := 0.0
 var _is_crouched := false
 var _camera_yaw := 0.0
-var _camera_pitch := -0.14
+var _camera_pitch := -0.28
 var _ragdoll: Node3D
 var _is_eliminated := false
 var _get_up_remaining := 0.0
