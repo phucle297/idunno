@@ -19,6 +19,10 @@ func _run() -> void:
 	var tornado := main.get_node("Tornado") as Tornado
 	var fire := main.get_node("Fire") as Fire
 	var player := main.get_node("Player") as PartyPlayer
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--outfit="):
+			player.character.set_cosmetic_variant(argument.trim_prefix("--outfit=").to_int())
+			player.character.set_player_color(2)
 	director.cleanup()
 	for disaster in [flood, lightning, tornado, fire]:
 		disaster.set_process(false)
@@ -53,6 +57,7 @@ func _run() -> void:
 	var high_ground_health := manager.get_health(1)
 	flood.tick(1.0)
 	_expect(is_equal_approx(manager.get_health(1), high_ground_health), "High ground must remain safe from electrified floodwater")
+	await _capture("flood-outfit")
 	var flood_snapshot := flood.create_presentation_snapshot()
 	_expect(float(flood_snapshot.electrified_remaining) > 0.0 and flood_snapshot.electrified_target == Vector3(0.0, 0.06, 0.0), "Flood snapshots must replicate temporary electrification state")
 	flood.tick(flood.electrified_duration)
@@ -182,7 +187,7 @@ func _run() -> void:
 	_expect(manager.set_player_ready(1, true), "The fixture player must ready up again")
 	_expect(manager.start_match(), "The fixture match must restart for the next composition gate")
 	# Keep the player clear of the impact and debris while the composition runs.
-	player.position = Vector3(0.0, 0.05, 13.0)
+	player.reset_for_match(Vector3(0.0, 0.05, 13.0))
 	tornado.travel_speed = 4.0
 	_expect(tornado.start_warning(Vector3(-13.0, 0.0, -9.0), Vector3(13.0, 0.0, 9.0)), "Tornado must start for the impact-debris composition")
 	tornado.tick(tornado.warning_duration + 0.05)
@@ -248,7 +253,7 @@ func _run() -> void:
 	_expect(manager.prepare_lobby(), "The fixture must re-enter the lobby between composition gates")
 	_expect(manager.set_player_ready(1, true), "The fixture player must ready up again")
 	_expect(manager.start_match(), "The fixture match must restart for the burning-rubble gate")
-	player.position = Vector3(0.0, 0.05, 20.0)
+	player.reset_for_match(Vector3(0.0, 0.05, 20.0))
 	earthquake.active_duration = 18.0
 	# Probe seeded quakes until a collapse lands inside a fire zone, then
 	# replay that exact seed beside real burning zones so the ignition is
@@ -442,10 +447,35 @@ func _check_refuge_relocation(main: Node3D, player: PartyPlayer, flood: Flood, e
 
 func _capture(state: String) -> void:
 	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--review-size="):
+			var dimensions := argument.trim_prefix("--review-size=").split("x")
+			root.size = Vector2i(int(dimensions[0]), int(dimensions[1]))
+	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-dir="):
 			DirAccess.make_dir_recursive_absolute(argument.trim_prefix("--capture-dir="))
+			var player := root.get_node("Main/Player") as PartyPlayer
+			var physics_enabled := player.is_physics_processing()
+			var process_enabled := player.is_processing()
+			# This fixture manually advances hazards but freezes player timers.
+			# Explicitly finish that frozen knockdown through the public recovery
+			# interface for the living-outfit review; ragdolls are rendered by the
+			# carry/player integration fixtures instead, not hidden under water.
+			print("OUTFIT_CAPTURE state=%s frozen_knockdown=%s" % [state, player.is_knocked_down()])
+			player.set_network_knockdown(false)
+			player.set_physics_process(false)
+			player.set_process(false)
+			var camera := Camera3D.new()
+			root.add_child(camera)
+			await process_frame
+			camera.look_at_from_position(player.global_position + Vector3(4, 2.6, 5.5), player.global_position + Vector3(0, 1, -2))
+			camera.make_current()
+			_expect(camera.is_current() and player.character.is_visible_in_tree(), "Composition render must use standalone camera and a visible live outfit")
+			await RenderingServer.frame_post_draw
 			var path := argument.trim_prefix("--capture-dir=").path_join("compositions-%s-%dx%d.png" % [state, root.size.x, root.size.y])
 			_expect(root.get_texture().get_image().save_png(path) == OK, "Save review capture")
+			camera.queue_free()
+			player.set_physics_process(physics_enabled)
+			player.set_process(process_enabled)
 
 
 func _sandbox_breakables(main: Node) -> Array:

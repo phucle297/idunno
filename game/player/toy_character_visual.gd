@@ -16,6 +16,10 @@ var current_clip := "idle"
 var _animation_player: AnimationPlayer
 
 
+static func catalog() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://assets/cosmetic_catalog.json")) as Dictionary
+
+
 func _ready() -> void:
 	ensure_runtime_setup()
 	play_clip("idle")
@@ -38,11 +42,23 @@ func play_clip(clip_name: String) -> bool:
 
 
 func set_cosmetic_variant(variant: int) -> void:
-	cosmetic_variant = posmod(variant, 4)
+	cosmetic_variant = posmod(variant, catalog().items.size())
 	if has_node("Accessories/Cap"):
-		$Accessories/Cap.visible = cosmetic_variant == 1
-		$Accessories/HardHat.visible = cosmetic_variant == 2
-		$Accessories/Backpack.visible = cosmetic_variant == 3
+		for accessory in $Accessories.get_children():
+			accessory.visible = accessory.get_meta("outfit", -1) == cosmetic_variant
+
+
+func set_outfit_id(outfit_id: String) -> bool:
+	var items: Array = catalog().items
+	for index in items.size():
+		if items[index].id == outfit_id:
+			set_cosmetic_variant(index)
+			return true
+	return false
+
+
+func get_outfit_id() -> String:
+	return catalog().items[cosmetic_variant].id
 
 
 func set_player_color(color_index: int) -> void:
@@ -122,6 +138,56 @@ func _build_accessories() -> void:
 	backpack.mesh = backpack_mesh
 	backpack.position = Vector3(0.0, 1.0, 0.22)
 	accessories.add_child(backpack)
+	cap.set_meta("outfit", 1)
+	hard_hat.set_meta("outfit", 2)
+	backpack.set_meta("outfit", 3)
+	# Open-front silhouettes retain the face and player-identification suit.
+	_costume_box(accessories, "RainCape", 4, Vector3(0.48, 0.50, 0.06), Vector3(0, 0.97, 0.18), amber)
+	_costume_ring(accessories, "RainHood", 4, 0.20, 0.27, Vector3(0, 1.45, 0.07), amber, true)
+	_costume_box(accessories, "HoodBack", 4, Vector3(0.46, 0.40, 0.06), Vector3(0, 1.44, 0.24), amber)
+	_costume_box(accessories, "HoodTop", 4, Vector3(0.46, 0.06, 0.34), Vector3(0, 1.64, 0.07), amber)
+	_costume_box(accessories, "ToolBelt", 5, Vector3(0.46, 0.10, 0.32), Vector3(0, 0.77, 0), slate)
+	_costume_box(accessories, "ToolPouch", 5, Vector3(0.13, 0.18, 0.12), Vector3(0.24, 0.73, 0.02), coral)
+	_costume_box(accessories, "Goggles", 5, Vector3(0.32, 0.09, 0.06), Vector3(0, 1.54, -0.19), slate)
+	for side in [-1, 1]:
+		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.54, -0.232), _material(Color("73b7ad")))
+	_costume_ring(accessories, "RangerBrim", 6, 0.12, 0.33, Vector3(0, 1.61, 0), _material(Color("d9b77e")))
+	_costume_box(accessories, "RangerCrown", 6, Vector3(0.32, 0.13, 0.30), Vector3(0, 1.68, 0), _material(Color("d9b77e")))
+	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0, 1.0, 0.23), _material(Color("86a968")))
+	_costume_ring(accessories, "ObserverHelmet", 7, 0.22, 0.28, Vector3(0, 1.42, 0.04), _material(Color("f4e6c8")), true)
+	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.24), slate)
+	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.22, 0.04), Vector3(0.12, 1.30, 0.24), amber)
+	for accessory in accessories.get_children():
+		accessory.set_meta("body", "Head" if accessory.position.y > 1.38 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
+
+
+func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = material
+	var instance := MeshInstance3D.new()
+	instance.name = part
+	instance.mesh = mesh
+	instance.position = at
+	instance.set_meta("outfit", outfit)
+	parent.add_child(instance)
+
+
+func _costume_ring(parent: Node3D, part: String, outfit: int, inner: float, outer: float, at: Vector3, material: Material, vertical := false) -> void:
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = inner
+	mesh.outer_radius = outer
+	mesh.rings = 12
+	mesh.ring_segments = 6
+	mesh.material = material
+	var instance := MeshInstance3D.new()
+	instance.name = part
+	instance.mesh = mesh
+	instance.position = at
+	if vertical:
+		instance.rotation.x = PI * 0.5
+	instance.set_meta("outfit", outfit)
+	parent.add_child(instance)
 
 
 func _build_animation_library() -> void:
@@ -141,6 +207,14 @@ func _create_clip(clip_name: String) -> Animation:
 	var animation := Animation.new()
 	animation.length = _clip_duration(clip_name)
 	animation.loop_mode = Animation.LOOP_LINEAR if clip_name in ["idle", "walk", "run", "falling", "crouch_idle", "crouch_walk", "holding_idle", "holding_walk"] else Animation.LOOP_NONE
+	if clip_name != "shove":
+		var torso_reset := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(torso_reset, NodePath("Torso:rotation"))
+		animation.track_insert_key(torso_reset, 0.0, Vector3.ZERO)
+		for accessory: MeshInstance3D in $Accessories.get_children():
+			var reset := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(reset, NodePath("Accessories/%s:transform" % accessory.name))
+			animation.track_insert_key(reset, 0.0, accessory.transform)
 	if clip_name == "shove":
 		# One bounded forward arm thrust with a short lunge stance; the clip is
 		# one-shot and returns to ordinary locomotion on the next frame pick.
@@ -161,6 +235,17 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(lean, 0.0, Vector3.ZERO)
 		animation.track_insert_key(lean, 0.1, Vector3(-0.28, 0.0, 0.0))
 		animation.track_insert_key(lean, animation.length, Vector3.ZERO)
+		for accessory: MeshInstance3D in $Accessories.get_children():
+			if accessory.get_meta("body") != "Chest":
+				continue
+			var attachment := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(attachment, NodePath("Accessories/%s:transform" % accessory.name))
+			var rest := accessory.transform
+			var pivot := ($Torso as MeshInstance3D).position
+			var rotation := Basis(Vector3.RIGHT, -0.28)
+			animation.track_insert_key(attachment, 0.0, rest)
+			animation.track_insert_key(attachment, 0.1, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(attachment, animation.length, rest)
 		var lunge := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(lunge, NodePath("LeftLeg:rotation"))
 		animation.track_insert_key(lunge, 0.0, Vector3.ZERO)

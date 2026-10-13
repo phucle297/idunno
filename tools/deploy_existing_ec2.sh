@@ -31,7 +31,7 @@ printf '%s  %s\n' "$EXPECTED_HASH" "$WORK/server.tar.gz" | sha256sum -c -
 # Reject traversal, extra paths and non-regular archive entries before root extraction.
 python3 - "$WORK/server.tar.gz" <<'PY'
 import sys, tarfile
-expected = {'DisasterParty.x86_64', 'DisasterParty.pck', 'room_service.py', 'BUILD.txt', 'SHA256SUMS.txt'}
+expected = {'DisasterParty.x86_64', 'DisasterParty.pck', 'room_service.py', 'cosmetic_catalog.json', 'BUILD.txt', 'SHA256SUMS.txt'}
 with tarfile.open(sys.argv[1]) as archive:
     members = archive.getmembers()
     assert len(members) == len(expected) and {m.name for m in members} == expected
@@ -43,7 +43,7 @@ tar -xzf "$WORK/server.tar.gz" -C "$WORK/payload" --no-same-owner
 test "$(sed -n 's/^Source revision: //p' "$WORK/payload/BUILD.txt")" = "$REVISION"
 DEST="/opt/disaster-party/releases/$REVISION"
 if [[ -e "$DEST" ]]; then
-  for file in DisasterParty.x86_64 DisasterParty.pck room_service.py BUILD.txt SHA256SUMS.txt; do
+  for file in DisasterParty.x86_64 DisasterParty.pck room_service.py cosmetic_catalog.json BUILD.txt SHA256SUMS.txt; do
     cmp "$WORK/payload/$file" "$DEST/$file"
   done
 else
@@ -56,7 +56,7 @@ else
   mv "$STAGED" "$DEST"
 fi
 chmod +x "$DEST/DisasterParty.x86_64"
-chmod 644 "$DEST/DisasterParty.pck" "$DEST/room_service.py" "$DEST/BUILD.txt" "$DEST/SHA256SUMS.txt"
+chmod 644 "$DEST/DisasterParty.pck" "$DEST/room_service.py" "$DEST/cosmetic_catalog.json" "$DEST/BUILD.txt" "$DEST/SHA256SUMS.txt"
 chown -R root:root "$DEST"
 PREVIOUS=$(readlink -e /opt/disaster-party/current || true)
 cp /etc/disaster-party/server.env "$WORK/previous.env"

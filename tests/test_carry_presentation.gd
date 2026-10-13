@@ -34,6 +34,10 @@ func _run() -> void:
 	main.disaster_director.cleanup()
 	var player := main.get_node("Player") as PartyPlayer
 	review_player = player
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--outfit="):
+			player.character.set_cosmetic_variant(argument.trim_prefix("--outfit=").to_int())
+			player.character.set_player_color(2)
 	player.set_physics_process(false)
 	player.set_process(false)
 	player.set_process_unhandled_input(false)
@@ -70,6 +74,16 @@ func _run() -> void:
 	review_camera = camera
 	_frame_review("carry-idle")
 	camera.make_current()
+	grab_manager.release_grab(1)
+	crate.freeze = true
+	crate.global_position = Vector3(8.0, 0.3, 0.0)
+	player.character.play_clip("run")
+	player.character._animation_player.pause()
+	player.character._animation_player.seek(0.0, true)
+	await _capture("locomotion")
+	crate.global_position = player.get_hold_position()
+	crate.freeze = false
+	_expect(grab_manager.request_grab(1, crate), "After locomotion render the real crate must be reacquired")
 	player.visual.rotation = Vector3.ZERO
 	main._update_context_prompt(1)
 	_expect(main.gameplay_hud.get_presented_context_action() == "RELEASE TO RESTORE SPEED", "Held state must show release/restored speed")
@@ -281,8 +295,11 @@ func _run() -> void:
 	main._server_emote_cooldown_until.clear()
 	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave must start before the knockdown interrupt")
-	player.apply_knockdown(Vector3(1.0, 0.0, 0.0))
+	player.apply_knockdown(Vector3(4.0, 2.0, 0.0))
 	_expect(player.get_emote_id() == 0 and not player.visual.visible, "Knockdown must cancel the emote and hide the upright visual")
+	review_crate.freeze = true
+	review_crate.global_position = player.global_position + Vector3(50.0, 0.0, 50.0)
+	await _capture("ragdoll")
 	for _tick in 120:
 		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
 		await physics_frame
@@ -300,6 +317,10 @@ func _run() -> void:
 func _capture(state: String) -> void:
 	if capture_dir.is_empty():
 		return
+	if state == "ragdoll":
+		for _tick in 40:
+			await physics_frame
+	root.size = review_size
 	_frame_review(state)
 	# Instantiated player scenes bring their own camera into the tree; keep the
 	# dedicated review camera authoritative for the capture. player.tscn marks
@@ -330,7 +351,11 @@ func _collect_cameras(node: Node) -> Array[Camera3D]:
 func _frame_review(state: String) -> void:
 	if not is_instance_valid(review_camera) or not is_instance_valid(review_player):
 		return
-	if state == "carry-airborne":
+	if state == "ragdoll" and is_instance_valid(review_player._ragdoll):
+		var chest := review_player._ragdoll.get_node("Chest") as RigidBody3D
+		review_camera.global_position = chest.global_position + Vector3(2.8, 2.1, 1.4)
+		review_camera.look_at(chest.global_position + Vector3.UP * 0.2)
+	elif state == "carry-airborne":
 		review_camera.global_position = Vector3(6.0, 5.0, 6.0)
 		review_camera.look_at(review_player.global_position + Vector3(0.0, 1.0, 0.0))
 	elif state in ["carry-walk", "knockdown-recovery"]:

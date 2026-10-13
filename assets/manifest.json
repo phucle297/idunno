@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "4",
+    "version": "5",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,9 +14,18 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "4",
+      "generator_version": "5",
       "intended_dimensions_m": [0.56, 1.6, 0.48],
       "triangle_count": 1728,
+      "cosmetic_catalog": "assets/cosmetic_catalog.json",
+      "cosmetic_catalog_version": 1,
+      "outfit_source": "game/player/toy_character_visual.gd",
+      "outfit_triangle_counts_including_base": {"plain": 1728, "cap": 1872, "hard_hat": 1848, "backpack": 1740, "raincoat": 1908, "mechanic": 1788, "park_ranger": 1896, "meteor_observer": 1896},
+      "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168},
+      "outfit_physics": "Same player capsule/controller; visible accessories copied onto existing 11 ragdoll bodies/10 joints/55kg. No accessory colliders or authoritative bodies.",
+      "outfit_validation": "Two seed297 generation SHA256 sets match; all8 IDs/all14 clips/identity18 bone rests/root-owned nested pivots-meshes-shoes/base1728/exact ragdoll accessory mesh-placement-color checks passed. Living locomotion/crouch/carry, identical controller capsule/layers/masks, live visual heading and grounded/airborne recovery across all8 passed (294 checks). Canonical base1728 triangles remains the existing below-target prototype, not a new 3000-6000 claim.",
+      "outfit_visual_validation": "Inspected actual Godot Compatibility Mesa llvmpipe daylight front/rear all8 and four earned outfits in run/crouched carry/carry/physical ragdoll/recovery at720p and1080p; peak Flood and Meteor+Tornado overlap observer captures at both resolutions. Distinct accessories, independent suit color and unobstructed hazard footprints/HUD. Flood electrical beam crosses the avatar without concealing its silhouette. Captures: .amp/in/artifacts/phase6-outfits; logs: .scratch/phase6-outfits. Linux orb rendering only, not native/GPU/human acceptance or a performance claim.",
+      "outfit_provenance": "Project-authored deterministic Godot primitives and palette materials, packed by generator5 seed297. No external geometry, archives, textures or third-party asset license; no CC0 claim.",
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
       "pivot": "ground_center_between_feet",
       "collider_type": "capsule_on_player_scene",
@@ -39,7 +48,7 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/player/toy_character_visual.gd.",
-      "sha256": "5ff738d498b149c7be0f962bc343732079a303f51d624ca61b149e412c5dd53d",
+      "sha256": "c9a5e59df2d54bffedd71f58ad706943e7160fb2475a36c872f51d35e4a2fc8f",
       "validation_status": "shoulder_hip_pivots_and_attached_shoes_regression_passed; 11_clips_four_variants_1760_pose_color_checks_passed; six_pose_native_Windows_Intel_UHD630_720p_inspected; holding_idle_and_holding_walk_forward_grip_pose_refined; carry_idle_walk_crouch_airborne_release_and_knockdown_recovery_rendered_and_inspected_at_720p_and_1080p; shove_wave_cheer_clips_registered_14_clip_required_set; emote_request_replication_cancel_cooldown_51_checks_passed; wave_pose_inspected_at_720p_and_1080p; cheer_outward_splay_verified_by_world_space_arm_head_probes; transition_blending_and_full_route_audit_pending"
     },
     {
@@ -49,7 +58,7 @@
       "export_path": "assets/generated/ENV_Wall_2m_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "4",
+      "generator_version": "5",
       "intended_dimensions_m": [2.0, 2.5, 0.24],
       "triangle_count": 24,
       "material_ids": ["MAT_Cream_v001", "MAT_Teal_v001"],
@@ -59,7 +68,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "3ff27008a37ac1aa67ed6c98b845d2cc6845b74ec75005f856dfbdfea555f4b1",
+      "sha256": "ed9d1bab8798791d08d52f631496805d10c8c270ac5eee936df4d1036b5a2b61",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {
@@ -69,7 +78,7 @@
       "export_path": "assets/generated/PROP_Crate_Small_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "4",
+      "generator_version": "5",
       "intended_dimensions_m": [0.64, 0.6, 0.64],
       "triangle_count": 24,
       "material_ids": ["MAT_Sand_v001", "MAT_Slate_v001"],
@@ -79,7 +88,7 @@
       "animation_list": [],
       "gameplay_tags": ["Grabbable"],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "de28ab5e0f54ce9a1881b7904d0834ef0bcf41a6ebb9dc4a82b0f9a4a98124be",
+      "sha256": "6ea3491c93d8021ccb8829d158c8ed2b0dd68ecf3bd879113301da69ddb18c96",
       "validation_status": "reference_dimensions_visual_and_runtime_rigidbody_passed"
     },
     {
@@ -89,7 +98,7 @@
       "export_path": "assets/generated/VFX_MeteorTelegraph_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "4",
+      "generator_version": "5",
       "intended_dimensions_m": [3.0, 2.82, 3.0],
       "triangle_count": 592,
       "material_ids": ["MAT_Amber_v001", "MAT_Orange_v001"],
@@ -99,7 +108,7 @@
       "animation_list": [],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
-      "sha256": "8adedeacb237ede8dc82f0157afec6bd9763673588bde538efbb8f7f6d6123c8",
+      "sha256": "cb2bd3b297dd303c043ba1dcf92c72b94a9f204bfe34104e227e7231d75223b4",
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {

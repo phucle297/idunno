@@ -81,7 +81,7 @@ jobs:
           mkdir -p .scratch/release
           revision=$(git rev-parse HEAD)
           tar -czf .scratch/release/DisasterParty-Linux.tar.gz -C .scratch/ci-linux-a \
-            DisasterParty.x86_64 DisasterParty.pck room_service.py BUILD.txt SHA256SUMS.txt
+            DisasterParty.x86_64 DisasterParty.pck room_service.py cosmetic_catalog.json BUILD.txt SHA256SUMS.txt
           echo "revision=$revision" >> "$GITHUB_OUTPUT"
           echo "server_hash=$(sha256sum .scratch/release/DisasterParty-Linux.tar.gz | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4

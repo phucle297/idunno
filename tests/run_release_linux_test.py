@@ -30,7 +30,7 @@ def main():
         digest, name = line.split(None, 1)
         assert Path(name).name == name, "Only flat package files are accepted"
         files[name] = digest
-    assert set(files) == {"DisasterParty.x86_64", "DisasterParty.pck", "room_service.py", "BUILD.txt"}
+    assert set(files) == {"DisasterParty.x86_64", "DisasterParty.pck", "room_service.py", "cosmetic_catalog.json", "BUILD.txt"}
     with tempfile.TemporaryDirectory(prefix="release-room-") as folder:
         stage = Path(folder)
         for name, digest in files.items():

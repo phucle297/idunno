@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestones 6.1 and 6.2 completed; catalog/assets (6.3) is next**.
+Status: **in progress — Milestones 6.1–6.3 completed; equipment/collection/reveal (6.4) is next**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -155,23 +155,31 @@ Owner: `game/player/toy_character_visual.gd`, character scenes,
 `tools/asset_generation/generate_assets.gd`, `assets/manifest.json` and ragdoll presentation.
 Load `validating-game-assets` before any asset work.
 
-- [ ] **6.3.1 Stable outfit catalog.** Map starter IDs to existing variants, preserve their
+- [x] **6.3.1 Stable outfit catalog.** Map starter IDs to existing variants, preserve their
   availability, bind the four earned IDs from 6.2 to names and outfit descriptions. Proposed themes:
   raincoat, mechanic, park ranger and meteor-observer toy suits. Each needs recognizable
   costume/accessory geometry, not just a new tint. Final shapes follow the bible; no new rigs.
   Keep one versioned catalog source consumable by service and game; verify export includes it.
-- [ ] **6.3.2 Generate and validate.** Reuse the deterministic source pipeline, shared
+- [x] **6.3.2 Generate and validate.** Reuse the deterministic source pipeline, shared
   materials and canonical body; record source/seed/license/dimensions/triangles in manifest.
   Prove required animation clips, attachment behavior through ragdoll/recovery, collider
   equivalence and unaffected controller/shove/grab/health values for all eight outfits.
   Audit existing accessory attachment too; do not assume recovery tests prove ragdoll appearance.
-- [ ] **6.3.3 Readability inspection.** Render daylight previews and gameplay cameras for
+- [x] **6.3.3 Readability inspection.** Render daylight previews and gameplay cameras for
   locomotion, crouch, carrying, ragdoll, flood and meteor/tornado overlap at 720p/1080p.
   Inspect captures with normal exposure; no blown-out preview, concealed warning footprint,
   oversized accessory or player-ID color replacement accepted.
 
 **Gate:** reproducible generation/import, manifest checks, animation/physics equivalence
 and inspected representative renders pass. No added collision bodies or raised budgets.
+Evidence: generatorv5/seed297 produces identical hashes twice; phase1=971,
+player=294, emotes=55 and30 service tests pass. Eight stable IDs share catalogversion1
+in game/service/PCK. Canonical1728tri +0/144/120/12/180/60/168/168 accessory triangles;
+11 ragdoll bodies/10 joints/55kg unchanged, accessories and suit colors retained.
+Daylight/gameplay/overlap captures inspected at720p1080p under
+`.amp/in/artifacts/phase6-outfits/`. Logs `.scratch/phase6-outfits/`.
+Isolated PCK/catalog boot passed; missing full-release templates must be fixed in6.5.
+Orb software rendering is not native/GPU/human acceptance.
 
 ## Milestone 6.4 — Collection, reveal, equip and multiplayer appearance
 

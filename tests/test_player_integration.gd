@@ -24,7 +24,20 @@ func _run() -> void:
 	_test_carry_presentation()
 	_test_jump_arc()
 	_test_ramp_traversal()
-	await _test_knockdown_recovery()
+	var collider := player.get_node("CollisionShape3D") as CollisionShape3D
+	var baseline_shape := collider.shape.duplicate() as CapsuleShape3D
+	var baseline_layer := player.collision_layer
+	var baseline_mask := player.collision_mask
+	for outfit in 8:
+		player.character.set_cosmetic_variant(outfit)
+		player.character.set_player_color(outfit)
+		player.reset_for_match(Vector3.ZERO)
+		var shape := collider.shape as CapsuleShape3D
+		_expect(shape.radius == baseline_shape.radius and shape.height == baseline_shape.height and player.collision_layer == baseline_layer and player.collision_mask == baseline_mask, "Every outfit must retain identical controller collider dimensions/layers/masks")
+		_test_walk_and_sprint()
+		_test_crouch()
+		_test_carry_presentation()
+		await _test_knockdown_recovery()
 	await _test_default_scene_offline_input()
 	if failures.is_empty():
 		print("PLAYER_INTEGRATION_OK checks=%d" % checks)
@@ -214,7 +227,9 @@ func _test_knockdown_recovery() -> void:
 	player.position = Vector3.ZERO
 	player.velocity = Vector3.ZERO
 	_settle_player()
+	var heading := player.visual.global_basis.orthonormalized()
 	player.apply_knockdown(Vector3(4.0, 1.0, 0.0))
+	_expect(player._ragdoll.global_basis.is_equal_approx(heading), "Ragdoll must retain live visual heading without collider scale")
 	_expect(player.is_knocked_down(), "Impact must enter knockdown")
 	_expect(player.ragdoll_body_count() == 11, "Knockdown must create an 8–12 body cosmetic ragdoll")
 	_expect(player.ragdoll_joint_count() == 10, "Ragdoll bodies must be connected by 10 constrained joints")

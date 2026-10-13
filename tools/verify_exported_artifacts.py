@@ -15,13 +15,13 @@ from pathlib import Path
 
 REQUIRED_FILES = {"DisasterParty.pck", "BUILD.txt"}
 BINARY_FILES = {"DisasterParty.exe", "DisasterParty.x86_64"}
-OPTIONAL_FILES = {"room_service.py"}
+OPTIONAL_FILES = {"room_service.py", "cosmetic_catalog.json"}
 FORBIDDEN_PREFIXES = (
     "res://tests/", "res://tools/", "res://docs/", "res://.agents/",
     "res://.scratch/", "res://.github/", "res://assets/source/",
     "res://assets/references/",
 )
-REQUIRED_PCK_ENTRIES = ("res://project.binary", "res://scenes/main.tscn")
+REQUIRED_PCK_ENTRIES = ("res://project.binary", "res://scenes/main.tscn", "res://assets/cosmetic_catalog.json")
 
 
 def pck_entries(path):
@@ -68,6 +68,8 @@ def main():
     assert names & BINARY_FILES, "Missing platform binary"
     assert names <= (REQUIRED_FILES | BINARY_FILES | OPTIONAL_FILES), f"Unexpected files: {sorted(names)}"
     assert REQUIRED_FILES <= names, f"Missing files: {sorted(REQUIRED_FILES - names)}"
+    if "room_service.py" in names:
+        assert "cosmetic_catalog.json" in names, "Standalone service requires its catalog"
     for name, digest in files.items():
         actual = hashlib.sha256((folder / name).read_bytes()).hexdigest()
         assert actual == digest, f"Hash mismatch: {name}"

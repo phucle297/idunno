@@ -276,3 +276,18 @@ preserve credentials and the opened receipt (owned5/pending0). Grant acknowledge
 loss was injected in6.2.2; opening transport loss is not separately injected, but replay
 after restart is exercised. Milestone6.2 is complete. Continue through the remaining
 phase at the owner's request; no deployment/release/shared-store change is authorized.
+
+## 2026-10-13 — Milestone6.3 shared catalog and faithful outfits
+
+Version1 JSON owns names/IDs/pool order for service and game. Preserve all existing
+receipt IDs. Generatorv5/seed297 packs eight recognizable outfits on the canonical
+body/rig; root-owned nested geometry, animations and player suit color remain intact.
+Ragdoll copies visible meshes onto its existing bodies rather than adding accessory
+physics. Heading, face, shoes and suit color are preserved; collider/mass values unchanged.
+
+Two generations hash-identical; phase1=971/player=294/emote=55/service30 pass. All8
+outfits/all14clips and grounded/airborne recovery validated. Daylight/gameplay/flood/
+meteor-tornado captures inspected720p1080p. PCK93entries includes JSON and boots
+isolated; standalone service reads flat catalog. Export/deploy archive definitions
+include it, but no deployment ran. Full-release templates missing; restore for6.5.
+Native/GPU/Internet/human acceptance remains unclaimed. Continue6.4 equipment/UI.

@@ -21,6 +21,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PROTOCOL = 1
 LOG = logging.getLogger("rooms")
+_catalog_path = Path(__file__).resolve().parent / "cosmetic_catalog.json"
+if not _catalog_path.exists():
+    _catalog_path = Path(__file__).resolve().parent.parent / "assets/cosmetic_catalog.json"
+CATALOG = json.loads(_catalog_path.read_text())
 
 
 class Rejected(Exception):
@@ -43,9 +47,9 @@ class ProfileStore:
     Schema 2 adds immutable round completions and sealed reward reservations.
     Callers cannot supply ownership or choose the reserved outfit.
     """
-    STARTERS = ("plain", "cap", "hard_hat", "backpack")
-    EARNED = ("raincoat", "mechanic", "park_ranger", "meteor_observer")
-    CATALOG_VERSION = 1
+    STARTERS = tuple(item["id"] for item in CATALOG["items"] if item["pool"] == "starter")
+    EARNED = tuple(item["id"] for item in CATALOG["items"] if item["pool"] == "earned")
+    CATALOG_VERSION = CATALOG["version"]
 
     def __init__(self, path):
         self.path = Path(path).resolve()

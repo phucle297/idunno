@@ -257,7 +257,9 @@ func _spawn_cosmetic_ragdoll(initial_velocity: Vector3, impulse: Vector3) -> voi
 		return
 	_ragdoll = RagdollScene.new()
 	get_parent().add_child(_ragdoll)
-	_ragdoll.global_transform = global_transform
+	# Retain live visual heading without scaling any existing physics bodies.
+	_ragdoll.global_transform = Transform3D(visual.global_basis.orthonormalized(), global_position)
+	_ragdoll.copy_appearance(character)
 	_ragdoll.activate(initial_velocity, impulse)
 	visual.visible = false
 

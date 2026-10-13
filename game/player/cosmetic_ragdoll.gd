@@ -18,6 +18,35 @@ func activate(initial_velocity: Vector3, impulse: Vector3) -> void:
 	_bodies.Chest.apply_central_impulse(impulse.limit_length(8.0))
 
 
+func copy_appearance(character: ToyCharacterVisual) -> void:
+	var suit := (character.get_node("Torso") as MeshInstance3D).material_override
+	for part in ["Pelvis", "Chest", "UpperArmLeft", "LowerArmLeft", "UpperArmRight", "LowerArmRight", "UpperLegLeft", "LowerLegLeft", "UpperLegRight", "LowerLegRight"]:
+		(_bodies[part].get_child(0) as MeshInstance3D).material_override = suit
+	for part in ["LeftEye", "RightEye", "Mouth"]:
+		var source := character.get_node(part) as MeshInstance3D
+		_copy_mesh(source, _bodies.Head, source.transform)
+	for side in ["Left", "Right"]:
+		var source := character.get_node("%sLeg/%sShoe" % [side, side]) as MeshInstance3D
+		var placement := source.transform
+		placement.origin += (character.get_node(side + "Leg") as Node3D).position
+		_copy_mesh(source, _bodies["LowerLeg" + side], placement)
+	for source: MeshInstance3D in character.get_node("Accessories").get_children():
+		if not source.visible:
+			continue
+		var body: RigidBody3D = _bodies[source.get_meta("body", "Chest")]
+		_copy_mesh(source, body, source.transform)
+
+
+func _copy_mesh(source: MeshInstance3D, body: RigidBody3D, placement: Transform3D) -> void:
+	var accessory := MeshInstance3D.new()
+	accessory.name = source.name
+	accessory.mesh = source.mesh
+	accessory.material_override = source.material_override
+	body.add_child(accessory)
+	placement.origin -= body.position
+	accessory.transform = placement
+
+
 func body_count() -> int:
 	return _bodies.size()
 

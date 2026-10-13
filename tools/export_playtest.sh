@@ -45,7 +45,8 @@ FILES=("$BINARY" DisasterParty.pck BUILD.txt)
 if [[ "$TARGET" == linux-server ]]; then
   chmod +x "$OUTPUT/$BINARY"
   git -C "$ROOT" show HEAD:tools/room_service.py > "$OUTPUT/room_service.py"
-  FILES+=(room_service.py)
+  git -C "$ROOT" show HEAD:assets/cosmetic_catalog.json > "$OUTPUT/cosmetic_catalog.json"
+  FILES+=(room_service.py cosmetic_catalog.json)
 fi
 printf 'Disaster Party Playtest\nSource revision: %s\nEngine: %s\nRenderer: Compatibility\nTarget: %s\n\nKeep the executable and DisasterParty.pck together.\nNo editor or repository is required. Build identity is printed in the runtime log.\nUnsigned prototype: no Steam integration. Session readiness is a separate gate.\n' \
   "$REVISION" "$ENGINE" "$PLATFORM" > "$OUTPUT/BUILD.txt"

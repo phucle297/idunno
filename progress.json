@@ -20,8 +20,8 @@
   },
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
-    "milestone": "milestone_6_3_cosmetic_catalog_and_assets",
-    "task": "task_6_3_1_outfit_catalog"
+    "milestone": "milestone_6_4_collection_reveal_and_equipment",
+    "task": "task_6_4_1_equipment_replication"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -47,7 +47,7 @@
     "title": "Cosmetic Loot-Box Drops and Customization",
     "status": "in_progress",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Milestone 6.1 identity/store/admission, 6.2.1 authoritative participation and 6.2.2 durable sealed reward grants are complete. Box opening, earned visual outfits, equipment and cosmetic UI remain planned; no paid boxes, currencies, shops or stat changes.",
+    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Identity, rewards/opening and faithful outfit assets are complete. Equipment, collection/reveal UI and final packages remain; no paid boxes, currencies, shops or stat changes.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -84,21 +84,21 @@
       },
       "milestone_6_3_cosmetic_catalog_and_assets": {
         "title": "Small Cosmetic Catalog and Faithful Assets",
-        "status": "in_progress",
+        "status": "completed",
         "dependencies": ["milestone_6_2_authoritative_cosmetic_rewards"],
         "tasks": {
-          "task_6_3_1_outfit_catalog": {"title": "6.3.1 Stable outfit catalog", "status": "planned"},
-          "task_6_3_2_asset_generation_validation": {"title": "6.3.2 Generate and validate", "status": "planned"},
-          "task_6_3_3_readability": {"title": "6.3.3 Readability inspection", "status": "planned"}
+          "task_6_3_1_outfit_catalog": {"title": "6.3.1 Stable outfit catalog", "status": "completed"},
+          "task_6_3_2_asset_generation_validation": {"title": "6.3.2 Generate and validate", "status": "completed"},
+          "task_6_3_3_readability": {"title": "6.3.3 Readability inspection", "status": "completed"}
         },
         "gates": {
-          "asset_manifest_import_animation_and_physics_equivalence": {"required": true, "status": "not_run"},
-          "inspected_720p_1080p_gameplay_renders": {"required": true, "status": "not_run"}
+          "asset_manifest_import_animation_and_physics_equivalence": {"required": true, "status": "passed", "evidence": "Generatorv5 seed297 twice gives identical scene/material hashes; manifest matches. Phase1=971, player=294, emotes=55, service=30 tests pass. All8 outfits/all14 clips, canonical1728tri +0/144/120/12/180/60/168/168 accessory triangles, collider equivalence, ragdoll11bodies/10joints/55kg and recovery pass. Shared version1 JSON in PCK93entries and detached service; full binaries deferred6.5 because templates missing."},
+          "inspected_720p_1080p_gameplay_renders": {"required": true, "status": "passed", "evidence": "Daylight front/back, all earned run/crouch-carry/carry/ragdoll/recovery and flood/tornado-meteor overlap rendered and inspected at720p1080p. Captures .amp/in/artifacts/phase6-outfits; distinct silhouettes, player colors and HUD/warning footprints retained. Linux Compatibility/llvmpipe only, no realGPU/native/human claim."}
         }
       },
       "milestone_6_4_collection_reveal_and_equipment": {
         "title": "Collection, Reveal, Equip and Multiplayer Appearance",
-        "status": "planned",
+        "status": "in_progress",
         "dependencies": ["milestone_6_3_cosmetic_catalog_and_assets"],
         "tasks": {
           "task_6_4_1_equipment_replication": {"title": "6.4.1 Validated equipment replication", "status": "planned"},
@@ -128,6 +128,13 @@
     }
   },
   "validation_log": [
+    {
+      "date": "2026-10-13",
+      "scope": "6.3 catalog/assets, deterministic geometry and inspected renders",
+      "status": "passed",
+      "commands": "godot --headless --editor --path . --quit; generator --seed=297 twice + sha256 diff; test_phase1.gd; test_player_integration.gd; test_emotes.gd; service unittest; test_carry_presentation.gd and test_disaster_combinations.gd rendered720p1080p; PCK export/verify/isolated boot; view_media",
+      "result": "Phase1=971/player=294/emote=55 checks and30 service tests pass. Parent rerunPhase1=971. Generatorv5 hash-identical, all8outfits14clips faithful ragdoll/color with unchanged physics. Each accessory<800tri; total1728–1908tri preserves preexisting below-bible base budget rather than claiming3000–6000. Inspected visuals .amp/in/artifacts/phase6-outfits; logs .scratch/phase6-outfits. Initial render fixtures failed audio/resolution/visibility assumptions then fixed; final checks pass. Missing release templates block full export but PCK93entries/catalog/isolatedboot pass; resolve templates in6.5. Shutdown-only diagnostics retained. No deployment/nativeGPU claim."
+    },
     {
       "date": "2026-10-13",
       "scope": "6.2.3 authenticated opening and restart",
@@ -289,5 +296,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Complete Milestone6.3: shared stable eight-outfit catalog, deterministic earned geometry, faithful ragdoll accessories, physics/animation validation and inspected 720p/1080p renders before equipment/UI."
+  "next_action": "Implement6.4.1 server-validated owned equipment with lobby-only ordering and reliable appearance replication, then collection/preview and results reveal; retain server acknowledgement and offline starters-only policy."
 }

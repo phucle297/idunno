@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "items": [
+    {"id": "plain", "name": "Plain Suit", "pool": "starter", "description": "The canonical toy suit."},
+    {"id": "cap", "name": "Cap", "pool": "starter", "description": "A slate cap."},
+    {"id": "hard_hat", "name": "Hard Hat", "pool": "starter", "description": "An amber safety helmet."},
+    {"id": "backpack", "name": "Backpack", "pool": "starter", "description": "A small coral pack."},
+    {"id": "raincoat", "name": "Raincoat", "pool": "earned", "description": "An amber hood rim and rain cape."},
+    {"id": "mechanic", "name": "Mechanic", "pool": "earned", "description": "Slate goggles and a tool belt."},
+    {"id": "park_ranger", "name": "Park Ranger", "pool": "earned", "description": "A broad sand ranger hat and field pack."},
+    {"id": "meteor_observer", "name": "Meteor Observer", "pool": "earned", "description": "An open cream helmet and compact observation pack."}
+  ]
+}
