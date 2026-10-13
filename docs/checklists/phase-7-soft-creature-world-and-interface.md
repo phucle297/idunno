@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: in_progress; milestones 7.1-7.5 complete, 7.6 cross-system validation underway.
+Status: complete; all milestones 7.1-7.6 and gates G7.1-G7.6 validated.
 
 ## Outcome and execution policy
 
@@ -179,15 +179,15 @@ Extend existing public-behavior UI regressions, not private layout/call-order te
 
 ## 7.6 — Cross-system gate before zone behavior
 
-- [ ] Run `GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh`; require positive
+- [x] Run `GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh`; require positive
   markers and strict runtime-error checks. Run relevant profile-enabled 4/8/20-client
   fixtures with rematches, owner departure/crash retry and earned outfits.
-- [ ] Compare `tests/profile_overlap.gd -- --cosmetics` with/without `--preview` at 720p
+- [x] Compare `tests/profile_overlap.gd -- --cosmetics` with/without `--preview` at 720p
   and `--1080p`, 120 warmup/600 samples, V-Sync disabled; report p95, nodes, draw calls,
   geometry/memory and import costs on matching scenarios. Cap mesh costs at existing
   3k–6k triangles/base and <800/accessory; no new simulated prop bodies. Keep UI and
   preview node counts stable through ten opens/rematches. Serialize heavy jobs.
-- [ ] Commit validated source and archive Phase 7 under existing policy before making
+- [x] Commit validated source and archive Phase 7 under existing policy before making
   Phase 8 current. No local package claimed until final integrated committed source.
 
 Gate G7.6: regression/multiplayer and visual gates passed, measured performance results

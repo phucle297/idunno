@@ -42,7 +42,7 @@
   "phase": {
     "id": "phase_7_soft_creature_world_and_interface",
     "title": "Soft Creature, Detailed World and Complete Interface",
-    "status": "in_progress",
+    "status": "completed",
     "milestones": [
       {
         "id": "7.1",
@@ -158,10 +158,10 @@
       {
         "id": "7.6",
         "title": "Cross-system validation",
-        "status": "in_progress",
+        "status": "completed",
         "gate": {
           "id": "G7.6",
-          "status": "not_run",
+          "status": "passed",
           "required": true
         }
       }
@@ -277,6 +277,18 @@
       "status": "passed",
       "command": "xvfb-run capture suites at 720p and 1080p: test_cosmetic_collection (720p + 1080p), test_lobby_presentation, test_results_table, test_spectator_presentation",
       "result": "Rendered representative states with the bean character under the real render loop. test_cosmetic_collection 35 checks, lobby-presentation 41, results-table 487, spectator-presentation 87 all pass; the suites assert framebuffer matches requested size, results table/prompt/award never overlap (including twenty rows), spectator card stays inside the 720p safe area, long names truncate with tooltips and focus order wraps inside each modal. Captures written to .amp/in/artifacts/phase7-ui/{720p,1080p} covering lobby offline/field-error/host-waiting/host-ready, results reveal/four/shared-reduced/twenty-top/twenty-bottom, spectator elimination/long-name/compact/dark-overlap/reduced-motion/one-survivor/empty-targets and collection default/locked/sealed-results/unavailable/opened/complete/results-no-drop. Collection preview renders the regenerated bean via CHR_Base_v001.tscn."
+    },
+    {
+      "scope": "gate_g7.6_full_regression_and_network_matrices",
+      "status": "passed",
+      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+      "result": "Final marker UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed. No script/runtime errors (shutdown-only ObjectDB/resource-in-use notes excluded). Includes five network matrices (network authority, four-client match, playable scene, playable scale 8-player, dedicated-server 5-rematch/recovery), managed 20-client authority/movement/capacity/rematch/owner-transfer/crash-retry, and settings save+restart verification."
+    },
+    {
+      "scope": "gate_g7.6_profile_overlap_cosmetics_vs_preview",
+      "status": "passed",
+      "command": "tests/profile_overlap.gd -- --cosmetics [--preview] [--1080p] under xvfb, 120 warmup / 600 samples, V-Sync disabled, four combinations serialized",
+      "result": "ui_nodes_stable=true on every run (no UI/preview node leakage through simulated opens/rematches); representative 4-player + 3 props + flood/tornado overlap state valid. Geometry: 720p no-preview p95 101.03ms/626 draw calls/968 nodes; 720p preview p95 121.25ms/671/961; 1080p no-preview p95 149.05ms/610/961; 1080p preview p95 179.44ms/671/961. authoritative_bodies=7, cosmetic_bodies=5, props=3, active_lines=2 across all runs. Mesh budgets from manifest: bean base 1808 triangles (≤3k-6k), accessories 0-180 (≤800), no new simulated prop bodies. target_60fps_met=false on llvmpipe software rasterizer — honest software result, not a GPU/native throughput claim; native GPU/Windows/60FPS acceptance stays unverified and nonblocking under the waiver."
     }
   ],
   "blockers": [],
@@ -318,5 +330,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Run the full cross-system gate 7.6 (tests/run_ui_regression.sh plus profile_overlap cosmetics vs preview at 720p/1080p), then archive Phase 7 and roll progress.json forward to Phase 8."
+  "next_action": "Archive completed Phase 7 (rollover to Phase 8) per AGENTS.md: preserve full evidence under docs/old-docs/phase-7-soft-creature-world-and-interface/, reset root progress.json to Phase 8 as the active phase, and update the checklist/archive indexes and NEED_REAL_CHECK.md."
 }
