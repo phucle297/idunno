@@ -2252,7 +2252,14 @@ func _build_toy_town() -> Dictionary:
 
 	_add_open_building("Shop", Vector3(-16.0, 0.0, -13.0), Vector2(12.0, 10.0), 4.5, PALETTE.coral)
 	_add_open_building("Hall", Vector3(16.0, 0.0, -13.0), Vector2(12.0, 12.0), 4.5, PALETTE.teal)
+	$Sandbox/Hall/BuildingLabel.text = "SCHOOL"
+	_add_open_building("House", Vector3(-26.0, 0.0, 25.0), Vector2(8.0, 8.0), 4.5, PALETTE.sand)
+	$Sandbox/House/BuildingLabel.text = "HOME"
+	_add_school_interior()
+	_add_house_interior()
 	_add_parking_garage()
+	_add_garage_detail()
+	_add_street_detail()
 	_add_static_box("PocketParkPlatform", Vector3(10.0, 2.2, 8.0), Vector3(15.0, 1.1, 14.0), PALETTE.teal)
 	$Sandbox/PocketParkPlatform.add_to_group("landmark")
 	_add_world_label("PocketParkLabel", "POCKET PARK", Vector3(15.0, 3.0, 18.2), PALETTE.cream)
@@ -2278,6 +2285,7 @@ func _build_toy_town() -> Dictionary:
 	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
+	_add_park_detail()
 	_add_town_props()
 
 	# Crate3 spawns at the escape-aid route base so the measured crate-boost
@@ -2485,6 +2493,11 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 		_add_detail_box(root, "Counter", Vector3(3.6, 0.9, 0.8), Vector3(-footprint.x * 0.5 + 2.0, 0.45, -2.6), PALETTE.sand)
 		_add_detail_box(root, "ShelfTop", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.5, -2.6), PALETTE.teal)
 		_add_detail_box(root, "ShelfBottom", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.05, -2.6), PALETTE.teal)
+		# Rear stock alcove on the east wall keeps the west sales counter and
+		# the north/south doors clear.
+		_add_detail_box(root, "StockShelf", Vector3(1.6, 1.3, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.65, -2.6), PALETTE.slate)
+		_add_detail_box(root, "StockCrateA", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.3, -1.4), PALETTE.sand)
+		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand)
 
 
 func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, _cover_vertical := true) -> void:
@@ -2542,6 +2555,80 @@ func _add_parking_garage() -> void:
 			brace.rotation.y = -atan2(pillar_top.z - canopy_corner.z, pillar_top.x - canopy_corner.x)
 	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 4.8, 0.0), PALETTE.coral)
 	_add_label_to(root, "GarageLabel", "PARKING", Vector3(0.0, 3.4, 6.15), PALETTE.cream)
+
+
+func _add_school_interior() -> void:
+	var hall := $Sandbox.get_node("Hall") as Node3D
+	# A 3 m north-south corridor joins the two doors with two classrooms on
+	# either side. Partitions rise only 2.8 m (below the 4.5 m wall/roof) so
+	# sight lines stay open and no classroom becomes a sealed trap.
+	var partition_height := 2.8
+	var segment_length := (12.0 - 2.4) * 0.5
+	for px: float in [-1.5, 1.5]:
+		var side := "West" if px < 0.0 else "East"
+		_add_box_to(hall, "Partition%sNorth" % side, Vector3(0.3, partition_height, segment_length), Vector3(px, partition_height * 0.5, -(1.2 + segment_length * 0.5)), PALETTE.slate)
+		_add_box_to(hall, "Partition%sSouth" % side, Vector3(0.3, partition_height, segment_length), Vector3(px, partition_height * 0.5, 1.2 + segment_length * 0.5), PALETTE.slate)
+	# Furniture per classroom: a board on the north wall, two desks facing it,
+	# and a coat rack near the south wall. Grounded visual-only decoration.
+	for side_x: float in [-3.75, 3.75]:
+		var side := "West" if side_x < 0.0 else "East"
+		_add_detail_box(hall, "Board%s" % side, Vector3(2.2, 1.2, 0.1), Vector3(side_x, 2.0, -5.8), PALETTE.slate)
+		_add_detail_box(hall, "BoardTrim%s" % side, Vector3(2.4, 0.12, 0.04), Vector3(side_x, 2.62, -5.83), PALETTE.cream)
+		for desk in 2:
+			var dz := -3.2 + desk * 2.0
+			_add_detail_box(hall, "DeskBody%s%d" % [side, desk], Vector3(0.9, 0.5, 0.6), Vector3(side_x, 0.25, dz), PALETTE.sand)
+			_add_detail_box(hall, "DeskTop%s%d" % [side, desk], Vector3(0.9, 0.06, 0.6), Vector3(side_x, 0.53, dz), PALETTE.slate)
+		_add_detail_box(hall, "CoatRack%s" % side, Vector3(1.1, 1.3, 0.5), Vector3(side_x * 0.85, 0.65, 3.2), PALETTE.coral)
+
+
+func _add_house_interior() -> void:
+	var house := $Sandbox.get_node("House") as Node3D
+	# The house keeps a solid static roof (no breakable panel), so close the
+	# 2 m centre opening the open-building roof strips leave behind.
+	_add_box_to(house, "RoofCenter", Vector3(2.0, 0.35, 2.0), Vector3(0.0, 4.68, 0.0), PALETTE.cream)
+	# Single-storey home: kitchen along the west wall, a dining table in the
+	# middle, a bed nook in the north-east corner and a sofa against the east
+	# wall. Grounded visual-only furniture; doors stay clear.
+	_add_detail_box(house, "KitchenCounter", Vector3(2.0, 0.9, 0.7), Vector3(-2.7, 0.45, 1.6), PALETTE.slate)
+	_add_detail_box(house, "KitchenSink", Vector3(1.0, 0.12, 0.5), Vector3(-2.7, 0.95, 1.6), PALETTE.cream)
+	_add_detail_box(house, "DiningTable", Vector3(1.8, 0.1, 1.0), Vector3(0.8, 0.72, 1.4), PALETTE.sand)
+	for dx: float in [-0.45, 0.45]:
+		_add_detail_box(house, "TableLeg%s" % ("L" if dx < 0.0 else "R"), Vector3(0.12, 0.7, 0.12), Vector3(0.8 + dx, 0.35, 1.4), PALETTE.slate)
+	_add_detail_box(house, "Bed", Vector3(2.0, 0.5, 1.4), Vector3(2.7, 0.25, -2.9), PALETTE.coral)
+	_add_detail_box(house, "Pillow", Vector3(0.6, 0.16, 0.5), Vector3(3.3, 0.5, -2.9), PALETTE.cream)
+	_add_detail_box(house, "Sofa", Vector3(2.2, 0.7, 0.9), Vector3(2.6, 0.35, 3.0), PALETTE.teal)
+
+
+func _add_garage_detail() -> void:
+	var garage := $Sandbox.get_node("ParkingGarage") as Node3D
+	# Painted bay lines on the deck and a perimeter tool shelf; kept off the
+	# ramp arrival and canopy support columns. Visual-only.
+	for bay: float in [-2.0, 0.0, 2.0]:
+		_add_detail_box(garage, "BayLine%s" % bay, Vector3(0.14, 0.02, 9.0), Vector3(bay, 2.585, 0.0), PALETTE.amber)
+	_add_detail_box(garage, "ToolShelving", Vector3(5.0, 1.4, 0.6), Vector3(0.0, 3.28, -5.0), PALETTE.slate)
+	_add_detail_box(garage, "ToolBoxA", Vector3(0.7, 0.5, 0.5), Vector3(-1.2, 2.83, -4.0), PALETTE.coral)
+	_add_detail_box(garage, "ToolBoxB", Vector3(0.7, 0.5, 0.5), Vector3(0.0, 2.83, -4.0), PALETTE.cream)
+
+
+func _add_park_detail() -> void:
+	# A second bench, a planter and a low rail complete the Pocket Park while
+	# leaving the normal ramp and the crate-boost escape step clear.
+	_add_bench("ParkBenchSouth", Vector3(18.0, 2.2, 17.0))
+	_add_tree("TreeParkNorth", Vector3(12.0, 2.2, 11.2))
+	var park := $Sandbox.get_node("PocketParkPlatform") as Node3D
+	_add_detail_box(park, "Planter", Vector3(1.6, 0.8, 1.2), Vector3(-4.0, 1.5, -1.0), PALETTE.coral)
+	_add_detail_box(park, "PlanterSprout", Vector3(0.5, 0.5, 0.5), Vector3(-4.0, 2.15, -1.0), PALETTE.grass)
+	_add_detail_box($Sandbox, "ParkRail", Vector3(5.0, 0.9, 0.18), Vector3(16.5, 2.65, 9.0), PALETTE.cream)
+
+
+func _add_street_detail() -> void:
+	# Crosswalk bars across the vertical road (aligned with the two bridges)
+	# and a dashed centre line beyond the plaza. Thin visual overlays only.
+	for z: float in [-9.0, 9.0]:
+		for stripe: float in [-1.2, -0.4, 0.4, 1.2]:
+			_add_detail_box($Sandbox, "CrossZ%sX%s" % [z, stripe], Vector3(0.9, 0.03, 4.6), Vector3(stripe, 0.075, z), PALETTE.cream)
+	for z: float in [-26.0, -22.0, -18.0, -14.0, -10.0, 14.0, 18.0, 22.0, 26.0]:
+		_add_detail_box($Sandbox, "LaneDash%s" % z, Vector3(0.22, 0.03, 2.0), Vector3(0.0, 0.075, z), PALETTE.cream)
 
 
 func _add_town_props() -> void:
