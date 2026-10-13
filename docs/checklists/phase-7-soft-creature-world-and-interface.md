@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: in_progress; milestone 7.1 complete, 7.2 underway.
+Status: in_progress; milestones 7.1-7.2 complete, 7.3 underway.
 
 ## Outcome and execution policy
 
@@ -79,16 +79,16 @@ player/collider/map-safety checks. Capture identical candidate paths before pick
 Owners: generator, `toy_character_visual.gd`, `cosmetic_ragdoll.gd`, player integration,
 `assets/cosmetic_catalog.json`, collection preview and manifest.
 
-- [ ] 7.2a Preserve `ToyCharacterVisual` API, required animation names/durations, scene
+- [x] 7.2a Preserve `ToyCharacterVisual` API, required animation names/durations, scene
   consumers and 18-bone contract where useful. Replace old head/torso geometry at the
   source, not with one-off consumer wrappers. Continuous body must stay continuous
   through idle/run/crouch/carry/shove/emotes, with ≤8% visual-only squash.
-- [ ] 7.2b Rebuild cosmetic ragdoll appearance to match B. Current rig's separate cream
+- [x] 7.2b Rebuild cosmetic ragdoll appearance to match B. Current rig's separate cream
   head and primitive human limbs cannot be shipped unchanged. Keep existing 11-body,
   10-joint, 55kg physics contract; attach a coherent deforming visual to the rig rather
   than exposing physics primitives. Use Godot-native skinning if required to maintain
   continuity; no extra simulated bodies/accessory collisions or replicated ragdoll meshes.
-- [ ] 7.2c Adapt all catalog IDs: plain, cap, hard_hat, backpack, raincoat, mechanic,
+- [x] 7.2c Adapt all catalog IDs: plain, cap, hard_hat, backpack, raincoat, mechanic,
   park_ranger, meteor_observer. Hats sit on bean top; back attachments fit body; outfit
   shells/panels retain color and silhouette without recreating human clothing anatomy.
   Preserve four starters/four earned, saved odds, server ownership and lobby-only equip.
