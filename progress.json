@@ -3,14 +3,14 @@
   "updated_at": "2026-10-13",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "planned",
   "archive_policy": {
     "directory": "docs/old-docs",
     "filename_pattern": "{phase-slug}/progress.json",
     "rule": "Archive completed phases without overwriting history. Phase 2 remains deferred_not_completed; its unfinished gates remain unchanged."
   },
   "previous_phase_archive": "docs/old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json",
-  "checklist": null,
+  "checklist": "docs/checklists/phase-7-soft-creature-world-and-interface.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
@@ -19,15 +19,28 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_7_soft_creature_world_and_interface", "milestone": "7.1", "task": "7.1a"},
+  "phase": {
+    "id": "phase_7_soft_creature_world_and_interface",
+    "title": "Soft Creature, Detailed World and Complete Interface",
+    "status": "planned",
+    "milestones": [
+      {"id": "7.1", "title": "Representative in-engine foundation", "status": "planned", "tasks": [{"id": "7.1a", "status": "planned"}, {"id": "7.1b", "status": "planned"}, {"id": "7.1c", "status": "planned"}], "gate": {"id": "G7.1", "status": "not_run", "required": true}},
+      {"id": "7.2", "title": "Character animation, ragdoll and eight outfits", "status": "planned", "tasks": [{"id": "7.2a", "status": "planned"}, {"id": "7.2b", "status": "planned"}, {"id": "7.2c", "status": "planned"}], "gate": {"id": "G7.2", "status": "not_run", "required": true}},
+      {"id": "7.3", "title": "Town construction and usable interiors", "status": "planned", "tasks": [{"id": "7.3a", "status": "planned"}, {"id": "7.3b", "status": "planned"}, {"id": "7.3c", "status": "planned"}], "gate": {"id": "G7.3", "status": "not_run", "required": true}},
+      {"id": "7.4", "title": "Harbor parity and disaster presentation", "status": "planned", "gate": {"id": "G7.4", "status": "not_run", "required": true}},
+      {"id": "7.5", "title": "Complete interface", "status": "planned", "tasks": [{"id": "7.5a", "status": "planned"}, {"id": "7.5b", "status": "planned"}, {"id": "7.5c", "status": "planned"}, {"id": "7.5d", "status": "planned"}], "gate": {"id": "G7.5", "status": "not_run", "required": true}},
+      {"id": "7.6", "title": "Cross-system validation", "status": "planned", "gate": {"id": "G7.6", "status": "not_run", "required": true}}
+    ]
+  },
+  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "depends_on": "phase_7_soft_creature_world_and_interface", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md"}],
   "next_scope_design": {
     "status": "planning_not_implemented",
     "decisions": "docs/decisions.md",
     "character": "Selected B Soft Creature; non-human continuous rounded body",
     "environment": "Preserve liked concept town; consistent road/building/prop materials and detailed usable house/school interiors",
-    "camera": "Exploration accepted generally; exact view not selected or engine-validated",
-    "gameplay": "Owner requests planning a shrinking competitive safe zone; schedule/damage/fairness remain to be specified"
+    "camera": "High three-quarter B is proposed implementation default, conditional on actual camera clearance/readability checks; not owner-selected or engine-validated",
+    "gameplay": "Phase 8 specifies fixed-center staged contraction, damage and route/hazard gates; numbers are implementation defaults, not proven balance"
   },
   "completed_phase": {
     "id": "phase_6_cosmetic_loot_box_drops_and_customization",
@@ -51,9 +64,9 @@
     "renderer": "Compatibility",
     "target": "Windows PC"
   },
-  "validation_log": [],
+  "validation_log": [{"scope": "planning_only", "status": "passed", "command": "jq empty progress.json; git diff --check; local plan reference and phase/task consistency check", "result": "Planning files validated; all implementation/runtime/visual gates remain not_run."}],
   "blockers": [],
-  "changed_files": [],
+  "changed_files": ["docs/checklists/phase-7-soft-creature-world-and-interface.md", "docs/checklists/phase-8-shrinking-survival-zone.md", "docs/implementation-checklist.md", "docs/decisions.md", "progress.json"],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
     "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
@@ -76,5 +89,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Define the next-phase plan for selected Soft Creature art, detailed interiors and a separately validated shrinking-zone gameplay milestone; preserve deployment/publication approval boundaries."
+  "next_action": "Implement task 7.1a: generate the plain Soft Creature and representative shop/interior/road material slice through existing owners, then render at actual gameplay scale before expanding assets."
 }

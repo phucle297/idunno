@@ -7,8 +7,13 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
+| 7 — Soft Creature, Detailed World and Complete Interface | Planned; current work starts at 7.1a | [Phase 7](checklists/phase-7-soft-creature-world-and-interface.md) |
+| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; depends on Phase 7 | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 
-Phase 6 is archived below. No next phase is agreed; root progress is idle pending owner scope.
+Phase 6 is archived below. The owner requests an implementation-ready plan for the
+selected character/world direction and shrinking-zone mechanic. Phases 7–8 are
+planned, not implemented; root progress points to the first Phase 7 task. Existing
+device/human waiver and deployment/publication approval boundaries remain unchanged.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware

@@ -1,12 +1,13 @@
 # Disaster Party — Active Decisions
 
-No active phase is selected. Phase 6 is completed and its full
+Phase 7 is planned, starting at the representative in-engine slice. Phase 6 is completed and its full
 [decisions](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/decisions.md),
 [checklist](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/checklist.md)
 and [evidence](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json)
-are archived together. Root [progress](../progress.json) remains without an active
-implementation phase while the next scope is being designed. No deployment or
-renewed manual prerequisite is inferred.
+are archived together. Root [progress](../progress.json) tracks planned Phase 7;
+[Phase 7](checklists/phase-7-soft-creature-world-and-interface.md) and dependent
+[Phase 8](checklists/phase-8-shrinking-survival-zone.md) specify execution and gates.
+No implementation, deployment or renewed manual prerequisite is inferred from planning.
 
 ## Next-scope design selections and proposals
 
@@ -38,3 +39,24 @@ renewed manual prerequisite is inferred.
 
 Generated images are concept references only; no asset, engine-camera, performance,
 interior or safe-zone validation is claimed by these selections.
+
+## Implementation-plan defaults — 2026-10-13
+
+Owner requests careful planning for one continuing implementation effort. The detailed
+checklists supersede unresolved proposal details above with reversible defaults:
+
+- Phase 7 includes all art, maps/interiors, character/outfit/animation/ragdoll adaptation,
+  every UI state and cross-system validation. Phase 8 separately changes zone behavior
+  and delivers matching integrated local packages. Complete each milestone before advancing.
+- Camera B/high three-quarter is a proposed default, conditional on actual clearance,
+  traversal and readability captures; not an owner selection of one precise camera.
+- Restyle existing Hall as School while preserving stable breakable/route IDs; add one
+  8×8m house in the southwest edge space, with measured collision clearances. No new map.
+- Fixed map-specific zone centers, full initial corner coverage and staged contraction
+  to a nonzero 22m final radius. First two minutes grace; damage 2/4/6 HP per second;
+  advance notices and existing timeout ranking. No random moving center in first version.
+- Require two reachable high refuges and remaining exits during zone contraction;
+  defer incompatible new hazard selection rather than grant universal immunity or
+  relocate already-announced strikes. Details/numbers are defaults to test, not proven balance.
+- Keep source/asset provenance and historical evidence; do not rewrite DESIGN or
+  waive automated correctness checks. Commit/push with `[skip ci]` to avoid deployment.
