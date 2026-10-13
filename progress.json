@@ -21,6 +21,14 @@
   },
   "current": {"phase": null, "milestone": null, "task": null},
   "phase": null,
+  "next_scope_design": {
+    "status": "planning_not_implemented",
+    "decisions": "docs/decisions.md",
+    "character": "Selected B Soft Creature; non-human continuous rounded body",
+    "environment": "Preserve liked concept town; consistent road/building/prop materials and detailed usable house/school interiors",
+    "camera": "Exploration accepted generally; exact view not selected or engine-validated",
+    "gameplay": "Owner requests planning a shrinking competitive safe zone; schedule/damage/fairness remain to be specified"
+  },
   "completed_phase": {
     "id": "phase_6_cosmetic_loot_box_drops_and_customization",
     "title": "Cosmetic Loot-Box Drops and Customization",
@@ -68,5 +76,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Await owner-selected next scope; obtain separate explicit approval before deploying/publishing Phase6 or changing shared profile data/proxy configuration."
+  "next_action": "Define the next-phase plan for selected Soft Creature art, detailed interiors and a separately validated shrinking-zone gameplay milestone; preserve deployment/publication approval boundaries."
 }
