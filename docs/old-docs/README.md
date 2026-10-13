@@ -15,11 +15,15 @@ new follow-up evidence belongs in a separately named archive.
 | 5 — Session Distribution and Release Readiness | [Checklist](phase-5-session-distribution-and-release-readiness/checklist.md) | [Decisions](phase-5-session-distribution-and-release-readiness/decisions.md) | [Progress](phase-5-session-distribution-and-release-readiness/progress.json) |
 | 5 — Validation Follow-up | [Checklist](phase-5-validation-followup/checklist.md) | [Decisions](phase-5-validation-followup/decisions.md) | [Progress](phase-5-validation-followup/progress.json) |
 | 6 — Cosmetic Loot-Box Drops and Customization | [Checklist](phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) | [Decisions](phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) | [Progress](phase-6-cosmetic-loot-box-drops-and-customization/progress.json) |
+| 7 — Soft Creature, Detailed World and Complete Interface | [Checklist](phase-7-soft-creature-world-and-interface/checklist.md) | [Decisions](phase-7-soft-creature-world-and-interface/decisions.md) | [Progress](phase-7-soft-creature-world-and-interface/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
-or publication. Software p95 measurements did not meet60FPS; native/GPU/human acceptance
-remains unverified/nonblocking under the waiver. Its full failed/passed history is retained.
-No next phase was agreed; root progress is fresh idle state linked to this archive.
+or publication. Phase 7 completed agent-owned source/regression gates on2026-10-13: the
+B Soft Creature, detailed town/harbor interiors and the complete themed interface, validated
+by the 42-suite regression, five network matrices and the managed 20-client run. Software p95
+measurements did not meet60FPS on llvmpipe; native GPU/Windows/human acceptance remains
+unverified/nonblocking under the waiver. Full failed/passed history is retained per phase.
+Phase 8 (shrinking survival zone) is the current planned work in root progress.
 
 ## Suspended phase snapshot — not completed
 

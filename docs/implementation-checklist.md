@@ -7,13 +7,12 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 7 — Soft Creature, Detailed World and Complete Interface | Planned; current work starts at 7.1a | [Phase 7](checklists/phase-7-soft-creature-world-and-interface.md) |
-| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; depends on Phase 7 | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
+| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; current work starts at 8.1a | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 
-Phase 6 is archived below. The owner requests an implementation-ready plan for the
-selected character/world direction and shrinking-zone mechanic. Phases 7–8 are
-planned, not implemented; root progress points to the first Phase 7 task. Existing
-device/human waiver and deployment/publication approval boundaries remain unchanged.
+Phases 6 and 7 are archived below. The owner's selected character/world/interface
+direction finished in Phase 7; Phase 8 (shrinking survival zone) is the active
+planned work, starting at 8.1a. Existing device/human waiver and deployment/
+publication approval boundaries remain unchanged.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware
@@ -32,6 +31,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 - [Phase 5 — Session Distribution and Release Readiness](old-docs/phase-5-session-distribution-and-release-readiness/checklist.md) · [decisions](old-docs/phase-5-session-distribution-and-release-readiness/decisions.md) · [evidence](old-docs/phase-5-session-distribution-and-release-readiness/progress.json)
 - [Phase 5 — Validation Follow-up](old-docs/phase-5-validation-followup/checklist.md) · [decisions](old-docs/phase-5-validation-followup/decisions.md) · [evidence](old-docs/phase-5-validation-followup/progress.json)
 - [Phase 6 — Cosmetic Loot-Box Drops and Customization](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) · [decisions](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) · [evidence](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json) — validated local packages; not deployed/published. Software measurement completed, 60FPS/native/human acceptance not passed.
+- [Phase 7 — Soft Creature, Detailed World and Complete Interface](old-docs/phase-7-soft-creature-world-and-interface/checklist.md) · [decisions](old-docs/phase-7-soft-creature-world-and-interface/decisions.md) · [evidence](old-docs/phase-7-soft-creature-world-and-interface/progress.json) — validated agent-owned source/regression gates only; native GPU/Windows/60FPS/separate-network acceptance unverified and nonblocking.
 
 ## Tracking rules
 

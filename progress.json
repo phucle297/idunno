@@ -9,8 +9,8 @@
     "filename_pattern": "{phase-slug}/progress.json",
     "rule": "Archive completed phases without overwriting history. Phase 2 remains deferred_not_completed; its unfinished gates remain unchanged."
   },
-  "previous_phase_archive": "docs/old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json",
-  "checklist": "docs/checklists/phase-7-soft-creature-world-and-interface.md",
+  "previous_phase_archive": "docs/old-docs/phase-7-soft-creature-world-and-interface/progress.json",
+  "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": [
@@ -35,162 +35,94 @@
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
-    "phase": "phase_7_soft_creature_world_and_interface",
-    "milestone": "7.6",
-    "task": null
+    "phase": "phase_8_shrinking_survival_zone",
+    "milestone": "8.1",
+    "task": "8.1a"
   },
   "phase": {
-    "id": "phase_7_soft_creature_world_and_interface",
-    "title": "Soft Creature, Detailed World and Complete Interface",
-    "status": "completed",
+    "id": "phase_8_shrinking_survival_zone",
+    "title": "Shrinking Survival Zone and Integrated Local Delivery",
+    "status": "planned",
     "milestones": [
       {
-        "id": "7.1",
-        "title": "Representative in-engine foundation",
-        "status": "completed",
+        "id": "8.1",
+        "title": "Map route and hazard feasibility before damaging players",
+        "status": "planned",
         "tasks": [
           {
-            "id": "7.1a",
-            "status": "completed"
+            "id": "8.1a",
+            "status": "planned"
           },
           {
-            "id": "7.1b",
-            "status": "completed"
+            "id": "8.1b",
+            "status": "planned"
           },
           {
-            "id": "7.1c",
-            "status": "completed"
+            "id": "8.1c",
+            "status": "planned"
           }
         ],
         "gate": {
-          "id": "G7.1",
-          "status": "passed",
+          "id": "G8.1",
+          "status": "not_run",
           "required": true
         }
       },
       {
-        "id": "7.2",
-        "title": "Character animation, ragdoll and eight outfits",
-        "status": "completed",
+        "id": "8.2",
+        "title": "Authoritative zone, exposure and replication",
+        "status": "planned",
         "tasks": [
           {
-            "id": "7.2a",
-            "status": "completed"
+            "id": "8.2a",
+            "status": "planned"
           },
           {
-            "id": "7.2b",
-            "status": "completed"
+            "id": "8.2b",
+            "status": "planned"
           },
           {
-            "id": "7.2c",
-            "status": "completed"
+            "id": "8.2c",
+            "status": "planned"
           }
         ],
         "gate": {
-          "id": "G7.2",
-          "status": "passed",
+          "id": "G8.2",
+          "status": "not_run",
           "required": true
         }
       },
       {
-        "id": "7.3",
-        "title": "Town construction and usable interiors",
-        "status": "completed",
-        "tasks": [
-          {
-            "id": "7.3a",
-            "status": "completed"
-          },
-          {
-            "id": "7.3b",
-            "status": "completed"
-          },
-          {
-            "id": "7.3c",
-            "status": "completed"
-          }
-        ],
+        "id": "8.3",
+        "title": "Readable boundary and disaster integration",
+        "status": "planned",
         "gate": {
-          "id": "G7.3",
-          "status": "passed",
+          "id": "G8.3",
+          "status": "not_run",
           "required": true
         }
       },
       {
-        "id": "7.4",
-        "title": "Harbor parity and disaster presentation",
-        "status": "completed",
+        "id": "8.4",
+        "title": "Integrated regression, performance and matching local packages",
+        "status": "planned",
         "gate": {
-          "id": "G7.4",
-          "status": "passed",
-          "required": true
-        },
-        "tasks": []
-      },
-      {
-        "id": "7.5",
-        "title": "Complete interface",
-        "status": "completed",
-        "tasks": [
-          {
-            "id": "7.5a",
-            "status": "completed"
-          },
-          {
-            "id": "7.5b",
-            "status": "completed"
-          },
-          {
-            "id": "7.5c",
-            "status": "completed"
-          },
-          {
-            "id": "7.5d",
-            "status": "completed"
-          }
-        ],
-        "gate": {
-          "id": "G7.5",
-          "status": "passed",
-          "required": true
-        }
-      },
-      {
-        "id": "7.6",
-        "title": "Cross-system validation",
-        "status": "completed",
-        "gate": {
-          "id": "G7.6",
-          "status": "passed",
+          "id": "G8.4",
+          "status": "not_run",
           "required": true
         }
       }
     ]
   },
-  "planned_phases": [
-    {
-      "id": "phase_8_shrinking_survival_zone",
-      "status": "planned",
-      "depends_on": "phase_7_soft_creature_world_and_interface",
-      "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md"
-    }
-  ],
-  "next_scope_design": {
-    "status": "planning_not_implemented",
-    "decisions": "docs/decisions.md",
-    "character": "Selected B Soft Creature; non-human continuous rounded body",
-    "environment": "Preserve liked concept town; consistent road/building/prop materials and detailed usable house/school interiors",
-    "camera": "High three-quarter B is proposed implementation default, conditional on actual camera clearance/readability checks; not owner-selected or engine-validated",
-    "gameplay": "Phase 8 specifies fixed-center staged contraction, damage and route/hazard gates; numbers are implementation defaults, not proven balance"
-  },
+  "planned_phases": [],
+  "next_scope_design": {},
   "completed_phase": {
-    "id": "phase_6_cosmetic_loot_box_drops_and_customization",
-    "title": "Cosmetic Loot-Box Drops and Customization",
+    "id": "phase_7_soft_creature_world_and_interface",
+    "title": "Soft Creature, Detailed World and Complete Interface",
     "status": "completed",
-    "milestones": 5,
-    "tasks": 15,
-    "agent_owned_gates": 11,
-    "scope": "Validated source and matching local packages only; no deployment, publication or native/GPU/human acceptance. No next phase is agreed."
+    "milestones": 6,
+    "gate": "all required milestones 7.1-7.6 and gates G7.1-G7.6 validated",
+    "scope": "Bean Soft Creature character, eight outfits, ragdoll adaptation, higher camera, detailed town/harbor interiors, matte disaster presentation, complete themed interface and full cross-system regression. Native GPU/Windows/60FPS/separate-network human acceptance remains unverified and nonblocking under the waiver; no deployment or publication included."
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -205,109 +137,9 @@
     "renderer": "Compatibility",
     "target": "Windows PC"
   },
-  "validation_log": [
-    {
-      "scope": "planning_only",
-      "status": "passed",
-      "command": "jq empty progress.json; git diff --check; local plan reference and phase/task consistency check",
-      "result": "Planning files validated; all implementation/runtime/visual gates remain not_run."
-    },
-    {
-      "scope": "milestone_7.1_character",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297; godot --headless --path . --script res://tests/test_phase1.gd",
-      "result": "Soft Creature bean base (two overlapping body spheres + cream face inset + stubby limbs) regenerated deterministically as generator v6; 1808 base triangles, 18 identity bone rests, all 14 clips and eight outfit IDs resolve. test_phase1 971 checks. Outfit triangle counts republished in manifest with matching sha256."
-    },
-    {
-      "scope": "milestone_7.1_camera_and_storefront",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tests/test_carry_presentation.gd; godot --headless --path . --script res://tests/test_map_safety.gd; godot --headless --path . --script res://tests/test_player_colliders.gd; godot --headless --path . --script res://tests/test_player_integration.gd; godot --headless --path . --script res://tests/test_emotes.gd",
-      "result": "Higher three-quarter camera (pivot y2.2, -0.28 pitch, 6.0 m arm) plus visual-only window facades, awning band and shop counter/shelving. carry 41, map-safety 251, player colliders 153, player integration 294, emotes 55 checks all pass; routes/exits/shelter semantics unchanged."
-    },
-    {
-      "scope": "gate_g7.1_visual",
-      "status": "passed",
-      "command": "xvfb-run godot traversal fly-through stitched to webm with ffmpeg; inspected 720p/1080p gameplay and carry captures",
-      "result": "3 s moving-camera traversal clip (outside shop -> south door -> sales room -> out north door -> roof ramp -> rooftop) inspected; bean visible at world scale, ground and crosshair visible, no clip-through or invisible shelter. 1080p gameplay-behind/indoor and 720p carry/roof/ramp/corner captures present under .amp/in/artifacts/phase7-char and phase7-town."
-    },
-    {
-      "scope": "milestone_7.2_ragdoll_and_outfits",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tests/test_phase1.gd; godot --headless --path . --script res://tests/test_player_integration.gd; godot --headless --path . --script res://tests/test_emotes.gd; godot --headless --path . --script res://tests/test_cosmetic_collection.gd; xvfb-run test_carry_presentation for each of the eight outfits",
-      "result": "Cosmetic ragdoll reshaped into the continuous bean (overlapping head/chest/pelvis bulbs + cream face + stubby limbs) while keeping 11 bodies / 10 joints / 55 kg and exact accessory-mesh/placement copying. test_phase1 971, player integration 294, emotes 55, cosmetic collection 20 checks pass; carry presentation 80 checks passes for all eight outfits with 13 captures each."
-    },
-    {
-      "scope": "gate_g7.2_visual",
-      "status": "passed",
-      "command": "xvfb-run rendered outfit front/back sheets and per-outfit motion captures; inspected",
-      "result": "Eight-outfit front/back daylight sheets plus per-outfit locomotion/carry-walk/crouch/airborne/ragdoll/get-up/release/emote captures inspected: continuous bean silhouette holds through motion, cream face and eyes/mouth stay readable, hats sit on the bean top, back packs and rain hood attach to the body on the knocked-down ragdoll. No human head/neck or fabric anatomy remains."
-    },
-    {
-      "scope": "milestone_7.3_town_and_interiors",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tests/test_map_safety.gd; godot --headless --path . --script res://tests/test_map_variety.gd; godot --headless --path . --script res://tests/test_map_identity.gd; godot --headless --path . --script res://tests/test_earthquake.gd; godot --headless --path . --script res://tests/test_tornado.gd; godot --headless --path . --script res://tests/test_meteor_shower.gd",
-      "result": "School restyle (Hall node id stable, label changed to SCHOOL), new 8x8 m House (kitchen/table/bed/sofa + solid static roof), Shop stock alcove, garage bays/tool shelving, park bench/planter/rail, crosswalk and lane dashes. map-safety 251, variety 303, identity 42, earthquake 88, tornado 48, meteor-shower 111 checks pass."
-    },
-    {
-      "scope": "gate_g7.3_visual_and_shelter_decision",
-      "status": "passed",
-      "command": "xvfb-run rendered school/house/shop interiors at 720p and 1080p; inspected",
-      "result": "School corridor joins both doors with two classrooms and no sealed trap; house kitchen/table/bed and school desks/boards render grounded at both resolutions; SCHOOL and HOME labels visible. House intentionally grants no hazard cover: it is not a primary refuge and its cover box would sit outside the 18 m strike area, violating the no-universally-safe-location invariant. Fire zones remain the existing ground-level plaza grid; buildings keep open doors so no indoor cell graph was introduced."
-    },
-    {
-      "scope": "milestone_7.4_harbor_and_disaster_presentation",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tests/test_map_variety.gd; godot --headless --path . --script res://tests/test_map_identity.gd; xvfb-run godot --path . --script res://tests/zz_disaster_capture.gd (temporary capture, removed after)",
-      "result": "Warehouse interior (racks/workbench/crates), crane tower/jib/cable/hook on the CraneDeck, dock bollards and harbor crates added to toy_harbor without changing map ID, refuge heights, gangway breakables or basins. Meteor made compact/matte (smaller amber hot core, short amber trail, reduced debris emission to 0.22) so it no longer reads as an unreal white-hot glow. map-variety 303 and map-identity 42 checks pass; hallway/route/shelter semantics unchanged."
-    },
-    {
-      "scope": "gate_g7.4_disaster_presentations",
-      "status": "passed",
-      "command": "source audit of flood/tornado/earthquake/fire/lightning presentation materials plus existing disaster/director/cover/fairness/combinations suites",
-      "result": "Meteor telegraph captured matte and short after the change. The other five disasters already use restrained, unshaded matte materials with no bloom: clean blue flood, slate funnel + amber footprint tornado, dark cracks + warm dust earthquake (ember glow only on the short-lived damaging rubble cue), local amber/orange fire, violet lightning. earthquake 88, tornado 48, meteor-shower 111, disaster_combinations 102 checks pass."
-    },
-    {
-      "scope": "milestone_7.5_complete_interface",
-      "status": "passed",
-      "command": "godot --headless --path . --script res://tests/test_ui_theme.gd; test_gameplay_hud.gd; test_lobby_roster.gd; test_room_ui.gd; test_pause_settings.gd; test_results_table.gd; test_results_actions.gd; test_cosmetic_collection.gd",
-      "result": "The complete interface already shares one token theme (cream/sand/slate/teal/coral/grass/water + semantic warning/danger/lightning), semantic SVG-like disaster icons, consistent spacing/radius/focus depth and reduced-motion handling. Entry/local/direct-IP/managed create/join map+preset selectors, 2/4/8/20 roster with owner departure, loading/field-failure/offline/retry states; HUD health/alive/timer/shove, up-to-two hazard chips, personal flood danger, elimination/spectator cycle and local pause/settings; collection owned/locked/equipped/loading/unavailable states with accurate bean preview, odds disclosure and sealed/open/reveal, and solo/shared/ranked20 results with rematch/return-to-lobby. Public-behavior UI suites pass: ui-theme 18, gameplay-hud 116, lobby-roster 130, room-ui 82, pause-settings 22, results-table 482, results-actions 33, cosmetic-collection 20 checks."
-    },
-    {
-      "scope": "gate_g7.5_rendered_states",
-      "status": "passed",
-      "command": "xvfb-run capture suites at 720p and 1080p: test_cosmetic_collection (720p + 1080p), test_lobby_presentation, test_results_table, test_spectator_presentation",
-      "result": "Rendered representative states with the bean character under the real render loop. test_cosmetic_collection 35 checks, lobby-presentation 41, results-table 487, spectator-presentation 87 all pass; the suites assert framebuffer matches requested size, results table/prompt/award never overlap (including twenty rows), spectator card stays inside the 720p safe area, long names truncate with tooltips and focus order wraps inside each modal. Captures written to .amp/in/artifacts/phase7-ui/{720p,1080p} covering lobby offline/field-error/host-waiting/host-ready, results reveal/four/shared-reduced/twenty-top/twenty-bottom, spectator elimination/long-name/compact/dark-overlap/reduced-motion/one-survivor/empty-targets and collection default/locked/sealed-results/unavailable/opened/complete/results-no-drop. Collection preview renders the regenerated bean via CHR_Base_v001.tscn."
-    },
-    {
-      "scope": "gate_g7.6_full_regression_and_network_matrices",
-      "status": "passed",
-      "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
-      "result": "Final marker UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed. No script/runtime errors (shutdown-only ObjectDB/resource-in-use notes excluded). Includes five network matrices (network authority, four-client match, playable scene, playable scale 8-player, dedicated-server 5-rematch/recovery), managed 20-client authority/movement/capacity/rematch/owner-transfer/crash-retry, and settings save+restart verification."
-    },
-    {
-      "scope": "gate_g7.6_profile_overlap_cosmetics_vs_preview",
-      "status": "passed",
-      "command": "tests/profile_overlap.gd -- --cosmetics [--preview] [--1080p] under xvfb, 120 warmup / 600 samples, V-Sync disabled, four combinations serialized",
-      "result": "ui_nodes_stable=true on every run (no UI/preview node leakage through simulated opens/rematches); representative 4-player + 3 props + flood/tornado overlap state valid. Geometry: 720p no-preview p95 101.03ms/626 draw calls/968 nodes; 720p preview p95 121.25ms/671/961; 1080p no-preview p95 149.05ms/610/961; 1080p preview p95 179.44ms/671/961. authoritative_bodies=7, cosmetic_bodies=5, props=3, active_lines=2 across all runs. Mesh budgets from manifest: bean base 1808 triangles (≤3k-6k), accessories 0-180 (≤800), no new simulated prop bodies. target_60fps_met=false on llvmpipe software rasterizer — honest software result, not a GPU/native throughput claim; native GPU/Windows/60FPS acceptance stays unverified and nonblocking under the waiver."
-    }
-  ],
+  "validation_log": [],
   "blockers": [],
-  "changed_files": [
-    "tools/asset_generation/generate_assets.gd",
-    "game/player/toy_character_visual.gd",
-    "game/player/cosmetic_ragdoll.gd",
-    "assets/generated/CHR_Base_v001.tscn",
-    "assets/generated/ENV_Wall_2m_v001.tscn",
-    "assets/generated/PROP_Crate_Small_v001.tscn",
-    "assets/generated/VFX_MeteorTelegraph_v001.tscn",
-    "assets/manifest.json",
-    "tests/test_phase1.gd",
-    "game/player/player.gd",
-    "scenes/player.tscn",
-    "game/main.gd",
-    "progress.json",
-    "game/disasters/meteor_shower.gd"
-  ],
+  "changed_files": [],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
     "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
@@ -330,5 +162,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Archive completed Phase 7 (rollover to Phase 8) per AGENTS.md: preserve full evidence under docs/old-docs/phase-7-soft-creature-world-and-interface/, reset root progress.json to Phase 8 as the active phase, and update the checklist/archive indexes and NEED_REAL_CHECK.md."
+  "next_action": "Start milestone 8.1: measure collision paths from all spawn/refuge/exit anchors to the next contract circle on both maps, verify two reachable high-refuge areas and audit disaster targeting against the remaining navigable area, before any zone damage replicates. No zone behavior exists in code yet; Phase 8 has not been implemented."
 }
