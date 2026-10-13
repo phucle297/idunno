@@ -141,3 +141,35 @@ admission remains 6.1.3; no reward/equip/catalog mutations are implemented. The 
 per-address rate backstop includes profiles; no 20-client profile-enabled cold-start
 claim. No appearance change, human acceptance, Windows ACL, shared proxy/store change,
 deployment or release. Commit/push with `[skip ci]` to avoid unintended deployment.
+
+## 2026-10-13 — Task 6.1.3 restart/isolation; Milestone 6.1 complete
+
+The owner asks to continue. Close the remaining identity-foundation task with executed
+integration evidence rather than add production layers. Extend the existing real-service
+Python fixture and Godot profile client fixture with a room-lifecycle mode using actual
+Create/Join lobby controls. Keep reports/tickets in mode0600 disposable files, never
+stdout/arguments or review artifacts. Honor the configured Godot binary in service tests.
+
+The combined check admits the first profile, holds its client during service shutdown,
+observes editable solo recovery, and restarts both real processes on the same endpoint
+and durable store. It restores identical credential bytes and a non-default cap saved
+while the disposable service was stopped. This distinguishes real restoration from a
+default-state reset; it is not a new equip endpoint. The second profile remains plain.
+An old unused ticket is deliberately tested on the recreated same-ID/same-port room
+before its TTL expires; otherwise rejection could merely prove ordinary expiry/replay.
+Fresh authenticated Join succeeds. Wrong-profile credentials and corrupt local JSON
+fail through the UI without losing saved evidence or creating replacement profiles;
+unauthorized fetch/body mutation leaves the victim unchanged. Secret/token log checks pass.
+
+All 21 service tests pass in 78.403s, including the prior real ENet/UI/store-failure
+regressions. No production source changed or fix was needed. The previous 41-suite,
+five-matrix and profile-disabled managed20 run is historical to 6.1.2, not a new test
+run or profile-enabled scale claim. Native Windows/Internet/hardware acceptance stays
+unverified; no human prerequisite is reinstated under the waiver. Document durable
+paths, exact URL scoping and loss/reset semantics without promising account recovery.
+
+Mark all three 6.1 tasks and both required gates complete; retain them in the active
+Phase 6 checklist/progress. Do not archive the phase or begin reward grants. The single
+next action is 6.2.1 immutable authoritative round participation. No schema migration,
+shared data/restart, deployment, release or cosmetic asset/UI change. Commit/push this
+validated test/operations work with `[skip ci]` to avoid unintended deployment.

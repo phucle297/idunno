@@ -157,7 +157,8 @@ class Profiles(unittest.TestCase):
                 listener.bind(("127.0.0.1", 0))
                 port = listener.getsockname()[1]
         self.port = port
-        command = [sys.executable, str(ROOT / "tools/room_service.py"), "--listen-port", str(self.port)]
+        command = [sys.executable, str(ROOT / "tools/room_service.py"), "--listen-port", str(self.port),
+                   "--godot", settings().godot, "--project", str(ROOT)]
         if enabled:
             command += ["--profile-store", str(self.store)]
         with self.log.open("w") as output:
@@ -178,10 +179,11 @@ class Profiles(unittest.TestCase):
         headers = {"Content-Type": "application/json"}
         if credential is not None:
             headers["Authorization"] = "Bearer " + credential
-        request = Request(f"http://127.0.0.1:{self.port}/v1/profiles/{action}",
+        route = action if action.startswith("/") else "/v1/profiles/" + action
+        request = Request(f"http://127.0.0.1:{self.port}{route}",
                           data=json.dumps(self.data if data is None else data).encode(), headers=headers)
         try:
-            response = urlopen(request, timeout=5)
+            response = urlopen(request, timeout=20)
         except HTTPError as error:
             response = error
         with response:
@@ -270,6 +272,105 @@ class Profiles(unittest.TestCase):
         self.assertEqual(path.read_text(), "{broken-json")
         with sqlite3.connect(self.store) as db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 1)
+
+    def test_room_client_and_service_restart_restore_identity_and_invalidate_admission(self):
+        path = Path(self.directory.name) / "room-profile.json"
+        report = Path(self.directory.name) / "room-report.json"
+        client_log = Path(self.directory.name) / "room-client.log"
+        url = f"http://127.0.0.1:{self.port}"
+
+        def command(profile_path=path, *options):
+            return [settings().godot, "--headless", "--path", str(ROOT),
+                    "--script", "res://tests/profile_client_peer.gd", "--", "--room-lifecycle",
+                    f"--profile-service-url={url}", f"--profile-file={profile_path}",
+                    f"--profile-report={report}", *options]
+
+        def checked(output, returncode, marker):
+            self.assertEqual(returncode, 0, output)
+            self.assertIn(marker, output)
+            self.assertNotIn("SCRIPT ERROR", output)
+            self.assertEqual([line for line in output.splitlines() if line.startswith("ERROR:")
+                              and "resources still in use at exit" not in line], [], output)
+
+        with client_log.open("w") as output:
+            client = subprocess.Popen(command(path, "--hold-room"), stdout=output, stderr=subprocess.STDOUT)
+        try:
+            deadline = time.monotonic() + 12
+            while "ROOM_PROFILE_CONNECTED_OK" not in client_log.read_text() and client.poll() is None and time.monotonic() < deadline:
+                time.sleep(0.05)
+            self.assertIn("ROOM_PROFILE_CONNECTED_OK", client_log.read_text())
+            initial = json.loads(report.read_text())
+            saved = path.read_bytes()
+            identity = json.loads(saved)
+            self.assertEqual(initial["profile"]["profile_id"], identity["profile_id"])
+            self.assertEqual(set(initial["profile"]["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+            self.assertEqual((initial["profile"]["equipped"], initial["profile"]["pending"]), ("plain", []))
+            self.assertEqual(report.stat().st_mode & 0o777, 0o600)
+            second = self.post("create")
+            room_query = dict(self.data, room_id="PROFILE-RESTART", profile_id=second["profile_id"])
+            unused = self.post("/v1/rooms/join", room_query, second["credential"])
+            reserved_at = time.monotonic()
+            port = self.port
+            self.stop()
+            self.assertEqual(client.wait(timeout=10), 0, client_log.read_text())
+            checked(client_log.read_text(), client.returncode, "ROOM_PROFILE_SERVICE_LOSS_OK")
+            old_service_output = self.log.read_text()
+        finally:
+            if client.poll() is None:
+                client.terminate()
+                client.wait(timeout=5)
+        # Persist a distinct existing starter while stopped, not an equip API claim.
+        with sqlite3.connect(self.store) as db:
+            db.execute("UPDATE profiles SET equipped='cap' WHERE id=?", (identity["profile_id"],))
+        self.start(port=port)
+        first_query = dict(self.data, room_id="PROFILE-RESTART", profile_id=identity["profile_id"])
+        self.assertEqual(self.post("/v1/rooms/join", first_query, identity["credential"], 404)["error"], "unknown_room")
+        restored = subprocess.run(command(), capture_output=True, text=True, timeout=20)
+        all_output = old_service_output + client_log.read_text() + restored.stdout + restored.stderr
+        checked(restored.stdout + restored.stderr, restored.returncode, "ROOM_PROFILE_CONNECTED_OK")
+        current = json.loads(report.read_text())
+        self.assertEqual(current["profile"], dict(profile_id=identity["profile_id"],
+                         owned=["backpack", "cap", "hard_hat", "plain"], equipped="cap", pending=[]))
+        self.assertTrue(path.read_bytes() == saved, "Client restart must preserve credentials exactly")
+        self.assertEqual(current["ticket"]["port"], initial["ticket"]["port"], "Recreate on the same UDP port")
+        self.assertFalse(current["ticket"]["token"] == initial["ticket"]["token"], "Replacement must have a fresh ticket")
+        # An unused old reservation must die, not merely a consumed/replayed ticket.
+        stale = Path(self.directory.name) / "stale-ticket.json"
+        stale.touch(mode=0o600)
+        stale.write_text(json.dumps(dict(unused, accepted=False)))
+        rejected = subprocess.run([settings().godot, "--headless", "--path", str(ROOT),
+                                  "--script", "res://tests/room_admission_peer.gd", "--",
+                                  f"--admission-file={stale}"], capture_output=True, text=True, timeout=15)
+        checked(rejected.stdout + rejected.stderr, rejected.returncode, "ROOM_ADMISSION_PEER_OK admitted=false")
+        self.assertLess(time.monotonic() - reserved_at, unused["expires_in"],
+                        "Old unused ticket must fail because of restart, not ordinary expiry")
+        all_output += rejected.stdout + rejected.stderr
+        other_path = Path(self.directory.name) / "other-profile.json"
+        other_path.touch(mode=0o600)
+        other_path.write_text(json.dumps(dict(service_url=url, profile_id=second["profile_id"], credential=second["credential"])))
+        other = subprocess.run(command(other_path, "--join-room"), capture_output=True, text=True, timeout=20)
+        checked(other.stdout + other.stderr, other.returncode, "ROOM_PROFILE_CONNECTED_OK")
+        self.assertEqual(json.loads(report.read_text())["profile"], dict(profile_id=second["profile_id"],
+                         owned=["backpack", "cap", "hard_hat", "plain"], equipped="plain", pending=[]))
+        all_output += other.stdout + other.stderr
+        # Cross-profile impersonation and corrupt storage must fail through real UI,
+        # preserve the saved evidence, and never auto-create a replacement identity.
+        for invalid in (json.dumps(dict(identity, credential=second["credential"])), "{broken-json"):
+            path.write_text(invalid)
+            failure = subprocess.run(command(path, "--expect-failure"), capture_output=True, text=True, timeout=20)
+            checked(failure.stdout + failure.stderr, failure.returncode, "ROOM_PROFILE_REJECTED_OK")
+            self.assertTrue(path.read_text() == invalid, "Rejected identity must not be reset")
+            all_output += failure.stdout + failure.stderr
+        query = dict(self.data, profile_id=identity["profile_id"])
+        self.assertEqual(self.post("fetch", query, second["credential"], 403)["error"], "invalid_profile_credentials")
+        self.assertEqual(self.post("fetch", dict(query, equipped="plain"), second["credential"], 400)["error"], "invalid_body")
+        self.assertEqual(self.post("fetch", query, identity["credential"])["equipped"], "cap")
+        with sqlite3.connect(self.store) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 2)
+        for profile in (identity, second):
+            self.assertFalse(profile["credential"] in all_output + self.log.read_text(), "Credentials must stay out of logs")
+        for ticket in (initial["ticket"], current["ticket"], unused):
+            self.assertFalse(ticket["token"] in all_output + self.log.read_text(), "Admission tokens must stay out of logs")
 
     def test_input_authority_concurrent_creation_and_rate_limit(self):
         for extra in ({"owned": ["forged"]}, {"equipped": "forged"}, {"profile_id": "chosen"},

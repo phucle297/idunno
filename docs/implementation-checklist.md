@@ -7,7 +7,7 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 6 — Cosmetic Loot-Box Drops and Customization | In progress; profile/store and admission validated, integrated restart/isolation remains | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
+| 6 — Cosmetic Loot-Box Drops and Customization | In progress; Milestone 6.1 completed, round participation/rewards next | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware

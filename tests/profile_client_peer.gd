@@ -6,6 +6,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if "--room-lifecycle" in OS.get_cmdline_user_args():
+		await _run_room()
+		return
 	var client = (load("res://game/session/profile_client.gd") as GDScript).new()
 	var expected_failure := false
 	for argument: String in OS.get_cmdline_user_args():
@@ -38,5 +41,69 @@ func _run() -> void:
 		push_error("Profile client did not produce the expected safe outcome")
 	client.cancel()
 	client.free()
+	await process_frame
+	quit(0 if passed else 1)
+
+
+func _run_room() -> void:
+	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.name = "Main"
+	root.add_child(main)
+	await process_frame
+	main.room_client.service_url = main._argument_value("--profile-service-url=")
+	main.room_client.profile_client.credential_path = main._argument_value("--profile-file=")
+	var outcome: Dictionary = {}
+	main.room_client.profile_client.profile_received.connect(func(profile: Dictionary) -> void: outcome["profile"] = profile)
+	main.room_client.ticket_received.connect(func(ticket: Dictionary) -> void: outcome["ticket"] = ticket)
+	main.room_client.failed.connect(func(message: String) -> void: outcome["failure"] = message)
+	var panel: Panel = main.get_node("Interface/LobbyPanel")
+	main._set_lobby_visible(true)
+	panel.get_node("RoomId").text = "PROFILE-RESTART"
+	panel.get_node("Join" if main._has_argument("--join-room") else "Host").pressed.emit()
+	var deadline := Time.get_ticks_msec() + 15000
+	while not outcome.has("failure") and Time.get_ticks_msec() < deadline:
+		if main.is_network_session() and main.get_room_owner_id() > 1 and main.match_manager.players.has(main.multiplayer.get_unique_id()):
+			break
+		await process_frame
+	var expected_failure: bool = main._has_argument("--expect-failure")
+	var passed: bool
+	if expected_failure:
+		passed = outcome.has("failure") and not outcome.has("ticket") and not main.room_client.busy and not main.is_network_session() and main.get_network_player_ids() == [1] and main.get_node("Player").accepts_local_input() and panel.get_node("RoomId").editable
+		if passed:
+			print("ROOM_PROFILE_REJECTED_OK solo=preserved retry=available")
+	else:
+		passed = outcome.has("profile") and outcome.has("ticket") and main.is_network_session() and main.get_room_owner_id() > 1 and main.match_manager.players.has(main.multiplayer.get_unique_id())
+		if passed:
+			var profile: Dictionary = outcome.profile
+			passed = not profile.has("credential") and not outcome.ticket.has("profile_id") and main.room_admission.profile_ids.is_empty() and not profile.profile_id in JSON.stringify(main._create_playable_snapshot())
+		if passed:
+			# Ticket is a secret: disposable private file, never stdout/arguments.
+			var path: String = main._argument_value("--profile-report=")
+			var file := FileAccess.open(path, FileAccess.WRITE)
+			passed = file != null
+			if passed:
+				passed = FileAccess.set_unix_permissions(path, 384) == OK
+				if passed:
+					file.store_string(JSON.stringify(outcome))
+					file.flush()
+					passed = file.get_error() == OK
+				file.close()
+		if passed:
+			main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 500, 1500)
+			print("ROOM_PROFILE_CONNECTED_OK")
+		if passed and main._has_argument("--hold-room"):
+			deadline = Time.get_ticks_msec() + 15000
+			while main.is_network_session() and Time.get_ticks_msec() < deadline:
+				await process_frame
+			passed = not main.is_network_session() and main.get_network_player_ids() == [1] and panel.get_node("RoomId").editable and "Room server disconnected" in panel.get_node("Status").text
+			if passed:
+				print("ROOM_PROFILE_SERVICE_LOSS_OK solo=restored retry=available")
+	if not passed:
+		push_error("Integrated profile/room client did not produce the expected safe outcome")
+	main.process_mode = Node.PROCESS_MODE_DISABLED
+	main.gameplay_audio.reset_for_match()
+	main.multiplayer.multiplayer_peer.close()
+	main.multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	main.free()
 	await process_frame
 	quit(0 if passed else 1)

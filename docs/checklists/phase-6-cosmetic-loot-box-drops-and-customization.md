@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Tasks 6.1.1–6.1.2 implemented and validated; integrated restart/isolation remains**.
+Status: **in progress — Milestone 6.1 completed; authoritative round participation (6.2.1) is next**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -49,6 +49,8 @@ credential transfers access; no recovery UI or secure cross-device account claim
 
 ## Milestone 6.1 — Identity, persistence and admission foundation
 
+Status: **completed — all three tasks and both required gates passed** (2026-10-13).
+
 Stable ID: `milestone_6_1_cosmetic_loot_drops_and_customization` (retained from the old umbrella).
 Owner: `tools/room_service.py`, `game/session/room_client.gd`,
 `game/session/room_admission.gd`; a small service-owned cosmetic store module only if
@@ -75,12 +77,19 @@ needed to keep durable ownership separate from room/process allocation.
   credential-free client snapshots and two real lobby clients Ready/Start/crash/retry.
   One pending ticket or peer per profile is permitted across all rooms. Profile-disabled
   development services remain compatible. See [admission contract](../../GUIDE.md#identity-bound-room-admission-task-612).
-- [ ] **6.1.3 Prove restart/isolation.** Restart the service and client against an isolated
+- [x] **6.1.3 Prove restart/isolation.** Restart the service and client against an isolated
   on-disk store; confirm the same identity/state returns while old rooms/tickets still die.
   Confirm a second credential cannot read/mutate the first profile. Document data path,
   local reset semantics and limitations; do not touch shared storage or deploy.
+  Evidence: full service suite passes 21 tests. Actual lobby Create, service shutdown/solo
+  recovery, fresh service/client processes with identical credentials, non-default saved
+  starter equip and independent second profile all pass. An unused old ticket fails against
+  the recreated same-ID/same-port room before TTL expiry; fresh Join succeeds. Wrong-profile
+  and corrupt saved credentials fail without reset or extra profiles; no secret in logs.
+  The cap fixture is a stopped disposable-store update, not an equip API. `pending=[]`
+  remains initial state only. See [restart/identity operations](../../GUIDE.md#profile-restart-and-isolation-task-613).
 
-**Gate:** authenticated identity survives process restart; malformed/expired/replayed/wrong-profile
+**Gate (passed):** authenticated identity survives process restart; malformed/expired/replayed/wrong-profile
 admission fails; credential leakage checks pass. Extend `tests/test_room_service.py`
 and real HTTP/ENet fixtures. No reward or cosmetic gate is implied by this foundation.
 

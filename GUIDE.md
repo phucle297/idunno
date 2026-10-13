@@ -403,10 +403,46 @@ does not erase another room's newer reservation. Dedicated peer relay stays disa
 Real HTTP/ENet tests cover malformed/wrong-profile credentials, concurrent duplicate
 reservations, active duplicates, replay/wrong-room/expiry, cleanup and two actual
 lobby clients performing Ready/Start/crash/retry with distinct retained identities.
-Service/client restart as an integrated admission lifecycle remains Task 6.1.3.
+Integrated service/client restart and isolation also pass Task 6.1.3 below.
 The unchanged 30-request/minute per-address backstop includes profile requests;
 large same-address cold starts are not proven profile-enabled capacity. No proxy,
 shared store, deployment, release or Windows ACL change has been performed.
+
+### Profile restart and isolation (Task 6.1.3)
+
+Milestone 6.1 is validated on the local Linux/Godot stack. The combined lifecycle
+uses actual lobby controls, stops the real service with an admitted client, then
+starts fresh service/client processes on the same endpoint/store. The client restores
+the exact credential and server-owned starter state. A non-default saved `cap` fixture
+distinguishes restoration from silently resetting to `plain`; it is not an equip API.
+A second profile remains independent. Old rooms disappear, solo retry returns, and
+an unused old ticket fails against the recreated same-ID/same-port room while its
+original TTL is still valid. New authenticated Create/Join succeeds.
+
+Keep these two pieces together across local restarts:
+
+- **Service:** the operator-selected schema-1 SQLite file outside temporary room and
+  release directories. Back up only after stopping the local service; retain mode0600
+  and its private parent. Retain the complete database, not just a copied profile ID.
+- **Client:** its private `user://profile-<service-URL-SHA256>.json` file and the exact
+  service URL (normalized by removing the trailing slash). A different endpoint/port
+  gets a different default identity file; copying a file for another URL is rejected.
+
+Restarting does not require an identity reset. Invalid local JSON, rejected credentials
+or damaged/unavailable storage fail visibly and must not be deleted to make retry work.
+Deleting the client file creates a new identity on the next successful lookup and loses
+access to the old profile; it does not delete or transfer server ownership. Deleting or
+replacing a service store is not a supported reset/recovery operation. Recover a local
+damaged file only from a verified private backup; shared writes/restarts need approval.
+No cloud recovery or cross-device account system exists. Copying a valid bearer file
+transfers access, subject to the same one-ticket/one-peer restriction.
+
+The 21-test service suite verifies restart, wrong-profile/corrupt-file rejection,
+unchanged victim state, no replacement profiles and no credentials/tokens in logs.
+Temporary fixture reports are private and deleted, not exports or review artifacts.
+Rewards, nonempty pending receipts and equip mutations remain unimplemented. No new
+Windows ACL, public-Internet, hardware-performance, package or deployment claim follows
+from these local restart checks.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate
