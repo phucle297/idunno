@@ -36,8 +36,8 @@
   },
   "current": {
     "phase": "phase_7_soft_creature_world_and_interface",
-    "milestone": "7.5",
-    "task": "7.5a"
+    "milestone": "7.6",
+    "task": null
   },
   "phase": {
     "id": "phase_7_soft_creature_world_and_interface",
@@ -130,35 +130,35 @@
       {
         "id": "7.5",
         "title": "Complete interface",
-        "status": "in_progress",
+        "status": "completed",
         "tasks": [
           {
             "id": "7.5a",
-            "status": "in_progress"
+            "status": "completed"
           },
           {
             "id": "7.5b",
-            "status": "planned"
+            "status": "completed"
           },
           {
             "id": "7.5c",
-            "status": "planned"
+            "status": "completed"
           },
           {
             "id": "7.5d",
-            "status": "planned"
+            "status": "completed"
           }
         ],
         "gate": {
           "id": "G7.5",
-          "status": "not_run",
+          "status": "passed",
           "required": true
         }
       },
       {
         "id": "7.6",
         "title": "Cross-system validation",
-        "status": "planned",
+        "status": "in_progress",
         "gate": {
           "id": "G7.6",
           "status": "not_run",
@@ -265,6 +265,18 @@
       "status": "passed",
       "command": "source audit of flood/tornado/earthquake/fire/lightning presentation materials plus existing disaster/director/cover/fairness/combinations suites",
       "result": "Meteor telegraph captured matte and short after the change. The other five disasters already use restrained, unshaded matte materials with no bloom: clean blue flood, slate funnel + amber footprint tornado, dark cracks + warm dust earthquake (ember glow only on the short-lived damaging rubble cue), local amber/orange fire, violet lightning. earthquake 88, tornado 48, meteor-shower 111, disaster_combinations 102 checks pass."
+    },
+    {
+      "scope": "milestone_7.5_complete_interface",
+      "status": "passed",
+      "command": "godot --headless --path . --script res://tests/test_ui_theme.gd; test_gameplay_hud.gd; test_lobby_roster.gd; test_room_ui.gd; test_pause_settings.gd; test_results_table.gd; test_results_actions.gd; test_cosmetic_collection.gd",
+      "result": "The complete interface already shares one token theme (cream/sand/slate/teal/coral/grass/water + semantic warning/danger/lightning), semantic SVG-like disaster icons, consistent spacing/radius/focus depth and reduced-motion handling. Entry/local/direct-IP/managed create/join map+preset selectors, 2/4/8/20 roster with owner departure, loading/field-failure/offline/retry states; HUD health/alive/timer/shove, up-to-two hazard chips, personal flood danger, elimination/spectator cycle and local pause/settings; collection owned/locked/equipped/loading/unavailable states with accurate bean preview, odds disclosure and sealed/open/reveal, and solo/shared/ranked20 results with rematch/return-to-lobby. Public-behavior UI suites pass: ui-theme 18, gameplay-hud 116, lobby-roster 130, room-ui 82, pause-settings 22, results-table 482, results-actions 33, cosmetic-collection 20 checks."
+    },
+    {
+      "scope": "gate_g7.5_rendered_states",
+      "status": "passed",
+      "command": "xvfb-run capture suites at 720p and 1080p: test_cosmetic_collection (720p + 1080p), test_lobby_presentation, test_results_table, test_spectator_presentation",
+      "result": "Rendered representative states with the bean character under the real render loop. test_cosmetic_collection 35 checks, lobby-presentation 41, results-table 487, spectator-presentation 87 all pass; the suites assert framebuffer matches requested size, results table/prompt/award never overlap (including twenty rows), spectator card stays inside the 720p safe area, long names truncate with tooltips and focus order wraps inside each modal. Captures written to .amp/in/artifacts/phase7-ui/{720p,1080p} covering lobby offline/field-error/host-waiting/host-ready, results reveal/four/shared-reduced/twenty-top/twenty-bottom, spectator elimination/long-name/compact/dark-overlap/reduced-motion/one-survivor/empty-targets and collection default/locked/sealed-results/unavailable/opened/complete/results-no-drop. Collection preview renders the regenerated bean via CHR_Base_v001.tscn."
     }
   ],
   "blockers": [],
@@ -306,5 +318,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Implement milestone 7.5 Complete interface: shared UI tokens/icons/states (7.5a), entry/lobby/managed/roster flows (7.5b), HUD/spectator/pause (7.5c), collection/preview/results/rematch (7.5d), then run the full UI regression and cross-system validation in 7.6."
+  "next_action": "Run the full cross-system gate 7.6 (tests/run_ui_regression.sh plus profile_overlap cosmetics vs preview at 720p/1080p), then archive Phase 7 and roll progress.json forward to Phase 8."
 }

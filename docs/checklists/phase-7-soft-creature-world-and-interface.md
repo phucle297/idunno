@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: in_progress; milestones 7.1-7.4 complete, 7.5 interface underway.
+Status: in_progress; milestones 7.1-7.5 complete, 7.6 cross-system validation underway.
 
 ## Outcome and execution policy
 
@@ -159,15 +159,15 @@ cover/fairness and combinations tests pass; no gameplay tuning hidden in art cha
 
 Owners: `game/ui/ui_tokens.gd`, other `game/ui/*`, `scenes/main.tscn`, `game/main.gd` wiring.
 
-- [ ] 7.5a Shared type/spacing/icons/states: tactile cream/slate/teal/coral, shallow
+- [x] 7.5a Shared type/spacing/icons/states: tactile cream/slate/teal/coral, shallow
   depth, no giant packaging borders during play. Use licensed readable sans/engine
   fallback, editable strings and semantic amber/orange/violet. No currency/rarity/shop.
-- [ ] 7.5b Entry/local/direct-IP/managed create/join/lobby, map/preset selectors,
+- [x] 7.5b Entry/local/direct-IP/managed create/join/lobby, map/preset selectors,
   2/4/8/20-player roster and owner departure, loading/field failure/offline/retry states.
-- [ ] 7.5c HUD health/alive/timer/shove, up to two hazards/combinations, personal danger,
+- [x] 7.5c HUD health/alive/timer/shove, up to two hazards/combinations, personal danger,
   death cause and spectator target/cycle; pause/settings including display confirmation.
   Leave room safely; menus never pause authoritative matches.
-- [ ] 7.5d Collection all owned/locked/equipped/loading/unavailable states, rotatable
+- [x] 7.5d Collection all owned/locked/equipped/loading/unavailable states, rotatable
   accurate preview, odds disclosure and sealed/open/reveal/replay/complete pool states;
   results solo/shared/ranked20/earned or no-drop, rematch and return-to-lobby.
   Equip only after acknowledgement; reward opening never blocks rematch.
