@@ -3,13 +3,14 @@
   "updated_at": "2026-10-13",
   "project": "Disaster Party",
   "source_of_truth": true,
+  "workflow_state": "awaiting_next_scope",
   "archive_policy": {
     "directory": "docs/old-docs",
     "filename_pattern": "{phase-slug}/progress.json",
     "rule": "Archive completed phases without overwriting history. Phase 2 remains deferred_not_completed; its unfinished gates remain unchanged."
   },
-  "previous_phase_archive": "docs/old-docs/phase-5-validation-followup/progress.json",
-  "checklist": "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
+  "previous_phase_archive": "docs/old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json",
+  "checklist": null,
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
@@ -18,22 +19,22 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {
-    "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
-    "milestone": "milestone_6_5_cosmetic_regression_and_handoff",
-    "task": "task_6_5_3_packages_handoff"
+  "current": {"phase": null, "milestone": null, "task": null},
+  "phase": null,
+  "completed_phase": {
+    "id": "phase_6_cosmetic_loot_box_drops_and_customization",
+    "title": "Cosmetic Loot-Box Drops and Customization",
+    "status": "completed",
+    "milestones": 5,
+    "tasks": 15,
+    "agent_owned_gates": 11,
+    "scope": "Validated source and matching local packages only; no deployment, publication or native/GPU/human acceptance. No next phase is agreed."
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
     "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
     "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
-  },
-  "phase_transition": {
-    "date": "2026-10-12",
-    "authorization": "Owner requested audit planning and completion of Phase 5 follow-up. Agent-owned gates passed and evidence is archived separately without overwriting historical archives. Phase 6 remains planned, not started.",
-    "previous_phase_status": "completed",
-    "review": "Audit reconciliation, source regression and matching local packages are in the follow-up archive. Human/device/Internet acceptance remains unverified/nonblocking under the waiver. No deployment, shared restart, infrastructure or publication occurred."
   },
   "engine": {
     "name": "Godot",
@@ -42,277 +43,9 @@
     "renderer": "Compatibility",
     "target": "Windows PC"
   },
-  "phase": {
-    "id": "phase_6_cosmetic_loot_box_drops_and_customization",
-    "title": "Cosmetic Loot-Box Drops and Customization",
-    "status": "in_progress",
-    "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned boxes, four starter/four earned outfits, collection/reveal and acknowledged lobby equipment. Features and profile-enabled4/8/20 lifecycle are validated; measured performance and final local packages remain. No paid boxes, currencies, shops or stat changes.",
-    "budgets": {
-      "supported_players": 20,
-      "authoritative_loose_bodies": 32,
-      "grabbable_props": 12,
-      "active_disasters": 2
-    },
-    "milestones": {
-      "milestone_6_1_cosmetic_loot_drops_and_customization": {
-        "title": "Identity, Persistence and Admission Foundation",
-        "status": "completed",
-        "tasks": {
-          "task_6_1_1_durable_profile_store": {"title": "6.1.1 Durable profile/store contract", "status": "completed"},
-          "task_6_1_2_identity_admission": {"title": "6.1.2 Bind admission to identity", "status": "completed"},
-          "task_6_1_3_restart_isolation": {"title": "6.1.3 Prove restart/isolation", "status": "completed"}
-        },
-        "gates": {
-          "durable_authenticated_identity": {"required": true, "status": "passed", "evidence": "Six real-process profile tests pass, including combined service/Godot room-client restart: same saved credential, four starters and non-default persisted cap restored; second profile remains plain. Corrupt/wrong-profile credentials are preserved without replacement. Initial pending=[] only; no reward ledger/equip API claim."},
-          "admission_isolation_and_no_credential_leaks": {"required": true, "status": "passed", "evidence": "21 service tests pass. Integrated real service/client restart empties the room registry, restores solo retry and rejects an unused old ticket on the recreated same-ID/same-port room before ordinary TTL expiry. Concurrent/pending/active duplicate, spoofed consume, expiry/replay/wrong-room and crash/retry checks pass; credentials/tokens absent from client/server logs and identity absent from client gameplay snapshots."}
-        }
-      },
-      "milestone_6_2_authoritative_cosmetic_rewards": {
-        "title": "Authoritative Earned Boxes and Exactly-Once Ledger",
-        "status": "completed",
-        "dependencies": ["milestone_6_1_cosmetic_loot_drops_and_customization"],
-        "tasks": {
-          "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "completed"},
-          "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "completed"},
-          "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "completed"}
-        },
-        "gates": {
-          "eligibility_odds_and_authority": {"required": true, "status": "passed", "evidence": "29 service tests pass: exact 59.99/60 and 119.99/120 boundaries, distinct authenticated start bindings, death/tie/live departure, solo/nonstandard rounds, malformed/spoofed/conflicting completion, owned/reserved exhaustion, every initial RNG index, fractions 1/4→1/1 and four concurrent no-duplicate reservations. Real Godot authority→HTTP→SQLite frozen rematches and post-commit acknowledgement retry preserve eligibility and one grant per profile/round. No human play, full profile-enabled scale or cosmetic assets/UI claim."},
-          "idempotent_grants_open_and_restart": {"required": true, "status": "passed", "evidence": "30 service tests pass in 87.851s. Concurrent authenticated opens return the same receipt; forced pre-transition failure rolls ownership back; cross-profile access rejects. Actual Godot client opens/refetches and both client/service restart restore identical credentials, owned item and no pending box. HTTP replay returns the original receipt. Grant post-commit acknowledgement loss is covered; open transport loss itself was not injected, but durable open replay is exercised."}
-        }
-      },
-      "milestone_6_3_cosmetic_catalog_and_assets": {
-        "title": "Small Cosmetic Catalog and Faithful Assets",
-        "status": "completed",
-        "dependencies": ["milestone_6_2_authoritative_cosmetic_rewards"],
-        "tasks": {
-          "task_6_3_1_outfit_catalog": {"title": "6.3.1 Stable outfit catalog", "status": "completed"},
-          "task_6_3_2_asset_generation_validation": {"title": "6.3.2 Generate and validate", "status": "completed"},
-          "task_6_3_3_readability": {"title": "6.3.3 Readability inspection", "status": "completed"}
-        },
-        "gates": {
-          "asset_manifest_import_animation_and_physics_equivalence": {"required": true, "status": "passed", "evidence": "Generatorv5 seed297 twice gives identical scene/material hashes; manifest matches. Phase1=971, player=294, emotes=55, service=30 tests pass. All8 outfits/all14 clips, canonical1728tri +0/144/120/12/180/60/168/168 accessory triangles, collider equivalence, ragdoll11bodies/10joints/55kg and recovery pass. Shared version1 JSON in PCK93entries and detached service; full binaries deferred6.5 because templates missing."},
-          "inspected_720p_1080p_gameplay_renders": {"required": true, "status": "passed", "evidence": "Daylight front/back, all earned run/crouch-carry/carry/ragdoll/recovery and flood/tornado-meteor overlap rendered and inspected at720p1080p. Captures .amp/in/artifacts/phase6-outfits; distinct silhouettes, player colors and HUD/warning footprints retained. Linux Compatibility/llvmpipe only, no realGPU/native/human claim."}
-        }
-      },
-      "milestone_6_4_collection_reveal_and_equipment": {
-        "title": "Collection, Reveal, Equip and Multiplayer Appearance",
-        "status": "completed",
-        "dependencies": ["milestone_6_3_cosmetic_catalog_and_assets"],
-        "tasks": {
-          "task_6_4_1_equipment_replication": {"title": "6.4.1 Validated equipment replication", "status": "completed"},
-          "task_6_4_2_collection_preview": {"title": "6.4.2 Owned collection and preview", "status": "completed"},
-          "task_6_4_3_results_reveal": {"title": "6.4.3 Results reveal", "status": "completed"}
-        },
-        "gates": {
-          "validated_equipment_and_client_agreement": {"required": true, "status": "passed", "evidence": "34 service tests pass104.542s. Real2client managed earned grant/open/equip agreement, locked/stale/midmatch/spoof rejection, five rematches and rejoin restore pass. Peer IDs change on reconnect; bound durable profile retains outfit. Equip Start interlock/busy SQL tested; loopback room-key state avoids heartbeat-lag lobby race."},
-          "ui_states_focus_reduced_motion_and_restart": {"required": true, "status": "passed", "evidence": "Headless20 and rendered1080p35 checks pass; seven states inspected720p1080p. Keyboard modal focus/wrap/close, saved odds, no optimistic unlock, retry, reduced motion/Skip and receipt replay pass. Real managed2client earned/open/equip/rejoin and34 service tests pass; service/client restart covered by durable opening fixtures. Broader full regression running for6.5."}
-        }
-      },
-      "milestone_6_5_cosmetic_regression_and_handoff": {
-        "title": "Regression, Packaging and Handoff",
-        "status": "in_progress",
-        "dependencies": ["milestone_6_4_collection_reveal_and_equipment"],
-        "tasks": {
-          "task_6_5_1_lifecycle_scale": {"title": "6.5.1 Full lifecycle and scale", "status": "completed"},
-          "task_6_5_2_performance_visual_review": {"title": "6.5.2 Performance/visual review", "status": "completed"},
-          "task_6_5_3_packages_handoff": {"title": "6.5.3 Matching local packages and operations notes", "status": "in_progress"}
-        },
-        "gates": {
-          "regression_managed_4_8_20_and_five_rematches": {"required": true, "status": "passed", "evidence": "Full regression42suites/five matrices/legacymanaged20 passes; final service34 tests pass102.130s after rate-limit fix. Profile-enabled4/8/20 each validate starter/earned appearance at all clients+authority, reward/open/equip, five rematches, owner transfer, crash/retry and changed-peerID durable equipment. Latest4 also checks identical open replay. Loopback and accelerated120s authority clock only, no production capacity/Internet/human claim."},
-          "measured_performance_and_reviewed_visuals": {"required": true, "status": "passed", "evidence": "Measurement/review gate only, NOT60FPS. Compatibility llvmpipe LLVM15/Mesa22.3.6,4player bodies+3props+flood/tornado,120warmup600samples. p95 gameplay/preview=89.15/102.66ms720p and138.25/168.07ms1080p. All four profiler exits1 because target60fps_met=false; scenarios complete/UI nodes stable, same preview/viewport and node count across10 reopen/40selection cycles. Preview+ACTIVE overlap is synthetic stress, ordinary UI cannot open midmatch. VSync requested disabled; Xvfb driver warns toggling unsupported/no physical-vblank pacing claim. Seven UI states and gameplay renders inspected720p1080p; nativeGPU/human acceptance remains unverified/nonblocking under existing waiver."},
-          "matching_local_packages_persistent_store_and_handoff": {"required": true, "status": "not_run"}
-        }
-      }
-    }
-  },
-  "validation_log": [
-    {
-      "date": "2026-10-13",
-      "scope": "6.5.2 executed measurements and render review",
-      "status": "passed",
-      "commands": "xvfb-run godot --audio-driver Dummy --script res://tests/profile_overlap.gd -- --cosmetics [--preview] [--1080p]; view_media seven UI states720p1080p",
-      "result": "Measured all4 scenarios; each120warmup600samples,4bodies3props2hazards, stableUI/preview resources. p95 gameplay/preview89.15/102.66ms720p,138.25/168.07ms1080p. All profiler commands exit1 for unmet60FPS target, not script failures; measurement gate complete and target explicitly NOT passed. llvmpipeLLVM15/Mesa22.3.6; VSync requested disabled but Xvfb driver cannot toggle; no native throughput/pacing/human acceptance. Preview overlap stress is fixture-only (not allowed in ordinaryACTIVE). Logs .scratch/phase6-performance/{720p,1080p}-{gameplay,preview}.log. Final default/locked/sealed/unavailable/opened/complete/no-drop captures reviewed and no clipping; actualframebuffer asserted. Templates restored/verified; packaging next, no deployment."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.5.1 final lifecycle, scale and service regression",
-      "status": "passed",
-      "commands": "run_managed_scale_test.py --clients=4/8/20 --profiles serially; full service unittest34; tests/run_ui_regression.sh",
-      "result": "Profile4/8/20 all pass authority/client starter+earned outfit agreement, reward/open/equip/five-rematch/owner-transfer/crash-retry and durable changed-peerID recovery. Latest4 adds exact open replay. Fullservice34 pass102.130s and UIregression42/five matrices passed. One intervening fullservice run failed the same authority-only Ready fixture race in two-client rematch; final waits client snapshots before owner Start and passes without sleeps/timeouts/forced authority actions. Recovery recorded in advancing-disaster-party skill. Logs .scratch/phase6-ui/{scale4-replay,scale8-corrected,scale20-final,full-service-final-corrected,full-regression-final}.log. Measurements underway; no deploy/hardware acceptance."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.5 regression and profile scale hardening",
-      "status": "failed",
-      "commands": "tests/run_ui_regression.sh; run_managed_scale_test.py --clients=4/8 --profiles; unittest -k expiry_match_state",
-      "result": "Full UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed. Profile4 reward/open/equip/five-rematch/owner-transfer/crash-retry passes after fixture waits for client as well as authority Ready snapshots. Profile8 then exposed retained expired rate-limit requests under continuing traffic (429 despite2.1s spacing). Boundary regression fails unchanged code at60s, passes with per-request expired timestamp pruning;30/minute and1024-IP cap retained. Corrected profile8 run active. Official4.7.2 templates SHA512 verified/restored; packages not built yet. Logs .scratch/phase6-ui/{full-regression-final,scale4-final,scale8-final}.log."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.4 equipment, collection/reveal implementation and initial regression",
-      "status": "passed",
-      "commands": "Godot import; service unittest34; managed2client open/equip/five-rematch/rejoin fixture; test_cosmetic_collection.gd headless/render720p1080p; view_media",
-      "result": "34 service tests pass104.542s; managed fixture uses accelerated120s authority clock, not real-session acceptance. UI28checks720p,35checks1080p (framebuffer1920x1080 asserted) cover8previews, keyboard wrap, locked/results/empty/sealed/opened/complete/unavailable, no optimistic unlock/equip, reduced-motion and skip. Stale error after receipt fixed via render review. 1080p fixture initially captured720p then fixed with Window.size+asserted framebuffer. New Collection focus required updating82check roomUI; broader runner stopped at old lobby focus expectation, now updated and awaiting rerun. Initial fullservice failed old consume exact response, revised to equipped=plain. Logs .scratch/phase6-equipment and .scratch/phase6-ui; reviewed captures .amp/in/artifacts/phase6-ui. No deploy/nativeGPU claim."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.3 catalog/assets, deterministic geometry and inspected renders",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; generator --seed=297 twice + sha256 diff; test_phase1.gd; test_player_integration.gd; test_emotes.gd; service unittest; test_carry_presentation.gd and test_disaster_combinations.gd rendered720p1080p; PCK export/verify/isolated boot; view_media",
-      "result": "Phase1=971/player=294/emote=55 checks and30 service tests pass. Parent rerunPhase1=971. Generatorv5 hash-identical, all8outfits14clips faithful ragdoll/color with unchanged physics. Each accessory<800tri; total1728–1908tri preserves preexisting below-bible base budget rather than claiming3000–6000. Inspected visuals .amp/in/artifacts/phase6-outfits; logs .scratch/phase6-outfits. Initial render fixtures failed audio/resolution/visibility assumptions then fixed; final checks pass. Missing release templates block full export but PCK93entries/catalog/isolatedboot pass; resolve templates in6.5. Shutdown-only diagnostics retained. No deployment/nativeGPU claim."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.2.3 authenticated opening and restart",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "30 tests passed in 87.851s; log .scratch/phase6-opening/full-service.log. Atomic unlock of reserved item, four simultaneous replay-identical opens, rollback, wrong-profile rejection and real HTTP/Godot client/service restart pass. Credentials unchanged; ownership5/pending0 restored without reroll. No visual changes, equipment, deployment or native acceptance claim. Milestone6.2 complete; continue6.3."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "Read-only baseline inspection for Phase 6 planning",
-      "status": "passed",
-      "commands": "git status --short --branch; git rev-parse HEAD; git ls-remote origin refs/heads/main; gh run view 38272856925 --json conclusion,headSha,status,url; gh release view playtest-2026-10-12-bd3b606 --json url,isPrerelease,tagName,assets",
-      "result": "Clean local/remote main matched at 1bf39343e3698cffadd3b5c3575a76c74ff67a3d before edits. GitHub confirms completed/success Phase 5 workflow for bd3b606 and published pre-release with three uploaded assets. Inspected match, cosmetic, admission, service, export and existing test contracts: no Phase 6 feature exists. No live-server/new gameplay/human acceptance run."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "Documentation-only Phase 6 plan consistency",
-      "status": "passed",
-      "commands": "jq empty progress.json; git diff --check; Python inline assertions for task pointers, ordered dependencies, planned statuses, not_run gates, matching checklist tasks, relative links and unchanged prior delivery/waiver/transition/engine",
-      "result": "PHASE6_PLAN_CHECK_OK milestones=5 tasks=15 gates_not_run=11 links=valid prior_delivery_and_waiver=unchanged. JSON and whitespace checks pass. Only checklist, active decisions and progress changed; no implementation/gameplay tests or deployment performed."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.1 backend profiles and unchanged room admission",
-      "status": "passed",
-      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "17 tests passed in 52.829s before adding the client fixture: four profile HTTP/process tests plus 13 existing admission/HTTP/real Godot/ENet/lifecycle tests. Includes expected occupied-port errors in the startup-failure fixture, not unexpected runtime errors. Log: .scratch/phase6-profile/room-service.log."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.1 first client restart fixture runs",
-      "status": "failed",
-      "commands": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k godot_client_restart -v",
-      "result": "First run rejected inferred Variant in fixture (warning-as-error); fixed explicit dynamic declaration. Second run correctly rejected corrupt saved JSON but JSON.parse_string emitted engine ERROR; changed untrusted input parsing to JSON.parse and retained strict no-runtime-error assertions. Neither failure was suppressed."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.1 authenticated backend/client profile foundation",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k Profiles -v",
-      "result": "Five tests passed in 8.374s. Real service and Godot client processes prove saved identity survives client/service restarts, mode0600 credentials, no secret in emitted state/output, wrong credential/service/plaintext URL/corrupt file rejection without reset, default starters, profile isolation, concurrent creation/rate limits and visible store failure. Profile client is not wired into room discovery yet. No grants/equip mutations or UI changes; pending=[] is starter-only initial state, not a reward ledger claim."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.1 scratch failure probes before final hardening",
-      "status": "failed",
-      "commands": "Inline Python rollback/locked-store/readonly-startup probes against disposable SQLite stores",
-      "result": "First heartbeat probe fixture omitted required players capacity; corrected fixture. Corrected probe showed atomic rollback and nonblocking heartbeat but startup unexpectedly enabled a mode0400 store because chmod0600 added write access. Added pre-chmod readonly rejection and extended the existing startup failure regression; no user/shared data changed."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.1 final regression and failure invariants",
-      "status": "passed",
-      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v; inline Python fault probes; godot --headless --editor --path . --quit; jq empty progress.json; git diff --check",
-      "result": "18 tests passed in 53.443s: five profile real-process tests plus all 13 existing backend/admission/Godot/ENet fixtures. Forged local ownership still fetched equipped=plain from server; no replacement identity. PROFILE_ATOMIC_ROLLBACK_OK profiles=0 owned=0; PROFILE_BUSY_STORE_HEARTBEAT_OK heartbeat_ms=0.058 while write was blocked; PROFILE_READ_ONLY_STARTUP_REJECTED_OK mode=0400. GODOT_PROFILE_IMPORT_OK; JSON/whitespace checks pass. Log: .scratch/phase6-profile/final-room-service-verified.log. Scratch stores/processes removed by fixture cleanup; full gameplay scale/UI regression not rerun because gameplay/appearance is unchanged. No export/deploy/release/native Windows/public acceptance claim."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.2 initial admission import/fixture",
-      "status": "failed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k profile_bound -v",
-      "result": "Godot could not infer the boolean admission-response validation expression through JSON Variant data. Startup consequently timed out (503); fixed explicit bool annotation, retaining strict runtime-error checks. Logs: .scratch/phase6-admission/{import,targeted}.log. Superseded by passing checks below."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.2 targeted profile/admission and full service regression",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k profile_ -v; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "Clean Godot import; targeted 3 tests passed in 13.312s. Extended full suite: 20 tests passed in 72.323s. Real HTTP/ENet and two UI clients prove identity-required discovery, wrong-profile rejection, atomic concurrent reservations, pending/active duplicates, token-derived identity, stale heartbeat isolation, failed-startup/disconnect/expiry cleanup and Ready/Start/crash/retry retaining distinct credentials. Existing legacy development admission and restart tests pass. Only deliberate occupied-port/startup failure fixtures emit expected server errors; client script/runtime checks remain strict. Logs: .scratch/phase6-admission/{import-fixed,profiles-targeted,full-service}.log. No appearance change, deployment, rewards or native/public acceptance claim."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.2 broader regression, busy-store admission and tracking consistency",
-      "status": "passed",
-      "commands": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; inline Python real-SQLite exclusive-lock/heartbeat probe and tracking assertions; jq empty progress.json; git diff --check",
-      "result": "UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed. ROOM_UI_OK checks=81 validates error messaging/unlocked retry/cancellation and unchanged solo state; existing gameplay/network matrices include 4/8/20 participants and five rematches. Managed20 is legacy/profile-disabled loopback evidence, not profile-enabled scale or Internet/hardware acceptance. Runner's permitted shutdown-only resource diagnostics are present; no script/runtime/assertion failure. Log: .scratch/phase6-admission/ui-regression.log. Real SQLite read blocked admission while heartbeat completed in 0.048ms; unlock then admitted the correct profile. PHASE6_ADMISSION_TRACKING_OK next=6.1.3 later_milestones_and_delivery_unchanged links=valid; JSON/whitespace pass. No visual layout/assets changed, no new package/deploy/release."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.3 initial integrated restart/isolation fixture",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -k room_client_and_service_restart -v",
-      "result": "Clean Godot import; one integrated real-service/real-Godot test passed in 7.472s. Actual lobby Create admits a profile, service shutdown restores offline retry, fresh service/client processes restore the same credential and non-default persisted cap fixture, old registry lookup returns unknown_room, an unused old ticket fails against the recreated same-ID/same-port room, a second profile restores independently, and wrong-profile/corrupt saved credentials reject without resetting or minting profiles. Private reports/tickets are disposable mode0600 files, not review artifacts. Extended TTL/no-token-log assertions and full service regression still pending. No production behavior changed. Log: .scratch/phase6-restart/targeted.log."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.1.3 final integrated lifecycle and full service regression",
-      "status": "passed",
-      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "21 tests passed in 78.403s. New real-process lifecycle asserts service/client restart restores identical credential bytes and server-owned cap (deliberate stopped-store fixture, not an equip endpoint); second profile retains plain. Old registry returns unknown_room, unused old ticket fails on replacement same-ID/same-port room before TTL expiry, and fresh authenticated Join succeeds. Cross-profile credentials/corrupt local JSON fail through actual UI, retaining editable retry/controllable solo and saved evidence; DB remains exactly two profiles, unauthorized fetch/body mutation fails, victim state remains cap. No durable credentials or admission tokens in captured server/client output. Existing profile/store failure and legacy/profile-enabled ENet/UI regressions pass. Log: .scratch/phase6-restart/full-service.log. Permitted shutdown-only resource diagnostics and deliberately occupied-port startup errors are distinct from unexpected runtime errors. Production/gameplay/UI source unchanged, so prior 41-suite/five-matrix/managed20 evidence was not rerun or relabelled. No deployment, release, rewards, native Windows/Internet/hardware acceptance."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "Milestone 6.1 closure and tracking/operations consistency",
-      "status": "passed",
-      "commands": "jq empty progress.json; git diff --check; inline Python assertions comparing progress with HEAD and checking completed tasks/gates, next-task pointers and new Markdown anchors",
-      "result": "PHASE6_IDENTITY_MILESTONE_CHECK_OK tasks=3 gates=2 next=6.2.1 production_and_archives_unchanged delivery_and_waiver_preserved links=valid. All 6.1 tasks/gates complete; Phase 6 stays in_progress and all later milestone/task/gate payloads remain unchanged/planned/not_run. Current task and one next action point to 6.2.1, not grants. Documented private durable paths, URL scoping and credential loss/reset semantics. No phase archive or mandatory human checklist added; JSON/whitespace pass."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.2.1 authoritative participation and full service regression",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; godot --headless --path . --script tests/test_match_manager.gd; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "Clean import; MATCH_MANAGER_OK checks=69. All 22 service tests passed in 80.514s. Frozen authenticated roster survives admission/player cleanup; alive connected duration stops at death/leave, distinguishing 59.99/60 and 119.99/120; timeout clamps and live departure records before synchronous finish. Results/lobby and five rematches preserve completed records; copied snapshots, stale/conflicting IDs and unmanaged exclusions pass. Service IDs derive from room-key-authenticated admission bindings, ignore submitted profile/clock/winner claims, are replay-stable and unique across rematches/replacement instances, and tolerate missed sequences without accepting old ones. Real profile-enabled two-client UI/start/crash/retry reaches the internal round endpoint with both identities; clients have no participation/profile roster. No grants, storage migration, appearance/assets, deployment or human acceptance claim. Log: .scratch/phase6-participation/full-service.log. Full gameplay regression pending."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.2.1 full gameplay/network regression and task closure",
-      "status": "passed",
-      "commands": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; jq empty progress.json; git diff --check; inline Python tracking invariants",
-      "result": "UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed; MATCH_MANAGER_OK checks=69; real dedicated authority/movement/recovery/five-rematch checks pass. Managed20 is existing profile-disabled loopback coverage, not profile-enabled rewards/Internet/hardware acceptance. Runner-permitted shutdown-only resource diagnostics remain distinct from script/runtime failures. Log: .scratch/phase6-participation/ui-regression.log. Task 6.2.1 complete; Milestone 6.2 remains in_progress with reward gates not_run. Next task is 6.2.2 transactional completion/receipts, not opening/UI. No grants, new packages, deployment, shared data migration, release or human prerequisite; prior delivery/waiver/archive payloads unchanged."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.2.2 transactional grants and full service regression",
-      "status": "passed",
-      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k Rewards -v; PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
-      "result": "Clean Godot import; six targeted reward tests pass, then all 29 service tests passed in 87.015s. Schema 2 atomically migrates valid schema-1 profiles, persists room-instance-hashed round starts, frozen completions and unique profile/round receipts; committed sealed boxes survive real service process restart through authenticated HTTP fetch. Eligibility boundaries, death/live leave, solo/nonstandard rounds, malformed/spoofed/conflicting completion, replay after rematch/store reopen, failure before commit, four concurrent no-duplicate grants, all-owned/all-reserved and every initial RNG index pass. Real Godot authority plus real HTTP/SQLite delivers two same-frame rematches before IDs return; injected post-commit acknowledgement failure retries without duplicate grants, with exactly one pending box per profile and the 119.99s round ineligible. Fixture injects already validated identities and advances the authority clock; it is not two minutes of human/live-client play. Existing real profile/ENet/client restart/crash-retry tests pass. Expected occupied-port startup errors are deliberate fixtures, not unexpected runtime errors. No box-open/equip/UI/assets, shared migration/deployment or release. Log: .scratch/phase6-grants/full-service.log. Broader gameplay regression and lock/rollback/catalog hardening review are pending."
-    },
-    {
-      "date": "2026-10-13",
-      "scope": "6.2.2 final hardening, storage isolation and task closure",
-      "status": "passed",
-      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v; GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; inline SQLite exclusive-lock/migration-failure probes; jq empty progress.json; git diff --check; tracking/Markdown assertions",
-      "result": "Final 29 service tests passed in 87.288s, including recovered start IDs preserving newer lobby joinability, simultaneous elimination rewards and migration retaining non-default cap. UI_REGRESSION_OK suites=41 matrices=5 managed_clients=20 persistence_restart=passed; managed20 remains profile-disabled loopback, not reward scale/hardware/Internet acceptance. Expected occupied-port startup fixture errors and runner-permitted shutdown-only resource diagnostics are distinct from runtime failures. REWARD_BUSY_STORE_HEARTBEAT_OK heartbeat_ms=0.056 pending=1 while SQL stayed blocked; REWARD_MIGRATION_ROLLBACK_OK schema=1 identities_and_equipment=unchanged partial_rounds_table=absent. Logs: .scratch/phase6-grants/{final-service,ui-regression}.log. Schema-1-only rollback cannot read schema 2; documented pre-upgrade private backup and no lossless down-migration. Task 6.2.2 and eligibility/odds/authority gate complete; combined grants/open/restart gate remains not_run until 6.2.3. No open/equip/UI/assets, new package, shared data operation, deployment, release or human prerequisite; prior delivery/waiver/archive payloads preserved."
-    }
-  ],
+  "validation_log": [],
   "blockers": [],
-  "changed_files": [
-    "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
-    "docs/decisions.md",
-    "progress.json",
-    "tools/room_service.py",
-    "tests/test_room_service.py",
-    "game/session/profile_client.gd",
-    "game/session/room_client.gd",
-    "game/session/room_admission.gd",
-    "tests/room_admission_peer.gd",
-    "tests/room_ui_peer.gd",
-    "tests/test_room_ui.gd",
-    "game/session/profile_client.gd.uid",
-    "tests/profile_client_peer.gd",
-    "tests/profile_client_peer.gd.uid",
-    "GUIDE.md",
-    "README.md",
-    "docs/implementation-checklist.md",
-    "NEED_REAL_CHECK.md",
-    "game/session/match_manager.gd",
-    "tests/test_match_manager.gd"
-  ],
+  "changed_files": [],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
     "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
@@ -324,5 +57,16 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "Commit validated source, repeat matching Linux/Windows exports and verify isolated packaged persistent-store/restart lifecycle; then archive completedPhase6 without inventing a next phase or deploying."
+  "local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "e978f6a13089250eaef998d8e907b10b62359fde",
+    "directory": ".amp/in/artifacts/phase6-packages",
+    "windows": "DisasterParty-Windows-e978f6a.zip",
+    "windows_sha256": "2a6e34eb961b5a9b94258b582abb7965db8c208a3c28b1b84a5302c9f42229e8",
+    "linux_server": "DisasterParty-Linux-server-e978f6a.tar.gz",
+    "linux_server_sha256": "f992971bbbd7fd1f57c11b03a972cc268c516fff56b21ebda1f670366371e202",
+    "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "next_action": "Await owner-selected next scope; obtain separate explicit approval before deploying/publishing Phase6 or changing shared profile data/proxy configuration."
 }

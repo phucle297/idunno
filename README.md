@@ -11,7 +11,7 @@ Development is specification-led:
 - `docs/implementation-checklist.md` indexes the individual phase checklists in `docs/checklists/`, without replacing the design plan.
 - `NEED_REAL_CHECK.md` lists the user/device/Internet checks still needed, with matching-build instructions and a result-reporting format.
 
-Phases 0–1 established the vertical slice and UI; Phases 3–5 added player chaos, disaster compositions, map variety and session hardening. The [Phase 5 validation follow-up](docs/old-docs/phase-5-validation-followup/checklist.md) is completed and archived; Phase 6 is in progress with Milestone 6.1's opt-in profile/store, identity-bound admission and [integrated restart/isolation](GUIDE.md#profile-restart-and-isolation-task-613) completed and validated. Authoritative participation, [transactional sealed rewards](GUIDE.md#transactional-reward-grants-task-622), authenticated opening, earned outfits and [collection/reveal/lobby equipment](GUIDE.md#collection-reveal-and-lobby-equipment-phase-6-source-builds) are implemented in source. Boxes are free with saved equal odds and no duplicates; equipment waits for sender-bound authority acknowledgement, never midmatch. Offline play retains starters only. [Phase 2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) remains deferred, not completed. Historical completion summaries are qualified by the [audit reconciliation](docs/old-docs/phase-5-validation-followup/decisions.md): hardware performance, physical/network/audio and human acceptance are not inferred from automated checks. The source supports 20 players per room; player-host scale and a single profile-disabled managed dedicated room are automation-validated, not a production multi-room or profile-enabled capacity promise. See `GUIDE.md` and `NEED_REAL_CHECK.md` for build-specific limits.
+Phases 0–1 established the vertical slice and UI; Phases 3–5 added player chaos, disaster compositions, map variety and session hardening. [Phase 6](docs/old-docs/phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) is completed and archived with validated local packages: anonymous profiles, identity-bound admission, [transactional sealed rewards](GUIDE.md#transactional-reward-grants-task-622), authenticated opening, eight outfits and [collection/reveal/lobby equipment](GUIDE.md#collection-reveal-and-lobby-equipment-phase-6-source-builds). Boxes are free with saved equal odds and no duplicates; equipment waits for sender-bound authority acknowledgement, never midmatch. Offline play retains starters only. Profile-enabled 4/8/20 loopback clients agree through five rematches and owner/crash recovery; this is not production multi-room/Internet capacity evidence. No next phase, deployment or release is inferred. [Phase 2](docs/old-docs/phase-2-human-playtest-and-core-feel/progress.json) remains deferred. Historical completion summaries are qualified by the [audit reconciliation](docs/old-docs/phase-5-validation-followup/decisions.md); native Windows, physical input/audio, real GPU and human acceptance remain unverified/nonblocking under the waiver. llvmpipe measurements did not meet 60 FPS. See `GUIDE.md` and `NEED_REAL_CHECK.md` for build-specific limits.
 
 The implemented session path uses **dedicated rooms joined by custom room ID**.
 It starts with one Linux server machine, a small HTTPS room
@@ -84,9 +84,12 @@ both from the same HEAD, not merely the same tag name. See the
 [operator runbook](GUIDE.md#packaged-server-operator-runbook-task-227) for local
 startup, deployment boundaries and outstanding Internet/listening gates.
 
-Phase 6 packaging preparation is local only: no new packages, remote deployment,
-shared-store mutation or release is claimed here. The published Phase 5 build remains
-the historical download above. Profile-enabled operation needs a separate durable
+Phase 6 matching local packages are in `.amp/in/artifacts/phase6-packages/`:
+`DisasterParty-Windows-e978f6a.zip`, `DisasterParty-Linux-server-e978f6a.tar.gz`
+and `PLAYTEST-NOTES.md`. Repeated exports/unpacked hashes/PCK and standalone Linux
+profile-store restart pass; native Windows is not tested. They are not published or
+deployed: the Phase 5 public build remains the historical download above. **Do not
+join the old public service with a Phase 6 client.** Profile-enabled operation needs a separate durable
 SQLite store outside release bundles; anonymous credentials are private and scoped
 to the service URL, with no account recovery if lost. See the
 [profile operations and backup/rollback guidance](GUIDE.md#phase-6-profile-foundation-task-611)

@@ -7,7 +7,8 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 6 — Cosmetic Loot-Box Drops and Customization | In progress; Milestones 6.1–6.4 complete, final regression/packaging active | [Phase 6](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md) |
+
+Phase 6 is archived below. No next phase is agreed; root progress is idle pending owner scope.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware
@@ -25,6 +26,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 - [Phase 4 — Disaster Remix and Toy Town Interaction](old-docs/phase-4-disaster-remix-and-toy-town-interaction/checklist.md) · [decisions](old-docs/phase-4-disaster-remix-and-toy-town-interaction/decisions.md) · [evidence](old-docs/phase-4-disaster-remix-and-toy-town-interaction/progress.json)
 - [Phase 5 — Session Distribution and Release Readiness](old-docs/phase-5-session-distribution-and-release-readiness/checklist.md) · [decisions](old-docs/phase-5-session-distribution-and-release-readiness/decisions.md) · [evidence](old-docs/phase-5-session-distribution-and-release-readiness/progress.json)
 - [Phase 5 — Validation Follow-up](old-docs/phase-5-validation-followup/checklist.md) · [decisions](old-docs/phase-5-validation-followup/decisions.md) · [evidence](old-docs/phase-5-validation-followup/progress.json)
+- [Phase 6 — Cosmetic Loot-Box Drops and Customization](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) · [decisions](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) · [evidence](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json) — validated local packages; not deployed/published. Software measurement completed, 60FPS/native/human acceptance not passed.
 
 ## Tracking rules
 
@@ -36,4 +38,4 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 ## Explicitly deferred
 
-Additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. A second map and more disaster compositions landed in Phase 4 (archived); earned cosmetic loot-box drops and a minimal owned/equip collection are planned in Phase 6. Neither is current implementation scope.
+Additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. A second map and disaster compositions landed in Phase 4; free earned cosmetic drops and a minimal collection/equip system landed in Phase 6. Both are archived, not authorization for new work.

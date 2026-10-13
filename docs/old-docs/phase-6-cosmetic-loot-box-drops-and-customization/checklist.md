@@ -1,9 +1,10 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestones 6.1–6.4 completed; final regression/packaging (6.5) is active**.
+Status: **completed — all five agent-owned milestones and eleven gates passed** (2026-10-13).
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
-Root [progress](../../progress.json) owns task status and the single next action;
-[decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
+Archived [progress](progress.json) preserves full evidence and [decisions](decisions.md)
+preserve phase choices. Root [progress](../../../progress.json) owns current scope;
+`DESIGN.md` remains authoritative. GPU60FPS/native/human acceptance is not passed.
 Complete milestones in order; do not begin later feature work before earlier gates pass.
 
 ## Current-state baseline
@@ -66,7 +67,7 @@ needed to keep durable ownership separate from room/process allocation.
   rate-limit checks included. Opt-in schema-1 backend and service-scoped client owner
   exist; room UI/admission was deferred to 6.1.2 below. Starter ownership/equipped state is
   persisted; `pending=[]` is initial state only, with receipt mutations deferred to 6.2.
-  See [profile operation contract](../../GUIDE.md#phase-6-profile-foundation-task-611).
+  See [profile operation contract](../../../GUIDE.md#phase-6-profile-foundation-task-611).
 - [x] **6.1.2 Bind admission to identity.** Authenticate room create/join, bind single-use
   tickets to profile and room instance, and return the validated profile to Godot during
   consume. Keep it server-side. Reject a second active connection for the same profile;
@@ -76,7 +77,7 @@ needed to keep durable ownership separate from room/process allocation.
   concurrent/active duplicates, bounded failed-admission cleanup, expiry/replay/wrong-room,
   credential-free client snapshots and two real lobby clients Ready/Start/crash/retry.
   One pending ticket or peer per profile is permitted across all rooms. Profile-disabled
-  development services remain compatible. See [admission contract](../../GUIDE.md#identity-bound-room-admission-task-612).
+  development services remain compatible. See [admission contract](../../../GUIDE.md#identity-bound-room-admission-task-612).
 - [x] **6.1.3 Prove restart/isolation.** Restart the service and client against an isolated
   on-disk store; confirm the same identity/state returns while old rooms/tickets still die.
   Confirm a second credential cannot read/mutate the first profile. Document data path,
@@ -87,7 +88,7 @@ needed to keep durable ownership separate from room/process allocation.
   the recreated same-ID/same-port room before TTL expiry; fresh Join succeeds. Wrong-profile
   and corrupt saved credentials fail without reset or extra profiles; no secret in logs.
   The cap fixture is a stopped disposable-store update, not an equip API. `pending=[]`
-  remains initial state only. See [restart/identity operations](../../GUIDE.md#profile-restart-and-isolation-task-613).
+  remains initial state only. See [restart/identity operations](../../../GUIDE.md#profile-restart-and-isolation-task-613).
 
 **Gate (passed):** authenticated identity survives process restart; malformed/expired/replayed/wrong-profile
 admission fails; credential leakage checks pass. Extend `tests/test_room_service.py`
@@ -123,7 +124,7 @@ and the service-owned cosmetic store. Keep reward policy outside disaster/health
   four concurrent no-duplicate grants, every initial selection index, exhausted pools
   and real service restart with sealed receipts. Busy-store heartbeat stays responsive.
   Authenticated fetch exposes saved box/pool/version/1/N odds, not the reserved item.
-  No opening/equip/UI/assets or shared migration/deployment. See [operations](../../GUIDE.md#transactional-reward-grants-task-622)
+  No opening/equip/UI/assets or shared migration/deployment. See [operations](../../../GUIDE.md#transactional-reward-grants-task-622)
   and `.scratch/phase6-grants/{final-service,ui-regression}.log`.
 - [x] **6.2.3 Open/recover.** Authenticated open atomically changes sealed → opened/owned
   and returns the persisted item. Concurrent opens, response loss and restart cannot
@@ -225,11 +226,11 @@ ID: `milestone_6_5_cosmetic_regression_and_handoff`; depends on 6.4.
   outfits and preview UI (720p/1080p, 120 warmup/600 samples). Record renderer/hardware,
   p95 and scene/player conditions, stable UI node identity and no growing preview resources.
   Orb software rendering is not proof of real-GPU 60 FPS; retain that uncertainty explicitly.
-- [ ] **6.5.3 Matching local packages and operations notes.** Repeat Linux/Windows exports,
+- [x] **6.5.3 Matching local packages and operations notes.** Repeat Linux/Windows exports,
   compare hashes/PCK, run standalone managed lifecycle with persistent store, and verify
   clean-install/profile restart. Update run/build docs, odds/no-duplicate text and failure reasons.
   If the cosmetic store is a new Python module, include it in exporter, archive, hash verifier
-  and release lifecycle fixtures: the current export copies only `room_service.py`.
+  and release lifecycle fixtures: the planning-baseline exporter copied only `room_service.py`.
   Document future allowlisted HTTPS profile routes and release-independent data path,
   backup/restore/migration/rollback compatibility; do not apply proxy/data changes remotely.
 
@@ -248,6 +249,15 @@ throughput acceptance. Preview+ACTIVE overlap is synthetic worst-case stress;
 ordinary collection cannot open midmatch. VSync requested disabled, Xvfb driver
 warns toggling unsupported; no real display/vblank pacing claim. Logs in
 `.scratch/phase6-performance/`; native/GPU/human uncertainty remains nonblocking.
+
+Package gate: four exports from source `e978f6a13089250eaef998d8e907b10b62359fde`
+have identical per-platform manifests and byte-identical Windows/Linux PCK (95 entries).
+Official templates SHA512 verified. Standalone Linux legacy/profile-enabled operation,
+external-store restart, synthetic authenticated completion/grant/open replay/earned
+equipment and isolation pass. Exact exported PCK passes20 collection checks with Linux
+editor, not native Windows; shutdown-only diagnostics retained. User ZIP/TAR unpack/hash
+verification passes; archives/notes in `.amp/in/artifacts/phase6-packages/`, no credentials
+or DB inside. No deployment, shared migration, release publication or new human gate.
 
 **Phase exit:** all agent-owned milestone gates passed with commands/evidence in progress;
 matching local packages and reviewed UI/gameplay captures available. No paid features,

@@ -548,10 +548,15 @@ disposable room directories; Linux bundles need their matching `room_service.py`
 and `cosmetic_catalog.json` as well as executable/PCK. Export committed HEAD only,
 with fresh output directories and matching Linux/Windows revisions/checksums.
 
-This preparation builds no packages and authorizes no new remote deployment,
-shared-store mutation or release. Historical deployment evidence and outstanding
-human/hardware acceptance (including existing waivers) remain unchanged; local
-source behavior is not new public profile-enabled capacity evidence.
+Phase 6 completed local packages and persistent-store lifecycle checks; see the
+[archived evidence](docs/old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json)
+and `.amp/in/artifacts/phase6-packages/PLAYTEST-NOTES.md`. Repeated per-platform
+exports and cross-platform PCK match. Standalone Linux restart restores earned
+ownership/equipment and identical opening replay after synthetic authenticated completion.
+No new remote deployment, shared-store mutation or release occurred. Historical
+deployment evidence and outstanding human/hardware acceptance (including existing
+waivers) remain unchanged. Profile-enabled 4/8/20 loopback validation is not public
+multi-room capacity evidence; llvmpipe p95 measurements did not meet 60 FPS.
 
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate

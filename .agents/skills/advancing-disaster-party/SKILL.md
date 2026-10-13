@@ -35,6 +35,7 @@ After every required milestone and gate passes:
 3. Create `docs/old-docs/{phase-slug}/progress.json`. Stop if that path already exists; never replace historical phase evidence.
 4. Preserve the completed phase's full milestones, tasks, validation log, blockers, and changed files in the archive. Set `source_of_truth` to `false` and add archive metadata with phase ID, title, status, timestamp, and `superseded_by: "../../../progress.json"`. Move its checklist and decision log into the same directory as `checklist.md` and `decisions.md`, preserving their content and updating navigation links.
 5. Replace root `progress.json` with a fresh file for only the next phase. Include the workflow schema, `previous_phase_archive`, active phase/milestone/task, empty new-phase validation and changed-file state, blockers, and exactly one executable next action.
+   If no next phase is agreed, use fresh idle state (`workflow_state: awaiting_next_scope`, `phase: null`, null current pointers), a completed-phase summary/archive link and empty validation/changed-file diaries. Preserve waiver and delivery metadata; do not invent a phase or infer deployment approval.
 6. Validate both files with `jq empty` and confirm the archive is complete while root state contains no completed-phase diary.
 7. Update the checklist/archive indexes and reconcile `NEED_REAL_CHECK.md`; never drop unresolved human checks or infer passes from automation.
 
