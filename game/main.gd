@@ -1,5 +1,21 @@
 extends Node3D
 
+signal outfit_acknowledged(outfit_id: String, request_sequence: int)
+signal outfit_failed(message: String, request_sequence: int)
+
+const STARTER_OUTFITS := ["plain", "cap", "hard_hat", "backpack"]
+var _outfits: Dictionary = {}
+var _outfit_requests: Dictionary = {}
+var _outfit_pending: Dictionary = {}
+var _outfit_sequence := 0
+var collection: Control
+var _profile_state: Dictionary = {}
+var _profiles_enabled := false
+var _reward_sequence := 0
+var _cosmetic_round_sequence := 0
+var _reward_notice: Dictionary = {}
+var _equip_ui_sequence := 0
+
 const PALETTE := {
 	"cream": Color("f4e6c8"),
 	"sand": Color("d9b77e"),
@@ -132,6 +148,7 @@ func _ready() -> void:
 	pause_settings.name = "PauseSettings"
 	pause_settings.theme = _ui_theme
 	$Interface.add_child(pause_settings)
+	_configure_collection()
 	_connect_ui_audio($Interface)
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
@@ -142,6 +159,7 @@ func _ready() -> void:
 		return
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
+	_load_starter_outfit()
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
@@ -412,7 +430,8 @@ func _on_network_peer_connected(peer_id: int) -> void:
 			existing_peer_id,
 			String(match_manager.players[existing_peer_id].name),
 			existing_player.position,
-			_match_snapshot_sequence
+			_match_snapshot_sequence,
+			_outfits.get(existing_peer_id, "plain")
 		)
 	var spawn_position := _network_spawn_position(_player_nodes.size())
 	var player_name := "Player %d" % peer_id
@@ -426,7 +445,7 @@ func _on_network_peer_connected(peer_id: int) -> void:
 	if _dedicated_server and _room_owner_id == 0:
 		_room_owner_id = peer_id
 		_session_revision += 1
-	_spawn_network_player.rpc(peer_id, player_name, spawn_position, _match_snapshot_sequence)
+	_spawn_network_player.rpc(peer_id, player_name, spawn_position, _match_snapshot_sequence, _outfits.get(peer_id, "plain"))
 
 
 func _on_network_peer_disconnected(peer_id: int) -> void:
@@ -486,6 +505,14 @@ func _on_server_disconnected() -> void:
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
 	_movement_inputs.clear()
+	_outfits.clear()
+	_outfit_requests.clear()
+	_outfit_pending.clear()
+	_profiles_enabled = false
+	_reward_notice.clear()
+	_reward_sequence = 0
+	_cosmetic_round_sequence = 0
+	_equip_ui_sequence = 0
 	_local_jump_sequence = 0
 	_pending_local_movement_snapshot.clear()
 	_reset_sandbox()
@@ -495,6 +522,7 @@ func _on_server_disconnected() -> void:
 	_configure_network_player($Player, 1, $Player.position)
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
+	_load_starter_outfit()
 	$Interface/ResultsPanel.visible = false
 	_set_lobby_visible(true)
 	$Interface/LobbyPanel/Status.text = "Room server disconnected. Create or join again." if was_room else "Server disconnected — create or join a lobby"
@@ -523,8 +551,9 @@ func _spawn_server_network_player(peer_id: int, player_name: String, spawn_posit
 
 
 @rpc("authority", "call_remote", "reliable")
-func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3, spawn_sequence: int = 0) -> void:
+func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3, spawn_sequence: int = 0, outfit_id: String = "plain") -> void:
 	_roster_snapshot_floor = maxi(_roster_snapshot_floor, spawn_sequence)
+	_outfits[peer_id] = outfit_id
 	if _player_nodes.has(peer_id):
 		_configure_network_player(_player_nodes[peer_id] as PartyPlayer, peer_id, spawn_position)
 		return
@@ -539,6 +568,9 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	_player_nodes.erase(peer_id)
+	_outfits.erase(peer_id)
+	_outfit_requests.erase(peer_id)
+	_outfit_pending.erase(peer_id)
 	_server_emote_states.erase(peer_id)
 	_server_emote_cooldown_until.erase(peer_id)
 	_local_emote_cooldown_until.erase(peer_id)
@@ -554,6 +586,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 	player.position = spawn_position
 	player.configure_emotes(self)
 	player.configure_shoving($ShoveManager)
+	player.character.set_outfit_id(_outfits.get(peer_id, "plain"))
 	$ShoveManager.register_player(peer_id, player)
 	pause_settings.apply_player_preferences(player)
 	var camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
@@ -1063,6 +1096,8 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	var previous_owner := _room_owner_id
 	var previous_state := match_manager.state
 	_dedicated_server = bool(snapshot.get("dedicated_server", false))
+	_profiles_enabled = bool(snapshot.get("profiles_enabled", false))
+	_cosmetic_round_sequence = int(snapshot.get("cosmetic_round_sequence", 0))
 	_room_owner_id = int(snapshot.get("room_owner_id", 1))
 	_session_revision = int(snapshot.get("session_revision", 0))
 	if _dedicated_server:
@@ -1098,6 +1133,9 @@ func _create_playable_snapshot() -> Dictionary:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
 		snapshot.session_revision = _session_revision
+		snapshot.profiles_enabled = is_instance_valid(room_admission) and room_admission.config.get("profiles_enabled", false)
+		if snapshot.profiles_enabled:
+			snapshot.cosmetic_round_sequence = match_manager._round_sequence
 	var disasters := {}
 	if meteor_shower.is_active():
 		disasters.meteor = meteor_shower.create_presentation_snapshot()
@@ -1282,7 +1320,7 @@ func _on_earthquake_finished() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if pause_settings.visible or (_dedicated_server and multiplayer.is_server()):
+	if pause_settings.visible or collection.visible or (_dedicated_server and multiplayer.is_server()):
 		return
 	if event.is_action_pressed("toggle_lobby"):
 		_set_lobby_visible(not $Interface/LobbyPanel.visible)
@@ -1308,6 +1346,8 @@ func _cycle_spectator(direction: int) -> void:
 
 
 func start_network_match() -> bool:
+	if not _outfit_pending.is_empty():
+		return false # Never let an accepted lobby mutation race the match boundary.
 	if not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
 	if match_manager.players.size() < 2:
@@ -1422,6 +1462,123 @@ func _connect_ui_audio(node: Node) -> void:
 		_connect_ui_audio(child)
 
 
+func _configure_collection() -> void:
+	collection = preload("res://game/ui/cosmetic_collection.gd").new()
+	collection.name = "Collection"
+	collection.theme = _ui_theme
+	$Interface.add_child(collection)
+	var lobby_button := Button.new()
+	lobby_button.name = "Collection"
+	lobby_button.text = "COLLECTION"
+	lobby_button.position = Vector2(136, 554)
+	lobby_button.size = Vector2(112, 39)
+	lobby_button.add_theme_font_size_override("font_size", 14)
+	$Interface/LobbyPanel.add_child(lobby_button)
+	$Interface/LobbyPanel/ConnectionMode.offset_right = 128
+	$Interface/LobbyPanel/Close.offset_left = 256
+	lobby_button.pressed.connect(_show_collection)
+	var result_button := Button.new()
+	result_button.name = "Collection"
+	result_button.text = "BOXES"
+	$Interface/ResultsPanel/Actions.add_child(result_button)
+	result_button.pressed.connect(_show_collection)
+	var reward_label := Label.new()
+	reward_label.name = "Reward"
+	reward_label.position = Vector2(34, 438)
+	reward_label.size = Vector2(732, 38)
+	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reward_label.add_theme_font_size_override("font_size", 14)
+	$Interface/ResultsPanel.add_child(reward_label)
+	$Interface/ResultsPanel/Table.offset_bottom = 430
+	collection.closed.connect(func() -> void:
+		_set_lobby_visible($Interface/LobbyPanel.visible))
+	collection.refresh_requested.connect(_refresh_profile)
+	collection.equip_requested.connect(func(outfit_id: String) -> void:
+		_equip_ui_sequence = _outfit_sequence + 1
+		request_outfit(outfit_id))
+	collection.open_requested.connect(func(box_id: String) -> void:
+		room_client.profile_client.open_box(box_id))
+	room_client.profile_client.profile_received.connect(func(profile: Dictionary) -> void:
+		_profile_state = profile
+		_present_collection_profile())
+	room_client.profile_client.box_opened.connect(func(receipt: Dictionary) -> void:
+		collection.reduced_motion = gameplay_hud.reduced_motion
+		collection.present_open(receipt)
+		_profile_state = collection.profile.duplicate(true))
+	room_client.profile_client.failed.connect(func(message: String) -> void: collection.present_error(message))
+	outfit_acknowledged.connect(func(outfit_id: String, sequence: int) -> void:
+		if sequence == _equip_ui_sequence:
+			_equip_ui_sequence = 0
+			if not _profile_state.is_empty() and _profiles_enabled:
+				_profile_state.equipped = outfit_id
+			_present_collection_profile())
+	outfit_failed.connect(func(message: String, sequence: int) -> void:
+		if sequence == _equip_ui_sequence:
+			_equip_ui_sequence = 0
+			collection.present_error("Equipment unchanged: " + message.replace("_", " ")))
+
+
+func _show_collection() -> void:
+	if pause_settings.visible or match_manager.state not in [MatchManager.MatchState.LOBBY, MatchManager.MatchState.RESULTS]:
+		return
+	collection.reduced_motion = gameplay_hud.reduced_motion
+	_present_collection_profile()
+	collection.show_collection()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	for player: PartyPlayer in _player_nodes.values():
+		if player.accepts_local_input():
+			player.local_input_blocked = true
+	_refresh_profile()
+
+
+func _present_collection_profile() -> void:
+	var state := _profile_state.duplicate(true)
+	if state.is_empty():
+		state = {"owned": STARTER_OUTFITS.duplicate(), "pending": [], "equipped": get_outfit_id()}
+	if not _profiles_enabled:
+		state.equipped = get_outfit_id()
+	collection.present_profile(state, _profiles_enabled, match_manager.state == MatchManager.MatchState.LOBBY)
+	collection.busy = _equip_ui_sequence > 0 or room_client.profile_client.busy
+
+
+func _refresh_profile() -> void:
+	if room_client.busy or room_client.profile_client.busy or _equip_ui_sequence > 0:
+		collection.status.text = "Request pending. Refresh when it completes."
+		return
+	if room_client.service_url.is_empty() or _direct_ip_mode:
+		return
+	collection.status.text = "Fetching saved inventory…"
+	collection.busy = true
+	room_client.profile_client.service_url = room_client.service_url
+	room_client.profile_client.ensure_profile()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_reward_notice(sequence: int, receipt: Dictionary) -> void:
+	if sequence <= _reward_sequence or sequence < _cosmetic_round_sequence:
+		return
+	_reward_sequence = sequence
+	_reward_notice = receipt
+	collection.reward_text = _reward_message(receipt)
+	$Interface/ResultsPanel/Reward.text = collection.reward_text
+	if collection.visible:
+		_refresh_profile()
+
+
+func _reward_message(receipt: Dictionary) -> String:
+	if receipt.is_empty():
+		return "Offline and player-hosted matches do not award boxes."
+	var reason: String = receipt.get("reason", "unavailable")
+	var reasons := {"earned": "Free sealed box earned! Open it here or later; rematch is never blocked.",
+		"not_enough_profiles": "No drop: at least two authenticated starters required.",
+		"nonstandard_round": "No drop: this was not a normal 600-second match configuration.",
+		"round_too_short": "No drop: the round ended before 120 seconds.",
+		"participation_too_short": "No drop: fewer than 60 alive/connected ACTIVE seconds.",
+		"left_alive": "No drop: left the round alive.", "all_rewards_earned": "All rewards earned or reserved. No empty box.",
+		"unavailable": "Rewards unavailable. Refresh saved inventory; never reset your identity."}
+	return reasons.get(reason, "No drop: " + reason.replace("_", " "))
+
+
 func _set_lobby_visible(visible: bool) -> void:
 	if _dedicated_server and multiplayer.is_server():
 		return
@@ -1448,6 +1605,11 @@ func _set_lobby_visible(visible: bool) -> void:
 func _input(event: InputEvent) -> void:
 	if _dedicated_server and multiplayer.is_server():
 		return
+	if is_instance_valid(collection) and collection.visible:
+		if event.is_action_pressed("ui_cancel"):
+			collection.dismiss()
+			get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel") and pause_settings.visible:
 		pause_settings.back()
 		get_viewport().set_input_as_handled()
@@ -1472,7 +1634,7 @@ func _input(event: InputEvent) -> void:
 
 func _lobby_focus_controls() -> Array[Control]:
 	var controls: Array[Control] = []
-	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "MapSelect", "PlayerList", "ConnectionMode", "Close"]:
+	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "MapSelect", "PlayerList", "ConnectionMode", "Collection", "Close"]:
 		var control: Control = $Interface/LobbyPanel.get_node(node_name)
 		if control.visible and control.focus_mode != Control.FOCUS_NONE and not (control is Button and control.disabled):
 			controls.append(control)
@@ -1480,7 +1642,7 @@ func _lobby_focus_controls() -> Array[Control]:
 
 
 func _focus_lobby_first() -> void:
-	if $Interface/LobbyPanel.visible and not pause_settings.visible:
+	if $Interface/LobbyPanel.visible and not pause_settings.visible and not collection.visible:
 		_lobby_focus_controls()[0].grab_focus()
 
 
@@ -1501,7 +1663,7 @@ func _refresh_lobby_focus() -> void:
 			control.focus_neighbor_top = previous
 			control.focus_neighbor_right = next
 			control.focus_neighbor_bottom = next
-	if $Interface/LobbyPanel.visible and not pause_settings.visible and get_viewport().gui_get_focus_owner() not in controls:
+	if $Interface/LobbyPanel.visible and not pause_settings.visible and not collection.visible and get_viewport().gui_get_focus_owner() not in controls:
 		_focus_lobby_first()
 
 
@@ -1630,7 +1792,7 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Join").visible = not _network_mode
 	panel.get_node("ConnectionMode").visible = not _network_mode
 	panel.get_node("ConnectionMode").disabled = locked
-	panel.get_node("ConnectionMode").text = "INTERNET ROOMS" if _direct_ip_mode else "DIRECT IP (DEV)"
+	panel.get_node("ConnectionMode").text = "ROOMS" if _direct_ip_mode else "DIRECT IP"
 	var lobby_demo := _has_argument("--lobby-demo")
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
@@ -1638,7 +1800,7 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Ready").disabled = not connected and not lobby_demo
 	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
 	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
-	panel.get_node("Start").disabled = (not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false
+	panel.get_node("Start").disabled = not _outfit_pending.is_empty() or ((not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false)
 	var map_select: OptionButton = panel.get_node("MapSelect")
 	map_select.visible = in_lobby
 	panel.get_node("MapLabel").visible = in_lobby
@@ -1696,6 +1858,93 @@ func start_local_match() -> bool:
 	return match_manager.start_match() and disaster_director.start_directing()
 
 
+func get_outfit_id(peer_id: int = 0) -> String:
+	return _outfits.get(multiplayer.get_unique_id() if peer_id == 0 else peer_id, "plain")
+
+
+func _load_starter_outfit() -> void:
+	var saved := FileAccess.get_file_as_string("user://starter-outfit.txt") if FileAccess.file_exists("user://starter-outfit.txt") else "plain"
+	_apply_outfit(1, saved if saved in STARTER_OUTFITS else "plain")
+
+
+func request_outfit(outfit_id: String) -> int:
+	_outfit_sequence += 1
+	if _network_mode and not multiplayer.is_server():
+		_request_outfit.rpc_id(1, outfit_id, _outfit_sequence)
+	else:
+		_accept_outfit(multiplayer.get_unique_id(), outfit_id, _outfit_sequence)
+	return _outfit_sequence
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_outfit(outfit_id: String, sequence: int) -> void:
+	_accept_outfit(multiplayer.get_remote_sender_id(), outfit_id, sequence)
+
+
+func _accept_outfit(peer_id: int, outfit_id: String, sequence: int) -> void:
+	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
+		return
+	var error := ""
+	if sequence <= int(_outfit_requests.get(peer_id, 0)) or _outfit_pending.has(peer_id):
+		error = "stale_equipment"
+	elif match_manager.state != MatchManager.MatchState.LOBBY:
+		error = "equipment_lobby_only"
+	if not error.is_empty():
+		_outfit_reply(peer_id, sequence, error)
+		return
+	_outfit_requests[peer_id] = sequence
+	if is_instance_valid(room_admission) and room_admission.config.get("profiles_enabled", false):
+		_outfit_pending[peer_id] = sequence
+		room_admission.equip(peer_id, outfit_id, sequence)
+		return
+	if not outfit_id in STARTER_OUTFITS:
+		_outfit_reply(peer_id, sequence, "locked_or_unknown_outfit")
+		return
+	if peer_id == multiplayer.get_unique_id():
+		var file := FileAccess.open("user://starter-outfit.txt", FileAccess.WRITE)
+		if file == null:
+			_outfit_reply(peer_id, sequence, "local_save_failed")
+			return
+		file.store_string(outfit_id)
+		file.close()
+	_complete_outfit(peer_id, outfit_id, sequence, "")
+
+
+func _complete_outfit(peer_id: int, outfit_id: String, sequence: int, error: String) -> void:
+	if not _player_nodes.has(peer_id):
+		return
+	_outfit_pending.erase(peer_id)
+	if error.is_empty():
+		_apply_outfit(peer_id, outfit_id)
+		if _network_mode:
+			_apply_outfit.rpc(peer_id, outfit_id)
+	_outfit_reply(peer_id, sequence, error)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _apply_outfit(peer_id: int, outfit_id: String) -> void:
+	_outfits[peer_id] = outfit_id
+	if _player_nodes.has(peer_id):
+		(_player_nodes[peer_id] as PartyPlayer).character.set_outfit_id(outfit_id)
+
+
+func _outfit_reply(peer_id: int, sequence: int, error: String) -> void:
+	if peer_id == multiplayer.get_unique_id():
+		_receive_outfit_reply(sequence, get_outfit_id(peer_id), error)
+	else:
+		_receive_outfit_reply.rpc_id(peer_id, sequence, get_outfit_id(peer_id), error)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_outfit_reply(sequence: int, outfit_id: String, error: String) -> void:
+	if sequence != _outfit_sequence:
+		return # Delayed acknowledgement must not rewrite a newer request's UI.
+	if error.is_empty():
+		outfit_acknowledged.emit(outfit_id, sequence)
+	else:
+		outfit_failed.emit(error, sequence)
+
+
 func return_to_lobby() -> bool:
 	if match_manager.state != MatchManager.MatchState.RESULTS:
 		return false
@@ -1741,6 +1990,11 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		print("DISASTER_REPLAY seed=%d history=%s" % [int(replay.get("seed", -1)), str(replay.get("selection_history", []))])
 	if _dedicated_server and multiplayer.is_server():
 		return
+	if _profiles_enabled and _reward_notice.is_empty():
+		collection.reward_text = "Reward pending — the room is committing the round. You can rematch now."
+	else:
+		collection.reward_text = _reward_message(_reward_notice)
+	$Interface/ResultsPanel/Reward.text = collection.reward_text
 	gameplay_hud.set_spectating_visible(false)
 	var winner_names: Array[String] = []
 	for winner_id: int in winner_ids:
@@ -1757,6 +2011,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		"PRESS ENTER TO REMATCH" if can_control_session()
 		else ("WAITING FOR ROOM OWNER TO START REMATCH" if _dedicated_server else "WAITING FOR HOST TO START REMATCH")
 	)
+	$Interface/ResultsPanel/Actions/Collection.tooltip_text = collection.reward_text
 	var can_act := can_control_session()
 	$Interface/ResultsPanel/Actions/Rematch.visible = can_act
 	$Interface/ResultsPanel/Actions/Lobby.visible = can_act
@@ -1765,6 +2020,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 		controls.append($Interface/ResultsPanel/Actions/Rematch)
 		controls.append($Interface/ResultsPanel/Actions/Lobby)
 	controls.append($Interface/ResultsPanel/Actions/Settings)
+	controls.append($Interface/ResultsPanel/Actions/Collection)
 	for index: int in controls.size():
 		var control := controls[index]
 		control.focus_previous = control.get_path_to(controls[wrapi(index - 1, 0, controls.size())])
@@ -1779,6 +2035,9 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
+	if is_instance_valid(collection) and state == MatchManager.MatchState.ACTIVE:
+		collection.dismiss()
+		_reward_notice.clear()
 	if _dedicated_server and multiplayer.is_server():
 		_session_revision += 1
 		_match_snapshot_remaining = 0.0

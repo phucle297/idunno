@@ -44,6 +44,8 @@ func _ready() -> void:
 	add_child(profile_client)
 	profile_client.profile_received.connect(_profile_received)
 	profile_client.failed.connect(func(message: String) -> void:
+		if not busy:
+			return # Collection refresh failure is not a room-discovery failure.
 		busy = false
 		_payload.clear()
 		failed.emit(message))

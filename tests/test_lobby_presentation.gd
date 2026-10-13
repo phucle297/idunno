@@ -40,6 +40,8 @@ func _run() -> void:
 	await _joy(JOY_BUTTON_DPAD_RIGHT)
 	_expect(root.gui_get_focus_owner() == panel.get_node("ConnectionMode"), "Controller right must reach the explicit connection-mode switch")
 	await _key(KEY_TAB)
+	_expect(root.gui_get_focus_owner() == panel.get_node("Collection"), "Tab must reach COLLECTION from connection mode")
+	await _key(KEY_TAB)
 	_expect(root.gui_get_focus_owner() == panel.get_node("Close"), "Tab must reach CLOSE from connection mode")
 	await _key(KEY_TAB)
 	_expect(root.gui_get_focus_owner() == panel.get_node("Address"), "Focus must wrap inside the lobby, never into the underlying HUD")

@@ -144,6 +144,22 @@ class ProfileStore:
                     "WHERE profile_id=? AND state='sealed' ORDER BY rowid", (profile_id,))]
         return {"profile_id": profile_id, "owned": owned, "equipped": row[1], "pending": pending}
 
+    def equipment(self, profile_id, outfit=None):
+        """Internal-only identity supplied by an authenticated room binding."""
+        with closing(self.connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE" if outfit is not None else "BEGIN")
+            row = db.execute("SELECT equipped FROM profiles WHERE id=?", (profile_id,)).fetchone()
+            if row is None:
+                raise Rejected("invalid_profile", 403)
+            if outfit is not None:
+                if outfit not in self.STARTERS + self.EARNED:
+                    raise Rejected("unknown_outfit")
+                if not db.execute("SELECT 1 FROM owned WHERE profile_id=? AND cosmetic_id=?",
+                                  (profile_id, outfit)).fetchone():
+                    raise Rejected("locked_outfit", 403)
+                db.execute("UPDATE profiles SET equipped=? WHERE id=?", (outfit, profile_id))
+            return outfit if outfit is not None else row[0]
+
     def open_box(self, profile_id, authorization, box_id):
         with closing(self.connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
@@ -428,6 +444,47 @@ class RoomService:
             return self.issue(room, profile_id)
 
     def internal(self, action, data):
+        if action == "equip":
+            return self.equip_request(data)
+        result = self._internal_registry(action, data)
+        if action == "consume" and self.profiles is not None:
+            result["equipped"] = self.profiles.equipment(result["profile_id"])
+        return result
+
+    def equip_request(self, data):
+        with self.lock:
+            room = self.rooms.get(data.get("room_id")) if isinstance(data.get("room_id"), str) else None
+            key, peer, sequence = data.get("key"), data.get("peer"), data.get("sequence")
+            if self.closed or room is None or not isinstance(key, str) or not hmac.compare_digest(key, room["key"]):
+                raise Rejected("invalid_server", 403)
+            if self.profiles is None:
+                raise Rejected("profiles_unavailable", 503)
+            binding = room["peers"].get(peer) if type(peer) is int else None
+            if binding is None or not binding.get("profile_id"):
+                raise Rejected("invalid_equipment_peer", 403)
+            # Authenticated authority gates and freezes Lobby until acknowledgement.
+            # Heartbeat joinability can lag a legitimate results→lobby transition.
+            if data.get("lobby") is not True:
+                raise Rejected("equipment_lobby_only", 409)
+            if type(sequence) is not int or sequence <= binding.get("equip_sequence", 0) or binding.get("equip_busy"):
+                raise Rejected("stale_equipment", 409)
+            binding["equip_sequence"] = sequence
+            binding["equip_busy"] = True
+            profile = binding["profile_id"]
+        try:
+            outfit = data.get("outfit_id")
+            if not isinstance(outfit, str):
+                raise Rejected("unknown_outfit")
+            equipped = self.profiles.equipment(profile, outfit)
+            return dict(ok=True, equipped=equipped, sequence=sequence)
+        finally:
+            with self.lock:
+                binding["equip_busy"] = False
+                current = room["peers"].get(peer)
+                if current and current.get("profile_id") == profile and current.get("equip_sequence") == sequence:
+                    current["equip_busy"] = False
+
+    def _internal_registry(self, action, data):
         if action in ("round/start", "round/finish"):
             return self.round_request(action, data)
         with self.lock:
@@ -472,6 +529,8 @@ class RoomService:
                 raise Rejected("profiles_unavailable", 503)
             instance = hashlib.sha256(key.encode()).hexdigest()
             if action == "round/start":
+                if any(binding.get("equip_busy") for binding in room["peers"].values()):
+                    raise Rejected("equipment_pending", 409)
                 sequence, peers = data.get("sequence"), data.get("peers")
                 duration = data.get("match_duration", 600.0)
                 if (type(sequence) is not int or sequence < 1 or not isinstance(peers, list)
@@ -578,7 +637,7 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise Rejected("invalid_body")
             service = self.server.service
-            if self.path in ("/internal/consume", "/internal/heartbeat", "/internal/round/start", "/internal/round/finish"):
+            if self.path in ("/internal/consume", "/internal/heartbeat", "/internal/equip", "/internal/round/start", "/internal/round/finish"):
                 if self.client_address[0] != "127.0.0.1":
                     raise Rejected("forbidden", 403)
                 result = service.internal(self.path.removeprefix("/internal/"), data)

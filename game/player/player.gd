@@ -328,7 +328,6 @@ func reset_for_match(spawn_position: Vector3) -> void:
 func configure_grabbing(manager: Node, peer_id: int) -> void:
 	_grab_manager = manager
 	_peer_id = peer_id
-	character.set_cosmetic_variant((peer_id - 1) % 4)
 	character.set_player_color(peer_id - 1)
 
 

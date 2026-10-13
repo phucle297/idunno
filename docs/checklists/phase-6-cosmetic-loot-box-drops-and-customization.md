@@ -1,6 +1,6 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **in progress — Milestones 6.1–6.3 completed; equipment/collection/reveal (6.4) is next**.
+Status: **in progress — Milestones 6.1–6.4 completed; final regression/packaging (6.5) is active**.
 Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
@@ -187,16 +187,16 @@ ID: `milestone_6_4_collection_reveal_and_equipment`; depends on 6.3.
 Owner: lobby/results UI in `game/main.gd` and `scenes/main.tscn`, `game/ui/`,
 player spawn/configuration and reliable session snapshots (not per-frame movement packets).
 
-- [ ] **6.4.1 Validated equipment replication.** Replace peer-ID outfit selection with
+- [x] **6.4.1 Validated equipment replication.** Replace peer-ID outfit selection with
   acknowledged catalog ID from bound profile. Validate actual sender, ownership, lobby
   state and request ordering; reject unknown/locked/spoofed/stale equips. Apply reliable
   appearance revision to existing/new avatars, owner transfer, lobby return and five rematches.
   Offline/player-hosted modes expose starters only; no local cache promotion to managed ownership.
-- [ ] **6.4.2 Owned collection and preview.** Lobby collection shows owned/locked,
+- [x] **6.4.2 Owned collection and preview.** Lobby collection shows owned/locked,
   equipped, pending and complete states, full outfit/name, faithful rotatable preview and
   clear Equip action. Unacknowledged selection remains pending; failure retains old equip.
   Manage focus/pointer capture alongside existing Ready/Start/Settings; no match-time obstruction.
-- [ ] **6.4.3 Results reveal.** Show earned/no-drop reason/pending/unavailable and free
+- [x] **6.4.3 Results reveal.** Show earned/no-drop reason/pending/unavailable and free
   Open action. Reveal displays actual server receipt, item name and ownership; can skip
   animation, honors reduced motion, and never blocks rematch. Equip routes to lobby.
   Opening/closing UI does not mint or reroll; reopened collection recovers pending receipts.
@@ -205,6 +205,13 @@ player spawn/configuration and reliable session snapshots (not per-frame movemen
 rejection; deterministic save/restart and stale response handling. Render default, locked,
 empty-pending, sealed/opened, complete and unavailable states at 720p/1080p; inspect them.
 Exercise keyboard navigation and settings/modal interactions, not just screenshots.
+
+Evidence: 34 service tests pass (104.542s); real managed two-client earned/open/equip,
+five-rematch and changed-peer-ID rejoin lifecycle passes. Collection headless20 and
+1080p35 checks pass; seven states inspected at720p1080p in
+`.amp/in/artifacts/phase6-ui/`. Saved odds, failed-open retry, keyboard modal focus,
+acknowledged ownership, reduced-motion/Skip and receipt replay are exercised.
+Authority reward clock is accelerated in fixtures, not two minutes of human play.
 
 ## Milestone 6.5 — Regression, packaging and handoff
 

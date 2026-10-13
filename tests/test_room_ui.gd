@@ -33,7 +33,7 @@ func _run() -> void:
 	_expect(not main._direct_ip_mode and panel.get_node("RoomId").visible and not panel.get_node("Address").visible, "Room ID must be the default; raw IP must be explicitly opted in")
 	_expect(panel.get_node("Password").secret and panel.get_node("RoomIdLabel").text == "ROOM ID", "Room/password fields must be labelled and password masked")
 	_expect(root.gui_get_focus_owner() == panel.get_node("RoomId"), "Default lobby must focus room ID")
-	for name: String in ["Password", "Host", "Join", "PlayerList", "ConnectionMode", "Close", "RoomId"]:
+	for name: String in ["Password", "Host", "Join", "PlayerList", "ConnectionMode", "Collection", "Close", "RoomId"]:
 		await _key(KEY_TAB)
 		_expect(root.gui_get_focus_owner() == panel.get_node(name), "Default focus order must reach %s" % name)
 	await _capture("default")

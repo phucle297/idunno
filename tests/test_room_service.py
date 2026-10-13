@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import socket
 import sqlite3
 import subprocess
@@ -392,6 +393,302 @@ class Rewards(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=3)
+
+
+class Equipment(unittest.TestCase):
+    """Internal equip contract: binding-derived ownership, lobby-only, ordered, fail-closed."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.path = Path(self.directory.name) / "profiles.sqlite3"
+        self.service = RoomService(settings(profile_store=self.path, players=4))
+        self.addCleanup(self.service.close)
+        self.room = dict(id="ALPHA", key="equip-server-key", port=29830, tokens={}, peers={},
+                         round={}, joinable=True, ready=threading.Event(), heartbeat=time.monotonic(), empty_since=time.monotonic())
+        self.service.rooms["ALPHA"] = self.room
+        self.addCleanup(self.service.rooms.clear)
+        self.identities = [self.service.profiles.create() for _ in range(2)]
+        for peer, identity in enumerate(self.identities, 60):
+            token = self.service.issue(self.room, identity["profile_id"])["token"]
+            consumed = self.service.internal("consume", dict(room_id="ALPHA", key=self.room["key"], peer=peer, token=token))
+            self.assertEqual(consumed["equipped"], "plain")
+        self.sequence = 0
+
+    def equip(self, peer=60, outfit="cap", key=None, sequence=None):
+        self.sequence += 1
+        return self.service.internal("equip", dict(room_id="ALPHA", key=key or self.room["key"],
+                                                   peer=peer, outfit_id=outfit, lobby=self.room["joinable"],
+                                                   sequence=self.sequence if sequence is None else sequence))
+
+    def rejects(self, code, call):
+        with self.assertRaises(Rejected) as error:
+            call()
+        self.assertEqual(error.exception.code, code)
+
+    def consume_equipped(self, index=0):
+        return self.service.profiles.equipment(self.identities[index]["profile_id"])
+
+    def test_binding_derived_ownership_lobby_and_order(self):
+        self.rejects("invalid_server", lambda: self.equip(key="wrong"))
+        self.rejects("invalid_equipment_peer", lambda: self.equip(peer=77))
+        self.rejects("unknown_outfit", lambda: self.equip(outfit="wizard"))
+        self.rejects("locked_outfit", lambda: self.equip(outfit="raincoat"))
+        self.assertEqual(self.equip(outfit="cap")["equipped"], "cap")
+        self.assertEqual(self.consume_equipped(0), "cap")
+        self.assertEqual(self.service.profile("fetch", dict(protocol=1, build="development",
+                         profile_id=self.identities[0]["profile_id"]),
+                         "Bearer " + self.identities[0]["credential"])["equipped"], "cap")
+        self.assertEqual(self.consume_equipped(1), "plain")
+        self.rejects("stale_equipment", lambda: self.equip(sequence=self.sequence))
+        self.rejects("stale_equipment", lambda: self.equip(sequence=0))
+        self.room["joinable"] = False
+        self.rejects("equipment_lobby_only", lambda: self.equip(outfit="hard_hat"))
+        self.room["joinable"] = True
+        self.assertEqual(self.equip(outfit="hard_hat")["equipped"], "hard_hat")
+
+    def test_pending_equip_blocks_start_and_serializes(self):
+        original = self.service.profiles.equipment
+        gate = threading.Event()
+        def slow(profile_id, outfit=None):
+            gate.wait(5)
+            return original(profile_id, outfit)
+        self.service.profiles.equipment = slow
+        self.sequence += 1
+        first = self.sequence
+        thread = threading.Thread(target=lambda: self.service.internal("equip", dict(
+            room_id="ALPHA", key=self.room["key"], peer=60, outfit_id="cap", sequence=first, lobby=True)))
+        thread.start()
+        deadline = time.monotonic() + 5
+        while not self.room["peers"][60].get("equip_busy") and time.monotonic() < deadline:
+            time.sleep(0.01)
+        self.assertTrue(self.room["peers"][60]["equip_busy"])
+        self.rejects("stale_equipment", lambda: self.equip(outfit="hard_hat"))
+        self.rejects("equipment_pending", lambda: self.service.internal("round/start", dict(
+            room_id="ALPHA", key=self.room["key"], sequence=1, peers=[60, 61], match_duration=600.0)))
+        gate.set()
+        thread.join(5)
+        self.assertFalse(self.room["peers"][60].get("equip_busy"))
+        self.assertEqual(self.service.profiles.equipment(self.identities[0]["profile_id"]), "cap")
+        response = self.service.internal("round/start", dict(room_id="ALPHA", key=self.room["key"],
+                                         sequence=1, peers=[60, 61], match_duration=600.0))
+        self.assertTrue(response["round_id"])
+
+    def test_profile_disabled_service_rejects_equipment(self):
+        disabled = RoomService(settings())
+        self.addCleanup(disabled.close)
+        disabled.rooms["ALPHA"] = self.room
+        self.addCleanup(disabled.rooms.clear)
+        with self.assertRaises(Rejected) as error:
+            disabled.internal("equip", dict(room_id="ALPHA", key=self.room["key"], peer=60,
+                                            outfit_id="cap", sequence=1))
+        self.assertEqual(error.exception.code, "profiles_unavailable")
+
+
+class ManagedEquipment(unittest.TestCase):
+    """Two real managed clients: acknowledged equipment agreement, rejection and rejoin."""
+
+    LABELS = ("server-GEAR", "client-0", "client-1")
+
+    def setUp(self):
+        self.engine = settings().godot
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.logs = ROOT / ".scratch/phase6-equipment"
+        self.logs.mkdir(parents=True, exist_ok=True)
+        self.control = Path(self.directory.name)
+        self.store = self.control / "profiles.sqlite3"
+        wrapper = self.control / "server.sh"
+        wrapper.write_text("#!/bin/sh\nexec " + shlex.quote(self.engine) +
+                           " --script res://tests/managed_container_peer.gd \"$@\" " +
+                           shlex.quote(f"--control-dir={self.control}") + " >> " +
+                           shlex.quote(str(self.logs / "server.log")) + " 2>&1\n")
+        wrapper.chmod(0o700)
+        (self.logs / "server.log").write_text("")
+        self.port = 29846
+        self.service_log = self.control / "service.log"
+        with self.service_log.open("w") as output:
+            self.process = subprocess.Popen([sys.executable, str(ROOT / "tools/room_service.py"),
+                "--listen-port", str(self.port), "--godot", str(wrapper), "--project", str(ROOT),
+                "--profile-store", str(self.store), "--port-start", "29840", "--port-end", "29843"],
+                stdout=output, stderr=subprocess.STDOUT)
+        self.addCleanup(self.stop_service)
+        deadline = time.monotonic() + 8
+        while "ROOM_SERVICE_READY" not in self.service_log.read_text() and self.process.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertIn("ROOM_SERVICE_READY", self.service_log.read_text())
+        self.clients = []
+        self.sequences = {}
+        self.addCleanup(self.stop_clients)
+        for label in ("client-0", "client-1"):
+            with (self.logs / (label + ".log")).open("w") as output:
+                self.clients.append(subprocess.Popen([self.engine, "--headless", "--path", str(ROOT),
+                    "--script", "res://tests/managed_container_peer.gd", "--",
+                    f"--client-id={label}", f"--control-dir={self.control}"],
+                    stdout=output, stderr=subprocess.STDOUT))
+        self.wait(lambda: all((self.control / (label + ".prepared")).exists()
+                              for label in ("client-0", "client-1")), "Client startup", 30)
+
+    def stop_service(self):
+        if self.process.poll() is None:
+            self.process.terminate()
+            self.assertEqual(self.process.wait(timeout=5), 0, self.service_log.read_text())
+
+    def stop_clients(self):
+        for client in self.clients:
+            if client.poll() is None:
+                client.terminate()
+                client.wait(timeout=5)
+
+    def read(self, label):
+        path = self.control / (label + ".json")
+        return json.loads(path.read_text()) if path.exists() else {}
+
+    def wait(self, predicate, message, timeout=20):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if predicate():
+                return
+            time.sleep(0.05)
+        state = {label: {key: self.read(label).get(key) for key in
+                         ("state", "outfits", "outfit_reply", "selected_outfit")} for label in self.LABELS}
+        raise AssertionError(f"{message}: {state}")
+
+    def command(self, label, action, **data):
+        self.sequences[label] = self.sequences.get(label, 0) + 1
+        path = self.control / (label + ".command")
+        temp = path.with_suffix(".tmp")
+        temp.write_text(json.dumps(dict(data, action=action, sequence=self.sequences[label])))
+        temp.chmod(0o600)
+        temp.replace(path)
+        self.wait(lambda: self.read(label).get("sequence") == self.sequences[label], f"{label}: {action}")
+
+    def post(self, path, profile=None, status=200):
+        headers = {"Content-Type": "application/json"}
+        body = dict(protocol=1, build="development")
+        if path.startswith("/v1/rooms/"):
+            body.update(room_id="GEAR", password="")
+        if profile is not None:
+            headers["Authorization"] = "Bearer " + profile["credential"]
+            body["profile_id"] = profile["profile_id"]
+        request = Request(f"http://127.0.0.1:{self.port}{path}",
+                          data=json.dumps(body).encode(), headers=headers)
+        try:
+            response = urlopen(request, timeout=20)
+        except HTTPError as error:
+            response = error
+        with response:
+            if status is not None:
+                self.assertEqual(response.status, status)
+            body = json.load(response)
+            return (response.status, body) if status is None else body
+
+    def strict_errors(self, label, allow_authority=False):
+        name = "server.log" if label == "server-GEAR" else label + ".log"
+        text = (self.logs / name).read_text()
+        self.assertNotIn("SCRIPT ERROR", text)
+        errors = [line for line in text.splitlines() if line.startswith("ERROR:")
+                  and "resources still in use at exit" not in line]
+        if not allow_authority:
+            self.assertEqual(errors, [], text)
+            return []
+        unexpected = [line for line in errors if "_apply_outfit" not in line]
+        self.assertEqual(unexpected, [], text)
+        return [line for line in errors if "_apply_outfit" in line]
+
+    def test_managed_equipment_agreement_rejections_and_rejoin(self):
+        first = self.post("/v1/profiles/create")
+        second = self.post("/v1/profiles/create")
+        ticket = self.post("/v1/rooms/create", profile=first)
+        self.command("client-0", "join", ticket=ticket)
+        self.wait(lambda: self.read("client-0").get("owner", 0) > 1, "First admission")
+        joined = self.post("/v1/rooms/join", profile=second)
+        self.command("client-1", "join", ticket=joined)
+        self.wait(lambda: self.read("client-1").get("owner", 0) > 1, "Second admission")
+        ids = [self.read("client-0")["local_id"], self.read("client-1")["local_id"]]
+        self.wait(lambda: self.read("server-GEAR").get("ids") == sorted(ids)
+                  and all(self.read(label).get("ids") == sorted(ids) for label in self.LABELS), "Roster")
+        self.wait(lambda: all(set(self.read(label).get("outfits", {}).values()) == {"plain"}
+                              for label in self.LABELS), "Starter defaults")
+        self.command("client-1", "equip", outfit_id="cap")
+        self.wait(lambda: self.read("client-1")["outfit_reply"] == {"outfit_id": "cap", "sequence": 1, "error": ""}, "Cap acknowledgement")
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "cap" for label in self.LABELS), "Cap agreement")
+        self.command("client-1", "equip", outfit_id="raincoat")
+        self.wait(lambda: self.read("client-1")["outfit_reply"]["error"] == "locked_outfit", "Locked rejection")
+        self.command("client-1", "stale_equip", outfit_id="hard_hat", request_sequence=1)
+        time.sleep(0.3)
+        self.assertEqual(self.read("client-1")["outfit_reply"], {"outfit_id": "cap", "sequence": 2, "error": "locked_outfit"}, "Stale reply cannot overwrite newer request UI")
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "cap" for label in self.LABELS), "Rejections change nothing")
+        self.assertEqual(self.strict_errors("server-GEAR"), [])
+        for label in ("client-0", "client-1"):
+            self.command(label, "ready")
+            self.command(label, "equip", outfit_id="backpack")
+        self.wait(lambda: self.read("client-0")["outfit_reply"] == {"outfit_id": "backpack", "sequence": 1, "error": ""}
+                  and self.read("client-1")["outfit_reply"] == {"outfit_id": "backpack", "sequence": 3, "error": ""}, "Both equipped")
+        self.wait(lambda: self.read("server-GEAR")["can_start"], "Ready acknowledgements")
+        self.command("client-0", "start")
+        self.wait(lambda: all(self.read(label).get("state") == 1 for label in self.LABELS), "Active match")
+        self.command("client-1", "equip", outfit_id="cap")
+        self.wait(lambda: self.read("client-1")["outfit_reply"]["error"] == "equipment_lobby_only", "Mid-match rejection")
+        # Accelerated authoritative clock fixture, not a claim of a real 120s play session.
+        self.command("server-GEAR", "cleanup")
+        self.command("server-GEAR", "advance", seconds=120.0)
+        self.command("server-GEAR", "finish")
+        self.wait(lambda: all(self.read(label).get("state") == 2 for label in self.LABELS), "Results")
+        self.wait(lambda: all(self.read(label).get("reward_notice", {}).get("reason") == "earned"
+                              for label in ("client-0", "client-1")), "Private earned notices")
+        for label, identity in zip(("client-0", "client-1"), (first, second)):
+            private = self.control / (label + "-profile.json")
+            private.write_text(json.dumps(dict(service_url=f"http://127.0.0.1:{self.port}",
+                                               profile_id=identity["profile_id"], credential=identity["credential"])))
+            private.chmod(0o600)
+            self.command(label, "collection", service_url=f"http://127.0.0.1:{self.port}", profile_file=str(private))
+            self.wait(lambda: len(self.read(label)["collection_profile"]["pending"]) == 1, "Pending box recovered")
+            self.command(label, "open_box")
+            self.wait(lambda: len(self.read(label)["collection_profile"]["owned"]) == 5
+                      and not self.read(label)["collection_profile"]["pending"], "Acknowledged reveal")
+            self.assertNotIn(self.read(label)["selected_outfit"], ProfileStore.STARTERS)
+            self.command(label, "close_collection")
+        self.command("client-0", "lobby")
+        self.wait(lambda: all(self.read(label).get("state") == 0 for label in self.LABELS), "Lobby return")
+        earned = self.read("client-1")["selected_outfit"]
+        self.command("client-1", "equip", outfit_id=earned)
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == earned for label in self.LABELS), "Earned outfit agreement")
+        self.command("client-1", "equip", outfit_id="backpack")
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Starter restored")
+        for cycle in range(5):
+            for label in ("client-0", "client-1"):
+                self.command(label, "ready")
+            self.wait(lambda: self.read("server-GEAR")["can_start"], "Rematch readiness")
+            self.command("client-0", "start")
+            self.wait(lambda: all(self.read(label).get("state") == 1 for label in self.LABELS), "Rematch active")
+            self.command("server-GEAR", "finish")
+            self.wait(lambda: all(self.read(label).get("state") == 2 for label in self.LABELS), "Rematch results")
+            self.assertTrue(all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS))
+            self.command("client-0", "lobby")
+            self.wait(lambda: all(self.read(label).get("state") == 0 for label in self.LABELS), "Rematch lobby")
+        self.command("client-1", "disconnect")
+        self.wait(lambda: self.read("server-GEAR").get("ids") == [ids[0]], "Departure")
+        rejoined, code = None, 409
+        deadline = time.monotonic() + 10
+        while code != 200 and time.monotonic() < deadline:
+            code, rejoined = self.post("/v1/rooms/join", profile=second, status=None)
+            time.sleep(0.2)
+        self.assertEqual(code, 200)
+        self.command("client-1", "join", ticket=rejoined)
+        self.wait(lambda: self.read("client-1").get("owner", 0) > 1, "Rejoin admission")
+        ids[1] = self.read("client-1")["local_id"]
+        self.wait(lambda: self.read("server-GEAR").get("ids") == sorted(ids), "Rejoin roster")
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Durable equipped restores on rejoin")
+        self.command("client-0", "spoof_outfit", peer=ids[1], outfit_id="meteor_observer")
+        time.sleep(1.0)
+        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Spoofed appearance ignored")
+        rejected = self.strict_errors("server-GEAR", allow_authority=True)
+        self.assertTrue(rejected, "Authority must reject the non-authority appearance RPC")
+        for label in ("client-0", "client-1"):
+            self.strict_errors(label)
+        self.assertEqual(self.read("client-1")["equipment_pending"], 0)
+        print("MANAGED_EQUIPMENT_OK peers=%s" % ids)
 
 
 class Profiles(unittest.TestCase):
@@ -961,7 +1258,7 @@ class RealProcesses(unittest.TestCase):
             # A consume with a spoofed identity must still bind the ticket owner.
             consume = dict(room_id=reserved["id"], key=reserved["key"], peer=90,
                            token=other["token"], profile_id=second["profile_id"])
-            self.assertEqual(self.post("/internal/consume", consume), dict(ok=True, profile_id=first["profile_id"]))
+            self.assertEqual(self.post("/internal/consume", consume), dict(ok=True, profile_id=first["profile_id"], equipped="plain"))
             self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
             heartbeat = dict(room_id=reserved["id"], key=reserved["key"], peers=[], joinable=True)
             self.post("/internal/heartbeat", heartbeat)

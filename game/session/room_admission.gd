@@ -118,9 +118,19 @@ func _submit_round(sequence: int) -> void:
 			delivery.round_id = json.data.round_id
 			main.match_manager.bind_round_id(sequence, json.data.round_id)
 		elif valid and json.data.round_id == delivery.round_id and json.data.get("receipts") is Array:
+			for receipt: Dictionary in json.data.receipts:
+				for peer: int in profile_ids:
+					if profile_ids[peer] == receipt.get("profile_id", ""):
+						var public_receipt := receipt.duplicate(true)
+						public_receipt.erase("profile_id")
+						if peer in main.multiplayer.get_peers():
+							main.rpc_id(peer, "_receive_reward_notice", sequence, public_receipt)
 			reward_delivery.erase(sequence)
 			print("ROUND_REWARDS_COMMITTED sequence=%d receipts=%d" % [sequence, json.data.receipts.size()])
 		elif result == HTTPRequest.RESULT_SUCCESS and code >= 400 and code < 500:
+			for peer: int in profile_ids:
+				if peer in main.multiplayer.get_peers():
+					main.rpc_id(peer, "_receive_reward_notice", sequence, {"reason": "unavailable"})
 			reward_delivery.erase(sequence) # Invalid evidence cannot be repaired by retrying.
 			print("ROUND_REWARDS_UNAVAILABLE sequence=%d" % sequence)
 		delivery.in_flight = false
@@ -156,9 +166,10 @@ func _authenticate(peer: int, data: PackedByteArray) -> void:
 			var valid: bool = result == HTTPRequest.RESULT_SUCCESS and code == 200 and json.parse(body.get_string_from_utf8()) == OK and json.data is Dictionary and json.data.get("ok") == true
 			var profile_id := ""
 			if valid and config.get("profiles_enabled", false):
-				valid = json.data.get("profile_id") is String and RegEx.create_from_string("^[0-9a-f]{32}$").search(json.data.profile_id) != null
+				valid = json.data.get("profile_id") is String and RegEx.create_from_string("^[0-9a-f]{32}$").search(json.data.profile_id) != null and json.data.get("equipped") is String
 				if valid:
 					profile_id = json.data.profile_id
+					main._outfits[peer] = json.data.equipped
 			if valid and main.match_manager.state == MatchManager.MatchState.LOBBY:
 				if not profile_id.is_empty():
 					profile_ids[peer] = profile_id
@@ -173,6 +184,39 @@ func _authenticate(peer: int, data: PackedByteArray) -> void:
 	if request.request(config.url + "consume", ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
 		api.disconnect_peer(peer)
 		pending.erase(peer)
+		request.queue_free()
+
+
+func equip(peer: int, outfit_id: String, sequence: int) -> void:
+	var identity: String = profile_ids.get(peer, "")
+	if identity.is_empty():
+		main._complete_outfit(peer, "", sequence, "invalid_equipment_peer")
+		return
+	var request := HTTPRequest.new()
+	request.timeout = 2.0
+	request.body_size_limit = 4096
+	request.max_redirects = 0
+	add_child(request)
+	var payload := {"room_id": config.room_id, "key": config.key, "peer": peer,
+		"outfit_id": outfit_id, "sequence": sequence,
+		"lobby": main.match_manager.state == MatchManager.MatchState.LOBBY}
+	request.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+		if profile_ids.get(peer, "") == identity and main._outfit_pending.get(peer) == sequence:
+			var json := JSON.new()
+			var valid: bool = result == HTTPRequest.RESULT_SUCCESS and code == 200 and json.parse(body.get_string_from_utf8()) == OK and json.data is Dictionary and json.data.get("ok") == true and json.data.get("equipped") == outfit_id and json.data.get("sequence") == sequence
+			if not valid and (result != HTTPRequest.RESULT_SUCCESS or code >= 500 or code == 200):
+				# Commit outcome is unknown. Do not unblock Start with a write still
+				# running: fail closed; next admission reads the durable actual outfit.
+				get_tree().quit(1)
+				request.queue_free()
+				return
+			var error := "equipment_unavailable"
+			if not valid and result == HTTPRequest.RESULT_SUCCESS and json.parse(body.get_string_from_utf8()) == OK and json.data is Dictionary:
+				error = str(json.data.get("error", error))
+			main._complete_outfit(peer, outfit_id, sequence, "" if valid else error)
+		request.queue_free())
+	if request.request(config.url + "equip", ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload)) != OK:
+		main._complete_outfit(peer, "", sequence, "equipment_unavailable")
 		request.queue_free()
 
 

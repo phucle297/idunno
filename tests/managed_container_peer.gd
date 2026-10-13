@@ -12,6 +12,7 @@ var physics_ms: Array[float] = []
 var profile := {}
 var release_at := 0
 var control_directory := "/control"
+var outfit_reply := {}
 
 
 func _initialize() -> void:
@@ -26,6 +27,10 @@ func _run() -> void:
 	main.name = "Main"
 	root.add_child(main)
 	await process_frame
+	main.outfit_acknowledged.connect(func(outfit: String, request_sequence: int) -> void:
+		outfit_reply = {"outfit_id": outfit, "sequence": request_sequence, "error": ""})
+	main.outfit_failed.connect(func(message: String, request_sequence: int) -> void:
+		outfit_reply = {"outfit_id": main.get_outfit_id(), "sequence": request_sequence, "error": message})
 	var config_path: String = main._argument_value("--room-config=")
 	if not config_path.is_empty():
 		label = "server-" + String(JSON.parse_string(FileAccess.get_file_as_string(config_path)).room_id)
@@ -55,6 +60,24 @@ func _act(command: Dictionary) -> void:
 			main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 500, 1500)
 		"ready":
 			main.set_local_ready(true)
+		"equip":
+			main.request_outfit(str(command.outfit_id))
+		"stale_equip":
+			main._request_outfit.rpc_id(1, str(command.outfit_id), int(command.request_sequence))
+		"spoof_outfit":
+			main._apply_outfit.rpc_id(1, int(command.peer), str(command.outfit_id))
+		"lobby":
+			main.return_to_lobby()
+		"collection":
+			main.room_client.service_url = str(command.service_url)
+			main.room_client.profile_client.credential_path = str(command.profile_file)
+			main._show_collection()
+		"open_box":
+			main.collection.open_button.pressed.emit()
+		"close_collection":
+			main.collection.dismiss()
+		"advance":
+			main.match_manager.tick_match(float(command.seconds))
 		"start":
 			main.start_network_match()
 		"rematch":
@@ -111,6 +134,7 @@ func _physics_process(_delta: float) -> bool:
 func _summary() -> Dictionary:
 	var health := {}
 	var positions := {}
+	var outfits := {}
 	var rtt_ms := 0
 	if main.is_network_session() and not main.multiplayer.is_server() and main.multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		rtt_ms = main.multiplayer.multiplayer_peer.get_peer(1).get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
@@ -118,7 +142,11 @@ func _summary() -> Dictionary:
 		health[str(id)] = main.match_manager.get_health(id)
 		var position: Vector3 = main._player_nodes[id].global_position
 		positions[str(id)] = [position.x, position.y, position.z]
+		outfits[str(id)] = main._player_nodes[id].character.get_outfit_id()
 	return {"sequence": sequence, "network": main.is_network_session(), "ids": main.get_network_player_ids(),
+		"collection_profile": main.collection.profile, "selected_outfit": main.collection.selected,
+		"reward_notice": main._reward_notice, "collection_visible": main.collection.visible,
+		"outfits": outfits, "outfit_reply": outfit_reply, "equipment_pending": main._outfit_pending.size(),
 		"owner": main.get_room_owner_id(), "local_id": main.multiplayer.get_unique_id(),
 		"state": main.match_manager.state, "can_start": main.match_manager.can_start_match(), "health": health, "positions": positions, "rtt_ms": rtt_ms,
 		"winners": main.match_manager.winner_ids, "flood": main.flood.phase, "meteor": main.meteor_shower.phase,
