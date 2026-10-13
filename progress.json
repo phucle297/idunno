@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-12",
+  "updated_at": "2026-10-13",
   "project": "Disaster Party",
   "source_of_truth": true,
   "archive_policy": {
@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
     "milestone": "milestone_6_1_cosmetic_loot_drops_and_customization",
-    "task": null
+    "task": "task_6_1_1_durable_profile_store"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -47,7 +47,7 @@
     "title": "Cosmetic Loot-Box Drops and Customization",
     "status": "planned",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Earned cosmetic-only drops, small catalog, reward preview, owned view and equip flow. Decide eligibility, odds, duplicates and durable identity before implementation; no paid boxes, currencies or shops. See the planned checklist; no Phase 6 feature is implemented or validated yet.",
+    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Identity/storage precede managed-server grants; no duplicates, paid boxes, currencies, shops or stat changes. Detailed defaults/tasks/gates are in the checklist; implementation has not started.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -56,14 +56,99 @@
     },
     "milestones": {
       "milestone_6_1_cosmetic_loot_drops_and_customization": {
-        "title": "Cosmetic Loot-Box Drops and Customization",
-        "status": "planned"
+        "title": "Identity, Persistence and Admission Foundation",
+        "status": "planned",
+        "tasks": {
+          "task_6_1_1_durable_profile_store": {"title": "6.1.1 Durable profile/store contract", "status": "planned"},
+          "task_6_1_2_identity_admission": {"title": "6.1.2 Bind admission to identity", "status": "planned"},
+          "task_6_1_3_restart_isolation": {"title": "6.1.3 Prove restart/isolation", "status": "planned"}
+        },
+        "gates": {
+          "durable_authenticated_identity": {"required": true, "status": "not_run"},
+          "admission_isolation_and_no_credential_leaks": {"required": true, "status": "not_run"}
+        }
+      },
+      "milestone_6_2_authoritative_cosmetic_rewards": {
+        "title": "Authoritative Earned Boxes and Exactly-Once Ledger",
+        "status": "planned",
+        "dependencies": ["milestone_6_1_cosmetic_loot_drops_and_customization"],
+        "tasks": {
+          "task_6_2_1_round_participation": {"title": "6.2.1 Capture immutable round participation", "status": "planned"},
+          "task_6_2_2_transactional_grants": {"title": "6.2.2 Commit grants transactionally", "status": "planned"},
+          "task_6_2_3_open_recovery": {"title": "6.2.3 Open/recover", "status": "planned"}
+        },
+        "gates": {
+          "eligibility_odds_and_authority": {"required": true, "status": "not_run"},
+          "idempotent_grants_open_and_restart": {"required": true, "status": "not_run"}
+        }
+      },
+      "milestone_6_3_cosmetic_catalog_and_assets": {
+        "title": "Small Cosmetic Catalog and Faithful Assets",
+        "status": "planned",
+        "dependencies": ["milestone_6_2_authoritative_cosmetic_rewards"],
+        "tasks": {
+          "task_6_3_1_outfit_catalog": {"title": "6.3.1 Stable outfit catalog", "status": "planned"},
+          "task_6_3_2_asset_generation_validation": {"title": "6.3.2 Generate and validate", "status": "planned"},
+          "task_6_3_3_readability": {"title": "6.3.3 Readability inspection", "status": "planned"}
+        },
+        "gates": {
+          "asset_manifest_import_animation_and_physics_equivalence": {"required": true, "status": "not_run"},
+          "inspected_720p_1080p_gameplay_renders": {"required": true, "status": "not_run"}
+        }
+      },
+      "milestone_6_4_collection_reveal_and_equipment": {
+        "title": "Collection, Reveal, Equip and Multiplayer Appearance",
+        "status": "planned",
+        "dependencies": ["milestone_6_3_cosmetic_catalog_and_assets"],
+        "tasks": {
+          "task_6_4_1_equipment_replication": {"title": "6.4.1 Validated equipment replication", "status": "planned"},
+          "task_6_4_2_collection_preview": {"title": "6.4.2 Owned collection and preview", "status": "planned"},
+          "task_6_4_3_results_reveal": {"title": "6.4.3 Results reveal", "status": "planned"}
+        },
+        "gates": {
+          "validated_equipment_and_client_agreement": {"required": true, "status": "not_run"},
+          "ui_states_focus_reduced_motion_and_restart": {"required": true, "status": "not_run"}
+        }
+      },
+      "milestone_6_5_cosmetic_regression_and_handoff": {
+        "title": "Regression, Packaging and Handoff",
+        "status": "planned",
+        "dependencies": ["milestone_6_4_collection_reveal_and_equipment"],
+        "tasks": {
+          "task_6_5_1_lifecycle_scale": {"title": "6.5.1 Full lifecycle and scale", "status": "planned"},
+          "task_6_5_2_performance_visual_review": {"title": "6.5.2 Performance/visual review", "status": "planned"},
+          "task_6_5_3_packages_handoff": {"title": "6.5.3 Matching local packages and operations notes", "status": "planned"}
+        },
+        "gates": {
+          "regression_managed_4_8_20_and_five_rematches": {"required": true, "status": "not_run"},
+          "measured_performance_and_reviewed_visuals": {"required": true, "status": "not_run"},
+          "matching_local_packages_persistent_store_and_handoff": {"required": true, "status": "not_run"}
+        }
       }
     }
   },
-  "validation_log": [],
+  "validation_log": [
+    {
+      "date": "2026-10-13",
+      "scope": "Read-only baseline inspection for Phase 6 planning",
+      "status": "passed",
+      "commands": "git status --short --branch; git rev-parse HEAD; git ls-remote origin refs/heads/main; gh run view 38272856925 --json conclusion,headSha,status,url; gh release view playtest-2026-10-12-bd3b606 --json url,isPrerelease,tagName,assets",
+      "result": "Clean local/remote main matched at 1bf39343e3698cffadd3b5c3575a76c74ff67a3d before edits. GitHub confirms completed/success Phase 5 workflow for bd3b606 and published pre-release with three uploaded assets. Inspected match, cosmetic, admission, service, export and existing test contracts: no Phase 6 feature exists. No live-server/new gameplay/human acceptance run."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "Documentation-only Phase 6 plan consistency",
+      "status": "passed",
+      "commands": "jq empty progress.json; git diff --check; Python inline assertions for task pointers, ordered dependencies, planned statuses, not_run gates, matching checklist tasks, relative links and unchanged prior delivery/waiver/transition/engine",
+      "result": "PHASE6_PLAN_CHECK_OK milestones=5 tasks=15 gates_not_run=11 links=valid prior_delivery_and_waiver=unchanged. JSON and whitespace checks pass. Only checklist, active decisions and progress changed; no implementation/gameplay tests or deployment performed."
+    }
+  ],
   "blockers": [],
-  "changed_files": [],
+  "changed_files": [
+    "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
+    "docs/decisions.md",
+    "progress.json"
+  ],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
     "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
@@ -75,5 +160,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "On a Phase 6 implementation request, decompose its checklist and decide drop eligibility, odds, duplicate handling and durable player identity before coding."
+  "next_action": "On a Phase 6 implementation request, implement task_6_1_1_durable_profile_store: service-issued anonymous credentials and an isolated persistent SQLite profile store with authenticated restart/isolation tests; do not deploy or start later milestones."
 }
