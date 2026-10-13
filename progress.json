@@ -21,7 +21,7 @@
   "current": {
     "phase": "phase_6_cosmetic_loot_box_drops_and_customization",
     "milestone": "milestone_6_1_cosmetic_loot_drops_and_customization",
-    "task": "task_6_1_1_durable_profile_store"
+    "task": "task_6_1_2_identity_admission"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -45,9 +45,9 @@
   "phase": {
     "id": "phase_6_cosmetic_loot_box_drops_and_customization",
     "title": "Cosmetic Loot-Box Drops and Customization",
-    "status": "planned",
+    "status": "in_progress",
     "dependencies": ["phase_5_validation_followup"],
-    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Identity/storage precede managed-server grants; no duplicates, paid boxes, currencies, shops or stat changes. Detailed defaults/tasks/gates are in the checklist; implementation has not started.",
+    "goal": "Free earned cosmetic boxes, four starter/four earned outfits, reveal, collection and validated equip. Identity/storage precede managed-server grants; no duplicates, paid boxes, currencies, shops or stat changes. Task 6.1.1 profile/store foundation is implemented; room binding, rewards and cosmetic UI are not yet implemented.",
     "budgets": {
       "supported_players": 20,
       "authoritative_loose_bodies": 32,
@@ -57,14 +57,14 @@
     "milestones": {
       "milestone_6_1_cosmetic_loot_drops_and_customization": {
         "title": "Identity, Persistence and Admission Foundation",
-        "status": "planned",
+        "status": "in_progress",
         "tasks": {
-          "task_6_1_1_durable_profile_store": {"title": "6.1.1 Durable profile/store contract", "status": "planned"},
+          "task_6_1_1_durable_profile_store": {"title": "6.1.1 Durable profile/store contract", "status": "completed"},
           "task_6_1_2_identity_admission": {"title": "6.1.2 Bind admission to identity", "status": "planned"},
           "task_6_1_3_restart_isolation": {"title": "6.1.3 Prove restart/isolation", "status": "planned"}
         },
         "gates": {
-          "durable_authenticated_identity": {"required": true, "status": "not_run"},
+          "durable_authenticated_identity": {"required": true, "status": "passed", "evidence": "Five real-process profile tests pass, including Godot client and service restart with the same credential and isolation/no reset checks. Profiles remain opt-in and are not bound to room tickets yet."},
           "admission_isolation_and_no_credential_leaks": {"required": true, "status": "not_run"}
         }
       },
@@ -141,13 +141,58 @@
       "status": "passed",
       "commands": "jq empty progress.json; git diff --check; Python inline assertions for task pointers, ordered dependencies, planned statuses, not_run gates, matching checklist tasks, relative links and unchanged prior delivery/waiver/transition/engine",
       "result": "PHASE6_PLAN_CHECK_OK milestones=5 tasks=15 gates_not_run=11 links=valid prior_delivery_and_waiver=unchanged. JSON and whitespace checks pass. Only checklist, active decisions and progress changed; no implementation/gameplay tests or deployment performed."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.1.1 backend profiles and unchanged room admission",
+      "status": "passed",
+      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v",
+      "result": "17 tests passed in 52.829s before adding the client fixture: four profile HTTP/process tests plus 13 existing admission/HTTP/real Godot/ENet/lifecycle tests. Includes expected occupied-port errors in the startup-failure fixture, not unexpected runtime errors. Log: .scratch/phase6-profile/room-service.log."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.1.1 first client restart fixture runs",
+      "status": "failed",
+      "commands": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k godot_client_restart -v",
+      "result": "First run rejected inferred Variant in fixture (warning-as-error); fixed explicit dynamic declaration. Second run correctly rejected corrupt saved JSON but JSON.parse_string emitted engine ERROR; changed untrusted input parsing to JSON.parse and retained strict no-runtime-error assertions. Neither failure was suppressed."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.1.1 authenticated backend/client profile foundation",
+      "status": "passed",
+      "commands": "godot --headless --editor --path . --quit; PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_room_service.py -k Profiles -v",
+      "result": "Five tests passed in 8.374s. Real service and Godot client processes prove saved identity survives client/service restarts, mode0600 credentials, no secret in emitted state/output, wrong credential/service/plaintext URL/corrupt file rejection without reset, default starters, profile isolation, concurrent creation/rate limits and visible store failure. Profile client is not wired into room discovery yet. No grants/equip mutations or UI changes; pending=[] is starter-only initial state, not a reward ledger claim."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.1.1 scratch failure probes before final hardening",
+      "status": "failed",
+      "commands": "Inline Python rollback/locked-store/readonly-startup probes against disposable SQLite stores",
+      "result": "First heartbeat probe fixture omitted required players capacity; corrected fixture. Corrected probe showed atomic rollback and nonblocking heartbeat but startup unexpectedly enabled a mode0400 store because chmod0600 added write access. Added pre-chmod readonly rejection and extended the existing startup failure regression; no user/shared data changed."
+    },
+    {
+      "date": "2026-10-13",
+      "scope": "6.1.1 final regression and failure invariants",
+      "status": "passed",
+      "commands": "PYTHONDONTWRITEBYTECODE=1 GODOT_BIN=$(command -v godot) python3 -m unittest discover -s tests -p test_room_service.py -v; inline Python fault probes; godot --headless --editor --path . --quit; jq empty progress.json; git diff --check",
+      "result": "18 tests passed in 53.443s: five profile real-process tests plus all 13 existing backend/admission/Godot/ENet fixtures. Forged local ownership still fetched equipped=plain from server; no replacement identity. PROFILE_ATOMIC_ROLLBACK_OK profiles=0 owned=0; PROFILE_BUSY_STORE_HEARTBEAT_OK heartbeat_ms=0.058 while write was blocked; PROFILE_READ_ONLY_STARTUP_REJECTED_OK mode=0400. GODOT_PROFILE_IMPORT_OK; JSON/whitespace checks pass. Log: .scratch/phase6-profile/final-room-service-verified.log. Scratch stores/processes removed by fixture cleanup; full gameplay scale/UI regression not rerun because gameplay/appearance is unchanged. No export/deploy/release/native Windows/public acceptance claim."
     }
   ],
   "blockers": [],
   "changed_files": [
     "docs/checklists/phase-6-cosmetic-loot-box-drops-and-customization.md",
     "docs/decisions.md",
-    "progress.json"
+    "progress.json",
+    "tools/room_service.py",
+    "tests/test_room_service.py",
+    "game/session/profile_client.gd",
+    "game/session/profile_client.gd.uid",
+    "tests/profile_client_peer.gd",
+    "tests/profile_client_peer.gd.uid",
+    "GUIDE.md",
+    "README.md",
+    "docs/implementation-checklist.md",
+    "NEED_REAL_CHECK.md"
   ],
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
@@ -160,5 +205,5 @@
     "endpoint": "https://server.permees.com",
     "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
   },
-  "next_action": "On a Phase 6 implementation request, implement task_6_1_1_durable_profile_store: service-issued anonymous credentials and an isolated persistent SQLite profile store with authenticated restart/isolation tests; do not deploy or start later milestones."
+  "next_action": "Implement task_6_1_2_identity_admission: integrate the profile client into room create/join, bind single-use tickets and ENet peers to authenticated profile IDs, reject duplicate active profiles and extend real admission fixtures; do not deploy or begin rewards."
 }

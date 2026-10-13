@@ -309,6 +309,69 @@ Unmanaged `--server-port=` remains an **unauthenticated development mode** and
 must not be exposed publicly. Room owner is the first admitted player, not
 necessarily the creator if the creator has not connected yet.
 
+### Phase 6 profile foundation (Task 6.1.1)
+
+Profiles are **opt-in, local-validation only** at this stage. They are not yet wired
+into Create/Join Room, admission tickets, reward grants or the cosmetic UI. Existing
+room operation is unchanged when `--profile-store` is omitted; profile requests then
+return `profiles_unavailable` (503). No shared service/proxy has been changed.
+
+For local development, choose a new private directory outside the checkout's release
+trees and disposable room files. The parent must already exist; do not use the database
+or credentials as review artifacts or commit them. Example local service configuration:
+
+```bash
+install -d -m 700 "$HOME/.local/share/disaster-party-profiles"
+python3 tools/room_service.py --godot "$(command -v godot)" \
+  --profile-store "$HOME/.local/share/disaster-party-profiles/profiles.sqlite3"
+```
+
+The two new POST JSON endpoints require `protocol: 1` and the exact service `build`:
+
+- `/v1/profiles/create`: body contains only `protocol` and `build`. Returns a
+  service-issued `profile_id`, a one-time returned 256-bit bearer `credential`, four
+  owned starters (`plain`, `cap`, `hard_hat`, `backpack`), equipped `plain`, and
+  initial `pending: []`. Client-supplied identity/ownership/equipment is rejected.
+- `/v1/profiles/fetch`: body adds only `profile_id`; send the credential in the
+  `Authorization: Bearer …` header, never the URL or a roster. Returns authoritative
+  state without credential/hash. Wrong/missing/another profile's credential returns
+  the same `invalid_profile_credentials` (403). No mutation endpoints exist yet.
+
+Both use the existing 2 KiB body cap, 32 workers, 30 requests/minute backend backstop,
+build checks and `Cache-Control: no-store`. Remote operation requires HTTPS termination;
+HTTP is only for loopback validation. A later separately approved proxy change must
+allowlist these exact routes and redact Authorization/request/response bodies. Current
+public route policy is unchanged; do not expose `/internal/*` or enable profiles remotely.
+
+Schema 1 uses SQLite transactions to create the profile plus its starter ownership
+atomically. Only credential hashes are stored server-side. Store files are mode 0600;
+an existing corrupt, incomplete or unsupported schema stops startup nonzero with
+`PROFILE_STORE_STARTUP_FAILED`, without resetting its contents. Missing/unreadable/locked
+storage during requests returns `profile_store_unavailable` (503), not empty ownership.
+An existing zero-byte file is not treated as a new database. Profile disk I/O does not
+hold the room registry lock. Rooms/tickets still disappear on service restart; profiles
+persist only if the same durable store and credential are retained.
+
+`game/session/profile_client.gd` is the tested client owner for the next admission task.
+It creates/fetches a profile through `ensure_profile()`, emits credential-free state or
+a failure, refuses remote HTTP and redirects, and saves only service URL/ID/credential
+to `user://profile-<service-URL-SHA256>.json`. A temporary file is flushed and renamed,
+with owner-only Unix permissions set before secret bytes are written. On Windows it
+relies on the OS user-data directory ACL; native Windows ACL behavior is unverified.
+Credentials are bearer secrets, not encrypted locally. Separate services get separate
+files. Invalid saved files/rejected credentials are preserved, not silently replaced.
+No automatic cloud/device recovery: deleting/losing that file loses access to its profile.
+A lost create response can leave an inaccessible empty starter profile; no reward is
+granted and no recovery guarantee is implied. Never print/copy credentials into logs,
+shell arguments, bug reports, exports or screenshots.
+
+For backup/restore, stop a **local** service before copying its SQLite file; retain
+private permissions and verify restoration with the same disposable test credential.
+No migration from other schema versions or rollback compatibility is implemented yet.
+Do not delete shared data, migrate/deploy/restart a shared service or replace a damaged
+store without separate approval. Reward/pending receipts and equipped mutations remain
+later tasks; `pending: []` here is not a claim of a working reward ledger.
+
 Errors use an HTTP status plus JSON `error`: invalid input (400), bad password
 (403), unknown room (404), duplicate/full/incompatible/active match (409), rate
 limit (429), capacity/startup failure (503). Join is lobby-only. Player counts,

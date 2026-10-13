@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Single-machine room allocator. Public HTTPS belongs at the reverse proxy."""
 import argparse
+from contextlib import closing
 import hashlib
 import hmac
 import json
@@ -10,6 +11,7 @@ from pathlib import Path
 import re
 import secrets
 import signal
+import sqlite3
 import subprocess
 import tempfile
 import threading
@@ -34,9 +36,91 @@ def normalize_id(value):
     return value
 
 
+class ProfileStore:
+    """Durable ownership, separate from the disposable room registry.
+
+    Schema 1 provides starter state only. Reward receipts and equip mutations are
+    later phase tasks; callers cannot supply ownership when creating a profile.
+    """
+    STARTERS = ("plain", "cap", "hard_hat", "backpack")
+
+    def __init__(self, path):
+        self.path = Path(path).resolve()
+        # The operator chooses an existing private parent outside releases. Never
+        # silently recreate a missing store during a request or reset an old one.
+        created = False
+        try:
+            fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            if not self.path.is_file():
+                raise ValueError("profile store must be a regular file")
+            if not self.path.stat().st_mode & 0o222:
+                raise PermissionError("profile store is read-only")
+        else:
+            os.close(fd)
+            created = True
+        os.chmod(self.path, 0o600)
+        with closing(self.connect()) as db:
+            with db:
+                db.execute("BEGIN")
+                if created:
+                    db.execute("CREATE TABLE profiles (id TEXT PRIMARY KEY, credential_hash TEXT NOT NULL UNIQUE, "
+                               "equipped TEXT NOT NULL)")
+                    db.execute("CREATE TABLE owned (profile_id TEXT NOT NULL REFERENCES profiles(id), "
+                               "cosmetic_id TEXT NOT NULL, PRIMARY KEY (profile_id, cosmetic_id))")
+                    db.execute("PRAGMA user_version = 1")
+                if db.execute("PRAGMA user_version").fetchone()[0] != 1:
+                    raise ValueError("unsupported profile store schema; do not reset the store")
+                if db.execute("PRAGMA quick_check").fetchall() != [("ok",)] or db.execute("PRAGMA foreign_key_check").fetchall():
+                    raise ValueError("invalid profile store; restore a verified backup")
+                # Missing columns/tables or invalid equipped state are errors,
+                # not permission to initialize another empty inventory.
+                db.execute("SELECT id, credential_hash, equipped FROM profiles LIMIT 0")
+                db.execute("SELECT profile_id, cosmetic_id FROM owned LIMIT 0")
+                if db.execute("SELECT 1 FROM profiles p WHERE NOT EXISTS "
+                              "(SELECT 1 FROM owned o WHERE o.profile_id=p.id AND o.cosmetic_id=p.equipped) LIMIT 1").fetchone():
+                    raise ValueError("equipped cosmetic is not owned")
+
+    def connect(self):
+        db = sqlite3.connect(self.path.as_uri() + "?mode=rw", uri=True, timeout=2)
+        db.execute("PRAGMA foreign_keys = ON")
+        return db
+
+    def create(self):
+        profile_id = secrets.token_hex(16)
+        credential = secrets.token_urlsafe(32)
+        with closing(self.connect()) as db:
+            with db:
+                db.execute("INSERT INTO profiles VALUES (?, ?, ?)",
+                           (profile_id, hashlib.sha256(credential.encode()).hexdigest(), "plain"))
+                db.executemany("INSERT INTO owned VALUES (?, ?)",
+                               [(profile_id, item) for item in self.STARTERS])
+        return {"profile_id": profile_id, "credential": credential,
+                "owned": list(self.STARTERS), "equipped": "plain", "pending": []}
+
+    def fetch(self, profile_id, authorization):
+        if (not isinstance(profile_id, str) or not re.fullmatch(r"[0-9a-f]{32}", profile_id)
+                or not isinstance(authorization, str)
+                or not re.fullmatch(r"Bearer [A-Za-z0-9_-]{43}", authorization)):
+            raise Rejected("invalid_profile_credentials", 403)
+        digest = hashlib.sha256(authorization[7:].encode()).hexdigest()
+        with closing(self.connect()) as db:
+            with db:
+                db.execute("BEGIN")
+                row = db.execute("SELECT credential_hash, equipped FROM profiles WHERE id=?", (profile_id,)).fetchone()
+                if row is None or not hmac.compare_digest(row[0], digest):
+                    raise Rejected("invalid_profile_credentials", 403)
+                owned = [row[0] for row in db.execute(
+                    "SELECT cosmetic_id FROM owned WHERE profile_id=? ORDER BY cosmetic_id", (profile_id,))]
+                if row[1] not in owned:
+                    raise sqlite3.DatabaseError("equipped cosmetic is not owned")
+        return {"profile_id": profile_id, "owned": owned, "equipped": row[1], "pending": []}
+
+
 class RoomService:
     def __init__(self, args):
         self.args = args
+        self.profiles = ProfileStore(args.profile_store) if getattr(args, "profile_store", None) else None
         self.lock = threading.RLock()
         self.rooms = {}
         self.rates = {}
@@ -61,6 +145,21 @@ class RoomService:
     def compatible(self, data):
         if data.get("protocol") != PROTOCOL or data.get("build") != self.args.build:
             raise Rejected("incompatible_version", 409)
+
+    def profile(self, create, data, authorization):
+        self.compatible(data)
+        expected = {"protocol", "build"} if create else {"protocol", "build", "profile_id"}
+        if set(data) != expected:
+            raise Rejected("invalid_body")
+        with self.lock:
+            if self.closed:
+                raise Rejected("service_stopping", 503)
+            if self.profiles is None:
+                raise Rejected("profiles_unavailable", 503)
+        # SQLite transactions serialize ownership writes. Do not hold the room
+        # registry lock during disk I/O: admission/heartbeats must remain live.
+        result = self.profiles.create() if create else self.profiles.fetch(data["profile_id"], authorization)
+        return dict(result, protocol=PROTOCOL, build=self.args.build)
 
     def password(self, data):
         value = data.get("password", "")
@@ -260,10 +359,17 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path in ("/v1/rooms/create", "/v1/rooms/join"):
                 service.rate_limit(self.client_address[0])
                 result = service.create(data) if self.path.endswith("create") else service.join(data)
+            elif self.path in ("/v1/profiles/create", "/v1/profiles/fetch"):
+                service.rate_limit(self.client_address[0])
+                result = service.profile(self.path.endswith("create"), data, self.headers.get("Authorization", ""))
             else:
                 raise Rejected("not_found", 404)
         except Rejected as error:
             status, result = error.status, {"error": error.code, "protocol": PROTOCOL}
+        except sqlite3.Error:
+            # Storage failure is visible, but neither secrets nor raw DB errors
+            # belong in a response/log. Never fall back to a fresh database.
+            status, result = 503, {"error": "profile_store_unavailable", "protocol": PROTOCOL}
         except (ValueError, TypeError):
             status, result = 400, {"error": "invalid_body", "protocol": PROTOCOL}
         payload = json.dumps(result).encode()
@@ -287,6 +393,7 @@ def arguments():
     parser.add_argument("--godot", default="godot")
     parser.add_argument("--project", default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument("--build", default="development")
+    parser.add_argument("--profile-store", help="Opt-in SQLite file in an existing private directory outside releases")
     parser.add_argument("--port-start", type=int, default=29810)
     parser.add_argument("--port-end", type=int, default=29813)
     parser.add_argument("--rooms", type=int, default=4)
@@ -305,7 +412,11 @@ def arguments():
 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-    service = RoomService(arguments())
+    try:
+        service = RoomService(arguments())
+    except (sqlite3.Error, OSError, ValueError):
+        LOG.error("PROFILE_STORE_STARTUP_FAILED: inspect permissions/schema/backup; store was not reset")
+        return 1
     server = Server(("127.0.0.1", service.args.listen_port), service)
     service.internal_url = f"http://127.0.0.1:{server.server_port}/internal/"
     stop = threading.Event()
@@ -324,4 +435,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

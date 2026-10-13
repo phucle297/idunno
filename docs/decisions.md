@@ -1,13 +1,14 @@
 # Disaster Party — Active Decisions
 
-Phase 6 cosmetics remain planned, not started. Root [progress](../progress.json)
+Phase 6 is in progress: the Task 6.1.1 durable profile/store foundation is implemented.
+Admission binding, rewards, earned assets and cosmetic UI remain unimplemented. Root [progress](../progress.json)
 owns the current state; [its checklist](checklists/phase-6-cosmetic-loot-box-drops-and-customization.md)
-contains the detailed implementation plan, not evidence of implementation.
+contains the detailed plan and task-level implementation evidence.
 
 The completed [Phase 5 validation follow-up](old-docs/phase-5-validation-followup/decisions.md)
 preserves audit reconciliation and delivery decisions. [Its evidence](old-docs/phase-5-validation-followup/progress.json)
 qualifies earlier scale, performance, human acceptance and deployment claims.
-No Phase 6 feature has been implemented or gameplay-validated yet.
+Profile foundation checks do not pass reward/equip or new gameplay gates.
 
 ## 2026-10-12 — Authorized deployment and GitHub pre-release
 
@@ -70,3 +71,39 @@ All five milestones remain planned, with required gates `not_run`. Preserve Phas
 delivery metadata and the manual-acceptance waiver. Do not reopen mandatory human
 checklists, alter `DESIGN.md`, migrate shared data or deploy/publish as part of planning.
 Documentation commit/push uses `[skip ci]` to avoid the main-branch deployment workflow.
+
+## 2026-10-13 — Task 6.1.1 durable profile/store foundation
+
+Owner asks to continue implementation. Implement the current task only: service-issued
+anonymous profile credentials, SQLite schema 1, transactional starter ownership,
+authenticated state fetch and a service-scoped Godot credential owner. Keep `ProfileStore`
+in the already-packaged `room_service.py` rather than adding an import/export dependency.
+The two profile routes are opt-in via an operator-selected `--profile-store`; omitting
+it leaves existing admission unchanged. No remote configuration or data mutation.
+
+Requests cannot set identity, ownership or equipment. Create stores a SHA-256 hash
+of a 256-bit random bearer credential, returns the secret once, and grants the four
+existing starters. Fetch requires the matching ID/Authorization header and returns
+no credential/hash. Initial `pending=[]` is intentionally not a reward implementation;
+round receipts, item reservations and equipment mutation remain later milestones.
+SQLite schema/version/integrity checks reject unsupported/corrupt/incomplete stores
+without resetting them. Request connections use `mode=rw` so lost storage cannot
+silently create an empty DB. Disk I/O does not hold the room registry lock, preserving
+admission/heartbeat responsiveness when the store is busy.
+
+The client owner is not yet integrated into room Create/Join. It scopes its credential
+file to exact service URL, refuses remote HTTP and redirects, writes secret bytes only
+after Unix mode0600 is applied, and atomically renames the flushed temporary file.
+Wrong/corrupt/other-service credentials are preserved rather than replaced automatically;
+local cached ownership is never submitted or treated as authority. Signals expose only
+profile state. Native Windows user-directory ACLs remain unverified. A lost create reply
+can leave an inaccessible starter-only orphan; no cross-device recovery is promised.
+
+Five new public-interface real-process tests cover client/service restart, isolation,
+credentials, forged state, concurrent creation/rate limits and store failures. Initial
+client fixture inference and noisy JSON error failures were fixed, not suppressed;
+the validation history retains them. The existing room/admission regression remains
+required. Mark only 6.1.1 and its durable-identity gate complete; 6.1.2 admission binding
+and 6.1.3 integrated restart/isolation remain open. No gameplay visual changed.
+Commit/push this local feature with `[skip ci]`: pushing is repository policy, not
+authorization to run the main-branch deployment, migrate shared storage or release.

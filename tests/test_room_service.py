@@ -7,7 +7,9 @@ import os
 from pathlib import Path
 import shutil
 import socket
+import sqlite3
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -134,6 +136,200 @@ class Contract(unittest.TestCase):
                     else:
                         handler.do_POST()
                     handler.send_response.assert_called_once_with(404)
+
+
+class Profiles(unittest.TestCase):
+    """Public HTTP contract against a real service process and persistent file."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.store = Path(self.directory.name) / "profiles.sqlite3"
+        self.process = None
+        self.log = Path(self.directory.name) / "service.log"
+        self.addCleanup(self.stop)
+        self.data = {"protocol": 1, "build": "development"}
+        self.start()
+
+    def start(self, enabled=True, port=None):
+        if port is None:
+            with socket.socket() as listener:
+                listener.bind(("127.0.0.1", 0))
+                port = listener.getsockname()[1]
+        self.port = port
+        command = [sys.executable, str(ROOT / "tools/room_service.py"), "--listen-port", str(self.port)]
+        if enabled:
+            command += ["--profile-store", str(self.store)]
+        with self.log.open("w") as output:
+            self.process = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT)
+        deadline = time.monotonic() + 5
+        while "ROOM_SERVICE_READY" not in self.log.read_text() and self.process.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertIsNone(self.process.poll(), self.log.read_text())
+        self.assertIn("ROOM_SERVICE_READY", self.log.read_text())
+
+    def stop(self):
+        if self.process is not None and self.process.poll() is None:
+            self.process.terminate()
+            self.assertEqual(self.process.wait(timeout=5), 0, self.log.read_text())
+        self.process = None
+
+    def post(self, action, data=None, credential=None, status=200):
+        headers = {"Content-Type": "application/json"}
+        if credential is not None:
+            headers["Authorization"] = "Bearer " + credential
+        request = Request(f"http://127.0.0.1:{self.port}/v1/profiles/{action}",
+                          data=json.dumps(self.data if data is None else data).encode(), headers=headers)
+        try:
+            response = urlopen(request, timeout=5)
+        except HTTPError as error:
+            response = error
+        with response:
+            self.assertEqual(response.status, status)
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            return json.load(response)
+
+    def test_profile_restart_isolation_and_no_plaintext_credentials(self):
+        first = self.post("create")
+        second = self.post("create")
+        self.assertRegex(first["profile_id"], r"^[0-9a-f]{32}$")
+        self.assertRegex(first["credential"], r"^[A-Za-z0-9_-]{43}$")
+        self.assertNotEqual(first["profile_id"], second["profile_id"])
+        self.assertNotEqual(first["credential"], second["credential"])
+        self.assertEqual(set(first["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+        self.assertEqual((first["equipped"], first["pending"]), ("plain", []))
+        query = dict(self.data, profile_id=first["profile_id"])
+        for bad in (None, "x" * 43, second["credential"]):
+            self.assertEqual(self.post("fetch", query, bad, 403)["error"], "invalid_profile_credentials")
+        self.assertEqual(self.post("fetch", dict(query, profile_id="0" * 32), first["credential"], 403)["error"],
+                         "invalid_profile_credentials")
+        self.stop()
+        # Non-default persisted equipment fixture, not an implemented equip API.
+        with sqlite3.connect(self.store) as db:
+            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 1)
+            self.assertEqual(db.execute("SELECT credential_hash FROM profiles WHERE id=?", (first["profile_id"],)).fetchone()[0],
+                             hashlib.sha256(first["credential"].encode()).hexdigest())
+            db.execute("UPDATE profiles SET equipped='cap' WHERE id=?", (first["profile_id"],))
+        self.assertEqual(self.store.stat().st_mode & 0o777, 0o600)
+        for profile in (first, second):
+            self.assertNotIn(profile["credential"].encode(), self.store.read_bytes())
+            self.assertNotIn(profile["credential"], self.log.read_text())
+        self.start()
+        restored = self.post("fetch", query, first["credential"])
+        self.assertEqual(restored, dict(query, owned=sorted(first["owned"]), equipped="cap", pending=[]))
+        other = self.post("fetch", dict(self.data, profile_id=second["profile_id"]), second["credential"])
+        self.assertEqual(other["equipped"], "plain")
+        self.assertNotIn("credential", restored)
+        self.assertNotIn("credential_hash", restored)
+
+    def test_godot_client_restart_preserves_credentials_and_rejects_reset(self):
+        path = Path(self.directory.name) / "client-profile.json"
+        url = f"http://127.0.0.1:{self.port}"
+
+        def peer(expected_failure=False, service_url=url):
+            command = [settings().godot, "--headless", "--path", str(ROOT),
+                       "--script", "res://tests/profile_client_peer.gd", "--",
+                       f"--profile-service-url={service_url}", f"--profile-file={path}"]
+            if expected_failure:
+                command.append("--expect-failure")
+            result = subprocess.run(command, capture_output=True, text=True, timeout=15)
+            output = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("PROFILE_CLIENT_REJECTED_OK" if expected_failure else "PROFILE_CLIENT_PEER_OK", output)
+            self.assertNotIn("SCRIPT ERROR", output)
+            self.assertNotIn("ERROR:", output)
+            return output
+
+        output = peer()
+        saved = path.read_bytes()
+        identity = json.loads(saved)
+        self.assertEqual(set(identity), {"service_url", "profile_id", "credential"})
+        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        self.assertIn(identity["profile_id"], output)
+        self.assertNotIn(identity["credential"], output)
+        peer()  # New Godot process restores the same identity, without a second create.
+        self.assertEqual(path.read_bytes(), saved)
+        path.write_text(json.dumps(dict(identity, owned=["forged"], equipped="forged")))
+        self.assertIn("equipped=plain", peer(), "Local cached ownership must not override the service")
+        path.write_bytes(saved)
+        port = self.port
+        self.stop()
+        self.start(port=port)
+        output = peer()
+        self.assertIn(identity["profile_id"], output)
+        self.assertEqual(path.read_bytes(), saved)
+        peer(True, service_url="http://rooms.invalid:29800")  # No remote plaintext credentials.
+        peer(True, service_url=f"http://127.0.0.1:{port + 1}")  # Never forward to another service.
+        self.assertEqual(path.read_bytes(), saved)
+        path.write_text(json.dumps(dict(identity, credential="x" * 43)))
+        rejected = path.read_bytes()
+        peer(True)  # Credential rejection must not auto-create a replacement identity.
+        self.assertEqual(path.read_bytes(), rejected)
+        path.write_text("{broken-json")
+        peer(True)
+        self.assertEqual(path.read_text(), "{broken-json")
+        with sqlite3.connect(self.store) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 1)
+
+    def test_input_authority_concurrent_creation_and_rate_limit(self):
+        for extra in ({"owned": ["forged"]}, {"equipped": "forged"}, {"profile_id": "chosen"},
+                      {"credential": "chosen"}, {"pending": ["forged"]}):
+            self.assertEqual(self.post("create", dict(self.data, **extra), status=400)["error"], "invalid_body")
+        self.post("create", dict(self.data, build="old"), status=409)
+        self.post("create", [], status=400)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            profiles = list(pool.map(lambda _: self.post("create"), range(8)))
+        self.assertEqual(len({p["profile_id"] for p in profiles}), 8)
+        for profile in profiles:
+            fetched = self.post("fetch", dict(self.data, profile_id=profile["profile_id"]), profile["credential"])
+            self.assertEqual(set(fetched["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+        # 6 valid JSON invalid requests + 8 creates + 8 fetches = 22 counted.
+        for _ in range(8):
+            self.post("create")
+        self.assertEqual(self.post("create", status=429)["error"], "rate_limited")
+        with sqlite3.connect(self.store) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 16)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM owned").fetchone()[0], 64)
+
+    def test_store_failure_does_not_reset_and_opt_in_is_required(self):
+        profile = self.post("create")
+        self.store.rename(self.store.with_suffix(".backup"))
+        self.assertEqual(self.post("fetch", dict(self.data, profile_id=profile["profile_id"]),
+                                   profile["credential"], 503)["error"], "profile_store_unavailable")
+        self.post("create", status=503)
+        self.assertFalse(self.store.exists(), "A missing live store must not recreate an empty DB")
+        self.stop()
+        self.start(enabled=False)
+        self.assertEqual(self.post("create", status=503)["error"], "profiles_unavailable")
+        self.assertFalse(self.store.exists())
+
+    def test_startup_rejects_corrupt_unsupported_and_unwritable_store(self):
+        self.stop()
+        for kind in ("corrupt", "future_schema", "missing_schema", "read_only", "missing_parent", "directory"):
+            with self.subTest(kind=kind):
+                path = Path(self.directory.name) / kind
+                if kind == "corrupt":
+                    path.write_bytes(b"not a SQLite database")
+                elif kind in ("future_schema", "missing_schema"):
+                    with sqlite3.connect(path) as db:
+                        db.execute("PRAGMA user_version = " + ("99" if kind == "future_schema" else "1"))
+                elif kind == "read_only":
+                    shutil.copyfile(self.store, path)
+                    path.chmod(0o400)
+                elif kind == "missing_parent":
+                    path = path / "profiles.sqlite3"
+                else:
+                    path.mkdir()
+                before = path.read_bytes() if path.is_file() else None
+                result = subprocess.run([sys.executable, str(ROOT / "tools/room_service.py"),
+                                         "--profile-store", str(path)], capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("PROFILE_STORE_STARTUP_FAILED", result.stderr)
+                self.assertNotIn("ROOM_SERVICE_READY", result.stderr)
+                if before is not None:
+                    self.assertEqual(path.read_bytes(), before, "Existing evidence must not be rewritten")
+                if kind == "read_only":
+                    self.assertEqual(path.stat().st_mode & 0o777, 0o400)
 
 
 class RealProcesses(unittest.TestCase):

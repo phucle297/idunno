@@ -1,6 +1,7 @@
 # Phase 6 — Cosmetic Loot-Box Drops and Customization
 
-Status: **planned; implementation not started**. Detailed plan recorded 2026-10-13.
+Status: **in progress — Task 6.1.1 implemented and validated; admission binding remains**.
+Detailed plan recorded 2026-10-13. Planning baseline below is historical to that inspection.
 Root [progress](../../progress.json) owns task status and the single next action;
 [decisions](../decisions.md) records planning defaults. `DESIGN.md` remains authoritative.
 Complete milestones in order; do not begin later feature work before earlier gates pass.
@@ -53,11 +54,17 @@ Owner: `tools/room_service.py`, `game/session/room_client.gd`,
 `game/session/room_admission.gd`; a small service-owned cosmetic store module only if
 needed to keep durable ownership separate from room/process allocation.
 
-- [ ] **6.1.1 Durable profile/store contract.** Implement profile creation/authentication,
+- [x] **6.1.1 Durable profile/store contract.** Implement profile creation/authentication,
   schema versioning and transactional starter/owned/pending/equipped state. Fail visibly
   on an unwritable/corrupt/unsupported store; never replace it with an empty inventory.
   Credentials are hashed server-side, sent over HTTPS (loopback test exception), and
   loaded from restricted local storage where supported. Bound/rate-limit public requests.
+  Evidence: five profile tests against real Python/Godot processes pass; service/client
+  restart, cross-profile isolation, forged local/server state, corrupt file/store and
+  rate-limit checks included. Opt-in schema-1 backend and service-scoped client owner
+  exist; room UI/admission is not yet integrated. Starter ownership/equipped state is
+  persisted; `pending=[]` is initial state only, with receipt mutations deferred to 6.2.
+  See [profile operation contract](../../GUIDE.md#phase-6-profile-foundation-task-611).
 - [ ] **6.1.2 Bind admission to identity.** Authenticate room create/join, bind single-use
   tickets to profile and room instance, and return the validated profile to Godot during
   consume. Keep it server-side. Reject a second active connection for the same profile;
