@@ -1,6 +1,6 @@
 # Phase 7 — Soft Creature, Detailed World and Complete Interface
 
-Status: in_progress; milestones 7.1-7.3 complete, 7.4 underway.
+Status: in_progress; milestones 7.1-7.4 complete, 7.5 interface underway.
 
 ## Outcome and execution policy
 
@@ -141,14 +141,14 @@ pass. Inspect daylight/night hazard captures, rooms and school roof at 720p/1080
 
 ## 7.4 — Harbor parity and restrained disaster presentation
 
-- [ ] Apply shared construction/material detail to Warehouse interior, docks, crane,
+- [x] Apply shared construction/material detail to Warehouse interior, docks, crane,
   cargo platforms and existing props without changing map ID, height/refuge contracts,
   gangway breakables or basins. No house/school grafted into harbor.
-- [ ] Refine all six disasters: compact matte meteor/short trail, clean blue flood,
+- [x] Refine all six disasters: compact matte meteor/short trail, clean blue flood,
   readable tornado footprint/rings, restrained quake dust, local fire and sharp violet
   lightning. No bloom/opaque prolonged particles. Every warning remains icon+name+time;
   ground telegraph radius/timing match authoritative damage, not concept artwork.
-- [ ] Preserve event-driven combinations, Normal/Hard damage parity, force bounds,
+- [x] Preserve event-driven combinations, Normal/Hard damage parity, force bounds,
   no-repeat/solo-before-overlap/max-two rules and audio warning audibility.
 
 Gate G7.4: inspect each hazard and Flood+Lightning/Tornado+Fire/Fire+Earthquake overlaps
