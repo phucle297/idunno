@@ -6,7 +6,6 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 7T — Integrated Terraced Town | Source correction; final regression/delivery underway | [Phase 7T](checklists/phase-7-integrated-town.md) |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
 | 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; not started | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 
@@ -35,6 +34,8 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 - [Phase 7 — Soft Creature, Detailed World and Complete Interface](old-docs/phase-7-soft-creature-world-and-interface/checklist.md) · [decisions](old-docs/phase-7-soft-creature-world-and-interface/decisions.md) · [evidence](old-docs/phase-7-soft-creature-world-and-interface/progress.json) — validated agent-owned source/regression gates only; native GPU/Windows/60FPS/separate-network acceptance unverified and nonblocking.
 - [Phase 7R — Visual Correction](old-docs/phase-7-visual-correction/checklist.md) · [decisions](old-docs/phase-7-visual-correction/decisions.md) · [evidence](old-docs/phase-7-visual-correction/progress.json) — corrected source and references pushed; no exact-concept/native-GPU/human acceptance claim and no deployment.
 - [Phase 7S — Rounded World Rebuild](old-docs/phase-7-rounded-world-rebuild/checklist.md) · [decisions](old-docs/phase-7-rounded-world-rebuild/decisions.md) · [evidence](old-docs/phase-7-rounded-world-rebuild/progress.json) — rounded source/reference pushed after owner rejected7R visuals; concept parity, native GPU and human approval unverified. No deployment/release; Phase8 paused.
+
+- [Phase 7T — Integrated Terraced Town](old-docs/phase-7-integrated-town/checklist.md) · [decisions](old-docs/phase-7-integrated-town/decisions.md) · [evidence](old-docs/phase-7-integrated-town/progress.json) — source/regression delivery complete; no concept-parity, native-GPU or human aesthetic approval claim. No deployment/release or chunk streaming.
 
 ## Tracking rules
 

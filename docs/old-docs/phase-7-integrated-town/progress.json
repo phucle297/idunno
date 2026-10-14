@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {"phase_id": "phase_7_integrated_town", "title": "Continuous architecture and expanded terraced town", "status": "completed_agent_owned_source_and_delivery", "archived_at": "2026-10-14T04:45:33Z", "superseded_by": "../../../progress.json", "qualification": "Source correction and technical gates, not exact concept parity, owner aesthetic approval, native GPU/60FPS, deployment or progressive loading."},
+  "workflow_state": "completed",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 remains deferred, not completed."},
+  "previous_phase_archive": "docs/old-docs/phase-7-rounded-world-rebuild/progress.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_7_integrated_town", "milestone": "7T.3", "task": null},
+  "phase": {"id": "phase_7_integrated_town", "title": "Continuous architecture and expanded terraced town", "status": "completed", "milestones": [
+    {"id": "7T.1", "title": "Continuous building envelope, curved shop canopy, paving and stair presentation", "status": "completed", "gate": {"required": true, "status": "passed"}},
+    {"id": "7T.2", "title": "112m town with populated districts and real terrain routes; synchronize hazard bounds", "status": "completed", "gate": {"required": true, "status": "passed"}},
+    {"id": "7T.3", "title": "Rendered review, traversal/network regressions and source push", "status": "completed", "gate": {"required": true, "status": "passed"}}
+  ]},
+  "checklist": "checklist.md",
+  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md", "qualification": "Paused during visual corrections; not automatically activated by rounded-source delivery."}],
+  "completed_phase": {"id": "phase_7_rounded_world_rebuild", "status": "completed_agent_owned_source_and_delivery", "archive": "docs/old-docs/phase-7-rounded-world-rebuild/progress.json", "qualification": "Curved architecture and prop surfaces, exact owner image, actual rendered comparison and regression/source delivery. Not exact concept parity or owner aesthetic/native-GPU acceptance; layout, scene density and lighting remain simpler than reference."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"check": "7T.1", "status": "passed", "result": "MAP_SAFETY_OK251; actual Shop/Street/Stair framebuffer captures inspected. Continuous wall/cornice envelope, canopy arc/scallop and staggered paving visible. Added stringer/support/doorframe refinement included in final-source reruns. No concept-parity or human acceptance claim.", "log": ".scratch/integrated-architecture-map.log"},
+    {"check": "7T.2 route recovery", "status": "failed_then_fixed", "result": "Initial render exposed missing water palette and negative low-stair support dimensions; fixed. Expanded traversal exposed GardenBench at x10,z37 blocking GardenStairs; removed bench from route corridor. Removed south road intersecting House. Final map-variety rerun passes436 assertions including terrain/roof heights, routes, doors, flood escape, map bounds and independent hazard surface rays. Shutdown-only ObjectDB/resource diagnostics remain distinct from runtime errors.", "log": ".scratch/integrated-town/map-variety-final.log"},
+    {"check": "7T.3 rendered review", "status": "passed", "result": "Seven final actual-framebuffer views captured and inspected: Shop, street/School, stairs, overview, civic terrace, residential roof walks and garden. Same-camera baseline retained. Continuous curved canopy/walls/paving and real populated tiers visible; 16 buildings including garage. Review camera55deg with HUD hidden, not a native-GPU gameplay/performance acceptance. Roads terminate at pedestrian plaza; terrain is terraced, not organic hills or exact concept parity. Shadow-edge flecks persist near Shop base; disabling shadows removes them, lowering normal bias introduces worse surface acne, so those tuning experiments were not retained.", "log": ".scratch/integrated-town/final-render.log"},
+    {"check": "7T.3 full regression", "status": "failed", "result": "42 suites, persistence restart and five network matrices passed including playable4/8/20. Managed20 timed out awaiting ACTIVE during a rematch at runner line200, not initial start. No runtime errors in managed logs. Retained as original failing evidence, superseded by focused recovery below; final combined rerun pending.", "log": ".scratch/integrated-town/full-regression.log"},
+    {"check": "7T.3 managed20 recovery", "status": "passed", "result": "Three reproductions; saved state showed ACTIVE authority missing peers and disconnected clients. Full sandbox rebuild645ms under managed workload,114ms standalone; fixture minimum ENet timeout500ms. Same-map reset now retains static nodes and restores breakable structures/debris and crate spawn transform/zero velocities/dynamic PhysicsServer state. Standalone reset1ms; unchanged managed20 timings pass five rematches, movement_all_peers, capacity, owner transfer, crash retry. MAP_SAFETY_OK261 includes repeated broken roofs and asymmetric displaced/rotated/moving crate restoration. No timeout relaxation.", "log": ".scratch/integrated-town/managed-fixed.log"},
+    {"check": "7T.3 final-source regression", "status": "passed", "result": "Final full runner passed42 suites, settings restart and first two network matrices, then hit an obsolete fixture assertion requiring old prop destruction. That failure short-circuited later rematch actions and left client coroutine waiting; stopped hung runner after inspecting logs. Removed only identity assertion, retained held-owner/collision-exceptions/spawn/shape/mass/count/health checks. Reran all remaining three matrices and unchanged managed20 sequentially: FINAL_NETWORK_REMAINDER_OK, PLAYABLE_SCALE_MATRIX_OK4/8/20, MANAGED_SCALE_OK20. Final source coverage is42 suites + five matrices + managed20 + persistence across these two runs, not a claimed UI_REGRESSION_OK single-run marker. Runtime errors absent from passing rerun; shutdown-only resource/ObjectDB diagnostics noted separately.", "logs": [".scratch/integrated-town/full-regression-final.log", ".scratch/integrated-town/network-final.log"]},
+    {"check": "7T.3 shared Harbor render", "status": "passed", "result": "Actual map-switch framebuffer inspected; HARBOR_RENDER_OK extent32 confirms64m map preserved. Shared building envelope rendered; vehicle/dock/crane ramps intentionally stay ramps. Distant warehouse stairs not separately readable from overview. No native GPU/60FPS claim.", "log": ".scratch/integrated-town/harbor-render.log"}
+  ],
+  "blockers": [],
+  "integrated_town_delivery": {"authorization": "Owner requested corrected source, preserved design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "539255c1a49adf3f07de0b85c517e31ad5a43d2a", "remote_verification": "git ls-remote origin refs/heads/main equals source HEAD", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
+  "changed_files": ["game/main.gd", "game/disasters/flood.gd", "game/disasters/lightning.gd", "game/disasters/meteor_shower.gd", "game/disasters/tornado.gd", "tests/test_map_variety.gd", "tests/test_map_safety.gd", "tests/playable_scene_network_peer.gd", "assets/manifest.json", ".agents/skills/recovering-town-rematch-stalls/SKILL.md", "README.md", "NEED_REAL_CHECK.md", "progress.json", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-7-integrated-town.md"],
+  "rounded_world_delivery": {"authorization": "Owner requested source correction, preserve design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "78aa2a85eac6be297ac5ef653f40125ec3a96a3b", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
+  "correction_delivery": {"authorization": "Owner requested fix, source design images and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "848b5680bf65a93e21445209d51802f30a5a0ca7", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
+  "delivery": {
+    "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
+    "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
+    "revision": "bd3b606971ce9cf5470e03c5945d229052eb5ddf",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38272856925",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606",
+    "endpoint": "https://server.permees.com",
+    "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
+  },
+  "local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "e978f6a13089250eaef998d8e907b10b62359fde",
+    "directory": ".amp/in/artifacts/phase6-packages",
+    "windows": "DisasterParty-Windows-e978f6a.zip",
+    "windows_sha256": "2a6e34eb961b5a9b94258b582abb7965db8c208a3c28b1b84a5302c9f42229e8",
+    "linux_server": "DisasterParty-Linux-server-e978f6a.tar.gz",
+    "linux_server_sha256": "f992971bbbd7fd1f57c11b03a972cc268c516fff56b21ebda1f670366371e202",
+    "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "next_action": "Archive the completed integrated-town correction; await next agreed scope, with chunk streaming proposed and Phase8 paused."
+}

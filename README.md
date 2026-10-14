@@ -10,7 +10,7 @@ warnings and flood coverage follow each map's actual extent/elevation.
 The [owner's design reference](assets/references/phase7/rounded-town-camera-reference.png)
 is checked into source, not used as runtime art. This correction is source-only,
 not in the public release below; concept parity and native GPU performance are
-not claimed. See [current checklist](docs/checklists/phase-7-integrated-town.md).
+not claimed. See [correction evidence](docs/old-docs/phase-7-integrated-town/checklist.md).
 
 Development is specification-led:
 
