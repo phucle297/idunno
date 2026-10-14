@@ -6,7 +6,6 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 8 — Character, UI and Disaster Counterplay | In progress; 8.1–8.5 passed, 8.6 local packages current | [Phase 8](checklists/phase-8-character-disaster-counterplay.md) |
 | 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
 | 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
 | 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
@@ -30,6 +29,7 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 Completed-phase checklists, decisions and progress are grouped in [old-docs](old-docs/README.md):
 
+- [Phase 8 — Character, UI and Disaster Counterplay](old-docs/phase-8-character-disaster-counterplay/checklist.md) · [decisions](old-docs/phase-8-character-disaster-counterplay/decisions.md) · [evidence](old-docs/phase-8-character-disaster-counterplay/progress.json) — all six technical milestones and matching local packages passed; source pushed, no new public deployment/release or native GPU/Windows/human acceptance claim. Root awaits next scope; Phase9 not started.
 - [Phase 0 — Init Project](old-docs/phase-0-init-project/checklist.md)
 - [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/checklist.md)
 - [Phase 3 — Player-Caused Chaos](old-docs/phase-3-player-caused-chaos/checklist.md) · [decisions](old-docs/phase-3-player-caused-chaos/decisions.md) · [evidence](old-docs/phase-3-player-caused-chaos/progress.json)

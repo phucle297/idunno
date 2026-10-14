@@ -1,6 +1,8 @@
 # Phase 8 — Character, UI and Disaster Counterplay
 
-Status: in progress; 8.1–8.4 technical gates passed; 8.5 is current.
+Status: completed agent-owned source, render, network and local-package gates.
+All six milestones passed on2026-10-14. Native Windows/GPU/human acceptance
+remains unverified/nonblocking under the existing waiver; not deployed/released.
 Owner priority2026-10-14 supersedes the former
 Phase8 safe-zone ordering. Current public baseline is Integrated Town revision
 2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d. No new deployment/release is authorized.
@@ -92,21 +94,21 @@ Owners: `tools/asset_generation/generate_assets.gd`, character scenes,
   reversals during blending. Reuse the existing animation owner; choose blend timing
   after baseline reproduction, not by adding input delays or hiding arms. Preserve
   movement speed, jump response, knockdown priority and remote animation continuity.
-- [ ] Remove crouch and temporarily remove grabbing/holding end to end: controls,
+- [x] Remove crouch and temporarily remove grabbing/holding end to end: controls,
   capsule/speed branches, prediction/input/snapshot fields, authority handlers,
   carry slowdown/ownership/springs, prompts and dedicated-only clips/assets. Remove
   references that exist only for these actions; preserve loose-body hazard simulation,
   static cover, emotes and other independent player interactions. Update controls,
   tests and matching client/server build identity; stale packets cannot restore them.
   Source removal and migrated controller/prediction/network tests are implemented;
-  matching package exports/identity remain part of8.6, not a published build claim.
-- [ ] HUD explains the actual action: "Leave cracked roof", "Water
+  matching package exports/identity passed8.6, not a published build claim.
+- [x] HUD explains the actual action: "Leave cracked roof", "Water
   cools this area", "Shelter from falling rocks"; do not imply immunity or show
   removed C/F actions. Icons + text + countdown,
   not color alone; no full-screen effects obscuring routes. Preserve reduced motion,
   warning audio priority, keyboard/focus behavior and readable720p/1080p layout.
-  C/F prompts are gone now. Hazard-specific escape/cooling context will be implemented
-  alongside the actual8.3–8.5 hazard rules; do not display unimplemented counters.
+  C/F prompts are gone. Hazard-specific escape/cooling/shelter context was validated
+  alongside actual8.3–8.5 hazard rules; no unimplemented counters displayed.
 
 Intermediate evidence: `PLAYER_INTEGRATION_OK329`; original clip-reset32 edges
 now retain phase, maximum sampled arm delta0.166rad after speed matching. Planted
@@ -235,9 +237,17 @@ Technical evidence is not a human difficulty or native GPU claim.
 - [x] Render actual model/UI/hazards, inspect clips; measure CPU/physics/snapshot
   bytes, peak warning/body counts and memory growth. Preserve32 authoritative loose
   bodies and existing transport fallback. GPU60FPS stays not_run without hardware.
-- [ ] Commit source, export matching Windows/Linux local bundles twice, verify hashes,
+- [x] Commit source, export matching Windows/Linux local bundles twice, verify hashes,
   PCK equivalence/identity, unpack and standalone lifecycle/profile restart. Preserve
   limitations and failed evidence. Source/docs pushes use `[skip ci]`.
 
 Gate G8.6: all required technical/render/package gates passed; no unexecuted human
 acceptance invented. Public deploy/release requires a new explicit authorization.
+
+Passed: source14be2c3 pushed; repeated Windows and Linux payloads/manifests
+byte-identical, cross-platform PCK identical (format4/93 entries). Unpacked package
+hashes and standalone Linux lifecycle, crash retry, SIGTERM/port reclamation,
+external profile-store restart, reward/open replay/equipment/isolation passed.
+Completion fixture synthetic. Local ZIP/tar/notes/checksums are in
+`.amp/in/artifacts/phase8-packages`; full identity is in archived progress.
+No public deployment/release, hardware60FPS/human approval or Phase9 implementation.

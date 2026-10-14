@@ -55,16 +55,20 @@ No EKS is needed; EC2 capacity/configuration is unchanged. GPU, audio and separa
 Windows acceptance remain unverified; the completed public smoke is not a capacity claim.
 Profile/reward persistence still requires an explicitly profile-enabled server;
 this deployment does not enable new storage. Chunk streaming and shrinking safe
-zones are not included. The next [Phase8 plan](docs/checklists/phase-8-character-disaster-counterplay.md)
-prioritizes non-human character/animation/UI refinement, earthquake counterplay,
-rapid-Shift arm continuity, removal of crouch/temporary removal of grabbing/holding,
-Fire/Flood coherence and area-aware meteor waves (more on the wide map, no automatic
-late count escalation as the zone shrinks). Held hammer/wood interactions are
+zones are not included. [Phase8](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md)
+now completed its source/render/network/local-package technical gates: character
+animation continuity, removal of crouch/temporary removal of grabbing/holding,
+localized earthquake escape, environmental Fire/Flood cooling and area-aware frozen
+meteor waves. Source14be2c3 is pushed; matching local Windows/Linux bundles are
+verified, not published or deployed. The public server still runs Integrated Town.
+Native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance remains
+unverified/nonblocking. Root awaits next scope; Phase9 is not started.
+Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
-gates pass. These are plans, not changes to the released build.
+gates pass. Phases9–11 are plans, not changes to the released build.
 
 ## Windows playtest export
 

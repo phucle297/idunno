@@ -19,6 +19,7 @@ new follow-up evidence belongs in a separately named archive.
 | 7R — Visual Correction | [Checklist](phase-7-visual-correction/checklist.md) | [Decisions](phase-7-visual-correction/decisions.md) | [Progress](phase-7-visual-correction/progress.json) |
 | 7S — Rounded World Rebuild | [Checklist](phase-7-rounded-world-rebuild/checklist.md) | [Decisions](phase-7-rounded-world-rebuild/decisions.md) | [Progress](phase-7-rounded-world-rebuild/progress.json) |
 | 7T — Integrated Terraced Town | [Checklist](phase-7-integrated-town/checklist.md) | [Decisions](phase-7-integrated-town/decisions.md) | [Progress](phase-7-integrated-town/progress.json) |
+| 8 — Character, UI and Disaster Counterplay | [Checklist](phase-8-character-disaster-counterplay/checklist.md) | [Decisions](phase-8-character-disaster-counterplay/decisions.md) | [Progress](phase-8-character-disaster-counterplay/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
@@ -27,8 +28,11 @@ landed in that phase. The [separate visual correction](phase-7-visual-correction
 delivered the missing source work and selected references; human aesthetic/native-GPU
 acceptance is not claimed. Historical payloads are unchanged.
 Software p95 measurements did not meet60FPS on llvmpipe; native GPU/Windows/human
-acceptance remains unverified/nonblocking under the waiver. Phase8 remains planned,
-not implemented; root progress owns current state.
+acceptance remains unverified/nonblocking under the waiver. Phase8 completed all
+six agent-owned technical/local-package gates on2026-10-14; source14be2c3 pushed,
+matching local bundles verified. No new public deployment/release. Root awaits next
+scope; Phase9 remains planned. Phase8 diary paths are historical workspace-relative
+paths; checklist and decisions navigation now use the archive directory.
 
 ## Suspended phase snapshot — not completed
 

@@ -1,11 +1,19 @@
 # Báo lỗi khi gặp thực tế
 
-**Planning tiếp theo:** [Phase8 nhân vật/UI và counterplay](docs/checklists/phase-8-character-disaster-counterplay.md),
+**Phase8 hoàn tất gate kỹ thuật (2026-10-14):** [checklist và evidence](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md).
+Source `14be2c323e2267c18a06ccf704090c6268ad184e` đã push; gói matching Windows/Linux
+local tại `.amp/in/artifacts/phase8-packages` đã kiểm hash/unpack/lifecycle/profile
+restart. Không deploy/release; **không dùng client Phase8 với server public2619665**.
+Crouch/cầm đồ đã bỏ, animation Shift giữ phase, quake có vùng nứt/đường thoát,
+Flood dập Fire ngập và meteor theo diện tích. Native Windows/GPU60FPS/audio/người thật/
+hai mạng riêng chưa xác minh, waiver cũ không đổi; không thêm checklist bắt buộc.
+Phase9 chưa bắt đầu. Các câu Phase8 chưa implement/tạm dừng bên dưới là snapshot
+lịch sử, không phải trạng thái source hiện tại.
+
+**Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Chưa implement hoặc
-deploy những thay đổi này. Plan mới bỏ crouch, tạm bỏ cầm đồ; tương tác búa/mảnh gỗ
-chỉ nằm trong backlog. Thêm tái hiện/sửa tay giật khi nhấn-thả Shift; meteor theo
-diện tích còn chơi được, không tăng số lượng về cuối khi bo nhỏ. Phase2 đã chuyển
+deploy Phase9–11. Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
 người dùng bắt buộc; đánh giá cảm giác/challenge/GPU dùng đúng build sau khi có.
