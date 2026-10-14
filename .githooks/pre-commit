@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Disaster Party staged-test gate
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+exec python3 "$root/tools/test_changed.py"

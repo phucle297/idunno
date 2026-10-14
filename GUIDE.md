@@ -748,9 +748,12 @@ a verified host address/topology instead of assuming forwarding works.
 ### Existing EC2 pipeline (main only)
 
 `.github/workflows/deploy-existing-ec2.yml` runs on pushes to `main` or manually
-from Actions on `main`. Stages are **validate/build → deploy**, serialized so two
+from Actions on `main`. Stages are **build/package → deploy**, serialized so two
 deployments cannot overlap. It builds only the Linux server, retains a seven-day
 workflow artifact, then uses a short-lived signed download URL through SSM.
+Tests no longer run in deployment: no regression/admission suite, repeated export
+or standalone lifecycle test. Import/export errors, package hashes and EC2 backend
+readiness checks still fail the deployment. This is not a CI test-pass guarantee.
 No GitHub token reaches EC2, no Windows ZIP is copied there, and no GitHub Release
 or Steam publication occurs. Windows distribution is separate future work; use
 the same full revision when producing clients, because admission requires it.
@@ -758,6 +761,43 @@ the same full revision when producing clients, because admission requires it.
 The target is existing instance `i-0fd134761df1f88bf`, account `665808487768`,
 region `ap-northeast-1`. **Do not run Terraform apply to create another server.**
 The earlier `infra/ec2` module remains an optional reference, not a pipeline stage.
+
+#### Automatic tests before commits
+
+Run once per clone (Python3 + Git; Git Bash on Windows):
+
+```bash
+python3 tools/install_git_hooks.py
+```
+
+Orb setup installs this automatically. The installer is idempotent, keeps other
+configured hook stages, and refuses to overwrite an unrelated pre-commit hook.
+Run it again after changing `.githooks/pre-commit` to refresh the installed copy.
+Godot4.7.2 must be on PATH, or set `GODOT_BIN` to its executable. Full/network
+fallbacks also require the existing bash/ripgrep test-tool prerequisites.
+
+Every `git commit` tests a temporary snapshot of **the index**, not unstaged edits:
+
+- Docs/progress-only changes skip runtime tests (staged whitespace still checked).
+- A changed test runs itself; changed scripts/scenes select tests that depend on
+  them transitively through `res://` resources/global GDScript types/Python imports.
+- Network peer dependencies select their actual network drivers too.
+- Shared code can select many tests. Project settings, unknown/dynamic runtime
+  dependencies, deleted runtime scripts and changed shell test drivers fall back
+  to the full regression suite. Static selection is conservative, not proof that
+  every dynamic dependency can be inferred.
+- Any failure blocks the commit. No stashing, no changes to working files/index.
+
+Preview selection after staging, or request full validation explicitly:
+
+```bash
+python3 tools/test_changed.py --plan
+python3 tools/test_changed.py --full
+```
+
+Hooks are local and can be bypassed with Git's `--no-verify` or by clients that do
+not execute hooks. With deployment tests removed, those commits have no central
+regression gate. Commit timing now includes tests; deployment timing does not.
 
 Before the first deployment, configure:
 

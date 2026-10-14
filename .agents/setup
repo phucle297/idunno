@@ -66,5 +66,7 @@ step "Installing the pinned Godot toolchain"
 install_godot
 step "Importing the project and registering global script classes"
 "$godot_path" --headless --editor --path "$repo_root" --quit
+step "Installing staged-test commit hook"
+python3 "$repo_root/tools/install_git_hooks.py"
 
 echo "Orb setup complete."

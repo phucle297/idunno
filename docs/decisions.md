@@ -42,3 +42,27 @@ unknown-room404 and old-build409 pass. Three downloaded release assets and tag a
 verified. No native Windows/GPU/audio/separate-network human acceptance claimed.
 Prevention is recorded in advancing-disaster-party's Rematch Prop Reset Observation
 section; always include full map-variety and prop-role gates for collision work.
+
+## 2026-10-14 — Tests move from deploy to staged commits
+
+Owner explicitly requests removing deployment tests and running them automatically
+before commits, selecting affected tests where practical. Use native Git hooks with
+Python standard library, not a new Lefthook dependency. The deploy workflow now
+exports once and deploys; import/export errors, hashes and backend readiness remain.
+Regression/admission, repeated-export and standalone-lifecycle tests are removed.
+
+The hook tests a disposable index snapshot without stashing or altering local edits.
+Selection follows resource paths, GDScript global types, Python imports and network
+peer drivers; shared changes can select many suites. Unknown/deleted runtime code,
+project settings and shell test drivers fall back to full regression. Docs-only
+commits skip runtime checks. Static inference cannot guarantee dynamic coverage.
+Local hooks are bypassable and need installation per clone; there is no replacement
+central CI regression gate, as requested. Orb setup installs the hook automatically
+and preserves other existing hook stages. This workflow-only checkpoint uses skip-ci:
+no new deployment/release or unmeasured fast-deploy timing is claimed.
+
+Validation:5 contract tests include a real rejected commit with a staged failure and
+unstaged passing edit, followed by a successful staged fix. Scratch real-Godot hook
+executes only test_shove64; runtime ERROR blocks a commit even with exit0/OK marker.
+Installer/setup twice pass (~3.6s/3.5s); YAML parses with tests absent, one export and
+SSM retained. Full gameplay suite not rerun for this non-gameplay workflow change.
