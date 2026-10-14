@@ -105,6 +105,7 @@
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry",
       "sha256": "ef1f38877bfb7647d3c4a4e4d89a98f0e855a288c7127aa45f80e535056ab64b",
+      "runtime_presentation": {"owner": "game/disasters/meteor_shower.gd", "warning_triangle_count": 662, "footprint_diameter_m": 6.0, "max_concurrent_effects": 4, "validation": "Phase8 actual720p/1080p warning/impact/cleanup inspected; exact frozen damage footprint, matte slate rock/amber core and orange impact. Generated scene payload unchanged. Distant720p text small; immediate banner readable. No GPU60FPS claim."},
       "validation_status": "reference_dimensions_and_visual_passed"
     },
     {

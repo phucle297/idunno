@@ -15,6 +15,42 @@ The owner's progressive-loading question has a proposed chunk-streaming approach
 in the archive, not an implemented feature or an activated phase. The current map
 still builds eagerly; same-map rematch reuse is not streaming.
 
+## 2026-10-14 — Phase 8.5 bounded meteor waves
+
+Each director event is one frozen wave, not an elapsed-time count escalation.
+Full Town/Harbor playable rectangles supply the targeting owner; usable-area
+budget is floor(area/3072m²), capped4, and small footprints may decline a wave.
+This reduces full/half/small pressure instead of multiplying late-zone density.
+The existing director still changes pacing only. No shrinking zone is implemented.
+
+Seeded cluster/lane/scatter target quantized occupied8m districts with offsets,
+resolve the actual upper surface, keep circles at least6.5m apart and reserve
+authored exit/route pads with1.5m clearance beyond the3m impact. Rejected patterns
+retry at most16 times, then decline rather than covering an exit. Targets freeze
+before the2.5s warning (floor1.2s). Once per wave, apply the strongest overlapping
+hit and impulse to each actor, not summed fragment damage. Static geometry above
+the head provides shelter; another avatar/loose prop cannot. Vertical exposure
+excludes unrelated floors. Real Tornado debris retains mesh/collision, once/body
+damage and cap6; remote copies are visual-only. Client snapshots reuse unchanged
+effects and reset every marked point on IDLE rather than rebuilding on every tick.
+
+Meteor148 passed. Full strict regression41 suites/five matrices/managed20 passed;
+the final expanded seed/area test reran separately afterward. Actual-map matched
+escape trials accepted19 waves: walking improved19/19 (35.1 total damage vs1900
+stationary), one Harbor selection declined to protect exits. Each comparison is a
+separate match; no all-hazard full-round survival/human difficulty claim. Six final
+720p/1080p warning/impact/cleanup views inspected; distant720p countdowns small,
+immediate warning and gaps readable. Runtime warning662 triangles, max4 effects.
+
+Integration stress uses20 actual local avatar nodes and four synthetic hazards,
+not a legal director combination/capacity increase:120 warmup/600 physics samples,
+p95 physics5.739ms/process4.978ms, peak playable snapshot3280bytes (existing reliable
+fallback,1200byte unreliable limit unchanged), peak6 loose bodies/4 meteor effects.
+Post-cleanup static memory95,018,406→95,046,070 bytes across the measured cycles;
+last two values plateau. This is headless orb CPU/memory evidence, not GPU60FPS.
+Service34 and managed20 profile/reward/open/equipment/restart checks passed.
+Remaining integrated matrix/package results are recorded in root progress.
+
 ## 2026-10-14 — Phase 8.4 environmental fire and water
 
 Fire resolves authored fuel sites to their actual support at ignition and keeps

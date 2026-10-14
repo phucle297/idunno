@@ -5,7 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GODOT_BIN="${GODOT_BIN:-$ROOT/.tools/godot/Godot_v4.7.2-stable_linux.x86_64}"
 PORT="${PORT:-29740}"
 PLAYER_COUNTS="${PLAYER_COUNTS:-4 8 20}"
-LOG_ROOT="$ROOT/.scratch/playable-scale"
+MAP_ID="${MAP_ID:-toy_town}"
+LOG_ROOT="$ROOT/.scratch/playable-scale-$MAP_ID"
 
 mkdir -p "$LOG_ROOT"
 
@@ -26,14 +27,14 @@ run_player_count() {
 
   "$GODOT_BIN" --headless --path "$ROOT" \
     --script res://tests/playable_scale_peer.gd -- \
-    --role=server --port="$test_port" --players="$player_count" --host-port="$test_port" >"$server_log" 2>&1 &
+    --role=server --port="$test_port" --players="$player_count" --map-id="$MAP_ID" --host-port="$test_port" >"$server_log" 2>&1 &
   server_pid=$!
 
   sleep 0.4
   for ((client_index = 1; client_index <= client_count; client_index++)); do
     "$GODOT_BIN" --headless --path "$ROOT" \
       --script res://tests/playable_scale_peer.gd -- \
-      --role=client --port="$test_port" --players="$player_count" --join-address=127.0.0.1 --join-port="$test_port" >"$log_dir/client-$client_index.log" 2>&1 &
+      --role=client --port="$test_port" --players="$player_count" --map-id="$MAP_ID" --join-address=127.0.0.1 --join-port="$test_port" >"$log_dir/client-$client_index.log" 2>&1 &
     client_pids+=("$!")
   done
 
@@ -76,4 +77,4 @@ for player_count in $PLAYER_COUNTS; do
   test_index=$((test_index + 1))
 done
 
-printf 'PLAYABLE_SCALE_MATRIX_OK players=%s\n' "${PLAYER_COUNTS// /,}"
+printf 'PLAYABLE_SCALE_MATRIX_OK map=%s players=%s\n' "$MAP_ID" "${PLAYER_COUNTS// /,}"

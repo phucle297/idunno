@@ -6,6 +6,7 @@ const ProbeScript = preload("res://tests/playable_scale_probe.gd")
 var role := ""
 var port := 29740
 var player_count := 4
+var map_id := "toy_town"
 
 
 func _initialize() -> void:
@@ -16,6 +17,8 @@ func _initialize() -> void:
 			port = argument.trim_prefix("--port=").to_int()
 		elif argument.begins_with("--players="):
 			player_count = argument.trim_prefix("--players=").to_int()
+		elif argument.begins_with("--map-id="):
+			map_id = argument.trim_prefix("--map-id=")
 	_run.call_deferred()
 
 
@@ -23,6 +26,8 @@ func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	main.name = "Main"
 	root.add_child(main)
+	if role == "server":
+		main.set_map_id(map_id)
 	var probe := ProbeScript.new()
 	probe.name = "PlayableScaleProbe"
 	probe.configure(role, player_count)
@@ -177,10 +182,19 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		match_passed = manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == player_count
 		var meteor := main.get_node("MeteorShower") as MeteorShower
 		meteor.set_process(false)
-		disaster_passed = meteor.start_warning(Vector3(0.0, 0.06, 0.0))
+		var meteor_rng := RandomNumberGenerator.new()
+		meteor_rng.seed = 8105
+		disaster_passed = meteor.start_disaster(meteor_rng) and meteor.active_effect_count() >= (2 if map_id == "toy_town" else 1)
 		var lightning := main.get_node("Lightning") as Lightning
 		lightning.set_process(false)
 		disaster_passed = disaster_passed and lightning.start_warning(Vector3(4.0, 0.06, 4.0))
+		var fire := main.get_node("Fire") as Fire
+		var quake := main.get_node("Earthquake") as Earthquake
+		fire.set_process(false)
+		quake.set_process(false)
+		# Synthetic snapshot stress beyond the director's two-disaster limit;
+		# the HUD still intentionally presents its bounded priority chips.
+		disaster_passed = disaster_passed and fire.start_warning(0) and quake.start_warning()
 		await create_timer(0.5).timeout
 		var damage_events: Array[Dictionary] = []
 		for peer_id: int in peer_ids:
@@ -197,7 +211,7 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 			and main.gameplay_hud.get_presented_alive_counts() == Vector2i(player_count, player_count)
 		)
 	var clients_passed := probe.all_clients_passed()
-	# Integrated chaos gauntlet: carry/contention, the selected prop escape
+	# Integrated chaos gauntlet: independent loose prop and selected escape
 	# route's in-session structure, both emotes and the included shove.
 	var medium_prop: RigidBody3D = null
 	for prop: Node in get_nodes_in_group("network_prop"):
@@ -215,6 +229,10 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		# physical route playout is test_prop_role_feasibility's boost_route.
 		prop_escape_passed = mount_distance < 1.5 and absf(escape_step.global_position.x - 21.9) < 0.1 and holder.global_position.y > 0.5
 		holder.reset_for_match(Vector3(0.0, 0.05, 7.0))
+	elif map_id == "toy_harbor":
+		# Harbor has cargo ramps, not Town's optional crate-boost mount.
+		# Its actual walk-only route playout remains in test_map_variety.
+		prop_escape_passed = is_instance_valid(medium_prop) and is_instance_valid(holder) and main.map_anchors.elevation_routes.size() >= 4
 	var emote_passed := is_instance_valid(holder)
 	for emote_id: int in [PartyPlayer.EMOTE_WAVE, PartyPlayer.EMOTE_CHEER]:
 		if emote_id == PartyPlayer.EMOTE_CHEER:
@@ -367,10 +385,17 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 	)
 	var disaster_passed: bool = (
 		meteor.phase == MeteorShower.Phase.WARNING
-		and meteor.active_effect_count() == 1
+		and main.get_map_id() == map_id
+		and meteor.active_effect_count() >= (2 if map_id == "toy_town" else 1)
+		and meteor.active_effect_count() == meteor.strike_points.size()
+		and (main.get_node("Fire") as Fire).phase == Fire.Phase.WARNING
+		and (main.get_node("Earthquake") as Earthquake).phase == Earthquake.Phase.WARNING
+		and not (main.get_node("Earthquake") as Earthquake).fracture_positions.is_empty()
 		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
-		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "LIGHTNING" in line)
+		and (main.get_node("Lightning") as Lightning).phase == Lightning.Phase.WARNING
 	)
+	if not disaster_passed:
+		print("SCALE_HAZARDS_DIAGNOSTIC map=%s expected=%s meteor=%d effects=%d points=%d fire=%d quake=%d fractures=%d hud=%s" % [main.get_map_id(), map_id, meteor.phase, meteor.active_effect_count(), meteor.strike_points.size(), (main.get_node("Fire") as Fire).phase, (main.get_node("Earthquake") as Earthquake).phase, (main.get_node("Earthquake") as Earthquake).fracture_positions.size(), main.gameplay_hud.get_presented_hazards()])
 	var passed: bool = roster_passed and ownership_passed and movement_passed and match_passed and disaster_passed
 	probe.acknowledge_validation.rpc_id(1, passed)
 	var local_shove_manager := main.get_node("ShoveManager") as ShoveManager

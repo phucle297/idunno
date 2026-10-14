@@ -55,7 +55,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	var lightning := main.get_node("Lightning") as Lightning
 	var fire := main.get_node("Fire") as Fire
-	_expect(is_equal_approx(meteor.strike_half_extent, anchors.strike_half_extent) and is_equal_approx(lightning.strike_half_extent, anchors.strike_half_extent), "%s strike areas come from map anchors" % map_name)
+	_expect(is_equal_approx(meteor.strike_half_extent, expected_extent) and is_equal_approx(lightning.strike_half_extent, anchors.strike_half_extent), "%s meteor uses full playable footprint; lightning uses authored strike anchors" % map_name)
 	_expect(tornado.path_presets.size() == anchors.tornado_paths.size(), "%s tornado paths come from map anchors" % map_name)
 	_expect(fire.zone_positions.size() == anchors.fire_zones.size(), "%s fire zones come from map anchors" % map_name)
 	var reached := {0: true}

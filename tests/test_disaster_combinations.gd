@@ -99,6 +99,11 @@ func _run() -> void:
 	manager.elapsed_time = 400.0
 	director.initial_delay = 0.0
 	director.recovery_duration = 0.0
+	# District-aware waves target near live occupied districts. Temporarily hold
+	# the lone fixture player out of the meteor roster so the solo-before-
+	# combination gate tests concurrent bounded waves without a first-strike
+	# kill ending the single-player match; re-register for later compositions.
+	meteor.unregister_player(1)
 	_expect(director.start_directing(411), "Director must start for the solo-before-combination gate")
 	_expect(director.try_start_disaster("Meteor Shower"), "Meteor must start as an early solo hazard")
 	_expect(not director.try_start_disaster("Flood"), "A second disaster must wait while the solo sequence is unfinished")
@@ -124,6 +129,7 @@ func _run() -> void:
 	_expect(director.get_active_disaster_names().size() == 2, "The combination must hold exactly two active disasters")
 	meteor.cleanup()
 	flood.cleanup()
+	meteor.register_player(1, player)
 	director.cleanup()
 
 	# Task 4.2a gate: Earthquake + Flood persistent refuge collapse. Named

@@ -192,7 +192,7 @@ for the corrected Flood cleanup level event and distant720p label limitation.
 
 Owners: `meteor_shower.gd`, director pacing/selection, main snapshot/HUD/cover.
 
-- [ ] More geographically distributed strikes on the initially wide map, with
+- [x] More geographically distributed strikes on the initially wide map, with
   bounded waves rather than a fixed early/middle/late count escalation. Derive total
   count, concurrency and footprint pressure from usable navigable area and measured
   exposure, not elapsed time alone, player count alone or inverse zone area. As area
@@ -202,11 +202,11 @@ Owners: `meteor_shower.gd`, director pacing/selection, main snapshot/HUD/cover.
   through the existing targeting owner, not a zone implementation in Phase8.
   Early pattern stays forgiving; unchanged warning floor
   ≥1.2s, default2.5s. Hard still changes pace rather than hidden damage multipliers.
-- [ ] Mix cluster, lane and scatter with seeded terrain-aware targeting near occupied
+- [x] Mix cluster, lane and scatter with seeded terrain-aware targeting near occupied
   districts and routes, not uniform mostly-empty112m terrain or exact player-foot
   tracking. Freeze targets when warned. Preserve reachable exits/shelter; reject
   patterns that jointly carpet the only route during another disaster.
-- [ ] Telegraph every real strike; cap effects/debris/impulses and aggregate a wave's
+- [x] Telegraph every real strike; cap effects/debris/impulses and aggregate a wave's
   overlapping hits explicitly (no accidental repeated damage from cosmetic fragments).
   Damage/cover tests discriminate direct hit, near miss, roof protection and rubble.
 
@@ -216,13 +216,23 @@ simultaneous warnings replicated correctly, same-seed replay, cover/overlap/clea
 A moving control is measurably safer than standing still but neither has unexplained
 global immunity/death. Do not claim human difficulty from a synthetic survival rate.
 
+Passed: Meteor148, full regression41 suites/five matrices/managed20 and real
+simultaneous warnings observed at2/4/8/20. Area full/half/small controls for both
+maps decrease budgets and density; all three variants observed across20 seeds.
+Actual-map escape:19 accepted generated waves,19 improved moving controls,
+stationary damage1900 vs moving35.1; one Harbor pattern rejected for reserved
+exits. Separate trials reset between comparisons, not within a survival run.
+720p/1080p warning/impact/cleanup renders inspected; distant720p labels are small,
+immediate banner and gaps readable. Warning mesh662 measured triangles, cap4.
+Technical evidence is not a human difficulty or native GPU claim.
+
 ## 8.6 — Integrated delivery gate
 
-- [ ] Full source/UI regression, service/admission tests and relevant hazard matrices;
+- [x] Full source/UI regression, service/admission tests and relevant hazard matrices;
   actual2/4/8/20 clients for action removal/animation/quake/fire/waves, both maps,5 rematches, owner
   departure/crash retry, shared/timeout results and profile/equipment compatibility.
   Run heavy jobs serially; keep strict runtime errors and static-map rematch reuse.
-- [ ] Render actual model/UI/hazards, inspect clips; measure CPU/physics/snapshot
+- [x] Render actual model/UI/hazards, inspect clips; measure CPU/physics/snapshot
   bytes, peak warning/body counts and memory growth. Preserve32 authoritative loose
   bodies and existing transport fallback. GPU60FPS stays not_run without hardware.
 - [ ] Commit source, export matching Windows/Linux local bundles twice, verify hashes,

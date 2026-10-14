@@ -2272,12 +2272,30 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
 	tornado.surface_height = get_map_surface_height
-	meteor_shower.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
+	meteor_shower.set_strike_area(get_map_half_extent(), get_map_surface_height)
+	meteor_shower.set_route_safety_query(_meteor_routes_clear)
 	lightning.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
 	flood.set_map_extent(get_map_half_extent())
 	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
 	fire.support_height = get_map_support_height
 	earthquake.support_height = get_map_support_height
+
+
+func _meteor_routes_clear(points: Array[Vector3]) -> bool:
+	# Reserve the authored exits and elevation route landings even during
+	# another disaster. Meteors may pressure a refuge, never its escape pad.
+	var reserved: Array[Vector3] = []
+	for refuge: Dictionary in map_anchors.refuges:
+		for exit: Vector3 in refuge.exits:
+			reserved.append(exit)
+	for route: Dictionary in map_anchors.elevation_routes:
+		reserved.append(route.low)
+		reserved.append(route.high)
+	for point in points:
+		for exit in reserved:
+			if absf(exit.y - point.y) <= meteor_shower.vertical_exposure and Vector2(point.x - exit.x, point.z - exit.z).length() <= meteor_shower.impact_radius + 1.5:
+				return false
+	return true
 
 
 func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:

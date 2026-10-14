@@ -142,7 +142,9 @@ func _run_server(main: Node) -> void:
 	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	meteor.set_process(false)
-	var meteor_started := meteor.start_warning(Vector3(0.0, 0.06, 3.0))
+	var meteor_rng := RandomNumberGenerator.new()
+	meteor_rng.seed = 8105
+	var meteor_started := meteor.start_disaster(meteor_rng) and meteor.active_effect_count() >= 2
 	await create_timer(0.4).timeout
 	meteor.cleanup()
 	await create_timer(0.3).timeout
@@ -414,7 +416,8 @@ func _run_client(main: Node) -> void:
 	await process_frame
 	var meteor_passed: bool = (
 		meteor.phase == MeteorShower.Phase.WARNING
-		and meteor.active_effect_count() == 1
+		and meteor.active_effect_count() >= 2
+		and meteor.active_effect_count() == meteor.strike_points.size()
 		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
 	)
 	if not meteor_passed:
