@@ -2684,13 +2684,13 @@ func _add_stair_presentation(node_name: String, width: float, low: Vector3, high
 	for side in [-1.0, 1.0]:
 		var a := Vector3(side * (width * 0.5 - 0.08), 0.85, 0)
 		var b := Vector3(a.x, high.y - low.y + 0.85, direction * run)
-		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal)
+		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal, true)
 		bar.rotation.x = -atan((b.y - a.y) / (b.z - a.z))
-		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate)
+		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate, true)
 		stringer.rotation.x = bar.rotation.x
 		for i in 5:
 			var t := i / 4.0
-			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal)
+			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal, true)
 			if low.y < 0.1 and (high.y - low.y) * t > 0.25:
 				var support_height := (high.y - low.y) * t - 0.2
 				_add_box_to(stairs, "Support%s%d" % [side, i], Vector3(0.18, support_height, 0.18), Vector3(a.x, support_height * 0.5, direction * run * t), PALETTE.slate)
@@ -2883,13 +2883,30 @@ func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, co
 	_add_detail_box(frame, "Sill", Vector3(2.4, 0.18, 0.3), Vector3(0, -1.0, 0.12), PALETTE.cream)
 
 
-func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color) -> MeshInstance3D:
+func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color, solid := false) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = _toy_box_mesh(size, color)
 	instance.position = position
 	parent.add_child(instance)
+	if solid:
+		var shape := BoxShape3D.new()
+		shape.size = size
+		_add_detail_collision(instance, Vector3.ZERO, shape)
 	return instance
+
+
+func _add_detail_collision(parent: Node3D, position: Vector3, shape: Shape3D) -> void:
+	var body := StaticBody3D.new()
+	body.name = "SolidDetail"
+	body.position = position
+	body.collision_layer = 1
+	body.collision_mask = 1
+	body.add_to_group("solid_map_detail")
+	var collision := CollisionShape3D.new()
+	collision.shape = shape
+	body.add_child(collision)
+	parent.add_child(body)
 
 
 # Owner's rounded-playset reference supersedes the old tiny architectural bevel.
@@ -2946,17 +2963,17 @@ func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accen
 	_add_detail_box(root, "SignBacking", Vector3(3.1, 0.72, 0.12), Vector3(0, 3.85, footprint.y * 0.5 + 0.58), PALETTE.cream)
 	(root.get_node("BuildingLabel") as Label3D).position.z = footprint.y * 0.5 + 0.68
 	_add_continuous_cornice(root, footprint, height, accent)
-	# Corner rail sections leave the two route/drop exits open; decorations add
-	# no new collision or rooftop surface over the breakable central panel.
+	# Solid corner rails/planters stay on intact strips, never over the breakable
+	# central panel; the two authored route/drop exits remain open.
 	if root.name != "House":
 		for side in [-1.0, 1.0]:
 			for sx in [-1.0, 1.0]:
 				_add_toy_rail(root, "RoofRail%s%s" % [side, sx], Vector3(sx * (footprint.x * 0.5 - 1.5), height + 0.36, side * (footprint.y * 0.5 - 0.3)), 2.3)
 			var planter := Vector3(side * (footprint.x * 0.5 - 1.1), height + 0.58, -footprint.y * 0.5 + 1.25)
-			_add_detail_box(root, "RoofPlanter%s" % side, Vector3(1.3, 0.44, 1.1), planter, PALETTE.cream)
+			_add_detail_box(root, "RoofPlanter%s" % side, Vector3(1.3, 0.44, 1.1), planter, PALETTE.cream, true)
 			for i in 3:
-				_add_round_detail(root, "RoofShrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.32, 0.42, 0), Vector3(0.48, 0.43, 0.4), PALETTE.grass)
-		_add_detail_box(root, "RoofVent", Vector3(1.0, 0.65, 0.85), Vector3(footprint.x * 0.5 - 1.4, height + 0.68, footprint.y * 0.5 - 1.7), PALETTE.slate)
+				_add_round_detail(root, "RoofShrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.32, 0.42, 0), Vector3(0.48, 0.43, 0.4), PALETTE.grass, true)
+		_add_detail_box(root, "RoofVent", Vector3(1.0, 0.65, 0.85), Vector3(footprint.x * 0.5 - 1.4, height + 0.68, footprint.y * 0.5 - 1.7), PALETTE.slate, true)
 		for i in 4:
 			_add_detail_box(root, "VentSlat%d" % i, Vector3(0.7, 0.05, 0.035), Vector3(footprint.x * 0.5 - 1.4, height + 0.48 + i * 0.12, footprint.y * 0.5 - 1.25), PALETTE.cream)
 	if root.name == "Shop":
@@ -2984,7 +3001,7 @@ func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accen
 			root.add_child(face)
 
 
-func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, scale_size: Vector3, color: Color) -> void:
+func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, scale_size: Vector3, color: Color, solid := false) -> void:
 	var visual := MeshInstance3D.new()
 	visual.name = node_name
 	var sphere := SphereMesh.new()
@@ -2997,6 +3014,17 @@ func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, sca
 	visual.position = position
 	visual.scale = scale_size
 	parent.add_child(visual)
+	if solid:
+		# Bake ellipsoid radii into a small convex hull. Physics bodies must not
+		# inherit the visual's nonuniform scale; no foliage triangle collision.
+		var points := PackedVector3Array([Vector3.UP * scale_size.y, Vector3.DOWN * scale_size.y])
+		for latitude in [-PI / 4.0, 0.0, PI / 4.0]:
+			for segment in 8:
+				var angle := segment * TAU / 8.0
+				points.append(Vector3(cos(latitude) * cos(angle), sin(latitude), cos(latitude) * sin(angle)) * scale_size)
+		var shape := ConvexPolygonShape3D.new()
+		shape.points = points
+		_add_detail_collision(visual.get_parent(), position, shape)
 
 
 func _glass_material() -> StandardMaterial3D:
@@ -3106,9 +3134,12 @@ func _add_park_detail() -> void:
 	_add_bench("ParkBenchSouth", Vector3(18.0, 2.2, 17.0))
 	_add_tree("TreeParkNorth", Vector3(12.0, 2.2, 11.2))
 	var park := $Sandbox.get_node("PocketParkPlatform") as Node3D
-	_add_detail_box(park, "Planter", Vector3(1.6, 0.8, 1.2), Vector3(-4.0, 1.5, -1.0), PALETTE.coral)
-	_add_detail_box(park, "PlanterSprout", Vector3(0.5, 0.5, 0.5), Vector3(-4.0, 2.15, -1.0), PALETTE.grass)
-	_add_detail_box($Sandbox, "ParkRail", Vector3(5.0, 0.9, 0.18), Vector3(16.5, 2.65, 9.0), PALETTE.cream)
+	_add_detail_box(park, "Planter", Vector3(1.6, 0.8, 1.2), Vector3(-4.0, 1.5, -1.0), PALETTE.coral, true)
+	_add_detail_box(park, "PlanterSprout", Vector3(0.5, 0.5, 0.5), Vector3(-4.0, 2.15, -1.0), PALETTE.grass, true)
+	# The former decorative rail crossed ParkRamp. Shorten visible geometry and
+	# collider together to retain the full 3m ramp width plus capsule clearance.
+	# Seat it on the platform edge, not in midair beyond the ramp's side.
+	_add_detail_box($Sandbox, "ParkRail", Vector3(2.2, 0.9, 0.18), Vector3(17.9, 2.65, 10.15), PALETTE.cream, true)
 
 
 func _add_street_detail() -> void:
@@ -3137,9 +3168,9 @@ func _add_street_detail() -> void:
 		for i in 5:
 			_add_detail_box($Sandbox, "Crossing%s%d" % [side, i], Vector3(0.6, 0.018, 3.6), Vector3(-1.6 + i * 0.8, 0.16, side * 8.0), PALETTE.cream)
 		var planter := Vector3(side * 9.1, 0, -5.8)
-		_add_detail_box($Sandbox, "StreetPlanter%s" % side, Vector3(1.0, 0.5, 1.0), planter + Vector3(0, 0.25, 0), PALETTE.cream)
+		_add_detail_box($Sandbox, "StreetPlanter%s" % side, Vector3(1.0, 0.5, 1.0), planter + Vector3(0, 0.25, 0), PALETTE.cream, true)
 		for i in 3:
-			_add_round_detail($Sandbox, "Shrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.22, 0.65, 0), Vector3(0.4, 0.4, 0.4), PALETTE.grass)
+			_add_round_detail($Sandbox, "Shrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.22, 0.65, 0), Vector3(0.4, 0.4, 0.4), PALETTE.grass, true)
 
 
 func _add_paving(node_name: String, center: Vector3, footprint: Vector2) -> void:
@@ -3174,9 +3205,9 @@ func _add_street_planter(node_name: String, position: Vector3) -> void:
 	planter.name = node_name
 	planter.position = position
 	$Sandbox.add_child(planter)
-	_add_detail_box(planter, "Container", Vector3(2.1, 0.5, 0.9), Vector3(0, 0.25, 0), PALETTE.cream)
+	_add_detail_box(planter, "Container", Vector3(2.1, 0.5, 0.9), Vector3(0, 0.25, 0), PALETTE.cream, true)
 	for i in 5:
-		_add_round_detail(planter, "Shrub%d" % i, Vector3(-0.72 + i * 0.36, 0.68, 0), Vector3(0.42, 0.42, 0.38), PALETTE.grass)
+		_add_round_detail(planter, "Shrub%d" % i, Vector3(-0.72 + i * 0.36, 0.68, 0), Vector3(0.42, 0.42, 0.38), PALETTE.grass, true)
 
 
 func _add_toy_lamp(parent: Node3D, node_name: String, position: Vector3) -> void:
@@ -3184,10 +3215,10 @@ func _add_toy_lamp(parent: Node3D, node_name: String, position: Vector3) -> void
 	lamp.name = node_name
 	lamp.position = position
 	parent.add_child(lamp)
-	_add_detail_box(lamp, "Foot", Vector3(0.45, 0.25, 0.45), Vector3(0, 0.125, 0), PALETTE.slate)
-	_add_detail_box(lamp, "Post", Vector3(0.15, 2.6, 0.15), Vector3(0, 1.5, 0), PALETTE.slate)
+	_add_detail_box(lamp, "Foot", Vector3(0.45, 0.25, 0.45), Vector3(0, 0.125, 0), PALETTE.slate, true)
+	_add_detail_box(lamp, "Post", Vector3(0.15, 2.6, 0.15), Vector3(0, 1.5, 0), PALETTE.slate, true)
 	_add_detail_box(lamp, "Collar", Vector3(0.3, 0.18, 0.3), Vector3(0, 2.7, 0), PALETTE.teal)
-	_add_round_detail(lamp, "Globe", Vector3(0, 3.0, 0), Vector3.ONE * 0.33, PALETTE.cream)
+	_add_round_detail(lamp, "Globe", Vector3(0, 3.0, 0), Vector3.ONE * 0.33, PALETTE.cream, true)
 
 
 func _add_toy_rail(parent: Node3D, node_name: String, position: Vector3, length: float, along_z := false) -> void:
@@ -3198,10 +3229,10 @@ func _add_toy_rail(parent: Node3D, node_name: String, position: Vector3, length:
 		rail.rotation.y = PI * 0.5
 	parent.add_child(rail)
 	for y in [0.4, 0.9]:
-		_add_detail_box(rail, "Bar%s" % y, Vector3(length, 0.18, 0.18), Vector3(0, y, 0), PALETTE.teal)
+		_add_detail_box(rail, "Bar%s" % y, Vector3(length, 0.18, 0.18), Vector3(0, y, 0), PALETTE.teal, true)
 	for i in int(length / 1.5) + 1:
 		var x: float = -length * 0.5 + i * length / int(length / 1.5)
-		_add_detail_box(rail, "Post%d" % i, Vector3(0.22, 0.95, 0.22), Vector3(x, 0.475, 0), PALETTE.teal)
+		_add_detail_box(rail, "Post%d" % i, Vector3(0.22, 0.95, 0.22), Vector3(x, 0.475, 0), PALETTE.teal, true)
 		_add_round_detail(rail, "Finial%d" % i, Vector3(x, 0.95, 0), Vector3.ONE * 0.15, PALETTE.teal)
 
 
@@ -3228,10 +3259,10 @@ func _add_harbor_kit() -> void:
 	_add_detail_box(deck, "CraneHook", Vector3(0.3, 0.18, 0.18), Vector3(3.6, 0.585, -2.0), PALETTE.coral)
 	# Dock bollards and a ground-level cargo stack read the working harbor
 	# without entering the gangway faces, ramp seams or basin collision.
-	_add_detail_box($Sandbox, "BollardWest", Vector3(0.5, 0.7, 0.5), Vector3(-20.0, 4.1, 11.0), PALETTE.cream)
-	_add_detail_box($Sandbox, "BollardEast", Vector3(0.5, 0.7, 0.5), Vector3(20.0, 4.1, 11.0), PALETTE.cream)
-	_add_detail_box($Sandbox, "HarborCrateA", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 0.4, -20.5), PALETTE.coral)
-	_add_detail_box($Sandbox, "HarborCrateB", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 1.2, -20.5), PALETTE.cream)
+	_add_detail_box($Sandbox, "BollardWest", Vector3(0.5, 0.7, 0.5), Vector3(-20.0, 4.1, 11.0), PALETTE.cream, true)
+	_add_detail_box($Sandbox, "BollardEast", Vector3(0.5, 0.7, 0.5), Vector3(20.0, 4.1, 11.0), PALETTE.cream, true)
+	_add_detail_box($Sandbox, "HarborCrateA", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 0.4, -20.5), PALETTE.coral, true)
+	_add_detail_box($Sandbox, "HarborCrateB", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 1.2, -20.5), PALETTE.cream, true)
 	for side in [-1.0, 1.0]:
 		var dock := $Sandbox.get_node("DockWest" if side < 0 else "DockEast") as Node3D
 		_add_detail_box(dock, "DeckLip", Vector3(12.2, 0.22, 10.2), Vector3(0, 1.76, 0), PALETTE.cream)
