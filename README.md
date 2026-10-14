@@ -9,7 +9,7 @@ Stairs have visible treads/rails/supports over smooth walking collision; hazard
 warnings and flood coverage follow each map's actual extent/elevation.
 The [owner's design reference](assets/references/phase7/rounded-town-camera-reference.png)
 is checked into source, not used as runtime art. These corrections are included in
-the [Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665).
+the [Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912).
 Concept parity and native GPU performance are not claimed. See
 [correction evidence](docs/old-docs/phase-7-integrated-town/checklist.md).
 
@@ -33,9 +33,9 @@ for hundreds of thousands/millions of users is planned. The source supports play
 dedicated hosting, room-owner controls, bounded room allocation/admission and
 room-ID create/join UI with retry recovery. Managed-container validation and
 matching Windows/Linux release packaging have executed evidence. The owner-authorized
-[Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665)
+[Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912)
 is deployed at `server.permees.com`; matching Windows/Linux packages are published.
-Download `DisasterParty-Windows-Internet-2619665.zip`, extract all files and run
+Download `DisasterParty-Windows-Internet-e68a912.zip`, extract all files and run
 `DisasterParty.exe`; old client builds are incompatible. CI passed42 suites,
 five network matrices, managed20 and34 room-service tests. Final Windows uses the
 exact deployed CI PCK; downloaded release archives and tag were verified.
@@ -59,14 +59,15 @@ zones are not included. [Phase8](docs/old-docs/phase-8-character-disaster-counte
 now completed its source/render/network/local-package technical gates: character
 animation continuity, removal of crouch/temporary removal of grabbing/holding,
 localized earthquake escape, environmental Fire/Flood cooling and area-aware frozen
-meteor waves. Source14be2c3 is pushed; matching local Windows/Linux bundles are
-verified, not published or deployed. The public server still runs Integrated Town.
+meteor waves. The public e68a912 release includes these changes and matching
+Windows/Linux packages; the earlier14be2c3 bundles remain historical local evidence.
 Native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance remains
 unverified/nonblocking. Root awaits next scope; Phase9 is not started.
 The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/checklist.md)
-adds solid rails/stair handrails, bushes/planters, lamps, vents and Harbor cargo,
-without blocking normal refuge routes. The local Phase8 bundles above predate it;
-no new bundle or deployment. [Phase12 movement drops](docs/checklists/phase-12-match-powerup-drops.md)
+adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
+Release validation corrected blocked ramp approaches/crate crossings by leaving
+stair presentation rails decorative over solid ramp slabs; other rails remain solid.
+Full CI and public admission/Ready/Start pass. [Phase12 movement drops](docs/checklists/phase-12-match-powerup-drops.md)
 are planning only: temporary random Speed/Jump pickups, not permanent cosmetic stats.
 Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).

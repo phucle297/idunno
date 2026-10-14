@@ -1,17 +1,17 @@
 # Báo lỗi khi gặp thực tế
 
 **Follow-up collision:** [evidence](docs/old-docs/phase-8-collision-followup/checklist.md)
-cho lan can/cầu thang, bụi/chậu cây, đèn, vent, cọc/crate Harbor. Source đã sửa;
-gói Phase8 dưới đây chưa có follow-up, chưa export/deploy/release bản mới. Test capsule,
-đường đi/rematch và2/4 peer hai map đã chạy; một scene fixture phụ lỗi quan sát prop
-reset được giữ trong log, không sửa tolerance để giấu lỗi. Native/GPU/user acceptance
+cho lan can, bụi/chậu cây, đèn, vent, cọc/crate Harbor đã có trong bản public e68a912.
+Lan can trình bày cầu thang giữ decorative trên ramp solid để không chặn đường
+tiếp cận hoặc crate crossing. CI pass42 suite/5 matrix/managed20; lỗi fixture prop
+reset được sửa bằng freeze/ack trong test, không nới tolerance hoặc sửa physics thật. Native/GPU/user acceptance
 và waiver cũ không đổi. [Drop tăng tốc/nhảy](docs/checklists/phase-12-match-powerup-drops.md)
 chỉ là plan Phase12, chưa implement; không thêm checklist người dùng bắt buộc.
 
 **Phase8 hoàn tất gate kỹ thuật (2026-10-14):** [checklist và evidence](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md).
 Source `14be2c323e2267c18a06ccf704090c6268ad184e` đã push; gói matching Windows/Linux
 local tại `.amp/in/artifacts/phase8-packages` đã kiểm hash/unpack/lifecycle/profile
-restart. Không deploy/release; **không dùng client Phase8 với server public2619665**.
+restart. Gói local cũ là lịch sử; **dùng client public e68a912 matching server hiện tại**.
 Crouch/cầm đồ đã bỏ, animation Shift giữ phase, quake có vùng nứt/đường thoát,
 Flood dập Fire ngập và meteor theo diện tích. Native Windows/GPU60FPS/audio/người thật/
 hai mạng riêng chưa xác minh, waiver cũ không đổi; không thêm checklist bắt buộc.
@@ -26,14 +26,14 @@ vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn t�
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
 người dùng bắt buộc; đánh giá cảm giác/challenge/GPU dùng đúng build sau khi có.
 
-**Bản public hiện tại (2026-10-14):** [Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665),
-tải `DisasterParty-Windows-Internet-2619665.zip`, giải nén toàn bộ và chạy `DisasterParty.exe`.
-Client/server/tag cùng revision `2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d`;
+**Bản public hiện tại (2026-10-14):** [Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912),
+tải `DisasterParty-Windows-Internet-e68a912.zip`, giải nén toàn bộ và chạy `DisasterParty.exe`.
+Client/server/tag cùng revision `e68a912a91c6dce339ddb254a559e68be26c53ce`;
 endpoint `https://server.permees.com`. User duyệt deploy/release riêng; CI/deploy pass
 42 suite, 5 matrix, managed20, settings restart và34 room-service test. PCK Windows
 giống hệt artifact CI đã deploy; ba asset release tải lại/hash/tag đã kiểm tra.
-Public smoke hai client Linux editor dùng final PCK pass TLS/tickets/ENet/roster/
-Ready/Start/remote movement/owner transfer, RTT103ms; cùng một orb/upstream,
+Public smoke hai client Linux Godot dùng final PCK pass TLS/tickets/ENet/
+Ready/Start/ACTIVE và404 unknown-room/409 old-build; cùng một orb/upstream,
 không thay xác nhận Windows gốc/GPU/audio/hai mạng người thật. Giữ nguyên cấu hình
 EC2 và giới hạn phòng/người; không bật profile store mới. Chunk streaming và safe
 zone chưa có. Các mục "chưa deploy" bên dưới là snapshot lịch sử, không phải trạng

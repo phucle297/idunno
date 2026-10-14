@@ -31,8 +31,12 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "validation_log": [{"check": "Authorized release regression recovery", "status": "in_progress", "result": "Deploy run38583685846 failed map-variety before deployment. Stair handrail blocks plaza_east approach; drowning ends match and cascades to later hazard failures. Removing top rail passes424 checks; remaining stair rails block required crate crossing. Removing stair presentation colliders restores PROP_ROLE_FEASIBILITY_OK191 and MAP_DETAIL_COLLISION_OK77, Town781/Harbor55. Full CI still required; old server unchanged."}],
-  "changed_files": ["game/main.gd", "tests/test_map_detail_collision.gd", "assets/manifest.json", "docs/decisions.md", "progress.json"],
+  "validation_log": [
+    {"check": "Release regression attempts", "status": "failed", "result": "38583685846 failed map-variety: stair handrail blocked plaza_east approach, drowning cascaded into later hazard failures. Local remaining stair-side colliders also blocked crate crossing.38591914415 passed42 suites then failed known transient prop-reset observation at settled y0.116 instead of spawn0.4. Both deployments skipped. Failures preserved; stair presentation colliders removed and fixture-only freeze/ack barrier added without relaxing exact assertions."},
+    {"check": "Final CI and deployment", "status": "passed", "result": "38594162570 on e68a912a91c6dce339ddb254a559e68be26c53ce: UI_REGRESSION_OK suites42 matrices5 managed20 persistence_restart;34 room-service tests; repeated Linux exports/lifecycle; EXISTING_EC2_DEPLOY_OK backend passed. MAP_DETAIL_COLLISION_OK77 Town781/Harbor55 and PROP_ROLE_FEASIBILITY_OK191. Infrastructure/capacity/profile settings unchanged."},
+    {"check": "Matching release and public smoke", "status": "passed", "result": "Repeated Windows exports match. Final Windows contains exact CI PCK; Linux archive is exact CI artifact. Standalone Linux lifecycle passes. Two Linux Godot clients using final PCK pass TLS/tickets/ENet/Ready/Start/ACTIVE; unknown-room404 and old-build409. Published three assets downloaded, byte-compared, SHA256 checked; tag matches full revision. No native Windows/GPU/audio/separate-network human claim. Logs .scratch/release-29eb454."}
+  ],
+  "changed_files": ["game/main.gd", "tests/test_map_detail_collision.gd", "tests/playable_scene_network_peer.gd", "assets/manifest.json", "docs/decisions.md", "progress.json", "README.md", "GUIDE.md", "NEED_REAL_CHECK.md", ".agents/skills/advancing-disaster-party/SKILL.md"],
   "blockers": [],
   "phase8_local_delivery": {
     "status": "validated_local_packages_not_published_or_deployed",
@@ -56,7 +60,18 @@
     "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.",
     "validation_reference": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json#integrated_town_release"
   },
-  "collision_followup_delivery": {"authorization": "2026-10-14 owner: release and deploy", "status": "release_regression_recovery", "archive": "docs/old-docs/phase-8-collision-followup/progress.json", "packages": "matching Windows and exact CI Linux artifacts pending", "deployment": "existing EC2 only, first run38583685846 failed before deployment"},
+  "collision_followup_delivery": {
+    "authorization": "2026-10-14 owner: release and deploy",
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "e68a912a91c6dce339ddb254a559e68be26c53ce",
+    "archive": "docs/old-docs/phase-8-collision-followup/progress.json",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38594162570",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
+    "endpoint": "https://server.permees.com",
+    "windows_sha256": "2ca30d6dbbb59e1a8a88df1244ad6084101bc1339bc579d001ce280795c5307b",
+    "linux_sha256": "c7f0af88b763ce476970bac52206793ab9e23beea4f8d203d0bc6eca1f210660",
+    "qualification": "Matching exact CI PCK/Linux artifact; release assets/tag downloaded and verified. Two Linux Godot clients on one orb/upstream; not native Windows/GPU/audio/separate-network human acceptance. No new capacity/storage or Steam release."
+  },
   "historical_delivery_metadata": {"archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "preserved_keys": ["integrated_town_delivery", "rounded_world_delivery", "correction_delivery", "delivery", "local_delivery"], "qualification": "Historical delivery evidence retained without loss in the archives; not authorization for a new deployment."},
-  "next_action": "Pass full CI on corrected stair collision, deploy existing EC2 and publish matching GitHub playtest pre-release; pickups remain planning only."
+  "next_action": "Await owner scope or bug reports for public e68a912 playtest; Phase9 and movement pickups remain planning only."
 }

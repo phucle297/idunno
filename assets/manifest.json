@@ -258,7 +258,7 @@
       "animation_list": [],
       "gameplay_tags": ["solid_map_detail"],
       "provenance": "Project-authored deterministic runtime collision. No imported geometry, downloaded assets or CC0 claim. Explicit solidity for rail bars/posts, shrubs/planters, lamps, roof vents, Harbor bollards/cargo. High tree canopy, rail finials, paint/paving and thin facade trim remain decorative. Supersedes earlier visual-only collision policy for these selected details, not historical validation evidence.",
-      "validation_status": "Release correction: MAP_DETAIL_COLLISION_OK77 both_maps_five_rematches; PROP_ROLE_FEASIBILITY_OK191 restores ramp crate crossing. MAP_VARIETY_OK424 with top handrail removed; final source removes remaining stair-detail colliders too and awaits full CI. Previous render/performance/network evidence is historical, not final-source validation.",
+      "validation_status": "Final release e68a912: CI38594162570 passes42 suites including MAP_DETAIL_COLLISION_OK77, MAP_VARIETY_OK424 and PROP_ROLE_FEASIBILITY_OK191, five network matrices and managed20. Windows exact CI PCK and Linux exact artifact deployed/published/hashed. Public two-client admission/Ready/Start passed. Previous render/performance measurements remain historical, not a final-source GPU claim.",
       "qualification": "Stair presentation rails remain decorative over the solid ramp slab to preserve ground approach and crate crossing. Other selected rails remain solid. Static detail bodies, no additional authoritative loose bodies or networked physics. Box proxies slightly approximate rounded edges; shrub convex hull is inside visible ellipsoid. No GPU60FPS/human acceptance claim."
     },
     {

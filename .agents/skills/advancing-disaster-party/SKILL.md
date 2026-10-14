@@ -63,3 +63,20 @@ If a managed fixture stays in LOBBY after Start, inspect both authority and owne
 ## Session Handoff
 
 Before stopping, ensure root `progress.json` names active-phase changed files, validation evidence, unresolved blockers, and the next action. Keep entries concise so the active file remains operational rather than becoming a cross-phase diary.
+
+## Rematch Prop Reset Observation
+
+If `playable_scene_network_peer.gd` reports `prop_reset=false` with the crate at
+its settled ground height instead of spawn y0.4, inspect the server reset assertion
+and channel3 prop snapshot timing. ACTIVE travels independently and an unreliable
+reset snapshot can be lost or arrive after gravity has settled the authoritative
+crate. Do not relax the exact reset tolerance or change gameplay physics to satisfy
+the fixture. In the fixture only, freeze the reset crate immediately after restart,
+keep normal prop snapshots running, wait for the client's existing ACTIVE/reset
+acknowledgement, then unfreeze. Require exact spawn/shape/role assertions, five real
+network rematches and strict runtime checks; rerun twice and the full CI gate.
+
+For collision changes, run full map-variety (spawn-to-refuge Flood approaches) and
+prop-role feasibility (crate crossing), not only ascent/refuge-exit probes. One
+blocked approach can drown the fixture player and cascade into later hazard checks
+because the match has already left ACTIVE.
