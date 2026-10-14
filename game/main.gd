@@ -1477,6 +1477,7 @@ func _configure_collection() -> void:
 	$Interface/LobbyPanel/ConnectionMode.offset_right = 128
 	$Interface/LobbyPanel/Close.offset_left = 256
 	lobby_button.pressed.connect(_show_collection)
+	_layout_lobby()
 	var result_button := Button.new()
 	result_button.name = "Collection"
 	result_button.text = "BOXES"
@@ -1516,6 +1517,52 @@ func _configure_collection() -> void:
 		if sequence == _equip_ui_sequence:
 			_equip_ui_sequence = 0
 			collection.present_error("Equipment unchanged: " + message.replace("_", " ")))
+
+
+func _layout_lobby() -> void:
+	# Keep stable control paths and focus contracts while composing a real two-column room screen.
+	var panel: Panel = $Interface/LobbyPanel
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.offset_left = -460
+	panel.offset_right = 460
+	panel.offset_top = -292
+	panel.offset_bottom = 292
+	var regions := {
+		"Title": Rect2(28, 70, 364, 32),
+		"AddressLabel": Rect2(28, 124, 224, 20), "PortLabel": Rect2(268, 124, 124, 20),
+		"Address": Rect2(28, 150, 224, 42), "Port": Rect2(268, 150, 124, 42),
+		"RoomIdLabel": Rect2(28, 124, 168, 20), "PasswordLabel": Rect2(212, 124, 180, 20),
+		"RoomId": Rect2(28, 150, 168, 42), "Password": Rect2(212, 150, 180, 42),
+		"Host": Rect2(28, 212, 174, 44), "Join": Rect2(218, 212, 174, 44),
+		"Ready": Rect2(28, 280, 174, 44), "Start": Rect2(218, 280, 174, 44),
+		"PresetLabel": Rect2(28, 352, 174, 20), "MapLabel": Rect2(218, 352, 174, 20),
+		"PresetSelect": Rect2(28, 380, 174, 42), "MapSelect": Rect2(218, 380, 174, 42),
+		"Status": Rect2(28, 438, 364, 58),
+		"RosterTitle": Rect2(448, 70, 440, 32), "PlayerList": Rect2(448, 116, 440, 376),
+		"ConnectionMode": Rect2(28, 516, 148, 42),
+		"Collection": Rect2(448, 516, 208, 42), "Close": Rect2(672, 516, 216, 42),
+	}
+	for control_name: String in regions:
+		var control: Control = panel.get_node(control_name)
+		control.position = regions[control_name].position
+		control.size = regions[control_name].size
+	var brand := Label.new()
+	brand.name = "Brand"
+	brand.text = "DISASTER PARTY"
+	brand.position = Vector2(28, 22)
+	brand.add_theme_font_size_override("font_size", 30)
+	panel.add_child(brand)
+	var divider := ColorRect.new()
+	divider.color = Color(UITokens.SAND, 0.65)
+	divider.position = Vector2(420, 72)
+	divider.size = Vector2(1, 424)
+	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(divider)
+	panel.get_node("Title").horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	panel.get_node("Status").horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	for action: String in ["Host", "Start"]:
+		panel.get_node(action).theme_type_variation = "PrimaryAction"
+	$Interface/ResultsPanel/Actions/Rematch.theme_type_variation = "PrimaryAction"
 
 
 func _show_collection() -> void:
@@ -2139,9 +2186,12 @@ func _build_lighting() -> void:
 	environment.background_color = Color("9fc8df")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("a9c8df")
-	environment.ambient_light_energy = 0.5
+	environment.ambient_light_energy = 0.52
 	$WorldEnvironment.environment = environment
-	$Sun.light_energy = 1.0
+	$Sun.light_energy = 0.48
+	$Sun.light_color = Color("fff1db")
+	$Sun.directional_shadow_max_distance = 85.0
+	$Sun.shadow_blur = 2.0
 
 
 func get_map_id() -> String:
@@ -2429,10 +2479,7 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 	body.name = node_name
 	body.position = position
 	var mesh_instance := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	mesh.material = _material(color)
-	mesh_instance.mesh = mesh
+	mesh_instance.mesh = _toy_box_mesh(size, color)
 	body.add_child(mesh_instance)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
@@ -2463,6 +2510,9 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	var wall_height := height
 	var door_width := 2.4
 	var side_segment := (footprint.x - door_width) * 0.5
+	# Broad neutral walls; landmark color is carried by the layered trim.
+	var accent := color
+	color = PALETTE.cream
 	_add_box_to(root, "NorthWestWall", Vector3(side_segment, wall_height, 0.3), Vector3(-(door_width + side_segment) * 0.5, wall_height * 0.5, -footprint.y * 0.5), color)
 	_add_box_to(root, "NorthEastWall", Vector3(side_segment, wall_height, 0.3), Vector3((door_width + side_segment) * 0.5, wall_height * 0.5, -footprint.y * 0.5), color)
 	_add_box_to(root, "SouthWestWall", Vector3(side_segment, wall_height, 0.3), Vector3(-(door_width + side_segment) * 0.5, wall_height * 0.5, footprint.y * 0.5), color)
@@ -2481,6 +2531,7 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
 	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
 	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
+	_add_authored_facade(root, footprint, height, accent)
 	# Readable storefront: recessed window frames flank the entrance and repeat
 	# on the side faces, plus a broad painted awning band beneath them. These are
 	# visual-only and never alter the shelter volume or door clearance.
@@ -2502,27 +2553,129 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand)
 
 
-func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, _cover_vertical := true) -> void:
-	var outward := 0.04 if position.z >= 0.0 else -0.04
-	_add_detail_box(parent, node_name + "Frame", Vector3(2.0, 1.7, 0.1), position + Vector3(0, 0, outward * 0.5), PALETTE.slate)
-	var glass := _add_detail_box(parent, node_name + "Glass", Vector3(1.8, 1.5, 0.02), position + Vector3(0, 0.02, outward), PALETTE.teal)
-	(glass.mesh as BoxMesh).material = _glass_material()
+func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, cover_vertical := true) -> void:
+	var frame := Node3D.new()
+	frame.name = node_name
+	frame.position = position
+	if not cover_vertical:
+		frame.rotation.y = PI * 0.5 * signf(position.x)
+	parent.add_child(frame)
+	_add_detail_box(frame, "Recess", Vector3(2.25, 1.95, 0.09), Vector3.ZERO, PALETTE.cream)
+	_add_detail_box(frame, "Pane", Vector3(1.9, 1.6, 0.06), Vector3(0, 0, 0.07), Color("365f6a"))
+	for x in [-1.0, 0.0, 1.0]:
+		_add_detail_box(frame, "Mullion%s" % x, Vector3(0.12, 1.8, 0.15), Vector3(x, 0, 0.13), PALETTE.teal)
+	for y in [-0.9, 0.0, 0.9]:
+		_add_detail_box(frame, "Sash%s" % y, Vector3(2.15, 0.12, 0.15), Vector3(0, y, 0.13), PALETTE.teal)
+	_add_detail_box(frame, "Sill", Vector3(2.4, 0.18, 0.3), Vector3(0, -1.0, 0.12), PALETTE.cream)
 
 
 func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	mesh.material = _material(color)
-	instance.mesh = mesh
+	instance.mesh = _toy_box_mesh(size, color)
 	instance.position = position
 	parent.add_child(instance)
 	return instance
 
 
+# Rounded render surfaces only: every original box collider and walking plane
+# remains untouched. Deterministic 108-triangle modules, no textures/imports.
+func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
+	var key := "toy_mesh_%s_%s" % [size, color]
+	var cache: Dictionary = $Sandbox.get_meta("toy_mesh_cache", {})
+	if cache.has(key):
+		return cache[key] as ArrayMesh
+	var half := size * 0.5
+	var radius := minf(0.08, minf(size.x, minf(size.y, size.z)) * 0.16)
+	var inner := half - Vector3.ONE * radius
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for axis in 3:
+		var u := (axis + 1) % 3
+		var v := (axis + 2) % 3
+		for side in [-1.0, 1.0]:
+			var us := [-half[u], -inner[u], inner[u], half[u]]
+			var vs := [-half[v], -inner[v], inner[v], half[v]]
+			for i in 3:
+				for j in 3:
+					var corners := [Vector2i(i, j), Vector2i(i + 1, j), Vector2i(i + 1, j + 1), Vector2i(i, j + 1)]
+					var order := [0, 2, 1, 0, 3, 2] if side > 0 else [0, 1, 2, 0, 2, 3]
+					for index: int in order:
+						var p := Vector3.ZERO
+						p[axis] = half[axis] * side
+						p[u] = us[corners[index].x]
+						p[v] = vs[corners[index].y]
+						var core := p.clamp(-inner, inner)
+						var normal := (p - core).normalized()
+						surface.set_normal(normal)
+						surface.add_vertex(core + normal * radius)
+	surface.set_material(_material(color))
+	var result := surface.commit()
+	cache[key] = result
+	$Sandbox.set_meta("toy_mesh_cache", cache)
+	return result
+
+
+func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accent: Color) -> void:
+	# Cream pilasters and cornices layered onto the existing solid wall faces.
+	for side: float in [-1.0, 1.0]:
+		var z := side * (footprint.y * 0.5 + 0.19)
+		for x in [-footprint.x * 0.5 + 0.15, footprint.x * 0.5 - 0.15]:
+			_add_detail_box(root, "Pilaster%s%s" % [side, x], Vector3(0.38, height, 0.24), Vector3(x, height * 0.5, z), PALETTE.cream)
+		for y in [0.22, height - 0.25]:
+			# Split the lower plinth to preserve the real through-door opening.
+			for sx: float in [-1.0, 1.0]:
+				var width := (footprint.x - 2.6) * 0.5
+				_add_detail_box(root, "Plinth%s%s%s" % [side, y, sx], Vector3(width, 0.32, 0.24), Vector3(sx * (1.3 + width * 0.5), y, z), PALETTE.cream)
+		_add_detail_box(root, "Cornice%s" % side, Vector3(footprint.x + 0.5, 0.22, 0.35), Vector3(0, height - 0.2, z), accent)
+	for sx in [-1.0, 1.0]:
+		_add_detail_box(root, "SideCornice%s" % sx, Vector3(0.32, 0.22, footprint.y), Vector3(sx * (footprint.x * 0.5 + 0.18), height - 0.2, 0), PALETTE.cream)
+	if root.name == "Shop":
+		for i in 12:
+			var stripe_color: Color = PALETTE.teal if i % 2 == 0 else PALETTE.cream
+			var stripe := _add_detail_box(root, "CanopyStripe%d" % i, Vector3(0.72, 0.14, 1.3), Vector3(-3.96 + i * 0.72, 3.12, footprint.y * 0.5 + 0.8), stripe_color)
+			stripe.rotation.x = 0.16
+			_add_detail_box(root, "Valance%d" % i, Vector3(0.72, 0.32, 0.16), Vector3(-3.96 + i * 0.72, 2.92, footprint.y * 0.5 + 1.4), stripe_color)
+	elif root.name == "Hall":
+		_add_round_detail(root, "SchoolClock", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.25), Vector3(0.48, 0.48, 0.12), PALETTE.coral)
+		_add_round_detail(root, "ClockFace", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.36), Vector3(0.4, 0.4, 0.06), PALETTE.cream)
+		_add_detail_box(root, "ClockHand", Vector3(0.06, 0.26, 0.06), Vector3(3.0, 3.74, footprint.y * 0.5 + 0.44), PALETTE.slate)
+	elif root.name == "House":
+		for side in [-1.0, 1.0]:
+			var roof := _add_detail_box(root, "Gable%s" % side, Vector3(4.4, 0.18, 8.5), Vector3(side * 1.9, 5.5, 0), PALETTE.coral)
+			roof.rotation.z = -side * 0.32
+			var face := MeshInstance3D.new()
+			face.name = "GableFace%s" % side
+			var surface := SurfaceTool.new()
+			surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+			surface.set_normal(Vector3(0, 0, side))
+			var vertices := [Vector3(-4.0, 4.86, side * 4.02), Vector3(0, 6.1, side * 4.02), Vector3(4.0, 4.86, side * 4.02)]
+			if side < 0:
+				vertices.reverse()
+			for vertex: Vector3 in vertices:
+				surface.add_vertex(vertex)
+			surface.set_material(_material(PALETTE.cream))
+			face.mesh = surface.commit()
+			root.add_child(face)
+
+
+func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, scale_size: Vector3, color: Color) -> void:
+	var visual := MeshInstance3D.new()
+	visual.name = node_name
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.0
+	sphere.height = 2.0
+	sphere.radial_segments = 16
+	sphere.rings = 8
+	sphere.material = _material(color)
+	visual.mesh = sphere
+	visual.position = position
+	visual.scale = scale_size
+	parent.add_child(visual)
+
+
 func _glass_material() -> StandardMaterial3D:
-	var material := _material(PALETTE.teal)
+	var material := _material(PALETTE.teal).duplicate() as StandardMaterial3D
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.albedo_color = Color(PALETTE.teal, 0.42)
 	return material
@@ -2556,7 +2709,8 @@ func _add_parking_garage() -> void:
 			var brace := _add_box_to(root, "CanopyBrace_%s_%s" % [sx, sz], Vector3(2.5, 0.26, 0.38), (canopy_corner + pillar_top) * 0.5, PALETTE.slate)
 			brace.rotation.y = -atan2(pillar_top.z - canopy_corner.z, pillar_top.x - canopy_corner.x)
 	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 4.8, 0.0), PALETTE.coral)
-	_add_label_to(root, "GarageLabel", "PARKING", Vector3(0.0, 3.4, 6.15), PALETTE.cream)
+	_add_detail_box(root, "GarageSignboard", Vector3(5.0, 0.8, 0.18), Vector3(0, 3.65, 6.1), PALETTE.cream)
+	_add_label_to(root, "GarageLabel", "GARAGE", Vector3(0.0, 3.65, 6.21), PALETTE.slate)
 
 
 func _add_school_interior() -> void:
@@ -2610,6 +2764,10 @@ func _add_garage_detail() -> void:
 	_add_detail_box(garage, "ToolShelving", Vector3(5.0, 1.4, 0.6), Vector3(0.0, 3.28, -5.0), PALETTE.slate)
 	_add_detail_box(garage, "ToolBoxA", Vector3(0.7, 0.5, 0.5), Vector3(-1.2, 2.83, -4.0), PALETTE.coral)
 	_add_detail_box(garage, "ToolBoxB", Vector3(0.7, 0.5, 0.5), Vector3(0.0, 2.83, -4.0), PALETTE.cream)
+	for side in [-1.0, 1.0]:
+		_add_detail_box(garage, "DeckFascia%s" % side, Vector3(14.2, 0.22, 0.25), Vector3(0, 2.3, side * 6.08), PALETTE.teal)
+		_add_detail_box(garage, "Header%s" % side, Vector3(10.5, 0.5, 0.3), Vector3(0, 4.3, side * 4.6), PALETTE.cream)
+		_add_toy_rail(garage, "GarageRail%s" % side, Vector3(side * 6.7, 2.575, 0), 10.0, true)
 
 
 func _add_park_detail() -> void:
@@ -2631,6 +2789,57 @@ func _add_street_detail() -> void:
 			_add_detail_box($Sandbox, "CrossZ%sX%s" % [z, stripe], Vector3(0.9, 0.03, 4.6), Vector3(stripe, 0.075, z), PALETTE.cream)
 	for z: float in [-26.0, -22.0, -18.0, -14.0, -10.0, 14.0, 18.0, 22.0, 26.0]:
 		_add_detail_box($Sandbox, "LaneDash%s" % z, Vector3(0.22, 0.03, 2.0), Vector3(0.0, 0.075, z), PALETTE.cream)
+	# Individual broad paving slabs and shallow curbs sit on real ground,
+	# never adding colliders or a fake raised route.
+	for x in 9:
+		for z in 9:
+			var tint: Color = PALETTE.cream.lerp(PALETTE.sand, 0.22 + 0.08 * ((x + z) % 3))
+			_add_detail_box($Sandbox, "Paver%d_%d" % [x, z], Vector3(1.96, 0.025, 1.96), Vector3(-8 + x * 2, 0.135, -8 + z * 2), tint)
+	for side in [-1.0, 1.0]:
+		for segment in 20:
+			var offset := -30.0 + segment * 3.0
+			if absf(offset) < 10.0:
+				continue
+			_add_detail_box($Sandbox, "CurbX%s%d" % [side, segment], Vector3(2.9, 0.16, 0.3), Vector3(offset, 0.08, side * 2.7), PALETTE.cream)
+			_add_detail_box($Sandbox, "CurbZ%s%d" % [side, segment], Vector3(0.3, 0.16, 2.9), Vector3(side * 2.7, 0.08, offset), PALETTE.cream)
+	for position in [Vector3(-8, 0.12, -8), Vector3(8, 0.12, -8), Vector3(-8, 0.12, 8), Vector3(8, 0.12, 8)]:
+		_add_toy_lamp($Sandbox, "PlazaLamp%s" % position, position)
+	for center in [Vector3(-16, 0, -6), Vector3(16, 0, -5)]:
+		for x in 7:
+			for z in 2:
+				_add_detail_box($Sandbox, "FrontPaving%s%d%d" % [center.x, x, z], Vector3(1.95, 0.025, 1.95), center + Vector3(-6 + 2 * x, 0.015, z * 2), PALETTE.sand.lerp(PALETTE.cream, 0.45))
+	for side in [-1.0, 1.0]:
+		for i in 5:
+			_add_detail_box($Sandbox, "Crossing%s%d" % [side, i], Vector3(0.6, 0.018, 3.6), Vector3(-1.6 + i * 0.8, 0.16, side * 8.0), PALETTE.cream)
+		var planter := Vector3(side * 9.1, 0, -5.8)
+		_add_detail_box($Sandbox, "StreetPlanter%s" % side, Vector3(1.0, 0.5, 1.0), planter + Vector3(0, 0.25, 0), PALETTE.cream)
+		for i in 3:
+			_add_round_detail($Sandbox, "Shrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.22, 0.65, 0), Vector3(0.4, 0.4, 0.4), PALETTE.grass)
+
+
+func _add_toy_lamp(parent: Node3D, node_name: String, position: Vector3) -> void:
+	var lamp := Node3D.new()
+	lamp.name = node_name
+	lamp.position = position
+	parent.add_child(lamp)
+	_add_detail_box(lamp, "Foot", Vector3(0.45, 0.25, 0.45), Vector3(0, 0.125, 0), PALETTE.slate)
+	_add_detail_box(lamp, "Post", Vector3(0.15, 2.6, 0.15), Vector3(0, 1.5, 0), PALETTE.slate)
+	_add_detail_box(lamp, "Collar", Vector3(0.3, 0.18, 0.3), Vector3(0, 2.7, 0), PALETTE.teal)
+	_add_round_detail(lamp, "Globe", Vector3(0, 3.0, 0), Vector3.ONE * 0.33, PALETTE.cream)
+
+
+func _add_toy_rail(parent: Node3D, node_name: String, position: Vector3, length: float, along_z := false) -> void:
+	var rail := Node3D.new()
+	rail.name = node_name
+	rail.position = position
+	if along_z:
+		rail.rotation.y = PI * 0.5
+	parent.add_child(rail)
+	for y in [0.4, 0.9]:
+		_add_detail_box(rail, "Bar%s" % y, Vector3(length, 0.1, 0.1), Vector3(0, y, 0), PALETTE.teal)
+	for i in int(length / 1.5) + 1:
+		var x: float = -length * 0.5 + i * length / int(length / 1.5)
+		_add_detail_box(rail, "Post%d" % i, Vector3(0.14, 0.95, 0.14), Vector3(x, 0.475, 0), PALETTE.teal)
 
 
 func _add_warehouse_interior() -> void:
@@ -2660,6 +2869,18 @@ func _add_harbor_kit() -> void:
 	_add_detail_box($Sandbox, "BollardEast", Vector3(0.5, 0.7, 0.5), Vector3(20.0, 4.1, 11.0), PALETTE.cream)
 	_add_detail_box($Sandbox, "HarborCrateA", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 0.4, -20.5), PALETTE.coral)
 	_add_detail_box($Sandbox, "HarborCrateB", Vector3(0.8, 0.8, 0.8), Vector3(16.0, 1.2, -20.5), PALETTE.cream)
+	for side in [-1.0, 1.0]:
+		var dock := $Sandbox.get_node("DockWest" if side < 0 else "DockEast") as Node3D
+		_add_detail_box(dock, "DeckLip", Vector3(12.2, 0.22, 10.2), Vector3(0, 1.76, 0), PALETTE.cream)
+		for plank in 12:
+			_add_detail_box(dock, "Plank%d" % plank, Vector3(0.96, 0.025, 9.8), Vector3(-5.5 + plank, 1.89, 0), PALETTE.sand)
+		_add_toy_rail(dock, "SeawardRail", Vector3(0, 1.875, -4.7), 11.0)
+		_add_toy_lamp($Sandbox, "DockLamp%s" % side, Vector3(side * 23.0, 3.75, 12.8))
+		var cargo := $Sandbox.get_node("CargoPlatformWest" if side < 0 else "CargoPlatformEast") as Node3D
+		for rib in 7:
+			_add_detail_box(cargo, "CargoRib%d" % rib, Vector3(0.1, 2.5, 0.12), Vector3(-3 + rib, 0, 3.03), PALETTE.coral)
+	for i in 24:
+		_add_detail_box($Sandbox, "BoardwalkPlank%d" % i, Vector3(2.6, 0.025, 5.9), Vector3(-30 + i * 2.6, 0.063, 22), PALETTE.cream.lerp(PALETTE.sand, 0.4))
 
 
 func _add_town_props() -> void:
@@ -2685,8 +2906,8 @@ func _add_tree(node_name: String, position: Vector3) -> void:
 		var mesh := SphereMesh.new()
 		mesh.radius = 1.15
 		mesh.height = 2.0
-		mesh.radial_segments = 8
-		mesh.rings = 4
+		mesh.radial_segments = 16
+		mesh.rings = 8
 		mesh.material = _material(PALETTE.grass)
 		crown.mesh = mesh
 		crown.position = offset
@@ -2715,6 +2936,10 @@ func _add_bench(node_name: String, position: Vector3) -> void:
 	_add_box_to(root, "Back", Vector3(2.4, 0.8, 0.16), Vector3(0.0, 1.15, 0.28), PALETTE.sand)
 	_add_box_to(root, "LeftLeg", Vector3(0.18, 0.75, 0.55), Vector3(-0.85, 0.38, 0.0), PALETTE.slate)
 	_add_box_to(root, "RightLeg", Vector3(0.18, 0.75, 0.55), Vector3(0.85, 0.38, 0.0), PALETTE.slate)
+	for slat in 3:
+		_add_detail_box(root, "BackSlat%d" % slat, Vector3(2.45, 0.18, 0.08), Vector3(0, 0.88 + slat * 0.25, 0.39), PALETTE.sand)
+	for side in [-1.0, 1.0]:
+		_add_detail_box(root, "Arm%s" % side, Vector3(0.12, 0.12, 0.8), Vector3(side * 1.1, 1.05, 0), PALETTE.slate)
 
 
 func _add_world_label(node_name: String, text: String, position: Vector3, color: Color) -> void:
@@ -2737,8 +2962,9 @@ func _add_label_to(parent: Node3D, node_name: String, text: String, position: Ve
 	label.position = position
 	label.modulate = color
 	label.outline_modulate = PALETTE.slate
-	label.outline_size = 12
-	label.font_size = 56
+	label.outline_size = 2
+	label.font_size = 64
+	label.pixel_size = 0.009
 	parent.add_child(label)
 
 
@@ -2750,7 +2976,8 @@ func _add_box_to(parent: Node3D, node_name: String, size: Vector3, position: Vec
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	mesh.material = _material(color)
-	mesh_instance.mesh = mesh
+	# Existing structural inspection tools read canopy support BoxMesh sizes.
+	mesh_instance.mesh = mesh if node_name.begins_with("CanopySupport") else _toy_box_mesh(size, color)
 	body.add_child(mesh_instance)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
@@ -2791,10 +3018,16 @@ func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
 
 
 func _material(color: Color) -> StandardMaterial3D:
+	var cache: Dictionary = $Sandbox.get_meta("toy_material_cache", {})
+	var key := color.to_html()
+	if cache.has(key):
+		return cache[key] as StandardMaterial3D
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.metallic = 0.0
 	material.roughness = 0.78
+	cache[key] = material
+	$Sandbox.set_meta("toy_material_cache", cache)
 	return material
 
 

@@ -1,11 +1,21 @@
 # Disaster Party — Active Decisions
 
-Phase 7 is completed and archived: character/world/camera/interface selections and
-implementation defaults live in
+The original Phase 7 archive is historical; its visual-completion claim is superseded.
+Character/world/camera/interface selections and earlier implementation defaults live in
 [old-docs/phase-7-soft-creature-world-and-interface/decisions.md](old-docs/phase-7-soft-creature-world-and-interface/decisions.md).
-Root [progress](../progress.json) now tracks Phase 8; its
-[checklist](checklists/phase-8-shrinking-survival-zone.md) specifies execution and gates.
+Root [progress](../progress.json) now tracks the
+[Phase 7 visual correction](checklists/phase-7-visual-correction.md).
 No Phase 8 implementation, deployment or renewed manual prerequisite is inferred from planning.
+
+## Phase 7 visual correction — 2026-10-14
+
+- Audit found no earlier Phase7 changes in `game/ui/` or `scenes/main.tscn`; functional regression was incorrectly presented as visual completion. Preserve the archive and supersede that claim here.
+- Correct source of truth rather than layering a second UI: recompose the existing lobby, use actual catalog meshes for thumbnails, lighten existing panels and align HUD/settings/results with cream/teal matte direction.
+- Selected B is a non-human broad continuous body. Increase visible base geometry to5992 triangles (5880 visible +112 compatibility anchor), retaining gameplay capsule, skeleton/clip IDs and physics contracts. This is an explicit visual-quality tradeoff, not a proven hardware-performance improvement.
+- Environment additions are visual-only: small bevels, layered trim/windows/awnings, street furniture and paving. Collision/anchor snapshots remain identical (town107, harbor46). Keep playable ramps/cover/breakables; do not turn reference buildings into new gameplay obstacles.
+- Store selected concept PNGs and provenance in `assets/references/phase7`; exclude from packaged runtime. Concepts are direction, not proof or pixel targets. Existing long-name ellipsis preserves layout with full tooltip text.
+- All42 suites, five network matrices, managed20 and persistence restart passed. Render/real-pointer evidence covers the changed UI. Linux llvmpipe only; software shutdown-resource diagnostics remain documented by the existing runner. Human/native GPU/60FPS acceptance is not claimed.
+- Owner explicitly authorized push after the correction. Commit with `[skip ci]` because the main workflow deploys automatically; no new deploy/release was requested.
 
 ## Phase 8 — shrinking survival zone (owner-requested, not yet implemented)
 

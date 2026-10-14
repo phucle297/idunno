@@ -20,16 +20,25 @@ func activate(initial_velocity: Vector3, impulse: Vector3) -> void:
 
 func copy_appearance(character: ToyCharacterVisual) -> void:
 	var suit := (character.get_node("Torso") as MeshInstance3D).material_override
-	# The bean head, mid-body and lower-body bulbs all take the player suit
-	# colour; only the cream face inset stays neutral so eyes/mouth read.
+	# Keep physics bodies and mass unchanged, but replace their proxy visuals.
 	for part in ["Pelvis", "Chest", "Head", "UpperArmLeft", "LowerArmLeft", "UpperArmRight", "LowerArmRight", "UpperLegLeft", "LowerLegLeft", "UpperLegRight", "LowerLegRight"]:
 		(_bodies[part].get_child(0) as MeshInstance3D).material_override = suit
+		(_bodies[part].get_child(0) as MeshInstance3D).visible = false
+	# Physics retains eleven bodies; presentation reuses the actual continuous
+	# creature surface rather than reconstructing it as stacked physics bulbs.
+	var torso := character.get_node("Torso") as MeshInstance3D
+	_copy_mesh(torso, _bodies.Chest, torso.transform)
+	for side in ["Left", "Right"]:
+		for limb in ["Arm", "Leg"]:
+			var pivot := character.get_node(side + limb) as Node3D
+			var source := pivot.get_node("Mesh") as MeshInstance3D
+			_copy_mesh(source, _bodies["Upper" + limb + side], pivot.transform * source.transform)
 	var face := character.get_node_or_null("FacePlate") as MeshInstance3D
 	if face != null:
-		_copy_mesh(face, _bodies.Head, face.transform)
+		_copy_mesh(face, _bodies.Chest, face.transform)
 	for part in ["LeftEye", "RightEye", "Mouth"]:
 		var source := character.get_node(part) as MeshInstance3D
-		_copy_mesh(source, _bodies.Head, source.transform)
+		_copy_mesh(source, _bodies.Chest, source.transform)
 	for side in ["Left", "Right"]:
 		var source := character.get_node("%sLeg/%sShoe" % [side, side]) as MeshInstance3D
 		var placement := source.transform

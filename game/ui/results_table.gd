@@ -106,6 +106,12 @@ func present_results(players: Dictionary, winner_ids: Array, elapsed_time: float
 		var outcome := "SURVIVED" if bool(player.alive) else String(player.cause_of_death)
 		row.get_node("Outcome").text = outcome
 		row.get_node("Outcome").tooltip_text = outcome
+		for column: String in COLUMNS:
+			var surface := StyleBoxFlat.new()
+			surface.bg_color = Color("deece0") if peer_id in winner_ids else (Color(UITokens.WHITE, 0.8) if index % 2 == 0 else Color(UITokens.SAND, 0.16))
+			surface.content_margin_top = 8
+			surface.content_margin_bottom = 8
+			row.get_node(column).add_theme_stylebox_override("normal", surface)
 		for column: String in ["Rank", "Name"]:
 			var cell: Label = row.get_node(column)
 			var winner := peer_id in winner_ids

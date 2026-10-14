@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "6",
+    "version": "7",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,18 +14,18 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "6",
-      "intended_dimensions_m": [0.56, 1.6, 0.48],
-      "triangle_count": 1808,
+      "generator_version": "7",
+      "intended_dimensions_m": [1.08, 1.6, 0.656],
+      "triangle_count": 5992,
       "cosmetic_catalog": "assets/cosmetic_catalog.json",
       "cosmetic_catalog_version": 1,
       "outfit_source": "game/player/toy_character_visual.gd",
-      "outfit_triangle_counts_including_base": {"plain": 1808, "cap": 1952, "hard_hat": 1928, "backpack": 1820, "raincoat": 1988, "mechanic": 1868, "park_ranger": 1976, "meteor_observer": 1976},
+      "outfit_triangle_counts_including_base": {"plain": 5992, "cap": 6136, "hard_hat": 6112, "backpack": 6004, "raincoat": 6172, "mechanic": 6052, "park_ranger": 6160, "meteor_observer": 6160},
       "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168},
       "outfit_physics": "Same player capsule/controller; visible accessories copied onto existing 11 ragdoll bodies/10 joints/55kg. No accessory colliders or authoritative bodies.",
-      "outfit_validation": "Soft Creature base (bean head/body, cream face inset, stubby limbs) regenerated deterministically; all8 IDs/all14 clips/identity18 bone rests/root-owned nested pivots-meshes-shoes/base1808/ragdoll accessory mesh-placement-color checks passed. Living locomotion/crouch/carry, identical controller capsule/layers/masks, live visual heading and grounded/airborne recovery across all8 passed (971 checks).",
-      "outfit_visual_validation": "Inspected actual Godot Compatibility Mesa llvmpipe front/rear all8 outfit silhouettes and in-game carrying/locomotion with the new continuous bean body at720p and1080p. Bean reads as one body/head form with cream face inset; hats/backpacks sit on the bean top/back without separate human head. Captures: .amp/in/artifacts/phase7-char. Linux orb rendering only, not native/GPU/human acceptance or a performance claim.",
-      "outfit_provenance": "Project-authored deterministic Godot primitives and palette materials, packed by generator6 seed297. No external geometry, archives, textures or third-party asset license; no CC0 claim.",
+      "outfit_validation": "Generator7 seed297; broad uninterrupted 0.80m body with oval cream inset, rounded arms and rubber feet. Phase1 971, player integration294, colliders153, carry41, collection20, emotes55 and shove70 passed. Base5992 includes112 hidden compatibility-anchor triangles; visible5880. No gameplay capsule enlargement.",
+      "outfit_visual_validation": "Actual Godot front/back/eight outfits/gameplay and collection renders inspected against selected B. Rounded silhouette, oval face and footwear corrected; no claim of pixel-equivalence to the generated reference or human acceptance. Captures: .amp/in/artifacts/soft-creature and phase7-correction.",
+      "outfit_provenance": "Project-authored deterministic Godot primitives and palette materials, packed by generator7 seed297. Selected B is a concept reference only. No external geometry or textures; no CC0 claim.",
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
       "pivot": "ground_center_between_feet",
       "collider_type": "capsule_on_player_scene",
@@ -48,8 +48,8 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/player/toy_character_visual.gd.",
-      "sha256": "0c9f150a007254d5da0077748e1d82cb0c2f34018fcdd08ffa8d7eced409a807",
-      "validation_status": "soft_creature_bean_base_1808_triangles_and_18_bone_identity_rests_regression_passed; eight_outfit_set_and_14_clips_passed; in_game_carry_locomotion_recovery_rendered_and_inspected_720p_1080p; higher_three_quarter_player_camera_rendered_indoor_and_outdoor_at_1080p; ragdoll_bean_visual_adaptation_and_full_route_audit_pending"
+      "sha256": "cee8a3fa91a0a23d345e3bccf095f31a43239bb7c0996309c9dd453a0051d294",
+      "validation_status": "rounded_visual_correction_regeneration_and_public_behavior_checks_passed; source_references_committed; human_native_gpu_acceptance_unverified"
     },
     {
       "asset_id": "ENV_Wall_2m_v001",
@@ -205,6 +205,43 @@
       "gameplay_tags": ["breakable_structure"],
       "provenance": "Project-authored deterministic Godot BoxMesh assembly; no third-party geometry; seed unused. Existing roof footprints retained around central2x2m openings; existing panels lowered flush. Adds72 structural triangles, no authoritative dynamic bodies.",
       "validation_status": "source151_and_Xvfb_llvmpipe_720p_1080p166_map_checks_passed; actual_capsule_drop_Flood_grace_6HP_boundary_side_escape_and_five_rematches_passed; all_twelve_intact_broken_escape_views_inspected; full_supported_source34_suites_five_groups_settings_restart_passed; native_Windows_current_revision_not_run"
+    },
+    {
+      "asset_id": "ENV_SoftVinylTownHarbor_v002",
+      "category": "runtime_environment_assembly",
+      "source_path": "game/main.gd",
+      "export_path": "scenes/main.tscn::Sandbox",
+      "generator_version": "2_visual_correction",
+      "seed": 0,
+      "triangle_count_per_rounded_box": 108,
+      "collider_type": "existing_static_boxes_unchanged; added_facade_and_street_detail_visual_only",
+      "material_ids": ["PALETTE.cream", "PALETTE.teal", "PALETTE.slate", "PALETTE.sand"],
+      "reference_path": "assets/references/phase7/town-material-direction.png",
+      "provenance": "Project-authored procedural surfaces and facade/street/roof assemblies. No downloaded geometry or textures; concept reference only, not CC0.",
+      "validation_status": "town107_harbor46_collider_and_anchor_snapshots_identical; map_identity42_variety303_safety251_passed; final_town_shop_school_house_garage_harbor_renders_inspected; architecture_simpler_than_concept; native_gpu_human_acceptance_unverified"
+    }
+  ],
+  "design_references": [
+    {
+      "path": "assets/references/phase7/soft-creature-selection.png",
+      "selection": "B_middle_nonhuman_soft_creature",
+      "sha256": "d77cfdab2d9ec8173694f62f2d0deea9d2b1edf9531146583ba60799412568e3",
+      "provenance": "Painter-generated concept in Amp thread T-01a1330a-6b68-7301-94df-dc0b5a0abfb9; retrieved with amp files get; no third-party asset license or CC0 claim",
+      "runtime_asset": false
+    },
+    {
+      "path": "assets/references/phase7/town-material-direction.png",
+      "selection": "environment_only; human_characters_rejected",
+      "sha256": "4f5e7892f942c7102219ade22207124600cdb522fe849347891252825942e56f",
+      "provenance": "Painter-generated concept in the same design conversation; retrieved with amp files get; no CC0 claim",
+      "runtime_asset": false
+    },
+    {
+      "path": "assets/references/phase7/soft-vinyl-ui-direction.png",
+      "selection": "soft_vinyl_interface_direction; glowing_meteor_rejected",
+      "sha256": "cc71ed946be4938f0fe3994e608abb681a4e833250bbb598f70f51c046c073fb",
+      "provenance": "Painter-generated concept in the same design conversation; retrieved with amp files get; no CC0 claim",
+      "runtime_asset": false
     }
   ]
 }

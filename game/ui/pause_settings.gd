@@ -35,8 +35,8 @@ func _ready() -> void:
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel.offset_left = -300
 	panel.offset_right = 300
-	panel.offset_top = -302
-	panel.offset_bottom = 302
+	panel.offset_top = -330
+	panel.offset_bottom = 330
 	var style := get_theme_stylebox("panel", "PanelContainer").duplicate() as StyleBoxFlat
 	style.bg_color.a = 1.0
 	panel.add_theme_stylebox_override("panel", style)
@@ -45,7 +45,7 @@ func _ready() -> void:
 	content.add_theme_constant_override("separation", 10)
 	panel.add_child(content)
 	var title := Label.new()
-	title.text = "LOCAL MENU"
+	title.text = "SETTINGS  /  YOUR DEVICE"
 	title.add_theme_font_size_override("font_size", DisasterPartyUI.FONT_TITLE)
 	content.add_child(title)
 	var note := Label.new()
@@ -58,9 +58,15 @@ func _ready() -> void:
 	pause_page.add_child(settings)
 	settings.pressed.connect(show_settings)
 	settings_page = VBoxContainer.new()
-	settings_page.add_theme_constant_override("separation", 6)
+	settings_page.add_theme_constant_override("separation", 4)
 	content.add_child(settings_page)
 	for key: String in DEFAULTS:
+		if key in ["master_volume", "mouse_sensitivity", "fullscreen"]:
+			var section := Label.new()
+			section.text = {"master_volume": "AUDIO", "mouse_sensitivity": "CAMERA & CONTROLS", "fullscreen": "DISPLAY & ACCESSIBILITY"}[key]
+			section.add_theme_font_size_override("font_size", DisasterPartyUI.FONT_CAPTION)
+			section.add_theme_color_override("font_color", DisasterPartyUI.SLATE)
+			settings_page.add_child(section)
 		var row := HBoxContainer.new()
 		settings_page.add_child(row)
 		var label := Label.new()
@@ -117,6 +123,7 @@ func _ready() -> void:
 	status.text = "Changes save automatically"
 	content.add_child(status)
 	resume = Button.new()
+	resume.theme_type_variation = "PrimaryAction"
 	resume.text = "BACK"
 	content.add_child(resume)
 	resume.pressed.connect(back)
@@ -296,8 +303,8 @@ func show_settings() -> void:
 	settings_page.show()
 	resume.text = "BACK"
 	status.show()
-	panel.offset_top = -302
-	panel.offset_bottom = 302
+	panel.offset_top = -330
+	panel.offset_bottom = 330
 	show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_focus()

@@ -78,6 +78,21 @@ var reduced_motion := false:
 
 
 func _ready() -> void:
+	var timer_surface := timer_card.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+	timer_surface.bg_color = Color(UITokens.INK, 0.94)
+	timer_surface.border_color = UITokens.SLATE
+	timer_card.add_theme_stylebox_override("panel", timer_surface)
+	timer_label.add_theme_color_override("font_color", UITokens.WHITE)
+	state_label.add_theme_color_override("font_color", UITokens.TEAL)
+	for metric: Array in [["HealthCard/Content/MetricRow", "health"], ["AlivePill/Content", "survivors"]]:
+		var row: HBoxContainer = get_node(metric[0])
+		var icon := preload("res://game/ui/disaster_icon.gd").new()
+		icon.custom_minimum_size = Vector2(24, 24)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.disaster_id = metric[1]
+		row.add_child(icon)
+		row.move_child(icon, 0)
+		row.add_theme_constant_override("separation", 10)
 	spectator_previous.pressed.connect(func() -> void: spectator_cycle_requested.emit(-1))
 	spectator_next.pressed.connect(func() -> void: spectator_cycle_requested.emit(1))
 	spectator_previous.focus_next = spectator_previous.get_path_to(spectator_next)
@@ -253,6 +268,7 @@ func present_lobby_overlay(open: bool) -> void:
 	timer_card.visible = not open and not _results_visible
 	hazard_tray.visible = not open and not _presented_hazards.is_empty() and not _results_visible
 	if open or _results_visible:
+		shove_pill.hide()
 		present_major_warning("")
 		present_context_action("")
 		present_flood_exposure(FloodExposure.SAFE)

@@ -32,6 +32,7 @@ var preview: ToyCharacterVisual
 var viewport: SubViewport
 var _return_focus: Control
 var _reveal: Tween
+var _thumbnail_viewports: Array[SubViewport] = []
 
 
 func _ready() -> void:
@@ -45,13 +46,13 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(880, 600)
+	panel.custom_minimum_size = Vector2(1000, 620)
 	center.add_child(panel)
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 10)
 	panel.add_child(content)
 	title = Label.new()
-	title.text = "YOUR TOY COLLECTION"
+	title.text = "YOUR CREW  /  OUTFITS"
 	title.add_theme_font_size_override("font_size", DisasterPartyUI.FONT_TITLE)
 	content.add_child(title)
 	status = Label.new()
@@ -66,19 +67,24 @@ func _ready() -> void:
 	columns.add_child(grid)
 	for item: Dictionary in ToyCharacterVisual.catalog().items:
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(215, 58)
+		button.theme_type_variation = "OutfitTile"
+		button.custom_minimum_size = Vector2(240, 78)
+		button.icon = _outfit_thumbnail(item.id)
+		button.add_theme_constant_override("icon_max_width", 54)
+		button.add_theme_constant_override("h_separation", 12)
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.pressed.connect(func() -> void: select_outfit(item.id))
 		grid.add_child(button)
 		outfit_buttons.append(button)
 	var right := VBoxContainer.new()
-	right.custom_minimum_size.x = 375
+	right.custom_minimum_size.x = 440
 	columns.add_child(right)
 	var preview_container := SubViewportContainer.new()
-	preview_container.custom_minimum_size = Vector2(375, 240)
+	preview_container.custom_minimum_size = Vector2(440, 280)
 	preview_container.stretch = true
 	right.add_child(preview_container)
 	viewport = SubViewport.new()
-	viewport.size = Vector2i(375, 240)
+	viewport.size = Vector2i(440, 280)
 	viewport.own_world_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	preview_container.add_child(viewport)
@@ -87,7 +93,7 @@ func _ready() -> void:
 	var environment := WorldEnvironment.new()
 	environment.environment = Environment.new()
 	environment.environment.background_mode = Environment.BG_COLOR
-	environment.environment.background_color = DisasterPartyUI.SLATE
+	environment.environment.background_color = Color("c8ded9")
 	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.environment.ambient_light_color = Color.WHITE
 	environment.environment.ambient_light_energy = 0.6
@@ -99,9 +105,9 @@ func _ready() -> void:
 	world.add_child(preview)
 	preview.set_player_color(0)
 	var camera := Camera3D.new()
-	camera.position = Vector3(2.3, 1.8, -3.5)
+	camera.position = Vector3(1.6, 1.4, -4.0)
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 2.2
+	camera.size = 1.95
 	world.add_child(camera)
 	camera.look_at(Vector3(0, 0.85, 0))
 	var rotation_row := HBoxContainer.new()
@@ -117,6 +123,7 @@ func _ready() -> void:
 	description.custom_minimum_size.y = 48
 	right.add_child(description)
 	equip_button = Button.new()
+	equip_button.theme_type_variation = "PrimaryAction"
 	equip_button.pressed.connect(func() -> void:
 		busy = true
 		status.text = "Saving equipment — waiting for acknowledgement…"
@@ -124,10 +131,12 @@ func _ready() -> void:
 		equip_requested.emit(selected))
 	right.add_child(equip_button)
 	odds = Label.new()
+	odds.add_theme_font_size_override("font_size", DisasterPartyUI.FONT_CAPTION)
 	odds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	odds.custom_minimum_size.y = 42
 	content.add_child(odds)
 	reward = Label.new()
+	reward.add_theme_font_size_override("font_size", DisasterPartyUI.FONT_CAPTION)
 	reward.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	reward.custom_minimum_size.y = 42
 	content.add_child(reward)
@@ -138,6 +147,7 @@ func _ready() -> void:
 	box_select.item_selected.connect(func(_index: int) -> void: _render_box())
 	actions.add_child(box_select)
 	open_button = Button.new()
+	open_button.theme_type_variation = "PrimaryAction"
 	open_button.text = "OPEN FREE BOX"
 	open_button.pressed.connect(func() -> void:
 		if not profile.pending.is_empty():
@@ -166,6 +176,8 @@ func _ready() -> void:
 func show_collection() -> void:
 	_return_focus = get_viewport().gui_get_focus_owner()
 	visible = true
+	for thumbnail: SubViewport in _thumbnail_viewports:
+		thumbnail.render_target_update_mode = SubViewport.UPDATE_ONCE
 	_render()
 	outfit_buttons[0].grab_focus()
 
@@ -243,6 +255,12 @@ func _render() -> void:
 		var item: Dictionary = ToyCharacterVisual.catalog().items[index]
 		var owned: bool = item.id in profile.owned
 		outfit_buttons[index].text = "%s\n%s" % [item.name, "EQUIPPED" if item.id == profile.equipped else ("OWNED" if owned else "LOCKED")]
+		var tile := get_theme_stylebox("normal", "OutfitTile").duplicate() as StyleBoxFlat
+		if item.id == selected:
+			tile.bg_color = Color("deece0")
+			tile.border_color = DisasterPartyUI.TEAL
+			tile.set_border_width_all(2)
+		outfit_buttons[index].add_theme_stylebox_override("normal", tile)
 		outfit_buttons[index].tooltip_text = item.description
 		if item.id == selected:
 			description.text = "%s — %s" % [item.name, item.description]
@@ -297,3 +315,35 @@ func _input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
 		dismiss()
 		get_viewport().set_input_as_handled()
+
+
+func _outfit_thumbnail(outfit_id: String) -> Texture2D:
+	# Real catalog meshes, rendered once on opening rather than eight live previews.
+	var thumbnail := SubViewport.new()
+	thumbnail.size = Vector2i(96, 112)
+	thumbnail.transparent_bg = true
+	thumbnail.own_world_3d = true
+	thumbnail.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	add_child(thumbnail)
+	_thumbnail_viewports.append(thumbnail)
+	var toy: ToyCharacterVisual = preload("res://assets/generated/CHR_Base_v001.tscn").instantiate()
+	thumbnail.add_child(toy)
+	toy.set_outfit_id(outfit_id)
+	toy.set_player_color(0)
+	toy.set_process(false)
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-35, -25, 0)
+	thumbnail.add_child(light)
+	var fill := WorldEnvironment.new()
+	fill.environment = Environment.new()
+	fill.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	fill.environment.ambient_light_color = Color.WHITE
+	fill.environment.ambient_light_energy = 0.7
+	thumbnail.add_child(fill)
+	var camera := Camera3D.new()
+	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.size = 1.95
+	camera.position = Vector3(0.8, 1.2, -4)
+	thumbnail.add_child(camera)
+	camera.look_at(Vector3(0, 0.85, 0))
+	return thumbnail.get_texture()

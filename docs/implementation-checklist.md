@@ -7,11 +7,12 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; current work starts at 8.1a | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
+| 7R — Visual Correction Against Selected References | Active correction; supersedes earlier visual completion | [Phase 7 correction](checklists/phase-7-visual-correction.md) |
+| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; not started | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 
-Phases 6 and 7 are archived below. The owner's selected character/world/interface
-direction finished in Phase 7; Phase 8 (shrinking survival zone) is the active
-planned work, starting at 8.1a. Existing device/human waiver and deployment/
+Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
+was overstated and is superseded by the active correction. Phase8 remains planned,
+not implemented. Existing device/human waiver and deployment/
 publication approval boundaries remain unchanged.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"

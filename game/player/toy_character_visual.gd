@@ -160,6 +160,17 @@ func _build_accessories() -> void:
 	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.26), slate)
 	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.24, 0.04), Vector3(0.13, 1.34, 0.26), amber)
 	for accessory in accessories.get_children():
+		# Fit the broader continuous creature without changing outfit IDs or
+		# attachment ownership. Face equipment stays in front of the oval inset.
+		accessory.scale.x *= 1.45
+		accessory.scale.z *= 1.45
+		accessory.position.x *= 1.45
+		accessory.position.z *= 1.5
+		if accessory.position.y > 1.6:
+			accessory.position.y -= 0.18
+		if accessory.name == "ToolBelt":
+			accessory.scale.x = 1.8
+			accessory.scale.z = 2.05
 		accessory.set_meta("body", "Head" if accessory.position.y > 1.45 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
 
 
@@ -213,6 +224,10 @@ func _create_clip(clip_name: String) -> Animation:
 		var torso_reset := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(torso_reset, NodePath("Torso:rotation"))
 		animation.track_insert_key(torso_reset, 0.0, Vector3.ZERO)
+		for part in ["FacePlate", "LeftEye", "RightEye", "Mouth"]:
+			var face_reset := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(face_reset, NodePath("%s:transform" % part))
+			animation.track_insert_key(face_reset, 0.0, get_node(part).transform)
 		for accessory: MeshInstance3D in $Accessories.get_children():
 			var reset := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(reset, NodePath("Accessories/%s:transform" % accessory.name))
@@ -237,6 +252,15 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(lean, 0.0, Vector3.ZERO)
 		animation.track_insert_key(lean, 0.1, Vector3(-0.28, 0.0, 0.0))
 		animation.track_insert_key(lean, animation.length, Vector3.ZERO)
+		for part in ["FacePlate", "LeftEye", "RightEye", "Mouth"]:
+			var face_track := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(face_track, NodePath("%s:transform" % part))
+			var rest: Transform3D = get_node(part).transform
+			var pivot: Vector3 = $Torso.position
+			var rotation := Basis(Vector3.RIGHT, -0.28)
+			animation.track_insert_key(face_track, 0.0, rest)
+			animation.track_insert_key(face_track, 0.1, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(face_track, animation.length, rest)
 		for accessory: MeshInstance3D in $Accessories.get_children():
 			if accessory.get_meta("body") != "Chest":
 				continue

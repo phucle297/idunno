@@ -12,6 +12,13 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, size / 48.0)
 	var ink := ink_color
 	match disaster_id:
+		"health":
+			draw_colored_polygon(PackedVector2Array([Vector2(24, 43), Vector2(5, 24), Vector2(5, 13), Vector2(13, 6), Vector2(24, 13), Vector2(35, 6), Vector2(43, 13), Vector2(43, 24)]), DisasterPartyUI.CORAL)
+		"survivors":
+			draw_circle(Vector2(17, 14), 8, ink)
+			draw_circle(Vector2(35, 15), 6, ink)
+			draw_style_box(_person_style(ink), Rect2(5, 26, 24, 16))
+			draw_style_box(_person_style(ink), Rect2(31, 27, 12, 15))
 		"meteor":
 			draw_circle(Vector2(30, 34), 12, ink)
 			draw_line(Vector2(8, 6), Vector2(24, 22), ink, 4, true)
@@ -32,3 +39,10 @@ func _draw() -> void:
 		"fire":
 			draw_colored_polygon(PackedVector2Array([Vector2(24, 2), Vector2(34, 22), Vector2(39, 15), Vector2(44, 32), Vector2(36, 44), Vector2(13, 44), Vector2(5, 31), Vector2(15, 15), Vector2(16, 28)]), ink)
 			draw_circle(Vector2(25, 35), 6, DisasterPartyUI.WARNING)
+
+
+func _person_style(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(6)
+	return style

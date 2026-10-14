@@ -88,9 +88,9 @@ static func _set_size_tokens(theme: Theme) -> void:
 
 static func _set_label_theme(theme: Theme) -> void:
 	theme.set_color("font_color", "Label", INK)
-	theme.set_color("font_shadow_color", "Label", Color(INK, 0.16))
-	theme.set_constant("shadow_offset_x", "Label", 1)
-	theme.set_constant("shadow_offset_y", "Label", 2)
+	theme.set_color("font_shadow_color", "Label", Color.TRANSPARENT)
+	theme.set_constant("shadow_offset_x", "Label", 0)
+	theme.set_constant("shadow_offset_y", "Label", 0)
 	theme.set_font_size("font_size", "Label", FONT_BODY)
 
 
@@ -107,9 +107,19 @@ static func _set_button_theme(theme: Theme) -> void:
 	theme.set_stylebox("disabled", "Button", _control_style(Color(SAND, 0.68), Color(SLATE, 0.38)))
 	theme.set_stylebox("focus", "Button", _focus_style())
 	theme.set_stylebox("focus", "ScrollContainer", _focus_style())
-	theme.set_color("font_color", "CheckButton", INK)
-	theme.set_color("font_focus_color", "CheckButton", INK)
+	theme.set_color("font_color", "CheckButton", CREAM)
+	theme.set_color("font_focus_color", "CheckButton", CREAM)
 	theme.set_stylebox("focus", "CheckButton", _focus_style())
+	theme.set_type_variation("PrimaryAction", "Button")
+	theme.set_color("font_color", "PrimaryAction", INK)
+	theme.set_color("font_focus_color", "PrimaryAction", INK)
+	theme.set_stylebox("normal", "PrimaryAction", _control_style(TEAL, Color("4b8f86")))
+	theme.set_stylebox("hover", "PrimaryAction", _control_style(Color("8bcac0"), INK))
+	theme.set_type_variation("OutfitTile", "Button")
+	theme.set_color("font_color", "OutfitTile", INK)
+	theme.set_color("font_focus_color", "OutfitTile", INK)
+	theme.set_stylebox("normal", "OutfitTile", _control_style(WHITE, SAND, 1))
+	theme.set_stylebox("hover", "OutfitTile", _control_style(Color("e0eee5"), TEAL))
 	var track := _control_style(SLATE, SLATE, 1)
 	track.content_margin_top = 4
 	track.content_margin_bottom = 4
@@ -133,9 +143,12 @@ static func _set_line_edit_theme(theme: Theme) -> void:
 
 static func _set_panel_theme(theme: Theme) -> void:
 	var panel := StyleBoxFlat.new()
-	panel.bg_color = Color(CREAM, 0.96)
-	panel.border_color = SLATE
-	_set_border_width(panel, 4)
+	panel.bg_color = Color(CREAM, 1.0)
+	panel.border_color = Color("c6b38d")
+	panel.shadow_color = Color(INK, 0.22)
+	panel.shadow_size = 8
+	panel.shadow_offset = Vector2(0, 4)
+	_set_border_width(panel, 1)
 	_set_corner_radius(panel, PANEL_RADIUS)
 	_set_content_margin(panel, SPACE_XL, SPACE_LG)
 	theme.set_stylebox("panel", "Panel", panel)
@@ -143,6 +156,8 @@ static func _set_panel_theme(theme: Theme) -> void:
 
 	theme.set_type_variation("HudMetricCard", "PanelContainer")
 	var metric_card := panel.duplicate() as StyleBoxFlat
+	metric_card.bg_color = Color(CREAM, 0.96)
+	_set_corner_radius(metric_card, 14)
 	_set_content_margin(metric_card, SPACE_LG, SPACE_SM)
 	theme.set_stylebox("panel", "HudMetricCard", metric_card)
 
@@ -152,11 +167,11 @@ static func _set_panel_theme(theme: Theme) -> void:
 	theme.set_stylebox("panel", "LobbyPlayerRow", player_row)
 
 	theme.set_type_variation("HudPill", "PanelContainer")
-	var pill := _control_style(Color(CREAM, 0.96), SLATE, 3)
+	var pill := _control_style(Color(CREAM, 0.96), SAND, 1)
 	theme.set_stylebox("panel", "HudPill", pill)
 
 	theme.set_type_variation("HazardChip", "PanelContainer")
-	var hazard_chip := _control_style(Color(SLATE, 0.96), WARNING, 3)
+	var hazard_chip := _control_style(Color(INK, 0.92), WARNING, 1)
 	theme.set_stylebox("panel", "HazardChip", hazard_chip)
 
 	theme.set_type_variation("MajorWarning", "PanelContainer")
@@ -176,6 +191,9 @@ static func _control_style(fill: Color, border: Color, width: int = 2) -> StyleB
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
+	style.shadow_color = Color(INK, 0.12)
+	style.shadow_size = 2
+	style.shadow_offset = Vector2(0, 2)
 	_set_border_width(style, width)
 	_set_corner_radius(style, CONTROL_RADIUS)
 	_set_content_margin(style, SPACE_LG, SPACE_SM)

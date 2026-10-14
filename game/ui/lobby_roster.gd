@@ -35,6 +35,7 @@ func present_players(players: Dictionary, local_peer_id: int, owner_peer_id: int
 			list.add_child(rows[peer_id])
 		var row: PanelContainer = rows[peer_id]
 		list.move_child(row, index)
+		row.get_node("Content/Number").text = "%02d" % (index + 1)
 		var identity: VBoxContainer = row.get_node("Content/Identity")
 		identity.get_node("Name").text = String(players[peer_id].name)
 		var markers: Array[String] = []
@@ -59,6 +60,13 @@ func _create_row() -> PanelContainer:
 	content.name = "Content"
 	content.add_theme_constant_override("separation", UITokens.SPACE_SM)
 	row.add_child(content)
+	var number := Label.new()
+	number.name = "Number"
+	number.custom_minimum_size.x = 36
+	number.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	number.add_theme_font_size_override("font_size", 22)
+	number.add_theme_color_override("font_color", UITokens.SLATE)
+	content.add_child(number)
 	var identity := VBoxContainer.new()
 	identity.name = "Identity"
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL

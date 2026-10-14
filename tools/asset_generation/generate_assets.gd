@@ -2,7 +2,7 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
-const GENERATOR_VERSION := 6
+const GENERATOR_VERSION := 7
 const CharacterVisualScript = preload("res://game/player/toy_character_visual.gd")
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),
@@ -21,6 +21,10 @@ func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(MATERIAL_DIR))
 	var materials := _generate_materials()
 	_generate_character(materials)
+	if "--character-only" in OS.get_cmdline_user_args():
+		print("CHARACTER_GENERATION_OK seed=%d version=%d" % [seed_value, GENERATOR_VERSION])
+		quit()
+		return
 	_generate_wall(materials)
 	_generate_crate(materials)
 	_generate_meteor_proxy(materials)
@@ -51,38 +55,41 @@ func _generate_character(materials: Dictionary) -> void:
 	root.set_script(CharacterVisualScript)
 	root.set_meta("generator_seed", seed_value)
 	root.set_meta("generator_version", GENERATOR_VERSION)
-	# Soft Creature B: one continuous bean-shaped head/body with a small cream
-	# face inset and stubby limbs. The bean is formed by two overlapping body-
-	# coloured spheres so there is no distinct neck or shoulder seam; the cream
-	# patch carries only the two dark eyes and mouth. No skin, human head or
-	# fabric anatomy. The head and lower-body bulbs merge into a single rounded
-	# creature silhouette above the hips.
-	_add_sphere(root, "Head", 0.28, 1.1, Vector3(0.0, 1.15, 0.0), materials.cyan)
-	_add_sphere(root, "Torso", 0.26, 0.44, Vector3(0.0, 0.72, 0.0), materials.cyan)
+	# Soft Creature B: broad uninterrupted suit, oval inset and stubby limbs.
+	# A single uninterrupted capsule surface, not intersecting head/body bulbs.
+	# Keep the named Head anchor for existing appearance and ragdoll contracts.
+	_add_sphere(root, "Head", 0.01, 0.02, Vector3(0.0, 1.25, 0.0), materials.cyan)
+	root.get_node("Head").visible = false
+	_add_capsule(root, "Torso", 0.40, 1.28, Vector3(0.0, 0.96, 0.0), materials.cyan)
+	root.get_node("Torso").scale.z = 0.82
 	# Flattened cream face inset on the front of the bean.
-	_add_box(root, "FacePlate", Vector3(0.30, 0.34, 0.04), Vector3(0.0, 1.2, -0.245), materials.cream)
+	_add_sphere(root, "FacePlate", 0.29, 0.48, Vector3(0.0, 1.18, -0.332), materials.cream)
+	root.get_node("FacePlate").scale.z = 0.10
 	for side in ["Left", "Right"]:
 		var direction := -1.0 if side == "Left" else 1.0
 		var arm := Node3D.new()
 		arm.name = side + "Arm"
-		arm.position = Vector3(direction * 0.24, 1.06, 0.0)
+		arm.position = Vector3(direction * 0.36, 1.02, 0.0)
 		root.add_child(arm)
 		arm.owner = root
-		_add_capsule(arm, "Mesh", 0.09, 0.30, Vector3(0.0, -0.13, 0.0), materials.cyan)
+		_add_capsule(arm, "Mesh", 0.115, 0.43, Vector3(direction * 0.065, -0.17, 0.0), materials.cyan)
 		arm.get_node("Mesh").owner = root
 		var leg := Node3D.new()
 		leg.name = side + "Leg"
-		leg.position = Vector3(direction * 0.13, 0.70, 0.0)
+		leg.position = Vector3(direction * 0.20, 0.43, 0.0)
 		root.add_child(leg)
 		leg.owner = root
-		_add_capsule(leg, "Mesh", 0.09, 0.52, Vector3(0.0, -0.26, 0.0), materials.cyan)
+		_add_capsule(leg, "Mesh", 0.115, 0.32, Vector3(0.0, -0.16, 0.0), materials.cyan)
 		leg.get_node("Mesh").owner = root
-		_add_box(leg, side + "Shoe", Vector3(0.22, 0.16, 0.26), Vector3(0.0, -0.43, -0.03), materials.slate)
+		_add_sphere(leg, side + "Shoe", 0.155, 0.22, Vector3(0.0, -0.32, -0.045), materials.slate)
+		leg.get_node(side + "Shoe").scale.z = 1.12
 		leg.get_node(side + "Shoe").owner = root
 	# Eyes and mouth sit on the cream face inset, not directly on the bean body.
-	_add_sphere(root, "LeftEye", 0.035, 0.06, Vector3(-0.08, 1.24, -0.26), materials.ink)
-	_add_sphere(root, "RightEye", 0.035, 0.06, Vector3(0.08, 1.24, -0.26), materials.ink)
-	_add_box(root, "Mouth", Vector3(0.10, 0.03, 0.02), Vector3(0.0, 1.13, -0.26), materials.ink)
+	_add_sphere(root, "LeftEye", 0.035, 0.10, Vector3(-0.105, 1.22, -0.353), materials.ink)
+	_add_sphere(root, "RightEye", 0.035, 0.10, Vector3(0.105, 1.22, -0.353), materials.ink)
+	_add_smile(root, materials.ink)
+	for part in ["LeftEye", "RightEye"]:
+		root.get_node(part).scale.z = 0.22
 	root.ensure_runtime_setup()
 	_set_owners(root, root)
 	_save_scene(root, "%s/CHR_Base_v001.tscn" % OUTPUT_DIR)
@@ -92,6 +99,28 @@ func _set_owners(node: Node, root: Node) -> void:
 	for child in node.get_children():
 		child.owner = root
 		_set_owners(child, root)
+
+
+func _add_smile(root: Node3D, material: Material) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for step in 12:
+		var a := PI * (0.15 + 0.70 * step / 12.0)
+		var b := PI * (0.15 + 0.70 * (step + 1) / 12.0)
+		var outer_a := Vector3(cos(a) * 0.057, -sin(a) * 0.047, 0)
+		var outer_b := Vector3(cos(b) * 0.057, -sin(b) * 0.047, 0)
+		var inner_a := Vector3(cos(a) * 0.042, -sin(a) * 0.027, 0)
+		var inner_b := Vector3(cos(b) * 0.042, -sin(b) * 0.027, 0)
+		for vertex in [outer_a, inner_a, outer_b, outer_b, inner_a, inner_b]:
+			surface.add_vertex(vertex)
+	surface.generate_normals()
+	var smile := MeshInstance3D.new()
+	smile.name = "Mouth"
+	smile.mesh = surface.commit()
+	smile.material_override = material
+	smile.position = Vector3(0, 1.12, -0.365)
+	root.add_child(smile)
+	smile.owner = root
 
 
 func _generate_wall(materials: Dictionary) -> void:
@@ -153,8 +182,8 @@ func _add_capsule(parent: Node, node_name: String, radius: float, height: float,
 	var mesh := CapsuleMesh.new()
 	mesh.radius = radius
 	mesh.height = height
-	mesh.radial_segments = 12
-	mesh.rings = 4
+	mesh.radial_segments = 32 if node_name == "Torso" else 24
+	mesh.rings = 4 if node_name == "Torso" else 3
 	mesh.material = material
 	instance.mesh = mesh
 	instance.position = position
@@ -168,8 +197,8 @@ func _add_sphere(parent: Node, node_name: String, radius: float, height: float, 
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = height
-	mesh.radial_segments = 8
-	mesh.rings = 4
+	mesh.radial_segments = 48 if node_name == "FacePlate" else (8 if node_name == "Head" else 24)
+	mesh.rings = 12 if node_name == "FacePlate" else 6
 	mesh.material = material
 	instance.mesh = mesh
 	instance.position = position

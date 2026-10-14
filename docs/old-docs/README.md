@@ -18,12 +18,13 @@ new follow-up evidence belongs in a separately named archive.
 | 7 — Soft Creature, Detailed World and Complete Interface | [Checklist](phase-7-soft-creature-world-and-interface/checklist.md) | [Decisions](phase-7-soft-creature-world-and-interface/decisions.md) | [Progress](phase-7-soft-creature-world-and-interface/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
-or publication. Phase 7 completed agent-owned source/regression gates on2026-10-13: the
-B Soft Creature, detailed town/harbor interiors and the complete themed interface, validated
-by the 42-suite regression, five network matrices and the managed 20-client run. Software p95
-measurements did not meet60FPS on llvmpipe; native GPU/Windows/human acceptance remains
-unverified/nonblocking under the waiver. Full failed/passed history is retained per phase.
-Phase 8 (shrinking survival zone) is the current planned work in root progress.
+or publication. The original Phase7 archive retains functional regression evidence, but its
+visual-completion claim is superseded by the2026-10-14 audit: no UI-source redesign had
+landed in that phase. The [active visual correction](../checklists/phase-7-visual-correction.md)
+owns the missing work and selected source references. Historical payloads are unchanged.
+Software p95 measurements did not meet60FPS on llvmpipe; native GPU/Windows/human
+acceptance remains unverified/nonblocking under the waiver. Phase8 remains planned,
+not implemented; root progress owns current state.
 
 ## Suspended phase snapshot — not completed
 

@@ -74,10 +74,10 @@ script = ExtResource("13_hud")
 anchors_preset = 10
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -110.0
+offset_left = -85.0
 offset_top = 24.0
-offset_right = 110.0
-offset_bottom = 104.0
+offset_right = 85.0
+offset_bottom = 88.0
 grow_horizontal = 2
 theme_type_variation = &"HudMetricCard"
 
@@ -152,8 +152,8 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = -118.0
-offset_right = 244.0
+offset_top = -96.0
+offset_right = 310.0
 offset_bottom = -24.0
 grow_vertical = 0
 theme_type_variation = &"HudMetricCard"
@@ -418,10 +418,10 @@ tooltip_text = "Next survivor (E / controller RB)"
 
 [node name="LobbyToggle" type="Button" parent="Interface"]
 offset_left = 24.0
-offset_top = 108.0
-offset_right = 206.0
-offset_bottom = 142.0
-text = "MULTIPLAYER LOBBY [L]"
+offset_top = 24.0
+offset_right = 204.0
+offset_bottom = 64.0
+text = "ROOM MENU  [L]"
 
 [node name="LobbyBackdrop" type="ColorRect" parent="Interface"]
 visible = false
