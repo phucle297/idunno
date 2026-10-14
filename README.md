@@ -8,9 +8,10 @@ terraces, a garden and connected roof walks. Harbor retains its64m footprint.
 Stairs have visible treads/rails/supports over smooth walking collision; hazard
 warnings and flood coverage follow each map's actual extent/elevation.
 The [owner's design reference](assets/references/phase7/rounded-town-camera-reference.png)
-is checked into source, not used as runtime art. This correction is source-only,
-not in the public release below; concept parity and native GPU performance are
-not claimed. See [correction evidence](docs/old-docs/phase-7-integrated-town/checklist.md).
+is checked into source, not used as runtime art. These corrections are included in
+the [Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665).
+Concept parity and native GPU performance are not claimed. See
+[correction evidence](docs/old-docs/phase-7-integrated-town/checklist.md).
 
 Development is specification-led:
 
@@ -32,8 +33,12 @@ for hundreds of thousands/millions of users is planned. The source supports play
 dedicated hosting, room-owner controls, bounded room allocation/admission and
 room-ID create/join UI with retry recovery. Managed-container validation and
 matching Windows/Linux release packaging have executed evidence. The owner-authorized
-[Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606)
+[Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665)
 is deployed at `server.permees.com`; matching Windows/Linux packages are published.
+Download `DisasterParty-Windows-Internet-2619665.zip`, extract all files and run
+`DisasterParty.exe`; old client builds are incompatible. CI passed42 suites,
+five network matrices, managed20 and34 room-service tests. Final Windows uses the
+exact deployed CI PCK; downloaded release archives and tag were verified.
 Public exact-PCK smoke passes two Linux editor-driven clients on one orb/upstream,
 not native Windows or separate-network human acceptance. Earlier public build
 `0d10b28` retains its user Internet/audio evidence; physical listening and measured
@@ -44,10 +49,13 @@ The selected path now uses the **existing Tokyo EC2**, not Terraform provisionin
 See [pipeline prerequisites and operation](GUIDE.md#existing-ec2-pipeline-main-only):
 main-only GitHub Actions validates/builds Linux, then deploys through OIDC/SSM.
 Windows ZIP/GitHub pre-release publication is separate from the Linux deployment
-workflow and was authorized on 2026-10-12. No Steam publication occurred.
+workflow and was authorized on 2026-10-14. No Steam publication occurred.
 The [earlier Terraform module](infra/ec2/README.md) is an optional reference only.
 No EKS is needed; EC2 capacity/configuration is unchanged. GPU, audio and separate-network
 Windows acceptance remain unverified; the completed public smoke is not a capacity claim.
+Profile/reward persistence still requires an explicitly profile-enabled server;
+this deployment does not enable new storage. Chunk streaming and shrinking safe
+zones are not included; Phase8 remains paused.
 
 ## Windows playtest export
 

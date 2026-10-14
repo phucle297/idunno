@@ -1,5 +1,18 @@
 # Báo lỗi khi gặp thực tế
 
+**Bản public hiện tại (2026-10-14):** [Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665),
+tải `DisasterParty-Windows-Internet-2619665.zip`, giải nén toàn bộ và chạy `DisasterParty.exe`.
+Client/server/tag cùng revision `2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d`;
+endpoint `https://server.permees.com`. User duyệt deploy/release riêng; CI/deploy pass
+42 suite, 5 matrix, managed20, settings restart và34 room-service test. PCK Windows
+giống hệt artifact CI đã deploy; ba asset release tải lại/hash/tag đã kiểm tra.
+Public smoke hai client Linux editor dùng final PCK pass TLS/tickets/ENet/roster/
+Ready/Start/remote movement/owner transfer, RTT103ms; cùng một orb/upstream,
+không thay xác nhận Windows gốc/GPU/audio/hai mạng người thật. Giữ nguyên cấu hình
+EC2 và giới hạn phòng/người; không bật profile store mới. Chunk streaming và safe
+zone chưa có. Các mục "chưa deploy" bên dưới là snapshot lịch sử, không phải trạng
+thái bản public hiện tại. Client cũ không tương thích; waiver vẫn giữ nguyên.
+
 **Integrated town (2026-10-14):** sửa tiếp theo phản hồi7S: Town112×112m,
 tường/cornice liền góc, canopy cong/scallop, nền lát đồng bộ, khu dân cư/thương mại,
 civic terrace và garden có cao độ/collision thật, cầu thang có bậc/lan can/gối đỡ.
@@ -19,7 +32,7 @@ Phase6 đã hoàn thành và [archive](docs/old-docs/phase-6-cosmetic-loot-box-d
 ## Bản đã giao gần nhất
 
 - Gói Phase6 local, **chưa deploy/publish**: `.amp/in/artifacts/phase6-packages/` — `DisasterParty-Windows-e978f6a.zip`, `DisasterParty-Linux-server-e978f6a.tar.gz`, `PLAYTEST-NOTES.md`. Source client/server `e978f6a13089250eaef998d8e907b10b62359fde`, PCK giống hệt, hash/unpack và standalone Linux profile restart/open replay/earned equip pass. Completion trong fixture là synthetic; không suy thành phiên người thật. **Không dùng client này với public server Phase5 cũ**. Native Windows/GPU/audio/Internet chưa xác minh; không chặn continuation theo waiver.
-- Release mới: [Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606), tải `DisasterParty-Windows-Internet-bd3b606.zip`, giải nén toàn bộ rồi chạy `DisasterParty.exe`. Client/server cùng revision `bd3b606971ce9cf5470e03c5945d229052eb5ddf`; endpoint: `https://server.permees.com`. Client cũ không tương thích.
+- Release lịch sử: [Phase 5 Hardening Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606), gói `DisasterParty-Windows-Internet-bd3b606.zip`, revision `bd3b606971ce9cf5470e03c5945d229052eb5ddf`. Đã được thay bởi Integrated Town ở đầu trang; không dùng client cũ với server mới.
 - User đã duyệt **deploy và release** ngày2026-10-12. CI build/deploy pass; public smoke hai client Linux editor dùng đúng PCK pass HTTPS tickets/ENet/roster/Ready/Start/remote movement/owner transfer, RTT sample104ms. Cùng một orb/upstream, không phải native Windows/hai mạng riêng. Giữ nguyên cấu hình sức tải EC2; 20 client local pass không chứng minh sức tải production.
 - Xác nhận cũ vẫn giữ: Windows `C:\Users\permees\Downloads\DisasterParty-public-0d10b28`, build `0d10b289520f43889dd19cf5beba9c2abbaaea92`. Không xác nhận package mới đã được tải/chạy trên máy user.
 - Khi có bản mới, client/server cần matching. Bỏ checklist **không tự cho phép restart/deploy server hoặc đổi hạ tầng**; lần deploy/release này có user duyệt riêng, không đổi hạ tầng/capacity. Scope source/playtest hỗ trợ **20 người** (design capacity, automation-validated); kiểm tra người thật/Internet/audio dưới đây vẫn MỞ và automation không thay thế được.
@@ -38,7 +51,7 @@ Không bắt buộc recording hay mẫu báo cáo dài. Agent sẽ tái hiện, 
 - **60FPS throughput trên GPU thật:** profile kịch bản 4 người + prop + chồng hazard của `tests/profile_overlap.gd` (720p/1080p, V-Sync off, p95 ≤ 16.67ms) trên máy có GPU/driver thật. Orb chỉ đo được llvmpipe (software rasterizer) nên không đưa ra claim throughput; pacing với V-Sync mặc định cũng cần màn hình vật lý (Xvfb không có vblank). Không cần làm trước khi báo bug.
 - **Trạng thái performance:** số đo Phase3 p95 103/160ms trên llvmpipe không đạt 16.67ms; hoàn thành việc đo không phải pass mục tiêu. Cần profile matching build trên GPU thật, 120 warmup/600 samples ở cả 720p/1080p, ghi GPU/driver/build/map và p95. Chưa xác minh, không bị biến thành pass bởi waiver.
 - **Capture trên Windows gốc:** các ảnh review phase cuối nằm trong `.amp/in/artifacts/phase-3-final/` được chụp trên Linux orb (llvmpipe). Muốn xác nhận giao diện đúng như bản Windows thì chạy build Windows và xem giúp các trạng thái: carry/prop, emote, shove cue, hazard chồng nhau, spectator/eliminated, rematch — chỉ cần báo khác biệt nếu thấy.
-- **Matching build/network:** bản public mới là `bd3b606`, đã deploy và có exact-PCK public smoke; bản `0d10b28` giữ xác nhận lịch sử. Dùng Windows ZIP mới và kiểm tra revision trong BUILD.txt; ghi số người, máy/mạng, movement/owner departure/crash retry/audio. Một phòng 20 client loopback không chứng minh nhiều phòng 20 người trên EC2; public smoke một orb không thay thế phiên người thật ở hai mạng riêng. Không tự deploy/restart thêm để thực hiện check.
+- **Matching build/network:** bản public hiện tại là Integrated Town revision `2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d`, đã deploy và có exact-PCK public smoke; bản `0d10b28` giữ xác nhận lịch sử. Dùng Windows ZIP mới ở đầu trang và kiểm tra revision trong BUILD.txt; ghi số người, máy/mạng, movement/owner departure/crash retry/audio. Một phòng 20 client loopback không chứng minh nhiều phòng 20 người trên EC2; public smoke một orb không thay thế phiên người thật ở hai mạng riêng. Không tự deploy/restart thêm để thực hiện check.
 
 ## Kiểm tra Phase4 cần người chơi thật (không chặn bug report)
 

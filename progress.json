@@ -28,6 +28,7 @@
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
   "validation_log": [],
   "blockers": [],
+  "integrated_town_release": {"authorization": "2026-10-14 owner: Good. deploy and release", "revision": "2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d", "workflow": "https://github.com/phucle297/idunno/actions/runs/38514066230", "deployment_status": "passed", "release_status": "published_prerelease_verified", "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665", "endpoint": "https://server.permees.com", "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.", "validation": "CI UI_REGRESSION_OK suites42 matrices5 managed20 persistence_restart passed;34 room-service tests; repeated Linux exports and standalone lifecycle passed. Repeated local Windows exports match. CI/local PCK order differs only for main.gdc and asset_validation.tscn; all95 resource payload bytes identical with valid MD5s. Final Windows ZIP uses exact CI-deployed PCK and refreshed checksum manifest; Linux archive is exact CI artifact. Public two-client final-PCK TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer passed RTT103ms, Linux editor/single orb upstream, not native Windows or separate-network human acceptance. Matching unknown-room404, old build409. Three uploaded release assets downloaded and hashes/bytes/tag verified. Isolated packaged profile-store restart/open replay/saved equipment passed with synthetic completion; live server configuration retained, no profile storage enabled. Logs .scratch/release-2619665/{ci,public-smoke,linux-lifecycle,linux-profiles}.log. Native GPU/60FPS/audio unverified; streaming/safe-zone absent."},
   "integrated_town_delivery": {"authorization": "Owner requested corrected source, preserved design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "539255c1a49adf3f07de0b85c517e31ad5a43d2a", "remote_verification": "git ls-remote origin refs/heads/main equals source HEAD", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
   "changed_files": [],
   "rounded_world_delivery": {"authorization": "Owner requested source correction, preserve design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "78aa2a85eac6be297ac5ef653f40125ec3a96a3b", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
@@ -54,5 +55,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Await next agreed scope; chunk streaming is proposed, not implemented, and Phase8 remains paused."
+  "next_action": "Await next agreed scope or bug report for the released Integrated Town build; streaming is proposed and Phase8 remains paused."
 }
