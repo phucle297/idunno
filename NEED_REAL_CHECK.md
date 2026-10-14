@@ -3,8 +3,11 @@
 **Planning tiếp theo:** [Phase8 nhân vật/UI và counterplay](docs/checklists/phase-8-character-disaster-counterplay.md),
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Chưa implement hoặc
-deploy những thay đổi này; báo cáo earthquake/meteor/crouch/carry/Fire+Flood của
-user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
+deploy những thay đổi này. Plan mới bỏ crouch, tạm bỏ cầm đồ; tương tác búa/mảnh gỗ
+chỉ nằm trong backlog. Thêm tái hiện/sửa tay giật khi nhấn-thả Shift; meteor theo
+diện tích còn chơi được, không tăng số lượng về cuối khi bo nhỏ. Phase2 đã chuyển
+vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
+animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
 người dùng bắt buộc; đánh giá cảm giác/challenge/GPU dùng đúng build sau khi có.
 
 **Bản public hiện tại (2026-10-14):** [Integrated Town Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665),

@@ -13,11 +13,11 @@ Do not start all new hazards together before each solo contract is validated.
   Bounded navigation retries; no indoor wall penetration or unavoidable speed pursuit.
 - [ ] 10.2 UFO: a toy saucer telegraphs a fixed beam footprint, lifts exposed players
   with bounded force and drops them with normal authoritative fall damage. Move out
-  during warning or take actual overhead shelter; crouch alone is not beam immunity.
+  during warning or take actual overhead shelter; no crouch/held-item immunity.
   Roof interruption releases safely onto that support, not through ceilings. Retain
   some air control, cap lift height so fall damage is avoidable/nonlethal at full HP
   for baseline capture, bound repeat capture/recovery and exclude no-escape overlap.
-  Respect carry release, ragdoll, elimination, disconnect and reset lifecycles.
+  Respect ragdoll, elimination, disconnect and reset lifecycles.
 - [ ] 10.3 Volcano: choose one authored, warned district and transform it visibly
   from intact terrain to a cooled volcanic/crater field with changed route geometry
   and collision. Use predefined before/after states, not runtime procedural terrain
@@ -28,7 +28,7 @@ Do not start all new hazards together before each solo contract is validated.
   while standing on affected support, not a one-minute delay before damage. Proposed
   baseline6HP/s; warning/heat meter and hot/warm/cooled materials agree with authority.
   Flood immersion rapidly cools only reached surfaces; rain/snow shorten lifetime
-  only on exposed surfaces; carried water cools a local patch. Initial cooling rates:
+  only on exposed surfaces; no carried-water/pour dependency. Initial cooling rates:
   dry1 heat-second/s, rain3, snow4, immersion10; use the strongest applicable rate,
   not duplicate cooling stacked by frame order. Values remain provisional. No instant
   global cooldown just because Flood is active; raised dry lava stays hot. Never
@@ -39,7 +39,7 @@ Do not start all new hazards together before each solo contract is validated.
   a director hazard while residual lethal heat exists (counts toward max2), avoiding
   a hidden third threat. Preserve mutable-terrain restoration with static-map reuse.
 - [ ] 10.6 Validate pursuit/cover/target transfer, beam ceiling/lift/drop bounds,
-  eruption escape and each dry/rain/snow/partial-flood/pour cooling boundary. Same
+  eruption escape and each dry/rain/snow/partial-flood cooling boundary. Same
   seed, delta partitions, simultaneous victims, late joins, both maps and5 rematches.
   Extend full network/regression, render altered district and warning states, measure
   physics/navigation/snapshot/memory budgets, provenance and matching local packages.

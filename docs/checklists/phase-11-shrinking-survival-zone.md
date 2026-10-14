@@ -34,7 +34,7 @@ Apply to solo testing and all multiplayer modes; solo still ends only at death/t
   stays nonzero until existing timeout ranking. No moving/random center or collapse
   to a point: that would need different shelter/flood balance and route validation.
 - Inside means authoritative player root x/z distance ≤ radius (consistent numerical
-  tolerance); vertical height, crouch, hats and cosmetic ragdoll bodies do not change it.
+  tolerance); vertical height, hats and cosmetic ragdoll bodies do not change it.
   Whole-map out-of-bounds death remains a separate existing rule.
 - Outside deals gradual damage to alive players, with cause `Outside survival zone`;
   roofs/walls cannot shield it. No zone damage in lobby/results, before first shrink,
@@ -82,6 +82,10 @@ Owners: `game/main.gd` map anchors, actual map geometry, `game/disasters/disaste
   area. Retain minimum warning/force/damage bounds. Do not concentrate meteor/lighting
   density inversely with zone area. Bound sampling attempts; no unbounded rejection loop.
   Existing persistent warnings/strikes finish at their announced locations, never jump.
+  Apply Phase8's area-aware meteor budget to actual zone/terrain intersections,
+  including disconnected interiors/refuges, not circle area alone. Validate full,
+  half and final-zone footprints; shrink cannot combine increased counts with denser
+  targeting. Reduce or delay new waves if minimum count would carpet safe routes.
 
 Gate G11.1: collision-driven route tests pass for both maps and each transition, with
 asymmetric start positions and damaged structures. Refuse an unsafe center/radius;

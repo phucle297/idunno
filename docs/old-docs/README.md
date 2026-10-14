@@ -32,7 +32,7 @@ not implemented; root progress owns current state.
 
 ## Suspended phase snapshot — not completed
 
-Phase2 was suspended on2026-10-09 for user-authorized Phase3 continuation under the manual-acceptance waiver. Its [full progress](phase-2-human-playtest-and-core-feel/progress.json) retains every unfinished gate and validation result; [decisions](phase-2-human-playtest-and-core-feel/decisions.md) retain the historical body. Its [checklist](../checklists/phase-2-human-playtest-and-core-feel.md) remains at the original path as a deferred reference. This is not a completed-phase archive or a human/release pass.
+Phase2 was suspended on2026-10-09 for user-authorized Phase3 continuation under the manual-acceptance waiver. Its [full progress](phase-2-human-playtest-and-core-feel/progress.json) retains every unfinished gate and validation result; [decisions](phase-2-human-playtest-and-core-feel/decisions.md) retain the historical body. On2026-10-14 the owner requested moving its [checklist](phase-2-human-playtest-and-core-feel/checklist.md) here and removing it from the active/planned roadmap; reopen only on owner request. All three payloads are preserved byte-for-byte, including historical navigation/status statements. This is not a completed-phase archive or a human/release pass.
 
 [PROMPT.md](PROMPT.md) is the original brief, not an active-phase checklist.
 

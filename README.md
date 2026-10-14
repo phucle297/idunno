@@ -57,7 +57,11 @@ Profile/reward persistence still requires an explicitly profile-enabled server;
 this deployment does not enable new storage. Chunk streaming and shrinking safe
 zones are not included. The next [Phase8 plan](docs/checklists/phase-8-character-disaster-counterplay.md)
 prioritizes non-human character/animation/UI refinement, earthquake counterplay,
-useful carrying, Fire/Flood coherence and denser meteor waves. Phase9 adds weather/
+rapid-Shift arm continuity, removal of crouch/temporary removal of grabbing/holding,
+Fire/Flood coherence and area-aware meteor waves (more on the wide map, no automatic
+late count escalation as the zone shrinks). Held hammer/wood interactions are
+[future backlog only](docs/implementation-checklist.md#explicitly-deferred).
+Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
 gates pass. These are plans, not changes to the released build.

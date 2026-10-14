@@ -11,14 +11,14 @@ a generic new simulation framework. Numeric durations/rates lock during this pha
 
 - [ ] 9.1 Weather surfaces: Snowfall gradually builds bounded slippery patches on
   exposed walkable terrain, not invisible global loss of control. Warn accumulation,
-  keep steering/braking bounded, indoor shelter and normal-speed/crouch safer.
+  keep steering/braking bounded, indoor shelter and controlled walking safer.
   Rain wets exposed zones and suppresses ground fire; roofed interiors stay dry.
   Snow melts into wetness; Flood washes submerged snow away. No opaque fog/whiteout,
   per-flake collision, temperature-survival meter or slow damage everywhere.
 - [ ] 9.2 Rockslide: mark a slope/source and downhill corridor before bounded rocks
   roll through it. Clear lateral exits and sturdy-cover stops on both maps; author
   suitable terrain anchors if none exist, rather than rocks spawning on flat roofs.
-  Crates can intercept smaller debris, not guarantee protection against large rocks.
+  Static cover must intercept actual impacts; no held-crate or crouch dependency.
   Warning geometry/rocks follow real slope collision and authoritative impact damage.
 - [ ] 9.3 Integration: fresh distinct icons, Snow/Rain/Rock animations/audio/character
   responses; seeded variants and allowed overlaps (wet ground does not remove rock

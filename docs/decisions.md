@@ -19,7 +19,8 @@ still builds eagerly; same-map rematch reuse is not streaming.
 
 Owner requests planning for Snow, Rockslide, chasing/stinging Bees, UFO lift/drop,
 volcanic changed terrain/hot ground and water/rain/snow cooling; denser meteor,
-useful crouch/carry, earthquake escape and more varied/coherent Fire+Flood.
+earthquake escape and more varied/coherent Fire+Flood. The initial useful-crouch/
+carry proposal is superseded by the later owner revision below.
 Order:8 character/UI and existing counterplay →9 weather/rockslides →10 swarms/UFO/
 volcano →11 former8 shrinking zone. Preserve historical numbering/evidence and
 released source; this planning request does not authorize another public deploy.
@@ -33,10 +34,7 @@ Meteor remains3–4 sequential strikes despite approximately3.06× Town area; de
 and terrain/player-aware targeting come before higher damage or shorter warnings.
 
 Keep selected Soft Creature B non-human silhouette; refine contacts, pose and matte
-coherence, not cosmetic hitboxes. Interpret "ngồi" as existing crouch[C]. Proposed
-grounded brace prevents direct quake pulse/knockdown, not collapse/Flood/fire.
-Carry gains physical debris cover and one bounded water-pail action; no inventory,
-healing or universal carried-item shield. Fire must respect real support height and
+coherence, not cosmetic hitboxes. Fire must respect real support height and
 wetness; flood extinguishes submerged ground fire, not dry elevated roofs.
 
 Interpret volcanic ground as hot for60s after eruption, dealing contact damage
@@ -45,6 +43,40 @@ Use authored terrain state swaps and retain safe evacuation routes, not unbounde
 runtime terraforming. Numeric meteor/heat/cooling defaults are provisional, requiring
 asymmetric boundary/control tests before lock. No new system framework, streaming,
 mandatory human checklist or GPU/fun acceptance inferred from planning.
+
+## 2026-10-14 — Simplify actions and avoid compounded late pressure
+
+Owner removes crouch entirely and temporarily removes grabbing/holding. Phase8.2
+owns end-to-end removal, including HUD/control help, prediction/authority/snapshots,
+carry-only animations and springs; preserve loose hazard bodies and static cover.
+No brace replacement, water pail, held shield or pour/refill work in phases8–10.
+Future held hammer/wood character-to-character interactions live only in the index
+backlog; opening them later needs a scoped effects/fairness/physics/network plan.
+
+Earthquake's escape becomes leaving warned localized fractures/collapse/debris for
+reachable stable support, not enduring global HP pulses or pressing another key.
+Shake is cosmetic; damage remains actual authoritative hazard exposure. This is a
+proposed counterplay contract, not a verified fix for the reported full-round death.
+
+Meteor has more geographically spread strikes on a wide initial map, but replaces
+the initial6/9/12 early/middle/late proposal with bounded usable-area budgets.
+Counts/concurrency/footprint must reduce or cap as playable area shrinks, never
+compound elapsed-time escalation with zone concentration. Phase8 measures full/
+half/small-area fixtures; Phase11 integrates actual zone/navigable-area intersection.
+Frozen warnings and reachable exits remain mandatory; defer unsafe new waves.
+
+Rapid Shift press/release arm snapping is added to8.1 reproduction and8.2 repair.
+Source selects walk/run from speed and starts the changed clip without explicit
+blending; restarting gait is a hypothesis until that exact input case is rendered.
+Plan interruptible blends and gait continuity without input lag or movement changes;
+gate with inspected local/remote interaction clips and different gait phases.
+
+Phase2 checklist moves byte-identically into its existing old-docs group, alongside
+unchanged decisions/progress. It is suspended, not complete, removed from the
+active/planned roadmap and reopened only on owner request. Historical links inside
+the payload describe the old layout; archive/index navigation owns current paths.
+This revision is documentation only: public crouch/carry and current hazards remain
+unchanged until implementation. No deployment or release is authorized by this plan.
 
 ## 2026-10-14 — Integrated Town public delivery
 

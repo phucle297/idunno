@@ -6,7 +6,6 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
 | 8 — Character, UI and Disaster Counterplay | Current plan; implementation not started | [Phase 8](checklists/phase-8-character-disaster-counterplay.md) |
 | 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
 | 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
@@ -22,8 +21,10 @@ a separate proposal. Existing human waiver and deployment approval boundaries re
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware
 performance/native captures and Phase 4 human comparison are unverified, not passed.
-The follow-up closes technical scale/fairness coverage separately. Phase 2 remains
-deferred under its continuation waiver. Current state and action live only in root progress.
+The follow-up closes technical scale/fairness coverage separately. Phase 2 is
+[suspended in old-docs](old-docs/phase-2-human-playtest-and-core-feel/checklist.md),
+not completed or scheduled; reopen only on owner request. Its unfinished evidence
+and continuation waiver remain intact. Current state and action live only in root progress.
 
 ## Completed phases
 
@@ -55,7 +56,11 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 Unrequested disaster classes beyond the new scoped Snow/Rain/Rockslide/Bee/UFO/Volcano plan,
 non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
 ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production
-bots, advanced destruction and a large cosmetic catalog. A water pail is one physical
-interaction prop, not an inventory system; volcanic terrain uses predefined states,
+bots, advanced destruction and a large cosmetic catalog. Crouch is removed by the
+Phase8 plan, not repurposed as a survival counter. Grabbing/holding is temporarily
+removed; later held hammer/wood objects for character-to-character interactions are
+an explicit owner-requested backlog only, with no scheduled phase or current combat
+implementation. Define effects, fairness, physics/network budgets and abuse controls
+when that work is opened; phases8–11 require none of it. Volcanic terrain uses predefined states,
 not arbitrary terraforming. A second map and disaster compositions landed in Phase4;
 free cosmetic drops/equipment landed in Phase6. Completed archives are not new scope.
