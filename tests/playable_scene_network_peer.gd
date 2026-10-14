@@ -110,34 +110,16 @@ func _run_server(main: Node) -> void:
 	Input.action_release("move_left")
 	emote_passed = emote_passed and host_player.get_emote_id() == 0
 	_phase_mark("server", "emote", main, host_player)
-	var grab_manager := main.get_node("GrabManager") as GrabManager
 	var shared_prop := main._network_prop(1) as RigidBody3D
 	shared_prop.freeze = true
-	shared_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction() * 1.0
-	shared_prop.freeze = false
-	var prop_replication_passed := grab_manager.request_grab(1, shared_prop)
-	await create_timer(1.0).timeout
-	prop_replication_passed = prop_replication_passed and int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
-	grab_manager.release_grab(1)
-	shared_prop.freeze = true
-	shared_prop.global_position = client_player.get_grab_origin() + client_player.get_grab_direction()
+	shared_prop.global_position = Vector3(2.0, 0.4, 5.7)
 	shared_prop.linear_velocity = Vector3.ZERO
-	shared_prop.freeze = false
-	while grab_manager.get_grab_owner(shared_prop) != client_id and Time.get_ticks_msec() < deadline:
-		await process_frame
-	prop_replication_passed = prop_replication_passed and grab_manager.get_grab_owner(shared_prop) == client_id and shared_prop.get_collision_exceptions().has(client_player) and not shared_prop.get_collision_exceptions().has(host_player)
-	# Asymmetric role boundary: the prop set stays bounded and only the
-	# current holder's exclusion applies on the shared copy.
-	prop_replication_passed = prop_replication_passed and get_nodes_in_group("network_prop").size() == 3
-	while grab_manager.get_grab_owner(shared_prop) != 0 and Time.get_ticks_msec() < deadline:
-		await process_frame
-	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().is_empty()
-	shared_prop.freeze = true
-	shared_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
-	shared_prop.linear_velocity = Vector3.ZERO
-	shared_prop.freeze = false
-	prop_replication_passed = prop_replication_passed and grab_manager.request_grab(1, shared_prop)
-	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().has(host_player) and not shared_prop.get_collision_exceptions().has(client_player)
+	shared_prop.angular_velocity = Vector3.ZERO
+	await create_timer(0.5).timeout
+	var prop_replication_passed := (
+		shared_prop.global_position.distance_to(Vector3(2.0, 0.4, 5.7)) < 0.05
+		and get_nodes_in_group("network_prop").size() == 3
+	)
 	await create_timer(0.3).timeout
 	host_player.apply_knockdown(Vector3(2.0, 1.0, 0.0))
 	await create_timer(0.7).timeout
@@ -239,14 +221,8 @@ func _run_server(main: Node) -> void:
 		if not is_instance_valid(client_player) or not is_instance_valid(host_player):
 			rematch_passed = false
 			break
-		var old_prop := main._network_prop(1) as RigidBody3D
-		old_prop.freeze = true
-		old_prop.global_position = host_player.get_grab_origin() + host_player.get_grab_direction()
-		old_prop.freeze = false
-		rematch_passed = grab_manager.request_grab(1, old_prop) and rematch_passed
 		rematch_passed = rematch_passed and main.restart_network_match()
 		var new_prop := main._network_prop(1) as RigidBody3D
-		rematch_passed = rematch_passed and grab_manager.get_held_body(1) == null and not new_prop.has_meta("grab_owner_peer_id") and new_prop.get_collision_exceptions().is_empty()
 		# Exact spawn/shape/role restore and no replacement-prop growth.
 		var new_shape: BoxShape3D = null
 		for child: Node in new_prop.get_children():
@@ -303,7 +279,7 @@ func _run_server(main: Node) -> void:
 	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and emote_passed and prop_replication_passed and ragdoll_replication_passed and disasters_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed and cleanup_passed
 	if passed:
 		print("NETWORK_HOST_LOBBY_OK start_gating=passed readiness=passed hud_suppression=passed")
-		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed shared_props=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d emote_replication=passed" % client_id)
+		print("PLAYABLE_NETWORK_SERVER_OK spawned=2 authoritative_movement=passed loose_prop_transforms=passed ragdoll_presentation=passed match_health=passed disaster_presentation=passed elimination=passed network_rematches=5 remaining=1 disconnected_peer=%d emote_replication=passed" % client_id)
 	else:
 		push_error("Playable server validation failed spawn=%s movement=%s active=%s emote=%s props=%s ragdoll=%s disasters=%s nonlethal=%s shove=%s lethal=%s rematch=%s cleanup=%s ids=%s players=%s" % [spawn_passed, movement_passed, active_passed, emote_passed, prop_replication_passed, ragdoll_replication_passed, disasters_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, cleanup_passed, main.get_network_player_ids(), manager.players.keys()])
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
@@ -395,29 +371,14 @@ func _run_client(main: Node) -> void:
 		print("EMOTE_OBSERVATION_DIAGNOSTIC observed=%d terminate_ms=%d lingering=%d" % [emote_observed, emote_terminate_ms, host_player.get_emote_id()])
 	_phase_mark("client", "emote", main, local_player)
 	var shared_prop := main._network_prop(1) as RigidBody3D
-	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
+	while shared_prop.global_position.distance_to(Vector3(2.0, 0.4, 5.7)) >= 0.05 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var prop_replication_passed := (
-		int(shared_prop.get_meta("grab_owner_peer_id", 0)) == 1
-		and shared_prop.freeze
-		and shared_prop.global_position.distance_to(host_player.get_hold_position()) < 1.5
-		and shared_prop.get_collision_exceptions().has(host_player)
+		shared_prop.global_position.distance_to(Vector3(2.0, 0.4, 5.7)) < 0.05
+		and get_nodes_in_group("network_prop").size() == 3
 	)
-	while (int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 0 or main.get_node("GrabManager").get_interaction_candidate(local_player) != shared_prop) and Time.get_ticks_msec() < deadline:
-		await process_frame
-	main.get_node("GrabManager").request_local_toggle(local_id)
-	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != local_id and Time.get_ticks_msec() < deadline:
-		await process_frame
-	prop_replication_passed = prop_replication_passed and int(shared_prop.get_meta("grab_owner_peer_id", 0)) == local_id and shared_prop.get_collision_exceptions().has(local_player) and not shared_prop.get_collision_exceptions().has(host_player)
-	main.get_node("GrabManager").request_local_toggle(local_id)
-	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 1 and Time.get_ticks_msec() < deadline:
-		await process_frame
-	prop_replication_passed = prop_replication_passed and shared_prop.get_collision_exceptions().has(host_player) and not shared_prop.get_collision_exceptions().has(local_player)
 	while not host_player.is_knocked_down() and Time.get_ticks_msec() < deadline:
 		await process_frame
-	while int(shared_prop.get_meta("grab_owner_peer_id", 0)) != 0 and Time.get_ticks_msec() < deadline:
-		await process_frame
-	prop_replication_passed = prop_replication_passed and not shared_prop.get_collision_exceptions().has(host_player)
 	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11 and not host_player.visual.visible
 	_phase_mark("client", "ragdoll", main, local_player)
 	var meteor := main.get_node("MeteorShower") as MeteorShower
@@ -578,7 +539,7 @@ func _run_client(main: Node) -> void:
 		var authoritative_health := manager.get_health(local_id)
 		var replicated_position := local_player.position
 		var reset_prop := main._network_prop(1) as RigidBody3D
-		rematch_passed = rematch_passed and int(reset_prop.get_meta("grab_owner_peer_id", 0)) == 0 and reset_prop.get_collision_exceptions().is_empty() and main.get_node("GrabManager").get_held_body(local_id) == null
+		rematch_passed = rematch_passed and reset_prop.global_position.distance_to(Vector3(0.0, 0.4, 5.7)) < 0.05
 		local_player.position = Vector3(40, -10, 0)
 		main._eliminate_out_of_bounds()
 		rematch_passed = rematch_passed and manager.get_health(local_id) == authoritative_health
@@ -629,7 +590,7 @@ func _run_client(main: Node) -> void:
 	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and emote_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed
 	if passed:
 		print("NETWORK_CLIENT_LOBBY_OK local_host_markers=passed client_start_rejected=passed readiness=passed")
-		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed shared_props=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 emote_replication=passed" % local_id)
+		print("PLAYABLE_NETWORK_CLIENT_OK local=%d players=2 observed_host_and_local_movement=passed loose_prop_transforms=passed ragdoll_presentation=passed match_health_hud=passed disaster_presentation=passed elimination_spectating=passed results=passed network_rematches=5 emote_replication=passed" % local_id)
 	else:
 		push_error("Playable client validation failed spawn=%s movement=%s active=%s emote=%s meteor=%s lightning=%s fire=%s electric_combination=%s wind_combination=%s earthquake=%s nonlethal=%s shove=%s lethal=%s rematch=%s local=%d ids=%s" % [spawn_passed, movement_passed, active_passed, emote_passed, meteor_passed, lightning_passed, fire_passed, electric_combination_passed, wind_combination_passed, earthquake_passed, nonlethal_passed, shove_passed, lethal_passed, rematch_passed, local_id, main.get_network_player_ids()])
 	await create_timer(0.25).timeout
@@ -648,7 +609,6 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 	replacement.name = "CleanupProbe"
 	main.add_child(replacement)
 	var manager := main.get_node("MatchManager") as MatchManager
-	var grab_manager := main.get_node("GrabManager") as GrabManager
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
@@ -657,7 +617,6 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 	var fire := main.get_node("Fire") as Fire
 	var passed: bool = (
 		manager.register_player(peer_id, "Cleanup Probe")
-		and grab_manager.register_player(peer_id, replacement)
 		and meteor.register_player(peer_id, replacement)
 		and flood.register_player(peer_id, replacement)
 		and tornado.register_player(peer_id, replacement)
@@ -665,7 +624,6 @@ func _registries_accept_removed_peer(main: Node, peer_id: int) -> bool:
 		and lightning.register_player(peer_id, replacement)
 		and fire.register_player(peer_id, replacement)
 	)
-	grab_manager.unregister_player(peer_id)
 	meteor.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
 	tornado.unregister_player(peer_id)
