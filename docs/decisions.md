@@ -22,3 +22,12 @@ remain decorative over the solid ramp slab; all other selected detail collisions
 remain. Final prop-role191 and detail-collision77 pass, Town781/Harbor55 bodies.
 Full CI is still required before delivery; historical archive evidence is unchanged.
 Infrastructure, capacity and profile-store settings remain unchanged.
+
+Corrected source run38591914415 passed all42 scene suites and the20-player
+match matrix, then failed the known rematch reset-observation race. Production
+prop snapshots are unreliable and independent of ACTIVE; gravity can settle the
+crate before the exact reset pose is delivered. The test now freezes that one
+server-side crate only until the client's existing ACTIVE/reset acknowledgement,
+then restores physics. Exact position/shape/role assertions and real RPCs stay;
+no tolerance or production behavior changed. Two consecutive real two-peer,
+five-rematch fixture runs pass. Full CI/deployment remains pending.

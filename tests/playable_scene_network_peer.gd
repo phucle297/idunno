@@ -247,6 +247,10 @@ func _run_server(main: Node) -> void:
 			break
 		rematch_passed = rematch_passed and main.restart_network_match()
 		var new_prop := main._network_prop(1) as RigidBody3D
+		# Reset transforms use an unreliable channel independent of ACTIVE.
+		# Hold this fixture's exact reset pose until the observer acknowledges
+		# it; otherwise gravity can settle it before any reset snapshot arrives.
+		new_prop.freeze = true
 		# Exact spawn/shape/role restore and no replacement-prop growth.
 		var new_shape: BoxShape3D = null
 		for child: Node in new_prop.get_children():
@@ -264,6 +268,7 @@ func _run_server(main: Node) -> void:
 		)
 		await create_timer(0.3).timeout
 		rematch_passed = await main.wait_for_stage("active_%d" % rematch_index) and rematch_passed
+		new_prop.freeze = false
 		client_player = main.get_node_or_null("NetworkPlayer%d" % client_id) as PartyPlayer
 		if not is_instance_valid(client_player):
 			rematch_passed = false
