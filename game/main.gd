@@ -2684,13 +2684,17 @@ func _add_stair_presentation(node_name: String, width: float, low: Vector3, high
 	for side in [-1.0, 1.0]:
 		var a := Vector3(side * (width * 0.5 - 0.08), 0.85, 0)
 		var b := Vector3(a.x, high.y - low.y + 0.85, direction * run)
-		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal, true)
+		# Stair rails are a presentation layer over the already-solid ramp
+		# slab. Solid side posts trap the diagonal ground approach and block
+		# the crate-boost shove across the slab, so they stay decorative;
+		# the ramp collider still governs walking and the crossing rules.
+		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal)
 		bar.rotation.x = -atan((b.y - a.y) / (b.z - a.z))
-		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate, true)
+		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate)
 		stringer.rotation.x = bar.rotation.x
 		for i in 5:
 			var t := i / 4.0
-			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal, true)
+			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal)
 			if low.y < 0.1 and (high.y - low.y) * t > 0.25:
 				var support_height := (high.y - low.y) * t - 0.2
 				_add_box_to(stairs, "Support%s%d" % [side, i], Vector3(0.18, support_height, 0.18), Vector3(a.x, support_height * 0.5, direction * run * t), PALETTE.slate)

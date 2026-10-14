@@ -31,8 +31,8 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "validation_log": [],
-  "changed_files": [],
+  "validation_log": [{"check": "Authorized release regression recovery", "status": "in_progress", "result": "Deploy run38583685846 failed map-variety before deployment. Stair handrail blocks plaza_east approach; drowning ends match and cascades to later hazard failures. Removing top rail passes424 checks; remaining stair rails block required crate crossing. Removing stair presentation colliders restores PROP_ROLE_FEASIBILITY_OK191 and MAP_DETAIL_COLLISION_OK77, Town781/Harbor55. Full CI still required; old server unchanged."}],
+  "changed_files": ["game/main.gd", "tests/test_map_detail_collision.gd", "assets/manifest.json", "docs/decisions.md", "progress.json"],
   "blockers": [],
   "phase8_local_delivery": {
     "status": "validated_local_packages_not_published_or_deployed",
@@ -56,7 +56,7 @@
     "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.",
     "validation_reference": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json#integrated_town_release"
   },
-  "collision_followup_delivery": {"authorization": "Owner requests solid environment collision", "status": "source_local_uncommitted_pending_delivery", "archive": "docs/old-docs/phase-8-collision-followup/progress.json", "packages": "not_requested; existing Phase8 bundles predate feature", "deployment": "not_requested; [skip ci] if committed"},
+  "collision_followup_delivery": {"authorization": "2026-10-14 owner: release and deploy", "status": "release_regression_recovery", "archive": "docs/old-docs/phase-8-collision-followup/progress.json", "packages": "matching Windows and exact CI Linux artifacts pending", "deployment": "existing EC2 only, first run38583685846 failed before deployment"},
   "historical_delivery_metadata": {"archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "preserved_keys": ["integrated_town_delivery", "rounded_world_delivery", "correction_delivery", "delivery", "local_delivery"], "qualification": "Historical delivery evidence retained without loss in the archives; not authorization for a new deployment."},
-  "next_action": "Await owner scope after collision follow-up; pickups remain planning only, no deployment or new packages authorized."
+  "next_action": "Pass full CI on corrected stair collision, deploy existing EC2 and publish matching GitHub playtest pre-release; pickups remain planning only."
 }

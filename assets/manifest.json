@@ -244,10 +244,10 @@
       "source_path": "game/main.gd::_add_detail_box/_add_round_detail/_add_detail_collision",
       "export_path": "scenes/main.tscn::Sandbox",
       "generator_script": "game/main.gd",
-      "generator_version": "1_solid_environment_followup",
+      "generator_version": "2_preserve_stair_approach_and_prop_crossing",
       "seed": 0,
       "collider_type": "StaticBody3D layer1; dimension-matched BoxShape3D and baked26-point ConvexPolygonShape3D shrub ellipsoids",
-      "measured_static_detail_bodies": {"toy_town": 963, "toy_harbor": 69},
+      "measured_static_detail_bodies": {"toy_town": 781, "toy_harbor": 55},
       "intended_dimensions_m": {"park_rail": [2.2, 0.9, 0.18], "park_rail_center": [17.9, 2.65, 10.15], "shrub_hull": "authored visual radii baked into convex vertices; no nonuniform body scale"},
       "triangle_count_per_rounded_box": 972,
       "collision_hull_vertex_count": 26,
@@ -258,8 +258,8 @@
       "animation_list": [],
       "gameplay_tags": ["solid_map_detail"],
       "provenance": "Project-authored deterministic runtime collision. No imported geometry, downloaded assets or CC0 claim. Explicit solidity for rail bars/posts, shrubs/planters, lamps, roof vents, Harbor bollards/cargo. High tree canopy, rail finials, paint/paving and thin facade trim remain decorative. Supersedes earlier visual-only collision policy for these selected details, not historical validation evidence.",
-      "validation_status": "MAP_DETAIL_COLLISION_OK82 both_maps_five_rematches; foliage_ray_above_container_rotated_stair_handrail_capsule_sweeps_sustained_grounded_contact_passed; final_all_routes_and_refuge_exits58_safety231_combinations102_passed; actual2_4_peers_both_maps_five_rematches_passed;720p_1080p_contact_renders_inspected; headless20_avatar_p95physics7.311ms_process5.481ms_memory_plateau_not_GPU60FPS",
-      "qualification": "Static detail bodies, no additional authoritative loose bodies or networked physics. Box proxies slightly approximate rounded edges; shrub convex hull is inside visible ellipsoid. No GPU60FPS/human acceptance claim."
+      "validation_status": "Release correction: MAP_DETAIL_COLLISION_OK77 both_maps_five_rematches; PROP_ROLE_FEASIBILITY_OK191 restores ramp crate crossing. MAP_VARIETY_OK424 with top handrail removed; final source removes remaining stair-detail colliders too and awaits full CI. Previous render/performance/network evidence is historical, not final-source validation.",
+      "qualification": "Stair presentation rails remain decorative over the solid ramp slab to preserve ground approach and crate crossing. Other selected rails remain solid. Static detail bodies, no additional authoritative loose bodies or networked physics. Box proxies slightly approximate rounded edges; shrub convex hull is inside visible ellipsoid. No GPU60FPS/human acceptance claim."
     },
     {
       "asset_id": "VFX_LocalizedFracture_v001",

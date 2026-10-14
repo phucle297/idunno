@@ -57,9 +57,6 @@ func _check_obstacles(main: Node3D, player: PartyPlayer, map_id: String) -> void
 		var query := PhysicsRayQueryParameters3D.create(center + Vector3(-2, 0.2, 0), center + Vector3(2, 0.2, 0), 1)
 		var hit := main.get_world_3d().direct_space_state.intersect_ray(query)
 		_expect(not hit.is_empty() and hit.collider.is_in_group("solid_map_detail"), "Shrub foliage above planter must block a ray")
-		var handrail_query := PhysicsRayQueryParameters3D.create(Vector3(15, 1.975, 5), Vector3(18, 1.975, 5), 1)
-		var handrail_hit := main.get_world_3d().direct_space_state.intersect_ray(handrail_query)
-		_expect(not handrail_hit.is_empty() and handrail_hit.collider.is_in_group("solid_map_detail"), "Sloped stair handrail must collide in its rotated visual position")
 	else:
 		var rail: Node3D = sandbox.get_node("DockWest/SeawardRail")
 		probes = [
