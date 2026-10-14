@@ -21,13 +21,13 @@ The earlier Phase 7 archive remains historical. Its blanket visual-completion cl
 ## 7R.3 — Combined verification
 
 - [x] `GODOT_BIN=$(command -v godot) bash tests/run_ui_regression.sh`: `UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed`.
-- [x] Render room states, settings, gameplay warnings, results and spectator at720p/1080p; collection at720p. Existing long-name ellipsis/tooltips retained intentionally.
+- [x] Render room states, collection, settings, gameplay warnings, results and spectator at720p/1080p. Final collection1080p check35, Phase1 971/player294/map42/theme18 reruns pass. Existing long-name ellipsis/tooltips retained intentionally.
 - [x] Real-pointer collection select/rotate/reveal/close recording reviewed; ten opens preserve node count.
 - [x] Record limits: software renderer, no native-GPU performance claim, no new human acceptance or public deployment.
 
 ## 7R.4 — Delivery
 
-- [ ] Commit and push the authorized current branch, using `[skip ci]` to avoid triggering the existing deployment workflow.
-- [ ] Verify remote HEAD and record actual delivery; do not infer a new release or server deployment.
+- [x] Commit and push the authorized current branch, using `[skip ci]` to avoid triggering the existing deployment workflow.
+- [x] Remote HEAD equals correction commit `848b5680bf65a93e21445209d51802f30a5a0ca7`; no new release or server deployment.
 
 Phase8 remains planned and unimplemented. User acceptance stays nonblocking under the existing waiver; aesthetic feedback is not manufactured from automated checks.

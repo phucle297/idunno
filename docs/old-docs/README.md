@@ -16,12 +16,14 @@ new follow-up evidence belongs in a separately named archive.
 | 5 — Validation Follow-up | [Checklist](phase-5-validation-followup/checklist.md) | [Decisions](phase-5-validation-followup/decisions.md) | [Progress](phase-5-validation-followup/progress.json) |
 | 6 — Cosmetic Loot-Box Drops and Customization | [Checklist](phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) | [Decisions](phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) | [Progress](phase-6-cosmetic-loot-box-drops-and-customization/progress.json) |
 | 7 — Soft Creature, Detailed World and Complete Interface | [Checklist](phase-7-soft-creature-world-and-interface/checklist.md) | [Decisions](phase-7-soft-creature-world-and-interface/decisions.md) | [Progress](phase-7-soft-creature-world-and-interface/progress.json) |
+| 7R — Visual Correction | [Checklist](phase-7-visual-correction/checklist.md) | [Decisions](phase-7-visual-correction/decisions.md) | [Progress](phase-7-visual-correction/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
 visual-completion claim is superseded by the2026-10-14 audit: no UI-source redesign had
-landed in that phase. The [active visual correction](../checklists/phase-7-visual-correction.md)
-owns the missing work and selected source references. Historical payloads are unchanged.
+landed in that phase. The [separate visual correction](phase-7-visual-correction/checklist.md)
+delivered the missing source work and selected references; human aesthetic/native-GPU
+acceptance is not claimed. Historical payloads are unchanged.
 Software p95 measurements did not meet60FPS on llvmpipe; native GPU/Windows/human
 acceptance remains unverified/nonblocking under the waiver. Phase8 remains planned,
 not implemented; root progress owns current state.

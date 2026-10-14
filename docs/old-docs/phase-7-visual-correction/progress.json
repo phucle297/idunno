@@ -1,0 +1,173 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "historical_completed",
+  "archive": {"phase_id": "phase_7_visual_correction", "title": "Phase 7 Visual Correction Against Selected References", "status": "completed_agent_owned_source_and_delivery", "archived_at": "2026-10-14", "superseded_by": "../../../progress.json", "human_native_gpu_acceptance": "unverified_nonblocking"},
+  "archive_policy": {
+    "directory": "docs/old-docs",
+    "filename_pattern": "{phase-slug}/progress.json",
+    "rule": "Archive completed phases without overwriting history. Phase 2 remains deferred_not_completed; its unfinished gates remain unchanged."
+  },
+  "previous_phase_archive": "docs/old-docs/phase-7-soft-creature-world-and-interface/progress.json",
+  "checklist": "docs/checklists/phase-7-visual-correction.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_7_visual_correction",
+    "milestone": "7R.4",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_7_visual_correction",
+    "title": "Phase 7 Visual Correction Against Selected References",
+    "status": "completed",
+    "milestones": [
+      {
+        "id": "7R.1",
+        "title": "Rounded character and authored environment",
+        "status": "completed",
+        "tasks": [
+          {
+            "id": "7R.1a",
+            "status": "completed"
+          },
+          {
+            "id": "7R.1b",
+            "status": "completed"
+          },
+          {
+            "id": "7R.1c",
+            "status": "completed"
+          }
+        ],
+        "gate": {
+          "id": "G7R.1",
+          "status": "passed",
+          "required": true
+        }
+      },
+      {
+        "id": "7R.2",
+        "title": "Whole-interface composition and source references",
+        "status": "completed",
+        "tasks": [
+          {
+            "id": "7R.2a",
+            "status": "completed"
+          },
+          {
+            "id": "7R.2b",
+            "status": "completed"
+          },
+          {
+            "id": "7R.2c",
+            "status": "completed"
+          }
+        ],
+        "gate": {
+          "id": "G7R.2",
+          "status": "passed",
+          "required": true
+        }
+      },
+      {
+        "id": "7R.3",
+        "title": "Combined regression and reference-based rendered checks",
+        "status": "completed",
+        "gate": {
+          "id": "G7R.3",
+          "status": "passed",
+          "required": true
+        }
+      },
+      {
+        "id": "7R.4",
+        "title": "Commit and user-authorized push without deployment",
+        "status": "completed",
+        "gate": {
+          "id": "G7R.4",
+          "status": "passed",
+          "required": true
+        }
+      }
+    ]
+  },
+  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md", "depends_on": "phase_7_visual_correction"}],
+  "next_scope_design": {},
+  "completed_phase": {
+    "id": "phase_7_soft_creature_world_and_interface",
+    "title": "Soft Creature, Detailed World and Complete Interface",
+    "status": "completion_claim_superseded",
+    "milestones": 6,
+    "gate": "2026-10-14 audit: functional checks passed, but visual completion was overstated; UI source had not been redesigned and character/environment did not meet selected references.",
+    "scope": "Historical archive preserved unchanged. This correction phase owns missing visual work. Phase 8 has not started."
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "validation_log": [
+    {"date": "2026-10-14", "check": "character_and_environment", "status": "passed", "result": "Generator7 seed297 deterministic character SHA256 cee8a3fa91a0a23d345e3bccf095f31a43239bb7c0996309c9dd453a0051d294. Phase1 971; player294; colliders153; carry41; emotes55; shove70. ENV_GEOMETRY_CONTRACT_OK town_colliders=107 harbor_colliders=46 anchors_identical=true; map_identity42 variety303 safety251. Character front/back/eight outfits/gameplay and six environment renders inspected."},
+    {"date": "2026-10-14", "command": "GODOT_BIN=$(command -v godot) bash tests/run_ui_regression.sh", "status": "passed", "result": "UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed", "log": ".scratch/phase7-correction-regression.log"},
+    {"date": "2026-10-14", "check": "render_and_pointer", "status": "passed", "result": "ROOM_UI_OK checks=180 at1280x720 and1920x1080; RESULTS_TABLE_OK487 and SPECTATOR_PRESENTATION_OK87 at both widths. VISUAL_CORRECTION_REVIEW_OK thumbnail_icons=8 pointer_select_rotate_close=passed ten_opens_nodes_stable=true. Real-pointer Cap/select/rotation/raincoat reveal/close recording inspected. Final settings text contrast checked. Initial room capture omitted required --review-resolution, failed fixture assertions; corrected invocation passed, no production workaround.", "artifacts": [".amp/in/artifacts/phase7-correction/screens-review.png", ".amp/in/artifacts/phase7-correction/world-review.png", ".amp/in/artifacts/phase7-correction/interaction.webm"]},
+    {"date": "2026-10-14", "check": "limitations", "status": "not_run", "result": "Linux Compatibility llvmpipe only, no native Windows/GPU/60FPS/human aesthetic pass. Environment architecture remains simpler and more angular than concept. Existing long-name ellipsis/tooltips retained. Existing shutdown audio-resource diagnostics recorded by strict runner; no runtime error suppression added. Concepts are source references, not exact-match or performance proof. No new public deploy/release."}
+  ],
+  "blockers": [],
+  "changed_files": ["game/main.gd", "game/ui", "game/player/toy_character_visual.gd", "game/player/cosmetic_ragdoll.gd", "scenes/main.tscn", "tools/asset_generation/generate_assets.gd", "assets/generated/CHR_Base_v001.tscn", "assets/manifest.json", "assets/references/phase7", "tests/test_phase1.gd", "docs/decisions.md", "docs/checklists/phase-7-visual-correction.md", "docs/implementation-checklist.md", "docs/old-docs/README.md", "NEED_REAL_CHECK.md"],
+  "correction_delivery": {"authorization": "Owner: fix design, add design images to source and push after finishing", "status": "committed_and_pushed_verified", "branch": "main", "revision": "848b5680bf65a93e21445209d51802f30a5a0ca7", "verification": "git push origin main succeeded; git ls-remote origin refs/heads/main equals local HEAD", "deployment": "not_requested; [skip ci] avoids automatic deployment", "release": "not_requested"},
+  "delivery": {
+    "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
+    "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
+    "revision": "bd3b606971ce9cf5470e03c5945d229052eb5ddf",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38272856925",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606",
+    "endpoint": "https://server.permees.com",
+    "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
+  },
+  "local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "e978f6a13089250eaef998d8e907b10b62359fde",
+    "directory": ".amp/in/artifacts/phase6-packages",
+    "windows": "DisasterParty-Windows-e978f6a.zip",
+    "windows_sha256": "2a6e34eb961b5a9b94258b582abb7965db8c208a3c28b1b84a5302c9f42229e8",
+    "linux_server": "DisasterParty-Linux-server-e978f6a.tar.gz",
+    "linux_server_sha256": "f992971bbbd7fd1f57c11b03a972cc268c516fff56b21ebda1f670366371e202",
+    "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "next_action": "Archive the delivered correction separately; leave Phase8 planned and unimplemented until the next work session."
+}
