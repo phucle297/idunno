@@ -3,7 +3,7 @@
   "updated_at": "2026-10-14",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "planning_ready",
   "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 remains deferred, not completed."},
   "previous_phase_archive": "docs/old-docs/phase-7-integrated-town/progress.json",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
@@ -14,10 +14,22 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
-  "checklist": null,
-  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md", "qualification": "Paused during visual corrections; not automatically activated by rounded-source delivery."}],
+  "current": {"phase": "phase_8_character_disaster_counterplay", "milestone": "8.1", "task": null},
+  "phase": {"id": "phase_8_character_disaster_counterplay", "title": "Character, UI and Disaster Counterplay", "status": "planned", "milestones": [
+    {"id": "8.1", "title": "Reproduce existing hazard reports and lock counterplay contracts", "status": "planned", "gate": {"required": true, "status": "not_run"}},
+    {"id": "8.2", "title": "Character model, animation and action UI", "status": "planned", "gate": {"required": true, "status": "not_run"}},
+    {"id": "8.3", "title": "Earthquake brace, readable collapse and reachable escape", "status": "planned", "gate": {"required": true, "status": "not_run"}},
+    {"id": "8.4", "title": "Useful carrying, water pail and coherent Fire/Flood", "status": "planned", "gate": {"required": true, "status": "not_run"}},
+    {"id": "8.5", "title": "Meteor waves and fair terrain-aware density", "status": "planned", "gate": {"required": true, "status": "not_run"}},
+    {"id": "8.6", "title": "Integrated visual/network regression and matching local packages", "status": "planned", "gate": {"required": true, "status": "not_run"}}
+  ]},
+  "checklist": "docs/checklists/phase-8-character-disaster-counterplay.md",
+  "planned_phases": [
+    {"id": "phase_9_weather_rockslides", "status": "planned", "checklist": "docs/checklists/phase-9-weather-rockslides.md", "depends_on": "phase_8_character_disaster_counterplay"},
+    {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by explicit owner priority; revalidate expanded/mutated map and new hazards before zone implementation."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
   "completed_phase": {"id": "phase_7_integrated_town", "status": "completed_agent_owned_source_and_delivery", "archive": "docs/old-docs/phase-7-integrated-town/progress.json", "qualification": "Integrated architecture/canopy/paving/stairs and112m populated terraced Town, terrain-aware hazards, rematch recovery, executed regression and source push. Not exact concept parity, owner aesthetic approval, native GPU/60FPS, deployment/release or progressive loading."},
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -26,11 +38,11 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "validation_log": [],
+  "validation_log": [{"check": "2026-10-14 planning consistency", "status": "passed", "result": "PLANNING_VALIDATION_OK: active Phase8 and planned9/10/11 paths/IDs resolve; all implementation gates not_run; former zone tasks/stage schedule retained after renumbering; release metadata and waiver preserved. Direct code inspection supports global quake pulses, horizontal fire exposure/no flood suppression, seeded fire fronts and3–4 sequential meteors. No new gameplay tests executed or fixes claimed. JSON and git diff --check passed."}],
   "blockers": [],
   "integrated_town_release": {"authorization": "2026-10-14 owner: Good. deploy and release", "revision": "2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d", "workflow": "https://github.com/phucle297/idunno/actions/runs/38514066230", "deployment_status": "passed", "release_status": "published_prerelease_verified", "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665", "endpoint": "https://server.permees.com", "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.", "validation": "CI UI_REGRESSION_OK suites42 matrices5 managed20 persistence_restart passed;34 room-service tests; repeated Linux exports and standalone lifecycle passed. Repeated local Windows exports match. CI/local PCK order differs only for main.gdc and asset_validation.tscn; all95 resource payload bytes identical with valid MD5s. Final Windows ZIP uses exact CI-deployed PCK and refreshed checksum manifest; Linux archive is exact CI artifact. Public two-client final-PCK TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer passed RTT103ms, Linux editor/single orb upstream, not native Windows or separate-network human acceptance. Matching unknown-room404, old build409. Three uploaded release assets downloaded and hashes/bytes/tag verified. Isolated packaged profile-store restart/open replay/saved equipment passed with synthetic completion; live server configuration retained, no profile storage enabled. Logs .scratch/release-2619665/{ci,public-smoke,linux-lifecycle,linux-profiles}.log. Native GPU/60FPS/audio unverified; streaming/safe-zone absent."},
   "integrated_town_delivery": {"authorization": "Owner requested corrected source, preserved design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "539255c1a49adf3f07de0b85c517e31ad5a43d2a", "remote_verification": "git ls-remote origin refs/heads/main equals source HEAD", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
-  "changed_files": [],
+  "changed_files": ["progress.json", "README.md", "NEED_REAL_CHECK.md", "docs/decisions.md", "docs/implementation-checklist.md", "docs/old-docs/README.md", "docs/checklists/phase-8-character-disaster-counterplay.md", "docs/checklists/phase-9-weather-rockslides.md", "docs/checklists/phase-10-swarms-ufo-volcano.md", "docs/checklists/phase-11-shrinking-survival-zone.md"],
   "rounded_world_delivery": {"authorization": "Owner requested source correction, preserve design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "78aa2a85eac6be297ac5ef653f40125ec3a96a3b", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
   "correction_delivery": {"authorization": "Owner requested fix, source design images and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "848b5680bf65a93e21445209d51802f30a5a0ca7", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
   "delivery": {
@@ -55,5 +67,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Await next agreed scope or bug report for the released Integrated Town build; streaming is proposed and Phase8 remains paused."
+  "next_action": "Execute8.1 deterministic earthquake-alone/Flood+Earthquake and Fire+Flood reproductions with real controller/contact and HP-cause traces before implementing the planned counters."
 }

@@ -39,3 +39,8 @@ Phase2 was suspended on2026-10-09 for user-authorized Phase3 continuation under 
 Historical decisions and progress were moved without changing their contents. Paths and phase/milestone numbers inside them describe the layout at recording time. In particular, historical `superseded_by` and `previous_phase_archive` strings are not current navigation links; use this index and root `progress.json` for current locations.
 
 Future completed phases use `docs/old-docs/{phase-slug}/{checklist.md,decisions.md,progress.json}`. Preserve full evidence, never overwrite an existing archive, and leave active/planned checklists under `docs/checklists/`.
+
+2026-10-14 numbering change: the formerly planned shrinking-zone Phase8 is now
+[Phase11](../checklists/phase-11-shrinking-survival-zone.md), after new Phase8–10
+character/UI and disaster work. Historical Phase8 IDs/paths in archived evidence
+remain unchanged; use that new link for the current postponed zone plan.

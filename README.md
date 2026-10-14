@@ -55,7 +55,12 @@ No EKS is needed; EC2 capacity/configuration is unchanged. GPU, audio and separa
 Windows acceptance remain unverified; the completed public smoke is not a capacity claim.
 Profile/reward persistence still requires an explicitly profile-enabled server;
 this deployment does not enable new storage. Chunk streaming and shrinking safe
-zones are not included; Phase8 remains paused.
+zones are not included. The next [Phase8 plan](docs/checklists/phase-8-character-disaster-counterplay.md)
+prioritizes non-human character/animation/UI refinement, earthquake counterplay,
+useful carrying, Fire/Flood coherence and denser meteor waves. Phase9 adds weather/
+rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
+[Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
+gates pass. These are plans, not changes to the released build.
 
 ## Windows playtest export
 

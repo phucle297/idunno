@@ -7,12 +7,17 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; not started | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
+| 8 — Character, UI and Disaster Counterplay | Current plan; implementation not started | [Phase 8](checklists/phase-8-character-disaster-counterplay.md) |
+| 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
+| 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
+| 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
-was overstated and is superseded by the separately archived visual correction. Phase8 remains planned,
-not implemented. Existing device/human waiver and deployment/
-publication approval boundaries remain unchanged.
+was overstated and is superseded by the separately archived visual correction.
+On2026-10-14 the owner reprioritized model/UI, existing hazard counterplay and new
+disasters ahead of the shrinking zone: old Phase8 → Phase11. Historical archive
+IDs stay unchanged. New phases are planned, not implemented; chunk streaming stays
+a separate proposal. Existing human waiver and deployment approval boundaries remain.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware
@@ -47,4 +52,10 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 ## Explicitly deferred
 
-Additional disaster classes, non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes, ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production bots, advanced destruction, and a large cosmetic catalog. A second map and disaster compositions landed in Phase 4; free earned cosmetic drops and a minimal collection/equip system landed in Phase 6. Both are archived, not authorization for new work.
+Unrequested disaster classes beyond the new scoped Snow/Rain/Rockslide/Bee/UFO/Volcano plan,
+non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
+ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production
+bots, advanced destruction and a large cosmetic catalog. A water pail is one physical
+interaction prop, not an inventory system; volcanic terrain uses predefined states,
+not arbitrary terraforming. A second map and disaster compositions landed in Phase4;
+free cosmetic drops/equipment landed in Phase6. Completed archives are not new scope.

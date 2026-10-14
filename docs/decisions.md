@@ -7,11 +7,44 @@ alongside it; concept parity, owner aesthetic approval and native GPU performanc
 are not claimed. That source-only checkpoint was subsequently released under the
 owner's explicit2026-10-14 deploy/release authorization, recorded below.
 
-Root [progress](../progress.json) awaits the next agreed scope. Phase8 remains
-[planned](checklists/phase-8-shrinking-survival-zone.md), not automatically active.
+Root [progress](../progress.json) now owns the
+[Phase8 counterplay plan](checklists/phase-8-character-disaster-counterplay.md).
+The former safe-zone Phase8 is [Phase11](checklists/phase-11-shrinking-survival-zone.md),
+deferred after the new character/UI and disaster phases, not automatically implemented.
 The owner's progressive-loading question has a proposed chunk-streaming approach
 in the archive, not an implemented feature or an activated phase. The current map
 still builds eagerly; same-map rematch reuse is not streaming.
+
+## 2026-10-14 — Model/UI and disaster priority
+
+Owner requests planning for Snow, Rockslide, chasing/stinging Bees, UFO lift/drop,
+volcanic changed terrain/hot ground and water/rain/snow cooling; denser meteor,
+useful crouch/carry, earthquake escape and more varied/coherent Fire+Flood.
+Order:8 character/UI and existing counterplay →9 weather/rockslides →10 swarms/UFO/
+volcano →11 former8 shrinking zone. Preserve historical numbering/evidence and
+released source; this planning request does not authorize another public deploy.
+
+Direct inspection confirms global earthquake pulse damage with no contact/crouch
+exemption and no fire extinguishing hook based on water. It does not establish the
+cause of the owner's full-round death: quake defaults alone are about35HP/event,
+and collapse/fall/overlap/repeated-event traces are required. Fire already has seeded
+origin/front randomness; improve variation rather than claiming randomness absent.
+Meteor remains3–4 sequential strikes despite approximately3.06× Town area; density
+and terrain/player-aware targeting come before higher damage or shorter warnings.
+
+Keep selected Soft Creature B non-human silhouette; refine contacts, pose and matte
+coherence, not cosmetic hitboxes. Interpret "ngồi" as existing crouch[C]. Proposed
+grounded brace prevents direct quake pulse/knockdown, not collapse/Flood/fire.
+Carry gains physical debris cover and one bounded water-pail action; no inventory,
+healing or universal carried-item shield. Fire must respect real support height and
+wetness; flood extinguishes submerged ground fire, not dry elevated roofs.
+
+Interpret volcanic ground as hot for60s after eruption, dealing contact damage
+during that interval; cool faster only where water/rain/snow actually reaches it.
+Use authored terrain state swaps and retain safe evacuation routes, not unbounded
+runtime terraforming. Numeric meteor/heat/cooling defaults are provisional, requiring
+asymmetric boundary/control tests before lock. No new system framework, streaming,
+mandatory human checklist or GPU/fun acceptance inferred from planning.
 
 ## 2026-10-14 — Integrated Town public delivery
 

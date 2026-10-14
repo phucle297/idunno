@@ -1,6 +1,15 @@
-# Phase 8 — Shrinking Survival Zone and Integrated Local Delivery
+# Phase 11 — Shrinking Survival Zone and Integrated Local Delivery
 
-Status: planned; depends on all required Phase 7 gates. No zone exists in current code.
+Status: deferred/planned; former Phase8 moved to Phase11 by owner priority2026-10-14.
+Depends on required Phase8 character/counterplay, Phase9 weather and Phase10 new
+disaster gates. No zone exists in current code. Historical Phase8 references in
+archives describe the old numbering; this file owns the postponed zone contract.
+Retain the previous design below as a provisional baseline, not an implementation
+order ahead of those phases. Revalidate every candidate center/radius/schedule
+against112m Town and mutated volcanic terrain, weather, swarms and UFO; protect
+reachable exits from combined hazards. Do not assume the old six-disaster audit
+or pre-expansion route evidence is sufficient. Chunk streaming stays a separate
+proposal; it is not an implicit prerequisite or feature in this phase.
 
 ## Product outcome
 
@@ -56,39 +65,39 @@ damage or timing. A final multi-survivor result is allowed: this is pressure, no
 promise that every match ends with exactly one winner. Exposure damage begins at
 first shrink, even though the large initial circle may still include most of the map.
 
-## 8.1 — Map route and hazard feasibility before damaging players
+## 11.1 — Map route and hazard feasibility before damaging players
 
 Owners: `game/main.gd` map anchors, actual map geometry, `game/disasters/disaster_director.gd`.
 
-- [ ] 8.1a Measure actual collision paths to the next circle from all spawn/refuge
+- [ ] 11.1a Measure actual collision paths to the next circle from all spawn/refuge
   exits and house/school rooms on both maps. Do not infer reachability from a point
   being inside a radius. Walk paths with normal controller, no crate boost required.
   Include damaged roofs/gangways and both presets. Thirty-second notice plus shrink
   time must exceed measured ordinary route time with room for avoiding telegraphs.
-- [ ] 8.1b Verify at least two independent reachable high refuge areas above maximum
+- [ ] 11.1b Verify at least two independent reachable high refuge areas above maximum
   flood level remain within the final zone, with legal exits. Town Shop/School roofs
   and Harbor Warehouse/CraneDeck are candidates; narrow roof slivers alone do not qualify.
   Preserve routes inside the current circle to the next area through shrinking stages.
-- [ ] 8.1c Audit disaster targeting/paths/fire/breakage against remaining navigable
+- [ ] 11.1c Audit disaster targeting/paths/fire/breakage against remaining navigable
   area. Retain minimum warning/force/damage bounds. Do not concentrate meteor/lighting
   density inversely with zone area. Bound sampling attempts; no unbounded rejection loop.
   Existing persistent warnings/strikes finish at their announced locations, never jump.
 
-Gate G8.1: collision-driven route tests pass for both maps and each transition, with
+Gate G11.1: collision-driven route tests pass for both maps and each transition, with
 asymmetric start positions and damaged structures. Refuse an unsafe center/radius;
 adjust map-specific anchors/radius upward before reducing warnings or adding immunity.
 
-## 8.2 — Authoritative zone, exposure and replication
+## 11.2 — Authoritative zone, exposure and replication
 
 Owners: `game/session/match_manager.gd` clock/damage/results; `game/main.gd` authority,
 snapshot/reset lifecycle; one cohesive `game/session/survival_zone.gd` if separating
 zone evaluation from orchestration reduces complexity. No generic hazard framework.
 
-- [ ] 8.2a Implement one source of truth for stage/radius/target/damage from normalized
+- [ ] 11.2a Implement one source of truth for stage/radius/target/damage from normalized
   match time and map configuration. Configure/reset on map changes and round start;
   dispose state on return to lobby/crash retry. Keep engine-independent stage evaluation
   only if used by authority and presentation; don't duplicate schedule tables.
-- [ ] 8.2b Authority evaluates alive root positions and batches zone damage for all
+- [ ] 11.2b Authority evaluates alive root positions and batches zone damage for all
   players together using existing damage batch API, preserving simultaneous zone-death
   ties. Current `main._process` advances the match clock before snapshots and
   `tick_match` immediately finishes at timeout. Extend that tick to accept an optional
@@ -98,20 +107,20 @@ zone evaluation from orchestration reduces complexity. No generic hazard framewo
   tick order; simultaneous zone deaths share one batch, not a new cross-hazard tie claim.
   No duplicate final frame damage, dead-player repeat or zone-driven reward bypass.
   Fractional damage/time must be stable for different delta partitions at fixed positions.
-- [ ] 8.2c Include compact center/current/next radius, stage, authoritative remaining
+- [ ] 11.2c Include compact center/current/next radius, stage, authoritative remaining
   time and schedule identity in existing ordered snapshots. Validate finite values,
   ranges and stage consistency; reject malformed/stale payloads, never trust client-sent
   position/equipment/zone claims. Apply map identity before zone visuals, respect roster
   sequencing and monitor existing 1200-byte unreliable/reliable threshold at 20 players.
 
-Gate G8.2: public observable tests at exact radius and just inside/outside, high/low y,
+Gate G11.2: public observable tests at exact radius and just inside/outside, high/low y,
 before/at/after each stage boundary, split large delta, different centers, stale state,
 simultaneous last deaths, timeout, dead/results immunity, solo and five rematches.
 Unauthoritative clients cannot apply damage; fresh/reconnecting clients converge.
 
-## 8.3 — Readable boundary and disaster integration
+## 11.3 — Readable boundary and disaster integration
 
-Owners: `game/ui/gameplay_hud.gd`, `game/main.gd`, director and six disaster scripts.
+Owners: `game/ui/gameplay_hud.gd`, `game/main.gd`, director and all implemented disasters.
 
 - [ ] Current boundary: thin segmented slate/amber ground ring and restrained vertical
   dotted posts sufficient to read at roofs; next boundary dashed and text-labelled.
@@ -129,12 +138,12 @@ Owners: `game/ui/gameplay_hud.gd`, `game/main.gd`, director and six disaster scr
   Flood damage/height stays unchanged; defer new flood warning if adequate reachable
   high ground has become unavailable. Preserve director seeded reproducibility/history.
 
-Gate G8.3: inspect indoors/outdoors/on roofs and stage transition with two hazards at
+Gate G11.3: inspect indoors/outdoors/on roofs and stage transition with two hazards at
 720p/1080p, including late zone+Flood+Lightning. Warning geometry matches authority;
 route/controller checks and director tests reject trapping schedules. Record an actual
 shrink/leave/re-enter/death/spectate/rematch interaction clip, not static proof.
 
-## 8.4 — Integrated regression, performance and matching local packages
+## 11.4 — Integrated regression, performance and matching local packages
 
 - [ ] Full `tests/run_ui_regression.sh`, new zone integration regression, and relevant
   service tests pass with strict runtime-error checks. Keep public-behavior tests for
@@ -143,19 +152,19 @@ shrink/leave/re-enter/death/spectate/rematch interaction clip, not static proof.
   valid two-hazard overlap, last-survivor/shared/timeout results, five rematches, owner
   departure, dedicated crash/retry, profile restore/earned equip. Accelerated fixture
   clocks are disclosed and never claimed as human full-duration play. Serial heavy runs.
-- [ ] Profile matching Phase 7 scenarios plus zone drawing at 720p/1080p; stable node
+- [ ] Profile matching Phase8–10 scenarios plus zone drawing at 720p/1080p; stable node
   counts/resources after rematches, bounded sampling and no growing physics budget.
   Report native GPU 60FPS as not_run unless actually executed; no software greenwashing.
 - [ ] Commit validated integrated source before `tools/export_playtest.sh` (exports
   committed HEAD only). Check repeated Windows/Linux outputs, matching PCK, hashes,
   unpacking, standalone Linux lifecycle/profile persistence and exact exported scene.
   Review notes state Windows-native/input/audio and separate-network checks not_run.
-  Do not use new clients with historical public Phase 5 server.
+  Do not use new clients with a different-revision public server.
 - [ ] Record final gate evidence, archive this phase and deliver local package links.
   No public-server restart, CI deployment, release publication, capacity or data change
   without explicit separate authorization; use `[skip ci]` for source/docs pushes here.
 
-Gate G8.4: technical/visual/replication/package checks passed; real-device uncertainties
+Gate G11.4: technical/visual/replication/package checks passed; real-device uncertainties
 remain explicitly open under existing waiver. Failed runs retained with proven fixes;
 no speculative fairness, human-fun or production-capacity claim.
 
@@ -166,4 +175,5 @@ hazard selection; do not immunize in-zone players or relax strict errors. If sna
 exceed transport budget, use existing reliable fallback and measure it, not unreviewed
 protocol rewrites. No randomness in center means reproducibility is testable; moving
 centers and smaller terminal zones are deferred until this version proves playable.
-This plan is ready for implementation but makes no completed-feature claim.
+This deferred baseline needs revalidation after Phase8–10 before implementation;
+it makes no completed-feature claim.
