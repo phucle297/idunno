@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {"phase_id": "phase_9_weather_rockslides", "title": "Weather and Rockslides", "status": "completed_agent_owned_source_and_local_package_gates", "archived_at": "2026-10-14T18:08:22Z", "superseded_by": "../../../progress.json", "checklist": "checklist.md", "decisions": "decisions.md", "qualification": "Full final evidence preserved. Earlier pending statements are chronological snapshots superseded by final entries. Historical workspace-relative path strings describe their recording-time layout. Source uncommitted/unpushed; no new deployment/release or human/native acceptance."},
+  "workflow_state": "completed_technical_source_and_local_packages",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended in old-docs, not completed; reopen only on owner request."},
+  "previous_phase_archive": "docs/old-docs/phase-8-collision-followup/progress.json",
+  "previous_idle_checkpoint": "docs/old-docs/phase-8-collision-followup/continuation-state.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_9_weather_rockslides", "milestone": "9.4", "task": null},
+  "phase": {
+    "id": "phase_9_weather_rockslides", "title": "Weather and Rockslides", "status": "completed",
+    "authorization": "2026-10-14 owner: Continue implement; resume next planned phase, no deployment/release.",
+    "checklist": "docs/checklists/phase-9-weather-rockslides.md",
+    "milestones": [
+      {"id": "9.1", "title": "Weather surfaces", "status": "completed", "tasks": [
+        {"id": "9.1.1", "title": "Bounded surface exposure foundation", "status": "completed", "gates": [{"check": "Support/cover/water/contact boundaries, client snapshot guards and five resets", "status": "passed"}]},
+        {"id": "9.1.2", "title": "Map-authored patches and Rain lifecycle/Fire suppression", "status": "completed", "gates": [{"check": "Both maps, visible wet patches/warnings, authority snapshots, Fire wetness and rematch", "status": "passed", "qualification": "Transport matrix remains9.4; local snapshots and real maps exercised."}]},
+        {"id": "9.1.3", "title": "Snowfall lifecycle and visible bounded traction", "status": "completed", "gates": [{"check": "Telegraphed accumulation, steering/braking/contact/recovery and shelter", "status": "passed"}]}
+      ]},
+      {"id": "9.2", "title": "Rockslide", "status": "completed", "gates": [{"check": "Real slope/cover collision and lateral escapes on both maps", "status": "passed"}]},
+      {"id": "9.3", "title": "Disaster presentation/director integration", "status": "completed", "gates": [{"check": "Icons/audio/character response, seeded variation, first exposure and compatible overlaps", "status": "passed"}]},
+      {"id": "9.4", "title": "Integrated validation and local bundles", "status": "completed", "gates": [{"check": "Full regression, 2/4/8/20 clients, renders/budgets and matching local packages", "status": "passed", "qualification": "Agent-owned source/local delivery gates only. Native Windows/GPU/human acceptance unverified/nonblocking under preserved waiver. Source uncommitted; no public deploy/release."}]}
+    ]
+  },
+  "planned_phases": [
+    {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by explicit owner priority; revalidate expanded/mutated map and new hazards before zone implementation."},
+    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Owner requests planning only for temporary random movement pickups; separate from persistent cosmetics, priority not activated."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "completed_phase": {"id": "phase_8_collision_followup", "status": "completed_technical_source_gates", "archive": "docs/old-docs/phase-8-collision-followup/progress.json", "qualification": "Solid environmental detail collision with clear routes; focused/render and map-aware2/4-peer gates passed. One extra scene fixture failed a transient prop-reset observation, preserved. No new packages/deployment/release, native GPU/human acceptance or Phase9/pickup implementation."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"check": "Final integrated regression and both-map weather transport", "status": "passed", "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh; GODOT_BIN=$(command -v godot) PLAYER_COUNTS=2 MAP_ID=toy_town tests/run_playable_scale_test.sh; GODOT_BIN=$(command -v godot) PLAYER_COUNTS='2 4 8 20' MAP_ID=toy_harbor tests/run_playable_scale_test.sh", "result": "UI_REGRESSION_OK suites45 matrices5 managed_clients20 persistence_restart passed. Positive playable matrix markers Town4/8/20 plus Town2; Harbor2/4/8/20. Real clients observe Rain warning, Snow/full-surface state and Rock meshes; five actual rematches assert dry/no-weather/no-rock reset and disconnect cleanup. Synthetic presentation stress deliberately exceeds director concurrency; production solo-first/max2 tested separately. Same-orb loopback, not Internet/human capacity. Existing unrelated Dummy audio shutdown diagnostics remain visible in historical suites; new Weather471 and Rock72 logs are clean. All raw final and initial-failed logs retained at .amp/in/artifacts/phase9-evidence."},
+    {"check": "Final focused clean exits and exact packaged runtime", "status": "passed", "command": "Three verbose source runs each of test_weather_integration.gd and test_rockslide.gd; godot --headless --main-pack <final-PCK> --script <absolute-fixture>", "result": "Weather471 and Rock72 each pass three consecutive verbose runs with zero ObjectDB/resource diagnostics. Exact exported PCK also passes both fixtures with clean exit and the explicit uncommitted build identity. Export/unpack checks pass on both archives and PCKs compare byte-identical. Final PCK SHA256=98b3837ae1d872b05f2a5b36664c088f9b1efb1d3929d30f6bdd654ac03ce7ce. Windows ZIP SHA256=3d28836af292ba9eb55669aeed9a234cc224fd44e3609adeb54a808832b59601; Linux tar.gz SHA256=2cfa271fcf5d1577f899e78026d2280fdada406a6a3b3b655ce000038e9e6c9b. Matching stage game/scenes compare unchanged to final source. No native Windows execution claim."},
+    {"check": "Focused fixture shutdown diagnostics", "status": "passed", "command": "godot --headless --verbose --path . --script res://tests/test_weather_integration.gd; godot --headless --verbose --path . --script res://tests/test_rockslide.gd", "result": "Verbose diagnosis identified retained AudioStreamPlaybackWAV owners and WAV references, not leaked world nodes. Initial single-frame/reset-only teardown intermittently retained17 objects/4 resources in Weather and7/1 in Rock. Final fixture teardown separates warning playback turns, stops/detaches audio streams, frees Main and allows post-free audio cleanup before quitting. Weather471 passed three consecutive verbose runs with zero leak/resource diagnostics; Rock72 repeat verification is running. Diagnostics are not filtered or suppressed."},
+    {"check": "Regression fixture Flood-to-Fire sequencing", "status": "passed", "command": "GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh", "result": "Initial full regression failed: persistent Flood wetness prevented fixture ignition, a stage wait exhausted its deadline and cascaded to a missing results row. Fixture now advances normal50s dry recovery between independent stages and disables random director ticking during its scripted sequence; production wetness/Fire rules unchanged. PLAYABLE_SCENE_NETWORK_PEERS_OK clients2 five rematches and strict runtime checks passed; integrated full rerun is running."},
+    {"check": "Final render review", "status": "passed", "command": "xvfb-run -a godot --path . --script res://tools/render_phase9.gd; xvfb-run -a godot --path . --script res://tools/render_phase9.gd -- --rock-only", "result": "40 final captures, ten states per map at720/1080. Eight contact sheets and targeted originals inspected: full cream snow versus clearly blue meltwater/no Snowfall chip; Town downhill label below HUD and visible exit player; Harbor review camera inside perimeter prevents player occlusion. Small distant world labels are backed by readable HUD warning text; active states intentionally use chips. Software Compatibility/Xvfb only, no native/GPU/human acceptance claim. Artifacts: .amp/in/artifacts/phase9."},
+    {"check": "Matching uncommitted local exports and standalone lifecycle", "status": "passed", "command": "Godot isolated runtime snapshot import and Windows/Linux export; python3 tools/verify_exported_artifacts.py <package>/SHA256SUMS.txt; python3 tests/run_release_linux_test.py <linux-package> --log <fresh-log>", "result": "Both export manifests/content checks pass files3/5 PCKv4 entries105. Byte-identical PCKs from one isolated uncommitted source snapshot; identity uncommitted-c8727ddf956e9de19f9e7fa27719 explicitly NOT a Git commit. RELEASE_MANAGED_LINUX_OK checksums, standalone no-editor/no-cache, incompatible build rejection, create/join, crash/retry, SIGTERM and port reclamation pass. No native Windows execution, public endpoint, release or deployment. Package artifact evidence under .amp/in/artifacts/phase9-packages; final archive hashes pending."},
+    {"check": "Rockslide and director/presentation contracts", "status": "passed", "command": "godot --headless --path . --script res://tests/test_rockslide.gd; godot --headless --path . --script res://tests/test_weather_integration.gd; xvfb-run -a godot --path . --script res://tools/render_phase9.gd", "result": "ROCKSLIDE_OK72 maps2: actual swept capsule impacts/ragdoll, real walks out both sides within1.25s, sturdy cover intercepts all3 rocks, bounded9m/s, same-seed/five resets. WEATHER_INTEGRATION_OK471: Rain/Snow/Rock solo-first exposure and allowed overlaps, max2,20-seed weather replay/three duration variants, three distinct reserved audio cues. 40 final-state captures at720p/1080p; relocation fixes in-world label/HUD overlap, corrected review camera avoids decorative canopy occlusion; final Town warning720 and Harbor rock1080 inspected. No human audio/fun/GPU acceptance claim."},
+    {"check": "Bounded weather/rock runtime soak", "status": "passed", "command": "godot --headless --path . --script res://.scratch/measure_phase9.gd", "result": "Five600-tick cycles per map. Town19 patches/64 flakes/3 rocks/3 loose props; nodes6593→6593, static memory96054201→99504857 peak99760497 bytes, tick p95=311us. Harbor6/64/3/3; nodes1370→1370, memory70337552→70356448 peak70577552, tick p95=111us. Patch288 triangles, flake12, rock80. Headless subsystem tick cost only, not frame/GPU throughput. Raw log preserved with final evidence."},
+    {"check": "Integrated weather and render", "status": "passed", "command": "godot --headless --path . --script res://tests/test_weather_integration.gd; xvfb-run -a godot --path . --script res://tools/render_phase9.gd", "result": "WEATHER_INTEGRATION_OK434 maps2 resets5. Surface37/Fire95 controls pass. Explicit footprint perimeter/support/cover probes, Rain Fire ignition suppression, Snow walk/sprint braking and air control, recovery. Initial fixture lacked Ready on second map; corrected. Harbor had no exposed full-footprint Fire zone; moved first fuel anchor off terrain seam to(-12,0,-8.5). 24 captures at720p/1080p; Town snow720, Harbor Rain warning1080 and wet720 inspected: bounded patches, rain streaks, visible silhouette and full warning copy. Shutdown-only Dummy audio resource1/10 object diagnostics in headless integration, no runtime/script errors; rendered harness exits cleanly. Real transport and remaining states inspection remain9.4."},
+    {"check": "Godot import and weather surface contract", "status": "passed", "command": "godot --headless --editor --path . --quit; godot --headless --path . --script res://tests/test_weather_surfaces.gd", "result": "Import has no SCRIPT ERROR/ERROR. WEATHER_SURFACES_OK checks=37 resets=5. Real static roof/removal, stacked supports, radius/contact boundaries, rain/snow caps, melt-to-dry tick equivalence, exact Flood immersion, client mutation guards/atomic snapshot rejection and five reset snapshots. Direct snapshot application on a client MultiplayerAPI, not network transport or admission evidence."},
+    {"check": "Existing Fire/Flood controls and tracking", "status": "passed", "command": "godot --headless --path . --script res://tests/test_fire.gd; godot --headless --path . --script res://tests/test_flood.gd; jq empty progress.json docs/old-docs/phase-8-collision-followup/continuation-state.json; git diff --check", "result": "FIRE_OK checks=95; FLOOD_OK checks=59. No runtime/script errors. JSON and whitespace pass. Full regression/multiclient/render not run for this isolated component with no Main, controller or appearance changes; required at integrated milestone gates."}
+  ],
+  "changed_files": [".agents/skills/reviewing-godot-gameplay/SKILL.md", "README.md", "NEED_REAL_CHECK.md", "assets/manifest.json", "assets/audio/generated/{rain,snow,rock}_warning.wav and .import", "game/disasters/{precipitation,rockslide,weather_surfaces}.gd and .uid", "game/disasters/fire.gd", "game/gameplay_audio_controller.gd", "game/main.gd", "game/player/player.gd", "game/player/player_tuning.gd", "game/ui/disaster_icon.gd", "game/ui/gameplay_hud.gd", "scenes/main.tscn", "tests/test_{weather_surfaces,weather_integration,rockslide}.gd and .uid", "tests/playable_scale_peer.gd", "tests/playable_scene_network_peer.gd", "tools/audio_generation/generate_audio.gd", "tools/render_phase9.gd and .uid", "docs/checklists/phase-9-weather-rockslides.md → docs/old-docs/phase-9-weather-rockslides/checklist.md", "docs/decisions.md → docs/old-docs/phase-9-weather-rockslides/decisions.md", "docs/implementation-checklist.md", "docs/old-docs/README.md", "docs/old-docs/phase-8-collision-followup/continuation-state.json", "docs/old-docs/phase-9-weather-rockslides/progress.json", "progress.json"],
+  "blockers": [],
+  "phase8_local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "14be2c323e2267c18a06ccf704090c6268ad184e",
+    "directory": ".amp/in/artifacts/phase8-packages",
+    "windows": "DisasterParty-Windows-14be2c3.zip",
+    "windows_sha256": "904aeb2db46fbabdb71f2090a15b64783da4a9d86322bf02f8c0433b9119ebed",
+    "linux_server": "DisasterParty-Linux-server-14be2c3.tar.gz",
+    "linux_server_sha256": "4f7bb817a2e90f23d1391550b35056f617c99c14e1059bfe0808be6ad7347d43",
+    "pck_sha256": "134a4f74e26dd9517b7b4b553f2c930634b4617c5efbf3474f4d689108c10795",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "integrated_town_release": {
+    "authorization": "2026-10-14 owner: Good. deploy and release",
+    "revision": "2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38514066230",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease_verified",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665",
+    "endpoint": "https://server.permees.com",
+    "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.",
+    "validation_reference": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json#integrated_town_release"
+  },
+  "collision_followup_delivery": {
+    "authorization": "2026-10-14 owner: release and deploy",
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "e68a912a91c6dce339ddb254a559e68be26c53ce",
+    "archive": "docs/old-docs/phase-8-collision-followup/progress.json",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38594162570",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
+    "endpoint": "https://server.permees.com",
+    "windows_sha256": "2ca30d6dbbb59e1a8a88df1244ad6084101bc1339bc579d001ce280795c5307b",
+    "linux_sha256": "c7f0af88b763ce476970bac52206793ab9e23beea4f8d203d0bc6eca1f210660",
+    "qualification": "Matching exact CI PCK/Linux artifact; release assets/tag downloaded and verified. Two Linux Godot clients on one orb/upstream; not native Windows/GPU/audio/separate-network human acceptance. No new capacity/storage or Steam release."
+  },
+  "historical_delivery_metadata": {"archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "preserved_keys": ["integrated_town_delivery", "rounded_world_delivery", "correction_delivery", "delivery", "local_delivery"], "qualification": "Historical delivery evidence retained without loss in the archives; not authorization for a new deployment."},
+  "commit_test_policy": {"hook": ".githooks/pre-commit", "install": "python3 tools/install_git_hooks.py", "runner": "python3 tools/test_changed.py", "selection": "staged affected tests with conservative full fallback", "deployment_tests": "removed by explicit owner request", "qualification": "Local hooks are bypassable; no central CI regression gate. Existing public e68a912 remains unchanged."},
+  "phase9_local_delivery": {"status": "validated_local_uncommitted_snapshot_not_published_or_deployed", "identity": "uncommitted-c8727ddf956e9de19f9e7fa27719", "base_head": "9d67f63cb11b9e4fe5ffaf710fd13535e545c5db", "source_manifest_sha256": "c8727ddf956e9de19f9e7fa277195311502fd84c6614f85560e4282113538cd2", "directory": ".amp/in/artifacts/phase9-packages", "windows": "DisasterParty-Windows-phase9-local.zip", "windows_sha256": "3d28836af292ba9eb55669aeed9a234cc224fd44e3609adeb54a808832b59601", "linux_server": "DisasterParty-Linux-server-phase9-local.tar.gz", "linux_sha256": "2cfa271fcf5d1577f899e78026d2280fdada406a6a3b3b655ce000038e9e6c9b", "pck_sha256": "98b3837ae1d872b05f2a5b36664c088f9b1efb1d3929d30f6bdd654ac03ce7ce", "qualification": "Both exports/unpack/hashes and standalone Linux lifecycle pass; exact PCK external fixtures pass. No native Windows/GPU/audio/human or public deployment acceptance. Commit/push not authorized; standard committed-HEAD exporter guard unchanged."},
+  "next_action": "Archive Phase9 evidence and return to idle awaiting owner scope/delivery authorization; Phase10 remains planned."
+}

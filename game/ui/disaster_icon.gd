@@ -36,6 +36,21 @@ func _draw() -> void:
 			draw_line(Vector2(33, 34), Vector2(45, 34), ink, 4, true)
 		"lightning":
 			draw_colored_polygon(PackedVector2Array([Vector2(27, 2), Vector2(9, 27), Vector2(23, 27), Vector2(18, 46), Vector2(40, 19), Vector2(27, 19)]), ink)
+		"rain":
+			for x in [12, 24, 36]:
+				draw_line(Vector2(x, 8), Vector2(x - 6, 36), ink, 4, true)
+				draw_circle(Vector2(x - 6, 38), 3, ink)
+		"snowfall":
+			for index in 6:
+				var direction := Vector2.from_angle(index * TAU / 6.0)
+				draw_line(Vector2(24, 24), Vector2(24, 24) + direction * 21, ink, 3, true)
+				var tip := Vector2(24, 24) + direction * 13
+				draw_line(tip, tip + direction.rotated(PI * 0.7) * 8, ink, 3, true)
+				draw_line(tip, tip + direction.rotated(-PI * 0.7) * 8, ink, 3, true)
+		"rockslide":
+			draw_colored_polygon(PackedVector2Array([Vector2(3, 42), Vector2(17, 8), Vector2(26, 42)]), ink)
+			for point in [Vector2(30, 13), Vector2(37, 25), Vector2(41, 39)]:
+				draw_circle(point, 5, ink)
 		"fire":
 			draw_colored_polygon(PackedVector2Array([Vector2(24, 2), Vector2(34, 22), Vector2(39, 15), Vector2(44, 32), Vector2(36, 44), Vector2(13, 44), Vector2(5, 31), Vector2(15, 15), Vector2(16, 28)]), ink)
 			draw_circle(Vector2(25, 35), 6, DisasterPartyUI.WARNING)

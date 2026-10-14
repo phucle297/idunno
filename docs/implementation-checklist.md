@@ -6,7 +6,6 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
 | 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
 | 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
 | 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
@@ -15,8 +14,14 @@ Phases 6 and the original 7 are archived below. The Phase7 visual-completion cla
 was overstated and is superseded by the separately archived visual correction.
 On2026-10-14 the owner reprioritized model/UI, existing hazard counterplay and new
 disasters ahead of the shrinking zone: old Phase8 → Phase11. Historical archive
-IDs stay unchanged. Phases9–11 are planned, not implemented; chunk streaming stays
-a separate proposal. Existing human waiver and deployment approval boundaries remain.
+IDs stay unchanged. Phases9–11 were planned at that checkpoint; chunk streaming
+stays a separate proposal. Existing human waiver and deployment boundaries remain.
+
+On2026-10-14 Phase9 completed all agent-owned source/local-package gates:
+Rain/Snowfall/Rockslide, full45-suite regression, both-map2/4/8/20 weather/reset
+matrices, inspected renders and matching local packages. Root is idle; Phase10–12
+remain planned. Source is uncommitted/unpushed; no new deploy/release. The preceding idle state's delivery/hook evidence is
+preserved in [continuation state](old-docs/phase-8-collision-followup/continuation-state.json).
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
 summaries are superseded by the [audit reconciliation](old-docs/phase-5-validation-followup/decisions.md). Phase 3 hardware
@@ -28,10 +33,12 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 ## Completed phases
 
+- [Phase 9 — Weather and Rockslides](old-docs/phase-9-weather-rockslides/checklist.md) · [decisions](old-docs/phase-9-weather-rockslides/decisions.md) · [evidence](old-docs/phase-9-weather-rockslides/progress.json) — all four technical/local-package milestones pass; uncommitted/unpushed, no public deployment/release or native/human acceptance claim.
+
 Completed-phase checklists, decisions and progress are grouped in [old-docs](old-docs/README.md):
 
 - [Phase 8F — Solid Environment Collision](old-docs/phase-8-collision-followup/checklist.md) · [decisions](old-docs/phase-8-collision-followup/decisions.md) · [evidence](old-docs/phase-8-collision-followup/progress.json) — focused collision/routes/render and map-aware2/4-peer gates passed; extra scene-fixture failure retained. No new packages/deployment or native GPU/human acceptance claim.
-- [Phase 8 — Character, UI and Disaster Counterplay](old-docs/phase-8-character-disaster-counterplay/checklist.md) · [decisions](old-docs/phase-8-character-disaster-counterplay/decisions.md) · [evidence](old-docs/phase-8-character-disaster-counterplay/progress.json) — all six technical milestones and matching local packages passed; source pushed, no new public deployment/release or native GPU/Windows/human acceptance claim. Root awaits next scope; Phase9 not started.
+- [Phase 8 — Character, UI and Disaster Counterplay](old-docs/phase-8-character-disaster-counterplay/checklist.md) · [decisions](old-docs/phase-8-character-disaster-counterplay/decisions.md) · [evidence](old-docs/phase-8-character-disaster-counterplay/progress.json) — all six technical milestones and matching local packages passed; source pushed, no new public deployment/release or native GPU/Windows/human acceptance claim. Phase9 is archived separately.
 - [Phase 0 — Init Project](old-docs/phase-0-init-project/checklist.md)
 - [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/checklist.md)
 - [Phase 3 — Player-Caused Chaos](old-docs/phase-3-player-caused-chaos/checklist.md) · [decisions](old-docs/phase-3-player-caused-chaos/decisions.md) · [evidence](old-docs/phase-3-player-caused-chaos/progress.json)

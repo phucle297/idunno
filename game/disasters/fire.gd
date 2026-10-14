@@ -65,6 +65,7 @@ var zone_positions: Array = ZONE_POSITIONS.duplicate()
 var zone_neighbors: Array = ZONE_NEIGHBORS.duplicate()
 var water_level := -INF
 var support_height: Callable
+var surface_wetness: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -213,7 +214,8 @@ func get_escape_context(point: Vector3) -> String:
 
 
 func _zone_is_dry(zone_id: int) -> bool:
-	return water_level < (zone_positions[zone_id] as Vector3).y - SUPPORT_OFFSET
+	var support := (zone_positions[zone_id] as Vector3) - Vector3.UP * SUPPORT_OFFSET
+	return water_level < support.y and (not surface_wetness.is_valid() or (surface_wetness.call(support) as Vector2).y < 0.2)
 
 
 func _resolve_supports() -> void:

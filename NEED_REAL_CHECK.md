@@ -1,5 +1,15 @@
 # Báo lỗi khi gặp thực tế
 
+**Phase9 hoàn tất gate kỹ thuật/local (2026-10-14):**
+[Checklist/evidence](docs/old-docs/phase-9-weather-rockslides/checklist.md).
+Rain/Snowfall/Rockslide chạy trên cả hai map;45 suite/5 matrix/managed20 và
+Town/Harbor2/4/8/20 peer với5 rematch/reset pass. Gói Windows/Linux matching local
+tại `.amp/in/artifacts/phase9-packages`, ảnh đã inspect tại `.amp/in/artifacts/phase9`.
+Source vẫn uncommitted/unpushed theo yêu cầu; chưa deploy/release, **bản public
+e68a912 không đổi**. Không dùng gói local Phase9 để ghép server public cũ.
+Native Windows/GPU/audio/người thật/hai mạng riêng chưa xác minh; waiver cũ giữ
+nguyên, không thêm checklist người dùng bắt buộc. Phase10–12 vẫn là plan.
+
 **Follow-up collision:** [evidence](docs/old-docs/phase-8-collision-followup/checklist.md)
 cho lan can, bụi/chậu cây, đèn, vent, cọc/crate Harbor đã có trong bản public e68a912.
 Lan can trình bày cầu thang giữ decorative trên ramp solid để không chặn đường
@@ -15,13 +25,15 @@ restart. Gói local cũ là lịch sử; **dùng client public e68a912 matching 
 Crouch/cầm đồ đã bỏ, animation Shift giữ phase, quake có vùng nứt/đường thoát,
 Flood dập Fire ngập và meteor theo diện tích. Native Windows/GPU60FPS/audio/người thật/
 hai mạng riêng chưa xác minh, waiver cũ không đổi; không thêm checklist bắt buộc.
-Phase9 chưa bắt đầu. Các câu Phase8 chưa implement/tạm dừng bên dưới là snapshot
+Phase9 đã hoàn tất source/local gates như ghi phía trên; bản public không đổi.
+Các câu Phase8 chưa implement/tạm dừng bên dưới là snapshot
 lịch sử, không phải trạng thái source hiện tại.
 
 **Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
-[Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Chưa implement hoặc
-deploy Phase9–11. Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
+[Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Disaster Phase9
+đã chạy trong local source/package; chưa deploy Phase9–11.
+Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
 người dùng bắt buộc; đánh giá cảm giác/challenge/GPU dùng đúng build sau khi có.

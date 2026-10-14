@@ -21,6 +21,7 @@ new follow-up evidence belongs in a separately named archive.
 | 7T — Integrated Terraced Town | [Checklist](phase-7-integrated-town/checklist.md) | [Decisions](phase-7-integrated-town/decisions.md) | [Progress](phase-7-integrated-town/progress.json) |
 | 8 — Character, UI and Disaster Counterplay | [Checklist](phase-8-character-disaster-counterplay/checklist.md) | [Decisions](phase-8-character-disaster-counterplay/decisions.md) | [Progress](phase-8-character-disaster-counterplay/progress.json) |
 | 8F — Solid Environment Collision | [Checklist](phase-8-collision-followup/checklist.md) | [Decisions](phase-8-collision-followup/decisions.md) | [Progress](phase-8-collision-followup/progress.json) |
+| 9 — Weather and Rockslides | [Checklist](phase-9-weather-rockslides/checklist.md) | [Decisions](phase-9-weather-rockslides/decisions.md) | [Progress](phase-9-weather-rockslides/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
@@ -31,9 +32,16 @@ acceptance is not claimed. Historical payloads are unchanged.
 Software p95 measurements did not meet60FPS on llvmpipe; native GPU/Windows/human
 acceptance remains unverified/nonblocking under the waiver. Phase8 completed all
 six agent-owned technical/local-package gates on2026-10-14; source14be2c3 pushed,
-matching local bundles verified. No new public deployment/release. Root awaits next
-scope; Phase9 remains planned. Phase8 diary paths are historical workspace-relative
+matching local bundles verified. No new public deployment/release. Phase8 diary paths are historical workspace-relative
 paths; checklist and decisions navigation now use the archive directory.
+
+Phase9 completed all four agent-owned milestones on2026-10-14: full45 suites/five
+matrices/managed20, both-map2/4/8/20 weather transport/reset checks,40 inspected
+render states and matching local packages. Root awaits owner scope/delivery
+authorization; source remains uncommitted/unpushed, Phase10–12 planned. No new public
+deployment/release or native Windows/GPU/audio/human acceptance is claimed. Earlier
+pending statements in the Phase9 diary are chronological and superseded by its final
+entries. Existing human waiver and all actual failure logs/evidence are preserved.
 
 ## Suspended phase snapshot — not completed
 

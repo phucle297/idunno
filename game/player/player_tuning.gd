@@ -4,6 +4,8 @@ extends RefCounted
 const WALK_SPEED := 4.5
 const SPRINT_SPEED := 6.5
 const GROUND_ACCELERATION := 25.0
+const SNOW_SPRINT_TRACTION := 0.35
+const SNOW_WALK_TRACTION := 0.75
 const AIR_ACCELERATION := 8.0
 const GRAVITY := 20.0
 const JUMP_HEIGHT := 1.35

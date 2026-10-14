@@ -1,0 +1,154 @@
+extends SceneTree
+
+var checks := 0
+var failures: Array[String] = []
+
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+
+func _run() -> void:
+	var main = load("res://scenes/main.tscn").instantiate()
+	root.add_child(main)
+	await physics_frame
+	main.set_process(false)
+	main.set_physics_process(false)
+	main.disaster_director.cleanup()
+	main.disaster_director.set_process(false)
+	main.match_manager.set_process(false)
+	for hazard in [main.rain, main.snowfall, main.fire, main.flood]:
+		hazard.set_process(false)
+	var player: PartyPlayer = main.get_node("Player")
+	player.set_physics_process(false)
+	for map_id in ["toy_town", "toy_harbor"]:
+		main.match_manager.prepare_lobby()
+		main.set_map_id(map_id)
+		await physics_frame
+		await physics_frame
+		main._configure_weather_patches()
+		var weather: WeatherSurfaces = main.weather_surfaces
+		var snapshot := weather.create_presentation_snapshot()
+		var positions: PackedVector3Array = snapshot.positions
+		_expect(positions.size() >= 5 and positions.size() <= 64, "%s bounded authored patches" % map_id)
+		var exposed := Vector3(INF, 0, 0)
+		var sheltered := Vector3(INF, 0, 0)
+		for point in positions:
+			if weather.is_exposed(point):
+				exposed = point
+			else:
+				sheltered = point
+			for index in 16:
+				var edge := point + Vector3(cos(TAU * index / 16), 0, sin(TAU * index / 16)) * weather.patch_radius
+				_expect(absf(main.get_map_support_height(edge) - point.y) < 0.061 and weather.is_exposed(edge) == weather.is_exposed(point), "Patch perimeter respects support and cover")
+		_expect(exposed.is_finite() and sheltered.is_finite(), "Both exposed and roofed surfaces on %s" % map_id)
+		main.match_manager.set_player_ready(1, true)
+		main.match_manager.start_match()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 901
+		_expect(main.rain.start_disaster(rng), "Rain starts on authority")
+		main.tick_weather(2.0)
+		_expect(weather.sample_surface(exposed) == Vector2.ZERO, "Warning does not invisibly wet ground")
+		main.rain.tick(5.0)
+		main.tick_weather(4.0)
+		_expect(weather.sample_surface(exposed).y == 1.0 and weather.sample_surface(sheltered) == Vector2.ZERO, "Rain wets outdoors, interiors dry")
+		var wet_zone := -1
+		for index in main.fire.zone_positions.size():
+			var point: Vector3 = main.fire.zone_positions[index]
+			point.y = main.get_map_support_height(point)
+			if weather.sample_surface(point).y >= 0.2:
+				wet_zone = index
+		_expect(wet_zone >= 0 and not main.fire.start_warning(wet_zone), "Real Rain suppresses exposed Fire ignition map=%s wet_zone=%d patches=%s" % [map_id, wet_zone, positions])
+		main.rain.cleanup()
+		weather.cleanup()
+		_expect(main.snowfall.start_disaster(rng), "Snow starts")
+		main.snowfall.tick(5.0)
+		main.tick_weather(20.0)
+		_expect(weather.sample_surface(exposed).x == 1.0 and weather.sample_surface(sheltered) == Vector2.ZERO, "Snow accumulates only on exposed authored ground")
+		player.global_position = exposed
+		player.velocity = Vector3(6, 0, 0)
+		player.apply_movement_input(Vector2.ZERO, true, false, 0.1, 1)
+		var sprint_braking := player.velocity.x
+		player.global_position = exposed
+		player.velocity = Vector3(6, 0, 0)
+		player.apply_movement_input(Vector2.ZERO, false, false, 0.1, 1)
+		_expect(player.velocity.x < sprint_braking and player.velocity.x > 0, "Walking brakes faster; no instant control removal")
+		player.global_position = exposed + Vector3.UP * 2
+		player.velocity = Vector3(6, 0, 0)
+		player.apply_movement_input(Vector2.ZERO, true, false, 0.1, 0)
+		_expect(is_equal_approx(player.velocity.x, 5.2), "Air control never inherits snow traction")
+		main.snowfall.cleanup()
+		main.tick_weather(50.0)
+		_expect(weather.sample_surface(exposed).x == 0 and weather.sample_surface(exposed).y > 0, "Snow melts into residual wetness")
+		main.tick_weather(50.0)
+		_expect(weather.sample_surface(exposed) == Vector2.ZERO, "Full recovery to dry")
+		for cycle in 5:
+			weather.tick(20, false, true, -INF)
+			main.match_manager.prepare_lobby()
+			main.tick_weather(0.1)
+			_expect(weather.sample_surface(exposed) == Vector2.ZERO, "Rematch surface reset")
+			main.match_manager.set_player_ready(1, true)
+			main.match_manager.start_match()
+	main.match_manager.prepare_lobby()
+	main.match_manager.set_player_ready(1, true)
+	main.match_manager.start_match()
+	main.match_manager.elapsed_time = 300
+	var director: DisasterDirector = main.disaster_director
+	director.cleanup()
+	_expect(director.start_directing(909), "Director begins seeded round")
+	_expect(director.try_start_disaster("Rain"), "Rain introduced solo")
+	_expect(not director.try_start_disaster("Rockslide"), "Unseen Rockslide cannot overlap first Rain")
+	main.rain.cleanup()
+	_expect(director.has_completed_solo("Rain"), "Rain solo completion tracked")
+	_expect(director.try_start_disaster("Rockslide"), "Rockslide introduced solo")
+	main.rockslide.cleanup()
+	_expect(director.has_completed_solo("Rockslide"), "Rock solo completion tracked")
+	_expect(director.try_start_disaster("Rain") and director.try_start_disaster("Rockslide"), "Seen Rain and Rockslide may overlap")
+	_expect(not director.try_start_disaster("Snowfall") and director.get_active_disaster_names().size() == 2, "Two-disaster cap and opposite weather exclusion")
+	director.cleanup()
+	_expect(director.start_directing(909) and director.try_start_disaster("Snowfall"), "Snowfall introduced solo")
+	main.snowfall.cleanup()
+	_expect(director.has_completed_solo("Snowfall"), "Snow solo tracked")
+	_expect(director.try_start_disaster("Rockslide"), "Rock introduced in second round")
+	main.rockslide.cleanup()
+	_expect(director.has_completed_solo("Rockslide"), "Second Rock solo tracked")
+	_expect(director.try_start_disaster("Snowfall") and director.try_start_disaster("Rockslide"), "Seen Snow and Rock overlap")
+	director.cleanup()
+	var variants := {}
+	for seed_value in 20:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed_value
+		main.rain.start_disaster(rng)
+		var first: Dictionary = main.rain.create_presentation_snapshot()
+		variants[first.variant] = true
+		main.rain.cleanup()
+		rng.seed = seed_value
+		main.rain.start_disaster(rng)
+		_expect(main.rain.create_presentation_snapshot() == first, "Seeded weather replays exactly")
+		main.rain.cleanup()
+	_expect(variants.size() == 3, "Seeded duration variants vary")
+	for name in ["rain", "snowfall", "rockslide"]:
+		main.gameplay_audio.play_warning(name)
+		_expect(main.gameplay_audio._warning_voice.stream.resource_path.ends_with("%s_warning.wav" % ("snow" if name == "snowfall" else ("rock" if name == "rockslide" else "rain"))), "Distinct reserved audio warning")
+		# Exercise actual playback rather than replacing three pending voices
+		# in one main-loop turn, before the audio thread can observe them.
+		await create_timer(0.05).timeout
+	main.gameplay_audio.reset_for_match()
+	# Allow pending playback RefCounteds to leave the audio mix before their
+	# scene owner is freed; a single process frame races the Dummy audio thread.
+	await create_timer(0.1).timeout
+	main.free()
+	await create_timer(0.1).timeout
+	if failures.is_empty():
+		print("WEATHER_INTEGRATION_OK checks=%d maps=2 resets=5" % checks)
+		quit(0)
+	else:
+		for failure in failures:
+			push_error(failure)
+		quit(1)
+
+
+func _expect(condition: bool, message: String) -> void:
+	checks += 1
+	if not condition:
+		failures.append(message)

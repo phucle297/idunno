@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive_metadata": {"status": "historical_idle_checkpoint", "archived_at": "2026-10-14", "superseded_by": "../../../progress.json", "qualification": "Preserves release recovery and commit-hook evidence recorded after the completed phase archive; not a second active phase."},
+  "workflow_state": "awaiting_next_scope",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended in old-docs, not completed; reopen only on owner request."},
+  "previous_phase_archive": "docs/old-docs/phase-8-collision-followup/progress.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": null, "milestone": null, "task": null},
+  "phase": null,
+  "planned_phases": [
+    {"id": "phase_9_weather_rockslides", "status": "planned", "checklist": "docs/checklists/phase-9-weather-rockslides.md", "depends_on": "phase_8_character_disaster_counterplay"},
+    {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by explicit owner priority; revalidate expanded/mutated map and new hazards before zone implementation."},
+    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Owner requests planning only for temporary random movement pickups; separate from persistent cosmetics, priority not activated."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "completed_phase": {"id": "phase_8_collision_followup", "status": "completed_technical_source_gates", "archive": "docs/old-docs/phase-8-collision-followup/progress.json", "qualification": "Solid environmental detail collision with clear routes; focused/render and map-aware2/4-peer gates passed. One extra scene fixture failed a transient prop-reset observation, preserved. No new packages/deployment/release, native GPU/human acceptance or Phase9/pickup implementation."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"check": "Release regression attempts", "status": "failed", "result": "38583685846 failed map-variety: stair handrail blocked plaza_east approach, drowning cascaded into later hazard failures. Local remaining stair-side colliders also blocked crate crossing.38591914415 passed42 suites then failed known transient prop-reset observation at settled y0.116 instead of spawn0.4. Both deployments skipped. Failures preserved; stair presentation colliders removed and fixture-only freeze/ack barrier added without relaxing exact assertions."},
+    {"check": "Final CI and deployment", "status": "passed", "result": "38594162570 on e68a912a91c6dce339ddb254a559e68be26c53ce: UI_REGRESSION_OK suites42 matrices5 managed20 persistence_restart;34 room-service tests; repeated Linux exports/lifecycle; EXISTING_EC2_DEPLOY_OK backend passed. MAP_DETAIL_COLLISION_OK77 Town781/Harbor55 and PROP_ROLE_FEASIBILITY_OK191. Infrastructure/capacity/profile settings unchanged."},
+    {"check": "Matching release and public smoke", "status": "passed", "result": "Repeated Windows exports match. Final Windows contains exact CI PCK; Linux archive is exact CI artifact. Standalone Linux lifecycle passes. Two Linux Godot clients using final PCK pass TLS/tickets/ENet/Ready/Start/ACTIVE; unknown-room404 and old-build409. Published three assets downloaded, byte-compared, SHA256 checked; tag matches full revision. No native Windows/GPU/audio/separate-network human claim. Logs .scratch/release-29eb454."},
+    {"check": "Commit-time affected tests and fast deployment workflow", "status": "passed", "result": "Owner moves tests out of deploy into pre-commit.5 Python contract tests pass, including actual Git commit blocked on staged failure despite unstaged fix, then accepted after staging fix. Real-Godot isolated hook runs only test_shove64; exit0 with OK marker plus runtime ERROR rejects commit. Selector covers transitive resources/global classes/Python imports/network drivers; unknown/deleted runtime/project/shared shell triggers full fallback. Docs-only zero tests. Setup/installer twice pass3.6s/3.5s; YAML parsed, no regression/lifecycle test, one export, SSM retained. No new deployment/release or measured deploy-duration claim; full gameplay rerun not required for workflow-only change."}
+  ],
+  "changed_files": ["game/main.gd", "tests/test_map_detail_collision.gd", "tests/playable_scene_network_peer.gd", "assets/manifest.json", "docs/decisions.md", "progress.json", "README.md", "GUIDE.md", "NEED_REAL_CHECK.md", ".agents/skills/advancing-disaster-party/SKILL.md", ".agents/setup", ".github/workflows/deploy-existing-ec2.yml", ".githooks/pre-commit", "tools/test_changed.py", "tools/install_git_hooks.py", "tests/test_changed.py"],
+  "blockers": [],
+  "phase8_local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "14be2c323e2267c18a06ccf704090c6268ad184e",
+    "directory": ".amp/in/artifacts/phase8-packages",
+    "windows": "DisasterParty-Windows-14be2c3.zip",
+    "windows_sha256": "904aeb2db46fbabdb71f2090a15b64783da4a9d86322bf02f8c0433b9119ebed",
+    "linux_server": "DisasterParty-Linux-server-14be2c3.tar.gz",
+    "linux_server_sha256": "4f7bb817a2e90f23d1391550b35056f617c99c14e1059bfe0808be6ad7347d43",
+    "pck_sha256": "134a4f74e26dd9517b7b4b553f2c930634b4617c5efbf3474f4d689108c10795",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "integrated_town_release": {
+    "authorization": "2026-10-14 owner: Good. deploy and release",
+    "revision": "2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38514066230",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease_verified",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665",
+    "endpoint": "https://server.permees.com",
+    "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.",
+    "validation_reference": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json#integrated_town_release"
+  },
+  "collision_followup_delivery": {
+    "authorization": "2026-10-14 owner: release and deploy",
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "e68a912a91c6dce339ddb254a559e68be26c53ce",
+    "archive": "docs/old-docs/phase-8-collision-followup/progress.json",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38594162570",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
+    "endpoint": "https://server.permees.com",
+    "windows_sha256": "2ca30d6dbbb59e1a8a88df1244ad6084101bc1339bc579d001ce280795c5307b",
+    "linux_sha256": "c7f0af88b763ce476970bac52206793ab9e23beea4f8d203d0bc6eca1f210660",
+    "qualification": "Matching exact CI PCK/Linux artifact; release assets/tag downloaded and verified. Two Linux Godot clients on one orb/upstream; not native Windows/GPU/audio/separate-network human acceptance. No new capacity/storage or Steam release."
+  },
+  "historical_delivery_metadata": {"archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "preserved_keys": ["integrated_town_delivery", "rounded_world_delivery", "correction_delivery", "delivery", "local_delivery"], "qualification": "Historical delivery evidence retained without loss in the archives; not authorization for a new deployment."},
+  "commit_test_policy": {"hook": ".githooks/pre-commit", "install": "python3 tools/install_git_hooks.py", "runner": "python3 tools/test_changed.py", "selection": "staged affected tests with conservative full fallback", "deployment_tests": "removed by explicit owner request", "qualification": "Local hooks are bypassable; no central CI regression gate. Existing public e68a912 remains unchanged."},
+  "next_action": "Await owner scope; use installed affected-test hook for future commits and build-only workflow for next authorized deployment."
+}

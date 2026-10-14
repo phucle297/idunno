@@ -115,6 +115,9 @@ func _run_server(main: Node) -> void:
 	active_passed = active_passed and not paused and manager.elapsed_time > pause_time + 0.2 and main._movement_inputs[1].direction == Vector2.ZERO and host_player.local_input_blocked
 	main.pause_settings.back()
 	print("NETWORK_HOST_PAUSE_OK=%s" % active_passed)
+	# This fixture explicitly sequences hazards; random selections must not
+	# overlap its observation barriers (director scheduling is tested separately).
+	(main.get_node("DisasterDirector") as DisasterDirector).set_process(false)
 	# Social emote replication contract: the observer must see the host's
 	# wave identity, and an early authoritative cancel (host movement) must
 	# terminate it well before the 1.2s one-shot clip would end on its own.
@@ -174,6 +177,9 @@ func _run_server(main: Node) -> void:
 	lightning.cleanup()
 	flood.cleanup()
 	await create_timer(0.3).timeout
+	# Flood now leaves real surface wetness. Advance its normal drying before
+	# asking this independent wind/Fire stage to ignite the same fuel support.
+	main.tick_weather(50.0)
 	var combination_fire_started := fire.start_warning(6)
 	fire.tick(fire.warning_duration)
 	var tornado_started := tornado.start_warning(Vector3(-7.0, 0.0, 5.0), Vector3(9.0, 0.0, 5.0))

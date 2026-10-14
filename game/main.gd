@@ -55,6 +55,10 @@ const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
 @onready var earthquake: Earthquake = $Earthquake
 @onready var lightning: Lightning = $Lightning
 @onready var fire: Fire = $Fire
+@onready var weather_surfaces: WeatherSurfaces = $WeatherSurfaces
+@onready var rain: Precipitation = $Rain
+@onready var snowfall: Precipitation = $Snowfall
+@onready var rockslide: Rockslide = $Rockslide
 @onready var gameplay_audio: GameplayAudioController = $GameplayAudio
 @onready var gameplay_hud: GameplayHud = $Interface
 
@@ -115,6 +119,11 @@ func _ready() -> void:
 	earthquake.set_structure_root($Sandbox)
 	lightning.configure(match_manager)
 	fire.configure(match_manager)
+	rain.configure(match_manager)
+	snowfall.configure(match_manager)
+	rockslide.configure(match_manager)
+	fire.surface_wetness = weather_surfaces.sample_surface
+	weather_surfaces.support_height = get_map_support_height
 	$ShoveManager.configure(match_manager)
 	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
 	lightning.struck.connect(_on_lightning_struck)
@@ -136,6 +145,9 @@ func _ready() -> void:
 	disaster_director.register_disaster(earthquake)
 	disaster_director.register_disaster(lightning)
 	disaster_director.register_disaster(fire)
+	disaster_director.register_disaster(rain)
+	disaster_director.register_disaster(snowfall)
+	disaster_director.register_disaster(rockslide)
 	gameplay_audio.configure(match_manager, {
 		"meteor": meteor_shower,
 		"flood": flood,
@@ -143,6 +155,9 @@ func _ready() -> void:
 		"earthquake": earthquake,
 		"lightning": lightning,
 		"fire": fire,
+		"rain": rain,
+		"snowfall": snowfall,
+		"rockslide": rockslide,
 	})
 	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
 	gameplay_hud.spectator_cycle_requested.connect(_cycle_spectator)
@@ -459,6 +474,7 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	earthquake.unregister_player(peer_id)
 	lightning.unregister_player(peer_id)
 	fire.unregister_player(peer_id)
+	rockslide.unregister_player(peer_id)
 	_remove_network_player(peer_id)
 	if _dedicated_server and _room_owner_id == peer_id:
 		# Dictionary insertion order is connection order, not numeric peer ID order.
@@ -500,7 +516,7 @@ func _on_server_disconnected() -> void:
 	_emote_sequences.clear()
 	_emote_seen_sequences.clear()
 	for peer_id: int in match_manager.players.keys():
-		for component: Node in [meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
+		for component: Node in [meteor_shower, flood, tornado, earthquake, lightning, fire, rockslide, match_manager]:
 			component.unregister_player(peer_id)
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
@@ -584,6 +600,7 @@ func _remove_network_player(peer_id: int) -> void:
 func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
+	player.weather_surfaces = weather_surfaces
 	player.configure_emotes(self)
 	player.configure_identity(peer_id)
 	player.configure_shoving($ShoveManager)
@@ -595,6 +612,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 
 func _physics_process(delta: float) -> void:
+	tick_weather(delta)
 	_eliminate_out_of_bounds()
 	_tick_server_emotes()
 	if not _network_mode:
@@ -977,6 +995,7 @@ func _emote_now() -> float:
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
 	player.configure_emotes(self)
 	player.configure_identity(peer_id)
+	player.weather_surfaces = weather_surfaces
 	return (
 		match_manager.register_player(peer_id, player_name)
 		and $ShoveManager.register_player(peer_id, player)
@@ -986,6 +1005,7 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 		and earthquake.register_player(peer_id, player)
 		and lightning.register_player(peer_id, player)
 		and fire.register_player(peer_id, player)
+		and rockslide.register_player(peer_id, player)
 	)
 
 
@@ -1094,6 +1114,10 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	earthquake.apply_presentation_snapshot(disasters.get("earthquake", {}))
 	lightning.apply_presentation_snapshot(disasters.get("lightning", {}))
 	fire.apply_presentation_snapshot(disasters.get("fire", {}))
+	rain.apply_presentation_snapshot(disasters.get("rain", {}))
+	snowfall.apply_presentation_snapshot(disasters.get("snowfall", {}))
+	weather_surfaces.apply_presentation_snapshot(disasters.get("weather", {}))
+	rockslide.apply_presentation_snapshot(disasters.get("rockslide", {}))
 
 
 func _has_nonintact_structures() -> bool:
@@ -1129,6 +1153,14 @@ func _create_playable_snapshot() -> Dictionary:
 		disasters.lightning = lightning.create_presentation_snapshot()
 	if fire.is_active():
 		disasters.fire = fire.create_presentation_snapshot()
+	if rain.is_active():
+		disasters.rain = rain.create_presentation_snapshot()
+	if snowfall.is_active():
+		disasters.snowfall = snowfall.create_presentation_snapshot()
+	# Residual snow/meltwater outlive precipitation; resets must arrive too.
+	disasters.weather = weather_surfaces.create_presentation_snapshot()
+	if rockslide.is_active():
+		disasters.rockslide = rockslide.create_presentation_snapshot()
 	snapshot.disasters = disasters
 	return snapshot
 
@@ -1183,6 +1215,12 @@ func _update_context_prompt(local_peer_id: int) -> void:
 	var context := earthquake.get_escape_context(player.global_position)
 	if context.is_empty():
 		context = fire.get_escape_context(player.global_position)
+	if context.is_empty() and player.is_on_floor():
+		var surface := weather_surfaces.sample_surface(player.global_position)
+		if surface.x > 0.05:
+			context = "Snowy ground — walk to brake, leave the patch"
+		elif surface.y > 0.05:
+			context = "Wet ground — ground fire suppressed here"
 	gameplay_hud.present_context_action(context)
 
 
@@ -1198,6 +1236,9 @@ func _update_major_warning() -> void:
 			["earthquake", earthquake, Earthquake.Phase.WARNING],
 			["lightning", lightning, Lightning.Phase.WARNING],
 			["fire", fire, Fire.Phase.WARNING],
+			["rain", rain, Precipitation.Phase.WARNING],
+			["snowfall", snowfall, Precipitation.Phase.WARNING],
+			["rockslide", rockslide, Rockslide.Phase.WARNING],
 		]:
 			if entry[1].phase == entry[2] and entry[1].warning_remaining < soonest:
 				selected_id = entry[0]
@@ -1230,6 +1271,9 @@ func _active_disaster_lines() -> Array[String]:
 		["EARTHQUAKE", earthquake, collapse or burning],
 		["LIGHTNING", lightning, electric],
 		["FIRE", fire, wind or burning],
+		["RAIN", rain, false],
+		["SNOWFALL", snowfall, false],
+		["ROCKSLIDE", rockslide, false],
 	]:
 		if entry[1].is_active() and not entry[2]:
 			lines.append(entry[0])
@@ -1788,6 +1832,7 @@ func _prepare_offline_player_for_join() -> void:
 	earthquake.unregister_player(1)
 	lightning.unregister_player(1)
 	fire.unregister_player(1)
+	rockslide.unregister_player(1)
 	match_manager.unregister_player(1)
 	match_manager.prepare_lobby()
 	# Removing the last offline participant can finish that match before joining.
@@ -2061,6 +2106,8 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
+	if state == MatchManager.MatchState.LOBBY:
+		weather_surfaces.cleanup()
 	if is_instance_valid(collection) and state == MatchManager.MatchState.ACTIVE:
 		collection.dismiss()
 		_reward_notice.clear()
@@ -2157,6 +2204,8 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	earthquake.register_player(peer_id, player)
 	lightning.register_player(peer_id, player)
 	fire.register_player(peer_id, player)
+	rockslide.register_player(peer_id, player)
+	player.weather_surfaces = weather_surfaces
 
 
 func _build_lighting() -> void:
@@ -2249,7 +2298,23 @@ func request_match_preset(preset: String) -> bool:
 
 func _build_sandbox() -> void:
 	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
+	anchors.rockslide_lane = _build_rockslide_lane()
 	_apply_map_anchors(anchors)
+
+
+func _build_rockslide_lane() -> Dictionary:
+	var low := Vector3(50, 1.75, 12) if map_id == "toy_town" else Vector3(27, 0, -1)
+	var high := low + Vector3(0, 4, -18)
+	# A dedicated smooth toy embankment, outside existing refuge entrances.
+	var angle := -atan((high.y - low.y) / (high.z - low.z))
+	var normal := Basis(Vector3.RIGHT, angle) * Vector3.UP
+	_add_static_box("RockslideSlope", Vector3(4, 0.35, low.distance_to(high)), (low + high) * 0.5 - normal * 0.175, PALETTE.sand)
+	$Sandbox/RockslideSlope.rotation.x = angle
+	var cover := low + Vector3(0, 1.1, 3)
+	_add_static_box("RockslideCover", Vector3(1.8, 2.2, 1.2), cover, PALETTE.teal)
+	_add_world_label("RockCoverLabel", "SOLID COVER", cover + Vector3(0, 1.5, 0), PALETTE.cream)
+	return {"high": high, "low": low, "cover": cover,
+		"exits": [low + Vector3(-3.5, 0, 0), low + Vector3(3.5, 0, 0)]}
 
 
 func _reseat_players_for_map() -> bool:
@@ -2279,6 +2344,43 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
 	fire.support_height = get_map_support_height
 	earthquake.support_height = get_map_support_height
+	rockslide.set_lane(anchors.rockslide_lane)
+	_configure_weather_patches.call_deferred()
+
+
+func _configure_weather_patches() -> void:
+	if _network_mode and not multiplayer.is_server():
+		return
+	# Authored flat-region candidates, not a blanket world traction modifier.
+	var candidates: Array = map_anchors.fire_zones.duplicate()
+	for refuge: Dictionary in map_anchors.refuges:
+		candidates.append(refuge.center)
+	var patches := PackedVector3Array()
+	for candidate: Vector3 in candidates:
+		var point := candidate
+		point.y = get_map_support_height(point)
+		var fits := true
+		var exposed := weather_surfaces.is_exposed(point)
+		for index in 16:
+			var angle := TAU * index / 16.0
+			var edge := point + Vector3(cos(angle), 0, sin(angle)) * 2.4
+			if absf(get_map_support_height(edge) - point.y) > 0.06 or weather_surfaces.is_exposed(edge) != exposed:
+				fits = false
+		if fits and patches.size() < WeatherSurfaces.MAX_PATCHES:
+			patches.append(point)
+	weather_surfaces.configure_surfaces(patches, 2.4)
+
+
+func tick_weather(delta: float) -> void:
+	if _network_mode and not multiplayer.is_server():
+		return
+	if match_manager.state != MatchManager.MatchState.ACTIVE:
+		weather_surfaces.cleanup()
+		return
+	var raining := rain.phase == Precipitation.Phase.ACTIVE
+	var snowing := snowfall.phase == Precipitation.Phase.ACTIVE
+	weather_surfaces.precipitation = "Rain" if raining else ("Snowfall" if snowing else "")
+	weather_surfaces.tick(delta, raining, snowing, flood.water_level if flood.is_active() else -INF)
 
 
 func _meteor_routes_clear(points: Array[Vector3]) -> bool:
@@ -2586,7 +2688,7 @@ func _build_toy_harbor() -> Dictionary:
 		],
 		"strike_half_extent": 18.0,
 		"fire_zones": [
-			Vector3(-12.0, 0.08, 0.0), Vector3(-5.0, 0.08, 0.0), Vector3(2.0, 0.08, 0.0), Vector3(9.0, 0.08, 0.0),
+			Vector3(-12.0, 0.08, -8.5), Vector3(-5.0, 0.08, 0.0), Vector3(2.0, 0.08, 0.0), Vector3(9.0, 0.08, 0.0),
 			Vector3(-12.0, 0.08, 10.0), Vector3(-5.0, 0.08, 10.0), Vector3(2.0, 0.08, 10.0), Vector3(9.0, 0.08, 10.0),
 		],
 		"fire_zone_neighbors": [[1, 4], [0, 2, 5], [1, 3, 6], [2, 7], [0, 5], [1, 4, 6], [2, 5, 7], [3, 6]],

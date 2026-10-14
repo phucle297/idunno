@@ -54,6 +54,26 @@ roster restart can replace an avatar while its observer is still checking RESULT
   and reject runtime errors. A bounded subprocess timeout prevents a failed
   coroutine from leaving a headless fixture running forever; it is not a retry.
 
+Flood now leaves residual surface wetness. A scripted Fire stage immediately after
+Flood cleanup may correctly refuse ignition; advance normal dry recovery between
+independent fixture stages, never bypass production wetness. Disable random director
+processing while a fixture explicitly sequences hazards, not its running contract.
+
+## Focused Audio Fixture Teardown
+
+For ObjectDB/resource diagnostics in new focused fixtures, rerun with `--verbose`
+and identify the retained classes/resources before changing ownership. Phase9's
+Weather/Rock fixtures retained AudioStreamPlaybackWAV/WAV refs, not world nodes.
+Replacing three warning streams in one loop turn and quitting one frame after
+freeing Main raced pending audio cleanup. Give each playback a process turn (the
+fixture uses0.05s), stop and detach streams with `reset_for_match`, free the scene
+owner, then allow post-free audio cleanup (0.1s in these fixtures) before quitting.
+A pre-free delay alone was intermittently insufficient. Retained custom RefCounted
+cycles or unattached Nodes still require explicit ownership fixes, not more waiting.
+Require three consecutive verbose clean exits and the exact exported-PCK fixture;
+keep diagnostics enabled and preserve failed logs. Do not filter new leak warnings
+or claim Dummy playback validates human audio recognition.
+
 ## Provenance
 
 Adapted from [claude-code-game-studios / godot-gdscript-specialist](https://github.com/donchitos/claude-code-game-studios/blob/main/.claude/agents/godot-gdscript-specialist.md), inspected 2026-10-14. Removed Claude-specific tools, model selection, approval loops and documentation paths; revised blanket rules for this project's engine and ownership contracts. Upstream copyright and MIT terms are retained in [CCGS-LICENSE.md](../CCGS-LICENSE.md).

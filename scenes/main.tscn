@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -16,6 +16,9 @@
 [ext_resource type="Script" path="res://game/ui/lobby_roster.gd" id="15_roster"]
 [ext_resource type="Script" path="res://game/ui/results_table.gd" id="16_results"]
 [ext_resource type="Script" path="res://game/player/shove_manager.gd" id="17_shove"]
+[ext_resource type="Script" path="res://game/disasters/weather_surfaces.gd" id="18_weather"]
+[ext_resource type="Script" path="res://game/disasters/precipitation.gd" id="19_precipitation"]
+[ext_resource type="Script" path="res://game/disasters/rockslide.gd" id="20_rockslide"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -57,6 +60,19 @@ script = ExtResource("10_lightning")
 
 [node name="Fire" type="Node3D" parent="."]
 script = ExtResource("11_fire")
+
+[node name="WeatherSurfaces" type="Node3D" parent="."]
+script = ExtResource("18_weather")
+
+[node name="Rockslide" type="Node3D" parent="."]
+script = ExtResource("20_rockslide")
+
+[node name="Rain" type="Node3D" parent="."]
+script = ExtResource("19_precipitation")
+
+[node name="Snowfall" type="Node3D" parent="."]
+script = ExtResource("19_precipitation")
+disaster_name = "Snowfall"
 
 [node name="GameplayAudio" type="Node" parent="."]
 script = ExtResource("12_audio")

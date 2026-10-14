@@ -37,6 +37,7 @@ var invert_y := false
 var camera_shake_level := 1.0
 var _prediction_inputs: Array[Dictionary] = []
 var _last_movement_ack := -1
+var weather_surfaces: WeatherSurfaces
 
 
 func _ready() -> void:
@@ -56,6 +57,10 @@ func _process(_delta: float) -> void:
 	# Observers do not run move_and_slide, so their floor contact must come
 	# from the authoritative replay state, not their local collision cache.
 	var grounded := is_on_floor() if _network_grounded < 0 else _network_grounded != 0
+	var surface := weather_surfaces.sample_surface(global_position) if grounded and is_instance_valid(weather_surfaces) else Vector2.ZERO
+	# Small cosmetic hunch/shiver; capsule, aiming and gait timing are unchanged.
+	visual.rotation.x = surface.y * 0.06
+	visual.rotation.z = sin(Time.get_ticks_msec() * 0.018) * surface.x * 0.025
 	if grounded and _presentation_airborne:
 		_landing_remaining = character.get_clip_duration("landing")
 	_presentation_airborne = not grounded
@@ -166,6 +171,9 @@ func apply_movement_input(
 	var target_speed := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
+	if grounded and is_instance_valid(weather_surfaces):
+		var snow := weather_surfaces.sample_surface(global_position).x
+		acceleration *= lerpf(1.0, Tuning.SNOW_SPRINT_TRACTION if sprinting else Tuning.SNOW_WALK_TRACTION, snow)
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 

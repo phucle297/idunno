@@ -195,6 +195,14 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		# Synthetic snapshot stress beyond the director's two-disaster limit;
 		# the HUD still intentionally presents its bounded priority chips.
 		disaster_passed = disaster_passed and fire.start_warning(0) and quake.start_warning()
+		main.rain.set_process(false)
+		main.snowfall.set_process(false)
+		main.rockslide.set_physics_process(false)
+		disaster_passed = disaster_passed and main.rain.start_disaster(meteor_rng) and main.snowfall.start_disaster(meteor_rng) and main.rockslide.start_disaster(meteor_rng)
+		main.snowfall.tick(5)
+		main.tick_weather(20)
+		main.rockslide.tick(5)
+		main.rockslide.tick(0.01)
 		await create_timer(0.5).timeout
 		var damage_events: Array[Dictionary] = []
 		for peer_id: int in peer_ids:
@@ -393,6 +401,12 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		and not (main.get_node("Earthquake") as Earthquake).fracture_positions.is_empty()
 		and main.gameplay_hud.get_presented_hazards().any(func(line: String) -> bool: return "METEOR" in line)
 		and (main.get_node("Lightning") as Lightning).phase == Lightning.Phase.WARNING
+		and main.rain.phase == Precipitation.Phase.WARNING
+		and main.snowfall.phase == Precipitation.Phase.ACTIVE
+		and main.weather_surfaces.create_presentation_snapshot().snow.has(1.0)
+		and main.weather_surfaces.precipitation == "Snowfall"
+		and main.rockslide.phase == Rockslide.Phase.ACTIVE
+		and main.rockslide._remote_rocks.size() == 1
 	)
 	if not disaster_passed:
 		print("SCALE_HAZARDS_DIAGNOSTIC map=%s expected=%s meteor=%d effects=%d points=%d fire=%d quake=%d fractures=%d hud=%s" % [main.get_map_id(), map_id, meteor.phase, meteor.active_effect_count(), meteor.strike_points.size(), (main.get_node("Fire") as Fire).phase, (main.get_node("Earthquake") as Earthquake).phase, (main.get_node("Earthquake") as Earthquake).fracture_positions.size(), main.gameplay_hud.get_presented_hazards()])
@@ -480,6 +494,12 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 			rematch_ok = rematch_ok and is_equal_approx(manager.get_health(peer_id), 100.0)
 		var host_copy := _player_for_peer(main, 1)
 		rematch_ok = rematch_ok and is_instance_valid(host_copy) and host_copy.get_emote_id() == 0 and local_player.get_emote_id() == 0
+		var surfaces: Dictionary = main.weather_surfaces.create_presentation_snapshot()
+		rematch_ok = rematch_ok and not main.rain.is_active() and not main.snowfall.is_active() and not main.rockslide.is_active() and main.rockslide._remote_rocks.is_empty()
+		for snow: float in surfaces.snow:
+			rematch_ok = rematch_ok and snow == 0.0
+		for wetness: float in surfaces.wetness:
+			rematch_ok = rematch_ok and wetness == 0.0
 		probe.acknowledge_rematch.rpc_id(1, rematch_index, rematch_ok)
 	while manager.state != MatchManager.MatchState.LOBBY and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -530,6 +550,7 @@ func _disconnected_registries_are_clean(main: Node, original_peer_ids: Array[int
 			or (main.get_node("Earthquake") as Earthquake)._players.has(peer_id)
 			or (main.get_node("Lightning") as Lightning)._players.has(peer_id)
 			or (main.get_node("Fire") as Fire)._players.has(peer_id)
+			or main.rockslide._players.has(peer_id)
 		):
 			return false
 	return true

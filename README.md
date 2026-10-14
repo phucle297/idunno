@@ -62,7 +62,15 @@ localized earthquake escape, environmental Fire/Flood cooling and area-aware fro
 meteor waves. The public e68a912 release includes these changes and matching
 Windows/Linux packages; the earlier14be2c3 bundles remain historical local evidence.
 Native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance remains
-unverified/nonblocking. Root awaits next scope; Phase9 is not started.
+unverified/nonblocking. [Phase9](docs/old-docs/phase-9-weather-rockslides/checklist.md)
+now completes agent-owned weather/Rockslide source and local-package gates:
+Rain wets exposed ground/suppresses Fire, bounded snow affects grounded traction,
+and collision-backed rock slopes have lateral exits/solid cover on both maps.
+Full45-suite/five-matrix/managed20 regression and Town/Harbor2/4/8/20 weather/reset
+checks pass; matching local uncommitted Windows/Linux packages and inspected renders
+remain in `.amp/in/artifacts/phase9-packages` and `phase9`. Root awaits next scope;
+the owner subsequently authorized release/deployment after technical completion.
+Delivery is tracked in root progress; Phase10 is not started.
 The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/checklist.md)
 adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
 Release validation corrected blocked ramp approaches/crate crossings by leaving
@@ -74,7 +82,8 @@ Held hammer/wood interactions are
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
-gates pass. Phases9–11 are plans, not changes to the released build.
+gates pass. Phase9 is local source/package work only; Phase10–12 remain plans.
+None changes the currently released public build without separate authorization.
 
 ## Windows playtest export
 
@@ -159,7 +168,7 @@ Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the 
 Runtime scripts are grouped by responsibility:
 
 - `game/player/`: movement, tuning, character visuals, cosmetic ragdoll and shoving.
-- `game/disasters/`: the disaster director and six hazard implementations.
+- `game/disasters/`: the disaster director, shared weather surfaces/precipitation and hazard implementations.
 - `game/session/`: match state, room discovery/admission and spectating.
 - `game/ui/`: HUD, lobby/results presentation and settings.
 - `game/main.gd`: scene composition and orchestration. Standalone breakable-structure, gameplay-audio and asset-validation scripts remain at the root.
