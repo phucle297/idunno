@@ -3,9 +3,10 @@ extends Node3D
 
 const REQUIRED_CLIPS := [
 	"idle", "walk", "run", "jump_takeoff", "falling", "landing",
-	"crouch_idle", "crouch_walk", "holding_idle", "holding_walk", "get_up",
-	"shove", "wave", "cheer",
+	"get_up", "shove", "wave", "cheer",
 ]
+const LOCOMOTION_CLIPS := ["idle", "walk", "run"]
+const GAIT_REACH := 0.36
 const SUIT_COLORS := [
 	Color("31c5df"), Color("f28a3c"), Color("9b72e8"),
 	Color("8fcf4f"), Color("e66ba8"), Color("4f86e8"),
@@ -35,10 +36,30 @@ func ensure_runtime_setup() -> void:
 func play_clip(clip_name: String) -> bool:
 	if not clip_name in REQUIRED_CLIPS or not is_instance_valid(_animation_player):
 		return false
-	if current_clip != clip_name or not _animation_player.is_playing():
-		current_clip = clip_name
-		_animation_player.play(clip_name)
+	if current_clip == clip_name and _animation_player.is_playing():
+		return true
+	# Locomotion clips share a gait cycle. When walk/run/idle replace one another
+	# on a rapid Shift edge, restart the new clip at the same normalized phase
+	# instead of at pose 0, so limbs do not snap back to the start of the cycle.
+	var previous := current_clip
+	var phase := 0.0
+	if previous in LOCOMOTION_CLIPS and not _animation_player.current_animation.is_empty() and _animation_player.current_animation_length > 0.0:
+		phase = clampf(_animation_player.current_animation_position / _animation_player.current_animation_length, 0.0, 1.0)
+	current_clip = clip_name
+	_animation_player.play(clip_name, 0.12 if previous in LOCOMOTION_CLIPS and clip_name in LOCOMOTION_CLIPS else 0.0)
+	if clip_name in LOCOMOTION_CLIPS and phase > 0.0:
+		var length := _animation_player.current_animation_length
+		if length > 0.0:
+			_animation_player.seek(phase * length)
 	return true
+
+
+func set_locomotion_speed(speed: float) -> void:
+	if not is_instance_valid(_animation_player):
+		return
+	# Each planted foot travels twice the reach over half a cycle. Match
+	# playback to distance, rather than dragging the sole at fixed clip speed.
+	_animation_player.speed_scale = speed * _clip_duration(current_clip) / (4.0 * GAIT_REACH) if current_clip in ["walk", "run"] else 1.0
 
 
 func set_cosmetic_variant(variant: int) -> void:
@@ -219,19 +240,41 @@ func _build_animation_library() -> void:
 func _create_clip(clip_name: String) -> Animation:
 	var animation := Animation.new()
 	animation.length = _clip_duration(clip_name)
-	animation.loop_mode = Animation.LOOP_LINEAR if clip_name in ["idle", "walk", "run", "falling", "crouch_idle", "crouch_walk", "holding_idle", "holding_walk"] else Animation.LOOP_NONE
+	animation.loop_mode = Animation.LOOP_LINEAR if clip_name in ["idle", "walk", "run", "falling"] else Animation.LOOP_NONE
+	if clip_name not in ["walk", "run"]:
+		for side in ["Left", "Right"]:
+			for property in ["Mesh:scale", "Mesh:position", side + "Shoe:position", side + "Shoe:rotation"]:
+				var parts: PackedStringArray = property.split(":")
+				var reset := animation.add_track(Animation.TYPE_VALUE)
+				animation.track_set_path(reset, NodePath("%sLeg/%s" % [side, property]))
+				animation.track_insert_key(reset, 0.0, get_node("%sLeg/%s" % [side, parts[0]]).get(parts[1]))
+	var squash := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(squash, NodePath("Torso:scale"))
+	var rest_scale: Vector3 = $Torso.scale
+	animation.track_insert_key(squash, 0.0, rest_scale * Vector3(1, 0.92 if clip_name == "landing" else 1.0, 1))
+	animation.track_insert_key(squash, 0.13 if clip_name == "landing" else animation.length, rest_scale)
 	if clip_name != "shove":
+		var recovery_lean := -0.5 if clip_name == "get_up" else 0.0
 		var torso_reset := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(torso_reset, NodePath("Torso:rotation"))
-		animation.track_insert_key(torso_reset, 0.0, Vector3.ZERO)
+		animation.track_insert_key(torso_reset, 0.0, Vector3(recovery_lean, 0, 0))
+		animation.track_insert_key(torso_reset, animation.length, Vector3.ZERO)
 		for part in ["FacePlate", "LeftEye", "RightEye", "Mouth"]:
 			var face_reset := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(face_reset, NodePath("%s:transform" % part))
-			animation.track_insert_key(face_reset, 0.0, get_node(part).transform)
+			var rest: Transform3D = get_node(part).transform
+			var rotation := Basis(Vector3.RIGHT, recovery_lean)
+			var pivot: Vector3 = $Torso.position
+			animation.track_insert_key(face_reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(face_reset, animation.length, rest)
 		for accessory: MeshInstance3D in $Accessories.get_children():
 			var reset := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(reset, NodePath("Accessories/%s:transform" % accessory.name))
-			animation.track_insert_key(reset, 0.0, accessory.transform)
+			var rotation := Basis(Vector3.RIGHT, recovery_lean if accessory.get_meta("body") != "Pelvis" else 0.0)
+			var pivot: Vector3 = $Torso.position
+			var rest := accessory.transform
+			animation.track_insert_key(reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(reset, animation.length, rest)
 	if clip_name == "shove":
 		# One bounded forward arm thrust with a short lunge stance; the clip is
 		# one-shot and returns to ordinary locomotion on the next frame pick.
@@ -332,23 +375,12 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(cheer_right_leg, 0.85, Vector3(-0.12, 0.0, 0.0))
 		animation.track_insert_key(cheer_right_leg, animation.length, Vector3.ZERO)
 		return animation
-	if clip_name in ["holding_idle", "holding_walk"]:
-		var hold_base := 1.05 if clip_name == "holding_idle" else 1.15
-		var hold_swing := 0.04 if clip_name == "holding_idle" else 0.08
-		_add_holding_track(animation, "LeftArm", hold_base, hold_swing, 0.22)
-		_add_holding_track(animation, "RightArm", hold_base, hold_swing, -0.22)
-		var holding_leg_angle := 0.0 if clip_name == "holding_idle" else 0.45
-		_add_rotation_track(animation, "LeftLeg", -holding_leg_angle)
-		_add_rotation_track(animation, "RightLeg", holding_leg_angle)
-		return animation
 	var arm_angle := 0.0
 	var leg_angle := 0.0
-	if clip_name in ["walk", "holding_walk", "crouch_walk"]:
+	if clip_name == "walk":
 		arm_angle = 0.55
-		leg_angle = 0.45
 	elif clip_name == "run":
 		arm_angle = 0.9
-		leg_angle = 0.75
 	elif clip_name == "jump_takeoff":
 		arm_angle = -0.8
 		leg_angle = 0.25
@@ -362,9 +394,34 @@ func _create_clip(clip_name: String) -> Animation:
 		leg_angle = 0.5
 	_add_rotation_track(animation, "LeftArm", arm_angle)
 	_add_rotation_track(animation, "RightArm", -arm_angle)
-	_add_rotation_track(animation, "LeftLeg", -leg_angle)
-	_add_rotation_track(animation, "RightLeg", leg_angle)
+	if clip_name in ["walk", "run"]:
+		_add_gait_tracks(animation, "Left", 0.0)
+		_add_gait_tracks(animation, "Right", 0.5)
+	else:
+		_add_rotation_track(animation, "LeftLeg", -leg_angle)
+		_add_rotation_track(animation, "RightLeg", leg_angle)
 	return animation
+
+
+func _add_gait_tracks(animation: Animation, side: String, offset: float) -> void:
+	var paths := ["rotation", "Mesh:scale", "Mesh:position", side + "Shoe:position", side + "Shoe:rotation"]
+	var tracks: Array[int] = []
+	for path: String in paths:
+		var track := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track, NodePath("%sLeg%s%s" % [side, ":" if path == "rotation" else "/", path]))
+		tracks.append(track)
+	for sample in 33:
+		var phase := fposmod(sample / 32.0 + offset, 1.0)
+		var planted := phase <= 0.5
+		var progress := phase * 2.0 if planted else (phase - 0.5) * 2.0
+		var z := lerpf(-GAIT_REACH, GAIT_REACH, progress) if planted else lerpf(GAIT_REACH, -GAIT_REACH, progress)
+		var lift := 0.0 if planted else sin(progress * PI) * 0.12
+		var foot := Vector3(0.0, -0.32 + lift, z - 0.045)
+		var length := foot.length()
+		var angle := atan2(-foot.z, -foot.y)
+		var values := [Vector3(angle, 0, 0), Vector3(1, length / 0.32, 1), Vector3(0, -length * 0.5, 0), Vector3(0, -length, 0), Vector3(-angle, 0, 0)]
+		for index in tracks.size():
+			animation.track_insert_key(tracks[index], sample / 32.0 * animation.length, values[index])
 
 
 func _add_rotation_track(animation: Animation, node_name: String, angle: float) -> void:
@@ -375,23 +432,15 @@ func _add_rotation_track(animation: Animation, node_name: String, angle: float) 
 	animation.track_insert_key(track, animation.length, Vector3(angle, 0.0, 0.0))
 
 
-func _add_holding_track(animation: Animation, node_name: String, base_angle: float, swing: float, inward: float) -> void:
-	var track := animation.add_track(Animation.TYPE_VALUE)
-	animation.track_set_path(track, NodePath("%s:rotation" % node_name))
-	animation.track_insert_key(track, 0.0, Vector3(base_angle + swing, 0.0, inward))
-	animation.track_insert_key(track, animation.length * 0.5, Vector3(base_angle - swing, 0.0, inward))
-	animation.track_insert_key(track, animation.length, Vector3(base_angle + swing, 0.0, inward))
-
-
 func get_clip_duration(clip_name: String) -> float:
 	return _clip_duration(clip_name)
 
 
 func _clip_duration(clip_name: String) -> float:
 	match clip_name:
-		"idle", "holding_idle", "crouch_idle": return 2.0
+		"idle": return 2.0
 		"shove": return 0.3
-		"walk", "holding_walk", "crouch_walk": return 0.8
+		"walk": return 0.8
 		"run": return 0.55
 		"jump_takeoff": return 0.15
 		"landing": return 0.2

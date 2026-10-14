@@ -2,7 +2,6 @@ extends SceneTree
 
 const TIMEOUT_MSEC := 5000
 const ManagerScript = preload("res://game/session/match_manager.gd")
-const GrabManagerScript = preload("res://game/player/grab_manager.gd")
 const MeteorScript = preload("res://game/disasters/meteor_shower.gd")
 const FloodScript = preload("res://game/disasters/flood.gd")
 const TornadoScript = preload("res://game/disasters/tornado.gd")
@@ -104,16 +103,7 @@ func _check_authority_matrix(
 	if role == "server":
 		manager.set_player_ready(99, true)
 		manager.start_match()
-	var grab_manager := GrabManagerScript.new()
-	host.add_child(grab_manager)
 	var grab_player := server_player if role == "server" else client_player
-	var grab_registration_result: bool = grab_manager.register_player(root.multiplayer.get_unique_id(), grab_player)
-	var body := RigidBody3D.new()
-	body.mass = 12.0
-	body.add_to_group("grabbable")
-	body.position = Vector3(0.0, 0.4, -1.0)
-	host.add_child(body)
-	var grab_mutation_result: bool = grab_manager.request_grab(root.multiplayer.get_unique_id(), body)
 	var meteor := MeteorScript.new()
 	host.add_child(meteor)
 	meteor.configure(manager)
@@ -158,8 +148,6 @@ func _check_authority_matrix(
 		server_result == expected_server_player
 		and client_result == expected_client_player
 		and match_mutation_result == expected_match_mutation
-		and grab_registration_result == expected_match_mutation
-		and grab_mutation_result == expected_match_mutation
 		and meteor_registration_result == expected_match_mutation
 		and meteor_mutation_result == expected_match_mutation
 		and flood_registration_result == expected_match_mutation
@@ -180,8 +168,8 @@ func _check_authority_matrix(
 	)
 	if not passed:
 		push_error(
-			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s grab_registration=%s grab_mutation=%s meteor_registration=%s meteor_mutation=%s flood_registration=%s flood_mutation=%s flood_interaction=%s tornado_registration=%s tornado_mutation=%s earthquake_registration=%s earthquake_mutation=%s lightning_registration=%s lightning_mutation=%s fire_registration=%s fire_mutation=%s fire_interaction=%s director_configuration=%s director_registration=%s director_mutation=%s" % [
-				role, server_result, client_result, match_mutation_result, grab_registration_result, grab_mutation_result, meteor_registration_result, meteor_mutation_result, flood_registration_result, flood_mutation_result, flood_interaction_result, tornado_registration_result, tornado_mutation_result, earthquake_registration_result, earthquake_mutation_result, lightning_registration_result, lightning_mutation_result, fire_registration_result, fire_mutation_result, fire_interaction_result, director_configuration_result, director_registration_result, director_mutation_result
+			"Authority mismatch role=%s server_player=%s client_player=%s match_mutation=%s meteor_registration=%s meteor_mutation=%s flood_registration=%s flood_mutation=%s flood_interaction=%s tornado_registration=%s tornado_mutation=%s earthquake_registration=%s earthquake_mutation=%s lightning_registration=%s lightning_mutation=%s fire_registration=%s fire_mutation=%s fire_interaction=%s director_configuration=%s director_registration=%s director_mutation=%s" % [
+				role, server_result, client_result, match_mutation_result, meteor_registration_result, meteor_mutation_result, flood_registration_result, flood_mutation_result, flood_interaction_result, tornado_registration_result, tornado_mutation_result, earthquake_registration_result, earthquake_mutation_result, lightning_registration_result, lightning_mutation_result, fire_registration_result, fire_mutation_result, fire_interaction_result, director_configuration_result, director_registration_result, director_mutation_result
 			]
 		)
 	host.queue_free()

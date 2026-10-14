@@ -20,8 +20,8 @@ func _run() -> void:
 	_test_mouse_capture()
 	_test_walk_and_sprint()
 	_test_visual_facing()
-	_test_crouch()
-	_test_carry_presentation()
+	_test_gait_continuity()
+	_test_observer_animation()
 	_test_jump_arc()
 	_test_ramp_traversal()
 	var collider := player.get_node("CollisionShape3D") as CollisionShape3D
@@ -35,8 +35,6 @@ func _run() -> void:
 		var shape := collider.shape as CapsuleShape3D
 		_expect(shape.radius == baseline_shape.radius and shape.height == baseline_shape.height and player.collision_layer == baseline_layer and player.collision_mask == baseline_mask, "Every outfit must retain identical controller collider dimensions/layers/masks")
 		_test_walk_and_sprint()
-		_test_crouch()
-		_test_carry_presentation()
 		await _test_knockdown_recovery()
 	await _test_default_scene_offline_input()
 	if failures.is_empty():
@@ -102,7 +100,7 @@ func _test_mouse_capture() -> void:
 
 func _settle_player() -> void:
 	for index in 5:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		player.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 
 
 func _test_walk_and_sprint() -> void:
@@ -110,7 +108,7 @@ func _test_walk_and_sprint() -> void:
 	player.velocity = Vector3.ZERO
 	_settle_player()
 	for index in 60:
-		player.apply_movement_input(Vector2(0.0, -1.0), false, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), false, false, DELTA)
 	var walk_distance := -player.position.z
 	_expect(walk_distance > 3.5 and walk_distance < 4.6, "Walk distance after one second must reflect acceleration toward 4.5 m/s")
 
@@ -118,7 +116,7 @@ func _test_walk_and_sprint() -> void:
 	player.velocity = Vector3.ZERO
 	_settle_player()
 	for index in 60:
-		player.apply_movement_input(Vector2(0.0, -1.0), true, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), true, false, DELTA)
 	var sprint_distance := -player.position.z
 	_expect(sprint_distance > walk_distance + 1.5, "Sprint must travel materially farther than walk over one second")
 	_expect(player.velocity.z <= -6.45, "Sprint must reach the 6.5 m/s target")
@@ -130,7 +128,7 @@ func _test_walk_and_sprint() -> void:
 	player.velocity = Vector3.ZERO
 	_settle_player()
 	for index in 60:
-		player.apply_movement_input(Vector2(0.0, -1.0), true, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), true, false, DELTA)
 	# Independent trig expectation catches ignored/reversed yaw or a pivot-only reset.
 	var expected_velocity := Vector3(-sin(yaw), 0.0, -cos(yaw)) * Tuning.SPRINT_SPEED
 	var horizontal_velocity := Vector3(player.velocity.x, 0.0, player.velocity.z)
@@ -144,7 +142,7 @@ func _test_visual_facing() -> void:
 	player.visual.rotation = Vector3.ZERO
 	_settle_player()
 	for _index in 60:
-		player.apply_movement_input(Vector2(0.0, -1.0), false, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), false, false, DELTA)
 	var forward_facing := (player.visual.global_transform.basis * Vector3.FORWARD).normalized()
 	_expect(forward_facing.dot(Vector3.FORWARD) > 0.95, "Moving forward must turn the character visual forward")
 
@@ -153,59 +151,76 @@ func _test_visual_facing() -> void:
 	player.visual.rotation = Vector3.ZERO
 	_settle_player()
 	for _index in 60:
-		player.apply_movement_input(Vector2(-1.0, 0.0), false, false, false, DELTA)
+		player.apply_movement_input(Vector2(-1.0, 0.0), false, false, DELTA)
 	var left_facing := (player.visual.global_transform.basis * Vector3.FORWARD).normalized()
 	_expect(left_facing.dot(Vector3.LEFT) > 0.95, "Moving left must turn the character visual left")
 
 
-func _test_crouch() -> void:
-	player.apply_movement_input(Vector2.ZERO, false, true, false, DELTA)
-	var capsule := player.get_node("CollisionShape3D").shape as CapsuleShape3D
-	_expect(is_equal_approx(capsule.height, Tuning.CROUCHED_HEIGHT), "Crouch must set the 0.95 m capsule")
-	_expect(is_equal_approx(player.get_node("Visual").scale.y, 0.72), "Crouch must visibly lower the character")
-	player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
-	_expect(is_equal_approx(capsule.height, Tuning.STANDING_HEIGHT), "Releasing crouch must restore the 1.50 m capsule")
-
-
-func _test_carry_presentation() -> void:
+func _test_gait_continuity() -> void:
+	var animation := player.character.get_node("AnimationPlayer") as AnimationPlayer
+	for outfit in 8:
+		player.character.set_cosmetic_variant(outfit)
+		for phase in [0.15, 0.4, 0.75]:
+			player.character.play_clip("walk")
+			animation.seek(phase * animation.current_animation_length, true)
+			for clip in ["run", "walk", "run", "walk"]:
+				var before := animation.current_animation_position / animation.current_animation_length
+				player.character.play_clip(clip)
+				_expect(is_equal_approx(animation.current_animation_position / animation.current_animation_length, before), "Rapid Shift reversals preserve gait phase for every outfit")
+		for clip in ["walk", "run"]:
+			var speed := Tuning.WALK_SPEED if clip == "walk" else Tuning.SPRINT_SPEED
+			player.character.play_clip(clip)
+			player.character.set_locomotion_speed(speed)
+			animation.advance(1.0)
+			animation.pause()
+			player.position = Vector3.ZERO
+			animation.seek(animation.current_animation_length * 0.15, true)
+			var shoe := player.character.get_node("LeftLeg/LeftShoe") as MeshInstance3D
+			var planted := shoe.global_position
+			player.position = player.visual.basis * Vector3.FORWARD * speed * DELTA
+			animation.seek(animation.current_animation_position + DELTA * animation.speed_scale, true)
+			_expect(shoe.global_position.distance_to(planted) < 0.002, "Planted shoes do not skate at ordinary walk/run speeds for any outfit")
+			player.position = Vector3.ZERO
+	_expect(not InputMap.has_action("crouch") and not InputMap.has_action("grab"), "Removed C/F actions cannot change the capsule or locomotion")
 	player.reset_for_match(Vector3.ZERO)
-	player.set_camera_yaw(0.0)
-	player.carrying_medium = true
-	player.velocity = Vector3.ZERO
+
+
+func _test_observer_animation() -> void:
+	# An observed player is positioned by snapshots, not local move_and_slide.
+	player.reset_for_match(Vector3(0, 2, 0))
+	player.set_network_grounded(true)
+	player.velocity = Vector3(Tuning.WALK_SPEED, 0, 0)
 	player._process(DELTA)
-	_expect(player.character.current_clip == "holding_idle", "A grounded stationary holder must use the holding idle pose")
-	player.velocity = Vector3(0.0, 0.0, -1.0)
+	_expect(player.character.current_clip == "walk", "Authoritative floor contact selects observer walking even without local collision contact")
+	player.velocity.x = Tuning.SPRINT_SPEED
 	player._process(DELTA)
-	_expect(player.character.current_clip == "holding_walk", "A grounded moving holder must use the holding walk pose")
-	player.apply_movement_input(Vector2.ZERO, false, true, false, DELTA)
-	player._process(DELTA)
-	_expect(player.character.current_clip.begins_with("holding_") and player.is_crouched(), "Crouch while carrying must keep the readable hold and lowered capsule")
-	player.position = Vector3(0.0, 5.0, 0.0)
-	player.velocity = Vector3(0.0, 1.0, 0.0)
-	player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA, 0)
-	player._process(DELTA)
-	_expect(player.character.current_clip == "jump_takeoff", "Airborne takeoff must override the holding pose")
+	_expect(player.character.current_clip == "run", "Observer sprint snapshots select running")
+	player.set_network_grounded(false)
 	player.velocity.y = -1.0
 	player._process(DELTA)
-	_expect(player.character.current_clip == "falling", "Falling must override the holding pose")
-	player.carrying_medium = false
-	player.reset_for_match(Vector3.ZERO)
+	_expect(player.character.current_clip == "falling", "Observer airborne snapshots select falling")
+	player.set_network_grounded(true)
 	player.velocity = Vector3.ZERO
-	for _tick in 5:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
 	player._process(DELTA)
-	_expect(player.character.current_clip == "idle", "Release/rematch must resume ordinary locomotion")
+	_expect(player.character.current_clip == "landing", "An observed airborne-to-ground transition presents landing")
+	player._process(0.21)
+	player._process(DELTA)
+	_expect(player.character.current_clip == "idle", "Landing returns to locomotion without locking the controller")
+	player.reset_for_match(Vector3.ZERO)
+	_settle_player()
+	player._process(DELTA)
+	_expect(player.character.current_clip == "idle", "Rematch clears landing presentation and returns to grounded idle")
 
 
 func _test_jump_arc() -> void:
 	player.position = Vector3.ZERO
 	player.velocity = Vector3.ZERO
 	_settle_player()
-	player.apply_movement_input(Vector2.ZERO, false, false, true, DELTA)
+	player.apply_movement_input(Vector2.ZERO, false, true, DELTA)
 	_expect(player.velocity.y > 7.3, "Jump takeoff must use the configured velocity")
 	var maximum_height := player.position.y
 	for index in 120:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		player.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		maximum_height = maxf(maximum_height, player.position.y)
 	_expect(maximum_height > 1.25 and maximum_height < 1.45, "Jump apex must stay near the 1.35 m target")
 	_expect(player.is_on_floor(), "Player must land within two seconds")
@@ -217,7 +232,7 @@ func _test_ramp_traversal() -> void:
 	_settle_player()
 	var maximum_height := player.position.y
 	for index in 150:
-		player.apply_movement_input(Vector2(0.0, -1.0), false, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), false, false, DELTA)
 		maximum_height = maxf(maximum_height, player.position.y)
 	_expect(maximum_height > 1.7, "Controller must ascend the representative map ramp (max y %.3f)" % maximum_height)
 	_expect(player.position.z < 2.0, "Controller must traverse beyond the lower half of the ramp (z %.3f)" % player.position.z)
@@ -237,7 +252,7 @@ func _test_knockdown_recovery() -> void:
 	_expect(player.ragdoll_adjacent_exclusions_are_configured(), "Adjacent ragdoll bodies must exclude mutual collision")
 	_expect(not player.get_node("Visual").visible, "Knockdown must hide the upright visual")
 	for index in 100:
-		player.apply_movement_input(Vector2(0.0, -1.0), true, false, false, DELTA)
+		player.apply_movement_input(Vector2(0.0, -1.0), true, false, DELTA)
 		await physics_frame
 		if index == 30:
 			_expect(player.ragdoll_maximum_body_separation() < 3.0, "Ragdoll joints must not explosively separate")
@@ -251,13 +266,13 @@ func _test_knockdown_recovery() -> void:
 	player.apply_knockdown(Vector3(3.0, 2.0, -1.0))
 	for index in 90:
 		await physics_frame
-		player.apply_movement_input(Vector2.RIGHT, true, false, false, DELTA)
+		player.apply_movement_input(Vector2.RIGHT, true, false, DELTA)
 	_expect(not player.is_on_floor() and not player.is_knocked_down(), "Airborne knockdown must expire before landing")
 	_expect(player.visual.visible and player.ragdoll_body_count() == 0, "Airborne recovery must not leave a movable invisible capsule and abandoned ragdoll")
 	var recovered_position := player.position
 	for index in 120:
 		await physics_frame
-		player.apply_movement_input(Vector2.RIGHT, true, false, true, DELTA)
+		player.apply_movement_input(Vector2.RIGHT, true, true, DELTA)
 	_expect(player.position.x > recovered_position.x + 2.0 and player.visual.visible and player.ragdoll_body_count() == 0, "Running and landing/jumping after airborne recovery must retain the visible actor")
 
 
@@ -282,14 +297,6 @@ func _test_default_scene_offline_input() -> void:
 	if DisplayServer.get_name() != "headless":
 		_expect(Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "Closing the lobby must restore camera input")
 	var start := playable_player.global_position
-	main._process(0.0)
-	_expect(main.gameplay_hud.get_presented_context_action() == "GRAB — CARRY SLOWS YOU 25%", "An in-range prop must show acquisition plus the carry tradeoff")
-	Input.action_press("grab")
-	playable_player._physics_process(DELTA)
-	Input.action_release("grab")
-	_expect(is_instance_valid((main.get_node("GrabManager") as GrabManager).get_held_body(1)), "Default-scene offline grab input must reach GrabManager")
-	main._process(0.0)
-	_expect(main.gameplay_hud.get_presented_context_action() == "RELEASE TO RESTORE SPEED", "A held prop must replace acquisition with release/restored speed")
 	Input.action_press("move_forward")
 	for _frame in 30:
 		await physics_frame
@@ -301,10 +308,9 @@ func _test_default_scene_offline_input() -> void:
 	(main.get_node("DisasterDirector") as DisasterDirector).cleanup()
 	flood.set_process(false)
 	playable_player.set_physics_process(false)
-	playable_player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
 	_expect(flood.start_warning(), "Default scene must start a representative Flood for feedback validation")
 	flood.tick(flood.warning_duration)
-	flood._set_water_level(1.0)
+	flood._set_water_level(1.5)
 	flood.phase = Flood.Phase.HOLDING
 	flood.tick(1.0)
 	main._process(0.0)

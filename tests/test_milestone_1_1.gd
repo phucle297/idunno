@@ -27,7 +27,7 @@ func _run() -> void:
 	hud.present_vitals(17.25, 1, 20)
 	hud.present_match_status(601, "SURVIVE", false)
 	hud.present_hazards(["FLOOD", "TORNADO", "FIRE"])
-	hud.present_context_action("RELEASE TO RESTORE SPEED")
+	hud.present_context_action("TEST CONTEXT ACTION")
 	_expect(main._create_playable_snapshot() == before, "HUD presentation must not mutate authoritative match, health, or disaster state")
 	_expect(hud.timer_label.text == "10:01" and hud.alive_label.text == "1 / 20", "Clock and survivor values must remain distinct and correctly formatted")
 	hud.present_hazards(["FLOOD"])
@@ -39,18 +39,9 @@ func _run() -> void:
 		hud.present_vitals(entry[0], 20, 20)
 		_expect(hud.health_bar.value == entry[1], "Health visualization must respect both bar boundaries")
 
-	var grab_manager := main.get_node("GrabManager") as GrabManager
-	var crate := main.get_node("Sandbox/PhysicsCrate") as RigidBody3D
-	crate.freeze = true
-	crate.global_position = player.get_grab_origin() + player.get_grab_direction()
-	main._update_context_prompt(1)
-	_expect(hud.get_presented_context_action() == "GRAB — CARRY SLOWS YOU 25%", "An eligible unowned prop must show acquisition and the carry tradeoff")
-	_expect(grab_manager.request_grab(1, crate), "The fixture must actually grab the eligible prop")
-	main._update_context_prompt(1)
-	_expect(hud.get_presented_context_action() == "RELEASE TO RESTORE SPEED", "A held prop must show release/restored speed")
 	main.get_node("Interface/LobbyPanel").show()
 	main._update_context_prompt(1)
-	_expect(not hud.context_prompt.visible, "Lobby must suppress the context prompt even with a held prop")
+	_expect(not hud.context_prompt.visible, "Lobby must suppress the context prompt")
 	main.get_node("Interface/LobbyPanel").hide()
 	main.match_manager.state = MatchManager.MatchState.RESULTS
 	main._update_context_prompt(1)
@@ -60,14 +51,10 @@ func _run() -> void:
 	main._update_context_prompt(1)
 	_expect(not hud.context_prompt.visible, "Spectating must suppress the context prompt")
 	main.spectator_controller.active = false
-	grab_manager.release_grab(1)
 	player.set_eliminated(true)
 	main._update_context_prompt(1)
 	_expect(not hud.context_prompt.visible, "An eliminated player must not be offered a grab action")
 	player.set_eliminated(false)
-	crate.global_position = Vector3(30, 0.5, 30)
-	main._update_context_prompt(1)
-	_expect(not hud.context_prompt.visible, "No eligible nearby object must leave no context prompt")
 
 	hud.present_vitals(73.9, 20, 20)
 	hud.present_match_status(125, "SURVIVE", false)
@@ -78,7 +65,7 @@ func _run() -> void:
 		environment.background_color = Color("202a38") if dark else Color("9fc8df")
 		environment.ambient_light_energy = 0.1 if dark else 0.5
 		main.get_node("Sun").light_energy = 0.1 if dark else 1.0
-		hud.present_context_action("RELEASE TO RESTORE SPEED")
+		hud.present_context_action("TEST CONTEXT ACTION")
 		await process_frame
 		_check_layout(hud)
 		await _capture("dark" if dark else "light")

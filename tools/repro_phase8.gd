@@ -1,11 +1,11 @@
 extends SceneTree
 
-# Phase 8.1 baseline reproduction harness.
+# Phase 8 reproduction and current-behaviour trace harness.
 #
 # Runs the real main scene on the real maps with the real PartyPlayer and
 # real collision, then prints deterministic traces for the reported hazards
-# and for the rapid walk/run Shift clip reset. This script records "before"
-# behaviour only; it must not be used to claim a report is fixed.
+# and for rapid walk/run Shift transitions. Compare the recorded Phase8.1
+# baseline with current traces; the success marker alone is not proof of a fix.
 #
 # Usage (import once first so global class_name types are cached):
 #   godot --headless --editor --path . --quit
@@ -95,7 +95,7 @@ func _select_map(main: Node3D, player: PartyPlayer, map_id: String) -> bool:
 	# Settle the capsule onto the real ground surface so is_on_floor() and
 	# position.y through the rest of the trace come from actual collision.
 	for settle in 10:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 		await physics_frame
 	return true
 
@@ -120,9 +120,9 @@ func _scenario_earthquake(main: Node3D, earthquake: Earthquake, player: PartyPla
 			var health_after := manager.get_health(1)
 			if earthquake.pulse_count != pulse_before:
 				pulse_log.append(
-					"t=%.2f pulse=%d hp=%.1f->%.1f grounded=%s crouch=%s carry=%s knockdown=%s->%s" % [
+					"t=%.2f pulse=%d hp=%.1f->%.1f grounded=%s knockdown=%s->%s" % [
 						time, earthquake.pulse_count, health_before, health_after,
-						player.is_on_floor(), player.is_crouched(), player.carrying_medium,
+						player.is_on_floor(),
 						down_before, player.is_knocked_down(),
 					]
 				)
@@ -310,7 +310,7 @@ func _scenario_shift(main: Node3D, player: PartyPlayer, manager: MatchManager) -
 			sprinting = false
 		else:
 			input = Vector2.ZERO
-		player.apply_movement_input(input, sprinting, false, false, 1.0 / 60.0)
+		player.apply_movement_input(input, sprinting, false, 1.0 / 60.0)
 		if step % 2 == 0:
 			await physics_frame
 		# Recreate the real _process animation selection at a fixed step so the

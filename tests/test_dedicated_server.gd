@@ -41,7 +41,7 @@ func _run() -> void:
 	_expect(server.get_network_role() == "server" and server.match_manager.players.is_empty() and server.get_network_player_ids().is_empty(), "Dedicated server must have no phantom participant")
 	_expect(server.get_room_owner_id() == 0 and not server.can_control_session() and not server.set_local_ready(true), "Server is not the room owner or a ready player")
 	_expect(not server.get_node("Player/Visual").visible and server.get_node("Player/CollisionShape3D").disabled and not server.get_node("Player/CameraPivot/SpringArm3D/Camera3D").current, "Placeholder must have no mesh, collider or camera")
-	for component: Node in [server.get_node("GrabManager"), server.meteor_shower, server.flood, server.tornado, server.earthquake, server.lightning, server.fire]:
+	for component: Node in [server.meteor_shower, server.flood, server.tornado, server.earthquake, server.lightning, server.fire]:
 		_expect(component._players.is_empty(), "%s must not register a server player" % component.name)
 	_expect(not server.start_network_match(), "Empty dedicated lobby cannot start")
 	var port: int = server.multiplayer.multiplayer_peer.host.get_local_port()
@@ -135,7 +135,7 @@ func _run() -> void:
 	last._on_server_disconnected()
 	await _wait_until(func() -> bool: return server.match_manager.players.is_empty(), "Last disconnect must clear registries")
 	_expect(server.get_room_owner_id() == 0 and server.get_network_player_ids().is_empty(), "Empty server must clear owner without creating a host")
-	for component: Node in [server.get_node("GrabManager"), server.meteor_shower, server.flood, server.tornado, server.earthquake, server.lightning, server.fire]:
+	for component: Node in [server.meteor_shower, server.flood, server.tornado, server.earthquake, server.lightning, server.fire]:
 		_expect(component._players.is_empty(), "Last disconnect must clear %s registry" % component.name)
 	# Asymmetric peer IDs prove transfer uses connection order, not smallest ID.
 	_expect(server._spawn_server_network_player(90, "First", Vector3.ZERO), "Transfer fixture must register owner")

@@ -1,9 +1,8 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://game/session/match_manager.gd" id="3_match"]
-[ext_resource type="Script" path="res://game/player/grab_manager.gd" id="4_grab"]
 [ext_resource type="Script" path="res://game/disasters/meteor_shower.gd" id="5_meteor"]
 [ext_resource type="Script" path="res://game/disasters/flood.gd" id="6_flood"]
 [ext_resource type="Script" path="res://game/disasters/tornado.gd" id="7_tornado"]
@@ -37,9 +36,6 @@ script = ExtResource("3_match")
 
 [node name="DisasterDirector" type="Node" parent="."]
 script = ExtResource("8_director")
-
-[node name="GrabManager" type="Node" parent="."]
-script = ExtResource("4_grab")
 
 [node name="ShoveManager" type="Node" parent="."]
 script = ExtResource("17_shove")

@@ -8,6 +8,21 @@ var port := 29730
 var capture_path := ""
 
 
+class FixtureMain extends "res://game/main.gd":
+	var observed_stages: Dictionary = {}
+
+	@rpc("any_peer", "call_remote", "reliable")
+	func acknowledge_stage(stage: String) -> void:
+		if multiplayer.is_server() and _player_nodes.has(multiplayer.get_remote_sender_id()):
+			observed_stages[stage] = true
+
+	func wait_for_stage(stage: String) -> bool:
+		var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
+		while not observed_stages.has(stage) and Time.get_ticks_msec() < deadline:
+			await get_tree().process_frame
+		return observed_stages.has(stage)
+
+
 func _initialize() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--role="):
@@ -21,6 +36,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.set_script(FixtureMain)
 	main.name = "Main"
 	root.add_child(main)
 	await process_frame
@@ -210,10 +226,9 @@ func _run_server(main: Node) -> void:
 		and (main.get_node("Interface/ResultsPanel") as Panel).visible
 		and main.get_node("Interface/ResultsPanel/Table").rows[client_id].get_node("Outcome").text == "Network test"
 	)
-	# Let the death replicate and present before restarting. Without this
-	# window the death and reset snapshots land in one flush and clients
-	# never observe the elimination state this test exists to verify.
-	await create_timer(0.3).timeout
+	# A timer is not an observation barrier: the client must finish inspecting
+	# this result before a roster restart replaces the avatar it is checking.
+	lethal_passed = await main.wait_for_stage("lethal") and lethal_passed
 	var rematch_passed := true
 	for rematch_index: int in 5:
 		_phase_mark("server", "rematch_%d" % rematch_index, main, client_player)
@@ -239,6 +254,11 @@ func _run_server(main: Node) -> void:
 			and is_instance_valid(main.get_node_or_null("Sandbox/EscapeStep"))
 		)
 		await create_timer(0.3).timeout
+		rematch_passed = await main.wait_for_stage("active_%d" % rematch_index) and rematch_passed
+		client_player = main.get_node_or_null("NetworkPlayer%d" % client_id) as PartyPlayer
+		if not is_instance_valid(client_player):
+			rematch_passed = false
+			break
 		rematch_passed = (
 			rematch_passed
 			and manager.state == MatchManager.MatchState.ACTIVE
@@ -256,7 +276,7 @@ func _run_server(main: Node) -> void:
 		# Exercise the live server safety check, not a client-authored damage event.
 		var escaped_player: PartyPlayer = main._player_nodes[client_id]
 		escaped_player.position = Vector3(main.get_map_half_extent() + 1, 1, 0) if rematch_index % 2 == 0 else Vector3(0, -9, 0)
-		await create_timer(0.3).timeout
+		rematch_passed = await main.wait_for_stage("results_%d" % rematch_index) and rematch_passed
 		rematch_passed = (
 			rematch_passed
 			and manager.state == MatchManager.MatchState.RESULTS
@@ -525,6 +545,7 @@ func _run_client(main: Node) -> void:
 	)
 	if not lethal_passed:
 		print("LETHAL_DIAGNOSTIC state=%d health=%f alive=%d visual=%s spectator=%s hud_health=%d hud_alive=%s panel=%s outcome=%s prompt=%s" % [manager.state, manager.get_health(local_id), manager.get_alive_count(), local_player.visual.visible if is_instance_valid(local_player) else false, main.spectator_controller.active, main.gameplay_hud.get_presented_health(), main.gameplay_hud.get_presented_alive_counts(), (main.get_node("Interface/ResultsPanel") as Panel).visible, (main.get_node("Interface/ResultsPanel/Table") as Control).rows[local_id].get_node("Outcome").text, (main.get_node("Interface/ResultsPanel/Prompt") as Label).text])
+	main.acknowledge_stage.rpc_id(1, "lethal")
 	var rematch_passed := true
 	for rematch_index: int in 5:
 		while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
@@ -539,7 +560,12 @@ func _run_client(main: Node) -> void:
 		var authoritative_health := manager.get_health(local_id)
 		var replicated_position := local_player.position
 		var reset_prop := main._network_prop(1) as RigidBody3D
-		rematch_passed = rematch_passed and reset_prop.global_position.distance_to(Vector3(0.0, 0.4, 5.7)) < 0.05
+		# Match state and prop transforms travel on separate channels. ACTIVE
+		# does not imply that the reset transform has arrived on this observer.
+		while reset_prop.global_position.distance_to(Vector3(0.0, 0.4, 5.7)) >= 0.05 and Time.get_ticks_msec() < deadline:
+			await process_frame
+		var prop_reset_seen := reset_prop.global_position.distance_to(Vector3(0.0, 0.4, 5.7)) < 0.05
+		rematch_passed = rematch_passed and prop_reset_seen
 		local_player.position = Vector3(40, -10, 0)
 		main._eliminate_out_of_bounds()
 		rematch_passed = rematch_passed and manager.get_health(local_id) == authoritative_health
@@ -553,6 +579,7 @@ func _run_client(main: Node) -> void:
 			and not main.spectator_controller.active
 			and not (main.get_node("Interface/ResultsPanel") as Panel).visible
 		)
+		main.acknowledge_stage.rpc_id(1, "active_%d" % rematch_index)
 		var expected_shove_seq := rematch_index + 2
 		while shove_manager.get_last_shove_sequence(local_id) < expected_shove_seq and Time.get_ticks_msec() < deadline:
 			await process_frame
@@ -584,8 +611,9 @@ func _run_client(main: Node) -> void:
 			and rematch_panel_visible
 			and rematch_outcome == "Out of bounds"
 		)
+		main.acknowledge_stage.rpc_id(1, "results_%d" % rematch_index)
 		if not rematch_passed:
-			print("REMATCH_DIAGNOSTIC index=%d state=%d alive=%d seq=%d outcome=%s ids=%s" % [rematch_index, manager.state, manager.get_alive_count(), shove_manager.get_last_shove_sequence(local_id), rematch_outcome, main.get_network_player_ids()])
+			print("REMATCH_DIAGNOSTIC index=%d state=%d alive=%d seq=%d outcome=%s prop_reset=%s prop=%s ids=%s" % [rematch_index, manager.state, manager.get_alive_count(), shove_manager.get_last_shove_sequence(local_id), rematch_outcome, prop_reset_seen, reset_prop.global_position, main.get_network_player_ids()])
 			break
 	var passed: bool = lobby_passed and spawn_passed and movement_passed and active_passed and emote_passed and prop_replication_passed and ragdoll_replication_passed and meteor_passed and lightning_passed and fire_passed and electric_combination_passed and wind_combination_passed and earthquake_passed and nonlethal_passed and shove_passed and lethal_passed and rematch_passed
 	if passed:

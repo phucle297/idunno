@@ -39,26 +39,26 @@ func _run() -> void:
 			main.earthquake.tick(main.earthquake.active_duration)
 		victim.velocity = Vector3(3, 2, -1)
 		victim.apply_knockdown(Vector3(1, 0, 2))
-		main._store_movement_input(1, Vector2.RIGHT, true, false, true, 0.7, 3)
+		main._store_movement_input(1, Vector2.RIGHT, true, true, 0.7, 3)
 		expect(main.match_manager.apply_damage(1, 100, "Death " + timing + " earthquake"), "Authority must eliminate victim")
 		await physics_frame
 		var position := victim.global_position
 		var yaw := victim.get_camera_yaw()
 		expect(victim.velocity == Vector3.ZERO and not victim.is_knocked_down() and victim.ragdoll_body_count() == 0, "Death must clear velocity and knockdown bodies")
-		expect(not victim.visual.visible and victim.collider.disabled and not victim.can_grab_objects() and not victim.accepts_local_input(), "Dead body must be hidden, noncolliding and reject interaction/aim input")
+		expect(not victim.visual.visible and victim.collider.disabled and not victim.can_perform_actions() and not victim.accepts_local_input(), "Dead body must be hidden, noncolliding and reject interaction/aim input")
 		for step in 30:
 			await physics_frame
-			victim.apply_movement_input(Vector2.RIGHT, true, true, true, 1.0 / 60.0)
-			victim.predict_movement_input(10 + step, Vector2.LEFT, true, false, true, 1.0 / 60.0)
+			victim.apply_movement_input(Vector2.RIGHT, true, true, 1.0 / 60.0)
+			victim.predict_movement_input(10 + step, Vector2.LEFT, true, true, 1.0 / 60.0)
 			victim.apply_hazard_velocity(Vector3(4, 2, 1), 8)
 			victim.apply_knockdown(Vector3.RIGHT)
-			main._store_movement_input(1, Vector2.RIGHT, true, true, true, -1.0, 10 + step)
+			main._store_movement_input(1, Vector2.RIGHT, true, true, -1.0, 10 + step)
 			main._network_mode = true
 			main._physics_process(1.0 / 60.0)
 			main._network_mode = false
 		expect(victim.global_position == position and victim.velocity == Vector3.ZERO, "Dead node must not move under retained/new inputs or hazards")
 		expect(victim.get_camera_yaw() == yaw, "Retained movement yaw must not rotate the spectator camera")
-		victim.reconcile_movement(position + Vector3.ONE, Vector3(2, 3, 4), 1.0, true, 99, Vector3(0.12, 0.12, 1), true)
+		victim.reconcile_movement(position + Vector3.ONE, Vector3(2, 3, 4), 1.0, true, 99, Vector3(0.12, 0.12, 1))
 		expect(victim.global_position == position and victim.velocity == Vector3.ZERO and victim._prediction_inputs.is_empty(), "Late alive snapshot cannot revive dead movement/knockdown")
 		expect(main.spectator_controller.active and main.spectator_controller.current_target_id == 2, "Death must follow live survivor while match continues")
 		main.spectator_controller.cycle(1)
@@ -68,8 +68,8 @@ func _run() -> void:
 		main.match_manager.prepare_lobby()
 		victim.reset_for_match(Vector3(0, 1, 7))
 		await physics_frame
-		victim.apply_movement_input(Vector2.RIGHT, false, false, false, 1.0 / 60.0)
-		expect(victim.global_position.x > 0 and victim.visual.visible and not victim.collider.disabled and victim.can_grab_objects(), "Rematch must restore movement/collision/interaction")
+		victim.apply_movement_input(Vector2.RIGHT, false, false, 1.0 / 60.0)
+		expect(victim.global_position.x > 0 and victim.visual.visible and not victim.collider.disabled and victim.can_perform_actions(), "Rematch must restore movement/collision/interaction")
 	main.gameplay_audio.reset_for_match()
 	main.free()
 	await process_frame

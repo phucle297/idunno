@@ -23,24 +23,24 @@ func _run() -> void:
 	for player in players:
 		_check_capsule(player, 1.5, "initial standing")
 	for order in [[0, 1], [1, 0]]:
-		for crouched_index in 2:
-			for index in order:
-				players[index]._update_capsule(index == crouched_index)
-			var label := "order=%s crouched=%d" % [order, crouched_index]
-			print("CAPSULE_STATE %s shared=%s heights=%s/%s centers=%s/%s" % [label, players[0].collider.shape == players[1].collider.shape, players[0].collider.shape.height, players[1].collider.shape.height, players[0].collider.position.y, players[1].collider.position.y])
-			for index in 2:
-				_check_capsule(players[index], 0.95 if index == crouched_index else 1.5, label)
-			# Main's rematch path calls reset_for_match for each existing player.
-			var standing_index: int = 1 - crouched_index
-			players[standing_index].reset_for_match(Vector3(standing_index * 4.0, 0.05, 7.0))
-			_check_capsule(players[crouched_index], 0.95, "other player's rematch reset must not mutate crouched capsule")
-			players[crouched_index].reset_for_match(Vector3(crouched_index * 4.0, 0.05, 7.0))
-			await process_frame
-			for index in 2:
-				_check_capsule(players[index], 1.5, "rematch standing")
-				_check(not players[index].collider.disabled, "rematch collider enabled")
-				_check(players[index].position.is_equal_approx(Vector3(index * 4.0, 0.05, 7.0)), "rematch spawn restored")
-			_check(players[0].collider.shape != players[1].collider.shape, "rematch preserves independent capsule objects")
+		for index in order:
+			players[index]._update_capsule()
+		var label := "order=%s" % [order]
+		print("CAPSULE_STATE %s shared=%s heights=%s/%s centers=%s/%s" % [label, players[0].collider.shape == players[1].collider.shape, players[0].collider.shape.height, players[1].collider.shape.height, players[0].collider.position.y, players[1].collider.position.y])
+		for index in 2:
+			_check_capsule(players[index], 1.5, label)
+		# Main's rematch path calls reset_for_match for each existing player.
+		var first: int = order[0]
+		var second: int = order[1]
+		players[first].reset_for_match(Vector3(first * 4.0, 0.05, 7.0))
+		_check_capsule(players[second], 1.5, "other player's rematch reset must not mutate the standing capsule")
+		players[second].reset_for_match(Vector3(second * 4.0, 0.05, 7.0))
+		await process_frame
+		for index in 2:
+			_check_capsule(players[index], 1.5, "rematch standing")
+			_check(not players[index].collider.disabled, "rematch collider enabled")
+			_check(players[index].position.is_equal_approx(Vector3(index * 4.0, 0.05, 7.0)), "rematch spawn restored")
+		_check(players[0].collider.shape != players[1].collider.shape, "rematch preserves independent capsule objects")
 	for player in players:
 		player.free()
 	if failures.is_empty():

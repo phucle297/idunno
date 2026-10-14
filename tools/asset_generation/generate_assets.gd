@@ -2,7 +2,7 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/generated"
 const MATERIAL_DIR := "res://assets/materials"
-const GENERATOR_VERSION := 7
+const GENERATOR_VERSION := 8
 const CharacterVisualScript = preload("res://game/player/toy_character_visual.gd")
 const PALETTE := {
 	"cream": Color("f4e6c8"), "sand": Color("d9b77e"), "slate": Color("49566a"),

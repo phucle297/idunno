@@ -350,11 +350,6 @@ func _apply_impact() -> void:
 		var distance := _horizontal_distance(body.global_position, target_position)
 		if distance > impact_radius:
 			continue
-		if body.has_meta("grab_owner_peer_id"):
-			var owner_id := int(body.get_meta("grab_owner_peer_id"))
-			var owner := _players.get(owner_id) as Node3D
-			if is_instance_valid(owner):
-				owner.release_held_object()
 		body.sleeping = false
 		body.apply_central_impulse(_radial_impulse(body.global_position, distance, prop_impulse_max))
 	if wind_active:

@@ -17,20 +17,20 @@ const EMOTE_DURATIONS := {EMOTE_WAVE: 1.2, EMOTE_CHEER: 1.0}
 var _coyote_remaining := 0.0
 var _jump_buffer_remaining := 0.0
 var _knockdown_remaining := 0.0
-var _is_crouched := false
 var _camera_yaw := 0.0
 var _camera_pitch := -0.28
 var _ragdoll: Node3D
 var _is_eliminated := false
 var _get_up_remaining := 0.0
-var _grab_manager: Node
+var _landing_remaining := 0.0
+var _presentation_airborne := false
+var _network_grounded := -1
 var _shove_manager: Node
 var _shove_cue_remaining := 0.0
 var _emote_gateway: Node
 var _emote_id := 0
 var _emote_remaining := 0.0
 var _peer_id := 1
-var carrying_medium := false
 var local_input_blocked := false
 var mouse_sensitivity := 1.0
 var invert_y := false
@@ -40,7 +40,7 @@ var _last_movement_ack := -1
 
 
 func _ready() -> void:
-	_update_capsule(false)
+	_update_capsule()
 	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		$CameraPivot/SpringArm3D/Camera3D.current = false
 
@@ -53,32 +53,39 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(character) or _is_eliminated or is_knocked_down():
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	# Observers do not run move_and_slide, so their floor contact must come
+	# from the authoritative replay state, not their local collision cache.
+	var grounded := is_on_floor() if _network_grounded < 0 else _network_grounded != 0
+	if grounded and _presentation_airborne:
+		_landing_remaining = character.get_clip_duration("landing")
+	_presentation_airborne = not grounded
 	if _shove_cue_remaining > 0.0:
 		_shove_cue_remaining = maxf(0.0, _shove_cue_remaining - _delta)
 		character.play_clip("shove")
 	elif _get_up_remaining > 0.0:
 		_get_up_remaining = maxf(0.0, _get_up_remaining - _delta)
 		character.play_clip("get_up")
-	elif not is_on_floor():
+	elif not grounded:
+		_landing_remaining = 0.0
 		character.play_clip("jump_takeoff" if velocity.y > 0.0 else "falling")
-	elif _emote_id != 0 and not carrying_medium:
+	elif _landing_remaining > 0.0:
+		_landing_remaining = maxf(0.0, _landing_remaining - _delta)
+		character.play_clip("landing")
+	elif _emote_id != 0:
 		# Cosmetic social emote; never locks movement or aim. Local input,
-		# carry, shove and knockdown cancel it immediately.
+		# shove and knockdown cancel it immediately.
 		_emote_remaining = maxf(0.0, _emote_remaining - _delta)
 		if _emote_remaining <= 0.0:
 			_emote_id = 0
 		else:
 			character.play_clip(EMOTE_CLIPS[_emote_id])
-	elif carrying_medium:
-		character.play_clip("holding_walk" if horizontal_speed > 0.2 else "holding_idle")
-	elif _is_crouched:
-		character.play_clip("crouch_walk" if horizontal_speed > 0.2 else "crouch_idle")
 	elif horizontal_speed > Tuning.WALK_SPEED + 0.5:
 		character.play_clip("run")
 	elif horizontal_speed > 0.2:
 		character.play_clip("walk")
 	else:
 		character.play_clip("idle")
+	character.set_locomotion_speed(horizontal_speed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -104,9 +111,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if _is_eliminated or not accepts_local_input():
 		return
-	if not local_input_blocked and Input.is_action_just_pressed("grab") and is_instance_valid(_grab_manager):
-		cancel_emote()
-		_grab_manager.request_local_toggle(_peer_id)
 	if not local_input_blocked and Input.is_action_just_pressed("shove") and is_instance_valid(_shove_manager):
 		_shove_manager.request_local_shove(_peer_id)
 	if not local_input_blocked and Input.is_action_just_pressed("emote_wave"):
@@ -120,7 +124,6 @@ func _physics_process(delta: float) -> void:
 	apply_movement_input(
 		Vector2.ZERO if local_input_blocked else Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
 		not local_input_blocked and Input.is_action_pressed("sprint"),
-		not local_input_blocked and Input.is_action_pressed("crouch"),
 		not local_input_blocked and Input.is_action_just_pressed("jump"),
 		delta
 	)
@@ -129,7 +132,6 @@ func _physics_process(delta: float) -> void:
 func apply_movement_input(
 	input_2d: Vector2,
 	sprinting: bool,
-	crouched: bool,
 	jump_pressed: bool,
 	delta: float,
 	grounded_override: int = -1
@@ -139,7 +141,7 @@ func apply_movement_input(
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
-	if _emote_id != 0 and (input_2d.length_squared() > 0.0001 or jump_pressed or crouched):
+	if _emote_id != 0 and (input_2d.length_squared() > 0.0001 or jump_pressed):
 		cancel_emote()
 	# The first replay tick starts from server contact, not the client's future contact.
 	var grounded := is_on_floor() if grounded_override < 0 else grounded_override != 0
@@ -154,21 +156,14 @@ func apply_movement_input(
 	else:
 		_jump_buffer_remaining = maxf(0.0, _jump_buffer_remaining - delta)
 
-	_is_crouched = crouched
-	_update_capsule(_is_crouched)
-
-	if _jump_buffer_remaining > 0.0 and _coyote_remaining > 0.0 and not _is_crouched:
+	if _jump_buffer_remaining > 0.0 and _coyote_remaining > 0.0:
 		velocity.y = Tuning.JUMP_VELOCITY
 		_jump_buffer_remaining = 0.0
 		_coyote_remaining = 0.0
 
 	var camera_basis := Basis(Vector3.UP, _camera_yaw)
 	var wish_direction := (camera_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
-	var target_speed := Tuning.CROUCH_SPEED if _is_crouched else (
-		Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
-	)
-	if carrying_medium:
-		target_speed *= Tuning.MEDIUM_CARRY_SPEED_FACTOR
+	var target_speed := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
@@ -179,25 +174,21 @@ func apply_movement_input(
 	move_and_slide()
 
 
-func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, delta: float) -> void:
+func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, jump_pressed: bool, delta: float) -> void:
 	if _is_eliminated or is_knocked_down():
 		_prediction_inputs.clear()
 		return
-	_prediction_inputs.append({"sequence": sequence, "direction": direction, "sprinting": sprinting, "crouched": crouched, "jump_pressed": jump_pressed, "yaw": _camera_yaw, "delta": delta})
+	_prediction_inputs.append({"sequence": sequence, "direction": direction, "sprinting": sprinting, "jump_pressed": jump_pressed, "yaw": _camera_yaw, "delta": delta})
 	if _prediction_inputs.size() > Tuning.PREDICTION_HISTORY_TICKS:
 		_prediction_inputs.pop_front()
-	apply_movement_input(direction, sprinting, crouched, jump_pressed, delta)
+	apply_movement_input(direction, sprinting, jump_pressed, delta)
 
 
 func get_movement_replay_state() -> Vector3:
 	return Vector3(_coyote_remaining, _jump_buffer_remaining, 1.0 if is_on_floor() else 0.0)
 
 
-func is_crouched() -> bool:
-	return _is_crouched
-
-
-func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, crouched: bool, medium_carry: bool = false) -> void:
+func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3) -> void:
 	if _is_eliminated or sequence < _last_movement_ack:
 		return
 	_last_movement_ack = sequence
@@ -210,11 +201,6 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	set_network_knockdown(knocked_down)
 	_coyote_remaining = state.x
 	_jump_buffer_remaining = state.y
-	_is_crouched = crouched
-	# Carry toggles are not predicted inputs. The movement snapshot owns this
-	# state for replay and subsequent prediction, independent of prop channel 3.
-	carrying_medium = medium_carry and not knocked_down
-	_update_capsule(crouched)
 	if knocked_down or _is_eliminated:
 		_prediction_inputs.clear()
 		return
@@ -226,7 +212,7 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	# Transport invokes reconciliation in a physics tick: move_and_slide uses that delta.
 	for movement_input: Dictionary in _prediction_inputs:
 		_camera_yaw = float(movement_input.yaw)
-		apply_movement_input(movement_input.direction, movement_input.sprinting, movement_input.crouched, movement_input.jump_pressed, movement_input.delta, grounded)
+		apply_movement_input(movement_input.direction, movement_input.sprinting, movement_input.jump_pressed, movement_input.delta, grounded)
 		grounded = -1
 	_camera_yaw = aiming_yaw
 
@@ -234,7 +220,6 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 func apply_knockdown(impulse: Vector3) -> void:
 	if _is_eliminated or _knockdown_remaining > 0.0:
 		return
-	release_held_object()
 	cancel_emote()
 	_knockdown_remaining = Tuning.KNOCKDOWN_DURATION
 	velocity += impulse.limit_length(8.0)
@@ -250,6 +235,10 @@ func set_network_knockdown(active: bool) -> void:
 	elif not active and _knockdown_remaining > 0.0:
 		_knockdown_remaining = 0.0
 		_clear_cosmetic_ragdoll()
+
+
+func set_network_grounded(grounded: bool) -> void:
+	_network_grounded = 1 if grounded else 0
 
 
 func _spawn_cosmetic_ragdoll(initial_velocity: Vector3, impulse: Vector3) -> void:
@@ -277,7 +266,6 @@ func _clear_cosmetic_ragdoll() -> void:
 func apply_hazard_velocity(velocity_change: Vector3, speed_cap: float) -> void:
 	if _is_eliminated:
 		return
-	release_held_object()
 	velocity = (velocity + velocity_change).limit_length(maxf(speed_cap, 0.0))
 
 
@@ -288,7 +276,6 @@ func is_knocked_down() -> bool:
 func set_eliminated(eliminated: bool) -> void:
 	_is_eliminated = eliminated
 	if eliminated:
-		release_held_object()
 		_prediction_inputs.clear()
 		velocity = Vector3.ZERO
 		_coyote_remaining = 0.0
@@ -300,15 +287,16 @@ func set_eliminated(eliminated: bool) -> void:
 
 
 func reset_for_match(spawn_position: Vector3) -> void:
-	release_held_object()
 	cancel_emote()
 	if is_instance_valid(_ragdoll):
 		_ragdoll.queue_free()
 		_ragdoll = null
 	_knockdown_remaining = 0.0
 	_get_up_remaining = 0.0
+	_landing_remaining = 0.0
+	_presentation_airborne = false
+	_network_grounded = -1
 	_shove_cue_remaining = 0.0
-	_is_crouched = false
 	_is_eliminated = false
 	_coyote_remaining = 0.0
 	_jump_buffer_remaining = 0.0
@@ -320,13 +308,12 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	visual.rotation = Vector3.ZERO
 	visual.scale = Vector3.ONE
 	collider.set_deferred("disabled", false)
-	_update_capsule(false)
+	_update_capsule()
 	if is_instance_valid(character):
 		character.play_clip("idle")
 
 
-func configure_grabbing(manager: Node, peer_id: int) -> void:
-	_grab_manager = manager
+func configure_identity(peer_id: int) -> void:
 	_peer_id = peer_id
 	character.set_player_color(peer_id - 1)
 
@@ -362,31 +349,16 @@ func get_emote_id() -> int:
 	return _emote_id
 
 
-func release_held_object() -> void:
-	carrying_medium = false
-	if is_instance_valid(_grab_manager):
-		_grab_manager.release_grab(_peer_id)
-
-
-func can_grab_objects() -> bool:
+func can_perform_actions() -> bool:
 	return not _is_eliminated and _knockdown_remaining <= 0.0
 
 
-func get_grab_origin() -> Vector3:
-	return global_position + Vector3.UP * 0.9
-
-
-func get_grab_direction() -> Vector3:
+func get_forward_direction() -> Vector3:
 	return Basis(Vector3.UP, _camera_yaw) * Vector3.FORWARD
 
 
-func get_hold_position() -> Vector3:
-	return get_grab_origin() + get_grab_direction() * Tuning.GRAB_HOLD_DISTANCE
-
-
 func get_head_sample_position() -> Vector3:
-	var body_height := Tuning.CROUCHED_HEIGHT if _is_crouched else Tuning.STANDING_HEIGHT
-	return global_position + Vector3.UP * (body_height - 0.15)
+	return global_position + Vector3.UP * (Tuning.STANDING_HEIGHT - 0.15)
 
 
 func ragdoll_body_count() -> int:
@@ -417,15 +389,14 @@ func _process_knockdown(delta: float) -> void:
 	move_and_slide()
 	if _knockdown_remaining <= 0.0:
 		_clear_cosmetic_ragdoll()
-		_update_capsule(false)
+		_update_capsule()
 
 
-func _update_capsule(crouched: bool) -> void:
+func _update_capsule() -> void:
 	var capsule := collider.shape as CapsuleShape3D
-	var target_height := Tuning.CROUCHED_HEIGHT if crouched else Tuning.STANDING_HEIGHT
+	var target_height := Tuning.STANDING_HEIGHT
 	capsule.height = target_height
 	collider.position.y = target_height * 0.5
-	visual.scale.y = 0.72 if crouched else 1.0
 
 
 func accepts_local_input() -> bool:

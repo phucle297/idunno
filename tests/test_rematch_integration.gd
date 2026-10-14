@@ -17,7 +17,6 @@ func _run() -> void:
 	await process_frame
 	var manager = main.get_node("MatchManager")
 	var director = main.get_node("DisasterDirector")
-	var grab_manager = main.get_node("GrabManager")
 	var meteor = main.get_node("MeteorShower")
 	var flood = main.get_node("Flood")
 	var tornado = main.get_node("Tornado")
@@ -39,15 +38,9 @@ func _run() -> void:
 		_expect(lightning.active_effect_count() == 1, "Cycle %d must own one Lightning effect before reset" % (match_index + 1))
 		_expect(fire.start_warning(7), "Cycle %d must start a representative Fire warning" % (match_index + 1))
 		_expect(fire.active_effect_count() == 1, "Cycle %d must own one Fire effect before reset" % (match_index + 1))
-		var crate := main.get_tree().get_first_node_in_group("grabbable") as RigidBody3D
-		crate.freeze = true
-		crate.global_position = player.get_grab_origin() + Vector3(0.0, -0.5, -1.0)
-		crate.freeze = false
-		_expect(grab_manager.request_grab(1, crate), "Cycle %d must acquire a representative prop" % (match_index + 1))
 		manager.apply_damage(1, 100.0, "Rematch Test")
 		await process_frame
 		_expect(manager.state == MATCH_STATE_RESULTS, "Cycle %d must reach results" % (match_index + 1))
-		_expect(grab_manager.get_held_body(1) == null, "Cycle %d death must release the held prop" % (match_index + 1))
 		_expect(not player.get_node("Visual").visible, "Cycle %d must hide the eliminated player" % (match_index + 1))
 		_expect(main.restart_local_match(), "Cycle %d must restart" % (match_index + 1))
 		await process_frame
@@ -55,7 +48,6 @@ func _run() -> void:
 		_expect(is_equal_approx(manager.get_health(1), 100.0), "Cycle %d must restore health" % (match_index + 1))
 		_expect(player.get_node("Visual").visible, "Cycle %d must restore the player" % (match_index + 1))
 		_expect(main.get_node("Sandbox").get_child_count() == expected_sandbox_children, "Cycle %d must not leak sandbox bodies" % (match_index + 1))
-		_expect(grab_manager.get_held_body(1) == null, "Cycle %d reset must not retain stale ownership" % (match_index + 1))
 		_expect(meteor.phase == 0 and meteor.active_effect_count() == 0, "Cycle %d reset must clean Meteor state and effects" % (match_index + 1))
 		_expect(flood.phase == 0 and flood.active_effect_count() == 0, "Cycle %d reset must clean Flood state and effects" % (match_index + 1))
 		_expect(tornado.phase == 0 and tornado.active_effect_count() == 0, "Cycle %d reset must clean Tornado state and effects" % (match_index + 1))

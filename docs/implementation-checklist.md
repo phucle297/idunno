@@ -6,7 +6,7 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 8 — Character, UI and Disaster Counterplay | Current plan; implementation not started | [Phase 8](checklists/phase-8-character-disaster-counterplay.md) |
+| 8 — Character, UI and Disaster Counterplay | In progress; 8.1–8.2 passed, 8.3 localized earthquake current | [Phase 8](checklists/phase-8-character-disaster-counterplay.md) |
 | 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
 | 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
 | 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
@@ -15,7 +15,7 @@ Phases 6 and the original 7 are archived below. The Phase7 visual-completion cla
 was overstated and is superseded by the separately archived visual correction.
 On2026-10-14 the owner reprioritized model/UI, existing hazard counterplay and new
 disasters ahead of the shrinking zone: old Phase8 → Phase11. Historical archive
-IDs stay unchanged. New phases are planned, not implemented; chunk streaming stays
+IDs stay unchanged. Phases9–11 are planned, not implemented; chunk streaming stays
 a separate proposal. Existing human waiver and deployment approval boundaries remain.
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"

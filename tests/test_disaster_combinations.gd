@@ -422,14 +422,14 @@ func _check_refuge_relocation(main: Node3D, player: PartyPlayer, flood: Flood, e
 					overlap_ticks += 1
 				flood.tick(1.0 / 60.0)
 				earthquake.tick(1.0 / 60.0)
-				player.apply_movement_input(remaining.normalized(), true, false, false, 1.0 / 60.0)
+				player.apply_movement_input(remaining.normalized(), true, false, 1.0 / 60.0)
 				await physics_frame
 				elapsed += 1
 			_expect(Vector2(target.x - player.position.x, target.z - player.position.z).length() < 0.4, "%s relocation reaches waypoint %s (actual %s)" % [map_id, target, player.position])
 		for settle in 30:
 			flood.tick(1.0 / 60.0)
 			earthquake.tick(1.0 / 60.0)
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 		# The eight-second quake may finish during the escape; the contract is
 		# live overlap during relocation and safe arrival before Flood peaks,

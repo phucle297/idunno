@@ -66,7 +66,7 @@ func _run_results_legs(main: Node, probe: PlayableScaleProbe, peer_ids: Array[in
 		for peer_id: int in peer_ids:
 			server_rematch_ok = server_rematch_ok and is_equal_approx(manager.get_health(peer_id), 100.0)
 		for prop: Node in get_nodes_in_group("network_prop"):
-			server_rematch_ok = server_rematch_ok and prop is RigidBody3D and not (prop as RigidBody3D).has_meta("grab_owner_peer_id")
+			server_rematch_ok = server_rematch_ok and prop is RigidBody3D
 		server_rematch_ok = server_rematch_ok and get_nodes_in_group("network_prop").size() == 3
 		rematch_passed = rematch_passed and server_rematch_ok
 		while (probe.rematch_acks.get(rematch_index, {}) as Dictionary).size() < player_count - 1 and Time.get_ticks_msec() < deadline:
@@ -199,30 +199,13 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	var clients_passed := probe.all_clients_passed()
 	# Integrated chaos gauntlet: carry/contention, the selected prop escape
 	# route's in-session structure, both emotes and the included shove.
-	var grab_manager := main.get_node("GrabManager") as GrabManager
 	var medium_prop: RigidBody3D = null
 	for prop: Node in get_nodes_in_group("network_prop"):
 		if prop is RigidBody3D and is_equal_approx((prop as RigidBody3D).mass, 12.0):
 			medium_prop = prop
 	var holder := _player_for_peer(main, 1)
-	var carry_passed := is_instance_valid(medium_prop) and is_instance_valid(holder)
-	if carry_passed:
-		medium_prop.global_position = holder.get_grab_origin() + holder.get_grab_direction()
-		medium_prop.linear_velocity = Vector3.ZERO
-		medium_prop.angular_velocity = Vector3.ZERO
-		carry_passed = grab_manager.request_grab(1, medium_prop)
-	carry_passed = carry_passed and holder.carrying_medium and grab_manager.get_held_body(1) == medium_prop
-	if carry_passed and player_count >= 2:
-		# Contention: the second grabber stands at the held body facing it and
-		# is still rejected because ownership is exclusive.
-		var contender := _player_for_peer(main, peer_ids[1])
-		contender.global_position = medium_prop.global_position + Vector3(1.0, 0.0, 0.0)
-		contender.set_camera_yaw(PI / 2.0)
-		carry_passed = not grab_manager.request_grab(peer_ids[1], medium_prop) and grab_manager.get_held_body(peer_ids[1]) == null
-	grab_manager.release_grab(1)
-	carry_passed = carry_passed and grab_manager.get_held_body(1) == null and not holder.carrying_medium
 	var escape_step := main.get_node_or_null("Sandbox/EscapeStep") as StaticBody3D
-	var prop_escape_passed := is_instance_valid(escape_step) and is_instance_valid(medium_prop)
+	var prop_escape_passed := is_instance_valid(escape_step) and is_instance_valid(medium_prop) and is_instance_valid(holder)
 	if prop_escape_passed:
 		medium_prop.global_position = Vector3(23.2, 0.4, 14.5)
 		holder.global_position = Vector3(23.2, 0.75, 14.5)
@@ -273,7 +256,7 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		shove_passed = shove_passed and probe.shove_checks.size() == player_count - 1 and not probe.shove_checks.values().has(false)
 	else:
 		shove_passed = not shove_manager.request_shove(1)
-	var chaos_passed := carry_passed and prop_escape_passed and emote_passed and shove_passed
+	var chaos_passed := prop_escape_passed and emote_passed and shove_passed
 	var spectator_id: int = peer_ids[1] if player_count >= 2 else 0
 	print("SCALE_SPECTATOR_TARGET players=%d peer_ids=%s target=%d" % [player_count, peer_ids, spectator_id])
 	var spectators_passed := true
@@ -306,15 +289,15 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 	var passed := results_passed and lobby_return_passed and rematch_passed and chaos_passed and spectators_passed and spawn_passed and movement_passed and match_passed and disaster_passed and damage_passed and hud_passed and clients_passed and cleanup_passed
 	if passed:
 		if player_count == 1:
-			print("CHAOS_SCENARIO_OK players=1 carry_contention=solo_grab_release prop_escape=passed emotes=rejected_in_lobby shove=no_target_rejected hazards_overlap=rejected_in_lobby rematches=0 owner_disconnect_transfer=dedicated_suite")
+			print("CHAOS_SCENARIO_OK players=1 prop_escape=passed emotes=rejected_in_lobby shove=no_target_rejected hazards_overlap=rejected_in_lobby rematches=0 owner_disconnect_transfer=dedicated_suite")
 			print("PLAYABLE_SCALE_SERVER_OK players=1 lobby_guards=passed solo_start_blocked=passed in_match_actions_rejected=passed disconnect_cleanup=passed")
 		else:
-			print("CHAOS_SCENARIO_OK players=%d carry_contention=passed prop_escape=passed emotes=2 shove=passed hazards_overlap=%s rematches=5 owner_disconnect_transfer=dedicated_suite" % [player_count, "death_spectating" if player_count >= 3 else "death_results"])
+			print("CHAOS_SCENARIO_OK players=%d prop_escape=passed emotes=2 shove=passed hazards_overlap=%s rematches=5 owner_disconnect_transfer=dedicated_suite" % [player_count, "death_spectating" if player_count >= 3 else "death_results"])
 			print("NETWORK_RESULTS_SCALE_OK players=%d exact_rankings_and_cells=passed" % player_count)
 			print("NETWORK_SPECTATOR_SCALE_OK players=%d eliminated_client=%s living_clients=%s presentation_authority=passed" % [player_count, "death_results" if player_count == 2 else "passed", "not_applicable" if player_count == 2 else "passed"])
 			print("PLAYABLE_SCALE_SERVER_OK players=%d movement=passed match_hud=passed disaster=passed disconnect_cleanup=passed" % player_count)
 	else:
-		push_error("Playable scale server failed players=%d spawn=%s movement=%s match=%s disaster=%s chaos=%s carry=%s escape=%s emote=%s shove=%s rematch=%s results=%s lobby=%s spectators=%s damage=%s hud=%s clients=%s cleanup=%s ids=%s" % [player_count, spawn_passed, movement_passed, match_passed, disaster_passed, chaos_passed, carry_passed, prop_escape_passed, emote_passed, shove_passed, rematch_passed, results_passed, lobby_return_passed, spectators_passed, damage_passed, hud_passed, clients_passed, cleanup_passed, main.get_network_player_ids()])
+		push_error("Playable scale server failed players=%d spawn=%s movement=%s match=%s disaster=%s chaos=%s escape=%s emote=%s shove=%s rematch=%s results=%s lobby=%s spectators=%s damage=%s hud=%s clients=%s cleanup=%s ids=%s" % [player_count, spawn_passed, movement_passed, match_passed, disaster_passed, chaos_passed, prop_escape_passed, emote_passed, shove_passed, rematch_passed, results_passed, lobby_return_passed, spectators_passed, damage_passed, hud_passed, clients_passed, cleanup_passed, main.get_network_player_ids()])
 	(main.get_node("GameplayAudio") as GameplayAudioController).reset_for_match()
 	await create_timer(0.1).timeout
 	quit(0 if passed else 1)
@@ -516,7 +499,6 @@ func _disconnected_registries_are_clean(main: Node, original_peer_ids: Array[int
 		if (
 			main.get_node_or_null("NetworkPlayer%d" % peer_id) != null
 			or main._movement_inputs.has(peer_id)
-			or (main.get_node("GrabManager") as GrabManager)._players.has(peer_id)
 			or (main.get_node("MeteorShower") as MeteorShower)._players.has(peer_id)
 			or (main.get_node("Flood") as Flood)._players.has(peer_id)
 			or (main.get_node("Tornado") as Tornado)._players.has(peer_id)

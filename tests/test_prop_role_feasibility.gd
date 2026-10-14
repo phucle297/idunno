@@ -2,10 +2,10 @@ extends SceneTree
 
 # Task 3.3.1 go/no-go physics experiment for the useful survival prop role,
 # kept as the 3.3.2 integration regression against real map geometry. Real
-# crates, capsules, Flood/Tornado/Meteor and grab ownership are measured
-# through observable motion. Buoyant measurements print decision evidence and
-# assert only safety invariants; the dry-ground step/escape-aid role asserts
-# both sides of its reach boundary against the real Pocket Park refuge.
+# crates, capsules and Flood/Tornado/Meteor are measured through observable
+# motion. Buoyant measurements print decision evidence and assert only safety
+# invariants; the dry-ground step/escape-aid role asserts both sides of its
+# reach boundary against the real Pocket Park refuge.
 
 const STEP := 1.0 / 60.0
 const CRATE_TOP_OFFSET := 0.6
@@ -66,7 +66,6 @@ func _run() -> void:
 
 	await _scenario_buoyant_support(false)
 	await _scenario_buoyant_support(true)
-	await _scenario_grab_boundaries()
 	await _scenario_wall_contact()
 	await _scenario_ramp_contact()
 	await _scenario_disturbance()
@@ -148,64 +147,13 @@ func _scenario_buoyant_support(tilted: bool) -> void:
 	await _settle(20)
 	var walk_start := _passenger.position
 	for tick in 90:
-		_passenger.apply_movement_input(_toward(_passenger, walk_start + Vector3(2.0, 0.0, 0.0)), false, false, false, STEP)
+		_passenger.apply_movement_input(_toward(_passenger, walk_start + Vector3(2.0, 0.0, 0.0)), false, false, STEP)
 		await _physics_step()
 	_expect(
 		_passenger.position.is_finite() and crate.global_position.y < 0.35 and _passenger.position.y < 0.5,
 		"After drainage the settled crate must let the passenger walk off: crate=%s passenger=%s" % [crate.global_position, _passenger.position]
 	)
 	print("PROP_ROLE_EVIDENCE buoyant_%s drainage_walkoff=passenger_free" % ("tilted" if tilted else "upright"))
-
-
-func _scenario_grab_boundaries() -> void:
-	_reset_round()
-	var crate := _crate()
-	_place(crate, Vector3(0.0, 0.35, -6.0), Vector3.ZERO)
-	_passenger.reset_for_match(Vector3(0.0, 1.1, -6.0))
-	_holder.reset_for_match(Vector3(1.0, 0.05, -6.0))
-	await _settle(30)
-	var top := crate.global_position.y + CRATE_TOP_OFFSET
-	_expect(
-		_passenger.is_on_floor() and absf(_passenger.position.y - top) < 0.3,
-		"An unheld crate must support an actual standing passenger on dry ground"
-	)
-	_holder.set_camera_yaw(PI / 2.0)
-	var probe_origin: Vector3 = _holder.get_grab_origin()
-	var probe_offset: Vector3 = crate.global_position - probe_origin
-	var probe_query := PhysicsRayQueryParameters3D.create(probe_origin, crate.global_position, _holder.collision_mask, [_holder.get_rid(), crate.get_rid()])
-	probe_query.hit_from_inside = true
-	var probe_hit: Dictionary = _holder.get_world_3d().direct_space_state.intersect_ray(probe_query)
-	print("PROP_ROLE_EVIDENCE grab_probe distance=%.3f forward_dot=%.3f ray_hit=%s mask=%d" % [
-		probe_offset.length(), _holder.get_grab_direction().dot(probe_offset.normalized()), probe_hit, _holder.collision_mask,
-	])
-	_expect(_main.get_node("GrabManager").request_grab(2, crate), "Holder must acquire the crate the passenger stands on")
-	var passenger_lift := 0.0
-	var holder_supported := false
-	for tick in 180:
-		await _idle_step()
-		if tick % 10 != 0:
-			continue
-		passenger_lift = maxf(passenger_lift, _passenger.position.y - top)
-		holder_supported = holder_supported or (
-			_holder.is_on_floor() and _holder.position.y > crate.global_position.y + CRATE_TOP_OFFSET - 0.3
-		)
-	print("PROP_ROLE_EVIDENCE grabbed_foothold passenger_lift_m=%.2f holder_on_own_crate=%s" % [passenger_lift, holder_supported])
-	_expect(not holder_supported, "Holding one's own foothold must never support or levitate the holder capsule")
-	_expect(_passenger.position.is_finite() and passenger_lift < 1.2, "A grabbed crate must not become an uncontrolled passenger elevator")
-	_main.get_node("GrabManager").release_grab(2)
-	_expect(crate.get_collision_exceptions().is_empty(), "Released crate must drop the holder collision exception")
-	# Held crate tops sit out of boarding reach; released crates are boardable.
-	_expect(_main.get_node("GrabManager").request_grab(2, crate), "Holder must reacquire for the held-height boundary")
-	var held_top := crate.global_position.y + CRATE_TOP_OFFSET
-	_passenger.reset_for_match(Vector3(0.0, 0.05, -4.6))
-	var held_board_peak := await _jump_apex(_passenger, _toward(_passenger, crate.global_position))
-	print("PROP_ROLE_EVIDENCE held_crate_top=%.2f passenger_jump_apex=%.2f" % [held_top, held_board_peak + 0.0])
-	_main.get_node("GrabManager").release_grab(2)
-	var released_top := crate.global_position.y + CRATE_TOP_OFFSET
-	_passenger.reset_for_match(Vector3(0.0, 0.05, -4.6))
-	var boarded := await _board_crate(crate, _passenger)
-	print("PROP_ROLE_EVIDENCE released_crate_top=%.2f boarding=%s" % [released_top, boarded])
-	_expect(boarded, "A released grounded crate must be boardable by an unburdened passenger")
 
 
 func _scenario_wall_contact() -> void:
@@ -397,7 +345,7 @@ func _board_crate(crate: RigidBody3D, passenger: PartyPlayer) -> bool:
 				# Once the feet clear the top edge, drift toward the face center
 				# and release so air deceleration settles the landing.
 				input = to_crate
-			passenger.apply_movement_input(input, false, false, jump, STEP)
+			passenger.apply_movement_input(input, false, jump, STEP)
 			await _physics_step()
 			if passenger.is_on_floor() and absf(passenger.position.y - top) < 0.3:
 				return true
@@ -410,7 +358,7 @@ func _board_crate(crate: RigidBody3D, passenger: PartyPlayer) -> bool:
 func _jump_apex(passenger: PartyPlayer, input: Vector2) -> float:
 	var apex := passenger.position.y
 	for tick in 60:
-		passenger.apply_movement_input(input if tick < 20 else Vector2.ZERO, false, false, tick == 0, STEP)
+		passenger.apply_movement_input(input if tick < 20 else Vector2.ZERO, false, tick == 0, STEP)
 		await _physics_step()
 		apex = maxf(apex, passenger.position.y)
 	return apex
@@ -420,7 +368,7 @@ func _walk_peak(passenger: PartyPlayer, target: Vector3, ticks: int) -> float:
 	var apex := passenger.position.y
 	for tick in ticks:
 		var input := _toward(passenger, target) if Vector2(passenger.position.x - target.x, passenger.position.z - target.z).length() > 0.4 else Vector2.ZERO
-		passenger.apply_movement_input(input, false, false, tick == 10, STEP)
+		passenger.apply_movement_input(input, false, tick == 10, STEP)
 		await _physics_step()
 		apex = maxf(apex, passenger.position.y)
 	return apex
@@ -431,7 +379,7 @@ func _jump_onto(passenger: PartyPlayer, landing: Vector3, input: Vector2) -> boo
 		var base := passenger.position
 		for tick in 66:
 			var step_input := input if Vector2(passenger.position.x - landing.x, passenger.position.z - landing.z).length() > 0.3 else Vector2.ZERO
-			passenger.apply_movement_input(step_input, false, false, tick == 1 + attempt * 3, STEP)
+			passenger.apply_movement_input(step_input, false, tick == 1 + attempt * 3, STEP)
 			await _physics_step()
 			if passenger.is_on_floor() and absf(passenger.position.y - landing.y) < 0.3 and Vector2(passenger.position.x - landing.x, passenger.position.z - landing.z).length() < 1.2:
 				return true
@@ -473,8 +421,8 @@ func _physics_step() -> void:
 
 
 func _idle_step() -> void:
-	_holder.apply_movement_input(Vector2.ZERO, false, false, false, STEP)
-	_passenger.apply_movement_input(Vector2.ZERO, false, false, false, STEP)
+	_holder.apply_movement_input(Vector2.ZERO, false, false, STEP)
+	_passenger.apply_movement_input(Vector2.ZERO, false, false, STEP)
 	await _physics_step()
 
 

@@ -35,6 +35,25 @@ Find concrete gameplay failures in the requested scope; do not turn a review int
 4. For visual changes, render affected states and inspect captures. For profiling, state hardware, renderer, resolution, build, player count and sample conditions; do not promise 60 FPS from source inspection.
 5. Return findings as **severity, file/line, failing behavior, evidence, smallest fix**. Separate confirmed failures from unverified risks. If implementing, follow the active-phase evidence workflow; if only reviewing, do not make unsolicited code edits.
 
+## Playable Rematch Observer Recovery
+
+For `tests/playable_scene_network_peer.gd` failures on freed `visual`/`global_position`
+or a stale reset prop, inspect both peer logs before blaming gameplay removal.
+The match-state and prop-transform channels arrive independently, and the next
+roster restart can replace an avatar while its observer is still checking RESULTS.
+
+- Wait for the actual reset prop transform, not ACTIVE alone; retain the exact
+  position/shape assertions instead of widening their tolerance.
+- Use fixture-only reliable acknowledgements for initial lethal presentation,
+  each rematch's ACTIVE/reset inspection and each RESULTS inspection. The server
+  cannot start the next fixture stage until the observer has finished that stage.
+- Reacquire avatar references after awaits. Keep real gameplay RPCs, real five
+  rematches, monotonic shove sequences and disconnect registry checks.
+- Run `GODOT_BIN=$(command -v godot) tests/run_playable_scene_network_test.sh`
+  twice, then the full regression serially. Require both peer success markers
+  and reject runtime errors. A bounded subprocess timeout prevents a failed
+  coroutine from leaving a headless fixture running forever; it is not a retry.
+
 ## Provenance
 
 Adapted from [claude-code-game-studios / godot-gdscript-specialist](https://github.com/donchitos/claude-code-game-studios/blob/main/.claude/agents/godot-gdscript-specialist.md), inspected 2026-10-14. Removed Claude-specific tools, model selection, approval loops and documentation paths; revised blanket rules for this project's engine and ownership contracts. Upstream copyright and MIT terms are retained in [CCGS-LICENSE.md](../CCGS-LICENSE.md).

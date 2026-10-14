@@ -11,7 +11,7 @@ CLIENT_LOG="$LOG_DIR/client.log"
 mkdir -p "$LOG_DIR"
 rm -f "$SERVER_LOG" "$CLIENT_LOG"
 
-"$GODOT_BIN" --headless --path "$ROOT" \
+timeout 60 "$GODOT_BIN" --headless --path "$ROOT" \
   --script res://tests/playable_scene_network_peer.gd -- \
   --role=server --port="$PORT" --host-port="$PORT" >"$SERVER_LOG" 2>&1 &
 server_pid=$!
@@ -23,7 +23,7 @@ cleanup() {
 trap cleanup EXIT
 
 sleep 0.3
-"$GODOT_BIN" --headless --path "$ROOT" \
+timeout 60 "$GODOT_BIN" --headless --path "$ROOT" \
   --script res://tests/playable_scene_network_peer.gd -- \
   --role=client --port="$PORT" --join-address=127.0.0.1 --join-port="$PORT" >"$CLIENT_LOG" 2>&1 &
 client_pid=$!
@@ -37,6 +37,11 @@ cat "$CLIENT_LOG"
 
 if [[ "$status" -ne 0 ]]; then
   echo "Playable-scene network test failed." >&2
+  exit 1
+fi
+
+if rg '^(SCRIPT ERROR|ERROR):' "$SERVER_LOG" "$CLIENT_LOG" | rg -v 'ERROR: [0-9]+ resources still in use at exit'; then
+  echo "Playable-scene network runtime error." >&2
   exit 1
 fi
 

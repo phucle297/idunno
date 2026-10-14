@@ -2,9 +2,9 @@ extends SceneTree
 
 # Task 3.5 two interruptible social emotes coverage: identity validation,
 # clip identity, request rate limiting, every cancellation path (movement,
-# jump, crouch, grab, carry, shove, knockdown, damage, death, rematch), the
-# mirror-accepted/server-rejected race, and sequence-guard suppression of
-# delayed start/cancel events after an authoritative cancellation.
+# jump, shove, knockdown, damage, death, rematch), the mirror-accepted/
+# server-rejected race, and sequence-guard suppression of delayed start/cancel
+# events after an authoritative cancellation.
 
 const DELTA := 1.0 / 60.0
 
@@ -50,8 +50,7 @@ func _run() -> void:
 	await _test_wave_start_and_clip()
 	await _test_server_expiry()
 	await _test_cheer_clip_and_rate_limit()
-	await _test_movement_jump_crouch_cancel()
-	await _test_grab_and_carry_cancel()
+	await _test_movement_jump_cancel()
 	await _test_shove_cancels_both()
 	await _test_knockdown_cancel()
 	await _test_damage_cancel()
@@ -69,7 +68,7 @@ func _run() -> void:
 
 func _settle(actor: PartyPlayer) -> void:
 	for tick in 60:
-		actor.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		actor.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 		if tick > 4 and actor.is_on_floor():
 			break
@@ -140,77 +139,19 @@ func _test_cheer_clip_and_rate_limit() -> void:
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "A request after the cooldown must be accepted again")
 
 
-func _test_movement_jump_crouch_cancel() -> void:
+func _test_movement_jump_cancel() -> void:
 	_clear_cooldowns()
 	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave must start before movement cancels it")
-	player.apply_movement_input(Vector2(0.0, 1.0), false, false, false, DELTA)
+	player.apply_movement_input(Vector2(0.0, 1.0), false, false, DELTA)
 	_expect(player.get_emote_id() == 0, "Locomotion input must cancel the emote")
 	_expect(player.velocity.length() > 0.1, "Movement during an emote must remain fully unlocked")
 	await _settle(player)
 	_clear_cooldowns()
 	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	player.apply_movement_input(Vector2.ZERO, false, false, true, DELTA)
+	player.apply_movement_input(Vector2.ZERO, false, true, DELTA)
 	_expect(player.get_emote_id() == 0, "Jump input must cancel the emote")
 	await _settle(player)
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	player.apply_movement_input(Vector2.ZERO, false, true, false, DELTA)
-	_expect(player.get_emote_id() == 0, "Crouch input must cancel the emote")
-	await _settle(player)
-
-
-func _test_grab_and_carry_cancel() -> void:
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Wave must start before the grab press")
-	var grab_press := InputEventKey.new()
-	grab_press.physical_keycode = KEY_F
-	grab_press.pressed = true
-	grab_press.device = 16
-	Input.parse_input_event(grab_press)
-	Input.flush_buffered_events()
-	# The just-pressed edge is only observable on the frame after injection.
-	await process_frame
-	player._physics_process(DELTA)
-	var grab_release := InputEventKey.new()
-	grab_release.physical_keycode = KEY_F
-	grab_release.pressed = false
-	grab_release.device = 16
-	Input.parse_input_event(grab_release)
-	Input.flush_buffered_events()
-	_expect(player.get_emote_id() == 0, "Grab press must cancel the emote")
-	if player.carrying_medium:
-		player.release_held_object()
-	await _settle(player)
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	player.carrying_medium = true
-	main._tick_server_emotes()
-	_expect(player.get_emote_id() == 0, "Carrying a medium must cancel the emote")
-	player.carrying_medium = false
-	# Lightweight props have no speed penalty, but still occupy the hands.
-	var prop := RigidBody3D.new()
-	prop.mass = 4.0
-	prop.freeze = true
-	prop.add_to_group("grabbable")
-	main.add_child(prop)
-	prop.global_position = player.get_grab_origin() + player.get_grab_direction()
-	var grab := main.get_node("GrabManager") as GrabManager
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	_expect(grab.request_grab(1, prop), "Lightweight emote fixture must actually acquire the prop")
-	main._tick_server_emotes()
-	_expect(player.get_emote_id() == 0, "Acquiring a lightweight prop must cancel the emote on the server")
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_CHEER)
-	_expect(player.get_emote_id() == 0, "Holding a lightweight prop must reject emote requests")
-	grab.release_grab(1)
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_CHEER)
-	_expect(player.get_emote_id() == PartyPlayer.EMOTE_CHEER, "Releasing a lightweight prop must restore emotes")
-	player.cancel_emote()
-	prop.queue_free()
 
 
 func _test_shove_cancels_both() -> void:
@@ -236,7 +177,7 @@ func _test_knockdown_cancel() -> void:
 	player.apply_knockdown(Vector3.RIGHT * 4.0)
 	_expect(player.get_emote_id() == 0, "Knockdown must cancel the emote")
 	for _tick in 120:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		player.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 	_expect(not player.is_knocked_down(), "Fixture must recover from the knockdown")
 
@@ -252,11 +193,6 @@ func _test_damage_cancel() -> void:
 
 
 func _test_state_rejects() -> void:
-	player.carrying_medium = true
-	_clear_cooldowns()
-	main.request_local_emote(1, PartyPlayer.EMOTE_WAVE)
-	_expect(player.get_emote_id() == 0, "Emote must be rejected while carrying a medium")
-	player.carrying_medium = false
 	victim.apply_knockdown(Vector3.RIGHT * 4.0)
 	_clear_cooldowns()
 	main.request_local_emote(2, PartyPlayer.EMOTE_WAVE)
@@ -293,7 +229,7 @@ func _test_sequence_suppression() -> void:
 
 func _test_death_and_rematch_cancel() -> void:
 	for _tick in 120:
-		victim.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		victim.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 	_expect(not victim.is_knocked_down(), "Fixture must recover the victim before the death case")
 	await _settle(victim)

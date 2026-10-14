@@ -15,6 +15,38 @@ The owner's progressive-loading question has a proposed chunk-streaming approach
 in the archive, not an implemented feature or an activated phase. The current map
 still builds eagerly; same-map rematch reuse is not streaming.
 
+## 2026-10-14 — Phase8.2 locomotion and action removal
+
+Keep the approved bean mesh/material/cosmetic/hitbox contracts. The visible sliding
+found in OS-input captures was a gait-distance mismatch, not controller drift:
+replace swinging leg-only tracks with shared stance/swing tracks and level soles,
+then match AnimationPlayer rate to horizontal speed. A0.36m reach balances short
+limbs with readable steps; this is visual stretch only, not collider scaling or
+root motion. Preserve normalized phase and blend walk/run/idle for0.12s. Faster
+playback changes the measured per-sample arm delta from0.050 to0.166rad; do not
+present the earlier lower number as the final result.128 level-ground contact
+samples across8 outfits give max drift0.000513m and height error0.000774m at120Hz.
+No slope IK, native GPU, human feel or aesthetic acceptance is implied.
+
+Observed avatars do not run movement collision locally: use authoritative replay
+ground contact for their locomotion/air/landing presentation. Add a short cosmetic
+landing cue,8% torso squash returning within0.13s and a bounded get-up lean. None
+delay jumps, change movement/recovery authority or animate the ragdoll itself.
+Remove C/F, crouch/carry movement/prediction/snapshot branches, ownership/springs,
+GrabManager and four dedicated clips, including stale UID files. Loose physics
+bodies retain their `grabbable` group because hazards still use it; the group no
+longer denotes an available player action. Shove/emotes remain independent.
+
+Strict regression exposed a fixture race twice: a client saw ACTIVE before its
+separate prop channel reset and later inspected an avatar replaced by the next
+rematch. Wait for the exact reset transform and use test-only reliable observer
+acknowledgements for initial RESULTS and each rematch ACTIVE/RESULTS boundary.
+Keep the original position tolerance, real game RPCs and five rematches; do not
+add gameplay sleeps/retries. Two consecutive focused two-peer matrices pass;
+the final whole regression is still pending. Recovery is recorded in the local
+`reviewing-godot-gameplay` skill. Source/package/public delivery are separate;
+hazard-specific HUD contexts wait for their actual8.3–8.5 rules.
+
 ## 2026-10-14 — Model/UI and disaster priority
 
 Owner requests planning for Snow, Rockslide, chasing/stinging Bees, UFO lift/drop,

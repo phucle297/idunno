@@ -45,14 +45,14 @@ func _run() -> void:
 	flood._set_water_level(1.0)
 	flood._apply_water_effects(2.5, 1.0, 0.0)
 	_expect(is_equal_approx(manager.get_health(1), 100.0), "Water below a standing player's head must not deal drowning damage")
-	low_player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
-	_expect(low_player.get_head_sample_position().y < 1.0, "Crouching must lower the authoritative head sample with the capsule")
-	flood._apply_water_effects(2.5, 1.0, 0.0)
-	_expect(is_equal_approx(manager.get_health(1), 94.0), "Water covering a crouched player's head must deal damage after breathing grace")
+	# The standing head sample is fixed, so submergence comes from rising water
+	# rather than a removed crouch capsule.
+	flood._set_water_level(1.5)
+	flood._apply_water_effects(2.5, 1.5, 0.0)
+	_expect(is_equal_approx(manager.get_health(1), 94.0), "Water covering a standing player's head must deal damage after breathing grace")
 	var exposure_snapshot := flood.create_presentation_snapshot()
 	_expect(exposure_snapshot.submerged_peer_ids == PackedInt32Array([1, 2]) and is_equal_approx(exposure_snapshot.submerged_times[0], 2.5), "Flood snapshots must carry per-player breathing exposure for client feedback")
 	low_player.position.y = 4.5
-	low_player.apply_movement_input(Vector2.ZERO, false, false, false, 0.0)
 	flood._apply_water_effects(0.1, 1.0, 0.0)
 	var low_state: Dictionary = manager.players[1]
 	low_state.health = 100.0

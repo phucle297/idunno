@@ -106,12 +106,12 @@ func _client(main: Node) -> void:
 			var dead: PartyPlayer = main._player_nodes[local_id]
 			var dead_position := dead.global_position
 			var jump_sequence: int = main._local_jump_sequence
-			main.submit_local_movement_input(Vector2.RIGHT, true, true, true, -0.7)
+			main.submit_local_movement_input(Vector2.RIGHT, true, true, -0.7)
 			_expect(main._local_jump_sequence == jump_sequence, "Dead local input cannot queue a jump for the next rematch")
 			# Bypass local controls to exercise authoritative rejection as well.
-			main._submit_movement_input.rpc_id(1, Vector2.RIGHT, true, true, true, -0.7, main._local_movement_sequence + 1)
+			main._submit_movement_input.rpc_id(1, Vector2.RIGHT, true, true, -0.7, main._local_movement_sequence + 1)
 			await create_timer(0.1).timeout
-			_expect(dead.global_position == dead_position and dead.velocity == Vector3.ZERO and not dead.visual.visible and not dead.can_grab_objects(), "Eliminated client must stay frozen after forged live input and subsequent snapshots")
+			_expect(dead.global_position == dead_position and dead.velocity == Vector3.ZERO and not dead.visual.visible and not dead.can_perform_actions(), "Eliminated client must stay frozen after forged live input and subsequent snapshots")
 		if cycle == 5:
 			break
 		if role == "owner":

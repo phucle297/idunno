@@ -260,10 +260,6 @@ func _apply_forces(delta: float) -> void:
 		var distance := horizontal.length()
 		if distance > influence_radius:
 			continue
-		if body.has_meta("grab_owner_peer_id"):
-			var owner := _players.get(int(body.get_meta("grab_owner_peer_id"))) as PartyPlayer
-			if is_instance_valid(owner):
-				owner.release_held_object()
 		var inward := horizontal.normalized() if distance > 0.05 else Vector3.RIGHT
 		var tangent := Vector3(-inward.z, 0.0, inward.x)
 		var proximity := 1.0 - distance / influence_radius

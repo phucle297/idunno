@@ -86,7 +86,7 @@ func _check_assets() -> void:
 	_expect(is_equal_approx((character.to_local(right_arm.global_position).x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 1.08), "Soft Creature arm span must be 1.08 m without changing the gameplay capsule")
 	_expect(character.get_node("Head").position.y + (head.mesh as SphereMesh).height * 0.5 <= 1.71, "Soft Creature must stay within its 1.60 m capsule reach")
 	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
-	_expect((character as ToyCharacterVisual).get_animation_names().size() == 14, "Character must provide all 14 required animation clips")
+	_expect((character as ToyCharacterVisual).get_animation_names().size() == 10, "Character must provide the 10 retained animation clips")
 	var catalog := ToyCharacterVisual.catalog()
 	_expect(catalog.version == 1, "Catalog must preserve saved receipt version")
 	var ids := ["plain", "cap", "hard_hat", "backpack", "raincoat", "mechanic", "park_ranger", "meteor_observer"]

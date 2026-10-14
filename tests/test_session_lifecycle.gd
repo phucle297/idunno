@@ -115,7 +115,7 @@ func _run() -> void:
 func _check_offline_lobby(main: Node, context: String) -> void:
 	_expect(not main.is_network_session() and main.multiplayer.multiplayer_peer is OfflineMultiplayerPeer, "%s must replace the inactive ENet peer with offline multiplayer" % context)
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY and main.match_manager.players.keys() == [1], "%s must restore exactly one offline lobby player" % context)
-	for component: Node in [main.get_node("GrabManager"), main.meteor_shower, main.flood, main.tornado, main.earthquake, main.lightning, main.fire]:
+	for component: Node in [main.meteor_shower, main.flood, main.tornado, main.earthquake, main.lightning, main.fire]:
 		_expect(component._players.keys() == [1] and component._can_mutate(), "%s must restore offline registry/authority for %s" % [context, component.name])
 	_expect(main.get_node("Player").accepts_local_input(), "%s must restore local input authority" % context)
 	_expect(main.get_node("Interface/LobbyPanel").visible, "%s must leave recovery controls accessible" % context)

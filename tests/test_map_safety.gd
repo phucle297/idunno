@@ -23,7 +23,6 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	player.set_camera_yaw(0.0)
 	await _check_elevation_routes(main, player)
-	await _check_elevation_routes(main, player, true)
 	player.set_camera_yaw(0.0)
 	await _check_garage_canopy(main, player)
 	await _check_roof_breakage(main, player)
@@ -39,11 +38,11 @@ func _run() -> void:
 		for mode in 4:
 			player.reset_for_match(Vector3(signf(direction.x) * (extent - 2), 0.1, signf(direction.y) * (extent - 2)))
 			for step in 10:
-				player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+				player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			if mode == 3:
 				player.apply_knockdown(Vector3(direction.x * 8.0, 3.0, direction.y * 8.0))
 			for step in 120:
-				player.apply_movement_input(direction, mode > 0, false, mode == 2 and step == 0, 1.0 / 60.0)
+				player.apply_movement_input(direction, mode > 0, mode == 2 and step == 0, 1.0 / 60.0)
 			_expect(maxf(absf(player.position.x), absf(player.position.z)) > extent - 1, "Traversal must actually reach the perimeter collider")
 			_expect(absf(player.position.x) < extent - 0.5 and absf(player.position.z) < extent - 0.5, "Edges/corners must block walk, sprint, jump and bounded disaster impulses: %s mode=%d position=%s" % [direction, mode, player.position])
 	# Exact threshold is safe; just outside each side and below the floor is lethal.
@@ -61,19 +60,15 @@ func _run() -> void:
 		_expect(main.restart_local_match(), "Safety death must allow rematch")
 		main.disaster_director.cleanup()
 		_expect(player.position.length() < 32 and player.visual.visible and main.match_manager.get_health(1) == 100, "Rematch restores safe spawn, visibility and HP")
-	# One death while others survive must use existing spectator and prop-release flow.
+	# One death while others survive must enter spectator and show cause.
 	main.match_manager.prepare_lobby()
 	main._add_gameplay_demo_player(2, "Second", Vector3(-3, 0.1, 4))
 	main._add_gameplay_demo_player(3, "Third", Vector3(3, 0.1, 4))
 	for peer_id: int in main.match_manager.players:
 		main.match_manager.set_player_ready(peer_id, true)
 	main.match_manager.start_match()
-	var crate := get_first_node_in_group("grabbable") as RigidBody3D
-	crate.global_position = player.get_grab_origin() + Vector3(0, -0.5, -1)
-	_expect(main.get_node("GrabManager").request_grab(1, crate), "Acquire prop before safety elimination")
 	player.position = Vector3(extent + 1, 1, 0)
 	main._eliminate_out_of_bounds()
-	_expect(main.get_node("GrabManager").get_held_body(1) == null, "Safety death releases prop")
 	_expect(main.spectator_controller.active and not player.visual.visible and main.match_manager.state == MatchManager.MatchState.ACTIVE, "Safety death enters spectator without respawn")
 	main._process(0.0)
 	_expect(main.gameplay_hud.elimination_label.text.begins_with("ELIMINATED — Out of bounds"), "Actual death feedback names out-of-bounds cause")
@@ -127,7 +122,7 @@ func _run() -> void:
 	_finish()
 
 
-func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool = false) -> void:
+func _check_elevation_routes(main: Node3D, player: PartyPlayer) -> void:
 	var routes := {
 		"ShopRoofRamp": Vector3(-16, 4.855, -16),
 		"HallRoofRamp": Vector3(16, 4.855, -17),
@@ -147,19 +142,11 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 		var direction := Vector2(high.x - low.x, high.z - low.z).normalized()
 		player.reset_for_match(Vector3(low.x - direction.x, 0.1, low.z - direction.y))
 		for tick in 10:
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
-		var crate := get_first_node_in_group("grabbable") as RigidBody3D
-		var crate_spawn := crate.global_transform
-		if carrying:
-			player.set_camera_yaw(atan2(-direction.x, -direction.y))
-			crate.global_position = player.get_hold_position()
-			crate.linear_velocity = Vector3.ZERO
-			crate.angular_velocity = Vector3.ZERO
-			_expect(main.get_node("GrabManager").request_grab(1, crate) and player.carrying_medium, "Acquire actual medium crate before ramp ascent")
 		var ascent_ticks := 0
-		for tick in (360 if carrying else 240):
-			player.apply_movement_input(Vector2.UP if carrying else direction, false, false, false, 1.0 / 60.0)
+		for tick in 240:
+			player.apply_movement_input(direction, false, false, 1.0 / 60.0)
 			await physics_frame
 			ascent_ticks += 1
 			if Vector2(player.position.x - high.x, player.position.z - high.z).length() < 0.15:
@@ -167,38 +154,11 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 		var goal: Vector3 = routes[route_name]
 		for tick in 180:
 			var remaining := Vector2(goal.x - player.position.x, goal.z - player.position.z)
-			if carrying and remaining.length() > 0.1:
-				player.set_camera_yaw(atan2(-remaining.x, -remaining.y))
-			player.apply_movement_input((Vector2.UP if carrying else remaining.normalized()) if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
-		print("ELEVATION_ROUTE route=%s carry=%s ascent_ticks=%s feet=%s goal=%s" % [route_name, carrying, ascent_ticks, player.position, goal])
-		if carrying:
-			_expect(player.carrying_medium and main.get_node("GrabManager").get_held_body(1) == crate, "Ramp ascent must keep actual crate ownership, not silently drop penalty")
-			await _capture(route_name + "Carrying")
-			main.get_node("GrabManager").release_grab(1)
-			player.set_camera_yaw(0.0)
-			# The existing straight-line descent checks an unobstructed route.
-			# Remove the fixture's dropped obstacle, not a gameplay collision rule.
-			# A plain teleport: the freeze/unfreeze pair can lose the transform
-			# set when a physics-step burst follows, restoring the stale body
-			# position (reproduced only in rendered capture runs).
-			crate.rotation = crate_spawn.basis.get_euler()
-			crate.linear_velocity = Vector3.ZERO
-			crate.angular_velocity = Vector3.ZERO
-			crate.global_position = crate_spawn.origin
-			# Commit the restore on physics-step contexts: an immediate set can
-			# be lost when a burst of physics steps follows a rendered frame,
-			# leaving the cargo at the lagged hold pose on the route (this is
-			# what pinned the Park descent in capture runs). Reassert it.
-			for settle_tick in 5:
-				await physics_frame
-				crate.rotation = crate_spawn.basis.get_euler()
-				crate.linear_velocity = Vector3.ZERO
-				crate.angular_velocity = Vector3.ZERO
-				crate.global_position = crate_spawn.origin
-			_expect(crate.global_position.distance_to(crate_spawn.origin) < 0.5, "Fixture cargo must settle at its spawn away from the route: %s" % crate.global_position)
+		print("ELEVATION_ROUTE route=%s ascent_ticks=%s feet=%s goal=%s" % [route_name, ascent_ticks, player.position, goal])
 		_expect(Vector2(goal.x - player.position.x, goal.z - player.position.z).length() < 0.25 and absf(player.position.y - goal.y) < 0.05 and player.is_on_floor(), "Walk without jumps must reach the actual refuge via %s: %s" % [route_name, player.position])
-		await _capture(route_name + ("CarryArrival" if carrying else ""))
+		await _capture(route_name)
 		_expect(main.get_node("Flood").start_warning(), "Start actual Flood at the reached refuge")
 		var flood := main.get_node("Flood") as Flood
 		flood.tick(flood.warning_duration)
@@ -210,11 +170,11 @@ func _check_elevation_routes(main: Node3D, player: PartyPlayer, carrying: bool =
 		flood.cleanup()
 		for tick in 300:
 			var remaining := Vector2(low.x - direction.x - player.position.x, low.z - direction.y - player.position.z)
-			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 			if remaining.length() < 0.1 and player.is_on_floor() and player.position.y < 0.1:
 				break
-		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop carry=%s position=%s on_floor=%s" % [route_name, carrying, player.position, player.is_on_floor()])
+		_expect(player.is_on_floor() and player.position.y < 0.1 and Vector2(player.position.x - low.x + direction.x, player.position.z - low.z + direction.y).length() < 0.25, "Walk back down %s without a jump or drop position=%s on_floor=%s" % [route_name, player.position, player.is_on_floor()])
 	player.reset_for_match(Vector3.ZERO)
 
 
@@ -368,7 +328,7 @@ func _check_roof_breakage(main: Node3D, player: PartyPlayer) -> void:
 func _walk_roof(player: PartyPlayer, target: Vector2, ticks: int) -> void:
 	for tick in ticks:
 		var remaining := target - Vector2(player.position.x, player.position.z)
-		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.1 else Vector2.ZERO, false, false, 1.0 / 60.0)
 		await physics_frame
 
 

@@ -24,12 +24,10 @@ var _last_shove_sequence: Dictionary = {}
 var _shove_origin_position: Dictionary = {}
 var _shove_impulse_speed: Dictionary = {}
 var _match_manager: MatchManager = null
-var _grab_manager: GrabManager = null
 
 
-func configure(match_manager: MatchManager, grab_manager: GrabManager = null) -> void:
+func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
-	_grab_manager = grab_manager
 
 
 func register_player(peer_id: int, player: PartyPlayer) -> bool:
@@ -126,7 +124,7 @@ func request_shove(peer_id: int) -> bool:
 	var direction := victim.global_position - shover.global_position
 	direction.y = 0.0
 	if direction.length_squared() < 0.0001:
-		direction = shover.get_grab_direction()
+		direction = shover.get_forward_direction()
 		direction.y = 0.0
 	if direction.length_squared() < 0.0001:
 		return false
@@ -203,10 +201,7 @@ func is_protected(peer_id: int) -> bool:
 
 
 func _sender_eligible(peer_id: int, shover: PartyPlayer) -> bool:
-	if not is_instance_valid(shover) or not shover.can_grab_objects() or not shover.is_on_floor():
-		return false
-	# Default rule: no shove while holding a prop. The server owns it.
-	if is_instance_valid(_grab_manager) and is_instance_valid(_grab_manager.get_held_body(peer_id)):
+	if not is_instance_valid(shover) or not shover.can_perform_actions() or not shover.is_on_floor():
 		return false
 	if is_instance_valid(_match_manager):
 		if _match_manager.state != MatchManager.MatchState.ACTIVE or not _match_manager.is_player_alive(peer_id):
@@ -215,7 +210,7 @@ func _sender_eligible(peer_id: int, shover: PartyPlayer) -> bool:
 
 
 func _pick_target(shover: PartyPlayer) -> int:
-	var forward := shover.get_grab_direction()
+	var forward := shover.get_forward_direction()
 	forward.y = 0.0
 	if forward.length_squared() < 0.0001:
 		return 0
@@ -248,7 +243,7 @@ func _pick_target(shover: PartyPlayer) -> int:
 
 
 func _victim_eligible(peer_id: int, candidate: PartyPlayer) -> bool:
-	if not candidate.can_grab_objects():
+	if not candidate.can_perform_actions():
 		return false
 	if is_instance_valid(_match_manager):
 		if _match_manager.state != MatchManager.MatchState.ACTIVE or not _match_manager.is_player_alive(peer_id):

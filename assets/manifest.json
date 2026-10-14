@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "7",
+    "version": "8",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,7 +14,7 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "7",
+      "generator_version": "8",
       "intended_dimensions_m": [1.08, 1.6, 0.656],
       "triangle_count": 5992,
       "cosmetic_catalog": "assets/cosmetic_catalog.json",
@@ -23,9 +23,9 @@
       "outfit_triangle_counts_including_base": {"plain": 5992, "cap": 6136, "hard_hat": 6112, "backpack": 6004, "raincoat": 6172, "mechanic": 6052, "park_ranger": 6160, "meteor_observer": 6160},
       "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168},
       "outfit_physics": "Same player capsule/controller; visible accessories copied onto existing 11 ragdoll bodies/10 joints/55kg. No accessory colliders or authoritative bodies.",
-      "outfit_validation": "Generator7 seed297; broad uninterrupted 0.80m body with oval cream inset, rounded arms and rubber feet. Phase1 971, player integration294, colliders153, carry41, collection20, emotes55 and shove70 passed. Base5992 includes112 hidden compatibility-anchor triangles; visible5880. No gameplay capsule enlargement.",
-      "outfit_visual_validation": "Actual Godot front/back/eight outfits/gameplay and collection renders inspected against selected B. Rounded silhouette, oval face and footwear corrected; no claim of pixel-equivalence to the generated reference or human acceptance. Captures: .amp/in/artifacts/soft-creature and phase7-correction.",
-      "outfit_provenance": "Project-authored deterministic Godot primitives and palette materials, packed by generator7 seed297. Selected B is a concept reference only. No external geometry or textures; no CC0 claim.",
+      "outfit_validation": "Generator8 seed297 character-only regeneration; ten clips after removal of crouch/holding. Base5992 triangles includes112 hidden anchor triangles; eight outfit/accessory counts unchanged. PLAYER_INTEGRATION_OK329 covers gait phases, planted soles, observer floor/landing state, collider equality, recovery and controls. Scratch128 contact samples: max planted drift0.000513m, height error0.000774m at120Hz on level ground. Full regression passed:40 suites, five matrices, managed20 and settings restart. No terrain IK or native hardware claim.",
+      "outfit_visual_validation": "Actual Godot front/back eight-outfit silhouettes and in-map near/gameplay standing/walk/run/landing/ragdoll/get-up/overlap snapshots at720p/1080p inspected. Real OS keyboard/pointer recordings show planted locomotion, continuous Shift transitions, jump and ragdoll/recovery, no C/F prompts. Minor decorative curb occlusion remains, not severe asphalt clipping in inspected frame. Captures .amp/in/artifacts/phase8. No concept pixel-equivalence or human aesthetic/GPU acceptance claimed.",
+      "outfit_provenance": "Project-authored Godot primitives, palette materials and AnimationPlayer tracks, packed by generator8 seed297. Same bean geometry and outfits; speed-matched stance/swing tracks,0.12s phase-preserving blend, bounded recovery lean and visual-only8% landing squash. Selected B is a concept reference only. No external geometry or textures; no CC0 claim.",
       "material_ids": ["MAT_Cream_v001", "MAT_Cyan_v001", "MAT_Slate_v001", "MAT_Ink_v001"],
       "pivot": "ground_center_between_feet",
       "collider_type": "capsule_on_player_scene",
@@ -37,10 +37,6 @@
         "jump_takeoff",
         "falling",
         "landing",
-        "crouch_idle",
-        "crouch_walk",
-        "holding_idle",
-        "holding_walk",
         "get_up",
         "shove",
         "wave",
@@ -48,8 +44,8 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/player/toy_character_visual.gd.",
-      "sha256": "cee8a3fa91a0a23d345e3bccf095f31a43239bb7c0996309c9dd453a0051d294",
-      "validation_status": "rounded_visual_correction_regeneration_and_public_behavior_checks_passed; source_references_committed; human_native_gpu_acceptance_unverified"
+      "sha256": "415dbf5d819834f50c2ef992f0d6791b87a775874c9e71b0013a15d96b05fdda",
+      "validation_status": "phase8_2_controller_render_and_full_regression_passed; human_native_gpu_acceptance_unverified"
     },
     {
       "asset_id": "ENV_Wall_2m_v001",

@@ -148,7 +148,7 @@ Use Godot 4.7.2 stable. If `godot` is not on `PATH`, substitute the path to the 
 
 Runtime scripts are grouped by responsibility:
 
-- `game/player/`: movement, tuning, character visuals, cosmetic ragdoll, grabbing and shoving.
+- `game/player/`: movement, tuning, character visuals, cosmetic ragdoll and shoving.
 - `game/disasters/`: the disaster director and six hazard implementations.
 - `game/session/`: match state, room discovery/admission and spectating.
 - `game/ui/`: HUD, lobby/results presentation and settings.
@@ -172,7 +172,6 @@ godot --headless --path . --script res://tests/test_dedicated_server.gd
 godot --headless --path . --script res://tests/test_match_manager.gd
 godot --headless --path . --script res://tests/test_rematch_integration.gd
 godot --headless --path . --script res://tests/test_spectator_controller.gd
-godot --headless --path . --script res://tests/test_grab_manager.gd
 godot --headless --path . --script res://tests/test_meteor_shower.gd
 godot --headless --path . --script res://tests/test_flood.gd
 godot --headless --path . --script res://tests/test_tornado.gd
@@ -258,4 +257,4 @@ development transport: **do not expose unmanaged servers publicly**. Managed
 rooms enforce pre-registration tickets; discovery/lifecycle and retry instructions
 are in `GUIDE.md`. This follow-up does not deploy, restart the shared server or change firewalls.
 
-Controls: WASD to move, Shift to sprint, Space to jump, C to crouch, F to grab or release a physics prop, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results.
+Controls: WASD to move, Shift to sprint, Space to jump, mouse to orbit the camera, Escape to release the cursor, left click to recapture it, L to toggle the network lobby, R to trigger the current bounded knockdown/recovery prototype, Q/E to cycle spectator targets, and Enter to start a ready lobby or rematch from results. Crouch and player grabbing/holding are removed; loose props still react to hazards.

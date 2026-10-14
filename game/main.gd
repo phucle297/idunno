@@ -115,7 +115,7 @@ func _ready() -> void:
 	earthquake.set_structure_root($Sandbox)
 	lightning.configure(match_manager)
 	fire.configure(match_manager)
-	$ShoveManager.configure(match_manager, $GrabManager)
+	$ShoveManager.configure(match_manager)
 	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
 	lightning.struck.connect(_on_lightning_struck)
 	tornado.activated.connect(_on_tornado_activated)
@@ -186,8 +186,6 @@ func _ready() -> void:
 		match_manager.apply_damage(3, 100.0, "Flood")
 		match_manager.tick_match(25.0)
 		match_manager.apply_damage(4, 100.0, "Meteor")
-	if _has_argument("--grab-demo"):
-		$GrabManager.request_nearest_grab(1)
 	if _has_argument("--meteor-demo") or _has_argument("--meteor-impact-demo"):
 		meteor_shower.start_warning(Vector3(1.5, 0.06, 5.0))
 		if _has_argument("--meteor-demo"):
@@ -202,7 +200,7 @@ func _ready() -> void:
 	if _has_argument("--flood-grace-demo") or _has_argument("--flood-damage-demo"):
 		disaster_director.cleanup()
 		$Player.set_physics_process(false)
-		$Player.apply_movement_input(Vector2.ZERO, false, true, false, 0.0)
+		$Player.apply_movement_input(Vector2.ZERO, false, false, 0.0)
 		flood.set_process(false)
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
@@ -276,7 +274,7 @@ func _ready() -> void:
 		$Player.set_physics_process(false)
 		$Player.set_process_unhandled_input(false)
 		var flood_view := _has_argument("--flood-demo") or _has_argument("--flood-grace-demo") or _has_argument("--flood-damage-demo") or _has_argument("--overlap-demo")
-		var capture_yaw := 2.25 if flood_view else (0.35 if _has_argument("--grab-demo") else 0.0)
+		var capture_yaw := 2.25 if flood_view else 0.0
 		var capture_pitch := -0.42 if flood_view else (-0.34 if _has_argument("--map-demo") else -0.14)
 		$Player/CameraPivot.rotation = Vector3(capture_pitch, capture_yaw, 0.0)
 		if _has_argument("--meteor-impact-demo"):
@@ -453,7 +451,6 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
 		return
 	_movement_inputs.erase(peer_id)
-	$GrabManager.unregister_player(peer_id)
 	meteor_shower.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
 	tornado.unregister_player(peer_id)
@@ -501,7 +498,7 @@ func _on_server_disconnected() -> void:
 	_emote_sequences.clear()
 	_emote_seen_sequences.clear()
 	for peer_id: int in match_manager.players.keys():
-		for component: Node in [$GrabManager, meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
+		for component: Node in [meteor_shower, flood, tornado, earthquake, lightning, fire, match_manager]:
 			component.unregister_player(peer_id)
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
@@ -586,6 +583,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
 	player.configure_emotes(self)
+	player.configure_identity(peer_id)
 	player.configure_shoving($ShoveManager)
 	player.character.set_outfit_id(_outfits.get(peer_id, "plain"))
 	$ShoveManager.register_player(peer_id, player)
@@ -605,19 +603,18 @@ func _physics_process(delta: float) -> void:
 		if not multiplayer.is_server() and not _pending_local_movement_snapshot.is_empty():
 			var snapshot := _pending_local_movement_snapshot
 			_pending_local_movement_snapshot = {}
-			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.crouched, snapshot.carrying_medium)
+			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state)
 		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
-		var crouched := input_allowed and Input.is_action_pressed("crouch")
 		var jump_pressed := input_allowed and Input.is_action_just_pressed("jump")
 		if jump_pressed:
 			gameplay_audio.play_jump()
 		if multiplayer.is_server():
-			_store_movement_input(local_peer_id, input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw(), _local_movement_sequence)
+			_store_movement_input(local_peer_id, input_2d, sprinting, jump_pressed, local_player.get_camera_yaw(), _local_movement_sequence)
 		else:
-			submit_local_movement_input(input_2d, sprinting, crouched, jump_pressed, local_player.get_camera_yaw())
-			local_player.predict_movement_input(_local_movement_sequence, input_2d, sprinting, crouched, jump_pressed, delta)
+			submit_local_movement_input(input_2d, sprinting, jump_pressed, local_player.get_camera_yaw())
+			local_player.predict_movement_input(_local_movement_sequence, input_2d, sprinting, jump_pressed, delta)
 	if not multiplayer.is_server():
 		return
 	var peer_ids := PackedInt32Array()
@@ -638,7 +635,6 @@ func _physics_process(delta: float) -> void:
 		player.apply_movement_input(
 			movement_input.direction,
 			movement_input.sprinting,
-			movement_input.crouched,
 			movement_input.jump_pressed,
 			delta
 		)
@@ -649,7 +645,7 @@ func _physics_process(delta: float) -> void:
 		velocities.append(player.velocity)
 		camera_yaws.append(player.get_camera_yaw())
 		visual_yaws.append(player.get_visual_yaw())
-		knockdowns.append((1 if player.is_knocked_down() else 0) | (2 if player.is_crouched() else 0) | (4 if player.carrying_medium else 0))
+		knockdowns.append(1 if player.is_knocked_down() else 0)
 		acknowledged_inputs.append(int(movement_input.sequence))
 		replay_states.append(player.get_movement_replay_state())
 	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns, acknowledged_inputs, replay_states)
@@ -674,7 +670,7 @@ func _eliminate_out_of_bounds() -> void:
 	match_manager.apply_damage_batch(events)
 
 
-func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float) -> void:
+func submit_local_movement_input(input_2d: Vector2, sprinting: bool, jump_pressed: bool, camera_yaw: float) -> void:
 	if not _network_mode or multiplayer.is_server():
 		return
 	if not match_manager.is_player_alive(multiplayer.get_unique_id()):
@@ -683,17 +679,17 @@ func submit_local_movement_input(input_2d: Vector2, sprinting: bool, crouched: b
 	if jump_pressed:
 		_local_jump_sequence = _local_movement_sequence
 	# Repeat the latest numbered jump: movement datagrams can be dropped/reordered.
-	_submit_movement_input.rpc_id(1, input_2d, sprinting, crouched, jump_pressed, camera_yaw, _local_movement_sequence, _local_jump_sequence)
+	_submit_movement_input.rpc_id(1, input_2d, sprinting, jump_pressed, camera_yaw, _local_movement_sequence, _local_jump_sequence)
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
-func _submit_movement_input(input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
+func _submit_movement_input(input_2d: Vector2, sprinting: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id := multiplayer.get_remote_sender_id()
 	if sender_id <= 1 or not _player_nodes.has(sender_id):
 		return
-	_store_movement_input(sender_id, input_2d, sprinting, crouched, jump_pressed, camera_yaw, sequence, jump_sequence)
+	_store_movement_input(sender_id, input_2d, sprinting, jump_pressed, camera_yaw, sequence, jump_sequence)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 1)
@@ -721,16 +717,17 @@ func _apply_movement_snapshots(
 		var player := _player_nodes[peer_id] as PartyPlayer
 		if peer_id == multiplayer.get_unique_id() and not acknowledged_inputs.is_empty():
 			# Replay during the next physics tick, never at variable-rate RPC receipt time.
-			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "crouched": knockdowns[index] & 2 != 0, "carrying_medium": knockdowns[index] & 4 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
+			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
 			continue
 		player.global_position = positions[index]
 		player.velocity = velocities[index]
-		player.carrying_medium = knockdowns[index] & 4 != 0 and knockdowns[index] & 1 == 0
 		# Local aim is input, not state to rewind with a delayed server echo.
 		if peer_id != multiplayer.get_unique_id():
 			player.set_camera_yaw(camera_yaws[index])
 		player.set_visual_yaw(visual_yaws[index])
 		player.set_network_knockdown(knockdowns[index] & 1 != 0)
+		if not replay_states.is_empty():
+			player.set_network_grounded(replay_states[index].z != 0.0)
 
 
 func _broadcast_prop_snapshots() -> void:
@@ -739,7 +736,6 @@ func _broadcast_prop_snapshots() -> void:
 	var rotations := PackedVector4Array()
 	var linear_velocities := PackedVector3Array()
 	var angular_velocities := PackedVector3Array()
-	var owner_ids := PackedInt32Array()
 	var props := get_tree().get_nodes_in_group("network_prop")
 	props.sort_custom(func(first: Node, second: Node) -> bool:
 		return int(first.get_meta("network_prop_id", 0)) < int(second.get_meta("network_prop_id", 0))
@@ -754,8 +750,7 @@ func _broadcast_prop_snapshots() -> void:
 		rotations.append(Vector4(quaternion.x, quaternion.y, quaternion.z, quaternion.w))
 		linear_velocities.append(body.linear_velocity)
 		angular_velocities.append(body.angular_velocity)
-		owner_ids.append(int(body.get_meta("grab_owner_peer_id", 0)))
-	_apply_prop_snapshots.rpc(prop_ids, positions, rotations, linear_velocities, angular_velocities, owner_ids)
+	_apply_prop_snapshots.rpc(prop_ids, positions, rotations, linear_velocities, angular_velocities)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 3)
@@ -764,13 +759,12 @@ func _apply_prop_snapshots(
 	positions: PackedVector3Array,
 	rotations: PackedVector4Array,
 	linear_velocities: PackedVector3Array,
-	angular_velocities: PackedVector3Array,
-	owner_ids: PackedInt32Array
+	angular_velocities: PackedVector3Array
 ) -> void:
 	if multiplayer.is_server():
 		return
 	var prop_count := prop_ids.size()
-	if positions.size() != prop_count or rotations.size() != prop_count or linear_velocities.size() != prop_count or angular_velocities.size() != prop_count or owner_ids.size() != prop_count:
+	if positions.size() != prop_count or rotations.size() != prop_count or linear_velocities.size() != prop_count or angular_velocities.size() != prop_count:
 		return
 	for index in prop_count:
 		var body := _network_prop(prop_ids[index])
@@ -782,18 +776,6 @@ func _apply_prop_snapshots(
 		body.global_transform = Transform3D(Basis(Quaternion(rotation.x, rotation.y, rotation.z, rotation.w).normalized()), positions[index])
 		body.linear_velocity = linear_velocities[index]
 		body.angular_velocity = angular_velocities[index]
-		var previous_owner := int(body.get_meta("grab_owner_peer_id", 0))
-		if previous_owner != owner_ids[index]:
-			var previous_holder := _player_nodes.get(previous_owner) as PartyPlayer
-			if is_instance_valid(previous_holder):
-				body.remove_collision_exception_with(previous_holder)
-		if owner_ids[index] > 0:
-			body.set_meta("grab_owner_peer_id", owner_ids[index])
-			var holder := _player_nodes.get(owner_ids[index]) as PartyPlayer
-			if is_instance_valid(holder):
-				body.add_collision_exception_with(holder)
-		else:
-			body.remove_meta("grab_owner_peer_id")
 
 
 func _network_prop(prop_id: int) -> RigidBody3D:
@@ -803,7 +785,7 @@ func _network_prop(prop_id: int) -> RigidBody3D:
 	return null
 
 
-func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, crouched: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
+func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
 	if not match_manager.is_player_alive(peer_id):
 		return
 	if jump_sequence < -1 or jump_sequence > sequence:
@@ -819,7 +801,6 @@ func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, cro
 	_movement_inputs[peer_id] = {
 		"direction": safe_input.limit_length(MOVEMENT_INPUT_LIMIT),
 		"sprinting": sprinting,
-		"crouched": crouched,
 		"jump_pressed": jump_pressed or (not previous.is_empty() and bool(previous.jump_pressed)),
 		"yaw": wrapf(safe_yaw, -PI, PI),
 		"sequence": sequence,
@@ -831,7 +812,6 @@ func _empty_movement_input() -> Dictionary:
 	return {
 		"direction": Vector2.ZERO,
 		"sprinting": false,
-		"crouched": false,
 		"jump_pressed": false,
 		"yaw": 0.0,
 		"sequence": 0,
@@ -906,9 +886,7 @@ func _can_start_emote(peer_id: int, emote_id: int, mirrored: bool) -> bool:
 	if not PartyPlayer.EMOTE_DURATIONS.has(emote_id):
 		return false
 	var player := _player_nodes.get(peer_id) as PartyPlayer
-	if not is_instance_valid(player) or not player.can_grab_objects() or player.carrying_medium or player.is_crouched() or not player.is_on_floor():
-		return false
-	if is_instance_valid($GrabManager.get_held_body(peer_id)):
+	if not is_instance_valid(player) or not player.can_perform_actions() or not player.is_on_floor():
 		return false
 	if match_manager.state != MatchManager.MatchState.ACTIVE or not match_manager.is_player_alive(peer_id):
 		return false
@@ -975,17 +953,14 @@ func _tick_server_emotes() -> void:
 		var input: Dictionary = _movement_inputs.get(peer_id, {})
 		var input_active := not input.is_empty() and (
 			(input.direction as Vector2).length_squared() > 0.0001
-			or bool(input.jump_pressed) or bool(input.crouched)
+			or bool(input.jump_pressed)
 		)
 		if (
 			now >= float(state.expires)
 			or not is_instance_valid(player)
 			or not match_manager.is_player_alive(peer_id)
 			or player.is_knocked_down()
-			or not player.can_grab_objects()
-			or player.carrying_medium
-			or is_instance_valid($GrabManager.get_held_body(peer_id))
-			or player.is_crouched()
+			or not player.can_perform_actions()
 			or not player.is_on_floor()
 			or match_manager.get_health(peer_id) < float(state.health)
 			or input_active
@@ -999,9 +974,9 @@ func _emote_now() -> float:
 
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
 	player.configure_emotes(self)
+	player.configure_identity(peer_id)
 	return (
 		match_manager.register_player(peer_id, player_name)
-		and $GrabManager.register_player(peer_id, player)
 		and $ShoveManager.register_player(peer_id, player)
 		and meteor_shower.register_player(peer_id, player)
 		and flood.register_player(peer_id, player)
@@ -1203,13 +1178,9 @@ func _update_context_prompt(local_peer_id: int) -> void:
 	if not is_instance_valid(player) or not match_manager.is_player_alive(local_peer_id):
 		gameplay_hud.present_context_action("")
 		return
-	var grab_manager := $GrabManager as GrabManager
-	if is_instance_valid(grab_manager.get_held_body(local_peer_id)):
-		gameplay_hud.present_context_action("RELEASE TO RESTORE SPEED")
-	elif is_instance_valid(grab_manager.get_interaction_candidate(player)):
-		gameplay_hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
-	else:
-		gameplay_hud.present_context_action("")
+	# Grab/hold was removed as a player action; hazard-escape contexts are
+	# added by 8.3-8.5 with their telegraphed areas.
+	gameplay_hud.present_context_action("")
 
 
 func _update_major_warning() -> void:
@@ -1803,7 +1774,6 @@ func _on_lobby_ready_pressed() -> void:
 
 func _prepare_offline_player_for_join() -> void:
 	disaster_director.cleanup()
-	$GrabManager.unregister_player(1)
 	meteor_shower.unregister_player(1)
 	flood.unregister_player(1)
 	tornado.unregister_player(1)
@@ -2172,7 +2142,7 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	$Player/CameraPivot/SpringArm3D/Camera3D.current = true
 	_player_nodes[peer_id] = player
 	match_manager.register_player(peer_id, player_name)
-	$GrabManager.register_player(peer_id, player)
+	player.configure_identity(peer_id)
 	meteor_shower.register_player(peer_id, player)
 	flood.register_player(peer_id, player)
 	tornado.register_player(peer_id, player)
@@ -2605,7 +2575,6 @@ func _build_toy_harbor() -> Dictionary:
 
 
 func _reset_sandbox() -> void:
-	$GrabManager.release_all()
 	# Rematches restore mutable world state without rebuilding thousands of
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
 	if map_anchors.get("map_id", "") == map_id:

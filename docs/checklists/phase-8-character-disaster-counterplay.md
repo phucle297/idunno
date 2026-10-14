@@ -1,6 +1,7 @@
 # Phase 8 — Character, UI and Disaster Counterplay
 
-Status: planned, not implemented. Owner priority2026-10-14 supersedes the former
+Status: in progress; 8.1–8.2 technical gates passed; 8.3 is current.
+Owner priority2026-10-14 supersedes the former
 Phase8 safe-zone ordering. Current public baseline is Integrated Town revision
 2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d. No new deployment/release is authorized.
 
@@ -79,14 +80,14 @@ reproduce a user session stays unverified, not "fixed".
 Owners: `tools/asset_generation/generate_assets.gd`, character scenes,
 `game/player/toy_character_visual.gd`, `player.gd`, HUD/UI tokens, manifest.
 
-- [ ] Preserve bean-like continuous body, cream face, short rounded limbs/rubber
+- [x] Preserve bean-like continuous body, cream face, short rounded limbs/rubber
   feet; improve body/limb joins, grounded foot placement, relaxed hands
   and material response. Match environment matte materials and restrained
   daylight. No collider enlargement, cosmetic advantage or gameplay camera reset.
-- [ ] Distinct readable walk, run, landing/get-up and hazard reaction
+- [x] Distinct readable walk, run, landing/get-up and hazard reaction
   poses. No T-pose, sliding feet at common speeds, snapping arms or clips
   fighting ragdoll. Keep one rig/body contract across eight outfits and remotes.
-- [ ] Make walk/run transitions interruptible without restarting gait on every Shift
+- [x] Make walk/run transitions interruptible without restarting gait on every Shift
   edge: preserve locomotion phase, blend arm/body pose at current speed and handle
   reversals during blending. Reuse the existing animation owner; choose blend timing
   after baseline reproduction, not by adding input delays or hiding arms. Preserve
@@ -97,11 +98,30 @@ Owners: `tools/asset_generation/generate_assets.gd`, character scenes,
   references that exist only for these actions; preserve loose-body hazard simulation,
   static cover, emotes and other independent player interactions. Update controls,
   tests and matching client/server build identity; stale packets cannot restore them.
+  Source removal and migrated controller/prediction/network tests are implemented;
+  matching package exports/identity remain part of8.6, not a published build claim.
 - [ ] HUD explains the actual action: "Leave cracked roof", "Water
   cools this area", "Shelter from falling rocks"; do not imply immunity or show
   removed C/F actions. Icons + text + countdown,
   not color alone; no full-screen effects obscuring routes. Preserve reduced motion,
   warning audio priority, keyboard/focus behavior and readable720p/1080p layout.
+  C/F prompts are gone now. Hazard-specific escape/cooling context will be implemented
+  alongside the actual8.3–8.5 hazard rules; do not display unimplemented counters.
+
+Intermediate evidence: `PLAYER_INTEGRATION_OK329`; original clip-reset32 edges
+now retain phase, maximum sampled arm delta0.166rad after speed matching. Planted
+foot contact128 samples/8 outfits: drift0.000513m and height error0.000774m at120Hz,
+level ground (not terrain IK). Generator8/seed297 retains geometry, collider and
+triangle/outfit contracts;10 clips. Actual in-map standing/walk/run/landing/ragdoll/
+get-up/overlap, near and gameplay distances,720p/1080p and real OS-input videos are
+in `.amp/in/artifacts/phase8`; inspected, no native GPU/aesthetic acceptance inferred.
+Final full strict regression passed: 40 suites, five matrices, managed20 and
+settings restart. Final recovery/landing recordings refreshed and inspected. Earlier failures
+exposed a fixture-only rematch observer race. Two consecutive real two-peer/five-
+rematch runs passed with reliable observation barriers and exact prop-reset wait;
+no gameplay delay or weakened tolerance was added. See `reviewing-godot-gameplay`
+for recovery. G8.2 source/visual gate passed; package and hazard-context obligations
+remain explicitly tracked under 8.3–8.6.
 
 Gate G8.2: actual in-map near/gameplay-distance renders and interaction clips of
 standing/walk/run/rapid-Shift/ragdoll and overlapping warnings, two resolutions, all outfit

@@ -116,7 +116,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 		var direction := Vector2(high.x - low.x, high.z - low.z).normalized()
 		player.reset_for_match(Vector3(low.x - direction.x, low.y + 0.1, low.z - direction.y))
 		for settle in 5:
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 		await _walk_to(main, player, Vector2(high.x, high.z), 300)
 		_expect(player.is_on_floor() and Vector2(player.position.x - high.x, player.position.z - high.z).length() < 0.4 and absf(player.position.y - high.y) < 0.35, "%s route %s must be walkable without jumps: %s" % [map_name, route.name, player.position])
@@ -129,7 +129,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 			var center: Vector3 = refuge.center
 			player.reset_for_match(center + Vector3(0.0, 0.1, 0.0))
 			for settle in 5:
-				player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+				player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 				await physics_frame
 			var travel_ticks := maxi(240, ceili(center.distance_to(exit) / PlayerTuning.WALK_SPEED * 60.0) + 90)
 			await _walk_to(main, player, Vector2(exit.x, exit.z), travel_ticks)
@@ -140,7 +140,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	for group: Dictionary in anchors.spawn_groups:
 		player.reset_for_match(group.spawn)
 		for settle in 5:
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 		_expect(flood.start_warning(), "%s spawn group %s flood warning precedes escape" % [map_name, group.name])
 		var walked := 0
@@ -157,11 +157,11 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 		var health_before: float = main.match_manager.get_health(1)
 		while flood.phase != Flood.Phase.HOLDING and flood.is_active():
 			flood.tick(1.0 / 60.0)
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 		for tick in 180:
 			flood.tick(1.0 / 60.0)
-			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
 			await physics_frame
 		_expect(
 			is_equal_approx(flood.water_level, 3.5)
@@ -250,7 +250,7 @@ func _walk_to(main: Node3D, player: PartyPlayer, target: Vector2, max_ticks: int
 		if flood != null:
 			flood.tick(1.0 / 60.0)
 		var remaining := target - Vector2(player.position.x, player.position.z)
-		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.15 else Vector2.ZERO, false, false, false, 1.0 / 60.0)
+		player.apply_movement_input(remaining.normalized() if remaining.length() > 0.15 else Vector2.ZERO, false, false, 1.0 / 60.0)
 		await physics_frame
 		if remaining.length() <= 0.15:
 			return tick + 1

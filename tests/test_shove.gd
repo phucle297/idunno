@@ -35,7 +35,6 @@ func _run() -> void:
 	await _test_recovery_protection()
 	await _test_protection_scope()
 	await _test_replication_contract()
-	await _test_held_sender_rule()
 	await _test_rematch_reset()
 	if failures.is_empty():
 		print("SHOVE_OK checks=%d" % checks)
@@ -107,7 +106,7 @@ func _place(player: PartyPlayer, position: Vector3, face: Vector3) -> void:
 	var offset := face - position
 	player.set_camera_yaw(atan2(-offset.x, -offset.z))
 	for tick in 60:
-		player.apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		player.apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 		if tick > 4 and player.is_on_floor():
 			break
@@ -172,7 +171,7 @@ func _test_opposing_and_opportunity() -> void:
 	_expect(not shove.request_shove(3), "A simultaneous second attacker must be rejected by protection")
 	var start: Vector3 = players[2].position
 	for tick in 18:
-		players[2].apply_movement_input(Vector2(1, 0), false, false, false, DELTA)
+		players[2].apply_movement_input(Vector2(1, 0), false, false, DELTA)
 		await physics_frame
 	_expect(players[2].position.distance_to(start) > 0.3, "The victim must retain a real movement window between accepted shoves")
 	await create_timer(2.6).timeout
@@ -220,7 +219,7 @@ func _test_state_and_death_gates() -> void:
 	players[1].position += Vector3(0.0, 1.5, 0.0)
 	players[1].velocity = Vector3.ZERO
 	for tick in 2:
-		players[1].apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		players[1].apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 	_expect(not players[1].is_on_floor() and not shove.request_shove(1), "An airborne sender cannot shove")
 	shove.reset_state()
@@ -236,7 +235,7 @@ func _test_recovery_protection() -> void:
 	players[2].apply_knockdown(Vector3.ZERO)
 	_expect(players[2].is_knocked_down(), "Knockdown must be active for the recovery case")
 	for tick in 100:
-		players[2].apply_movement_input(Vector2.ZERO, false, false, false, DELTA)
+		players[2].apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
 	_expect(not players[2].is_knocked_down(), "The victim must recover from knockdown")
 	_expect(shove.is_protected(2), "Knockdown recovery must grant the shove protection window")
@@ -280,35 +279,6 @@ func _test_replication_contract() -> void:
 	for tick in 24:
 		shover._process(DELTA)
 	_expect(shover.character.current_clip != "shove", "The shove cue is one-shot and returns to locomotion")
-
-
-func _test_held_sender_rule() -> void:
-	await _setup_open_pair()
-	shove.reset_state()
-	var grab := preload("res://game/player/grab_manager.gd").new()
-	world.add_child(grab)
-	for peer_id in [1, 2, 3]:
-		_expect(grab.register_player(peer_id, players[peer_id]), "Grab boundary must register for the held-sender rule")
-	var prop := _add_rigid_box(Vector3(0.5, 0.5, 0.5), Vector3(0.0, 0.35, -1.0), 4.0)
-	_expect(grab.request_grab(1, prop), "The shover must hold a prop for the held-sender boundary")
-	shove.configure(manager, grab)
-	_expect(not shove.request_shove(1), "No shove while holding a prop")
-	grab.release_grab(1)
-	_expect(shove.request_shove(1), "Releasing the prop restores the shove")
-
-
-func _add_rigid_box(size: Vector3, position: Vector3, mass: float) -> RigidBody3D:
-	var body := RigidBody3D.new()
-	var collision := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = size
-	collision.shape = shape
-	body.add_child(collision)
-	body.mass = mass
-	body.add_to_group("grabbable")
-	world.add_child(body)
-	body.global_position = position
-	return body
 
 
 func _test_rematch_reset() -> void:
