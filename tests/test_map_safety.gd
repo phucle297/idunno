@@ -33,24 +33,25 @@ func _run() -> void:
 		main.free()
 		_finish()
 		return
+	var extent: float = main.get_map_half_extent()
 	var directions := [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN, Vector2(1, 1).normalized(), Vector2(-1, 1).normalized(), Vector2(1, -1).normalized(), Vector2(-1, -1).normalized()]
 	for direction: Vector2 in directions:
 		for mode in 4:
-			player.reset_for_match(Vector3(signf(direction.x) * 30.0, 0.1, signf(direction.y) * 30.0))
+			player.reset_for_match(Vector3(signf(direction.x) * (extent - 2), 0.1, signf(direction.y) * (extent - 2)))
 			for step in 10:
 				player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
 			if mode == 3:
 				player.apply_knockdown(Vector3(direction.x * 8.0, 3.0, direction.y * 8.0))
 			for step in 120:
 				player.apply_movement_input(direction, mode > 0, false, mode == 2 and step == 0, 1.0 / 60.0)
-			_expect(maxf(absf(player.position.x), absf(player.position.z)) > 31.0, "Traversal must actually reach the perimeter collider")
-			_expect(absf(player.position.x) < 31.5 and absf(player.position.z) < 31.5, "Edges/corners must block walk, sprint, jump and bounded disaster impulses: %s mode=%d position=%s" % [direction, mode, player.position])
+			_expect(maxf(absf(player.position.x), absf(player.position.z)) > extent - 1, "Traversal must actually reach the perimeter collider")
+			_expect(absf(player.position.x) < extent - 0.5 and absf(player.position.z) < extent - 0.5, "Edges/corners must block walk, sprint, jump and bounded disaster impulses: %s mode=%d position=%s" % [direction, mode, player.position])
 	# Exact threshold is safe; just outside each side and below the floor is lethal.
-	for position in [Vector3(32, 2, 0), Vector3(-32, 2, 0), Vector3(0, 2, 32), Vector3(0, 2, -32), Vector3(0, -8, 0)]:
+	for position in [Vector3(extent, 2, 0), Vector3(-extent, 2, 0), Vector3(0, 2, extent), Vector3(0, 2, -extent), Vector3(0, -8, 0)]:
 		player.position = position
 		main._eliminate_out_of_bounds()
 		_expect(main.match_manager.is_player_alive(1), "Exact safety threshold must not kill: %s" % position)
-	for position in [Vector3(32.01, 2, 0), Vector3(-32.01, 2, 0), Vector3(0, 2, 32.01), Vector3(0, 2, -32.01), Vector3(0, -8.01, 0)]:
+	for position in [Vector3(extent + 0.01, 2, 0), Vector3(-extent - 0.01, 2, 0), Vector3(0, 2, extent + 0.01), Vector3(0, 2, -extent - 0.01), Vector3(0, -8.01, 0)]:
 		player.position = position
 		main._eliminate_out_of_bounds()
 		_expect(main.match_manager.state == MatchManager.MatchState.RESULTS and main.match_manager.get_cause_of_death(1) == "Out of bounds", "Solo escape must finish with explicit cause: %s" % position)
@@ -70,7 +71,7 @@ func _run() -> void:
 	var crate := get_first_node_in_group("grabbable") as RigidBody3D
 	crate.global_position = player.get_grab_origin() + Vector3(0, -0.5, -1)
 	_expect(main.get_node("GrabManager").request_grab(1, crate), "Acquire prop before safety elimination")
-	player.position = Vector3(33, 1, 0)
+	player.position = Vector3(extent + 1, 1, 0)
 	main._eliminate_out_of_bounds()
 	_expect(main.get_node("GrabManager").get_held_body(1) == null, "Safety death releases prop")
 	_expect(main.spectator_controller.active and not player.visual.visible and main.match_manager.state == MatchManager.MatchState.ACTIVE, "Safety death enters spectator without respawn")
@@ -96,7 +97,7 @@ func _run() -> void:
 	main.match_manager.set_player_ready(1, true)
 	main.match_manager.set_player_ready(2, true)
 	main.match_manager.start_match()
-	player.position = Vector3(33, 1, 0)
+	player.position = Vector3(extent + 1, 1, 0)
 	other.position = Vector3(0, -9, 0)
 	main._eliminate_out_of_bounds()
 	_expect(main.match_manager.get_alive_count() == 0 and main.match_manager.winner_ids == [1, 2], "Simultaneous escapes share last-survivor result, not iteration-order winner")
@@ -264,9 +265,17 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 	main.gameplay_hud.show()
 	overview.free()
 	for round_index in 5:
+		var moved_crate := get_first_node_in_group("network_prop") as RigidBody3D
+		moved_crate.global_position = Vector3(7, 3, -9)
+		moved_crate.rotation = Vector3(0.4, 1.2, -0.7)
+		moved_crate.linear_velocity = Vector3(3, 2, -4)
+		moved_crate.angular_velocity = Vector3(1, -2, 3)
 		main.match_manager.apply_damage(1, 1000, "Fixture")
 		_expect(main.restart_local_match(), "Canopy fixture round %d must rematch" % (round_index + 1))
 		main.disaster_director.cleanup()
+		var reset_crate := get_first_node_in_group("network_prop") as RigidBody3D
+		_expect(reset_crate.global_position.is_equal_approx(Vector3(0, 0.4, 5.7)) and reset_crate.rotation.is_zero_approx(), "Rematch restores original crate position/orientation")
+		_expect(reset_crate.linear_velocity.is_zero_approx() and reset_crate.angular_velocity.is_zero_approx() and not reset_crate.freeze, "Rematch clears crate motion and restores dynamic physics")
 		var rebuilt := main.get_node("Sandbox/ParkingGarage") as Node3D
 		for sx in [-1, 1]:
 			for sz in [-1, 1]:

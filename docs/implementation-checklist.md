@@ -6,6 +6,7 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
+| 7T — Integrated Terraced Town | Source correction; final regression/delivery underway | [Phase 7T](checklists/phase-7-integrated-town.md) |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
 | 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; not started | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 

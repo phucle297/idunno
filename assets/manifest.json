@@ -222,6 +222,24 @@
       "provenance": "Project-authored procedural surfaces and facade/street/roof assemblies. No downloaded geometry or textures; concept reference only, not CC0.",
       "validation_status": "before_after_town107_harbor46_collider_transforms_shapes_and_map_anchors_identical; measured972_triangles_and_asymmetric_mesh_bounds_exact; same_camera_renders_reviewed_and_refined; roof_hidden_cutaways_are_inspection_only; full42_suites_five_matrices_managed20_persistence_passed; final_map_safety251_variety303_carry41_reruns_passed; architecture_layout_and_lighting_simpler_than_concept; native_gpu_human_acceptance_unverified",
       "runtime_prop_replacement": "Car wheels use rounded tire/hub visuals on unchanged collision boxes; new rounded grabbable crate replaces old packed crate at runtime with unchanged12kg0.6m collider. Original packed crate retained for archived generation/validation, not removed indiscriminately. New facade/rooftop/sofa/foliage details are visual-only; pitched-house roof gets no flat-roof furniture."
+    },
+    {
+      "asset_id": "ENV_IntegratedTerracedTown_v004",
+      "category": "runtime_environment_assembly",
+      "source_path": "game/main.gd::_add_town_districts/_add_building_envelope/_add_shop_canopy/_add_stair_presentation/_add_paving",
+      "export_path": "scenes/main.tscn::Sandbox",
+      "generator_script": "game/main.gd",
+      "generator_version": "4_continuous_shell_and_terraced_districts",
+      "seed": 0,
+      "intended_dimensions_m": {"town_footprint": [112, 112], "harbor_footprint_unchanged": [64, 64], "terrace_heights": [0.65, 1.25, 1.75, 2.0], "wall_outer_radius": 0.75, "paver_size": [1.2, 0.8]},
+      "measured_triangles": {"shop_wall_shell": 328, "shop_cornice": 320, "canopy_stripe": 80, "town_visible_total": 2320942},
+      "measured_visible_mesh_instances": 2962,
+      "collider_type": "retained_simple_wall_boxes_and_hidden_walking_ramps;_added_static_terraces_roofs_bridges_supports;detail_canopy_paving_and_envelopes_visual_only",
+      "material_ids": ["PALETTE.cream", "PALETTE.teal", "PALETTE.coral", "PALETTE.slate", "PALETTE.sand", "PALETTE.grass"],
+      "reference_path": "assets/references/phase7/rounded-town-camera-reference.png",
+      "provenance": "Project-authored deterministic Godot procedural geometry; no downloaded geometry or textures, no CC0 claim. Exact owner reference retained in source and excluded from runtime export.",
+      "validation_status": "map_variety436_and_map_safety261_passed; seven_town_views_and_harbor_actual_framebuffer_inspected; final_source42_suites_persistence_and_five_network_matrices_plus_managed20_passed_across_full_runner_and_remaining_network_rerun; obsolete_prop_destruction_identity_assertion_removed_without_relaxing_reset_behavior; native_gpu_human_acceptance_unverified",
+      "qualification": "Expanded populated terraced town, not organic hills or exact reference parity. Counts include repeated visual detail; no native GPU/60FPS or human aesthetic acceptance claim. Pool is ornamental, not swimming gameplay."
     }
   ],
   "design_references": [

@@ -61,10 +61,17 @@ var _surface: MeshInstance3D
 var _water_material: StandardMaterial3D
 var _ripple_material: StandardMaterial3D
 var _electric_material: StandardMaterial3D
+var map_half_extent := 32.0
 
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
+
+
+func set_map_extent(half_extent: float) -> void:
+	map_half_extent = half_extent
+	if is_instance_valid(_surface):
+		(_surface.mesh as BoxMesh).size = Vector3(half_extent * 2, 0.08, half_extent * 2)
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -324,7 +331,7 @@ func _spawn_surface() -> void:
 	_surface = MeshInstance3D.new()
 	_surface.name = "FloodSurface"
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(64.0, 0.08, 64.0)
+	mesh.size = Vector3(map_half_extent * 2, 0.08, map_half_extent * 2)
 	_water_material = StandardMaterial3D.new()
 	_water_material.albedo_color = Color(0.2588, 0.7216, 0.9098, 0.68)
 	_water_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

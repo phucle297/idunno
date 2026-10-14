@@ -41,6 +41,9 @@ func _run() -> void:
 func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: String) -> void:
 	var anchors: Dictionary = main.get_node("Sandbox").get_meta("map_anchors")
 	_expect(anchors.map_id == map_name, "Sandbox anchors belong to %s" % map_name)
+	var expected_extent := 56.0 if map_name == "toy_town" else 32.0
+	_expect(main.get_map_half_extent() == expected_extent, "%s uses its own playable extent" % map_name)
+	_expect(flood.map_half_extent == expected_extent, "%s flood covers its whole map" % map_name)
 	for key in ["spawn_origin", "cover_volumes", "tornado_paths", "strike_half_extent", "fire_zones", "fire_zone_neighbors", "elevation_routes", "refuges", "spawn_groups"]:
 		_expect(anchors.has(key), "%s anchors include %s" % [map_name, key])
 	_expect(anchors.tornado_paths.size() >= 2 and anchors.cover_volumes.size() >= 1, "%s anchors provide wind paths and shelter" % map_name)
@@ -55,11 +58,43 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	_expect(is_equal_approx(meteor.strike_half_extent, anchors.strike_half_extent) and is_equal_approx(lightning.strike_half_extent, anchors.strike_half_extent), "%s strike areas come from map anchors" % map_name)
 	_expect(tornado.path_presets.size() == anchors.tornado_paths.size(), "%s tornado paths come from map anchors" % map_name)
 	_expect(fire.zone_positions.size() == anchors.fire_zones.size(), "%s fire zones come from map anchors" % map_name)
+	var reached := {0: true}
+	var pending := [0]
+	while not pending.is_empty():
+		var zone: int = pending.pop_back()
+		for neighbor: int in anchors.fire_zone_neighbors[zone]:
+			if not reached.has(neighbor):
+				reached[neighbor] = true
+				pending.append(neighbor)
+	_expect(reached.size() == anchors.fire_zones.size(), "%s fire can spread to every district" % map_name)
+	await physics_frame
+	if map_name == "toy_town":
+		_expect(get_nodes_in_group("shelter").size() >= 12, "Expanded Town has populated buildings, not just a bigger empty floor")
+		for sample in [[Vector3(-34, 0, 0), 1.25], [Vector3(34, 0, 0), 1.75], [Vector3(10, 0, -42), 2.0], [Vector3(4, 0, 45), 0.65], [Vector3(-42, 0, 23), 5.405]]:
+			_expect(absf(main.get_map_surface_height(sample[0]) - sample[1]) < 0.02, "Terrace/roof has real collision at %s, height %s" % [sample[0], sample[1]])
+		var elevated_targets := 0
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 297
+		for trial in 8:
+			_expect(meteor.start_disaster(rng), "Generated meteor targets on expanded Town")
+			var targets: Array = meteor.strike_points.duplicate()
+			_expect(lightning.start_disaster(rng), "Generated lightning target on expanded Town")
+			targets.append(lightning.target_position)
+			for target: Vector3 in targets:
+				# Independent world ray, not the height callback under test.
+				var query := PhysicsRayQueryParameters3D.create(Vector3(target.x, 35, target.z), Vector3(target.x, -7, target.z), 1)
+				var hit := main.get_world_3d().direct_space_state.intersect_ray(query)
+				_expect(not hit.is_empty() and absf(target.y - hit.position.y - 0.06) < 0.02, "Hazard warning sits on actual terrain/roof: %s" % target)
+				if target.y > 0.5:
+					elevated_targets += 1
+			meteor.cleanup()
+			lightning.cleanup()
+		_expect(elevated_targets >= 4, "Seeded hazard scenarios actually exercise raised terrain, not only flat ground")
 	# No spawn inside geometry; every grid spawn stays in the playset.
 	var space: PhysicsDirectSpaceState3D = main.get_world_3d().direct_space_state
 	for index in 20:
 		var spawn: Vector3 = main._network_spawn_position(index)
-		_expect(absf(spawn.x) < 31.0 and absf(spawn.z) < 31.0 and spawn.y > -0.5, "%s spawn %d stays inside the boundary: %s" % [map_name, index, spawn])
+		_expect(absf(spawn.x) < expected_extent - 1 and absf(spawn.z) < expected_extent - 1 and spawn.y > -0.5, "%s spawn %d stays inside the boundary: %s" % [map_name, index, spawn])
 		var probe := PhysicsShapeQueryParameters3D.new()
 		var box := BoxShape3D.new()
 		box.size = Vector3(0.8, 0.8, 0.8)
@@ -79,7 +114,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 		var low: Vector3 = route.low
 		var high: Vector3 = route.high
 		var direction := Vector2(high.x - low.x, high.z - low.z).normalized()
-		player.reset_for_match(Vector3(low.x - direction.x, 0.1, low.z - direction.y))
+		player.reset_for_match(Vector3(low.x - direction.x, low.y + 0.1, low.z - direction.y))
 		for settle in 5:
 			player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
 			await physics_frame
@@ -96,7 +131,8 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 			for settle in 5:
 				player.apply_movement_input(Vector2.ZERO, false, false, false, 1.0 / 60.0)
 				await physics_frame
-			await _walk_to(main, player, Vector2(exit.x, exit.z), 240)
+			var travel_ticks := maxi(240, ceili(center.distance_to(exit) / PlayerTuning.WALK_SPEED * 60.0) + 90)
+			await _walk_to(main, player, Vector2(exit.x, exit.z), travel_ticks)
 			_expect(player.is_on_floor() and Vector2(player.position.x - exit.x, player.position.z - exit.z).length() < 0.4 and absf(player.position.y - exit.y) < 0.35, "%s refuge %s exit %s must be walkable: %s" % [map_name, refuge.name, exit, player.position])
 			player.reset_for_match(Vector3.ZERO)
 	# Flood escape from every spawn group: walk to the group's route and stand

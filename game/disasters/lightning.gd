@@ -32,14 +32,16 @@ var strike_half_extent := 18.0
 var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _effect: Node3D
+var surface_height: Callable
 
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
 
 
-func set_strike_area(half_extent: float) -> void:
+func set_strike_area(half_extent: float, height_query := Callable()) -> void:
 	strike_half_extent = half_extent
+	surface_height = height_query
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -53,7 +55,10 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
-	return start_warning(Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent)))
+	var target := Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent))
+	if surface_height.is_valid():
+		target.y = float(surface_height.call(target)) + 0.06
+	return start_warning(target)
 
 
 func is_active() -> bool:

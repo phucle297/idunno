@@ -1,5 +1,13 @@
 # Báo lỗi khi gặp thực tế
 
+**Integrated town (2026-10-14):** sửa tiếp theo phản hồi7S: Town112×112m,
+tường/cornice liền góc, canopy cong/scallop, nền lát đồng bộ, khu dân cư/thương mại,
+civic terrace và garden có cao độ/collision thật, cầu thang có bậc/lan can/gối đỡ.
+Ảnh tham chiếu gốc vẫn trong source. Render và test tự động không thay xác nhận
+thẩm mỹ; chưa claim giống hoàn toàn concept hoặc60FPS/GPU thật. Bản source này
+không phải release đang chạy public; chưa deploy/release, Phase8 vẫn tạm dừng.
+Không thêm checklist người dùng bắt buộc; waiver và evidence cũ giữ nguyên.
+
 **Rounded rebuild (2026-10-14):** user đã bác bỏ hình ảnh7R vì còn vuông. Đợt7S thay mesh bo nhỏ bằng bề mặt cong nhiều segment và sửa mái hiên/cây/xe/nội thất theo [ảnh user cung cấp](assets/references/phase7/rounded-town-camera-reference.png). Render cùng camera và regression đạt; chưa có xác nhận thẩm mỹ từ user, chưa đo GPU thật. Layout, mật độ chi tiết và ánh sáng vẫn đơn giản hơn concept. Bản sửa chỉ giao source, không deploy/release và không bắt đầu Phase8; waiver không đổi.
 
 **Đính chính Phase7 (2026-10-14):** kết luận hoàn tất hình ảnh dưới đây là lịch sử và đã bị supersede. Audit cho thấy Phase7 cũ chưa đổi source UI; test chức năng không chứng minh khớp concept. [Đợt sửa đã push source](docs/old-docs/phase-7-visual-correction/checklist.md) bổ sung UI/nhân vật/môi trường và [ảnh thiết kế gốc](assets/references/phase7/README.md). Ảnh render mới được kiểm tra trên Linux llvmpipe720p/1080p, không thay thế đánh giá thẩm mỹ của bạn hoặc native Windows/GPU/60FPS. Chỉ push source theo yêu cầu; chưa deploy/release bản sửa, Phase8 chưa bắt đầu. Waiver cũ vẫn giữ, không thêm checklist bắt buộc.

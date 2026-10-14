@@ -23,6 +23,7 @@ const PALETTE := {
 	"teal": Color("73b7ad"),
 	"coral": Color("d98d7d"),
 	"grass": Color("86a968"),
+	"water": Color("42b8e8"),
 	"amber": Color("ffbf3f"),
 	"orange": Color("f06438")
 }
@@ -667,7 +668,7 @@ func _eliminate_out_of_bounds() -> void:
 		if not match_manager.is_player_alive(peer_id):
 			continue
 		var position := player.global_position
-		if absf(position.x) > MAP_HALF_EXTENT or absf(position.z) > MAP_HALF_EXTENT or position.y < MAP_KILL_Y:
+		if absf(position.x) > get_map_half_extent() or absf(position.z) > get_map_half_extent() or position.y < MAP_KILL_Y:
 			events.append({"peer_id": peer_id, "amount": match_manager.get_health(peer_id), "cause": "Out of bounds"})
 	# Evaluate winners only after every escape in this simulation step is recorded.
 	match_manager.apply_damage_batch(events)
@@ -2186,9 +2187,9 @@ func _build_lighting() -> void:
 	environment.background_color = Color("9fc8df")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("a9c8df")
-	environment.ambient_light_energy = 0.52
+	environment.ambient_light_energy = 0.45
 	$WorldEnvironment.environment = environment
-	$Sun.light_energy = 0.48
+	$Sun.light_energy = 0.35
 	$Sun.light_color = Color("fff1db")
 	$Sun.directional_shadow_max_distance = 85.0
 	$Sun.shadow_blur = 2.0
@@ -2196,6 +2197,16 @@ func _build_lighting() -> void:
 
 func get_map_id() -> String:
 	return map_id
+
+
+func get_map_half_extent() -> float:
+	return float(map_anchors.get("half_extent", MAP_HALF_EXTENT))
+
+
+func get_map_surface_height(point: Vector3) -> float:
+	var query := PhysicsRayQueryParameters3D.create(Vector3(point.x, 40, point.z), Vector3(point.x, MAP_KILL_Y, point.z), 1)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	return float(hit.position.y) if not hit.is_empty() else 0.0
 
 
 func set_map_id(id: String) -> bool:
@@ -2274,18 +2285,20 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	$Sandbox.set_meta("map_anchors", anchors)
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
-	meteor_shower.set_strike_area(anchors.strike_half_extent)
-	lightning.set_strike_area(anchors.strike_half_extent)
+	tornado.surface_height = get_map_surface_height
+	meteor_shower.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
+	lightning.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
+	flood.set_map_extent(get_map_half_extent())
 	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
 
 
-func _build_map_base() -> void:
-	_add_static_box("Ground", Vector3(64.0, 0.4, 64.0), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
+func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:
+	_add_static_box("Ground", Vector3(half_extent * 2, 0.4, half_extent * 2), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
 	for side: String in ["North", "South", "West", "East"]:
 		var horizontal := side == "North" or side == "South"
-		var offset := MAP_HALF_EXTENT - 0.25
+		var offset := half_extent - 0.25
 		var center := Vector3(0, 1.5, -offset if side == "North" else offset) if horizontal else Vector3(-offset if side == "West" else offset, 1.5, 0)
-		var size := Vector3(64, 3, 0.5) if horizontal else Vector3(0.5, 3, 63)
+		var size := Vector3(half_extent * 2, 3, 0.5) if horizontal else Vector3(0.5, 3, half_extent * 2 - 1)
 		_add_static_box("Boundary" + side, size, center, PALETTE.cream)
 		$Sandbox.get_node("Boundary" + side).add_to_group("map_prop")
 		# Broad slate cap identifies the playset edge without an invisible wall.
@@ -2295,7 +2308,7 @@ func _build_map_base() -> void:
 
 
 func _build_toy_town() -> Dictionary:
-	_build_map_base()
+	_build_map_base(56.0)
 	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
@@ -2303,7 +2316,7 @@ func _build_toy_town() -> Dictionary:
 	_add_open_building("Shop", Vector3(-16.0, 0.0, -13.0), Vector2(12.0, 10.0), 4.5, PALETTE.coral)
 	_add_open_building("Hall", Vector3(16.0, 0.0, -13.0), Vector2(12.0, 12.0), 4.5, PALETTE.teal)
 	$Sandbox/Hall/BuildingLabel.text = "SCHOOL"
-	_add_open_building("House", Vector3(-26.0, 0.0, 25.0), Vector2(8.0, 8.0), 4.5, PALETTE.sand)
+	_add_open_building("House", Vector3(-18.0, 0.0, 27.0), Vector2(8.0, 8.0), 4.5, PALETTE.sand)
 	$Sandbox/House/BuildingLabel.text = "HOME"
 	_add_school_interior()
 	_add_house_interior()
@@ -2343,8 +2356,10 @@ func _build_toy_town() -> Dictionary:
 	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(23.2, 0.4, 14.5)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
-	return {
+	var districts := _add_town_districts()
+	var anchors := {
 		"map_id": "toy_town",
+		"half_extent": 56.0,
 		"spawn_origin": Vector3(0.0, 0.05, 7.0),
 		"cover_volumes": [
 			AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)),
@@ -2356,7 +2371,7 @@ func _build_toy_town() -> Dictionary:
 			[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
 			[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)],
 		],
-		"strike_half_extent": 18.0,
+		"strike_half_extent": 52.0,
 		"fire_zones": [
 			Vector3(-12.0, 0.08, -5.0), Vector3(-5.0, 0.08, -5.0), Vector3(2.0, 0.08, -5.0), Vector3(9.0, 0.08, -5.0),
 			Vector3(-12.0, 0.08, 5.0), Vector3(-5.0, 0.08, 5.0), Vector3(2.0, 0.08, 5.0), Vector3(9.0, 0.08, 5.0),
@@ -2381,6 +2396,128 @@ func _build_toy_town() -> Dictionary:
 			{"name": "plaza_east", "spawn": Vector3(2.0, 0.05, 7.0), "waypoints": [Vector3(15.0, 0.05, -1.0)], "route": "ParkRamp"},
 		],
 	}
+	for key in ["cover_volumes", "tornado_paths", "elevation_routes", "refuges", "spawn_groups"]:
+		anchors[key].append_array(districts[key])
+	for point: Vector3 in districts.fire_zones:
+		var index: int = anchors.fire_zones.size()
+		var nearest := 0
+		var distance := INF
+		for previous in index:
+			var candidate: float = point.distance_squared_to(anchors.fire_zones[previous])
+			if candidate < distance:
+				nearest = previous
+				distance = candidate
+		anchors.fire_zones.append(point)
+		anchors.fire_zone_neighbors.append([nearest])
+		anchors.fire_zone_neighbors[nearest].append(index)
+	return anchors
+
+
+func _add_town_districts() -> Dictionary:
+	var data := {"cover_volumes": [], "tornado_paths": [], "elevation_routes": [], "refuges": [], "spawn_groups": [], "fire_zones": []}
+	# Real, collision-backed elevation districts surround the retained central
+	# survival routes. All entrances connect to ground or another terrace.
+	_add_static_box("CivicTerrace", Vector3(96, 2, 18), Vector3(0, 1, -44), PALETTE.sand)
+	_add_continuous_cornice($Sandbox/CivicTerrace, Vector2(96, 18), 1, PALETTE.cream)
+	_add_paving("CivicPaving", Vector3(0, 2, -44), Vector2(96, 18))
+	_add_static_box("RingCrossRoadNorth", Vector3(62, 0.04, 4), Vector3(0, 0.02, -30), PALETTE.slate)
+	for route in [
+		["CivicStairs", 6.0, Vector3(0, 0.05, -28), Vector3(0, 2, -35.05)],
+		["CivicWestStairs", 4.0, Vector3(-27, 0.05, -28), Vector3(-27, 2, -35.05)],
+		["CivicEastStairs", 4.0, Vector3(27, 0.05, -28), Vector3(27, 2, -35.05)]
+	]:
+		_add_ramp(route[0], route[1], route[2], route[3])
+		data.elevation_routes.append({"name": route[0], "low": route[2], "high": route[3]})
+	_add_open_building("TownHall", Vector3(0, 2, -45), Vector2(12, 10), 5.5, PALETTE.coral, PALETTE.coral.lerp(PALETTE.cream, 0.15))
+	$Sandbox/TownHall/BuildingLabel.text = "TOWN HALL"
+	_add_round_detail($Sandbox/TownHall, "Clock", Vector3(0, 4.7, 5.25), Vector3(0.45, 0.45, 0.09), PALETTE.cream)
+	_add_detail_box($Sandbox/TownHall, "ClockHand", Vector3(0.04, 0.3, 0.05), Vector3(0, 4.78, 5.36), PALETTE.slate)
+	data.cover_volumes.append(AABB(Vector3(-5.5, 2, -49.5), Vector3(11, 5.5, 9)))
+	data.refuges.append({"name": "TownHall", "kind": "shelter", "center": Vector3(0, 2, -45), "exits": [Vector3(0, 2, -51.5), Vector3(0, 2, -38.5)]})
+	for side in [-1.0, 1.0]:
+		var y := 1.25 if side < 0 else 1.75
+		var tag := "West" if side < 0 else "East"
+		_add_static_box(tag + "Terrace", Vector3(20, y, 62), Vector3(side * 42, y * 0.5, 0), PALETTE.sand)
+		_add_continuous_cornice($Sandbox.get_node(tag + "Terrace"), Vector2(20, 62), y * 0.5, PALETTE.cream)
+		_add_paving(tag + "Paving", Vector3(side * 42, y, 0), Vector2(20, 62))
+		_add_static_box("RingRoad%s" % side, Vector3(4, 0.04, 64), Vector3(side * 29, 0.02, 0), PALETTE.slate)
+		_add_paving("RingSidewalk%s" % side, Vector3(side * 25.5, 0.045, 0), Vector2(3, 64))
+		for z in 15:
+			_add_detail_box($Sandbox, "RingLane%s%d" % [side, z], Vector3(0.18, 0.02, 1.7), Vector3(side * 29, 0.05, -28 + z * 4), PALETTE.cream)
+		var names := ["Bakery", "Homes", "Workshop", "Apartments"] if side < 0 else ["Library", "Clinic", "Cafe", "Market"]
+		for row in 4:
+			var center := Vector3(side * 42, y, -22 + row * 15)
+			var title: String = names[row]
+			var accent: Color = PALETTE.coral if row % 2 == 0 else PALETTE.teal
+			_add_open_building(title, center, Vector2(8, 8), 3.8, accent, PALETTE.cream.lerp(accent, 0.22))
+			var building := $Sandbox.get_node(title)
+			# Readable furnished shops/homes leave the full central through-path.
+			_add_detail_box(building, "InteriorCounter", Vector3(2.3, 0.85, 0.7), Vector3(-2.6, 0.425, -1.5), PALETTE.sand)
+			for shelf in 3:
+				_add_detail_box(building, "Shelf%d" % shelf, Vector3(0.65, 0.12, 2.3), Vector3(3.2, 0.75 + shelf * 0.55, 0), PALETTE.teal)
+				_add_detail_box(building, "ShelfGoods%d" % shelf, Vector3(0.4, 0.35, 0.6), Vector3(3.2, 0.95 + shelf * 0.55, shelf * 0.6 - 0.6), PALETTE.coral)
+			data.cover_volumes.append(AABB(center + Vector3(-3.5, 0, -3.5), Vector3(7, 3.8, 7)))
+			if row == 1:
+				data.refuges.append({"name": title, "kind": "shelter", "center": center, "exits": [center + Vector3(0, 0, -5.5), center + Vector3(0, 0, 5.5)]})
+			data.fire_zones.append(center + Vector3(0, 0.08, 5.3))
+			_add_tree("DistrictTree%s%d" % [tag, row], center + Vector3(-7.2 * side, 0, 3))
+			_add_toy_lamp($Sandbox, "DistrictLamp%s%d" % [tag, row], center + Vector3(5.7 * side, 0, 4.7))
+			for offset in [-2.8, 2.8]:
+				_add_street_planter("DistrictPlanter%s%d%s" % [tag, row, offset], center + Vector3(offset, 0, 5.5))
+			if row < 3:
+				_add_static_box("RoofWalk%s%d" % [tag, row], Vector3(3, 0.24, 7), center + Vector3(0, 4.035, 7.5), PALETTE.cream)
+				for edge in [-1.0, 1.0]:
+					_add_toy_rail($Sandbox, "RoofWalkRail%s%d%s" % [tag, row, edge], center + Vector3(edge * 1.45, 4.155, 7.5), 6.8, true)
+		for route in [
+			[tag + "TerraceStairs", 4.0, Vector3(side * 34.5, 0.05, 37), Vector3(side * 34.5, y, 31)],
+			[tag + "NorthStairs", 4.0, Vector3(side * 34.5, y, -30.5), Vector3(side * 34.5, 2, -35.05)],
+			[tag + "RoofStairs", 3.2, Vector3(side * 42, 0.05, 42), Vector3(side * 42, y + 4.155, 27.3)]
+		]:
+			_add_ramp(route[0], route[1], route[2], route[3])
+			data.elevation_routes.append({"name": route[0], "low": route[2], "high": route[3]})
+		data.refuges.append({"name": tag + "RoofWalk", "kind": "elevation", "center": Vector3(side * 42, y + 4.155, 8), "exits": [Vector3(side * 42, y + 4.155, -22), Vector3(side * 42, y + 4.155, 23)]})
+		data.spawn_groups.append({"name": tag + "Garden", "spawn": Vector3(side * 42, 0.05, 44), "waypoints": [Vector3(side * 42, 0.05, 42)], "route": tag + "RoofStairs"})
+		data.tornado_paths.append([Vector3(side * 42, 0, -49), Vector3(side * 42, 0, 49)])
+		for i in 5:
+			var position := Vector3(side * (10 + i * 8), 2, -36.5)
+			_add_tree("CivicTree%s%d" % [tag, i], position)
+			_add_toy_lamp($Sandbox, "CivicLamp%s%d" % [tag, i], position + Vector3(2, 0, 0))
+			_add_street_planter("CivicPlanter%s%d" % [tag, i], position + Vector3(0, 0, -1.7))
+		_add_open_building("North" + tag, Vector3(side * 24, 2, -45), Vector2(10, 9), 4.3, PALETTE.teal)
+		($Sandbox.get_node("North" + tag + "/BuildingLabel") as Label3D).text = "RESIDENCE" if side < 0 else "STUDIO"
+		data.cover_volumes.append(AABB(Vector3(side * 24 - 4.5, 2, -49), Vector3(9, 4.3, 8)))
+		data.fire_zones.append(Vector3(side * 28, 0.08, -23))
+		data.fire_zones.append(Vector3(side * 34, y + 0.08, -17))
+		data.fire_zones.append(Vector3(side * 24, 2.08, -38))
+	# Low park, raised garden, pond courtyard and curved planting islands.
+	_add_static_box("GardenTerrace", Vector3(20, 0.65, 12), Vector3(10, 0.325, 44), PALETTE.grass)
+	_add_continuous_cornice($Sandbox/GardenTerrace, Vector2(20, 12), 0.325, PALETTE.cream)
+	_add_ramp("GardenStairs", 4, Vector3(10, 0.05, 32), Vector3(10, 0.65, 38))
+	data.elevation_routes.append({"name": "GardenStairs", "low": Vector3(10, 0.05, 32), "high": Vector3(10, 0.65, 38)})
+	_add_static_box("GardenPromenade", Vector3(60, 0.07, 6), Vector3(0, 0.035, 33), PALETTE.sand)
+	_add_paving("GardenPromenadePaving", Vector3(0, 0.07, 33), Vector2(60, 6))
+	_add_paving("GardenCourt", Vector3(10, 0.65, 44), Vector2(17, 10))
+	_add_detail_box($Sandbox, "GardenPoolRim", Vector3(5, 0.3, 4), Vector3(14, 0.8, 45), PALETTE.cream)
+	_add_detail_box($Sandbox, "GardenPool", Vector3(4.5, 0.03, 3.5), Vector3(14, 0.97, 45), PALETTE.water)
+	for i in 8:
+		var x := -25 + i * 7
+		_add_tree("GardenTree%d" % i, Vector3(x, 0, 50.5))
+		if absf(x - 10) > 3.5:
+			_add_bench("GardenBench%d" % i, Vector3(x, 0, 37))
+		_add_street_planter("GardenPlanter%d" % i, Vector3(x + 2.5, 0.65 if x + 2.5 > 0 and x + 2.5 < 20 else 0, 39))
+	_add_open_building("GardenCafe", Vector3(-18, 0, 44), Vector2(10, 8), 3.8, PALETTE.teal)
+	$Sandbox/GardenCafe/BuildingLabel.text = "GARDEN CAFE"
+	_add_shop_canopy($Sandbox/GardenCafe, Vector2(10, 8))
+	data.cover_volumes.append(AABB(Vector3(-22.5, 0, 40.5), Vector3(9, 3.8, 7)))
+	data.fire_zones.append(Vector3(0, 0.08, 31))
+	data.fire_zones.append(Vector3(-18, 0.08, 38))
+	data.fire_zones.append(Vector3(10, 0.73, 41))
+	data.tornado_paths.append([Vector3(-49, 0, -44), Vector3(49, 0, -44)])
+	data.tornado_paths.append([Vector3(-49, 0, 43), Vector3(49, 0, 43)])
+	for x in [-9.0, 9.0]:
+		for z in [-22.0, -12.0, 13.0, 23.0]:
+			_add_street_planter("CentralPlanter%s%s" % [x, z], Vector3(x, 0, z))
+	return data
 
 
 func _build_toy_harbor() -> Dictionary:
@@ -2469,6 +2606,20 @@ func _build_toy_harbor() -> Dictionary:
 
 func _reset_sandbox() -> void:
 	$GrabManager.release_all()
+	# Rematches restore mutable world state without rebuilding thousands of
+	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
+	if map_anchors.get("map_id", "") == map_id:
+		for child in $Sandbox.get_children():
+			if child is BreakableStructure:
+				child.reset_structure()
+			elif child is RigidBody3D and child.is_in_group("network_prop"):
+				child.freeze = false
+				child.global_transform = child.get_meta("spawn_transform")
+				child.linear_velocity = Vector3.ZERO
+				child.angular_velocity = Vector3.ZERO
+				PhysicsServer3D.body_set_state(child.get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, child.global_transform)
+				child.sleeping = false
+		return
 	for child in $Sandbox.get_children():
 		child.free()
 	_build_sandbox()
@@ -2498,9 +2649,49 @@ func _add_ramp(node_name: String, width: float, low: Vector3, high: Vector3) -> 
 	_add_static_box(node_name, size, position, PALETTE.cream)
 	$Sandbox.get_node(node_name).rotation.x = angle
 	$Sandbox.get_node(node_name).add_to_group("elevation_route")
+	if not node_name.contains("Garage") and not node_name.contains("Dock") and not node_name.contains("Crane"):
+		($Sandbox.get_node(node_name).get_child(0) as MeshInstance3D).hide()
+		_add_stair_presentation(node_name, width, low, high)
 
 
-func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, height: float, color: Color) -> void:
+func _add_stair_presentation(node_name: String, width: float, low: Vector3, high: Vector3) -> void:
+	var stairs := Node3D.new()
+	stairs.name = node_name + "Stairs"
+	stairs.position = low
+	$Sandbox.add_child(stairs)
+	var run := absf(high.z - low.z)
+	var direction := signf(high.z - low.z)
+	var count := maxi(1, ceili((high.y - low.y) / 0.18))
+	var tread := run / count
+	var rise := (high.y - low.y) / count
+	_add_detail_box(stairs, "BottomLanding", Vector3(width + 0.4, 0.035, 1), Vector3(0, 0.018, -direction * 0.5), PALETTE.sand)
+	for i in count:
+		# Visible treads follow the existing smooth walking collider. The next
+		# riser closes the front; no floating stack of rounded cushion blocks.
+		var step := MeshInstance3D.new()
+		step.name = "Tread%d" % i
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(width, rise + 0.04, tread + 0.015)
+		mesh.material = _material(PALETTE.cream.lerp(PALETTE.sand, 0.15 if i % 2 == 0 else 0.23))
+		step.mesh = mesh
+		step.position = Vector3(0, (i + 0.5) * rise - 0.02, direction * (i + 0.5) * tread)
+		stairs.add_child(step)
+	for side in [-1.0, 1.0]:
+		var a := Vector3(side * (width * 0.5 - 0.08), 0.85, 0)
+		var b := Vector3(a.x, high.y - low.y + 0.85, direction * run)
+		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal)
+		bar.rotation.x = -atan((b.y - a.y) / (b.z - a.z))
+		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate)
+		stringer.rotation.x = bar.rotation.x
+		for i in 5:
+			var t := i / 4.0
+			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal)
+			if low.y < 0.1 and (high.y - low.y) * t > 0.25:
+				var support_height := (high.y - low.y) * t - 0.2
+				_add_box_to(stairs, "Support%s%d" % [side, i], Vector3(0.18, support_height, 0.18), Vector3(a.x, support_height * 0.5, direction * run * t), PALETTE.slate)
+
+
+func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, height: float, color: Color, wall_color := PALETTE.cream) -> void:
 	var root := Node3D.new()
 	root.name = node_name
 	root.position = center
@@ -2531,7 +2722,11 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
 	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
 	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
+	_add_building_envelope(root, footprint, height, wall_color)
 	_add_authored_facade(root, footprint, height, accent)
+	for side in [-1.0, 1.0]:
+		_add_detail_box(root, "DoorJamb%s" % side, Vector3(0.13, 2.65, 0.16), Vector3(side * 1.28, 1.325, footprint.y * 0.5 + 0.18), PALETTE.teal)
+	_add_detail_box(root, "DoorHeader", Vector3(2.69, 0.13, 0.16), Vector3(0, 2.7, footprint.y * 0.5 + 0.18), PALETTE.teal)
 	# Readable storefront: recessed window frames flank the entrance and repeat
 	# on the side faces, plus a broad painted awning band beneath them. These are
 	# visual-only and never alter the shelter volume or door clearance.
@@ -2539,7 +2734,6 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 		var window_x := side * (door_width * 0.5 + (footprint.x - door_width) * 0.25)
 		_add_window_facade(root, "FrontWindow%s" % ("L" if side < 0 else "R"), Vector3(window_x, 2.2, footprint.y * 0.5 + 0.165))
 		_add_window_facade(root, "SideWindow%s" % ("L" if side < 0 else "R"), Vector3(side * (footprint.x * 0.5 + 0.165), 2.2, 0.0), false)
-	_add_detail_box(root, "AwningBand", Vector3(footprint.x * 0.72, 0.28, 0.24), Vector3(0.0, 2.85, footprint.y * 0.5 + 0.02), PALETTE.coral)
 	if node_name == "Shop":
 		# A representative usable interior: counter and shelving along the west
 		# wall, clear of the two 2.4 m doors and the central through-path.
@@ -2551,6 +2745,121 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 		_add_detail_box(root, "StockShelf", Vector3(1.6, 1.3, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.65, -2.6), PALETTE.slate)
 		_add_detail_box(root, "StockCrateA", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.3, -1.4), PALETTE.sand)
 		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand)
+
+
+func _rounded_wall_outline(footprint: Vector2, radius: float) -> Array[Vector3]:
+	var points: Array[Vector3] = []
+	var half := footprint * 0.5
+	for corner in 4:
+		var center := Vector2(half.x - radius, half.y - radius)
+		center.x *= -1.0 if corner == 1 or corner == 2 else 1.0
+		center.y *= -1.0 if corner >= 2 else 1.0
+		for segment in 9:
+			var angle := corner * PI * 0.5 + segment * PI / 16.0
+			points.append(Vector3(center.x + cos(angle) * radius, 0, center.y + sin(angle) * radius))
+		if corner == 0:
+			points.append(Vector3(1.2, 0, half.y))
+			points.append(Vector3(-1.2, 0, half.y))
+		elif corner == 2:
+			points.append(Vector3(-1.2, 0, -half.y))
+			points.append(Vector3(1.2, 0, -half.y))
+	return points
+
+
+func _surface_quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
+	var normal := (c - a).cross(b - a).normalized()
+	for vertex in [a, b, c, a, c, d]:
+		surface.set_normal(normal)
+		surface.add_vertex(vertex)
+
+
+func _add_building_envelope(parent: Node3D, footprint: Vector2, height: float, wall_color: Color) -> void:
+	# One continuous shell around both doorways, instead of six individually
+	# rounded walls whose ends expose vertical seams and disconnected corners.
+	for wall in ["NorthWestWall", "NorthEastWall", "SouthWestWall", "SouthEastWall", "WestWall", "EastWall"]:
+		(parent.get_node(wall).get_child(0) as MeshInstance3D).hide()
+	var outer := _rounded_wall_outline(footprint + Vector2.ONE * 0.3, 0.75)
+	var inner := _rounded_wall_outline(footprint - Vector2.ONE * 0.3, 0.45)
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in outer.size():
+		var j := (i + 1) % outer.size()
+		var doorway := absf(outer[i].x) <= 1.21 and absf(outer[j].x) <= 1.21
+		var bottom := Vector3.UP * (2.65 if doorway else 0.0)
+		var top := Vector3.UP * height
+		_surface_quad(surface, outer[i] + bottom, outer[j] + bottom, outer[j] + top, outer[i] + top)
+		_surface_quad(surface, inner[j] + bottom, inner[i] + bottom, inner[i] + top, inner[j] + top)
+		_surface_quad(surface, inner[i] + bottom, inner[j] + bottom, outer[j] + bottom, outer[i] + bottom)
+		_surface_quad(surface, outer[i] + top, outer[j] + top, inner[j] + top, inner[i] + top)
+		if doorway:
+			_surface_quad(surface, inner[i], outer[i], outer[i] + bottom, inner[i] + bottom)
+			_surface_quad(surface, outer[j], inner[j], inner[j] + bottom, outer[j] + bottom)
+	surface.set_material(_material(wall_color))
+	var envelope := MeshInstance3D.new()
+	envelope.name = "ContinuousWalls"
+	envelope.mesh = surface.commit()
+	parent.add_child(envelope)
+	# Roof patches share exact planar edges, rather than rounded separate slabs.
+	for part in ["RoofWest", "RoofEast", "RoofNorth", "RoofSouth"]:
+		var body := parent.get_node(part)
+		var mesh := BoxMesh.new()
+		mesh.size = (body.get_child(1).shape as BoxShape3D).size
+		mesh.material = _material(PALETTE.cream)
+		(body.get_child(0) as MeshInstance3D).mesh = mesh
+	if parent.name not in ["Shop", "Hall", "Warehouse"]:
+		_add_box_to(parent, "RoofCenter", Vector3(2, 0.35, 2), Vector3(0, height + 0.18, 0), PALETTE.cream)
+
+
+func _add_continuous_cornice(parent: Node3D, footprint: Vector2, height: float, color: Color) -> void:
+	var outer := _rounded_wall_outline(footprint + Vector2.ONE * 0.8, 0.9)
+	var inner := _rounded_wall_outline(footprint - Vector2.ONE * 0.1, 0.45)
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in outer.size():
+		var j := (i + 1) % outer.size()
+		var low := Vector3.UP * (height - 0.3)
+		var high := Vector3.UP * (height + 0.08)
+		_surface_quad(surface, outer[i] + low, outer[j] + low, outer[j] + high, outer[i] + high)
+		_surface_quad(surface, outer[i] + high, outer[j] + high, inner[j] + high, inner[i] + high)
+		_surface_quad(surface, inner[j] + low, inner[i] + low, inner[i] + high, inner[j] + high)
+		_surface_quad(surface, inner[i] + low, inner[j] + low, outer[j] + low, outer[i] + low)
+	surface.set_material(_material(color))
+	var cornice := MeshInstance3D.new()
+	cornice.name = "ContinuousCornice"
+	cornice.mesh = surface.commit()
+	parent.add_child(cornice)
+
+
+func _add_shop_canopy(parent: Node3D, footprint: Vector2) -> void:
+	(parent.get_node("EntranceAwning").get_child(0) as MeshInstance3D).hide()
+	var width := footprint.x - 0.6
+	var stripe_width := width / 16.0
+	for stripe in 16:
+		var x0 := -width * 0.5 + stripe * stripe_width
+		var x1 := x0 + stripe_width
+		var surface := SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for segment in 16:
+			var a := segment * PI / 32.0
+			var b := (segment + 1) * PI / 32.0
+			var p := Vector3(0, 3.5 - 0.6 * (1.0 - cos(a)), footprint.y * 0.5 + 0.15 + 1.85 * sin(a))
+			var q := Vector3(0, 3.5 - 0.6 * (1.0 - cos(b)), footprint.y * 0.5 + 0.15 + 1.85 * sin(b))
+			_surface_quad(surface, p + Vector3.RIGHT * x1, q + Vector3.RIGHT * x1, q + Vector3.RIGHT * x0, p + Vector3.RIGHT * x0)
+			_surface_quad(surface, p + Vector3(x0, -0.06, 0), q + Vector3(x0, -0.06, 0), q + Vector3(x1, -0.06, 0), p + Vector3(x1, -0.06, 0))
+		# Continuous fabric band with rounded scallop bottom, no separate box
+		# valances, gaps or visible cream slab through the teal/cream stripes.
+		for segment in 8:
+			var ta := segment / 8.0
+			var tb := (segment + 1) / 8.0
+			var xa := lerpf(x0, x1, ta)
+			var xb := lerpf(x0, x1, tb)
+			var z := footprint.y * 0.5 + 2.0
+			_surface_quad(surface, Vector3(xa, 2.9, z), Vector3(xb, 2.9, z), Vector3(xb, 2.7 - sin(tb * PI) * 0.12, z), Vector3(xa, 2.7 - sin(ta * PI) * 0.12, z))
+			surface.set_material(_material(PALETTE.teal if stripe % 2 == 0 else PALETTE.cream))
+		var canopy := MeshInstance3D.new()
+		canopy.name = "CurvedCanopy%d" % stripe
+		canopy.mesh = surface.commit()
+		parent.add_child(canopy)
 
 
 func _add_window_facade(parent: Node3D, node_name: String, position: Vector3, cover_vertical := true) -> void:
@@ -2628,21 +2937,10 @@ func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 
 
 func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accent: Color) -> void:
-	# Cream pilasters and cornices layered onto the existing solid wall faces.
+	# Continuous wall/cornice silhouettes, with details subordinate to the shell.
 	_add_detail_box(root, "SignBacking", Vector3(3.1, 0.72, 0.12), Vector3(0, 3.85, footprint.y * 0.5 + 0.58), PALETTE.cream)
 	(root.get_node("BuildingLabel") as Label3D).position.z = footprint.y * 0.5 + 0.68
-	for side: float in [-1.0, 1.0]:
-		var z := side * (footprint.y * 0.5 + 0.19)
-		for x in [-footprint.x * 0.5 + 0.15, footprint.x * 0.5 - 0.15]:
-			_add_detail_box(root, "Pilaster%s%s" % [side, x], Vector3(0.78, height, 0.65), Vector3(x, height * 0.5, z - side * 0.12), PALETTE.cream)
-		for y in [0.22, height - 0.25]:
-			# Split the lower plinth to preserve the real through-door opening.
-			for sx: float in [-1.0, 1.0]:
-				var width := (footprint.x - 2.6) * 0.5
-				_add_detail_box(root, "Plinth%s%s%s" % [side, y, sx], Vector3(width, 0.32, 0.24), Vector3(sx * (1.3 + width * 0.5), y, z), PALETTE.cream)
-		_add_detail_box(root, "Cornice%s" % side, Vector3(footprint.x + 0.5, 0.5, 0.65), Vector3(0, height - 0.25, z), accent)
-	for sx in [-1.0, 1.0]:
-		_add_detail_box(root, "SideCornice%s" % sx, Vector3(0.32, 0.22, footprint.y), Vector3(sx * (footprint.x * 0.5 + 0.18), height - 0.2, 0), PALETTE.cream)
+	_add_continuous_cornice(root, footprint, height, accent)
 	# Corner rail sections leave the two route/drop exits open; decorations add
 	# no new collision or rooftop surface over the breakable central panel.
 	if root.name != "House":
@@ -2657,14 +2955,7 @@ func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accen
 		for i in 4:
 			_add_detail_box(root, "VentSlat%d" % i, Vector3(0.7, 0.05, 0.035), Vector3(footprint.x * 0.5 - 1.4, height + 0.48 + i * 0.12, footprint.y * 0.5 - 1.25), PALETTE.cream)
 	if root.name == "Shop":
-		# The old central cream slab must not protrude through the new striped
-		# canopy. Its collider remains enclosed by the replacement render surface.
-		(root.get_node("EntranceAwning").get_child(0) as MeshInstance3D).hide()
-		for i in 14:
-			var stripe_color: Color = PALETTE.teal if i % 2 == 0 else PALETTE.cream
-			var stripe := _add_detail_box(root, "CanopyStripe%d" % i, Vector3(0.82, 0.18, 2.0), Vector3(-5.2 + i * 0.8, 3.52, footprint.y * 0.5 + 0.9), stripe_color)
-			stripe.rotation.x = 0.16
-			_add_detail_box(root, "Valance%d" % i, Vector3(0.8, 0.36, 0.12), Vector3(-5.2 + i * 0.8, 3.22, footprint.y * 0.5 + 1.9), stripe_color)
+		_add_shop_canopy(root, footprint)
 	elif root.name == "Hall":
 		_add_round_detail(root, "SchoolClock", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.64), Vector3(0.48, 0.48, 0.12), PALETTE.coral)
 		_add_round_detail(root, "ClockFace", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.77), Vector3(0.4, 0.4, 0.06), PALETTE.cream)
@@ -2823,12 +3114,9 @@ func _add_street_detail() -> void:
 			_add_detail_box($Sandbox, "CrossZ%sX%s" % [z, stripe], Vector3(0.9, 0.03, 4.6), Vector3(stripe, 0.075, z), PALETTE.cream)
 	for z: float in [-26.0, -22.0, -18.0, -14.0, -10.0, 14.0, 18.0, 22.0, 26.0]:
 		_add_detail_box($Sandbox, "LaneDash%s" % z, Vector3(0.22, 0.03, 2.0), Vector3(0.0, 0.075, z), PALETTE.cream)
-	# Individual broad paving slabs and shallow curbs sit on real ground,
-	# never adding colliders or a fake raised route.
-	for x in 9:
-		for z in 9:
-			var tint: Color = PALETTE.cream.lerp(PALETTE.sand, 0.22 + 0.08 * ((x + z) % 3))
-			_add_detail_box($Sandbox, "Paver%d_%d" % [x, z], Vector3(1.96, 0.025, 1.96), Vector3(-8 + x * 2, 0.135, -8 + z * 2), tint)
+	# Shared batched paving, small joints and staggered courses rather than
+	# oversized individual rounded slabs. Actual slab collision stays planar.
+	_add_paving("PlazaPaving", Vector3(0, 0.12, 0), Vector2(18, 18))
 	for side in [-1.0, 1.0]:
 		for segment in 20:
 			var offset := -30.0 + segment * 3.0
@@ -2839,9 +3127,7 @@ func _add_street_detail() -> void:
 	for position in [Vector3(-8, 0.12, -8), Vector3(8, 0.12, -8), Vector3(-8, 0.12, 8), Vector3(8, 0.12, 8)]:
 		_add_toy_lamp($Sandbox, "PlazaLamp%s" % position, position)
 	for center in [Vector3(-16, 0, -6), Vector3(16, 0, -5)]:
-		for x in 7:
-			for z in 2:
-				_add_detail_box($Sandbox, "FrontPaving%s%d%d" % [center.x, x, z], Vector3(1.95, 0.025, 1.95), center + Vector3(-6 + 2 * x, 0.015, z * 2), PALETTE.sand.lerp(PALETTE.cream, 0.45))
+		_add_paving("FrontPaving%s" % center.x, center + Vector3(0, 0.05, 1), Vector2(14, 4))
 	for side in [-1.0, 1.0]:
 		for i in 5:
 			_add_detail_box($Sandbox, "Crossing%s%d" % [side, i], Vector3(0.6, 0.018, 3.6), Vector3(-1.6 + i * 0.8, 0.16, side * 8.0), PALETTE.cream)
@@ -2849,6 +3135,43 @@ func _add_street_detail() -> void:
 		_add_detail_box($Sandbox, "StreetPlanter%s" % side, Vector3(1.0, 0.5, 1.0), planter + Vector3(0, 0.25, 0), PALETTE.cream)
 		for i in 3:
 			_add_round_detail($Sandbox, "Shrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.22, 0.65, 0), Vector3(0.4, 0.4, 0.4), PALETTE.grass)
+
+
+func _add_paving(node_name: String, center: Vector3, footprint: Vector2) -> void:
+	var mesh := ArrayMesh.new()
+	for tint in 3:
+		var surface := SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var rows := ceili(footprint.y / 0.8)
+		var columns := ceili(footprint.x / 1.2) + 1
+		for row in rows:
+			for column in columns:
+				if (row * 7 + column * 11) % 3 != tint:
+					continue
+				var left := maxf(-footprint.x * 0.5, -footprint.x * 0.5 + column * 1.2 - (row % 2) * 0.6)
+				var right := minf(footprint.x * 0.5, -footprint.x * 0.5 + (column + 1) * 1.2 - (row % 2) * 0.6)
+				if right <= left:
+					continue
+				var near := -footprint.y * 0.5 + row * 0.8
+				var far := minf(footprint.y * 0.5, near + 0.8)
+				_surface_quad(surface, Vector3(left + 0.012, 0.012, near + 0.012), Vector3(right - 0.012, 0.012, near + 0.012), Vector3(right - 0.012, 0.012, far - 0.012), Vector3(left + 0.012, 0.012, far - 0.012))
+		surface.set_material(_material(PALETTE.cream.lerp(PALETTE.sand, 0.26 + tint * 0.06)))
+		surface.commit(mesh)
+	var paving := MeshInstance3D.new()
+	paving.name = node_name
+	paving.mesh = mesh
+	paving.position = center
+	$Sandbox.add_child(paving)
+
+
+func _add_street_planter(node_name: String, position: Vector3) -> void:
+	var planter := Node3D.new()
+	planter.name = node_name
+	planter.position = position
+	$Sandbox.add_child(planter)
+	_add_detail_box(planter, "Container", Vector3(2.1, 0.5, 0.9), Vector3(0, 0.25, 0), PALETTE.cream)
+	for i in 5:
+		_add_round_detail(planter, "Shrub%d" % i, Vector3(-0.72 + i * 0.36, 0.68, 0), Vector3(0.42, 0.42, 0.38), PALETTE.grass)
 
 
 func _add_toy_lamp(parent: Node3D, node_name: String, position: Vector3) -> void:
@@ -3053,6 +3376,7 @@ func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
 	collision.position.y = 0.3
 	body.add_child(collision)
 	$Sandbox.add_child(body)
+	body.set_meta("spawn_transform", body.global_transform)
 
 
 func _material(color: Color) -> StandardMaterial3D:

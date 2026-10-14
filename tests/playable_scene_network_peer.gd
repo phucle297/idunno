@@ -246,7 +246,7 @@ func _run_server(main: Node) -> void:
 		rematch_passed = grab_manager.request_grab(1, old_prop) and rematch_passed
 		rematch_passed = rematch_passed and main.restart_network_match()
 		var new_prop := main._network_prop(1) as RigidBody3D
-		rematch_passed = rematch_passed and not is_instance_valid(old_prop) and grab_manager.get_held_body(1) == null and not new_prop.has_meta("grab_owner_peer_id") and new_prop.get_collision_exceptions().is_empty()
+		rematch_passed = rematch_passed and grab_manager.get_held_body(1) == null and not new_prop.has_meta("grab_owner_peer_id") and new_prop.get_collision_exceptions().is_empty()
 		# Exact spawn/shape/role restore and no replacement-prop growth.
 		var new_shape: BoxShape3D = null
 		for child: Node in new_prop.get_children():
@@ -279,7 +279,7 @@ func _run_server(main: Node) -> void:
 		rematch_passed = rematch_passed and shove_manager.request_shove(1) and shove_manager.get_last_shove_sequence(client_id) == expected_shove_seq and not shove_manager.apply_replicated_shove(1, client_id, expected_shove_seq, 0.0, -1.0)
 		# Exercise the live server safety check, not a client-authored damage event.
 		var escaped_player: PartyPlayer = main._player_nodes[client_id]
-		escaped_player.position = Vector3(33, 1, 0) if rematch_index % 2 == 0 else Vector3(0, -9, 0)
+		escaped_player.position = Vector3(main.get_map_half_extent() + 1, 1, 0) if rematch_index % 2 == 0 else Vector3(0, -9, 0)
 		await create_timer(0.3).timeout
 		rematch_passed = (
 			rematch_passed

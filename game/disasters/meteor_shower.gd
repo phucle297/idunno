@@ -58,14 +58,16 @@ var _countdown: Label3D
 var _strike_index := 0
 var _impact_debris: Array[Dictionary] = []
 var _impact_debris_visuals: Array[MeshInstance3D] = []
+var surface_height: Callable
 
 
 func configure(match_manager: MatchManager) -> void:
 	_match_manager = match_manager
 
 
-func set_strike_area(half_extent: float) -> void:
+func set_strike_area(half_extent: float, height_query := Callable()) -> void:
 	strike_half_extent = half_extent
+	surface_height = height_query
 
 
 func set_wind_active(active: bool) -> bool:
@@ -416,7 +418,10 @@ func _finish_impact() -> void:
 
 
 func _bounded_point(point: Vector3) -> Vector3:
-	return Vector3(clampf(point.x, -strike_half_extent, strike_half_extent), 0.06, clampf(point.z, -strike_half_extent, strike_half_extent))
+	var target := Vector3(clampf(point.x, -strike_half_extent, strike_half_extent), 0.06, clampf(point.z, -strike_half_extent, strike_half_extent))
+	if surface_height.is_valid():
+		target.y = float(surface_height.call(target)) + 0.06
+	return target
 
 
 func _clear_effect() -> void:

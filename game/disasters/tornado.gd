@@ -46,6 +46,7 @@ var path_presets: Array = [
 	[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)]
 ]
 var _effect: Node3D
+var surface_height: Callable
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -114,6 +115,9 @@ func start_warning(path_start: Vector3, path_end: Vector3) -> bool:
 		return false
 	start_position = Vector3(path_start.x, 0.0, path_start.z)
 	end_position = Vector3(path_end.x, 0.0, path_end.z)
+	if surface_height.is_valid():
+		start_position.y = float(surface_height.call(start_position))
+		end_position.y = float(surface_height.call(end_position))
 	if start_position.distance_to(end_position) < 0.1:
 		return false
 	active_duration = start_position.distance_to(end_position) / maxf(travel_speed, 0.01)
@@ -141,6 +145,8 @@ func tick(delta: float) -> void:
 		active_elapsed = minf(active_elapsed + safe_delta, active_duration)
 		var progress := active_elapsed / maxf(active_duration, 0.001)
 		global_position = start_position.lerp(end_position, progress)
+		if surface_height.is_valid():
+			global_position.y = float(surface_height.call(global_position))
 		_apply_forces(safe_delta)
 		_update_active_visual(safe_delta)
 		if active_elapsed >= active_duration:

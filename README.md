@@ -2,6 +2,16 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
+The current source expands Toy Town to **112×112m**: continuous rounded building
+shells, curved striped shop canopy, shared staggered paving, populated side/civic
+terraces, a garden and connected roof walks. Harbor retains its64m footprint.
+Stairs have visible treads/rails/supports over smooth walking collision; hazard
+warnings and flood coverage follow each map's actual extent/elevation.
+The [owner's design reference](assets/references/phase7/rounded-town-camera-reference.png)
+is checked into source, not used as runtime art. This correction is source-only,
+not in the public release below; concept parity and native GPU performance are
+not claimed. See [current checklist](docs/checklists/phase-7-integrated-town.md).
+
 Development is specification-led:
 
 - `docs/old-docs/PROMPT.md` archives the original development prompt.
