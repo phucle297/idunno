@@ -20,6 +20,7 @@ new follow-up evidence belongs in a separately named archive.
 | 7S — Rounded World Rebuild | [Checklist](phase-7-rounded-world-rebuild/checklist.md) | [Decisions](phase-7-rounded-world-rebuild/decisions.md) | [Progress](phase-7-rounded-world-rebuild/progress.json) |
 | 7T — Integrated Terraced Town | [Checklist](phase-7-integrated-town/checklist.md) | [Decisions](phase-7-integrated-town/decisions.md) | [Progress](phase-7-integrated-town/progress.json) |
 | 8 — Character, UI and Disaster Counterplay | [Checklist](phase-8-character-disaster-counterplay/checklist.md) | [Decisions](phase-8-character-disaster-counterplay/decisions.md) | [Progress](phase-8-character-disaster-counterplay/progress.json) |
+| 8F — Solid Environment Collision | [Checklist](phase-8-collision-followup/checklist.md) | [Decisions](phase-8-collision-followup/decisions.md) | [Progress](phase-8-collision-followup/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its

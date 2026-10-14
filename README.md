@@ -63,6 +63,11 @@ meteor waves. Source14be2c3 is pushed; matching local Windows/Linux bundles are
 verified, not published or deployed. The public server still runs Integrated Town.
 Native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance remains
 unverified/nonblocking. Root awaits next scope; Phase9 is not started.
+The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/checklist.md)
+adds solid rails/stair handrails, bushes/planters, lamps, vents and Harbor cargo,
+without blocking normal refuge routes. The local Phase8 bundles above predate it;
+no new bundle or deployment. [Phase12 movement drops](docs/checklists/phase-12-match-powerup-drops.md)
+are planning only: temporary random Speed/Jump pickups, not permanent cosmetic stats.
 Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/

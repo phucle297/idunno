@@ -9,6 +9,7 @@
 | 9 — Weather and Rockslides | Planned; after8 | [Phase 9](checklists/phase-9-weather-rockslides.md) |
 | 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
 | 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
+| 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
@@ -29,6 +30,7 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 Completed-phase checklists, decisions and progress are grouped in [old-docs](old-docs/README.md):
 
+- [Phase 8F — Solid Environment Collision](old-docs/phase-8-collision-followup/checklist.md) · [decisions](old-docs/phase-8-collision-followup/decisions.md) · [evidence](old-docs/phase-8-collision-followup/progress.json) — focused collision/routes/render and map-aware2/4-peer gates passed; extra scene-fixture failure retained. No new packages/deployment or native GPU/human acceptance claim.
 - [Phase 8 — Character, UI and Disaster Counterplay](old-docs/phase-8-character-disaster-counterplay/checklist.md) · [decisions](old-docs/phase-8-character-disaster-counterplay/decisions.md) · [evidence](old-docs/phase-8-character-disaster-counterplay/progress.json) — all six technical milestones and matching local packages passed; source pushed, no new public deployment/release or native GPU/Windows/human acceptance claim. Root awaits next scope; Phase9 not started.
 - [Phase 0 — Init Project](old-docs/phase-0-init-project/checklist.md)
 - [Phase 1 — UI Identity and Feedback](old-docs/phase-1-ui-identity-and-feedback/checklist.md)
@@ -53,8 +55,10 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 ## Explicitly deferred
 
+Owner-requested temporary Speed/Jump pickups are planned separately in Phase12,
+not persistent cosmetic loot boxes or an implemented inventory/stat system.
 Unrequested disaster classes beyond the new scoped Snow/Rain/Rockslide/Bee/UFO/Volcano plan,
-non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
+persistent non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
 ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production
 bots, advanced destruction and a large cosmetic catalog. Crouch is removed by the
 Phase8 plan, not repurposed as a survival counter. Grabbing/holding is temporarily

@@ -1,5 +1,13 @@
 # Báo lỗi khi gặp thực tế
 
+**Follow-up collision:** [evidence](docs/old-docs/phase-8-collision-followup/checklist.md)
+cho lan can/cầu thang, bụi/chậu cây, đèn, vent, cọc/crate Harbor. Source đã sửa;
+gói Phase8 dưới đây chưa có follow-up, chưa export/deploy/release bản mới. Test capsule,
+đường đi/rematch và2/4 peer hai map đã chạy; một scene fixture phụ lỗi quan sát prop
+reset được giữ trong log, không sửa tolerance để giấu lỗi. Native/GPU/user acceptance
+và waiver cũ không đổi. [Drop tăng tốc/nhảy](docs/checklists/phase-12-match-powerup-drops.md)
+chỉ là plan Phase12, chưa implement; không thêm checklist người dùng bắt buộc.
+
 **Phase8 hoàn tất gate kỹ thuật (2026-10-14):** [checklist và evidence](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md).
 Source `14be2c323e2267c18a06ccf704090c6268ad184e` đã push; gói matching Windows/Linux
 local tại `.amp/in/artifacts/phase8-packages` đã kiểm hash/unpack/lifecycle/profile

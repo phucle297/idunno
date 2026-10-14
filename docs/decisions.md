@@ -1,14 +1,12 @@
 # Disaster Party — Active Decisions
 
-Phase 8 source, render, network and local-package technical gates are complete;
-its [decisions](old-docs/phase-8-character-disaster-counterplay/decisions.md),
-[checklist](old-docs/phase-8-character-disaster-counterplay/checklist.md) and
-[full evidence](old-docs/phase-8-character-disaster-counterplay/progress.json)
-are archived together. Root [progress](../progress.json) is awaiting next scope.
-Phase9 is planned, not started. No new active-phase decisions.
+The completed [collision follow-up](old-docs/phase-8-collision-followup/checklist.md),
+[decisions](old-docs/phase-8-collision-followup/decisions.md) and
+[evidence](old-docs/phase-8-collision-followup/progress.json) are archived separately
+from Phase8. Source has solid rail/stair/bush/planter/lamp/vent/Harbor detail collision,
+with clear normal routes. No new exports, public deployment or release.
 
-Source14be2c3 is pushed; matching Windows/Linux review bundles are local only.
-Public Integrated Town revision2619665 is unchanged. No new deployment/release,
-profile-store activation, capacity change or Steam publication authorized.
-Native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance remains
-unverified and nonblocking under the existing waiver; see [real-check policy](../NEED_REAL_CHECK.md).
+[Random movement drops](checklists/phase-12-match-powerup-drops.md) are planned only;
+temporary Speed/Jump proposals extend cosmetic-only scope but are not implemented.
+Root [progress](../progress.json) awaits next scope; Phase9–12 not activated.
+Native Windows/GPU60FPS/audio/human acceptance remains unverified under the waiver.

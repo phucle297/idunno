@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {"phase_id": "phase_8_collision_followup", "title": "Solid Environment Collision", "status": "completed_technical_source_gates", "archived_at": "2026-10-14", "superseded_by": "../../../progress.json", "qualification": "No new packages/deployment/release; old Phase8 bundles predate follow-up. Human/native/GPU acceptance unverified. Historical workspace-relative diary paths preserved. Extra scene-fixture failure retained separately from passing map-aware coverage."},
+  "workflow_state": "completed",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended in old-docs, not completed; reopen only on owner request."},
+  "previous_phase_archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_8_collision_followup", "milestone": "C.1", "task": null},
+  "phase": {"id": "phase_8_collision_followup", "title": "Solid Environment Collision", "status": "completed", "milestones": [{"id": "C.1", "title": "Solid detail collision without blocking survival routes", "status": "completed", "gate": {"required": true, "status": "passed"}}]},
+  "checklist": "checklist.md",
+  "planned_phases": [
+    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Owner requests planning only for temporary random movement pickups; separate from persistent cosmetics, priority not activated."},
+    {"id": "phase_9_weather_rockslides", "status": "planned", "checklist": "docs/checklists/phase-9-weather-rockslides.md", "depends_on": "phase_8_character_disaster_counterplay"},
+    {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by explicit owner priority; revalidate expanded/mutated map and new hazards before zone implementation."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "completed_phase": {"id": "phase_8_character_disaster_counterplay", "status": "completed_agent_owned_source_render_network_local_packages", "archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "qualification": "All six technical milestones passed. Source14be2c3 pushed, matching local bundles verified. Not deployment/release or native Windows/GPU60FPS/audio/human difficulty/separate-network acceptance."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"check": "Final collision follow-up gates", "status": "passed", "result": "MAP_DETAIL_COLLISION_OK82; FINAL_COLLISION_ROUTES_OK58 maps2 all_elevation_routes_and_refuge_exits passed on final stair-collision source. Final safety231/combinations102 and actual map-aware2/4 clients, five rematches, hazard/state/movement/shove/emote/disconnect matrices passed on both maps. Full map-variety424/Flood/spawn/breakable gate passed before final stair-collider addition; final route-only control rerun explicitly covers that change. Three states720p/1080p rendered and inspected; actual walking reaches ParkRamp topz10.2786/y2.2003, blocked railz10.52 with support, shrubz-15.77 outside plant. Headless20 avatars/four synthetic hazards120warmup/600samples p95physics7.311ms/process5.481ms; snapshot3280bytes, peak6 loose/4 meteor effects, last memory103787649bytes plateau. No full-suite rerun, native GPU/60FPS, human/network-Internet acceptance or new exports/deployment. Extra failed scene fixture retained below; map-aware coverage passed without fixture changes. Logs .scratch/collision-followup; captures .amp/in/artifacts/collision-followup."},
+    {"check": "Solid-detail baseline/contact and intermediate regression", "status": "passed", "result": "Original HEAD main script loaded in scratch: COLLISION_BEFORE_REPRO_OK rail/lamp capsule passes and foliage ray passes. Final MAP_DETAIL_COLLISION_OK82 on both maps/five rematches: rail both axes, rotated stair handrail, planter/shrub/lamp/cargo, sustained grounded rail contact, flat overlay control, no collider accumulation. Town963/Harbor69 static detail bodies, no added loose/network props. Intermediate map variety424, safety231 and combinations102 passed before final stair collision; final route gates running. Initial failures preserved: ParkRail blocked normal ParkRamp, corrected visible length and collision together; old rail off-platform allowed dropping under, reseated atz10.15. First test used sanitized float node name incorrectly and printed false success despite script errors; replaced with world-space foliage probe and reject runtime errors. Render fixture first lacked grounded settling/target stop; final inspected720p/1080p captures show ramp clear, blocked contact and shrub outside. No GPU/native/human claim."},
+    {"check": "Extra scene-network diagnostic", "status": "failed", "result": "First Town2-peer/five-rematch scene fixture passed. Second run failed observing exact prop reset on separate channel in rematch3; prop settled at y0.116 instead of transient reset y0.4. MAP_ID environment is not consumed by this scene runner, so this was another Town run, not Harbor coverage. No gameplay/fixture tolerance altered. Correct map-aware scale runner with explicit --map-id will cover both maps; failure retained separately. Logs .scratch/collision-followup/network-{town,harbor}.log."}
+  ],
+  "changed_files": ["game/main.gd", "tests/test_map_detail_collision.gd", "assets/manifest.json", "docs/decisions.md", "docs/checklists/phase-8-collision-followup.md", "docs/checklists/phase-12-match-powerup-drops.md", "docs/implementation-checklist.md", "README.md", "NEED_REAL_CHECK.md", "progress.json"],
+  "blockers": [],
+  "phase8_local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "14be2c323e2267c18a06ccf704090c6268ad184e",
+    "directory": ".amp/in/artifacts/phase8-packages",
+    "windows": "DisasterParty-Windows-14be2c3.zip",
+    "windows_sha256": "904aeb2db46fbabdb71f2090a15b64783da4a9d86322bf02f8c0433b9119ebed",
+    "linux_server": "DisasterParty-Linux-server-14be2c3.tar.gz",
+    "linux_server_sha256": "4f7bb817a2e90f23d1391550b35056f617c99c14e1059bfe0808be6ad7347d43",
+    "pck_sha256": "134a4f74e26dd9517b7b4b553f2c930634b4617c5efbf3474f4d689108c10795",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "integrated_town_release": {
+    "authorization": "2026-10-14 owner: Good. deploy and release",
+    "revision": "2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38514066230",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease_verified",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-2619665",
+    "endpoint": "https://server.permees.com",
+    "scope": "Existing EC2 workflow and matching GitHub playtest pre-release; no infrastructure/capacity change or Steam publication.",
+    "validation_reference": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json#integrated_town_release"
+  },
+  "historical_delivery_metadata": {"archive": "docs/old-docs/phase-8-character-disaster-counterplay/progress.json", "preserved_keys": ["integrated_town_delivery", "rounded_world_delivery", "correction_delivery", "delivery", "local_delivery"], "qualification": "Historical delivery evidence retained without loss in the archive; not authorization for a Phase8 deployment."},
+  "tracking_delivery": {"authorization": "Owner requested checking completion, then commit and push on2026-10-14.", "checkpoint": "Phase8 closure documents and archive; [skip ci], no deployment/release.", "verification": "Commit and remote delivery are verified from Git, not a self-referential revision in this file."},
+  "next_action": "Archive collision follow-up and deliver source checkpoint; random movement drops remain planning only, no deployment."
+}
