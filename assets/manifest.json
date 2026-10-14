@@ -207,18 +207,21 @@
       "validation_status": "source151_and_Xvfb_llvmpipe_720p_1080p166_map_checks_passed; actual_capsule_drop_Flood_grace_6HP_boundary_side_escape_and_five_rematches_passed; all_twelve_intact_broken_escape_views_inspected; full_supported_source34_suites_five_groups_settings_restart_passed; native_Windows_current_revision_not_run"
     },
     {
-      "asset_id": "ENV_SoftVinylTownHarbor_v002",
+      "asset_id": "ENV_SoftVinylTownHarbor_v003",
       "category": "runtime_environment_assembly",
       "source_path": "game/main.gd",
       "export_path": "scenes/main.tscn::Sandbox",
-      "generator_version": "2_visual_correction",
+      "generator_version": "3_rounded_world_rebuild",
       "seed": 0,
-      "triangle_count_per_rounded_box": 108,
+      "triangle_count_per_rounded_box": 972,
+      "edge_segments": 4,
+      "rounding_policy": "Per-axis curved radii up to0.5m horizontally/0.36m vertically,24percent of each dimension. Flat walking slabs use0.08m horizontal/0.025m vertical caps to retain planar surfaces and close roof seams. Owner reference overrides old architectural cap.",
       "collider_type": "existing_static_boxes_unchanged; added_facade_and_street_detail_visual_only",
       "material_ids": ["PALETTE.cream", "PALETTE.teal", "PALETTE.slate", "PALETTE.sand"],
-      "reference_path": "assets/references/phase7/town-material-direction.png",
+      "reference_path": "assets/references/phase7/rounded-town-camera-reference.png",
       "provenance": "Project-authored procedural surfaces and facade/street/roof assemblies. No downloaded geometry or textures; concept reference only, not CC0.",
-      "validation_status": "town107_harbor46_collider_and_anchor_snapshots_identical; map_identity42_variety303_safety251_passed; final_town_shop_school_house_garage_harbor_renders_inspected; architecture_simpler_than_concept; native_gpu_human_acceptance_unverified"
+      "validation_status": "before_after_town107_harbor46_collider_transforms_shapes_and_map_anchors_identical; measured972_triangles_and_asymmetric_mesh_bounds_exact; same_camera_renders_reviewed_and_refined; roof_hidden_cutaways_are_inspection_only; full42_suites_five_matrices_managed20_persistence_passed; final_map_safety251_variety303_carry41_reruns_passed; architecture_layout_and_lighting_simpler_than_concept; native_gpu_human_acceptance_unverified",
+      "runtime_prop_replacement": "Car wheels use rounded tire/hub visuals on unchanged collision boxes; new rounded grabbable crate replaces old packed crate at runtime with unchanged12kg0.6m collider. Original packed crate retained for archived generation/validation, not removed indiscriminately. New facade/rooftop/sofa/foliage details are visual-only; pitched-house roof gets no flat-roof furniture."
     }
   ],
   "design_references": [
@@ -241,6 +244,13 @@
       "selection": "soft_vinyl_interface_direction; glowing_meteor_rejected",
       "sha256": "cc71ed946be4938f0fe3994e608abb681a4e833250bbb598f70f51c046c073fb",
       "provenance": "Painter-generated concept in the same design conversation; retrieved with amp files get; no CC0 claim",
+      "runtime_asset": false
+    },
+    {
+      "path": "assets/references/phase7/rounded-town-camera-reference.png",
+      "selection": "Owner-supplied rounded architecture/props/streetscape; camera A/B/C comparison is reference, not engine evidence",
+      "sha256": "aa01788c759d20ad0a54f78ff9a9fcf7f01fca118cd0ab6ff6de86a958245a0e",
+      "provenance": "Exact owner attachment dated2026-10-14, retrieved using amp files get. No third-party geometry imported or CC0 claim.",
       "runtime_asset": false
     }
   ]

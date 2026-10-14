@@ -2578,26 +2578,37 @@ func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position:
 	return instance
 
 
-# Rounded render surfaces only: every original box collider and walking plane
-# remains untouched. Deterministic 108-triangle modules, no textures/imports.
+# Owner's rounded-playset reference supersedes the old tiny architectural bevel.
+# Independent radii keep thin panels soft in silhouette, not just in thickness.
+# Four curved segments per edge; collision boxes and anchor positions stay exact.
 func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 	var key := "toy_mesh_%s_%s" % [size, color]
 	var cache: Dictionary = $Sandbox.get_meta("toy_mesh_cache", {})
 	if cache.has(key):
 		return cache[key] as ArrayMesh
 	var half := size * 0.5
-	var radius := minf(0.08, minf(size.x, minf(size.y, size.z)) * 0.16)
-	var inner := half - Vector3.ONE * radius
+	var radius := Vector3(minf(0.5, size.x * 0.24), minf(0.36, size.y * 0.24), minf(0.5, size.z * 0.24))
+	# Walking slabs and roof partitions are not cushions: retain broad flat faces
+	# and close seams. The architectural trim carries the larger curved silhouette.
+	if size.y < minf(size.x, size.z) * 0.2:
+		radius = Vector3(minf(0.08, size.x * 0.1), minf(0.025, size.y * 0.1), minf(0.08, size.z * 0.1))
+	var inner := half - radius
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for axis in 3:
 		var u := (axis + 1) % 3
 		var v := (axis + 2) % 3
+		var us: Array[float] = []
+		var vs: Array[float] = []
+		for fraction in [-1.0, -0.75, -0.5, -0.25, 0.0]:
+			us.append(-inner[u] + fraction * radius[u])
+			vs.append(-inner[v] + fraction * radius[v])
+		for fraction in [0.0, 0.25, 0.5, 0.75, 1.0]:
+			us.append(inner[u] + fraction * radius[u])
+			vs.append(inner[v] + fraction * radius[v])
 		for side in [-1.0, 1.0]:
-			var us := [-half[u], -inner[u], inner[u], half[u]]
-			var vs := [-half[v], -inner[v], inner[v], half[v]]
-			for i in 3:
-				for j in 3:
+			for i in us.size() - 1:
+				for j in vs.size() - 1:
 					var corners := [Vector2i(i, j), Vector2i(i + 1, j), Vector2i(i + 1, j + 1), Vector2i(i, j + 1)]
 					var order := [0, 2, 1, 0, 3, 2] if side > 0 else [0, 1, 2, 0, 2, 3]
 					for index: int in order:
@@ -2606,9 +2617,9 @@ func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 						p[u] = us[corners[index].x]
 						p[v] = vs[corners[index].y]
 						var core := p.clamp(-inner, inner)
-						var normal := (p - core).normalized()
-						surface.set_normal(normal)
-						surface.add_vertex(core + normal * radius)
+						var rounded := ((p - core) / radius).normalized()
+						surface.set_normal((rounded / radius).normalized())
+						surface.add_vertex(core + rounded * radius)
 	surface.set_material(_material(color))
 	var result := surface.commit()
 	cache[key] = result
@@ -2618,28 +2629,46 @@ func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 
 func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accent: Color) -> void:
 	# Cream pilasters and cornices layered onto the existing solid wall faces.
+	_add_detail_box(root, "SignBacking", Vector3(3.1, 0.72, 0.12), Vector3(0, 3.85, footprint.y * 0.5 + 0.58), PALETTE.cream)
+	(root.get_node("BuildingLabel") as Label3D).position.z = footprint.y * 0.5 + 0.68
 	for side: float in [-1.0, 1.0]:
 		var z := side * (footprint.y * 0.5 + 0.19)
 		for x in [-footprint.x * 0.5 + 0.15, footprint.x * 0.5 - 0.15]:
-			_add_detail_box(root, "Pilaster%s%s" % [side, x], Vector3(0.38, height, 0.24), Vector3(x, height * 0.5, z), PALETTE.cream)
+			_add_detail_box(root, "Pilaster%s%s" % [side, x], Vector3(0.78, height, 0.65), Vector3(x, height * 0.5, z - side * 0.12), PALETTE.cream)
 		for y in [0.22, height - 0.25]:
 			# Split the lower plinth to preserve the real through-door opening.
 			for sx: float in [-1.0, 1.0]:
 				var width := (footprint.x - 2.6) * 0.5
 				_add_detail_box(root, "Plinth%s%s%s" % [side, y, sx], Vector3(width, 0.32, 0.24), Vector3(sx * (1.3 + width * 0.5), y, z), PALETTE.cream)
-		_add_detail_box(root, "Cornice%s" % side, Vector3(footprint.x + 0.5, 0.22, 0.35), Vector3(0, height - 0.2, z), accent)
+		_add_detail_box(root, "Cornice%s" % side, Vector3(footprint.x + 0.5, 0.5, 0.65), Vector3(0, height - 0.25, z), accent)
 	for sx in [-1.0, 1.0]:
 		_add_detail_box(root, "SideCornice%s" % sx, Vector3(0.32, 0.22, footprint.y), Vector3(sx * (footprint.x * 0.5 + 0.18), height - 0.2, 0), PALETTE.cream)
+	# Corner rail sections leave the two route/drop exits open; decorations add
+	# no new collision or rooftop surface over the breakable central panel.
+	if root.name != "House":
+		for side in [-1.0, 1.0]:
+			for sx in [-1.0, 1.0]:
+				_add_toy_rail(root, "RoofRail%s%s" % [side, sx], Vector3(sx * (footprint.x * 0.5 - 1.5), height + 0.36, side * (footprint.y * 0.5 - 0.3)), 2.3)
+			var planter := Vector3(side * (footprint.x * 0.5 - 1.1), height + 0.58, -footprint.y * 0.5 + 1.25)
+			_add_detail_box(root, "RoofPlanter%s" % side, Vector3(1.3, 0.44, 1.1), planter, PALETTE.cream)
+			for i in 3:
+				_add_round_detail(root, "RoofShrub%s%d" % [side, i], planter + Vector3((i - 1) * 0.32, 0.42, 0), Vector3(0.48, 0.43, 0.4), PALETTE.grass)
+		_add_detail_box(root, "RoofVent", Vector3(1.0, 0.65, 0.85), Vector3(footprint.x * 0.5 - 1.4, height + 0.68, footprint.y * 0.5 - 1.7), PALETTE.slate)
+		for i in 4:
+			_add_detail_box(root, "VentSlat%d" % i, Vector3(0.7, 0.05, 0.035), Vector3(footprint.x * 0.5 - 1.4, height + 0.48 + i * 0.12, footprint.y * 0.5 - 1.25), PALETTE.cream)
 	if root.name == "Shop":
-		for i in 12:
+		# The old central cream slab must not protrude through the new striped
+		# canopy. Its collider remains enclosed by the replacement render surface.
+		(root.get_node("EntranceAwning").get_child(0) as MeshInstance3D).hide()
+		for i in 14:
 			var stripe_color: Color = PALETTE.teal if i % 2 == 0 else PALETTE.cream
-			var stripe := _add_detail_box(root, "CanopyStripe%d" % i, Vector3(0.72, 0.14, 1.3), Vector3(-3.96 + i * 0.72, 3.12, footprint.y * 0.5 + 0.8), stripe_color)
+			var stripe := _add_detail_box(root, "CanopyStripe%d" % i, Vector3(0.82, 0.18, 2.0), Vector3(-5.2 + i * 0.8, 3.52, footprint.y * 0.5 + 0.9), stripe_color)
 			stripe.rotation.x = 0.16
-			_add_detail_box(root, "Valance%d" % i, Vector3(0.72, 0.32, 0.16), Vector3(-3.96 + i * 0.72, 2.92, footprint.y * 0.5 + 1.4), stripe_color)
+			_add_detail_box(root, "Valance%d" % i, Vector3(0.8, 0.36, 0.12), Vector3(-5.2 + i * 0.8, 3.22, footprint.y * 0.5 + 1.9), stripe_color)
 	elif root.name == "Hall":
-		_add_round_detail(root, "SchoolClock", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.25), Vector3(0.48, 0.48, 0.12), PALETTE.coral)
-		_add_round_detail(root, "ClockFace", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.36), Vector3(0.4, 0.4, 0.06), PALETTE.cream)
-		_add_detail_box(root, "ClockHand", Vector3(0.06, 0.26, 0.06), Vector3(3.0, 3.74, footprint.y * 0.5 + 0.44), PALETTE.slate)
+		_add_round_detail(root, "SchoolClock", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.64), Vector3(0.48, 0.48, 0.12), PALETTE.coral)
+		_add_round_detail(root, "ClockFace", Vector3(3.0, 3.65, footprint.y * 0.5 + 0.77), Vector3(0.4, 0.4, 0.06), PALETTE.cream)
+		_add_detail_box(root, "ClockHand", Vector3(0.06, 0.26, 0.06), Vector3(3.0, 3.74, footprint.y * 0.5 + 0.86), PALETTE.slate)
 	elif root.name == "House":
 		for side in [-1.0, 1.0]:
 			var roof := _add_detail_box(root, "Gable%s" % side, Vector3(4.4, 0.18, 8.5), Vector3(side * 1.9, 5.5, 0), PALETTE.coral)
@@ -2665,8 +2694,8 @@ func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, sca
 	var sphere := SphereMesh.new()
 	sphere.radius = 1.0
 	sphere.height = 2.0
-	sphere.radial_segments = 16
-	sphere.rings = 8
+	sphere.radial_segments = 24
+	sphere.rings = 12
 	sphere.material = _material(color)
 	visual.mesh = sphere
 	visual.position = position
@@ -2753,6 +2782,11 @@ func _add_house_interior() -> void:
 	_add_detail_box(house, "Bed", Vector3(2.0, 0.5, 1.4), Vector3(2.7, 0.25, -2.9), PALETTE.coral)
 	_add_detail_box(house, "Pillow", Vector3(0.6, 0.16, 0.5), Vector3(3.3, 0.5, -2.9), PALETTE.cream)
 	_add_detail_box(house, "Sofa", Vector3(2.2, 0.7, 0.9), Vector3(2.6, 0.35, 3.0), PALETTE.teal)
+	_add_detail_box(house, "SofaBack", Vector3(2.2, 0.75, 0.32), Vector3(2.6, 0.8, 3.35), PALETTE.teal)
+	for x in [1.6, 3.6]:
+		_add_detail_box(house, "SofaArm%s" % x, Vector3(0.32, 0.7, 0.9), Vector3(x, 0.6, 3.0), PALETTE.teal)
+	for x in [2.05, 3.15]:
+		_add_detail_box(house, "Cushion%s" % x, Vector3(0.94, 0.2, 0.7), Vector3(x, 0.74, 2.95), PALETTE.teal.lerp(PALETTE.cream, 0.16))
 
 
 func _add_garage_detail() -> void:
@@ -2836,10 +2870,11 @@ func _add_toy_rail(parent: Node3D, node_name: String, position: Vector3, length:
 		rail.rotation.y = PI * 0.5
 	parent.add_child(rail)
 	for y in [0.4, 0.9]:
-		_add_detail_box(rail, "Bar%s" % y, Vector3(length, 0.1, 0.1), Vector3(0, y, 0), PALETTE.teal)
+		_add_detail_box(rail, "Bar%s" % y, Vector3(length, 0.18, 0.18), Vector3(0, y, 0), PALETTE.teal)
 	for i in int(length / 1.5) + 1:
 		var x: float = -length * 0.5 + i * length / int(length / 1.5)
-		_add_detail_box(rail, "Post%d" % i, Vector3(0.14, 0.95, 0.14), Vector3(x, 0.475, 0), PALETTE.teal)
+		_add_detail_box(rail, "Post%d" % i, Vector3(0.22, 0.95, 0.22), Vector3(x, 0.475, 0), PALETTE.teal)
+		_add_round_detail(rail, "Finial%d" % i, Vector3(x, 0.95, 0), Vector3.ONE * 0.15, PALETTE.teal)
 
 
 func _add_warehouse_interior() -> void:
@@ -2901,17 +2936,12 @@ func _add_tree(node_name: String, position: Vector3) -> void:
 	root.add_to_group("map_prop")
 	$Sandbox.add_child(root)
 	_add_box_to(root, "Trunk", Vector3(0.7, 2.4, 0.7), Vector3(0.0, 1.2, 0.0), PALETTE.sand)
-	for offset in [Vector3(0.0, 2.8, 0.0), Vector3(-0.7, 2.5, 0.0), Vector3(0.7, 2.5, 0.0)]:
-		var crown := MeshInstance3D.new()
-		var mesh := SphereMesh.new()
-		mesh.radius = 1.15
-		mesh.height = 2.0
-		mesh.radial_segments = 16
-		mesh.rings = 8
-		mesh.material = _material(PALETTE.grass)
-		crown.mesh = mesh
-		crown.position = offset
-		root.add_child(crown)
+	# Overlapping lobes, not three identical balloon spheres. No foliage colliders.
+	for i in 7:
+		var angle := i * TAU / 7.0
+		var offset := Vector3(cos(angle) * 0.75, 2.65 + 0.18 * (i % 3), sin(angle) * 0.65)
+		_add_round_detail(root, "Crown%d" % i, offset, Vector3(0.9, 0.95, 0.85), PALETTE.grass.lerp(PALETTE.cream, 0.035 * (i % 3)))
+	_add_round_detail(root, "CrownTop", Vector3(0, 3.4, 0), Vector3(0.95, 0.85, 0.85), PALETTE.grass)
 
 
 func _add_car(node_name: String, position: Vector3, color: Color) -> void:
@@ -2923,7 +2953,13 @@ func _add_car(node_name: String, position: Vector3, color: Color) -> void:
 	_add_box_to(root, "Body", Vector3(3.2, 0.8, 1.7), Vector3(0.0, 0.5, 0.0), color)
 	_add_box_to(root, "Cab", Vector3(1.6, 0.65, 1.45), Vector3(-0.2, 1.15, 0.0), PALETTE.cream)
 	for wheel_position in [Vector3(-1.0, 0.2, -0.78), Vector3(1.0, 0.2, -0.78), Vector3(-1.0, 0.2, 0.78), Vector3(1.0, 0.2, 0.78)]:
-		_add_box_to(root, "Wheel%s" % wheel_position, Vector3(0.45, 0.45, 0.22), wheel_position, PALETTE.slate)
+		var wheel := _add_box_to(root, "Wheel%s" % wheel_position, Vector3(0.45, 0.45, 0.22), wheel_position, PALETTE.slate)
+		(wheel.get_child(0) as MeshInstance3D).hide()
+		_add_round_detail(wheel, "Tire", Vector3.ZERO, Vector3(0.225, 0.225, 0.11), PALETTE.slate)
+		_add_round_detail(wheel, "Hub", Vector3(0, 0, signf(wheel_position.z) * 0.105), Vector3(0.09, 0.09, 0.025), PALETTE.cream)
+	for side in [-1.0, 1.0]:
+		_add_detail_box(root, "Window%s" % side, Vector3(1.05, 0.36, 0.035), Vector3(-0.2, 1.17, side * 0.728), PALETTE.teal)
+		_add_round_detail(root, "Headlight%s" % side, Vector3(1.55, 0.62, side * 0.5), Vector3(0.06, 0.12, 0.12), PALETTE.cream)
 
 
 func _add_bench(node_name: String, position: Vector3) -> void:
@@ -2973,11 +3009,7 @@ func _add_box_to(parent: Node3D, node_name: String, size: Vector3, position: Vec
 	body.name = node_name
 	body.position = position
 	var mesh_instance := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	mesh.material = _material(color)
-	# Existing structural inspection tools read canopy support BoxMesh sizes.
-	mesh_instance.mesh = mesh if node_name.begins_with("CanopySupport") else _toy_box_mesh(size, color)
+	mesh_instance.mesh = _toy_box_mesh(size, color)
 	body.add_child(mesh_instance)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
@@ -2995,6 +3027,7 @@ func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3
 	structure.add_to_group("breakable_structure")
 	$Sandbox.add_child(structure)
 	structure.configure(piece_id, size, color, role, group)
+	(structure.get_node("Visual") as MeshInstance3D).mesh = _toy_box_mesh(size, color)
 
 
 func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
@@ -3006,8 +3039,13 @@ func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
 	body.position = position
 	body.mass = 12.0
 	body.collision_layer = 4
-	var visual := preload("res://assets/generated/PROP_Crate_Small_v001.tscn").instantiate()
+	var visual := Node3D.new()
+	visual.name = "RoundedCrate"
 	body.add_child(visual)
+	_add_detail_box(visual, "Body", Vector3(0.6, 0.6, 0.6), Vector3(0, 0.3, 0), PALETTE.sand)
+	for side in [-1.0, 1.0]:
+		for y in [0.1, 0.5]:
+			_add_detail_box(visual, "Band%s%s" % [side, y], Vector3(0.58, 0.075, 0.035), Vector3(0, y, side * 0.295), PALETTE.cream)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(0.6, 0.6, 0.6)

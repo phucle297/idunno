@@ -1,5 +1,7 @@
 # Báo lỗi khi gặp thực tế
 
+**Rounded rebuild (2026-10-14):** user đã bác bỏ hình ảnh7R vì còn vuông. Đợt7S thay mesh bo nhỏ bằng bề mặt cong nhiều segment và sửa mái hiên/cây/xe/nội thất theo [ảnh user cung cấp](assets/references/phase7/rounded-town-camera-reference.png). Render cùng camera và regression đạt; chưa có xác nhận thẩm mỹ từ user, chưa đo GPU thật. Layout, mật độ chi tiết và ánh sáng vẫn đơn giản hơn concept. Bản sửa chỉ giao source, không deploy/release và không bắt đầu Phase8; waiver không đổi.
+
 **Đính chính Phase7 (2026-10-14):** kết luận hoàn tất hình ảnh dưới đây là lịch sử và đã bị supersede. Audit cho thấy Phase7 cũ chưa đổi source UI; test chức năng không chứng minh khớp concept. [Đợt sửa đã push source](docs/old-docs/phase-7-visual-correction/checklist.md) bổ sung UI/nhân vật/môi trường và [ảnh thiết kế gốc](assets/references/phase7/README.md). Ảnh render mới được kiểm tra trên Linux llvmpipe720p/1080p, không thay thế đánh giá thẩm mỹ của bạn hoặc native Windows/GPU/60FPS. Chỉ push source theo yêu cầu; chưa deploy/release bản sửa, Phase8 chưa bắt đầu. Waiver cũ vẫn giữ, không thêm checklist bắt buộc.
 
 Theo yêu cầu user ngày2026-10-09, bỏ các checklist kiểm tra thủ công hiện tại và yêu cầu baseline/follow-up2.4–2.6 để tiếp tục phát triển. Đây là **waiver theo quyết định user**, không phải bằng chứng đã thực hiện hoặc pass những test chưa chạy. Không cần gửi báo cáo playtest hay hoàn thành checklist trước khi tiếp tục; user sẽ báo bug nếu gặp.

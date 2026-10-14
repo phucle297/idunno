@@ -3,10 +3,10 @@
   "updated_at": "2026-10-14",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "planned",
+  "workflow_state": "in_progress",
   "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 remains deferred, not completed."},
   "previous_phase_archive": "docs/old-docs/phase-7-visual-correction/progress.json",
-  "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md",
+  "checklist": "docs/checklists/phase-7-rounded-world-rebuild.md",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
@@ -15,18 +15,18 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": "phase_8_shrinking_survival_zone", "milestone": "8.1", "task": "8.1a"},
+  "current": {"phase": "phase_7_rounded_world_rebuild", "milestone": "7S.3", "task": null},
   "phase": {
-    "id": "phase_8_shrinking_survival_zone",
-    "title": "Shrinking Survival Zone and Integrated Local Delivery",
-    "status": "planned",
+    "id": "phase_7_rounded_world_rebuild",
+    "title": "Rounded World Rebuild Against Owner Camera Reference",
+    "status": "in_progress",
     "milestones": [
-      {"id": "8.1", "title": "Map route and hazard feasibility", "status": "planned", "tasks": [{"id": "8.1a", "status": "planned"}, {"id": "8.1b", "status": "planned"}, {"id": "8.1c", "status": "planned"}], "gate": {"id": "G8.1", "status": "not_run", "required": true}},
-      {"id": "8.2", "title": "Authoritative zone exposure and replication", "status": "planned", "gate": {"id": "G8.2", "status": "not_run", "required": true}},
-      {"id": "8.3", "title": "Readable boundary and disaster integration", "status": "planned", "gate": {"id": "G8.3", "status": "not_run", "required": true}},
-      {"id": "8.4", "title": "Integrated regression and matching local packages", "status": "planned", "gate": {"id": "G8.4", "status": "not_run", "required": true}}
+      {"id": "7S.1", "title": "Replace tiny bevels with curved architecture and prop surfaces", "status": "completed", "gate": {"id": "G7S.1", "status": "passed", "required": true}},
+      {"id": "7S.2", "title": "Same-camera before/after render and collision regressions", "status": "completed", "gate": {"id": "G7S.2", "status": "passed", "required": true}},
+      {"id": "7S.3", "title": "Source reference provenance and authorized push without deployment", "status": "in_progress", "gate": {"id": "G7S.3", "status": "not_run", "required": true}}
     ]
   },
+  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md"}],
   "completed_phase": {"id": "phase_7_visual_correction", "status": "completed_agent_owned_source_and_delivery", "archive": "docs/old-docs/phase-7-visual-correction/progress.json", "qualification": "Supersedes original Phase7 visual completion. Reference PNGs, corrected runtime visuals and tests delivered; concept pixel equivalence, native GPU/60FPS and human aesthetic acceptance not claimed."},
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -35,9 +35,14 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "validation_log": [],
+  "validation_log": [
+    {"date": "2026-10-14", "check": "rounded_world_baseline_and_render", "status": "passed", "result": "ROUNDED_WORLD_COLLIDERS_IDENTICAL maps=town107,harbor46; measured972 triangles/module and asymmetric bounds exact. Original HEAD main extracted to ignored scratch for identical-camera before/after fixture. All Sandbox collider transforms/sizes and map anchors compare equal. First renders exposed pillow-like paving, house roof furniture intersections and awning/sign occlusion; refined slab radii, restricted roof furniture to flat roofs and replaced central awning visual. Final comparison and six-view detail sheet inspected; interiors explicitly roof-hidden cutaways, not gameplay captures.", "artifacts": [".amp/in/artifacts/rounded-world/comparison.png", ".amp/in/artifacts/rounded-world/detail-review.png"]},
+    {"date": "2026-10-14", "command": "GODOT_BIN=$(command -v godot) bash tests/run_ui_regression.sh", "status": "passed", "result": "UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed", "log": ".scratch/rounded-world-regression.log"},
+    {"date": "2026-10-14", "check": "final_refinement_regression", "status": "passed", "result": "MAP_SAFETY_OK251 routes carrying/unladen, canopy/rematches and broken-roof drop/escape; MAP_VARIETY_OK303; CARRY_PRESENTATION_OK41. Existing shutdown-only audio/resource diagnostics documented by unchanged strict runner; no new error suppression."},
+    {"date": "2026-10-14", "check": "limits", "status": "not_run", "result": "Runtime geometry improved, not exact concept parity or user aesthetic approval. Main layout/lighting/scene density remain simpler than reference. Geometry cost increased9x per rounded module; native GPU/60FPS not measured. No deployment/release or survival-zone implementation."}
+  ],
   "blockers": [],
-  "changed_files": [],
+  "changed_files": ["game/main.gd", "tests/test_map_safety.gd", "assets/manifest.json", "assets/references/phase7", "docs/decisions.md", "docs/checklists/phase-7-rounded-world-rebuild.md", "docs/implementation-checklist.md"],
   "correction_delivery": {"authorization": "Owner requested fix, source design images and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "848b5680bf65a93e21445209d51802f30a5a0ca7", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
   "delivery": {
     "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
@@ -61,5 +66,5 @@
     "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
     "notes": "PLAYTEST-NOTES.md"
   },
-  "next_action": "Execute Phase8 task8.1a collision-driven route feasibility on both maps before implementing any survival-zone damage."
+  "next_action": "Commit and push validated rounded-world source and exact owner reference using [skip ci], then record verified delivery without claiming aesthetic acceptance or deploying."
 }

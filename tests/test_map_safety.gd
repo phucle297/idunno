@@ -228,7 +228,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 			_expect(column != null, "Canopy corner %s,%s needs an inset support column" % [sx, sz])
 			if column == null:
 				continue
-			var mesh_size := ((column.find_children("*", "MeshInstance3D", false, false)[0] as MeshInstance3D).mesh as BoxMesh).size
+			var mesh_size := (column.find_children("*", "MeshInstance3D", false, false)[0] as MeshInstance3D).mesh.get_aabb().size
 			var collider_size := ((column.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D).shape as BoxShape3D).size
 			_expect(mesh_size.is_equal_approx(collider_size), "Support column mesh and collider must agree at %s,%s" % [sx, sz])
 			_expect(absf(column.position.y + mesh_size.y * 0.5 - 4.65) < 0.01 and absf(column.position.y - mesh_size.y * 0.5 - 2.575) < 0.01, "Support column must span deck surface to canopy underside at %s,%s" % [sx, sz])
