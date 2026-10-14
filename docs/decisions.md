@@ -15,6 +15,35 @@ The owner's progressive-loading question has a proposed chunk-streaming approach
 in the archive, not an implemented feature or an activated phase. The current map
 still builds eagerly; same-map rematch reuse is not streaming.
 
+## 2026-10-14 — Phase 8.4 environmental fire and water
+
+Fire resolves authored fuel sites to their actual support at ignition and keeps
+a 1.8 m upward / 0.3 m downward exposure band. A dry roof and the ground below
+it are independent. Flood's synchronous level event marks immersed sites WET,
+cancels pending ignition and updates presentation before damage. Draining makes
+a site eligible again but never revives its old pending front. Publish the reset
+level during Flood cleanup too: the first combination run exposed stale high
+water after cleanup, which suppressed the next otherwise-dry Fire/Tornado fixture.
+The fixed combination run passed102 checks; the failed coroutine was stopped,
+not counted as a pass.
+
+Cool submerged wind fire debris and quake rubble before their damage paths.
+Quake rubble retains its independent physical body and loses its hot tag/glow;
+another floor's fire cannot ignite it. Seed dry origins and graph paths, jitter
+spread intervals0.8–1.25× and preserve the 1.5 s neighbor warning even after a
+large delta. Cap burning sites at4 and at half the graph so clear sites remain.
+Across20 seeds, executed traces give14 distinct coverage sets and20 timing
+patterns; same-seed replay is exact. This is variation evidence, not human balance.
+
+Fire95 (including remote idle wetness reset), earthquake96, Flood59,
+five-reset integration150 and two consecutive real
+two-peer/five-rematch runs passed. Fixture-only wind/cooled observation ACKs pin
+the actual remote WET state before cleanup; no gameplay delay/retry was added.
+Actual720p/1080p warning/burning/spread/cooled/dry-roof views inspected, with
+outlined countdown labels and context advice that does not advertise F or water
+immunity. Some distant720p labels have lower contrast; immediate advice remains
+legible. Fire meshes measure896 triangles/site; no external asset or new capacity.
+
 ## 2026-10-14 — Phase 8.3 localized earthquake
 
 Replace the global HP/velocity/knockdown pulse with at most three separated,

@@ -62,6 +62,89 @@ func _run() -> void:
 	_expect(fire.get_burning_zone_ids().is_empty() and not fire.wind_active, "Cleanup must reset every zone and interaction state")
 	_expect(fire.start_warning(7), "A cleaned Fire must be reusable")
 	fire.cleanup()
+	manager.prepare_lobby()
+	manager.set_player_ready(1, true)
+	manager.set_player_ready(2, true)
+	manager.start_match()
+	near_player.position = Vector3.ZERO
+	far_player.position = Vector3(0, 5, 0)
+	fire.set_zone_layout([Vector3(0, 0.08, 0), Vector3(0, 5.08, 0), Vector3(7, 0.08, 0), Vector3(14, 0.08, 0)], [[2], [2], [0, 1, 3], [2]])
+	_expect(fire.start_warning(0), "Dry ground fire must start")
+	fire.tick(fire.warning_duration)
+	fire.tick(0.5)
+	_expect(manager.get_health(1) == 94.0 and manager.get_health(2) == 100.0, "Fire must damage its floor, not a dry roof directly above it")
+	fire.set_water_level(-0.001)
+	_expect(fire.get_zone_state(0) == Fire.ZoneState.BURNING, "Water just below support must not extinguish fire")
+	fire.set_water_level(0.0)
+	var cooled_health := manager.get_health(1)
+	fire.tick(0.5)
+	_expect(fire.get_zone_state(0) == Fire.ZoneState.WET and manager.get_health(1) == cooled_health, "At support immersion visual state and authoritative damage must extinguish together")
+	fire.cleanup()
+	_expect(not fire.start_warning(0), "Wet ground must reject new ignition")
+	_expect(fire.start_warning(1), "Dry roof above flooded ground must still ignite")
+	fire.tick(fire.warning_duration)
+	fire.tick(0.5)
+	_expect(manager.get_health(2) == 94.0 and manager.get_health(1) == cooled_health, "Dry roof fire harms only its own floor")
+	fire.set_wind_active(true)
+	fire.set_water_level(4.999)
+	_expect(fire.get_zone_state(1) == Fire.ZoneState.BURNING, "Roof fire must remain dry just before its surface is submerged")
+	fire.set_water_level(5.0)
+	var roof_health := manager.get_health(2)
+	fire.tick(0.5)
+	_expect(fire.get_zone_state(1) == Fire.ZoneState.WET and manager.get_health(2) == roof_health, "Roof fire extinguishes at its own support boundary")
+	fire.set_water_level(6.0)
+	_expect(fire.burning_debris_count() == 0, "Submerged wind debris must cease being a burning hazard")
+	fire.cleanup()
+	for cycle in 5:
+		fire.set_water_level(-0.1)
+		_expect(fire.start_warning(3), "Dry pending front must warn after reset")
+		fire.set_water_level(0.0)
+		fire.tick(fire.warning_duration + 0.1)
+		fire.set_water_level(-0.1)
+		fire.tick(5.0)
+		_expect(fire.get_burning_zone_ids().is_empty(), "Draining must not resurrect a cancelled ignition after rematch")
+		fire.cleanup()
+	fire.set_zone_layout(Fire.ZONE_POSITIONS, Fire.ZONE_NEIGHBORS)
+	near_player.position = Vector3(25, 0, 25)
+	far_player.position = Vector3(25, 5, 25)
+	var replay := _trace_fire(fire, 801)
+	_expect(replay == _trace_fire(fire, 801), "Same seed must replay front coverage and propagation timing exactly")
+	var unique := {}
+	var coverage_patterns := {}
+	var timing_patterns := {}
+	for seed_value in range(801, 821):
+		var trace := _trace_fire(fire, seed_value)
+		var coverage: Array[int] = []
+		var timing: Array[int] = []
+		for entry: Array in trace:
+			coverage.append(entry[0])
+			timing.append(entry[1])
+		coverage.sort()
+		coverage_patterns[str(coverage)] = true
+		timing_patterns[str(timing)] = true
+		unique[str(trace)] = true
+	_expect(unique.size() >= 10, "Different seeds must produce measured coverage/timing variation, not just RNG calls")
+	_expect(coverage_patterns.size() >= 4 and timing_patterns.size() >= 4, "Variation must change both coverage and timing independently")
+	print("FIRE_VARIATION seeds=20 unique_traces=%d coverage=%d timing=%d cap=%d" % [unique.size(), coverage_patterns.size(), timing_patterns.size(), fire.max_burning_zones])
+	var client_root := Node3D.new()
+	root.add_child(client_root)
+	var client_api := SceneMultiplayer.new()
+	var client_peer := ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 39997)
+	client_api.multiplayer_peer = client_peer
+	set_multiplayer(client_api, client_root.get_path())
+	var client_fire := Fire.new()
+	client_root.add_child(client_fire)
+	client_fire.set_process(false)
+	fire.start_warning(0)
+	fire.tick(fire.warning_duration)
+	fire.set_water_level(0.0)
+	_expect(client_fire.apply_presentation_snapshot(fire.create_presentation_snapshot()) and client_fire.get_zone_state(0) == Fire.ZoneState.WET, "Client presentation must mirror cooled authoritative zones")
+	fire.cleanup()
+	fire.set_water_level(-0.1)
+	_expect(client_fire.apply_presentation_snapshot(fire.create_presentation_snapshot()) and client_fire.get_zone_state(0) == Fire.ZoneState.SAFE, "An idle/rematch snapshot must clear stale wetness with its new water level")
+	client_peer.close()
+	client_root.free()
 
 	if failures.is_empty():
 		print("FIRE_OK checks=%d ignitions=%d zones=%d" % [checks, ignited_zones.size(), FireScript.ZONE_POSITIONS.size()])
@@ -79,6 +162,25 @@ func _add_player(parent: Node3D, player_name: String, position: Vector3) -> Part
 	parent.add_child(player)
 	player.set_physics_process(false)
 	return player
+
+
+func _trace_fire(fire: Fire, seed_value: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var trace: Array = []
+	var seen: Array[int] = []
+	var peak := 0
+	_expect(fire.start_disaster(rng), "Seeded dry fire must start")
+	for tick in 280:
+		fire.tick(0.1)
+		for zone_id in fire.get_burning_zone_ids():
+			if zone_id not in seen:
+				seen.append(zone_id)
+				trace.append([zone_id, tick])
+		peak = maxi(peak, fire.get_burning_zone_ids().size())
+	_expect(peak <= fire.max_burning_zones, "Burning area must stay within the cap")
+	fire.cleanup()
+	return trace
 
 
 func _expect(condition: bool, message: String) -> void:

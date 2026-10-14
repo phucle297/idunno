@@ -184,7 +184,7 @@ func cleanup() -> void:
 	_surface = null
 	phase = Phase.IDLE
 	warning_remaining = 0.0
-	water_level = start_level
+	_set_water_level(start_level)
 	electrified_remaining = 0.0
 	electrified_target = Vector3.ZERO
 	rise_pattern = RisePattern.STEADY

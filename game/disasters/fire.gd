@@ -4,6 +4,7 @@ extends Node3D
 signal warning_started(zone_id: int, duration: float)
 signal propagation_warning(zone_id: int, duration: float)
 signal zone_ignited(zone_id: int, position: Vector3)
+signal zone_extinguished(zone_id: int, position: Vector3)
 signal wind_state_changed(active: bool)
 signal finished
 
@@ -16,7 +17,8 @@ enum Phase {
 enum ZoneState {
 	SAFE,
 	WARNING,
-	BURNING
+	BURNING,
+	WET
 }
 
 const DISASTER_NAME := "Fire"
@@ -49,6 +51,10 @@ const ZONE_NEIGHBORS := [
 @export var propagation_interval := 4.0
 @export var propagation_warning_duration := 1.5
 @export var wind_interval_multiplier := 0.5
+@export var exposure_height := 1.8
+@export var max_burning_zones := 4
+
+const SUPPORT_OFFSET := 0.08
 
 var phase := Phase.IDLE
 var warning_remaining := 0.0
@@ -57,6 +63,8 @@ var propagation_remaining := 0.0
 var wind_active := false
 var zone_positions: Array = ZONE_POSITIONS.duplicate()
 var zone_neighbors: Array = ZONE_NEIGHBORS.duplicate()
+var water_level := -INF
+var support_height: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -69,6 +77,9 @@ var _fire_material: StandardMaterial3D
 var _amber_material: StandardMaterial3D
 var _burning_debris: RigidBody3D
 var _burning_debris_visual: MeshInstance3D
+var _wet_material: StandardMaterial3D
+var _interval_scale := 1.0
+var _seeded_spread := false
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -100,8 +111,19 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
+	if not _can_mutate() or phase != Phase.IDLE:
+		return false
 	_rng.seed = rng.randi()
-	return start_warning(_rng.randi_range(0, zone_positions.size() - 1))
+	_resolve_supports()
+	var dry: Array[int] = []
+	for zone_id in zone_positions.size():
+		if _zone_is_dry(zone_id):
+			dry.append(zone_id)
+	if dry.is_empty():
+		return false
+	_seeded_spread = true
+	_interval_scale = _rng.randf_range(0.8, 1.25)
+	return start_warning(dry[_rng.randi_range(0, dry.size() - 1)])
 
 
 func is_active() -> bool:
@@ -127,6 +149,9 @@ func start_warning(zone_id: int) -> bool:
 		return false
 	if _match_manager.state != MatchManager.MatchState.ACTIVE or zone_id < 0 or zone_id >= zone_positions.size():
 		return false
+	_resolve_supports()
+	if not _zone_is_dry(zone_id):
+		return false
 	_reset_zone_states()
 	phase = Phase.WARNING
 	warning_remaining = warning_duration
@@ -148,9 +173,62 @@ func set_wind_active(active: bool) -> bool:
 	return true
 
 
+func set_water_level(level: float) -> void:
+	if not _can_mutate():
+		return
+	water_level = level
+	for zone_id in _zone_states.size():
+		if not _zone_is_dry(zone_id):
+			var was_hot := _zone_states[zone_id] in [ZoneState.WARNING, ZoneState.BURNING]
+			_zone_states[zone_id] = ZoneState.WET
+			if _pending_zone == zone_id:
+				_pending_zone = -1
+			if was_hot:
+				zone_extinguished.emit(zone_id, zone_positions[zone_id])
+		elif _zone_states[zone_id] == ZoneState.WET:
+			_zone_states[zone_id] = ZoneState.SAFE
+	# Water is delivered synchronously before this frame's damage, including
+	# pending fronts and the wind-carried burning body, not only its flame.
+	if is_instance_valid(_burning_debris) and water_level >= _burning_debris.global_position.y - 0.55:
+		_burning_debris.queue_free()
+		_burning_debris = null
+	_update_effect()
+
+
+func get_escape_context(point: Vector3) -> String:
+	if phase == Phase.IDLE:
+		return ""
+	for zone_id in _zone_states.size():
+		var zone: Vector3 = zone_positions[zone_id]
+		if absf(point.y - (zone.y - SUPPORT_OFFSET)) > exposure_height or Vector2(point.x - zone.x, point.z - zone.z).length() > zone_radius:
+			continue
+		if _zone_states[zone_id] == ZoneState.WET:
+			return "Water cools this area — Flood still harms"
+		if _zone_states[zone_id] == ZoneState.WARNING:
+			var remaining := warning_remaining if phase == Phase.WARNING else propagation_remaining
+			return "Leave spreading fire — %ds" % ceili(remaining)
+		if _zone_states[zone_id] == ZoneState.BURNING:
+			return "Leave burning ground"
+	return ""
+
+
+func _zone_is_dry(zone_id: int) -> bool:
+	return water_level < (zone_positions[zone_id] as Vector3).y - SUPPORT_OFFSET
+
+
+func _resolve_supports() -> void:
+	if not support_height.is_valid():
+		return
+	for zone_id in zone_positions.size():
+		var point: Vector3 = zone_positions[zone_id]
+		point.y = float(support_height.call(point)) + SUPPORT_OFFSET
+		zone_positions[zone_id] = point
+
+
 func tick(delta: float) -> void:
 	if not _can_mutate() or phase == Phase.IDLE:
 		return
+	set_water_level(water_level)
 	var safe_delta := maxf(delta, 0.0)
 	if phase == Phase.WARNING:
 		warning_remaining = maxf(warning_remaining - safe_delta, 0.0)
@@ -179,6 +257,7 @@ func cleanup() -> void:
 	_warning_material = null
 	_fire_material = null
 	_amber_material = null
+	_wet_material = null
 	if is_instance_valid(_burning_debris):
 		_burning_debris.queue_free()
 	_burning_debris = null
@@ -191,6 +270,8 @@ func cleanup() -> void:
 	propagation_remaining = 0.0
 	_pending_zone = -1
 	wind_active = false
+	_interval_scale = 1.0
+	_seeded_spread = false
 	_reset_zone_states()
 
 
@@ -222,6 +303,8 @@ func create_presentation_snapshot() -> Dictionary:
 		"propagation": propagation_remaining,
 		"wind": wind_active,
 		"zones": _zone_states,
+		"positions": PackedVector3Array(zone_positions),
+		"water_level": water_level,
 		"debris_active": is_instance_valid(_burning_debris),
 		"debris_position": _burning_debris.global_position if is_instance_valid(_burning_debris) else Vector3.ZERO,
 	}
@@ -231,6 +314,8 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
 		return false
 	var next_phase := clampi(int(snapshot.get("phase", Phase.IDLE)), Phase.IDLE, Phase.ACTIVE)
+	water_level = float(snapshot.get("water_level", -INF))
+	zone_positions.assign(snapshot.get("positions", PackedVector3Array(zone_positions)))
 	if next_phase == Phase.IDLE:
 		cleanup()
 		return true
@@ -259,7 +344,8 @@ func _apply_fire_damage(delta: float) -> void:
 			continue
 		for zone_id in get_burning_zone_ids():
 			var zone := zone_positions[zone_id] as Vector3
-			if Vector2(player.global_position.x - zone.x, player.global_position.z - zone.z).length() <= zone_radius:
+			var height := player.global_position.y - (zone.y - SUPPORT_OFFSET)
+			if height >= -0.3 and height <= exposure_height and Vector2(player.global_position.x - zone.x, player.global_position.z - zone.z).length() <= zone_radius:
 				damage_events.append({"peer_id": peer_id, "amount": damage_per_second * delta, "cause": DAMAGE_CAUSE})
 				break
 	if not damage_events.is_empty():
@@ -267,6 +353,9 @@ func _apply_fire_damage(delta: float) -> void:
 
 
 func _warn_next_zone() -> void:
+	# Always leave at least half the fuel sites clear; no full-graph carpet.
+	if get_burning_zone_ids().size() >= mini(max_burning_zones, maxi(1, zone_positions.size() / 2)):
+		return
 	var candidates: Array[int] = []
 	for burning_zone in get_burning_zone_ids():
 		for neighbor: int in zone_neighbors[burning_zone]:
@@ -277,26 +366,36 @@ func _warn_next_zone() -> void:
 	candidates.sort()
 	_pending_zone = candidates[_rng.randi_range(0, candidates.size() - 1)]
 	_zone_states[_pending_zone] = ZoneState.WARNING
+	propagation_remaining = maxf(propagation_remaining, propagation_warning_duration)
 	propagation_warning.emit(_pending_zone, propagation_warning_duration)
 
 
 func _ignite_pending_zone() -> void:
 	if _pending_zone < 0:
 		return
+	if not _zone_is_dry(_pending_zone):
+		_zone_states[_pending_zone] = ZoneState.WET
+		_pending_zone = -1
+		return
 	_zone_states[_pending_zone] = ZoneState.BURNING
 	zone_ignited.emit(_pending_zone, zone_positions[_pending_zone])
 	_pending_zone = -1
+	if _seeded_spread:
+		_interval_scale = _rng.randf_range(0.8, 1.25)
 	_sync_wind_debris()
 
 
 func _current_propagation_interval() -> float:
-	return propagation_interval * (wind_interval_multiplier if wind_active else 1.0)
+	return maxf(propagation_warning_duration, propagation_interval * _interval_scale * (wind_interval_multiplier if wind_active else 1.0))
 
 
 func _reset_zone_states() -> void:
 	_zone_states = PackedByteArray()
 	_zone_states.resize(zone_positions.size())
 	_zone_states.fill(ZoneState.SAFE)
+	for zone_id in _zone_states.size():
+		if not _zone_is_dry(zone_id):
+			_zone_states[zone_id] = ZoneState.WET
 
 
 func _sync_wind_debris() -> void:
@@ -370,6 +469,7 @@ func _spawn_effect() -> void:
 	_warning_material = _zone_material(Color("ffbf3f"), 0.82)
 	_fire_material = _zone_material(Color("f06438"), 0.95)
 	_amber_material = _zone_material(Color("ffbf3f"), 0.95)
+	_wet_material = _zone_material(Color("42b8e8"), 0.8)
 	for zone_id in zone_positions.size():
 		var zone := Node3D.new()
 		zone.name = "Zone%d" % zone_id
@@ -394,6 +494,16 @@ func _spawn_effect() -> void:
 			flame.mesh = mesh
 			flame.position = Vector3(-0.9 + flame_index * 0.6, 0.55, sin(flame_index * 2.0) * 0.45)
 			zone.add_child(flame)
+		var label := Label3D.new()
+		label.name = "Notice"
+		label.position.y = 2.2
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.font_size = 64
+		label.pixel_size = 0.007
+		label.modulate = Color("202a38")
+		label.outline_modulate = Color("f4e6c8")
+		label.outline_size = 10
+		zone.add_child(label)
 		_effect.add_child(zone)
 	_update_effect()
 
@@ -401,14 +511,19 @@ func _spawn_effect() -> void:
 func _update_effect() -> void:
 	if not is_instance_valid(_effect):
 		return
-	for zone_id in ZONE_POSITIONS.size():
+	for zone_id in zone_positions.size():
 		var zone := _effect.get_node("Zone%d" % zone_id) as Node3D
+		zone.position = zone_positions[zone_id]
 		var state := get_zone_state(zone_id)
 		zone.visible = state != ZoneState.SAFE
 		if not zone.visible:
 			continue
 		var ring := zone.get_node("Ring") as MeshInstance3D
-		ring.material_override = _warning_material if state == ZoneState.WARNING else _fire_material
+		ring.material_override = _wet_material if state == ZoneState.WET else (_warning_material if state == ZoneState.WARNING else _fire_material)
+		var label := zone.get_node("Notice") as Label3D
+		label.visible = state == ZoneState.WARNING
+		var remaining := warning_remaining if phase == Phase.WARNING else propagation_remaining
+		label.text = "FIRE • %ds" % ceili(remaining)
 		var pulse := 1.0 + sin((warning_remaining + propagation_remaining) * TAU * 2.0 + zone_id) * 0.08
 		ring.scale = Vector3(pulse, 1.0, pulse)
 		for flame_index in 4:

@@ -233,6 +233,12 @@ func _run() -> void:
 		earthquake.tick(earthquake.warning_duration + 0.02)
 		earthquake.tick(0.8)
 		_expect(earthquake.burning_rubble_count() == 1, "Rematch cycle %d must ignite collapse rubble" % (cycle + 1))
+		if cycle == 4:
+			var submerged_body := get_first_node_in_group("burning_rubble") as RigidBody3D
+			earthquake.set_water_level(submerged_body.global_position.y + 0.1)
+			_expect(earthquake.burning_rubble_count() == 0 and is_instance_valid(submerged_body), "Water must extinguish burning rubble without deleting independent physical debris")
+			_expect(not submerged_body.is_in_group("burning_rubble") and not bool(submerged_body.get_meta("burning_rubble")), "Extinguished rubble must lose its hot damage tag immediately")
+			earthquake.set_water_level(-INF)
 		earthquake.cleanup()
 		_expect(earthquake.burning_rubble_count() == 0, "Rematch cycle %d must clear tagged burning rubble" % (cycle + 1))
 		await process_frame

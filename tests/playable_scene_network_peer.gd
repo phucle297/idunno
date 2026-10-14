@@ -178,9 +178,15 @@ func _run_server(main: Node) -> void:
 	tornado.tick(tornado.warning_duration)
 	tornado.tick(1.6)
 	var wind_combination_passed := fire.wind_active and fire.burning_debris_count() == 1
-	await create_timer(0.5).timeout
+	wind_combination_passed = await main.wait_for_stage("wind") and wind_combination_passed
+	flood.start_warning()
+	flood.tick(flood.warning_duration)
+	flood._set_water_level(flood.target_level)
+	var water_combination_passed := fire.get_zone_state(6) == Fire.ZoneState.WET and fire.get_burning_zone_ids().is_empty()
+	water_combination_passed = await main.wait_for_stage("water-cooled") and water_combination_passed
 	fire.cleanup()
 	tornado.cleanup()
+	flood.cleanup()
 	await create_timer(0.3).timeout
 	var earthquake := main.get_node("Earthquake") as Earthquake
 	earthquake.set_process(false)
@@ -197,6 +203,7 @@ func _run_server(main: Node) -> void:
 		and combination_fire_started
 		and tornado_started
 		and wind_combination_passed
+		and water_combination_passed
 		and earthquake_started
 		and earthquake.phase == Earthquake.Phase.ACTIVE
 	)
@@ -459,6 +466,11 @@ func _run_client(main: Node) -> void:
 		var image := root.get_viewport().get_texture().get_image()
 		var capture_error := image.save_png(capture_path)
 		wind_combination_passed = capture_error == OK
+	main.rpc_id(1, "acknowledge_stage", "wind")
+	while fire.get_zone_state(6) != Fire.ZoneState.WET and Time.get_ticks_msec() < deadline:
+		await process_frame
+	wind_combination_passed = wind_combination_passed and fire.get_zone_state(6) == Fire.ZoneState.WET and fire.get_burning_zone_ids().is_empty()
+	main.rpc_id(1, "acknowledge_stage", "water-cooled")
 	var earthquake := main.get_node("Earthquake") as Earthquake
 	while earthquake.phase != Earthquake.Phase.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame

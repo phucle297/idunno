@@ -121,9 +121,11 @@ func _ready() -> void:
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
 	fire.warning_started.connect(_on_fire_warning_started)
-	fire.zone_ignited.connect(_on_fire_zone_ignited)
+	fire.zone_ignited.connect(_on_fire_zone_changed)
+	fire.zone_extinguished.connect(_on_fire_zone_changed)
 	fire.finished.connect(_on_fire_finished)
 	flood.warning_started.connect(_on_flood_warning_started)
+	flood.water_level_changed.connect(_on_water_level_changed)
 	flood.finished.connect(_on_flood_finished)
 	earthquake.warning_started.connect(_on_earthquake_warning_started)
 	earthquake.finished.connect(_on_earthquake_finished)
@@ -1178,7 +1180,10 @@ func _update_context_prompt(local_peer_id: int) -> void:
 	if not is_instance_valid(player) or not match_manager.is_player_alive(local_peer_id):
 		gameplay_hud.present_context_action("")
 		return
-	gameplay_hud.present_context_action(earthquake.get_escape_context(player.global_position))
+	var context := earthquake.get_escape_context(player.global_position)
+	if context.is_empty():
+		context = fire.get_escape_context(player.global_position)
+	gameplay_hud.present_context_action(context)
 
 
 func _update_major_warning() -> void:
@@ -1252,7 +1257,7 @@ func _on_fire_warning_started(_zone_id: int, _duration: float) -> void:
 		fire.set_wind_active(true)
 
 
-func _on_fire_zone_ignited(_zone_id: int, _position: Vector3) -> void:
+func _on_fire_zone_changed(_zone_id: int, _position: Vector3) -> void:
 	_sync_burning_positions()
 
 
@@ -1273,6 +1278,11 @@ func _sync_burning_positions() -> void:
 func _on_flood_warning_started(_duration: float) -> void:
 	if earthquake.is_active():
 		earthquake.set_refuge_pressure(true)
+
+
+func _on_water_level_changed(level: float) -> void:
+	fire.set_water_level(level)
+	earthquake.set_water_level(level)
 
 
 func _on_flood_finished() -> void:
@@ -2266,6 +2276,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	lightning.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
 	flood.set_map_extent(get_map_half_extent())
 	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
+	fire.support_height = get_map_support_height
 	earthquake.support_height = get_map_support_height
 
 

@@ -15,9 +15,7 @@ enum Phase {
 const DISASTER_NAME := "Earthquake"
 const DAMAGE_CAUSE := "Earthquake"
 const BURNING_RUBBLE_CAUSE := "Burning Rubble"
-# Burning zones are ground areas: collapse debris ignites when it comes from
-# a section over or beside one, measured horizontally so height never hides a
-# burning section.
+# Fire on another floor cannot ignite dry collapse rubble above it.
 const BURNING_RUBBLE_RADIUS := 6.0
 
 @export var warning_duration := 4.0
@@ -51,6 +49,7 @@ var _structure_root: Node
 var _burning_positions: Array[Vector3] = []
 var _burning_rubble: Array[Dictionary] = []
 var _burning_rubble_visuals: Array[MeshInstance3D] = []
+var _water_level := -INF
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -75,6 +74,24 @@ func set_burning_positions(positions: Array[Vector3]) -> void:
 
 func burning_rubble_count() -> int:
 	return _burning_rubble.size()
+
+
+func set_water_level(level: float) -> void:
+	if not _can_mutate():
+		return
+	_water_level = level
+	for index in range(_burning_rubble.size() - 1, -1, -1):
+		var body := _burning_rubble[index].get("body") as RigidBody3D
+		if not is_instance_valid(body) or _water_level < body.global_position.y - 0.2:
+			continue
+		body.remove_from_group("burning_rubble")
+		body.set_meta("burning_rubble", false)
+		for child in body.get_children():
+			if child is MeshInstance3D:
+				child.material_override = null
+		_remove_burning_visual_at(index)
+		_burning_rubble.remove_at(index)
+		# Keep the independent physical rubble; its structure owns cleanup.
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -130,6 +147,7 @@ func tick(delta: float) -> void:
 	if not _can_mutate():
 		return
 	var safe_delta := maxf(delta, 0.0)
+	set_water_level(_water_level)
 	_update_burning_rubble(safe_delta)
 	if phase == Phase.IDLE:
 		return
@@ -438,10 +456,12 @@ func _maybe_ignite_rubble(section: BreakableStructure) -> void:
 	var body := section.get_debris()
 	if not is_instance_valid(body) or body.is_queued_for_deletion():
 		return
+	if _water_level >= body.global_position.y - 0.2:
+		return
 	var rubble_flat := Vector2(body.global_position.x, body.global_position.z)
 	for burning_position in _burning_positions:
 		var burning_flat := Vector2(burning_position.x, burning_position.z)
-		if rubble_flat.distance_to(burning_flat) <= BURNING_RUBBLE_RADIUS:
+		if rubble_flat.distance_to(burning_flat) <= BURNING_RUBBLE_RADIUS and absf(body.global_position.y - burning_position.y) <= 2.0:
 			# Explicit cue: ember-tinted glow on the quake rubble marks it as the
 			# short-lived damaging kind rather than ordinary harmless debris.
 			for child in body.get_children():

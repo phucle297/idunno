@@ -1,6 +1,6 @@
 # Phase 8 — Character, UI and Disaster Counterplay
 
-Status: in progress; 8.1–8.3 technical gates passed; 8.4 is current.
+Status: in progress; 8.1–8.4 technical gates passed; 8.5 is current.
 Owner priority2026-10-14 supersedes the former
 Phase8 safe-zone ordering. Current public baseline is Integrated Town revision
 2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d. No new deployment/release is authorized.
@@ -166,12 +166,12 @@ hidden F context badge removed when rendering exposed it. See active decisions.
 
 Owners: Fire/Flood, support/collision rules, main/HUD.
 
-- [ ] Give fire zones real support elevation and bounded vertical exposure. Flood
+- [x] Give fire zones real support elevation and bounded vertical exposure. Flood
   crossing a zone's burning surface extinguishes that zone, its pending ignition
   and submerged burning rubble; it does not extinguish a dry roof above water.
   Update visuals and authoritative damage together, before that frame's fire damage.
   Wet zones cannot reignite until dry; no old pending-front resurrection on draining.
-- [ ] Seeded variation in eligible dry ignition sites, front shape/direction and
+- [x] Seeded variation in eligible dry ignition sites, front shape/direction and
   propagation timing with minimum warning and capped burning area. Compare same
   seed replay/different-seed coverage, not RNG invocation counts. Keep connected
   fuel graph, route escapes and visible impending ignition, not silent teleport fire.
@@ -180,6 +180,13 @@ Gate G8.4: dry roof over flooded ground, just-before/at/after immersion, drainin
 pending ignition cancellation, Fire+Tornado/rubble, remote convergence and5 rematches.
 Measured variations across seeds; each extinguished visual corresponds to no damage.
 No held shield, water pail, pour/refill or player-item dependency in phases8–10.
+
+Passed: Fire95, quake96, Flood59, rematch150 and combinations102; two real
+two-peer/five-rematch runs including remote WET convergence. Across20 seeds:
+14 coverage sets,20 timing patterns, same-seed replay exact. Full active/draining
+boundaries and client idle wetness reset exercised. Final720p/1080p warning,
+burning, neighbor warning, cooled ground and dry-roof views inspected; see decisions
+for the corrected Flood cleanup level event and distant720p label limitation.
 
 ## 8.5 — Meteor pressure without unfair instant death
 
