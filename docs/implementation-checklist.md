@@ -7,7 +7,6 @@
 | Phase | Status | Checklist |
 | --- | --- | --- |
 | 2 — Human Playtest and Core Feel | Deferred, not completed | [Phase 2](checklists/phase-2-human-playtest-and-core-feel.md) · [frozen evidence](old-docs/phase-2-human-playtest-and-core-feel/progress.json) |
-| 7S — Rounded World Rebuild | Active; owner rejected boxy7R result | [Rounded rebuild](checklists/phase-7-rounded-world-rebuild.md) |
 | 8 — Shrinking Survival Zone and Integrated Local Delivery | Planned; not started | [Phase 8](checklists/phase-8-shrinking-survival-zone.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
@@ -34,6 +33,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 - [Phase 6 — Cosmetic Loot-Box Drops and Customization](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) · [decisions](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) · [evidence](old-docs/phase-6-cosmetic-loot-box-drops-and-customization/progress.json) — validated local packages; not deployed/published. Software measurement completed, 60FPS/native/human acceptance not passed.
 - [Phase 7 — Soft Creature, Detailed World and Complete Interface](old-docs/phase-7-soft-creature-world-and-interface/checklist.md) · [decisions](old-docs/phase-7-soft-creature-world-and-interface/decisions.md) · [evidence](old-docs/phase-7-soft-creature-world-and-interface/progress.json) — validated agent-owned source/regression gates only; native GPU/Windows/60FPS/separate-network acceptance unverified and nonblocking.
 - [Phase 7R — Visual Correction](old-docs/phase-7-visual-correction/checklist.md) · [decisions](old-docs/phase-7-visual-correction/decisions.md) · [evidence](old-docs/phase-7-visual-correction/progress.json) — corrected source and references pushed; no exact-concept/native-GPU/human acceptance claim and no deployment.
+- [Phase 7S — Rounded World Rebuild](old-docs/phase-7-rounded-world-rebuild/checklist.md) · [decisions](old-docs/phase-7-rounded-world-rebuild/decisions.md) · [evidence](old-docs/phase-7-rounded-world-rebuild/progress.json) — rounded source/reference pushed after owner rejected7R visuals; concept parity, native GPU and human approval unverified. No deployment/release; Phase8 paused.
 
 ## Tracking rules
 

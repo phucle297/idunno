@@ -1,0 +1,72 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-14",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "completed",
+  "archive_metadata": {"phase_id": "phase_7_rounded_world_rebuild", "title": "Rounded World Rebuild Against Owner Camera Reference", "completion_status": "completed_agent_owned_source_and_delivery", "archived_at": "2026-10-14", "superseded_by": "../../../progress.json", "qualification": "Rounded-source delivery only, not exact concept parity or owner aesthetic/native-GPU acceptance."},
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 remains deferred, not completed."},
+  "previous_phase_archive": "docs/old-docs/phase-7-visual-correction/progress.json",
+  "checklist": "docs/checklists/phase-7-rounded-world-rebuild.md",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_7_rounded_world_rebuild", "milestone": "7S.3", "task": null},
+  "phase": {
+    "id": "phase_7_rounded_world_rebuild",
+    "title": "Rounded World Rebuild Against Owner Camera Reference",
+    "status": "completed",
+    "milestones": [
+      {"id": "7S.1", "title": "Replace tiny bevels with curved architecture and prop surfaces", "status": "completed", "gate": {"id": "G7S.1", "status": "passed", "required": true}},
+      {"id": "7S.2", "title": "Same-camera before/after render and collision regressions", "status": "completed", "gate": {"id": "G7S.2", "status": "passed", "required": true}},
+      {"id": "7S.3", "title": "Source reference provenance and authorized push without deployment", "status": "completed", "gate": {"id": "G7S.3", "status": "passed", "required": true}}
+    ]
+  },
+  "planned_phases": [{"id": "phase_8_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-8-shrinking-survival-zone.md"}],
+  "completed_phase": {"id": "phase_7_visual_correction", "status": "completed_agent_owned_source_and_delivery", "archive": "docs/old-docs/phase-7-visual-correction/progress.json", "qualification": "Supersedes original Phase7 visual completion. Reference PNGs, corrected runtime visuals and tests delivered; concept pixel equivalence, native GPU/60FPS and human aesthetic acceptance not claimed."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"date": "2026-10-14", "check": "rounded_world_baseline_and_render", "status": "passed", "result": "ROUNDED_WORLD_COLLIDERS_IDENTICAL maps=town107,harbor46; measured972 triangles/module and asymmetric bounds exact. Original HEAD main extracted to ignored scratch for identical-camera before/after fixture. All Sandbox collider transforms/sizes and map anchors compare equal. First renders exposed pillow-like paving, house roof furniture intersections and awning/sign occlusion; refined slab radii, restricted roof furniture to flat roofs and replaced central awning visual. Final comparison and six-view detail sheet inspected; interiors explicitly roof-hidden cutaways, not gameplay captures.", "artifacts": [".amp/in/artifacts/rounded-world/comparison.png", ".amp/in/artifacts/rounded-world/detail-review.png"]},
+    {"date": "2026-10-14", "command": "GODOT_BIN=$(command -v godot) bash tests/run_ui_regression.sh", "status": "passed", "result": "UI_REGRESSION_OK suites=42 matrices=5 managed_clients=20 persistence_restart=passed", "log": ".scratch/rounded-world-regression.log"},
+    {"date": "2026-10-14", "check": "final_refinement_regression", "status": "passed", "result": "MAP_SAFETY_OK251 routes carrying/unladen, canopy/rematches and broken-roof drop/escape; MAP_VARIETY_OK303; CARRY_PRESENTATION_OK41. Existing shutdown-only audio/resource diagnostics documented by unchanged strict runner; no new error suppression."},
+    {"date": "2026-10-14", "check": "limits", "status": "not_run", "result": "Runtime geometry improved, not exact concept parity or user aesthetic approval. Main layout/lighting/scene density remain simpler than reference. Geometry cost increased9x per rounded module; native GPU/60FPS not measured. No deployment/release or survival-zone implementation."}
+  ],
+  "blockers": [],
+  "changed_files": ["game/main.gd", "tests/test_map_safety.gd", "assets/manifest.json", "assets/references/phase7", "docs/decisions.md", "docs/checklists/phase-7-rounded-world-rebuild.md", "docs/implementation-checklist.md"],
+  "correction_delivery": {"authorization": "Owner requested fix, source design images and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "848b5680bf65a93e21445209d51802f30a5a0ca7", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
+  "delivery": {
+    "authorization": "2026-10-12: owner explicitly requests deploy and release the completed important work.",
+    "scope": "Deploy validated main through existing EC2 workflow and publish matching GitHub playtest pre-release; no Steam publication or infrastructure/capacity change.",
+    "revision": "bd3b606971ce9cf5470e03c5945d229052eb5ddf",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38272856925",
+    "deployment_status": "passed",
+    "release_status": "published_prerelease",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-12-bd3b606",
+    "endpoint": "https://server.permees.com",
+    "validation": "CI passed 41 suites, five matrices, managed20, settings restart, 13 room-service tests, repeated Linux exports and standalone lifecycle. EXISTING_EC2_DEPLOY_OK revision=bd3b606971ce9cf5470e03c5945d229052eb5ddf. HTTPS matching unknown-room=404. Two Linux editor-driven exact-PCK clients passed public TLS/tickets/ENet/roster/ready/start/remote-authoritative movement/owner transfer, RTT sample104ms, one orb/upstream (not separate-network/native Windows acceptance). Windows PCK is identical to deployed CI artifact; repeated Windows hashes match. GitHub release has three uploaded assets, matching tag revision, and downloaded archive hashes match. No infrastructure/capacity change; human/GPU/audio gates remain unverified. Logs: .scratch/release-bd3b606/{ci,public-smoke,linux-lifecycle}.log."
+  },
+  "local_delivery": {
+    "status": "validated_local_packages_not_published_or_deployed",
+    "source_revision": "e978f6a13089250eaef998d8e907b10b62359fde",
+    "directory": ".amp/in/artifacts/phase6-packages",
+    "windows": "DisasterParty-Windows-e978f6a.zip",
+    "windows_sha256": "2a6e34eb961b5a9b94258b582abb7965db8c208a3c28b1b84a5302c9f42229e8",
+    "linux_server": "DisasterParty-Linux-server-e978f6a.tar.gz",
+    "linux_server_sha256": "f992971bbbd7fd1f57c11b03a972cc268c516fff56b21ebda1f670366371e202",
+    "pck_sha256": "bed05934ff3a24abb99df50ca145af291b8ff725a1217c2e275b7e82a6cf1ec8",
+    "notes": "PLAYTEST-NOTES.md"
+  },
+  "rounded_world_delivery": {"authorization": "Owner requested source correction, preserve design image and push", "status": "committed_and_pushed_verified", "branch": "main", "revision": "78aa2a85eac6be297ac5ef653f40125ec3a96a3b", "verification": "git ls-remote origin refs/heads/main equals local HEAD; source reference SHA256 matches manifest; JSON and diff checks pass", "deployment": "not_requested; [skip ci]", "release": "not_requested"},
+  "next_action": "Rounded-source delivery complete; current scope/action lives in root progress. Phase8 remains planned and paused, not automatically started."
+}

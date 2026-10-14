@@ -17,6 +17,7 @@ new follow-up evidence belongs in a separately named archive.
 | 6 — Cosmetic Loot-Box Drops and Customization | [Checklist](phase-6-cosmetic-loot-box-drops-and-customization/checklist.md) | [Decisions](phase-6-cosmetic-loot-box-drops-and-customization/decisions.md) | [Progress](phase-6-cosmetic-loot-box-drops-and-customization/progress.json) |
 | 7 — Soft Creature, Detailed World and Complete Interface | [Checklist](phase-7-soft-creature-world-and-interface/checklist.md) | [Decisions](phase-7-soft-creature-world-and-interface/decisions.md) | [Progress](phase-7-soft-creature-world-and-interface/progress.json) |
 | 7R — Visual Correction | [Checklist](phase-7-visual-correction/checklist.md) | [Decisions](phase-7-visual-correction/decisions.md) | [Progress](phase-7-visual-correction/progress.json) |
+| 7S — Rounded World Rebuild | [Checklist](phase-7-rounded-world-rebuild/checklist.md) | [Decisions](phase-7-rounded-world-rebuild/decisions.md) | [Progress](phase-7-rounded-world-rebuild/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
