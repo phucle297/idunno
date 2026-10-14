@@ -467,6 +467,8 @@ func _run_client(main: Node) -> void:
 	var earthquake_passed := (
 		earthquake.phase == Earthquake.Phase.ACTIVE
 		and earthquake.active_effect_count() == 1
+		and earthquake.fracture_positions.size() > 0
+		and earthquake.fracture_positions.size() <= earthquake.max_fractures
 		and "EARTHQUAKE" in earthquake_text
 	)
 	while manager.get_health(local_id) != 75.0 and Time.get_ticks_msec() < deadline:

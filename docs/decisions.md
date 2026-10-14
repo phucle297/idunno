@@ -15,6 +15,32 @@ The owner's progressive-loading question has a proposed chunk-streaming approach
 in the archive, not an implemented feature or an activated phase. The current map
 still builds eagerly; same-map rematch reuse is not streaming.
 
+## 2026-10-14 — Phase 8.3 localized earthquake
+
+Replace the global HP/velocity/knockdown pulse with at most three separated,
+frozen support-relative 3 m fractures. The 4 s warning allows an ordinary walk
+out; the existing 5 HP/1.25 s contact rate applies only inside a marked footprint.
+The 2 m upward contact band includes ordinary jumps but not another roof/floor.
+Do not mark the outside as universally safe: Flood and Fire remain independent.
+Keep bounded loose-prop impulses, seeded real section collapse, the two-section
+cap and paired-route preservation. Damaged section tilt precedes collider loss;
+the local context tells a player on it to leave the cracked roof/route.
+
+EARTHQUAKE_OK94 covers warning/contact/elevation, frozen footprints, no global
+stun, seeded collapse and five resets. QUAKE_ESCAPE_OK66 runs both actual maps
+through the full 600 s solo timeout with 30 seeded quakes, normal walk inputs,
+100 HP and no mid-round healing/reset/teleport. This is a quake-focused control,
+not a claim to survive every director combination. Existing actual-controller
+Flood relocation passed on both maps (Town90 HP, Harbor85 HP), as did combination102,
+HUD117 and the real two-peer/five-rematch matrix with fracture replication.
+
+Rendering exposed the obsolete hidden [F] context badge when hazard advice first
+became visible: remove it and the grab placeholder, use a semantic ! instead.
+Raise and outline the compact CRACKS label; final warning/active/escape/Flood
+states at 720p/1080p were inspected after correcting crowding and contrast.
+The procedural footprint measures420 triangles, at most three instances, no
+collider or new authoritative body. Native GPU/human feel remains unverified.
+
 ## 2026-10-14 — Phase8.2 locomotion and action removal
 
 Keep the approved bean mesh/material/cosmetic/hitbox contracts. The visible sliding

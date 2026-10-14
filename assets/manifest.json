@@ -236,6 +236,26 @@
       "provenance": "Project-authored deterministic Godot procedural geometry; no downloaded geometry or textures, no CC0 claim. Exact owner reference retained in source and excluded from runtime export.",
       "validation_status": "map_variety436_and_map_safety261_passed; seven_town_views_and_harbor_actual_framebuffer_inspected; final_source42_suites_persistence_and_five_network_matrices_plus_managed20_passed_across_full_runner_and_remaining_network_rerun; obsolete_prop_destruction_identity_assertion_removed_without_relaxing_reset_behavior; native_gpu_human_acceptance_unverified",
       "qualification": "Expanded populated terraced town, not organic hills or exact reference parity. Counts include repeated visual detail; no native GPU/60FPS or human aesthetic acceptance claim. Pool is ornamental, not swimming gameplay."
+    },
+    {
+      "asset_id": "VFX_LocalizedFracture_v001",
+      "category": "runtime_hazard_effect",
+      "source_path": "game/disasters/earthquake.gd::_spawn_effect",
+      "export_path": "scenes/main.tscn::Earthquake",
+      "generator_script": "game/disasters/earthquake.gd",
+      "generator_version": "1",
+      "seed": 811000,
+      "intended_dimensions_m": [6, 0.04, 6],
+      "triangle_count": 420,
+      "maximum_instances": 3,
+      "material_ids": ["PALETTE.amber", "PALETTE.orange", "PALETTE.ink", "PALETTE.cream"],
+      "pivot": "support_center",
+      "collider_type": "none; authoritative terrain_relative_radius_query",
+      "skeleton_version": null,
+      "animation_list": [],
+      "gameplay_tags": ["WarnedFracture"],
+      "provenance": "Project-authored Godot torus and three crack boxes with outlined Label3D; positions frozen from authoritative player supports at warning start. No external geometry, texture or CC0 claim.",
+      "validation_status": "measured420_triangles_per_footprint; final_warning_active_escape_flood_overlap_720p_1080p_renders_inspected; quake94_escape66_combination102_hud117_and_real_two_peer_five_rematches_passed"
     }
   ],
   "design_references": [

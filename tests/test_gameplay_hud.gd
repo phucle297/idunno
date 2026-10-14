@@ -29,7 +29,7 @@ func _run() -> void:
 	_expect(not hud.timer_card.visible, "Results must suppress the complete timer card")
 	hud.present_hazards(["FLOOD"])
 	hud.present_major_warning("flood", 2.0)
-	hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
+	hud.present_context_action("Leave cracked ground")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
 	hud.present_shove_state(1.0)
 	hud.set_spectating_visible(true)
@@ -52,7 +52,7 @@ func _run() -> void:
 		["meteor", "METEOR INCOMING", "MOVE OUT OF THE IMPACT RING"],
 		["flood", "FLOOD INCOMING", "REACH HIGH GROUND"],
 		["tornado", "TORNADO INCOMING", "FIND INDOOR COVER"],
-		["earthquake", "EARTHQUAKE INCOMING", "AVOID BREAKING STRUCTURES"],
+		["earthquake", "EARTHQUAKE INCOMING", "LEAVE CRACKS AND UNSTABLE ROOFS"],
 		["lightning", "LIGHTNING INCOMING", "LEAVE THE RING AND WATER"],
 		["fire", "FIRE INCOMING", "AVOID BURNING ZONES"],
 	]
@@ -162,8 +162,9 @@ func _run() -> void:
 	hud.present_hazards(main._active_disaster_lines())
 	_expect(not hud.hazard_tray.visible, "Cleanup must remove all persistent chips")
 
-	hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
-	_expect(hud.context_prompt.visible and hud.get_presented_context_action() == "GRAB — CARRY SLOWS YOU 25%", "A relevant interaction must show one contextual action")
+	hud.present_context_action("Leave cracked ground")
+	_expect(hud.context_prompt.visible and hud.get_presented_context_action() == "Leave cracked ground", "A relevant hazard must show one contextual action")
+	_expect(hud.context_prompt.get_node("Content/Key").text == "!", "Hazard advice must not advertise the removed F action")
 	_expect(hud.context_prompt.anchor_bottom == 1.0 and hud.context_prompt.offset_bottom == -24.0, "The contextual action must remain anchored to the bottom safe edge")
 	hud.present_context_action("")
 	_expect(not hud.context_prompt.visible, "No available interaction must hide the contextual action")
@@ -171,7 +172,7 @@ func _run() -> void:
 	var flood_before: Dictionary = main._create_playable_snapshot().duplicate(true)
 	hud.present_hazards(["FLOOD", "METEOR"])
 	hud.present_major_warning("meteor", 1.5)
-	hud.present_context_action("RELEASE TO RESTORE SPEED")
+	hud.present_context_action("Shelter from falling rocks")
 	_expect(not hud.has_node("FloodOverlay") and not hud.has_node("FloodDanger"), "The single danger channel must replace floating copy and the full-screen tint")
 	hud.present_flood_exposure(GameplayHud.FloodExposure.WADING)
 	_expect(hud.personal_danger.visible and hud.danger_status.text == "IN FLOODWATER", "Wading must warn without implying head submersion")
@@ -183,7 +184,7 @@ func _run() -> void:
 	hud.present_flood_exposure(GameplayHud.FloodExposure.DROWNING, 0.0, 12.0)
 	_expect(hud.danger_status.text == "DROWNING — -12 HP/s" and hud.danger_action.text == "GET YOUR HEAD ABOVE WATER", "Drowning must replace grace with damage and one action")
 	hud.present_major_warning("lightning", 2.0)
-	hud.present_context_action("GRAB — CARRY SLOWS YOU 25%")
+	hud.present_context_action("Leave cracked ground")
 	_expect(hud.warning_banner.visible and hud.warning_countdown.text == "2 s" and not hud.warning_action.visible, "Personal danger must override competing warning instructions without hiding incoming identity or timing")
 	_expect(not hud.context_prompt.visible, "Interaction prompts must yield to immediate personal danger regardless of call order")
 	_expect(hud.health_label.modulate == Color.WHITE, "Drowning must not flash the health number or obscure the world")

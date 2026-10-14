@@ -24,7 +24,8 @@ const BURNING_RUBBLE_RADIUS := 6.0
 @export var active_duration := 8.0
 @export var pulse_interval := 1.25
 @export var pulse_damage := 5.0
-@export var player_velocity_cap := 4.5
+@export var fracture_radius := 3.0
+@export var max_fractures := 3
 @export var prop_impulse_max := 12.0
 @export var max_broken_sections := 2
 @export var burning_rubble_lifetime := 6.0
@@ -37,12 +38,15 @@ var warning_remaining := 0.0
 var active_remaining := 0.0
 var pulse_count := 0
 var refuge_pressure := false
+var fracture_positions := PackedVector3Array()
+var support_height: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _pulse_remaining := 0.0
 var _rng := RandomNumberGenerator.new()
 var _effect: Node3D
+var _fracture_material: StandardMaterial3D
 var _structure_root: Node
 var _burning_positions: Array[Vector3] = []
 var _burning_rubble: Array[Dictionary] = []
@@ -116,6 +120,7 @@ func start_warning() -> bool:
 	active_remaining = active_duration
 	_pulse_remaining = 0.0
 	pulse_count = 0
+	_select_fractures()
 	_spawn_effect()
 	warning_started.emit(warning_duration)
 	return true
@@ -161,6 +166,7 @@ func _reset_phase_state() -> void:
 	active_remaining = 0.0
 	_pulse_remaining = 0.0
 	refuge_pressure = false
+	fracture_positions.clear()
 
 
 func active_effect_count() -> int:
@@ -175,6 +181,7 @@ func create_presentation_snapshot() -> Dictionary:
 		"phase": int(phase),
 		"warning_remaining": warning_remaining,
 		"active_remaining": active_remaining,
+		"fractures": fracture_positions,
 		"structure_states": structure_states,
 		"burning_rubble": _burning_rubble_positions(),
 	}
@@ -190,6 +197,11 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 		phase = next_phase
 		warning_remaining = maxf(float(snapshot.get("warning_remaining", 0.0)), 0.0)
 		active_remaining = maxf(float(snapshot.get("active_remaining", 0.0)), 0.0)
+		var next_fractures: PackedVector3Array = snapshot.get("fractures", PackedVector3Array())
+		if next_fractures != fracture_positions and is_instance_valid(_effect):
+			_effect.queue_free()
+			_effect = null
+		fracture_positions = next_fractures
 		if not is_instance_valid(_effect):
 			_spawn_effect()
 		_update_effect()
@@ -212,6 +224,51 @@ func _process(delta: float) -> void:
 	tick(delta)
 
 
+func is_in_fracture(point: Vector3) -> bool:
+	for center in fracture_positions:
+		# Feet/contact volume includes an ordinary jump: jump-spam is not a
+		# separate immunity. Floors above or below the support stay independent.
+		if point.y < center.y - 0.5 or point.y > center.y + 2.0:
+			continue
+		if Vector2(point.x - center.x, point.z - center.z).length() <= fracture_radius:
+			return true
+	return false
+
+
+func get_escape_context(point: Vector3) -> String:
+	if phase == Phase.IDLE:
+		return ""
+	for section in _sections():
+		if section.structure_state == BreakableStructure.StructureState.DAMAGED and section.supports_point(point):
+			return "Leave cracked roof / route"
+	if is_in_fracture(point):
+		return "Leave cracked ground — %ds" % ceili(warning_remaining) if phase == Phase.WARNING else "Leave cracked ground"
+	return ""
+
+
+func _select_fractures() -> void:
+	fracture_positions.clear()
+	var ids: Array = _players.keys()
+	ids.sort()
+	# Freeze at warning start, never chase a player's feet during escape.
+	for peer_id: int in ids:
+		var player := _players[peer_id] as Node3D
+		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+			continue
+		var center := player.global_position
+		if support_height.is_valid():
+			center.y = float(support_height.call(center))
+		center.y += 0.06
+		if fracture_positions.size() >= max_fractures:
+			break
+		var separated := true
+		for other in fracture_positions:
+			if center.distance_to(other) < fracture_radius * 2.5:
+				separated = false
+		if separated:
+			fracture_positions.append(center)
+
+
 func _apply_pulse() -> void:
 	pulse_count += 1
 	var damage_events: Array[Dictionary] = []
@@ -219,15 +276,8 @@ func _apply_pulse() -> void:
 		var player := _players[peer_id] as PartyPlayer
 		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
 			continue
-		damage_events.append({"peer_id": peer_id, "amount": pulse_damage, "cause": DAMAGE_CAUSE})
-		var direction := Vector3(
-			_rng.randf_range(-1.0, 1.0),
-			_rng.randf_range(0.25, 0.55),
-			_rng.randf_range(-1.0, 1.0)
-		).normalized()
-		player.apply_hazard_velocity(direction * player_velocity_cap, player_velocity_cap)
-		if pulse_count % 3 == 0 and not player.is_knocked_down():
-			player.apply_knockdown(direction * 3.0)
+		if is_in_fracture(player.global_position):
+			damage_events.append({"peer_id": peer_id, "amount": pulse_damage, "cause": DAMAGE_CAUSE})
 	if not damage_events.is_empty():
 		_match_manager.apply_damage_batch(damage_events)
 	for candidate in get_tree().get_nodes_in_group("grabbable"):
@@ -322,49 +372,51 @@ func _spawn_effect() -> void:
 	_effect = Node3D.new()
 	_effect.name = "EarthquakeEffect"
 	add_child(_effect)
-	var crack_material := StandardMaterial3D.new()
-	crack_material.albedo_color = Color(0.125, 0.165, 0.22, 1.0)
-	crack_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	for index in 6:
-		var crack := MeshInstance3D.new()
-		crack.name = "Crack%d" % index
-		var mesh := BoxMesh.new()
-		mesh.size = Vector3(4.0 + index * 0.45, 0.035, 0.24)
-		mesh.material = crack_material
-		crack.mesh = mesh
-		crack.position = Vector3(-10.0 + index * 4.0, 0.11, -7.0 + (index % 3) * 7.0)
-		crack.rotation.y = deg_to_rad(-35.0 + index * 13.0)
-		_effect.add_child(crack)
-	var dust_material := StandardMaterial3D.new()
-	dust_material.albedo_color = Color(0.941, 0.392, 0.22, 0.82)
-	dust_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	dust_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	for index in 3:
-		var dust := MeshInstance3D.new()
-		dust.name = "Dust%d" % index
+	_fracture_material = StandardMaterial3D.new()
+	_fracture_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for center in fracture_positions:
+		var footprint := Node3D.new()
+		footprint.position = center
+		_effect.add_child(footprint)
+		var ring := MeshInstance3D.new()
 		var mesh := TorusMesh.new()
-		mesh.inner_radius = 1.2 + index * 0.8
-		mesh.outer_radius = mesh.inner_radius + 0.28
-		mesh.rings = 24
+		mesh.inner_radius = fracture_radius - 0.16
+		mesh.outer_radius = fracture_radius
+		mesh.rings = 32
 		mesh.ring_segments = 6
-		mesh.material = dust_material
-		dust.mesh = mesh
-		dust.position = Vector3(-8.0 + index * 8.0, 0.12, -4.0 + index * 4.0)
-		_effect.add_child(dust)
+		ring.mesh = mesh
+		footprint.add_child(ring)
+		for index in 3:
+			var crack := MeshInstance3D.new()
+			var line := BoxMesh.new()
+			line.size = Vector3(1.8, 0.04, 0.16)
+			crack.mesh = line
+			crack.position.x = (index - 1) * 1.35
+			crack.rotation.y = 0.4 if index % 2 == 0 else -0.4
+			footprint.add_child(crack)
+		var label := Label3D.new()
+		label.name = "EscapeLabel"
+		label.position = Vector3(0.0, 2.2, 0.0)
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.font_size = 64
+		label.pixel_size = 0.007
+		label.modulate = Color("202a38")
+		label.outline_modulate = Color("f4e6c8")
+		label.outline_size = 10
+		footprint.add_child(label)
 	_update_effect()
 
 
 func _update_effect() -> void:
 	if not is_instance_valid(_effect):
 		return
-	var time := warning_remaining if phase == Phase.WARNING else active_remaining
-	var strength := 0.08 if phase == Phase.WARNING else 0.22
-	_effect.position.x = sin(time * 20.0) * strength
-	_effect.position.z = cos(time * 17.0) * strength
-	for index in 3:
-		var dust := _effect.get_node("Dust%d" % index) as MeshInstance3D
-		var pulse := 1.0 + sin(time * 7.0 + index) * (0.08 if phase == Phase.WARNING else 0.2)
-		dust.scale = Vector3(pulse, 1.0, pulse)
+	_fracture_material.albedo_color = Color("ffbf3f") if phase == Phase.WARNING else Color("f06438")
+	for footprint in _effect.get_children():
+		for child in footprint.get_children():
+			if child is MeshInstance3D:
+				child.material_override = _fracture_material
+		var label := footprint.get_node("EscapeLabel") as Label3D
+		label.text = "CRACKS • %ds" % ceili(warning_remaining) if phase == Phase.WARNING else "CRACKS • MOVE OUT"
 
 
 func _finish() -> void:

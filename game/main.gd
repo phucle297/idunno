@@ -1178,9 +1178,7 @@ func _update_context_prompt(local_peer_id: int) -> void:
 	if not is_instance_valid(player) or not match_manager.is_player_alive(local_peer_id):
 		gameplay_hud.present_context_action("")
 		return
-	# Grab/hold was removed as a player action; hazard-escape contexts are
-	# added by 8.3-8.5 with their telegraphed areas.
-	gameplay_hud.present_context_action("")
+	gameplay_hud.present_context_action(earthquake.get_escape_context(player.global_position))
 
 
 func _update_major_warning() -> void:
@@ -2179,6 +2177,14 @@ func get_map_surface_height(point: Vector3) -> float:
 	return float(hit.position.y) if not hit.is_empty() else 0.0
 
 
+func get_map_support_height(point: Vector3) -> float:
+	# Start at the player's feet, not above every roof: an indoor floor and
+	# the roof above it are different hazard supports.
+	var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.35, Vector3(point.x, MAP_KILL_Y, point.z), 1)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	return float(hit.position.y) if not hit.is_empty() else point.y
+
+
 func set_map_id(id: String) -> bool:
 	if id not in MAP_IDS:
 		return false
@@ -2260,6 +2266,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	lightning.set_strike_area(anchors.strike_half_extent, get_map_surface_height)
 	flood.set_map_extent(get_map_half_extent())
 	fire.set_zone_layout(anchors.fire_zones, anchors.fire_zone_neighbors)
+	earthquake.support_height = get_map_support_height
 
 
 func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:

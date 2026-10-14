@@ -314,12 +314,12 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.941176, 0.392157, 0.219608, 1)
 theme_override_font_sizes/font_size = 18
-text = "[F]"
+text = "!"
 
 [node name="Action" type="Label" parent="Interface/ContextPrompt/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "GRAB — CARRY SLOWS YOU 25%"
+text = ""
 
 [node name="PersonalDanger" type="PanelContainer" parent="Interface"]
 visible = false

@@ -1,6 +1,6 @@
 # Phase 8 — Character, UI and Disaster Counterplay
 
-Status: in progress; 8.1–8.2 technical gates passed; 8.3 is current.
+Status: in progress; 8.1–8.3 technical gates passed; 8.4 is current.
 Owner priority2026-10-14 supersedes the former
 Phase8 safe-zone ordering. Current public baseline is Integrated Town revision
 2619665ce31e02dd7233e9099c0d5a6e8c9a2e2d. No new deployment/release is authorized.
@@ -135,17 +135,17 @@ or altered capsule/speed after rematch. Native Windows/GPU/user aesthetics remai
 
 Owners: `earthquake.gd`, player movement state, breakable structures, main/HUD.
 
-- [ ] Replace unavoidable global HP pulses with warned localized fractures,
+- [x] Replace unavoidable global HP pulses with warned localized fractures,
   structural collapse and debris exposure. Shake itself is bounded cosmetic feedback,
   not a whole-map HP tax or forced global knockdown. Actual dangerous contact/impact
   is authoritative; no new brace key, jump-spam immunity or cosmetic protection.
   Preserve existing hazard/prop force caps and normal knockdown recovery.
-- [ ] Telegraph dangerous ground/support before damage or collapse; stable ground
+- [x] Telegraph dangerous ground/support before damage or collapse; stable ground
   and a reachable relocation route must be identifiable with ordinary walking/running.
   Escaping the warned footprint protects against that quake exposure, not independent
   Fire/Flood/fall damage. Avoid failures where the only safe roof collapses or where
   water submerges all advertised safe ground. Delay incompatible selections if needed.
-- [ ] Validate a surviving ordinary-controller strategy for a whole quake and a
+- [x] Validate a surviving ordinary-controller strategy for a whole quake and a
   seeded full-duration solo match; no health reset/heal/debug teleport. Standing
   in-danger control must demonstrate relocation matters. Flood+quake retains reachable
   high refuges and does not break all escape routes or create recovery stun-lock.
@@ -154,6 +154,13 @@ Gate G8.3: inside/outside warned footprints, before/at/after activation, roof/gr
 collapse relocation, simultaneous deaths, five resets and real remote convergence.
 Extend earthquake/integration/combination tests through observable HP/pose/routes;
 retain reported full-round failures until their actual causes are resolved.
+
+Passed: earthquake94, escape66, combinations102, HUD117 and real two-peer/five-
+rematch matrix. Both actual maps survive 600 s quake-focused solo rounds with
+30 seeded events and 100 HP using normal walking, no in-round resets/heals.
+This is not all-hazard human survival evidence. Flood relocation controls still
+reach dry high refuges. Final four-state 720p/1080p captures inspected; obsolete
+hidden F context badge removed when rendering exposed it. See active decisions.
 
 ## 8.4 — Varied fire and coherent environmental water interaction
 

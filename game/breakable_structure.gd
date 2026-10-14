@@ -75,6 +75,11 @@ func get_debris() -> RigidBody3D:
 	return _debris
 
 
+func supports_point(point: Vector3) -> bool:
+	var local := to_local(point)
+	return absf(local.x) <= _size.x * 0.5 + 0.3 and absf(local.z) <= _size.z * 0.5 + 0.3 and absf(local.y - _size.y * 0.5) <= 0.6
+
+
 func _apply_visual_state() -> void:
 	if not is_instance_valid(_visual) or not is_instance_valid(_collision):
 		return
