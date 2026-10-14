@@ -78,6 +78,60 @@ the payload describe the old layout; archive/index navigation owns current paths
 This revision is documentation only: public crouch/carry and current hazards remain
 unchanged until implementation. No deployment or release is authorized by this plan.
 
+## 2026-10-14 — Phase 8.1 baseline reproduction
+
+Reproduce the reported hazards and rapid-Shift behaviour before any fix so 8.2–8.5
+contracts are pinned to an executed baseline rather than to inspection alone. A new
+headless SceneTree harness, `tools/repro_phase8.gd`, runs the real `scenes/main.tscn`
+on the real Town/Harbor maps with the real `PartyPlayer`, real collision and the real
+disaster ticks, then prints deterministic HP/cause/pose traces. It records "before"
+state only and claims nothing as fixed.
+
+Reproduction command (import the class cache once, then run):
+
+```sh
+godot --headless --editor --path . --quit
+godot --headless --path . --script res://tools/repro_phase8.gd -- \
+    --scenario=eq,flood-eq,fire-flood,meteor,shift --seed=811000
+```
+
+Executed seed811000 results on both maps, log
+`.scratch/phase8-repro/repro.log`:
+
+- Earthquake alone: `PHASE8_EQ health=65.0 pulses=7`, an immediate pulse4.02s then
+  every1.25s to11.50s, 5 HP per pulse regardless of grounded/crouch/carry state,
+  knockdown enters at pulse3 and persists. Collapse routing per pulse is traced with
+  `EQ_COLLAPSE` role/pair lines: elevated roofs first under refuge pressure,
+  then traversal crossings, decorative losses last, one route of each pair is
+  preserved. Plain quake damage is therefore35 HP, not an unexplained100 HP kill.
+- Flood+Earthquake: the same seven pulses drain35 HP while grounded, then drowning
+  starts around25s and death is recorded `cause=Flood`, not quake or fall. This
+  separates the direct-pulse contribution from the lethal overlap.
+- Fire+Flood: `burning_while_submerged=true`, water reaches the zone4.75s but the
+  zone keeps dealing fire damage under water (dry57.2 / submerged42.8) and the death
+  cause stays `Fire` with `fire_extinguish_hook=not_implemented`. This locks the
+  8.4 wet-zone contract.
+- Meteor: usable-area density is `6.657` strikes/1000m² on Town but `55.556` on the
+  one-quarter-area Harbor for the same strike counts; over20 seeds the variant split
+  is lane12/cluster8 and the same seed replays exactly (`same_seed_reproduced=true`).
+  This locks the 8.5 area-aware contract, not an RNG-presence claim.
+- Rapid Shift: on a steady run-up the harness toggles sprint every0.1s; the walk/run/
+  idle clip reselects32 times and every edge restarts `anim_pos=0.000`, so the gait
+  begins again from pose0 instead of continuing. This confirms the reported arm/gait
+  snap mechanism at the clip layer; a two-client remote-continuity check is deferred
+  to 8.6.
+- Cause taxonomy (code-verified, not move-simulated): there is no fall-damage path in
+  the repository — falls relocate but do not damage. The collapse/rubble damage paths
+  that do exist are distinct strings: `Burning Rubble` (earthquake collapse into a
+  burning zone, 20 HP) and `Impact Debris` (meteor impact, 25 HP). These are the only
+  "rubble" causes to watch when Fire+Earthquake or Meteor overlaps are exercised later.
+
+The provisional numeric contracts in the 8.2–8.5 checklist are now locked to these
+traces: earthquake global pulse (not yet localized) is the current direct-damage
+baseline, submerged fire still burns, and meteor strike density scales with map area
+but is not area-compensated. They change only with evidence from8.3–8.5, which begin
+against this recorded baseline.
+
 ## 2026-10-14 — Integrated Town public delivery
 
 Deploy the existing EC2 workflow and publish matching GitHub pre-release only;

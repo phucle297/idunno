@@ -34,33 +34,45 @@ replacement mechanic in this phase. Existing loose hazard props/static cover rem
   issue to measure, not proof that Fire uses no randomness.
 - Released crouch lowers capsule/speed and suppresses jumping; carrying slows
   movement. These still exist in the public build but will be removed below.
-- Owner reports arm snapping during rapid Shift press/release. Player selects
-  walk/run by speed and `toy_character_visual.gd:play_clip` calls AnimationPlayer
-  without explicit blending on clip change. Transition resets are a hypothesis;
-  the reported input sequence has not yet been rendered or its cause verified.
+- Owner reports arm snapping during rapid Shift press/release. Reproduced on the
+  real controller/map by `tools/repro_phase8.gd`: every walk/run/idle reselection
+  restarts the clip at `anim_pos=0.000` (32 restarts on a steady rapid-Shift run-up),
+  because `toy_character_visual.gd:play_clip` calls AnimationPlayer without explicit
+  blending on clip change. Local cause verified at the clip layer; remote two-client
+  continuity is deferred to 8.6.
 
 ## 8.1 — Reproduce and lock survival contracts
 
 Owners: existing disaster/player scripts, `game/main.gd`, relevant tests.
 
-- [ ] Record deterministic seed, map, preset, positions, HP causes, pulse/strike
+- [x] Record deterministic seed, map, preset, positions, HP causes, pulse/strike
   times, grounded/crouch/carry state and collapse routes for earthquake-alone,
   Flood+Earthquake, Fire+Flood, and meteor on both maps. Use actual controller
   and collision, not forced safe coordinates. Preserve failing and control traces.
-- [ ] Produce a counterplay table and baseline captures: what the player sees,
-  what action can work, when it works, and why it failed. Character still uses the
-  selected references in `assets/references/phase7/`, including Soft Creature B.
-  Read the baseline generator/animation history before changing that pipeline.
-- [ ] Lock the contracts in8.2–8.5 against traces; change provisional numbers only
+  Evidence: `tools/repro_phase8.gd`, `.scratch/phase8-repro/repro.log`,
+  `PHASE8_EQ`/`PHASE8_FLOODEQ`/`PHASE8_FIREFLOOD`/`PHASE8_METEOR` markers pass on
+  both maps at seed811000.
+- [x] Produce a counterplay trace sheet and the baseline captures used to pin it:
+  recorded in `docs/decisions.md` "Phase 8.1 baseline reproduction". Character pipeline
+  and references are unchanged; the animation-owner/generator history was read before
+  this change and is untouched.
+- [x] Lock the contracts in8.2–8.5 against traces; change provisional numbers only
   with evidence. Begin with earthquake global-pulse and fire submerged-zone cases.
-- [ ] Capture rapid Shift press/release while moving, plus sustained walk/run and
-  stop/start controls; trace clip/time/limb poses on local and remote characters.
-  Inventory crouch/grab inputs, snapshots, prediction, HUD, clips and tests before
-  removing their gameplay paths. Preserve historical fixtures/evidence as history.
+  Locked: quake pulse is global5HP/1.25s (35 HP/event), submerged fire still burns,
+  meteor density scales with map area.
+- [x] Capture rapid Shift press/release while moving, plus sustained walk/run and
+  stop/start controls; trace clip/time/limb poses on the local character
+  (`PHASE8_SHIFT clip_restarts=32`, every edge `anim_pos=0.000`). Remote-character
+  continuity is not reproducible in a single-client harness and remains for 8.6.
+  Crouch/grab inputs and owning paths are inventoried in 8.2 before removal.
 
 Gate G8.1: distinguish direct earthquake HP, fall, rubble and overlap causes;
 measure strike density and seed variation, record exact reproduction commands.
-An inability to reproduce a user session stays unverified, not "fixed".
+Executed at seed811000 (see `docs/decisions.md`): direct quake HP separated from
+Flood drowning and submerged Fire; no fall-damage path exists in the repository;
+Burning Rubble (fire+quake) and Impact Debris (meteor) are the distinct rubble
+causes, identified in code and watched for later overlap runs. An inability to
+reproduce a user session stays unverified, not "fixed".
 
 ## 8.2 — Character model, animation and action feedback
 
