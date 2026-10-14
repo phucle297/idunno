@@ -20,7 +20,10 @@ stays a separate proposal. Existing human waiver and deployment boundaries remai
 On2026-10-14 Phase9 completed all agent-owned source/local-package gates:
 Rain/Snowfall/Rockslide, full45-suite regression, both-map2/4/8/20 weather/reset
 matrices, inspected renders and matching local packages. Root is idle; Phase10–12
-remain planned. Source is uncommitted/unpushed; no new deploy/release. The preceding idle state's delivery/hook evidence is
+remain planned. The technical archive records the then-uncommitted closure;
+subsequent owner-authorized source push, EC2 deployment and matching
+[public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
+are verified in root `progress.json`. The preceding idle state's delivery/hook evidence is
 preserved in [continuation state](old-docs/phase-8-collision-followup/continuation-state.json).
 
 Phases 3–5 have historical implementation archives, but their blanket "all gates passed"
@@ -33,7 +36,7 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 ## Completed phases
 
-- [Phase 9 — Weather and Rockslides](old-docs/phase-9-weather-rockslides/checklist.md) · [decisions](old-docs/phase-9-weather-rockslides/decisions.md) · [evidence](old-docs/phase-9-weather-rockslides/progress.json) — all four technical/local-package milestones pass; uncommitted/unpushed, no public deployment/release or native/human acceptance claim.
+- [Phase 9 — Weather and Rockslides](old-docs/phase-9-weather-rockslides/checklist.md) · [decisions](old-docs/phase-9-weather-rockslides/decisions.md) · [evidence](old-docs/phase-9-weather-rockslides/progress.json) — all four technical/local-package milestones pass; subsequent authorized source/public shipment verified in root progress. No native/human acceptance claim.
 
 Completed-phase checklists, decisions and progress are grouped in [old-docs](old-docs/README.md):
 

@@ -5,8 +5,8 @@
 Rain/Snowfall/Rockslide chạy trên cả hai map;45 suite/5 matrix/managed20 và
 Town/Harbor2/4/8/20 peer với5 rematch/reset pass. Gói Windows/Linux matching local
 tại `.amp/in/artifacts/phase9-packages`, ảnh đã inspect tại `.amp/in/artifacts/phase9`.
-Source vẫn uncommitted/unpushed theo yêu cầu; chưa deploy/release, **bản public
-e68a912 không đổi**. Không dùng gói local Phase9 để ghép server public cũ.
+User sau đó duyệt release/deploy; source c0a7800 đã push, EC2 và pre-release matching
+đã kiểm tra. Gói uncommitted local ở trên là evidence lịch sử, không ghép với server public.
 Native Windows/GPU/audio/người thật/hai mạng riêng chưa xác minh; waiver cũ giữ
 nguyên, không thêm checklist người dùng bắt buộc. Phase10–12 vẫn là plan.
 
@@ -21,31 +21,32 @@ chỉ là plan Phase12, chưa implement; không thêm checklist người dùng b
 **Phase8 hoàn tất gate kỹ thuật (2026-10-14):** [checklist và evidence](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md).
 Source `14be2c323e2267c18a06ccf704090c6268ad184e` đã push; gói matching Windows/Linux
 local tại `.amp/in/artifacts/phase8-packages` đã kiểm hash/unpack/lifecycle/profile
-restart. Gói local cũ là lịch sử; **dùng client public e68a912 matching server hiện tại**.
+restart. Gói local cũ là lịch sử; **dùng client public Phase9 c0a7800 matching server hiện tại**.
 Crouch/cầm đồ đã bỏ, animation Shift giữ phase, quake có vùng nứt/đường thoát,
 Flood dập Fire ngập và meteor theo diện tích. Native Windows/GPU60FPS/audio/người thật/
 hai mạng riêng chưa xác minh, waiver cũ không đổi; không thêm checklist bắt buộc.
-Phase9 đã hoàn tất source/local gates như ghi phía trên; bản public không đổi.
+Phase9 đã hoàn tất source/local gates và public delivery như ghi phía trên.
 Các câu Phase8 chưa implement/tạm dừng bên dưới là snapshot
 lịch sử, không phải trạng thái source hiện tại.
 
 **Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Disaster Phase9
-đã chạy trong local source/package; chưa deploy Phase9–11.
+đã chạy trong source/package/public c0a7800; Phase10–12 chưa bắt đầu/deploy.
 Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
 người dùng bắt buộc; đánh giá cảm giác/challenge/GPU dùng đúng build sau khi có.
 
-**Bản public hiện tại (2026-10-14):** [Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912),
-tải `DisasterParty-Windows-Internet-e68a912.zip`, giải nén toàn bộ và chạy `DisasterParty.exe`.
-Client/server/tag cùng revision `e68a912a91c6dce339ddb254a559e68be26c53ce`;
-endpoint `https://server.permees.com`. User duyệt deploy/release riêng; CI/deploy pass
-42 suite, 5 matrix, managed20, settings restart và34 room-service test. PCK Windows
+**Bản public hiện tại (2026-10-14):** [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
+tải `DisasterParty-Windows-Internet-c0a7800.zip`, giải nén toàn bộ và chạy `DisasterParty.exe`.
+Client/server/tag cùng revision `c0a780067c10372ca6676725f03916503994aa5e`;
+endpoint `https://server.permees.com`. User duyệt deploy/release riêng; staged pre-commit
+pass45 suite,5 matrix,managed20,settings restart và41 Python test; workflow build/deploy
+pass backend readiness, không chạy test trong deployment. PCK Windows
 giống hệt artifact CI đã deploy; ba asset release tải lại/hash/tag đã kiểm tra.
 Public smoke hai client Linux Godot dùng final PCK pass TLS/tickets/ENet/
-Ready/Start/ACTIVE và404 unknown-room/409 old-build; cùng một orb/upstream,
+Ready/Start/ACTIVE,remote movement và404 unknown-room/409 old-build; cùng một orb/upstream,
 không thay xác nhận Windows gốc/GPU/audio/hai mạng người thật. Giữ nguyên cấu hình
 EC2 và giới hạn phòng/người; không bật profile store mới. Chunk streaming và safe
 zone chưa có. Các mục "chưa deploy" bên dưới là snapshot lịch sử, không phải trạng

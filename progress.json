@@ -3,7 +3,7 @@
   "updated_at": "2026-10-14",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "delivering_completed_phase",
+  "workflow_state": "awaiting_next_scope",
   "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended, not completed; reopen only on owner request."},
   "previous_phase_archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
@@ -21,7 +21,7 @@
     "title": "Weather and Rockslides",
     "status": "completed_agent_owned_source_and_local_package_gates",
     "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
-    "qualification": "Rain/Snowfall/Rockslide,45-suite/five-matrix/managed20 regression, both-map2/4/8/20 real-peer weather/reset matrices, inspected720p/1080p renders, bounded soak and matching local Windows/Linux packages pass. Source remains uncommitted/unpushed; no public deployment/release. Human/native Windows/GPU/audio/separate-network acceptance unverified under preserved waiver."
+    "qualification": "Rain/Snowfall/Rockslide,45-suite/five-matrix/managed20 regression, both-map2/4/8/20 real-peer weather/reset matrices, inspected720p/1080p renders, bounded soak and matching local packages pass. Technical closure archive preserves its then-uncommitted state; subsequent owner-authorized source/public delivery is verified in phase9_release. Human/native Windows/GPU/audio/separate-network acceptance unverified under preserved waiver."
   },
   "planned_phases": [
     {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
@@ -48,7 +48,7 @@
     "linux_server": "DisasterParty-Linux-server-phase9-local.tar.gz",
     "linux_sha256": "2cfa271fcf5d1577f899e78026d2280fdada406a6a3b3b655ce000038e9e6c9b",
     "pck_sha256": "98b3837ae1d872b05f2a5b36664c088f9b1efb1d3929d30f6bdd654ac03ce7ce",
-    "qualification": "Exact runtime snapshot provenance, standalone lifecycle and packaged fixtures preserved in Phase9 archive and artifact notes. Commit/push not authorized."
+    "qualification": "Historical preauthorization packages: exact runtime snapshot provenance, standalone lifecycle and fixtures preserved in Phase9 archive/artifact notes. Do not mix this uncommitted snapshot with the later public release."
   },
   "historical_delivery_metadata": {
     "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
@@ -60,9 +60,22 @@
   },
   "phase9_release": {
     "authorization": "2026-10-14 owner: release and deploy after finish",
-    "status": "authorized_pending_source_delivery",
-    "scope": "Ship validated Phase9 through existing main-branch build/EC2 deployment and matching GitHub playtest pre-release. No infrastructure/capacity or persistent-store change; no native/human acceptance inferred. Earlier uncommitted local snapshot remains historical evidence."
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "c0a780067c10372ca6676725f03916503994aa5e",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38615376266",
+    "deployment_status": "passed_exact_head_backend_readiness",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800",
+    "endpoint": "https://server.permees.com",
+    "windows": "DisasterParty-Windows-Internet-c0a7800.zip",
+    "windows_sha256": "dbf2b2cb1507e263770e9c8d2b9613336814924c4ae95b4d37041b5000262bb1",
+    "linux_server": "DisasterParty-Linux-server-c0a7800.tar.gz",
+    "linux_sha256": "dc63f97a8e3e0b547ad986cdd2fab3cc13d2ee0ee63e5addfe2c6a7b7aed91c4",
+    "pck_sha256": "8ef57972b339fed6f3b325f94074e407590bbbcbcff2f0f139e177998c6dbb76",
+    "evidence_directory": ".amp/in/artifacts/phase9-release",
+    "source_gate": "Staged-tree pre-commit passes45 Godot suites/5 network groups/managed20/settings restart and41 Python tests. Technical archive also preserves both-map2/4/8/20 weather-aware matrices and clean focused repeats.",
+    "delivery_gate": "Exact-head CI deploy passes. Final Windows uses byte-exact deployed PCK; all105 payload entries independently match local export although container bytes differ. Both final unpack/hash/content checks and standalone Linux lifecycle pass; exact deployed-PCK Weather471/Rock72 clean exits pass. Two public exact-PCK clients pass verified HTTPS/tickets/ENet/Ready/Start/ACTIVE/remote movement plus unknown-room404/old-build409. Three published assets downloaded/hash compared and tag verified.",
+    "qualification": "Two Linux editor-driven clients in one orb/upstream, not native Windows/GPU/audio/human or separate-network acceptance. Existing EC2 capacity/configuration/store unchanged; no Steam publication. Earlier uncommitted local snapshot remains historical evidence."
   },
-  "delivery_boundary": "Owner now authorizes Phase9 release/deployment after technical completion. Use existing deployment/release flow only; do not activate storage, increase capacity or start Phase10.",
-  "next_action": "Commit/push validated Phase9 source, verify the exact-head existing EC2 workflow, then publish and verify matching Windows/Linux playtest packages."
+  "delivery_boundary": "Owner-authorized Phase9 release/deployment is complete and verified. No storage/capacity change or Phase10 implementation authorized by that shipment.",
+  "next_action": "Await owner's next scope; Phase10–12 remain planned and are not started."
 }

@@ -37,9 +37,11 @@ paths; checklist and decisions navigation now use the archive directory.
 
 Phase9 completed all four agent-owned milestones on2026-10-14: full45 suites/five
 matrices/managed20, both-map2/4/8/20 weather transport/reset checks,40 inspected
-render states and matching local packages. Root awaits owner scope/delivery
-authorization; source remains uncommitted/unpushed, Phase10–12 planned. No new public
-deployment/release or native Windows/GPU/audio/human acceptance is claimed. Earlier
+render states and matching local packages. Its archive preserves the then-uncommitted,
+preauthorization closure. Subsequent owner-authorized source push, EC2 deployment and
+[matching public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
+are verified in root `progress.json`; Phase10–12 remain planned. No native
+Windows/GPU/audio/human acceptance is claimed. Earlier
 pending statements in the Phase9 diary are chronological and superseded by its final
 entries. Existing human waiver and all actual failure logs/evidence are preserved.
 

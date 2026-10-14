@@ -33,11 +33,12 @@ for hundreds of thousands/millions of users is planned. The source supports play
 dedicated hosting, room-owner controls, bounded room allocation/admission and
 room-ID create/join UI with retry recovery. Managed-container validation and
 matching Windows/Linux release packaging have executed evidence. The owner-authorized
-[Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912)
+[Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
 is deployed at `server.permees.com`; matching Windows/Linux packages are published.
-Download `DisasterParty-Windows-Internet-e68a912.zip`, extract all files and run
-`DisasterParty.exe`; old client builds are incompatible. CI passed42 suites,
-five network matrices, managed20 and34 room-service tests. Final Windows uses the
+Download `DisasterParty-Windows-Internet-c0a7800.zip`, extract all files and run
+`DisasterParty.exe`; old client builds are incompatible. Staged pre-commit passed45
+Godot suites,five network groups,managed20,settings restart and41 Python tests;
+the exact-head build/deploy workflow passed backend readiness. Final Windows uses the
 exact deployed CI PCK; downloaded release archives and tag were verified.
 Public exact-PCK smoke passes two Linux editor-driven clients on one orb/upstream,
 not native Windows or separate-network human acceptance. Earlier public build
@@ -69,8 +70,9 @@ and collision-backed rock slopes have lateral exits/solid cover on both maps.
 Full45-suite/five-matrix/managed20 regression and Town/Harbor2/4/8/20 weather/reset
 checks pass; matching local uncommitted Windows/Linux packages and inspected renders
 remain in `.amp/in/artifacts/phase9-packages` and `phase9`. Root awaits next scope;
-the owner subsequently authorized release/deployment after technical completion.
-Delivery is tracked in root progress; Phase10 is not started.
+the subsequently authorized release/deployment is verified in root progress and
+`.amp/in/artifacts/phase9-release`. Use the public release, not the historical
+uncommitted snapshot, for Internet joining. Phase10 is not started.
 The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/checklist.md)
 adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
 Release validation corrected blocked ramp approaches/crate crossings by leaving
@@ -82,8 +84,8 @@ Held hammer/wood interactions are
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
-gates pass. Phase9 is local source/package work only; Phase10–12 remain plans.
-None changes the currently released public build without separate authorization.
+gates pass. Phase9 is shipped under separate owner authorization; Phase10–12 remain
+plans and are not included in the released build.
 
 ## Windows playtest export
 

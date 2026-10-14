@@ -4,9 +4,9 @@ This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
 `https://server.permees.com` is built in. The owner-authorized
-[Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912)
+[Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
 supplies matching Windows/Linux bundles and deployed server revision
-`e68a912a91c6dce339ddb254a559e68be26c53ce`. Download the new Windows ZIP and run
+`c0a780067c10372ca6676725f03916503994aa5e`. Download `DisasterParty-Windows-Internet-c0a7800.zip` and run
 `DisasterParty.exe`; older bundles are incompatible. Public two-client exact-PCK
 Linux editor-driven smoke passed, not native Windows/separate-network acceptance.
 Task 2.2.7's `94ad2fd` bundles and older `7eb1f25` direct-IP ZIP are historical.
