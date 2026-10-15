@@ -4,11 +4,11 @@
 
 ## Active and planned phases
 
-No phase is active. Phase11 is completed and released; Phase12 stays planned/inactive.
+Phase12 is active after owner continuation; Phase11 is completed and released.
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
+| 12 — Random In-Match Movement Power-Ups | In progress — integration/packages | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
@@ -27,7 +27,8 @@ follow-up. Owner-authorized source push and exact-head EC2 deployment passed;
 matching thread bundles and public two-client smoke are recorded in root progress.
 Phase11 subsequently completed all four agent-owned milestones, source push,
 exact-head deployment and matching prerelease; its full archive is linked below.
-Phase12 remains planned. Earlier pending/source-only archive statements are historical.
+Phase12 is now implemented through presentation; final regression/packages are active.
+Earlier pending/source-only archive statements are historical.
 The Phase9 technical archive records the then-uncommitted closure;
 subsequent owner-authorized source push, EC2 deployment and matching
 [public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
@@ -76,8 +77,8 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 ## Explicitly deferred
 
-Owner-requested temporary Speed/Jump pickups are planned separately in Phase12,
-not persistent cosmetic loot boxes or an implemented inventory/stat system.
+Owner-requested temporary Speed/Jump pickups are scoped separately in Phase12,
+not persistent cosmetic loot boxes or an inventory/stat progression system.
 Unrequested disaster classes beyond the new scoped Snow/Rain/Rockslide/Bee/UFO/Volcano plan,
 persistent non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
 ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production

@@ -107,7 +107,11 @@ adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
 Release validation corrected blocked ramp approaches/crate crossings by leaving
 stair presentation rails decorative over solid ramp slabs; other rails remain solid.
 Full CI and public admission/Ready/Start pass. [Phase12 movement drops](docs/checklists/phase-12-match-powerup-drops.md)
-are planning only: temporary random Speed/Jump pickups, not permanent cosmetic stats.
+are implemented in source and finishing local validation: temporary random
+Speed (+20% walk/sprint,12s) and Jump (+20% height,10s), not permanent cosmetic stats.
+Collection is automatic and server-authoritative; one buff at a time, same type
+refreshes and another type replaces. They are not in the public Phase11 build;
+do not mix Phase12 local clients with that server. See root progress for delivery.
 Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
@@ -115,7 +119,7 @@ rockslides; Phase10 adds bees/UFO/volcano. Phase11 is now
 [warned meteor terrain collapse](docs/old-docs/phase-11-meteor-terrain-collapse/checklist.md);
 the rejected circle/gradual-HP-loss tracking is archived as superseded/cancelled.
 The public Phase11 release includes the uneven volcanic-relief refinement and does
-not include the planned Phase12 work.
+not include Phase12 movement drops.
 
 ## Windows playtest export
 

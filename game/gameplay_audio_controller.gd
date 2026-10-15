@@ -121,6 +121,12 @@ func play_jump() -> void:
 	play_effect(JumpSound)
 
 
+func play_pickup() -> void:
+	# Optional quiet feedback yields to warnings; no queued stale pickup chime.
+	if not _warning_voice.playing:
+		play_effect(JumpSound, -18.0)
+
+
 func play_warning_countdown() -> void:
 	# Reuse the short synthesized cue quietly; never replace the reserved warning stream.
 	play_effect(JumpSound, -16.0, "Warnings")

@@ -12,6 +12,12 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, size / 48.0)
 	var ink := ink_color
 	match disaster_id:
+		"speed":
+			for x in [4, 23]:
+				draw_polyline(PackedVector2Array([Vector2(x, 7), Vector2(x + 15, 24), Vector2(x, 41)]), ink, 5, true)
+		"jump":
+			draw_line(Vector2(24, 42), Vector2(24, 7), ink, 5, true)
+			draw_polyline(PackedVector2Array([Vector2(9, 22), Vector2(24, 7), Vector2(39, 22)]), ink, 5, true)
 		"health":
 			draw_colored_polygon(PackedVector2Array([Vector2(24, 43), Vector2(5, 24), Vector2(5, 13), Vector2(13, 6), Vector2(24, 13), Vector2(35, 6), Vector2(43, 13), Vector2(43, 24)]), DisasterPartyUI.CORAL)
 		"survivors":

@@ -15,16 +15,22 @@ class FixtureMain extends "res://game/main.gd":
 	var departure_allowed := false
 
 	@rpc("authority", "call_remote", "reliable", 2)
-	func inspect_powerups(stage_name: String, expected_pickups: int, expected_kind: int, expected_holder: int, require_tuning: bool = false) -> void:
+	func inspect_powerups(stage_name: String, expected_pickups: int, expected_kind: int, expected_holder: int, require_tuning: bool, expected_round: int, expected_state: int, expected_id: int) -> void:
 		var local_id := multiplayer.get_unique_id()
 		var deadline := Time.get_ticks_msec() + 5000
 		var ok := false
 		while Time.get_ticks_msec() < deadline:
 			var holder := _player_nodes.get(expected_holder) as PartyPlayer
 			var local := _player_nodes.get(local_id) as PartyPlayer
-			ok = powerups.pickups.size() == expected_pickups
+			ok = powerups.pickups.size() == expected_pickups and powerups.round_sequence == expected_round and match_manager.state == expected_state
 			if expected_holder > 0:
+				var buff: Dictionary = powerups.buffs.get(expected_holder, {})
+				ok = ok and int(buff.get("kind", -1)) == expected_kind and int(buff.get("id", 0)) == expected_id
 				ok = ok and is_instance_valid(holder) and int(holder.movement_buff.x) == expected_kind and holder.movement_buff.y > 0.0
+			else:
+				ok = ok and powerups.buffs.is_empty()
+				for avatar: PartyPlayer in _player_nodes.values():
+					ok = ok and avatar.movement_buff == Vector2.ZERO
 			if require_tuning:
 				ok = ok and is_instance_valid(holder) and holder.effective_sprint_speed() > PartyPlayer.Tuning.SPRINT_SPEED
 				if local_id == expected_holder:
@@ -32,6 +38,23 @@ class FixtureMain extends "res://game/main.gd":
 			if ok:
 				break
 			await get_tree().physics_frame
+		if ok and stage_name == "prediction":
+			var holder := _player_nodes.get(expected_holder) as PartyPlayer
+			if local_id == expected_holder:
+				var from := holder.global_position
+				Input.action_press("move_right")
+				Input.action_press("sprint")
+				for frame in 30:
+					await get_tree().physics_frame
+				Input.action_release("move_right")
+				Input.action_release("sprint")
+				ok = holder.global_position.distance_to(from) > 1.0 and Vector2(holder.velocity.x, holder.velocity.z).length() > 6.5
+			else:
+				while is_instance_valid(holder) and Vector2(holder.velocity.x, holder.velocity.z).length() <= 6.5 and Time.get_ticks_msec() < deadline:
+					await get_tree().physics_frame
+				ok = is_instance_valid(holder) and Vector2(holder.velocity.x, holder.velocity.z).length() > 6.5
+		if not ok:
+			print("POWERUP_INSPECTION_FAILED stage=%s round=%d expected=%d state=%d buffs=%s" % [stage_name, powerups.round_sequence, expected_round, match_manager.state, powerups.buffs])
 		rpc_id(1, "acknowledge_powerups", stage_name, ok)
 
 	@rpc("authority", "call_remote", "reliable", 2)
@@ -44,6 +67,8 @@ class FixtureMain extends "res://game/main.gd":
 			if not powerup_acks.has(stage_name):
 				powerup_acks[stage_name] = {}
 			powerup_acks[stage_name][multiplayer.get_remote_sender_id()] = ok
+			if not ok:
+				print("POWERUP_ACK_FAILED stage=%s peer=%d" % [stage_name, multiplayer.get_remote_sender_id()])
 
 	func wait_for_powerups(stage_name: String, expected: int, deadline: int) -> bool:
 		while (not powerup_acks.has(stage_name) or powerup_acks[stage_name].size() != expected or powerup_acks[stage_name].values().has(false)) and Time.get_ticks_msec() < deadline:
@@ -114,8 +139,11 @@ func _publish(main: FixtureMain) -> void:
 
 
 func _inspect(main: FixtureMain, stage_name: String, expected_pickups: int, kind: int, holder: int, deadline: int, tuning := false) -> bool:
-	main.inspect_powerups.rpc(stage_name, expected_pickups, kind, holder, tuning)
-	return await main.wait_for_powerups(stage_name, player_count - 1, deadline)
+	var id := int(main.powerups.buffs.get(holder, {}).get("id", 0))
+	main.inspect_powerups.rpc(stage_name, expected_pickups, kind, holder, tuning, main.powerups.round_sequence, main.match_manager.state, id)
+	var ok := await main.wait_for_powerups(stage_name, player_count - 1, deadline)
+	print("POWERUP_STAGE stage=%s ok=%s round=%d" % [stage_name, ok, main.powerups.round_sequence])
+	return ok
 
 
 func _run_server(main: FixtureMain) -> void:
@@ -153,6 +181,10 @@ func _run_server(main: FixtureMain) -> void:
 	for peer_id in peers:
 		_place(main, peer_id, far_pad)
 	_place(main, remote_id, pad)
+	_seed(main, 900, MatchPowerups.Kind.SPEED, pad, manager.elapsed_time + 20.0)
+	main.powerups.tick(manager, main._player_nodes, 12031)
+	await _publish(main)
+	passed = passed and await _inspect(main, "remote_speed", 0, MatchPowerups.Kind.SPEED, remote_id, deadline)
 	_seed(main, 902, MatchPowerups.Kind.JUMP, pad, manager.elapsed_time + 20.0)
 	main.powerups.tick(manager, main._player_nodes, 12031)
 	var replaced_id := int(main.powerups.buffs.get(remote_id, {}).get("id", 0))
@@ -217,6 +249,7 @@ func _run_server(main: FixtureMain) -> void:
 	main.multiplayer.multiplayer_peer.close()
 	main.multiplayer.multiplayer_peer = null
 	main.free()
+	await create_timer(0.1).timeout
 	quit(0 if passed else 1)
 
 
@@ -242,15 +275,18 @@ func _run_client(main: FixtureMain) -> void:
 		print("POWERUP_ENET_CLIENT_OK map=%s players=%d peer=%d snapshots=passed prediction_observer=passed stale_round=passed rematches=5" % [map_id, player_count, root.multiplayer.get_unique_id()])
 	else:
 		push_error("Power-up ENet client failed map=%s players=%d round=%d buffs=%s" % [map_id, player_count, main.powerups.round_sequence, main.powerups.buffs])
+	_stop_producers(main)
 	main.multiplayer.multiplayer_peer.close()
 	main.multiplayer.multiplayer_peer = null
 	main.free()
+	await create_timer(0.1).timeout
 	quit(0 if passed else 1)
 
 
 func _stop_producers(main: Node) -> void:
 	main.set_process(false)
 	main.set_physics_process(false)
+	main.gameplay_audio.reset_for_match()
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)
 	for player: PartyPlayer in main._player_nodes.values():

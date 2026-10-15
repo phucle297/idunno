@@ -73,12 +73,14 @@ func _check_obstacles(main: Node3D, player: PartyPlayer, map_id: String) -> void
 	if map_id == "toy_town":
 		# Walking with gravity must also remain blocked, not drop under a rail
 		# floating beyond its supporting platform after a successful shape sweep.
-		player.reset_for_match(Vector3(17.9, 2.22, 11))
-		player.set_camera_yaw(0.0)
-		for tick in 70:
-			player.apply_movement_input(Vector2(0, -1), false, false, 1.0 / 60.0)
-			await physics_frame
-		_expect(player.position.z > 10.3 and player.is_on_floor(), "Park railing blocks sustained walking while supported by its platform")
+		for powered in [false, true]:
+			player.reset_for_match(Vector3(17.9, 2.22, 11))
+			player.movement_buff = Vector2(MatchPowerups.Kind.SPEED, 12) if powered else Vector2.ZERO
+			player.set_camera_yaw(0.0)
+			for tick in 70:
+				player.apply_movement_input(Vector2(0, -1), powered, false, 1.0 / 60.0)
+				await physics_frame
+			_expect(player.position.z > 10.3 and player.is_on_floor(), "Park railing blocks base walking and powered sprinting while supported by its platform")
 
 
 func _expect(condition: bool, message: String) -> void:

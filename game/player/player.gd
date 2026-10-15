@@ -40,6 +40,7 @@ var camera_shake_level := 1.0
 var _prediction_inputs: Array[Dictionary] = []
 var _last_movement_ack := -1
 var weather_surfaces: WeatherSurfaces
+var movement_buff := Vector2.ZERO # Authoritative kind and remaining simulation seconds.
 
 
 func _ready() -> void:
@@ -86,7 +87,7 @@ func _process(_delta: float) -> void:
 			_emote_id = 0
 		else:
 			character.play_clip(EMOTE_CLIPS[_emote_id])
-	elif horizontal_speed > Tuning.WALK_SPEED + 0.5:
+	elif horizontal_speed > effective_walk_speed() + 0.5:
 		character.play_clip("run")
 	elif horizontal_speed > 0.2:
 		character.play_clip("walk")
@@ -145,6 +146,9 @@ func apply_movement_input(
 ) -> void:
 	if _is_eliminated:
 		return
+	movement_buff.y = maxf(0.0, movement_buff.y - delta)
+	if movement_buff.y == 0.0:
+		movement_buff.x = MatchPowerups.Kind.NONE
 	if _knockdown_remaining > 0.0:
 		_process_knockdown(delta)
 		return
@@ -164,13 +168,14 @@ func apply_movement_input(
 		_jump_buffer_remaining = maxf(0.0, _jump_buffer_remaining - delta)
 
 	if _jump_buffer_remaining > 0.0 and _coyote_remaining > 0.0:
-		velocity.y = Tuning.JUMP_VELOCITY
+		var height_multiplier := Tuning.POWERUP_JUMP_HEIGHT_MULTIPLIER if int(movement_buff.x) == MatchPowerups.Kind.JUMP else 1.0
+		velocity.y = sqrt(2.0 * Tuning.GRAVITY * Tuning.JUMP_HEIGHT * height_multiplier)
 		_jump_buffer_remaining = 0.0
 		_coyote_remaining = 0.0
 
 	var camera_basis := Basis(Vector3.UP, _camera_yaw)
 	var wish_direction := (camera_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
-	var target_speed := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
+	var target_speed := effective_sprint_speed() if sprinting else effective_walk_speed()
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
 	if grounded and is_instance_valid(weather_surfaces):
@@ -198,7 +203,15 @@ func get_movement_replay_state() -> Vector3:
 	return Vector3(_coyote_remaining, _jump_buffer_remaining, 1.0 if is_on_floor() else 0.0)
 
 
-func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3) -> void:
+func effective_walk_speed() -> float:
+	return Tuning.WALK_SPEED * (Tuning.POWERUP_SPEED_MULTIPLIER if int(movement_buff.x) == MatchPowerups.Kind.SPEED and movement_buff.y > 0.0 else 1.0)
+
+
+func effective_sprint_speed() -> float:
+	return Tuning.SPRINT_SPEED * (Tuning.POWERUP_SPEED_MULTIPLIER if int(movement_buff.x) == MatchPowerups.Kind.SPEED and movement_buff.y > 0.0 else 1.0)
+
+
+func reconcile_movement(server_position: Vector3, server_velocity: Vector3, facing: float, knocked_down: bool, sequence: int, state: Vector3, buff := Vector2.ZERO) -> void:
 	if _is_eliminated or sequence < _last_movement_ack:
 		return
 	_last_movement_ack = sequence
@@ -211,6 +224,9 @@ func reconcile_movement(server_position: Vector3, server_velocity: Vector3, faci
 	set_network_knockdown(knocked_down)
 	_coyote_remaining = state.x
 	_jump_buffer_remaining = state.y
+	# Rewind the buff clock with position before replaying pending inputs.
+	# The slower match snapshot is for HUD/drops, never movement tuning.
+	movement_buff = buff
 	if knocked_down or _is_eliminated:
 		_prediction_inputs.clear()
 		return
@@ -286,6 +302,7 @@ func is_knocked_down() -> bool:
 func set_eliminated(eliminated: bool) -> void:
 	_is_eliminated = eliminated
 	if eliminated:
+		movement_buff = Vector2.ZERO
 		_prediction_inputs.clear()
 		velocity = Vector3.ZERO
 		_coyote_remaining = 0.0
@@ -298,6 +315,7 @@ func set_eliminated(eliminated: bool) -> void:
 
 func reset_for_match(spawn_position: Vector3) -> void:
 	cancel_emote()
+	movement_buff = Vector2.ZERO
 	if is_instance_valid(_ragdoll):
 		_ragdoll.queue_free()
 		_ragdoll = null

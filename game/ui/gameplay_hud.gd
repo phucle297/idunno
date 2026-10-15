@@ -76,6 +76,7 @@ var _results_visible := false
 var _spectating := false
 var _elimination_remaining := 0.0
 var _spectator_tween: Tween
+var powerup_card: PanelContainer
 var reduced_motion := false:
 	set(value):
 		reduced_motion = value
@@ -87,6 +88,8 @@ var reduced_motion := false:
 
 
 func _ready() -> void:
+	powerup_card = preload("res://game/ui/powerup_card.gd").new()
+	add_child(powerup_card)
 	var timer_surface := timer_card.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	timer_surface.bg_color = Color(UITokens.INK, 0.94)
 	timer_surface.border_color = UITokens.SLATE
@@ -269,6 +272,8 @@ func present_flood_exposure(exposure: FloodExposure, grace_remaining: float = 0.
 
 func set_spectating_visible(visible: bool) -> void:
 	_spectating = visible
+	if visible:
+		powerup_card.hide()
 	spectator_card.visible = visible and not _lobby_open and not _results_visible
 	health_card.visible = not visible and not _lobby_open and not _results_visible
 	if not visible:
@@ -307,6 +312,7 @@ func present_lobby_overlay(open: bool) -> void:
 	if open or _results_visible:
 		terrain_card.hide()
 		shove_pill.hide()
+		powerup_card.hide()
 		present_major_warning("")
 		present_context_action("")
 		present_flood_exposure(FloodExposure.SAFE)

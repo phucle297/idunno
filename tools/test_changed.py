@@ -14,6 +14,7 @@ NETWORK = [
     "tests/run_network_authority_test.sh", "tests/run_four_client_match_test.sh",
     "tests/run_playable_scene_network_test.sh", "tests/run_playable_scale_test.sh",
     "tests/run_dedicated_network_test.sh", "tests/run_managed_scale_test.py",
+    "tests/run_powerup_network_test.sh",
 ]
 FULL_TRIGGERS = {"project.godot", "tests/run_ui_regression.sh"}
 RESOURCE_SUFFIXES = {".gd", ".tscn", ".tres", ".gdshader", ".png", ".wav", ".ogg", ".glb"}

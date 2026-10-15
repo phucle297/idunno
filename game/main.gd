@@ -68,6 +68,8 @@ const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
 
 var spectator_controller: Node
 var terrain_collapse: TerrainCollapse
+var powerups: MatchPowerups
+var powerup_visuals: Node3D
 var _player_nodes: Dictionary = {}
 var _network_mode := false
 var _network_role := "offline"
@@ -116,6 +118,11 @@ func _ready() -> void:
 	terrain_collapse.surface_height = get_map_surface_height
 	terrain_collapse.candidate_is_safe = _collapse_district_is_safe
 	terrain_collapse.warning_started.connect(gameplay_audio.queue_collapse_notice)
+	powerups = MatchPowerups.new()
+	powerups.name = "MatchPowerups"
+	add_child(powerups)
+	powerups.anchor_is_valid = _powerup_anchor_is_valid
+	powerups.collection_is_clear = _powerup_collection_is_clear
 	_build_sandbox()
 	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()
@@ -196,6 +203,7 @@ func _ready() -> void:
 	})
 	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
 	gameplay_hud.spectator_cycle_requested.connect(_cycle_spectator)
+	gameplay_hud.powerup_card.collection_feedback.connect(gameplay_audio.play_pickup)
 	_configure_lobby_ui()
 	pause_settings = preload("res://game/ui/pause_settings.gd").new()
 	pause_settings.name = "PauseSettings"
@@ -360,6 +368,7 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 		return error
 	if dedicated:
 		_prepare_offline_player_for_join()
+	powerups.reset_session()
 	# Dedicated clients communicate only with authority. Relay DEL_PEER fan-out
 	# can target another departing ENet peer after its native channels are gone.
 	(multiplayer as SceneMultiplayer).server_relay = not dedicated
@@ -395,6 +404,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	var error := peer.create_client(address, port)
 	if error != OK:
 		return error
+	powerups.reset_session()
 	if not admission_token.is_empty():
 		room_admission = preload("res://game/session/room_admission.gd").new()
 		add_child(room_admission)
@@ -621,6 +631,7 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
+	powerups.remove_player(peer_id)
 	_player_nodes.erase(peer_id)
 	_outfits.erase(peer_id)
 	_outfit_requests.erase(peer_id)
@@ -654,6 +665,12 @@ func _physics_process(delta: float) -> void:
 	_eliminate_out_of_bounds()
 	_despawn_fallen_props()
 	_tick_server_emotes()
+	powerups.tick(match_manager, _player_nodes, disaster_director.last_seed)
+	if not _network_mode or multiplayer.is_server():
+		for peer_id: int in _player_nodes:
+			var avatar := _player_nodes[peer_id] as PartyPlayer
+			if is_instance_valid(avatar):
+				avatar.movement_buff = powerups.buff_state(peer_id, match_manager.elapsed_time)
 	if not _network_mode:
 		return
 	var local_peer_id := multiplayer.get_unique_id()
@@ -662,7 +679,7 @@ func _physics_process(delta: float) -> void:
 		if not multiplayer.is_server() and not _pending_local_movement_snapshot.is_empty():
 			var snapshot := _pending_local_movement_snapshot
 			_pending_local_movement_snapshot = {}
-			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state)
+			local_player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.buff)
 		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
@@ -684,6 +701,7 @@ func _physics_process(delta: float) -> void:
 	var knockdowns := PackedByteArray()
 	var acknowledged_inputs := PackedInt32Array()
 	var replay_states := PackedVector3Array()
+	var buff_states := PackedVector2Array()
 	for peer_id: int in _player_nodes:
 		var player := _player_nodes[peer_id] as PartyPlayer
 		var movement_input: Dictionary = _movement_inputs.get(peer_id, {})
@@ -707,7 +725,8 @@ func _physics_process(delta: float) -> void:
 		knockdowns.append(1 if player.is_knocked_down() else 0)
 		acknowledged_inputs.append(int(movement_input.sequence))
 		replay_states.append(player.get_movement_replay_state())
-	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns, acknowledged_inputs, replay_states)
+		buff_states.append(player.movement_buff)
+	_apply_movement_snapshots.rpc(peer_ids, positions, velocities, camera_yaws, visual_yaws, knockdowns, acknowledged_inputs, replay_states, buff_states, powerups.round_sequence)
 	_prop_snapshot_remaining -= delta
 	if _prop_snapshot_remaining <= 0.0:
 		_prop_snapshot_remaining = PROP_SNAPSHOT_INTERVAL
@@ -762,26 +781,34 @@ func _apply_movement_snapshots(
 	visual_yaws: PackedFloat32Array,
 	knockdowns: PackedByteArray,
 	acknowledged_inputs: PackedInt32Array = PackedInt32Array(),
-	replay_states: PackedVector3Array = PackedVector3Array()
+	replay_states: PackedVector3Array = PackedVector3Array(),
+	buff_states: PackedVector2Array = PackedVector2Array(),
+	round_sequence: int = -1
 ) -> void:
 	if multiplayer.is_server():
 		return
+	if round_sequence >= 0 and round_sequence != powerups.round_sequence:
+		return # Different channels may deliver a prior/future round's movement.
 	var player_count := peer_ids.size()
 	if positions.size() != player_count or velocities.size() != player_count or camera_yaws.size() != player_count or visual_yaws.size() != player_count or knockdowns.size() != player_count:
 		return
 	if (not acknowledged_inputs.is_empty() or not replay_states.is_empty()) and (acknowledged_inputs.size() != player_count or replay_states.size() != player_count):
+		return
+	if not buff_states.is_empty() and buff_states.size() != player_count:
 		return
 	for index: int in player_count:
 		var peer_id := peer_ids[index]
 		if not _player_nodes.has(peer_id) or not match_manager.is_player_alive(peer_id):
 			continue
 		var player := _player_nodes[peer_id] as PartyPlayer
+		var buff := buff_states[index] if not buff_states.is_empty() else Vector2.ZERO
 		if peer_id == multiplayer.get_unique_id() and not acknowledged_inputs.is_empty():
 			# Replay during the next physics tick, never at variable-rate RPC receipt time.
-			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index]}
+			_pending_local_movement_snapshot = {"position": positions[index], "velocity": velocities[index], "facing": visual_yaws[index], "knocked_down": knockdowns[index] & 1 != 0, "sequence": acknowledged_inputs[index], "state": replay_states[index], "buff": buff}
 			continue
 		player.global_position = positions[index]
 		player.velocity = velocities[index]
+		player.movement_buff = buff
 		# Local aim is input, not state to rewind with a delayed server echo.
 		if peer_id != multiplayer.get_unique_id():
 			player.set_camera_yaw(camera_yaws[index])
@@ -1161,6 +1188,14 @@ func _process(delta: float) -> void:
 	var active := match_manager.state == MatchManager.MatchState.ACTIVE
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	var personal: bool = active and is_instance_valid(local_player) and match_manager.is_player_alive(local_peer_id) and not spectator_controller.active
+	var buff := powerups.buff_state(local_peer_id, match_manager.elapsed_time)
+	var buff_id := int(powerups.buffs.get(local_peer_id, {}).get("id", 0)) if buff.x != 0 else 0
+	gameplay_hud.powerup_card.present(int(buff.x), buff.y, buff_id, powerups.round_sequence, personal and not $Interface/LobbyPanel.visible)
+	if not is_instance_valid(powerup_visuals):
+		powerup_visuals = preload("res://game/session/powerup_visuals.gd").new()
+		powerup_visuals.name = "PowerupVisuals"
+		add_child(powerup_visuals)
+	powerup_visuals.present(powerups.pickups, gameplay_hud.reduced_motion, delta)
 	gameplay_hud.present_collapse(terrain_collapse.describe(match_manager.elapsed_time), active, local_player.global_position if personal else Vector3.ZERO, personal)
 	terrain_collapse.present(match_manager.elapsed_time, match_manager.match_duration, active)
 	gameplay_hud.present_hazards(_active_disaster_lines())
@@ -1194,6 +1229,8 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	if incoming_map not in MAP_IDS or not (snapshot.get("elapsed_time") is float or snapshot.get("elapsed_time") is int) or not (snapshot.get("match_duration") is float or snapshot.get("match_duration") is int):
 		return
 	if not TerrainCollapse.snapshot_is_valid(incoming_map, snapshot.get("terrain"), float(snapshot.elapsed_time), float(snapshot.match_duration)):
+		return
+	if not MatchPowerups.snapshot_is_valid(snapshot.get("powerups")):
 		return
 	if snapshot.has("match_sequence"):
 		_last_match_snapshot_sequence = int(snapshot.match_sequence)
@@ -1234,6 +1271,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	ufo.apply_presentation_snapshot(disasters.get("ufo", {}))
 	volcano.apply_presentation_snapshot(disasters.get("volcano", {}))
 	terrain_collapse.apply_snapshot(snapshot.terrain)
+	powerups.apply_snapshot(snapshot.powerups)
 
 
 func _has_nonintact_structures() -> bool:
@@ -1248,6 +1286,7 @@ func _create_playable_snapshot() -> Dictionary:
 	snapshot.map_id = map_id
 	snapshot.match_preset = match_preset
 	snapshot.terrain = terrain_collapse.create_snapshot()
+	snapshot.powerups = powerups.create_snapshot()
 	if _dedicated_server:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
@@ -2242,6 +2281,13 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
 	_pending_fall_damage.clear()
 	gameplay_audio.reset_collapse_notices()
+	if state == MatchManager.MatchState.ACTIVE and (not _network_mode or multiplayer.is_server()):
+		powerups.begin_round()
+	else:
+		powerups.reset()
+	for candidate in _player_nodes.values():
+		if candidate is PartyPlayer:
+			candidate.movement_buff = Vector2.ZERO
 	if state == MatchManager.MatchState.LOBBY:
 		terrain_collapse.reset()
 		weather_surfaces.cleanup()
@@ -2269,6 +2315,7 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 
 
 func _on_player_eliminated(peer_id: int, cause: String) -> void:
+	powerups.remove_player(peer_id)
 	var last_input: Dictionary = _movement_inputs.get(peer_id, {})
 	_movement_inputs[peer_id] = _empty_movement_input()
 	# Keep event deduplication across death/rematch, without retaining movement.
@@ -2386,6 +2433,53 @@ func get_map_support_height(point: Vector3) -> float:
 	return float(hit.position.y) if not hit.is_empty() else point.y
 
 
+func _powerup_anchor_is_valid(point: Vector3, spawning: bool) -> bool:
+	if not terrain_collapse.supports_point(point, 1.5, true):
+		return false
+	var space := get_world_3d().direct_space_state
+	var ray := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.3, point - Vector3.UP * 0.3, 1)
+	var hit := space.intersect_ray(ray)
+	if hit.is_empty() or hit.normal.y < 0.7:
+		return false
+	if flood.is_active() and flood.water_level >= point.y - 0.05:
+		return false
+	if not fire.get_escape_context(point).is_empty() or not earthquake.get_escape_context(point).is_empty() or not volcano.get_escape_context(point).is_empty():
+		return false
+	if meteor_shower.is_active():
+		for target: Vector3 in meteor_shower.strike_points:
+			if Vector2(point.x - target.x, point.z - target.z).length() <= meteor_shower.impact_radius + 1.1:
+				return false
+	var clearance := PhysicsShapeQueryParameters3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.55
+	clearance.shape = sphere
+	clearance.transform.origin = point + Vector3.UP * 0.8
+	clearance.collision_mask = 1
+	if not space.intersect_shape(clearance, 1).is_empty():
+		return false
+	if not spawning:
+		return true
+	for index in MAX_NETWORK_PLAYERS:
+		if point.distance_to(_network_spawn_position(index)) < 2.0:
+			return false
+	for route: Dictionary in map_anchors.elevation_routes:
+		if point.distance_to(route.low) < 2.0 or point.distance_to(route.high) < 2.0:
+			return false
+	for refuge: Dictionary in map_anchors.refuges:
+		for exit_point: Vector3 in refuge.exits:
+			if point.distance_to(exit_point) < 2.0:
+				return false
+	for candidate: Node3D in _player_nodes.values():
+		if is_instance_valid(candidate) and candidate.global_position.distance_to(point) < 2.0:
+			return false
+	return true
+
+
+func _powerup_collection_is_clear(player: PartyPlayer, point: Vector3) -> bool:
+	var ray := PhysicsRayQueryParameters3D.create(player.global_position + Vector3.UP * 0.65, point + Vector3.UP * 0.65, 1)
+	return get_world_3d().direct_space_state.intersect_ray(ray).is_empty()
+
+
 func set_map_id(id: String) -> bool:
 	if id not in MAP_IDS:
 		return false
@@ -2475,6 +2569,18 @@ func _reseat_players_for_map() -> bool:
 
 func _apply_map_anchors(anchors: Dictionary) -> void:
 	map_anchors = anchors
+	# Authored open pads reachable by ordinary movement, not roofs selected
+	# by a top-down ray that could silently land on an inaccessible awning.
+	powerups.anchors.assign([
+		Vector3(-8, 0.05, 12), Vector3(8, 0.05, 12),
+		Vector3(-24, 0.05, 0), Vector3(24, 0.05, 0),
+		Vector3(-16, 4.855, -13), Vector3(16, 4.855, -13),
+		Vector3(-15, 2.575, 15), Vector3(15, 2.2, 14),
+	] if map_id == "toy_town" else [
+		Vector3(-8, 0.05, 18), Vector3(8, 0.05, 18),
+		Vector3(-8, 0.05, 0), Vector3(8, 0.05, 0),
+		Vector3(0, 4.855, -18), Vector3(-18, 3.75, 9), Vector3(18, 3.75, 9),
+	])
 	$Sandbox.set_meta("map_anchors", anchors)
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
@@ -2891,6 +2997,7 @@ func _build_toy_harbor() -> Dictionary:
 func _reset_sandbox() -> void:
 	# Rematches restore mutable world state without rebuilding thousands of
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
+	powerups.reset()
 	terrain_collapse.reset()
 	volcano.cleanup()
 	if map_anchors.get("map_id", "") == map_id:

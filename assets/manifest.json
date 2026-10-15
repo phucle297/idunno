@@ -418,6 +418,26 @@
       "gameplay_tags": [],
       "provenance": "Project-authored deterministic Godot runtime geometry; the descending meteor reuses VFX_MeteorTelegraph_v001. No energy wall, invisible floor or pit dressing. Fallen props park below MAP_KILL_Y and replicate through the ordered snapshot stream only; ordinary rubble gets owner-managed kill-depth cleanup. Collapse audio waits behind reserved warning voices. No external assets or CC0 claim.",
       "validation_status": "Godot4.7.2 Compatibility/llvmpipe:40 rendered720p/1080p captures include formerly immune CENTER and Harbor NORTH warnings/removal; blue-sky holes visually inspected. Wide overview warning outline is thin; HUD remains readable. Core4142 and routes2818/walks18/legal_masks278 confirm collision removal, fall safety and rematch reset. Both-map2/4/8/20 real peers pass center-first/north-second collapse. Native GPU/audio/feel remains unverified."
+    },
+    {
+      "asset_id": "VFX_MovementPickups_v001",
+      "category": "runtime_pickup_and_ui",
+      "source_path": "game/session/powerup_visuals.gd; game/ui/powerup_card.gd; game/ui/disaster_icon.gd",
+      "export_path": "Main/PowerupVisuals; Interface/PowerupCard (runtime)",
+      "generator_script": "game/session/powerup_visuals.gd",
+      "generator_version": "1",
+      "seed": 0,
+      "intended_dimensions_m": {"pad_diameter": 0.84, "token": [0.65, 0.65, 0.12], "token_center_height": 0.85, "label_height": 1.55},
+      "triangle_count": 204,
+      "triangle_count_notes": "Measured runtime Pad plus Token mesh faces per slot; engine text excluded. Six slots maximum, no physics bodies.",
+      "material_ids": ["DisasterPartyUI.TEAL", "DisasterPartyUI.LIGHTNING", "DisasterPartyUI.INK", "DisasterPartyUI.WHITE"],
+      "pivot": "authoritative support point",
+      "collider_type": "none; server proximity/LOS, no physical pickup bodies",
+      "skeleton_version": null,
+      "animation_list": ["optional6cm token bob; disabled by reduced motion"],
+      "gameplay_tags": ["TemporarySpeed", "TemporaryJump"],
+      "provenance": "Project-authored deterministic Godot CylinderMesh/BoxMesh and engine text. Speed double-chevron vs Jump up-arrow plus explicit names; existing UI tokens, vector symbols and synthesized JumpSound reused. Fixed six-slot visual pool; matte non-metal materials. No third-party assets or CC0 claim.",
+      "validation_status": "Godot4.7.2 Compatibility/llvmpipe imports and111 presentation assertions pass.24 captures on Town/Harbor720p/1080p cover drops, collection, refresh, replacement, expiry and meteor/flood advice. Initial Town fixture placed Speed behind garage; fixture corrected onto open real support and revised capture inspected. Warning stream priority and reduced-motion static tokens pass. Native GPU/audio-device/human feel remains unverified."
     }
   ],
   "design_references": [

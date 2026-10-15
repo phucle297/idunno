@@ -1,8 +1,7 @@
 # Phase 12 — Random In-Match Movement Power-Ups
 
-Status: planned only; owner request2026-10-14. Not implemented or deployed.
-Number12 reserves a separate roadmap entry without renumbering9–11. Implementation
-priority is not activated by this planning request; owner can prioritize it later.
+Status: implementation active after owner continuation2026-10-15; not deployed.
+Number12 preserves the existing roadmap numbering without renumbering9–11.
 
 ## Outcome / boundaries
 
@@ -47,10 +46,10 @@ backend/profile schema. Supports solo and2–20 players on Town/Harbor.
 
 Owners: `game/main.gd`, map anchors, match manager and network snapshots.
 
-- [ ] Eligible support/route/hazard/zone checks, seeded selection and spawn/expiry cap.
-- [ ] Actual authoritative proximity/line-of-sight collection and concurrent claim
+- [x] Eligible support/route/hazard/zone checks, seeded selection and spawn/expiry cap.
+- [x] Actual authoritative proximity/line-of-sight collection and concurrent claim
   resolution. No benefits in LOBBY, RESULTS, spectator or eliminated states.
-- [ ] Round-qualified replication, late join/reconnect and all cleanup transitions.
+- [x] Round-qualified replication, late join/reconnect and all cleanup transitions.
 
 Gate: same-seed replay; invalid/occupied/wet/destroyed/zone-excluded anchors decline;
 duplicate/stale/fabricated claims rejected; simultaneous2-client collection grants
@@ -60,9 +59,9 @@ exactly one effect; one-player behavior works without enabling competitive respa
 
 Owners: `game/player/player_tuning.gd`, `player.gd`, input prediction/authority.
 
-- [ ] Effective walk/sprint/jump derived from base tuning plus one buff, with capped
+- [x] Effective walk/sprint/jump derived from base tuning plus one buff, with capped
   refresh/replace/expiry and no change to cosmetics, impulse or collision contracts.
-- [ ] Predicted/authoritative speed convergence, phase-preserving visual playback.
+- [x] Predicted/authoritative speed convergence, phase-preserving visual playback.
 
 Gate: measure grounded distance and actual jump apex before/during/after each buff;
 unbuffed controls unchanged. Test expiry while airborne/sprinting, ragdoll/death,
@@ -73,9 +72,9 @@ tunnel through new rail/shrub collision or break ordinary route/shelter fairness
 
 Owners: project-authored assets/manifest and current HUD/audio/settings.
 
-- [ ] Distinct icon + name, collection feedback and remaining-time indicator; no
+- [x] Distinct icon + name, collection feedback and remaining-time indicator; no
   color-only identification, control grab prompt or full-screen hazard obstruction.
-- [ ] Reduced-motion behavior, warning audio priority and bounded visual counts.
+- [x] Reduced-motion behavior, warning audio priority and bounded visual counts.
 
 Gate: real720p/1080p gameplay renders of Speed/Jump/refresh/replace/expiry and
 overlapping hazard advice; inspect visuals and input, not just node structure.
@@ -88,6 +87,15 @@ Load asset-validation skill before creating pickup visuals and record provenance
 - [ ] Hazard/boundary/route regression, CPU/snapshot/body/effect/memory measurements.
 - [ ] Matching client/server exports and standalone lifecycle; source delivery separate
   from public deploy/release. No unexecuted GPU/human difficulty approval inferred.
+
+Evidence so far:105 movement/authority assertions,111 presentation assertions and24
+inspected captures; eight real ENet cases across both maps2/4/8/20 players with five
+rematches.83 room-UI and82 powered-collision checks pass. Scratch negative cases
+cover occupied/meteor/invalid support/skip backlog/expiry/cap/knockdown/boundary.
+Forced20buffs+6drops p95 tick219us Town/197us Harbor; serialized snapshots4324/4148B
+use the existing oversized-packet fallback. Eight warmed rematches per map retain
+zero node/orphan growth;204 mesh triangles/token, no pickup bodies. Full regression,
+managed crash-retry/owner departure and committed-HEAD packages remain pending.
 
 Human feel/balance and native GPU acceptance remain unverified under the existing
 waiver; do not add mandatory human checklists or treat proposed defaults as tested.

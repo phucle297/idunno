@@ -3,7 +3,7 @@
   "updated_at": "2026-10-15",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "implementing",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-11-meteor-terrain-collapse/progress.json",
     "status": "completed",
@@ -17,8 +17,19 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_12_match_powerup_drops", "milestone": "12.4", "task": null},
+  "phase": {
+    "id": "phase_12_match_powerup_drops",
+    "title": "Random In-Match Movement Power-Ups",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-12-match-powerup-drops.md",
+    "milestones": [
+      {"id": "12.1", "title": "Authoritative drops and collection", "status": "completed", "gate": "passed"},
+      {"id": "12.2", "title": "Temporary movement and prediction", "status": "completed", "gate": "passed"},
+      {"id": "12.3", "title": "Readable feedback", "status": "completed", "gate": "passed"},
+      {"id": "12.4", "title": "Integration and packages", "status": "in_progress", "gate": "not_run"}
+    ]
+  },
   "completed_phase": {
     "id": "phase_11_meteor_terrain_collapse",
     "title": "Meteor District Collapse",
@@ -29,9 +40,9 @@
   "planned_phases": [
     {
       "id": "phase_12_match_powerup_drops",
-      "status": "planned",
+      "status": "in_progress",
       "checklist": "docs/checklists/phase-12-match-powerup-drops.md",
-      "qualification": "Planning only; implementation priority not activated."
+      "qualification": "Owner continuation activates the existing Phase12 implementation plan."
     }
   ],
   "user_acceptance_waiver": {
@@ -47,8 +58,20 @@
     "renderer": "Compatibility",
     "target": "Windows PC"
   },
-  "changed_files": [],
-  "validation": [],
+  "changed_files": ["game/session/match_powerups.gd", "game/session/match_powerups.gd.uid", "game/session/powerup_visuals.gd", "game/session/powerup_visuals.gd.uid", "game/main.gd", "game/player/player.gd", "game/player/player_tuning.gd", "game/ui/powerup_card.gd", "game/ui/powerup_card.gd.uid", "game/ui/disaster_icon.gd", "game/ui/gameplay_hud.gd", "game/gameplay_audio_controller.gd", "assets/manifest.json", "tests/test_match_powerups.gd", "tests/test_match_powerups.gd.uid", "tests/test_match_powerups_presentation.gd", "tests/test_match_powerups_presentation.gd.uid", "tests/powerup_network_peer.gd", "tests/powerup_network_peer.gd.uid", "tests/run_powerup_network_test.sh", "tests/movement_latency_peer.gd", "tests/test_room_ui.gd", "tests/test_session_lifecycle.gd", "tests/test_map_detail_collision.gd", "tests/run_ui_regression.sh", "tools/test_changed.py", "progress.json", "README.md", "NEED_REAL_CHECK.md", "docs/decisions.md", "docs/checklists/phase-12-match-powerup-drops.md", "docs/implementation-checklist.md"],
+  "validation": [
+    {"milestone": "12.1", "command": "godot --headless --path . --script res://tests/test_match_powerups.gd", "status": "passed", "result": "MATCH_POWERUPS_OK checks=34 maps=2 seeded_atomic_replication_support=passed; real floor/clearance, same-seed replay, contention, consumed/stale/invalid snapshots, wet/missing support, real LOS wall and lobby reset. /tmp/phase12-core.log. Actual multi-process contention remains12.4."},
+    {"milestone": "12.2", "command": "godot --headless --path . --script res://tests/test_match_powerups.gd; godot --headless --path . --script res://tests/test_network_prediction.gd", "status": "passed", "result": "105 contract checks and16 existing prediction checks pass. Real60Hz grounded distance4.5/5.4 walk and6.5/7.8 sprint; Jump does not change walk/sprint. Measured base/buffed apex1.4122/1.6883m (discrete integration overshoot vs configured1.35/1.62); airborne expiry preserves trajectory. Refresh/replace, sprint expiry, impulse equality, replay expiry and five rematches on each map pass. /tmp/phase12-movement.log. Transport and powered collision/route coverage remain12.4."},
+    {"milestone": "12.3", "command": "xvfb-run -a godot --path . --audio-driver Dummy --script res://tests/test_match_powerups_presentation.gd -- --capture-powerups", "status": "passed", "result": "111 assertions;24 final720p/1080p captures inspected on both maps, six states (drops/Speed/refresh/replace Jump/expiry/hazard overlap). Initial Town fixture hid Speed behind garage; moved fixture to real open support and recaptured/reinspected. HUD text/HP/warning bounds, name+symbol distinction, reduced motion, six-slot pool and reserved warning priority pass. Captures .amp/in/artifacts/powerups. Software Compatibility/llvmpipe, not native GPU/audio acceptance."},
+    {"milestone": "12.4", "command": "GODOT_BIN=$(command -v godot) tests/run_powerup_network_test.sh", "status": "passed", "result": "8/8 cases: Town/Harbor with2/4/8/20 real ENet peers, natural scheduled spawn, atomic contention, exact ID/round/state acknowledgements, replacement/refresh/expiry, real remote sprint prediction plus observed speed>6.5, stale round rejection,5 rematches and buff-holder disconnect cleanup. /tmp/phase12-enet-matrix.log. Audio producers stop before teardown; no runtime errors/warnings."},
+    {"milestone": "12.4", "command": "godot --headless --path . --script res://tests/test_room_ui.gd; godot --headless --path . --script res://tests/test_map_detail_collision.gd", "status": "passed", "result": "83 room-UI and82 collision assertions. New room clears prior five-round ordering. Park rail blocks both base walking and powered sprint over five rematches. First broad regression stalled on obsolete room fixture missing required powerups snapshot; corrected fixture, not gameplay fallback. /tmp/phase12-roomui-session.log and /tmp/phase12-powered-collision.log. Existing shutdown-only audio resource diagnostics remain separate."},
+    {"milestone": "12.4", "command": "temporary phase12_probe.gd and phase12_negative_probe.gd on real main scene", "status": "passed", "result": "Both maps occupied/meteor/invalid slot/no backlog/clock jump/drop expiry/cap6/knockdown/boundary death pass. Forced20 buffs+6 tokens,1000 ticks: Town p50/p95/max174/219/354us; Harbor157/197/341us. Serialized snapshots empty/full2100/4324 and1924/4148 bytes; existing large-snapshot fallback retained. Tokens204 mesh triangles each, zero added pickup bodies. Eight warmed results/rematches per map give node_delta=0, orphan_delta=0. Initial cold baseline measured lazy results allocation/transient hazard cleanup, not a valid leak comparison; fixed warmup and cleaned director on every cycle. Static memory at profile119293129/87563444 bytes, not GPU/FPS or total-process peak. /tmp/phase12-profile-final.log and /tmp/phase12-negative.log."}
+  ],
+  "validation_recovery": {
+    "failed_command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh",
+    "status": "corrected_narrow_check_passed_full_staged_gate_pending",
+    "result": "Run /tmp/phase12-regression-final.log stopped at session-lifecycle roster prune assertion. Its handcrafted snapshot omitted newly required powerups and was correctly rejected. Added the real empty snapshot to the fixture; no production compatibility fallback. godot --headless --path . --script res://tests/test_session_lifecycle.gd now SESSION_LIFECYCLE_OK checks51 with clean exit (/tmp/phase12-session-final.log). Other handcrafted match-snapshot callers inspected. Python stage did not run after this failure."
+  },
   "blockers": [],
   "phase11_release": {
     "authorization": "2026-10-15 owner: fix all current findings, then commit, push and release; existing main workflow deploys the matching server.",
@@ -72,5 +95,12 @@
     "preserved_keys": ["phase10_deployment", "phase10_local_delivery", "phase9_release", "historical_delivery_metadata", "completed_followup", "phase_renumbering"]
   },
   "delivery_boundary": "Latest authorized Phase11 shipment is complete. No capacity/configuration/store changes or Steam publication authorized; future deployment requires its own applicable authorization.",
-  "next_action": "Wait for owner feedback or explicit next scope before activating the planned Phase12 movement-drop work."
+  "phase12_delivery": {
+    "status": "validation_in_progress_not_deployed",
+    "incident": "A bounded network-fixture worker prematurely committed/pushed tests without gameplay dependencies. Workflow38783520114 was cancelled; both build/deploy jobs cancelled, no completed deploy. Remote history preserved; finish gameplay dependencies in a gated skip-CI source commit.",
+    "incident_commit": "https://github.com/phucle297/idunno/commit/bbfe48e1070568796adeae96d850cc9912ec0bf1",
+    "cancelled_workflow": "https://github.com/phucle297/idunno/actions/runs/38783520114",
+    "public_build": "Phase11 unchanged; local Phase12 packages must not be used with public Phase11 server."
+  },
+  "next_action": "Finish full regression/staged commit gate, export matching Windows/Linux packages from committed HEAD and verify standalone lifecycle for12.4."
 }

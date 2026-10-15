@@ -196,7 +196,7 @@ class MeasuredMain extends "res://game/main.gd":
 			var snapshot := _pending_local_movement_snapshot
 			_pending_local_movement_snapshot = {}
 			var before := player.global_position
-			player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state)
+			player.reconcile_movement(snapshot.position, snapshot.velocity, snapshot.facing, snapshot.knocked_down, snapshot.sequence, snapshot.state, snapshot.buff)
 			if measuring:
 				corrections.append(before.distance_to(player.global_position))
 		super._physics_process(delta)
@@ -219,7 +219,7 @@ class MeasuredMain extends "res://game/main.gd":
 			telemetry.put_packet(JSON.stringify({"role": measurement_role, "event": event, "key": key}).to_utf8_buffer())
 
 	@rpc("authority", "call_remote", "unreliable_ordered", 1)
-	func _apply_movement_snapshots(ids: PackedInt32Array, positions: PackedVector3Array, velocities: PackedVector3Array, yaws: PackedFloat32Array, facing: PackedFloat32Array, knockdowns: PackedByteArray, acknowledged_inputs: PackedInt32Array = PackedInt32Array(), replay_states: PackedVector3Array = PackedVector3Array()) -> void:
+	func _apply_movement_snapshots(ids: PackedInt32Array, positions: PackedVector3Array, velocities: PackedVector3Array, yaws: PackedFloat32Array, facing: PackedFloat32Array, knockdowns: PackedByteArray, acknowledged_inputs: PackedInt32Array = PackedInt32Array(), replay_states: PackedVector3Array = PackedVector3Array(), buff_states: PackedVector2Array = PackedVector2Array(), round_sequence: int = -1) -> void:
 		arrivals.append(Time.get_ticks_usec() / 1000.0)
 		mark("snapshot")
 		for i in ids.size():
@@ -227,7 +227,7 @@ class MeasuredMain extends "res://game/main.gd":
 				var step: Vector3 = positions[i] - previous[ids[i]]
 				travel[ids[i]] = float(travel.get(ids[i], 0.0)) + Vector2(step.x, step.z).length()
 			previous[ids[i]] = positions[i]
-		super._apply_movement_snapshots(ids, positions, velocities, yaws, facing, knockdowns, acknowledged_inputs, replay_states)
+		super._apply_movement_snapshots(ids, positions, velocities, yaws, facing, knockdowns, acknowledged_inputs, replay_states, buff_states, round_sequence)
 
 	@rpc("any_peer", "call_remote", "unreliable", 2)
 	func probe(stamp: int) -> void:

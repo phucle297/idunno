@@ -75,6 +75,7 @@ func _run() -> void:
 		"elapsed_time": 0.0,
 		"match_duration": 600.0,
 		"terrain": PackedFloat32Array([0, -1, 0, 0]),
+		"powerups": main.powerups.create_snapshot(),
 		"player_ids": PackedInt32Array([1, 2]),
 		"player_ready": PackedByteArray([1, 1]),
 		"player_health": PackedFloat32Array([100.0, 100.0]),

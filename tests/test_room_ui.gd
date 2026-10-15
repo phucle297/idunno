@@ -129,7 +129,10 @@ func _run() -> void:
 	_expect(server.create_server(0) == OK, "Review transport must open")
 	server_api.multiplayer_peer = server
 	main._prepare_offline_player_for_join()
+	for round_index in 5:
+		main.powerups.begin_round()
 	_expect(main.join_game("127.0.0.1", server.host.get_local_port()) == OK, "Review client must open")
+	_expect(main.powerups.round_sequence == 0, "A new room resets prior-room buff round ordering")
 	await _wait_until(func() -> bool: return main.multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED, "Review client must connect")
 	var local_id: int = main.multiplayer.get_unique_id()
 	var remote_id := 1234 if local_id != 1234 else 5678
@@ -147,6 +150,7 @@ func _run() -> void:
 	var snapshot: Dictionary = manager.create_authoritative_snapshot()
 	snapshot.merge({"dedicated_server": true, "room_owner_id": local_id, "session_revision": 1})
 	snapshot.terrain = PackedFloat32Array([0, -1, 0, 0])
+	snapshot.powerups = main.powerups.create_snapshot()
 	main._apply_match_snapshot(snapshot)
 	main._process(10.1)
 	_expect(main.is_network_session(), "An admitted client must remain connected beyond the join deadline")
@@ -164,6 +168,7 @@ func _run() -> void:
 	snapshot = manager.create_authoritative_snapshot()
 	snapshot.merge({"dedicated_server": true, "room_owner_id": local_id, "session_revision": 2})
 	snapshot.terrain = PackedFloat32Array([0, -1, 0, 0])
+	snapshot.powerups = main.powerups.create_snapshot()
 	main._apply_match_snapshot(snapshot)
 	_expect(main.get_node("Interface/ResultsPanel/Actions/Rematch").visible, "Owner results must retain session actions")
 	await _capture("owner-results")

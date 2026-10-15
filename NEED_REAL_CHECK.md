@@ -1,5 +1,13 @@
 # Báo lỗi khi gặp thực tế
 
+**Phase12 đang chốt gate kỹ thuật/local (2026-10-15):** Speed (+20% chạy12s) và
+Jump (+20% độ cao10s) đã implement, một buff/người, nhặt cùng loại làm mới thời gian,
+khác loại thay thế. Test105/111 và cả hai map2/4/8/20 peer/five rematches đã pass;
+ảnh720p/1080p được inspect. Regression/package cuối đang chạy; **chưa deploy/release**,
+public vẫn Phase11 bên dưới. Không ghép client Phase12 với server public Phase11.
+Native Windows/GPU/60FPS/audio/người thật/hai mạng riêng chưa xác minh; waiver cũ
+giữ nguyên, không thêm checklist bắt buộc. [Theo dõi Phase12](docs/checklists/phase-12-match-powerup-drops.md).
+
 **Bản public mới nhất — Phase11 (2026-10-15):**
 [6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600)
 đã commit/push/deploy và có
@@ -54,8 +62,8 @@ cho lan can, bụi/chậu cây, đèn, vent, cọc/crate Harbor đã có trong b
 Lan can trình bày cầu thang giữ decorative trên ramp solid để không chặn đường
 tiếp cận hoặc crate crossing. CI pass42 suite/5 matrix/managed20; lỗi fixture prop
 reset được sửa bằng freeze/ack trong test, không nới tolerance hoặc sửa physics thật. Native/GPU/user acceptance
-và waiver cũ không đổi. [Drop tăng tốc/nhảy](docs/checklists/phase-12-match-powerup-drops.md)
-chỉ là plan Phase12, chưa implement; không thêm checklist người dùng bắt buộc.
+và waiver cũ không đổi. Drop tăng tốc/nhảy khi đó chỉ là plan Phase12; trạng thái
+hiện tại ở đầu trang, không thêm checklist người dùng bắt buộc.
 
 **Phase8 hoàn tất gate kỹ thuật (2026-10-14):** [checklist và evidence](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md).
 Source `14be2c323e2267c18a06ccf704090c6268ad184e` đã push; gói matching Windows/Linux
@@ -75,7 +83,8 @@ scope vòng co nhưng owner đã hủy; thay bằng
 (snapshot scope cũ lưu ở `docs/old-docs/phase-11-superseded-zone/`). Disaster Phase9
 đã chạy trong source/package/public c0a7800; Phase10 đã commit/deploy `945aa9f`.
 Phase11 đã hoàn tất, commit/push/deploy và publish matching prerelease như ghi đầu
-trang; toàn bộ evidence/checklist/decisions đã archive. Phase12 vẫn planned/inactive.
+trang; toàn bộ evidence/checklist/decisions đã archive. Phase12 sau đó được owner
+cho tiếp tục implement, trạng thái hiện tại ở đầu trang.
 Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist
