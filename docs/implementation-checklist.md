@@ -4,9 +4,10 @@
 
 ## Active and planned phases
 
+No phase is active. Phase11 is completed and released; Phase12 stays planned/inactive.
+
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 11 — Meteor Terrain Collapse | Active: all-district/Oracle fixes; core/routes and real-peer matrix pass; staged regression and authorized release pending | [Phase 11](checklists/phase-11-meteor-terrain-collapse.md) |
 | 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
@@ -24,7 +25,9 @@ matrices, inspected renders and matching local packages. Phase10 subsequently
 completed six technical/local-package gates2026-10-15, plus the volcanic-relief
 follow-up. Owner-authorized source push and exact-head EC2 deployment passed;
 matching thread bundles and public two-client smoke are recorded in root progress.
-The next owner continuation activates Phase11; Phase12 remains planned.
+Phase11 subsequently completed all four agent-owned milestones, source push,
+exact-head deployment and matching prerelease; its full archive is linked below.
+Phase12 remains planned. Earlier pending/source-only archive statements are historical.
 The Phase9 technical archive records the then-uncommitted closure;
 subsequent owner-authorized source push, EC2 deployment and matching
 [public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
@@ -41,6 +44,7 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 ## Completed phases
 
+- [Phase 11 — Meteor District Collapse](old-docs/phase-11-meteor-terrain-collapse/checklist.md) · [decisions](old-docs/phase-11-meteor-terrain-collapse/decisions.md) · [evidence](old-docs/phase-11-meteor-terrain-collapse/progress.json) — all-district real holes/fall death/reset, Oracle lifecycle fixes,52-suite/41-Python regression, both-map2/4/8/20 five-rematch matrix, matching exact-deployed PCK packages and [public prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1) verified. Native Windows/GPU/audio/human/separate-network acceptance unverified.
 - [Phase 10F — Volcanic Relief](old-docs/phase-10-volcanic-relief-followup/checklist.md) · [decisions](old-docs/phase-10-volcanic-relief-followup/decisions.md) · [evidence](old-docs/phase-10-volcanic-relief-followup/progress.json) — faceted support/contact, both-map routes and four-peer rematches,24 inspected renders; source only, old packages unchanged. Map-variety retains shutdown-only resource diagnostics.
 - [Phase 10 — Swarms, UFO and Volcanic Terrain](old-docs/phase-10-swarms-ufo-volcano/checklist.md) · [decisions](old-docs/phase-10-swarms-ufo-volcano/decisions.md) · [evidence](old-docs/phase-10-swarms-ufo-volcano/progress.json) — six technical/local-package milestones pass;49 suites/five matrices/managed20, both-map2/4/8/20 peers,40 inspected renders and matching local exports. Source uncommitted/unpushed, no public deployment or native/human acceptance claim.
 - [Phase 9 — Weather and Rockslides](old-docs/phase-9-weather-rockslides/checklist.md) · [decisions](old-docs/phase-9-weather-rockslides/decisions.md) · [evidence](old-docs/phase-9-weather-rockslides/progress.json) — all four technical/local-package milestones pass; subsequent authorized source/public shipment verified in root progress. No native/human acceptance claim.

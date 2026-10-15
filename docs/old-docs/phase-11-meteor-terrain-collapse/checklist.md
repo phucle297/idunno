@@ -1,6 +1,6 @@
 # Phase 11 — Meteor Terrain Collapse
 
-Status: active11.4 — all-district/Oracle fixes implemented; focused core/routes and both-map real-peer matrix pass. Staged-tree regression and committed-HEAD release verification pending. Owner now authorizes commit/push/release. This replaces the superseded shrinking-circle/gradual-HP-loss scope. Its complete prior checklist, decisions and progress snapshot are preserved byte-for-byte in [the cancelled archive](../old-docs/phase-11-superseded-zone/checklist.md). Prior zone passes are evidence for superseded code only; they are not gates for this phase. Phase12 remains planned and inactive.
+Status: completed — all four agent-owned milestones, source push, exact-head deployment and [matching prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1) verified on2026-10-15. This replaces the superseded shrinking-circle/gradual-HP-loss scope. Its complete prior checklist, decisions and progress snapshot are preserved byte-for-byte in [the cancelled archive](../phase-11-superseded-zone/checklist.md). Prior zone passes are evidence for superseded code only; they are not gates for this phase. Phase12 remains planned and inactive. Native Windows/GPU/audio/human/separate-network acceptance is not claimed.
 
 ## Product outcome
 
@@ -35,9 +35,9 @@ Gate G11.3: real peers converge on the same warned/removal state and authoritati
 ## 11.4 — Rendered/regression/resource/matching committed-HEAD package evidence
 
 - [x] Run focused/full regression and strict runtime-error checks; inspect rendered 720p/1080p indoor/outdoor warning, hole, fall, spectator and rematch states. Done: UI_REGRESSION_OK suites=52 matrices=5 managed_clients=20 persistence_restart=passed exit0 (`/tmp/collapse-regression-v2.log`); TERRAIN_COLLAPSE_RENDER_OK captures=24 with reset==intact AE=0 and hole states visually inspected as pure sky absence (`/tmp/collapse-render-v3.log`); 8-rematch soak COLLAPSE_RESOURCE_SOAK_OK checks=53 cycles=8, node/orphan deltas 0 (`/tmp/collapse-soak-v2.log`).
-- [ ] Measure resources/rematch stability and validate matching committed-HEAD Windows/Linux packages, PCK/hash/unpack and standalone lifecycle evidence.
+- [x] Measure resources/rematch stability and validate matching committed-HEAD Windows/Linux packages, PCK/hash/unpack and standalone lifecycle evidence. Final source6e3adb1;119 independently hashed payload entries match, Windows uses byte-exact deployed PCK. Final unpack/manifests, exact-CI standalone Linux lifecycle, no-cache exported-PCK core4142 and public two-client smoke pass. Published assets downloaded/byte-compared and tag pinned to source.
 
-Gate G11.4: rendered, regression, resource and matching-package evidence passes. Status: **in_progress** — owner authorizes commit/push/release; exact-head exports, existing automatic server deployment and public release verification remain pending. Native Windows/GPU/audio/human/separate-network checks remain honestly not_run under the existing waiver.
+Gate G11.4: **passed** — final staged gate52 Godot suites/5 network groups/managed20/five rematches/settings restart and41 Python tests; bounded eight-rematch soak53 with node/orphan deltas0; forty rendered captures; matching committed-HEAD exports; exact-head CI deployment and public release verification complete. Evidence is preserved in this archive's progress.json. Known shutdown-only audio/ObjectDB/resource diagnostics remain qualified. Native Windows/GPU/audio/human/separate-network checks remain honestly not_run under the existing waiver. Earlier pending validation entries below are chronological, superseded by this final gate.
 
 ## Validation log
 

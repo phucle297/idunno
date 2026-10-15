@@ -1,5 +1,22 @@
 # Báo lỗi khi gặp thực tế
 
+**Bản public mới nhất — Phase11 (2026-10-15):**
+[6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600)
+đã commit/push/deploy và có
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1).
+Tải `DisasterParty-Windows-Internet-6e3adb1.zip`, giải nén hết rồi chạy EXE;
+client cũ không tương thích. Trung tâm/kho không còn miễn sập; đất và công trình
+biến mất, nền xanh hiện bên dưới, rơi xuống chết ngay. Các lỗi Oracle về support,
+rubble và reset/rematch client đã sửa.52 suite/41 Python, collapse8/8 trường hợp
+hai map2/4/8/20 peer với5 rematch, exact-PCK4142, standalone Linux và public
+HTTPS/ticket/2 ENet client/Ready/Start/ACTIVE/remote movement pass. Windows dùng
+đúng PCK đã deploy; tag và ba asset publish đã tải lại đối chiếu byte/hash.
+Public smoke là hai client Linux cùng orb/upstream; Windows gốc/GPU/60FPS/audio/
+người thật/hai mạng riêng **chưa xác minh**. Không thêm checklist bắt buộc;
+waiver và mọi xác nhận cũ giữ nguyên, không suy thành pass cho build mới.
+[Evidence Phase11](docs/old-docs/phase-11-meteor-terrain-collapse/progress.json).
+Các bản và trạng thái public trước bên dưới là lịch sử, đã được thay bởi bản này.
+
 **Cập nhật public Phase10 (2026-10-15):** source
 [945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c)
 đã commit/push/deploy, gồm Volcano gồ ghề mới. Dùng gói được giao
@@ -54,12 +71,11 @@ lịch sử, không phải trạng thái source hiện tại.
 **Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
 scope vòng co nhưng owner đã hủy; thay bằng
-[Phase11 — Meteor Terrain Collapse](docs/checklists/phase-11-meteor-terrain-collapse.md)
+[Phase11 — Meteor Terrain Collapse](docs/old-docs/phase-11-meteor-terrain-collapse/checklist.md)
 (snapshot scope cũ lưu ở `docs/old-docs/phase-11-superseded-zone/`). Disaster Phase9
 đã chạy trong source/package/public c0a7800; Phase10 đã commit/deploy `945aa9f`.
-Phase11 đã implement xong trong source, validation xanh, nhưng chưa commit/push/deploy
-(owner đã duyệt commit/push/release sau khi sửa Oracle và bỏ vùng miễn nhiễm;
-đang kiểm tra bản cuối và đóng gói); Phase12 vẫn ở trạng thái planned.
+Phase11 đã hoàn tất, commit/push/deploy và publish matching prerelease như ghi đầu
+trang; toàn bộ evidence/checklist/decisions đã archive. Phase12 vẫn planned/inactive.
 Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist

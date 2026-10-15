@@ -24,6 +24,14 @@ new follow-up evidence belongs in a separately named archive.
 | 9 — Weather and Rockslides | [Checklist](phase-9-weather-rockslides/checklist.md) | [Decisions](phase-9-weather-rockslides/decisions.md) | [Progress](phase-9-weather-rockslides/progress.json) |
 | 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
+| 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
+
+Phase11 completed all four agent-owned milestones, source push, exact-head EC2
+deployment and [matching prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1)
+on2026-10-15. Its archive preserves full failure/recovery, final regression, package,
+public two-client smoke and tag/download-hash evidence, including historical delivery
+metadata. Native Windows/GPU/audio/human/separate-network acceptance is unverified.
+Earlier source-only/pending statements below are chronological, not current delivery.
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
@@ -60,6 +68,8 @@ Historical decisions and progress were moved without changing their contents. Pa
 Future completed phases use `docs/old-docs/{phase-slug}/{checklist.md,decisions.md,progress.json}`. Preserve full evidence, never overwrite an existing archive, and leave active/planned checklists under `docs/checklists/`.
 
 2026-10-14 numbering change: the formerly planned shrinking-zone Phase8 is now
-[Phase11](../checklists/phase-11-shrinking-survival-zone.md), after new Phase8–10
-character/UI and disaster work. Historical Phase8 IDs/paths in archived evidence
-remain unchanged; use that new link for the current postponed zone plan.
+[superseded Phase11 zone tracking](phase-11-superseded-zone/checklist.md), after new
+Phase8–10 character/UI and disaster work. On2026-10-15 the owner rejected that scope;
+its cancelled checklist/decisions/progress are preserved unchanged, not completed.
+The new completed Phase11 meteor terrain-collapse archive is linked above.
+Historical Phase8 IDs/paths in archived evidence remain unchanged.

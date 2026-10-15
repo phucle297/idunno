@@ -1,15 +1,17 @@
 # Disaster Party Play Guide
 
-2026-10-15: **Phase10 with uneven volcanic relief is deployed** from
-[945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c).
-Use the supplied `DisasterParty-Windows-Internet-945aa9f.zip`; root `progress.json`
-records package hashes and [successful deployment](https://github.com/phucle297/idunno/actions/runs/38683932261).
-This bundle uses the byte-exact deployed PCK. No new GitHub Release was published.
+2026-10-15: **Phase11 Meteor District Collapse is deployed and published** from
+[6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600).
+Download `DisasterParty-Windows-Internet-6e3adb1.zip` from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1);
+root `progress.json` records hashes and
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/38741742369).
+This bundle uses the byte-exact deployed PCK and includes the uneven volcanic relief.
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
-`https://server.permees.com` is built in. Extract the matching Phase10 bundle and run
+`https://server.permees.com` is built in. Extract the matching Phase11 bundle and run
 `DisasterParty.exe`; older bundles, including the historical
 [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
 are incompatible. Public two-client exact-PCK
@@ -39,10 +41,10 @@ Volcanic banks now have unequal faceted slopes and matching collision, while low
 crossing corridors remain walkable. Historical precommit Phase10 local packages
 lack this refinement and must not be mixed with the current public server.
 
-## Phase11 meteor terrain collapse — source builds only
+## Phase11 meteor terrain collapse
 
-The public Phase10 bundle above does **not** contain this rule yet. Use matching
-source builds on all peers; do not join the public server with a Phase11 client.
+These rules are included in the matching public Phase11 release. Older Phase10
+and earlier clients cannot join the new server.
 
 - A heavy collapse meteor warns for30 seconds before removal at normalized120/270/390/510
   seconds of a600-second match. Fixture durations scale this timing. A clock jump still

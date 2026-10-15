@@ -2,23 +2,23 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-15: **Phase10 including uneven volcanic relief is deployed** at
-`https://server.permees.com` from [945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38683932261), fresh49-suite/41-Python
-regression and two-client public exact-PCK smoke pass. Use the supplied
-`DisasterParty-Windows-Internet-945aa9f.zip`; Phase9 clients are incompatible.
-Matching package hashes/evidence are in root `progress.json`. No new GitHub Release
-was published. Earlier delivery statements below describe historical snapshots.
+2026-10-15: **Phase11 Meteor District Collapse is deployed and published** at
+`https://server.permees.com` from [6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600).
+Download the matching Windows ZIP from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38741742369), final52-suite/41-Python
+regression and public two-client exact-PCK smoke pass. Old clients are incompatible.
+Package hashes/evidence are in root `progress.json` and the full phase archive.
+Earlier delivery statements below describe historical snapshots.
 
-Phase11 is now active in source: warned heavy meteors permanently remove bounded,
+Warned heavy meteors permanently remove bounded,
 connected terrain districts, leaving real collision holes and authoritative instant
 void-fall death. A removed district renders as pure absence — the sky background shows
 through the hole. All nine districts are eligible, including center and warehouse.
-Owner authorized commit/push/release after the all-district and Oracle fixes;
-committed-HEAD package and delivery verification is in progress.
-See [Phase11](docs/checklists/phase-11-meteor-terrain-collapse.md).
-See [source-only terrain-collapse rules](GUIDE.md#phase11-meteor-terrain-collapse--source-builds-only).
-The public Phase10 server/bundle is unchanged and cannot be mixed with new clients.
+Oracle lifecycle/rematch fixes are included. See the completed
+[Phase11 archive](docs/old-docs/phase-11-meteor-terrain-collapse/checklist.md) and
+[terrain-collapse rules](GUIDE.md#phase11-meteor-terrain-collapse).
+Native Windows/GPU/audio/human/separate-network acceptance remains unverified.
 
 The current source expands Toy Town to **112×112m**: continuous rounded building
 shells, curved striped shop canopy, shared staggered paving, populated side/civic
@@ -112,10 +112,10 @@ Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. Phase11 is now
-[warned meteor terrain collapse](docs/checklists/phase-11-meteor-terrain-collapse.md);
+[warned meteor terrain collapse](docs/old-docs/phase-11-meteor-terrain-collapse/checklist.md);
 the rejected circle/gradual-HP-loss tracking is archived as superseded/cancelled.
-Phase9 is shipped under separate owner authorization; the public Phase10 bundle does
-not include Phase11–12 work.
+The public Phase11 release includes the uneven volcanic-relief refinement and does
+not include the planned Phase12 work.
 
 ## Windows playtest export
 
