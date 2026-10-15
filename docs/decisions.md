@@ -6,7 +6,11 @@ their agent-owned technical gates. The refinement's [checklist](old-docs/phase-1
 [evidence](old-docs/phase-10-volcanic-relief-followup/progress.json) are archived
 separately from the original Phase10 snapshot.
 
-Source remains uncommitted/unpushed. Existing local Phase10 packages do not contain
-the relief refinement. Public Phase9 is unchanged; no new release/deployment or
-Phase11/12 activation is inferred. Native GPU/human acceptance is unverified under
-the preserved waiver. Root `progress.json` owns current operational state.
+The owner subsequently authorized check/commit/push/deploy on2026-10-15.
+Source [945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c)
+passed the fresh staged-tree full gate and was deployed by the existing EC2 workflow.
+Exact deployed-PCK/public two-client checks pass; matching Windows/Linux bundles
+are supplied as thread artifacts, not a new GitHub Release. Old local packages and
+archive no-deployment statements remain historical. No infrastructure capacity/store
+changes or Phase11/12 activation. Native GPU/human acceptance is still unverified
+under the preserved waiver. Root `progress.json` owns delivery evidence and state.

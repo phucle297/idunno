@@ -1,5 +1,16 @@
 # Báo lỗi khi gặp thực tế
 
+**Cập nhật public Phase10 (2026-10-15):** source
+[945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c)
+đã commit/push/deploy, gồm Volcano gồ ghề mới. Dùng gói được giao
+`DisasterParty-Windows-Internet-945aa9f.zip`; client Phase9 không tương thích.
+49 suite/5 matrix/managed20/settings restart và41 Python pass; exact CI-PCK
+Volcano284/Integration47, standalone Linux và public HTTPS/ticket/2 ENet client/
+Ready/Start/ACTIVE/remote movement pass. Hai client Linux cùng orb/upstream,
+không thay xác nhận Windows gốc/GPU/audio/người thật/hai mạng riêng. Không thêm
+checklist bắt buộc; waiver giữ nguyên. Các đoạn source chưa commit/public Phase9
+bên dưới là snapshot lịch sử. Hash/gate giao hàng nằm trong root `progress.json`.
+
 **Phase10 hoàn tất gate kỹ thuật/local (2026-10-15):**
 Ong/UFO/núi lửa đã implement ở source và có gói matching Windows/Linux local tại
 `.amp/in/artifacts/phase10-packages`; đây là snapshot chưa commit, không phải bản public.

@@ -1,25 +1,25 @@
 # Disaster Party Play Guide
 
-2026-10-15 delivery update: Phase10 with uneven volcanic relief is authorized for
-commit/push/deployment after checks. Root `progress.json` records the actual
-delivery outcome. The Phase9 download below is historical once that deployment
-completes; use a matching Phase10 client, not the old bundle.
+2026-10-15: **Phase10 with uneven volcanic relief is deployed** from
+[945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c).
+Use the supplied `DisasterParty-Windows-Internet-945aa9f.zip`; root `progress.json`
+records package hashes and [successful deployment](https://github.com/phucle297/idunno/actions/runs/38683932261).
+This bundle uses the byte-exact deployed PCK. No new GitHub Release was published.
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
-`https://server.permees.com` is built in. The owner-authorized
-[Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
-supplies matching Windows/Linux bundles and deployed server revision
-`c0a780067c10372ca6676725f03916503994aa5e`. Download `DisasterParty-Windows-Internet-c0a7800.zip` and run
-`DisasterParty.exe`; older bundles are incompatible. Public two-client exact-PCK
+`https://server.permees.com` is built in. Extract the matching Phase10 bundle and run
+`DisasterParty.exe`; older bundles, including the historical
+[Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
+are incompatible. Public two-client exact-PCK
 Linux editor-driven smoke passed, not native Windows/separate-network acceptance.
 Task 2.2.7's `94ad2fd` bundles and older `7eb1f25` direct-IP ZIP are historical.
 No lobby browser, Steam invites or
 NAT traversal is implemented.
 Same-PC checks do not prove physical LAN or Internet play.
 
-## Phase10 source/local-build hazards (not on the public Phase9 server)
+## Phase10 hazards
 
 - **Bee Swarm:** the buzz and target label precede pursuit. Walk away, get under
   real overhead cover, or immerse your head. Walls block stings. The swarm is
@@ -35,8 +35,9 @@ Same-PC checks do not prove physical LAN or Internet play.
   immersion cools only the reached shelves. Raised dry banks can remain hot.
   The changed collision stays for the round and resets on rematch/map change.
 
-Phase10 local packages require their matching local server; do not mix them with
-the public Phase9 service or claim a new deployment from these source changes.
+Volcanic banks now have unequal faceted slopes and matching collision, while low
+crossing corridors remain walkable. Historical precommit Phase10 local packages
+lack this refinement and must not be mixed with the current public server.
 
 ## Prepare and verify the package
 

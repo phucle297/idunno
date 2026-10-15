@@ -78,7 +78,23 @@
     "delivery_gate": "Exact-head CI deploy passes. Final Windows uses byte-exact deployed PCK; all105 payload entries independently match local export although container bytes differ. Both final unpack/hash/content checks and standalone Linux lifecycle pass; exact deployed-PCK Weather471/Rock72 clean exits pass. Two public exact-PCK clients pass verified HTTPS/tickets/ENet/Ready/Start/ACTIVE/remote movement plus unknown-room404/old-build409. Three published assets downloaded/hash compared and tag verified.",
     "qualification": "Two Linux editor-driven clients in one orb/upstream, not native Windows/GPU/audio/human or separate-network acceptance. Existing EC2 capacity/configuration/store unchanged; no Steam publication. Earlier uncommitted local snapshot remains historical evidence."
   },
-  "phase10_deployment": {"authorization": "2026-10-15 owner: Check, if finish commit and push and deploy", "status": "checking_before_commit", "scope": "Phase10 including faceted volcanic relief; existing main-branch EC2 workflow, no capacity/configuration changes", "qualification": "Earlier uncommitted/no-deployment statements describe historical snapshots. A new public release publication is not requested. Matching client delivery and exact-head backend checks must follow deployment."},
-  "delivery_boundary": "Owner now authorizes commit, push and deployment after checks. Existing Phase9 release remains historical; do not claim Phase10 deployed until exact-head workflow and public checks pass. No capacity/storage changes or Phase11/12 activation.",
-  "next_action": "Pass staged-tree regression, commit/push Phase10 with relief, then verify exact-head deployment and matching client package."
+  "phase10_deployment": {
+    "authorization": "2026-10-15 owner: Check, if finish commit and push and deploy",
+    "status": "deployed_and_public_smoke_verified",
+    "revision": "945aa9f69631439c46b78983270b016f6668676c",
+    "commit_url": "https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38683932261",
+    "endpoint": "https://server.permees.com",
+    "source_gate": "Fresh staged-tree hook: UI_REGRESSION_OK suites49 matrices5 managed_clients20 persistence_restart passed;41 Python tests pass; PRE_COMMIT_OK staged_tree bf3c3fc51a887b00d25b4b12225547a4072fcbc5. Known shutdown-only Dummy-audio/ObjectDB/resource diagnostics remain qualified in the technical archive.",
+    "delivery_gate": "Exact-head build/deploy workflow success; EXISTING_EC2_DEPLOY_OK backend passed. CI artifact117-entry PCK independently matches every local Windows payload, then byte-exact CI PCK placed into Windows bundle. Export verifier and standalone Linux lifecycle pass. Exact CI-PCK Volcano284/Integration47 pass with no runtime/leak diagnostics. Public HTTPS unknown404/old409 plus real tickets, two ENet peers, Ready/Start/ACTIVE and remote movement pass; client logs contain no runtime errors.",
+    "directory": ".amp/in/artifacts/phase10-deploy",
+    "windows": "DisasterParty-Windows-Internet-945aa9f.zip",
+    "windows_sha256": "2dae576073f906607aa6be5db27f7e5896f980d85f1b85798329d95b4e4a820f",
+    "linux_server": "DisasterParty-Linux-server-945aa9f.tar.gz",
+    "linux_sha256": "53f220d22d7a60170d6d6a82c3cd7126f3f0399ca25ac53dbc9621b71a90c630",
+    "pck_sha256": "c4c685ed50369c17f3d21deb3c6127d7d066e14ce3c861e6449c8a85b689c271",
+    "qualification": "Source committed/pushed; existing EC2 deployed without capacity/configuration/store changes. Bundles supplied as thread artifacts, not a newly published GitHub Release. Public smoke uses two Linux editor-driven clients with exact deployed PCK on one orb/upstream, not native Windows/GPU/audio/human/separate-network acceptance. Earlier uncommitted/no-deployment statements and old local packages are historical. Phase11/12 not activated."
+  },
+  "delivery_boundary": "Authorized Phase10 with faceted volcanic relief committed/pushed/deployed and public smoke verified. Matching client supplied; old Phase9 clients are incompatible. No new GitHub Release publication or capacity/storage changes.",
+  "next_action": "Await owner feedback or next scope using the matching deployed Phase10 client; Phase11/12 remain planned."
 }

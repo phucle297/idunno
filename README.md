@@ -2,11 +2,13 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-15: the owner authorized checking, committing, pushing and deploying
-Phase10 including the faceted volcanic-relief refinement. Delivery is being
-verified in root `progress.json`; earlier package/deployment statements below
-describe the preceding Phase9 release and historical Phase10 local snapshot.
-Do not use the old Phase9 client after the server advances to Phase10.
+2026-10-15: **Phase10 including uneven volcanic relief is deployed** at
+`https://server.permees.com` from [945aa9f](https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38683932261), fresh49-suite/41-Python
+regression and two-client public exact-PCK smoke pass. Use the supplied
+`DisasterParty-Windows-Internet-945aa9f.zip`; Phase9 clients are incompatible.
+Matching package hashes/evidence are in root `progress.json`. No new GitHub Release
+was published. Earlier delivery statements below describe historical snapshots.
 
 The current source expands Toy Town to **112×112m**: continuous rounded building
 shells, curved striped shop canopy, shared staggered paving, populated side/civic
