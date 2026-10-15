@@ -398,6 +398,26 @@
       "files": ["bee_warning.wav", "ufo_warning.wav", "volcano_warning.wav"],
       "provenance": "Project-authored deterministic PCM buzz, oscillating UFO tone and volcanic rumble. No third-party audio. Prior eleven generated sounds unchanged.",
       "validation_status": "Godot import passes. Integrated fixture checks separate reserved warning stream dispatch; human recognition/audio-device acceptance unverified."
+    },
+    {
+      "asset_id": "VFX_MeteorDistrictCollapse_v001",
+      "category": "vfx",
+      "source_path": "game/session/terrain_collapse.gd",
+      "export_path": "runtime procedural boxes plus reused VFX_MeteorTelegraph_v001",
+      "generator_script": "game/session/terrain_collapse.gd",
+      "generator_version": "1",
+      "seed": 0,
+      "intended_dimensions_m": {"district_warning": "bounded district rectangle at sampled terrain height", "post_height": 5.0, "meteor_scale": 5.0, "hole": "no geometry; removed districts render nothing and the environment background shows through"},
+      "triangle_count": 832,
+      "triangle_count_qualification": "Worst Town district is now-removable CENTER:60 dashed12-triangle perimeter boxes (60×57m), four5m12-triangle posts and the reused64-triangle telegraph meteor, all warning-only. The collapsed hole itself has zero triangles and no collision floor.",
+      "material_ids": ["runtime amber ff-bf-3f"],
+      "pivot": "district center x/z; warning dashes sample terrain height at most16 queries per physics frame",
+      "collider_type": "none",
+      "skeleton_version": null,
+      "animation_list": [],
+      "gameplay_tags": [],
+      "provenance": "Project-authored deterministic Godot runtime geometry; the descending meteor reuses VFX_MeteorTelegraph_v001. No energy wall, invisible floor or pit dressing. Fallen props park below MAP_KILL_Y and replicate through the ordered snapshot stream only; ordinary rubble gets owner-managed kill-depth cleanup. Collapse audio waits behind reserved warning voices. No external assets or CC0 claim.",
+      "validation_status": "Godot4.7.2 Compatibility/llvmpipe:40 rendered720p/1080p captures include formerly immune CENTER and Harbor NORTH warnings/removal; blue-sky holes visually inspected. Wide overview warning outline is thin; HUD remains readable. Core4142 and routes2818/walks18/legal_masks278 confirm collision removal, fall safety and rematch reset. Both-map2/4/8/20 real peers pass center-first/north-second collapse. Native GPU/audio/feel remains unverified."
     }
   ],
   "design_references": [

@@ -17,6 +17,7 @@ var active_remaining := 0.0
 var target_id := 0
 var swarm_position := Vector3.ZERO
 var water_level: Callable
+var target_is_viable: Callable
 var _manager: MatchManager
 var _players: Dictionary = {}
 var _last_target := 0
@@ -77,7 +78,8 @@ func _eligible_targets() -> Array[int]:
 	for peer_id: int in _players:
 		var player := _players[peer_id] as Node3D
 		if is_instance_valid(player) and _manager.is_player_alive(peer_id) and not _protected(player.global_position):
-			candidates.append(peer_id)
+			if not target_is_viable.is_valid() or bool(target_is_viable.call(player.global_position)):
+				candidates.append(peer_id)
 	candidates.sort()
 	return candidates
 

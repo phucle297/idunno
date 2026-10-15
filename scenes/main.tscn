@@ -121,6 +121,31 @@ theme_override_font_sizes/font_size = 14
 text = "SURVIVE"
 horizontal_alignment = 1
 
+[node name="TerrainStatus" type="PanelContainer" parent="Interface"]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -270.0
+offset_top = 96.0
+offset_right = 270.0
+offset_bottom = 160.0
+mouse_filter = 2
+theme_type_variation = &"HudPill"
+
+[node name="Content" type="VBoxContainer" parent="Interface/TerrainStatus"]
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="Status" type="Label" parent="Interface/TerrainStatus/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="Entry" type="Label" parent="Interface/TerrainStatus/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
 [node name="AlivePill" type="PanelContainer" parent="Interface"]
 anchors_preset = 1
 anchor_left = 1.0

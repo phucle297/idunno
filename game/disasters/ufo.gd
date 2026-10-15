@@ -13,6 +13,7 @@ var warning_remaining := 0.0
 var active_remaining := 0.0
 var beam_position := Vector3.ZERO
 var support_height: Callable
+var target_is_viable: Callable
 var captured := PackedInt32Array()
 var _manager: MatchManager
 var _players: Dictionary = {}
@@ -58,7 +59,8 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 	for id: int in ids:
 		var player := _players[id] as PartyPlayer
 		if is_instance_valid(player) and _manager.is_player_alive(id) and not player.is_knocked_down() and _exposed(player.global_position):
-			candidates.append(player.global_position)
+			if not target_is_viable.is_valid() or bool(target_is_viable.call(player.global_position)):
+				candidates.append(player.global_position)
 	if candidates.is_empty():
 		return false
 	beam_position = candidates[rng.randi_range(0, candidates.size() - 1)]

@@ -38,6 +38,9 @@ const WARNING_COPY := {
 @onready var timer_card: PanelContainer = $TimerCard
 @onready var timer_label: Label = $TimerCard/Content/Timer
 @onready var state_label: Label = $TimerCard/Content/State
+@onready var terrain_card: PanelContainer = $TerrainStatus
+@onready var terrain_status: Label = $TerrainStatus/Content/Status
+@onready var terrain_entry: Label = $TerrainStatus/Content/Entry
 @onready var hazard_tray: VBoxContainer = $HazardTray
 @onready var hazard_chips: Array[PanelContainer] = [
 	$HazardTray/HazardChip1,
@@ -88,6 +91,7 @@ func _ready() -> void:
 	timer_surface.bg_color = Color(UITokens.INK, 0.94)
 	timer_surface.border_color = UITokens.SLATE
 	timer_card.add_theme_stylebox_override("panel", timer_surface)
+	terrain_card.add_theme_stylebox_override("panel", timer_surface.duplicate())
 	timer_label.add_theme_color_override("font_color", UITokens.WHITE)
 	state_label.add_theme_color_override("font_color", UITokens.TEAL)
 	for metric: Array in [["HealthCard/Content/MetricRow", "health"], ["AlivePill/Content", "survivors"]]:
@@ -144,6 +148,34 @@ func present_match_status(remaining_seconds: int, state_text: String, results_vi
 	present_lobby_overlay(_lobby_open)
 
 
+func present_collapse(state: Dictionary, active: bool, point := Vector3.ZERO, personal := false) -> void:
+	var pending := int(state.get("pending", -1))
+	terrain_card.visible = active and pending >= 0 and not _lobby_open and not _results_visible
+	_layout_pressure()
+	if not terrain_card.visible:
+		return
+	var seconds := ceili(float(state.remaining))
+	var countdown := "%d:%02d" % [seconds / 60, seconds % 60]
+	terrain_status.text = "METEOR / DISTRICT COLLAPSE  •  %s" % countdown
+	terrain_entry.text = "MARKED: %s" % String(state.get("region_name", "UNKNOWN DISTRICT"))
+	var bounds: Rect2 = state.get("bounds", Rect2())
+	var inside := personal and bounds.has_point(Vector2(point.x, point.z))
+	terrain_status.add_theme_color_override("font_color", UITokens.WARNING if inside else UITokens.WHITE)
+	terrain_entry.add_theme_color_override("font_color", UITokens.WARNING if inside else UITokens.CREAM)
+	if inside:
+		terrain_entry.text = "LEAVE MARKED GROUND  •  FALL IS LETHAL"
+	elif not personal:
+		terrain_entry.text = "MARKED: %s" % String(state.get("region_name", "UNKNOWN DISTRICT"))
+
+
+func _layout_pressure() -> void:
+	var shift := 64.0 if terrain_card.visible else 0.0
+	warning_banner.offset_top = 112.0 + shift
+	warning_banner.offset_bottom = 208.0 + shift
+	hazard_tray.offset_top = (220.0 if warning_banner.visible else 120.0) + shift
+	hazard_tray.offset_bottom = hazard_tray.offset_top + (88.0 if warning_banner.visible else 104.0)
+
+
 func present_hazards(lines: Array[String]) -> void:
 	_presented_hazards.clear()
 	for index: int in mini(lines.size(), MAX_HAZARD_CHIPS):
@@ -178,8 +210,7 @@ func present_major_warning(disaster_id: String, remaining_seconds: float = 0.0) 
 	# Snapshot corrections may increase the display, but must not replay an already heard tick.
 	_warning_seconds = seconds if changed else mini(_warning_seconds, seconds)
 	warning_banner.visible = not disaster_id.is_empty() and not _lobby_open and not _results_visible
-	hazard_tray.offset_top = 220.0 if warning_banner.visible else 120.0
-	hazard_tray.offset_bottom = hazard_tray.offset_top + (88.0 if warning_banner.visible else 104.0)
+	_layout_pressure()
 	for chip: PanelContainer in hazard_chips:
 		chip.custom_minimum_size.y = 40.0 if warning_banner.visible else 48.0
 	if disaster_id.is_empty():
@@ -274,6 +305,7 @@ func present_lobby_overlay(open: bool) -> void:
 	timer_card.visible = not open and not _results_visible
 	hazard_tray.visible = not open and not _presented_hazards.is_empty() and not _results_visible
 	if open or _results_visible:
+		terrain_card.hide()
 		shove_pill.hide()
 		present_major_warning("")
 		present_context_action("")

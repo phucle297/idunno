@@ -26,6 +26,9 @@ var _effect_voices: Array[AudioStreamPlayer] = []
 var _next_effect_voice := 0
 var _disasters: Dictionary = {}
 var _last_phases: Dictionary = {}
+var _collapse_noticed: Array[int] = []
+var _collapse_notice_pending: Array[int] = []
+var collapse_notice_play_count := 0
 
 
 func _ready() -> void:
@@ -68,6 +71,23 @@ func _process(_delta: float) -> void:
 		elif phase > 1 and previous <= 1:
 			play_effect(ImpactSound)
 		_last_phases[disaster_name] = phase
+	# Collapse cues wait behind disaster warnings and reuse an effect voice.
+	if not _collapse_notice_pending.is_empty() and not _warning_voice.playing:
+		play_effect(WarningSound, -14.0, "Warnings")
+		_collapse_notice_pending.pop_front()
+		collapse_notice_play_count += 1
+
+
+func queue_collapse_notice(stage: int) -> void:
+	if stage < 0 or stage >= 4 or stage in _collapse_noticed:
+		return
+	_collapse_noticed.append(stage)
+	_collapse_notice_pending.append(stage)
+
+
+func reset_collapse_notices() -> void:
+	_collapse_noticed.clear()
+	_collapse_notice_pending.clear()
 
 
 func play_warning(disaster_name: String) -> void:
@@ -135,6 +155,7 @@ func warning_voice_is_reserved() -> bool:
 
 
 func reset_for_match() -> void:
+	reset_collapse_notices()
 	active_warning_name = ""
 	_warning_voice.stop()
 	_warning_voice.stream = null

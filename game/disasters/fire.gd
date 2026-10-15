@@ -66,6 +66,7 @@ var zone_neighbors: Array = ZONE_NEIGHBORS.duplicate()
 var water_level := -INF
 var support_height: Callable
 var surface_wetness: Callable
+var target_is_viable: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -118,9 +119,9 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 	_resolve_supports()
 	var dry: Array[int] = []
 	for zone_id in zone_positions.size():
-		if _zone_is_dry(zone_id):
+		if _zone_is_dry(zone_id) and _target_is_viable(zone_id):
 			dry.append(zone_id)
-	if dry.is_empty():
+	if dry.is_empty() or (target_is_viable.is_valid() and _viable_zone_count() < 2):
 		return false
 	_seeded_spread = true
 	_interval_scale = _rng.randf_range(0.8, 1.25)
@@ -355,13 +356,13 @@ func _apply_fire_damage(delta: float) -> void:
 
 
 func _warn_next_zone() -> void:
-	# Always leave at least half the fuel sites clear; no full-graph carpet.
-	if get_burning_zone_ids().size() >= mini(max_burning_zones, maxi(1, zone_positions.size() / 2)):
+	# Preserve half the remaining viable sites, not half the obsolete full map.
+	if get_burning_zone_ids().size() >= mini(max_burning_zones, _viable_zone_count() / 2):
 		return
 	var candidates: Array[int] = []
 	for burning_zone in get_burning_zone_ids():
 		for neighbor: int in zone_neighbors[burning_zone]:
-			if _zone_states[neighbor] == ZoneState.SAFE and neighbor not in candidates:
+			if _zone_states[neighbor] == ZoneState.SAFE and neighbor not in candidates and _target_is_viable(neighbor):
 				candidates.append(neighbor)
 	if candidates.is_empty():
 		return
@@ -370,6 +371,18 @@ func _warn_next_zone() -> void:
 	_zone_states[_pending_zone] = ZoneState.WARNING
 	propagation_remaining = maxf(propagation_remaining, propagation_warning_duration)
 	propagation_warning.emit(_pending_zone, propagation_warning_duration)
+
+
+func _target_is_viable(zone_id: int) -> bool:
+	return not target_is_viable.is_valid() or bool(target_is_viable.call(zone_positions[zone_id]))
+
+
+func _viable_zone_count() -> int:
+	var count := 0
+	for zone_id in zone_positions.size():
+		if _target_is_viable(zone_id):
+			count += 1
+	return count
 
 
 func _ignite_pending_zone() -> void:

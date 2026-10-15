@@ -6,21 +6,25 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
+| 11 — Meteor Terrain Collapse | Active: all-district/Oracle fixes; core/routes and real-peer matrix pass; staged regression and authorized release pending | [Phase 11](checklists/phase-11-meteor-terrain-collapse.md) |
 | 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
 On2026-10-14 the owner reprioritized model/UI, existing hazard counterplay and new
-disasters ahead of the shrinking zone: old Phase8 → Phase11. Historical archive
-IDs stay unchanged. Phases9–11 were planned at that checkpoint; chunk streaming
-stays a separate proposal. Existing human waiver and deployment boundaries remain.
+disasters ahead of the shrinking zone: old Phase8 → Phase11. On2026-10-15 the owner
+rejected the uncommitted zone scope; its byte-for-byte cancelled snapshot is in
+`old-docs/phase-11-superseded-zone/`. Phase11 now owns warned meteor terrain collapse;
+its prior zone evidence is not a new gate. Chunk streaming stays a separate proposal.
+Existing human waiver and deployment boundaries remain.
 
 On2026-10-14 Phase9 completed all agent-owned source/local-package gates:
 Rain/Snowfall/Rockslide, full45-suite regression, both-map2/4/8/20 weather/reset
 matrices, inspected renders and matching local packages. Phase10 subsequently
-completed six technical/local-package gates2026-10-15;11–12 remain planned.
-Phase10 source is uncommitted/unpushed and not publicly deployed; root is idle.
+completed six technical/local-package gates2026-10-15, plus the volcanic-relief
+follow-up. Owner-authorized source push and exact-head EC2 deployment passed;
+matching thread bundles and public two-client smoke are recorded in root progress.
+The next owner continuation activates Phase11; Phase12 remains planned.
 The Phase9 technical archive records the then-uncommitted closure;
 subsequent owner-authorized source push, EC2 deployment and matching
 [public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)

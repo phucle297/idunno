@@ -33,6 +33,7 @@ var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _effect: Node3D
 var surface_height: Callable
+var target_is_viable: Callable
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -55,10 +56,13 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
-	var target := Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent))
-	if surface_height.is_valid():
-		target.y = float(surface_height.call(target)) + 0.06
-	return start_warning(target)
+	for attempt in 16:
+		var target := Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent))
+		if surface_height.is_valid():
+			target.y = float(surface_height.call(target)) + 0.06
+		if not target_is_viable.is_valid() or bool(target_is_viable.call(target)):
+			return start_warning(target)
+	return false
 
 
 func is_active() -> bool:

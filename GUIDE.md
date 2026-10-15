@@ -39,6 +39,29 @@ Volcanic banks now have unequal faceted slopes and matching collision, while low
 crossing corridors remain walkable. Historical precommit Phase10 local packages
 lack this refinement and must not be mixed with the current public server.
 
+## Phase11 meteor terrain collapse — source builds only
+
+The public Phase10 bundle above does **not** contain this rule yet. Use matching
+source builds on all peers; do not join the public server with a Phase11 client.
+
+- A heavy collapse meteor warns for30 seconds before removal at normalized120/270/390/510
+  seconds of a600-second match. Fixture durations scale this timing. A clock jump still
+  warns first and postpones removal rather than collapsing unannounced terrain.
+- The warning rectangle and separate HUD row remain readable indoors; spectators see
+  timing only. Ordinary disaster chips stay visible.
+- A collapse removes its selected ground and overlapping foundations, including collision,
+  until rematch. There is no circle or gradual/AOE HP loss. An alive player whose root
+  enters the resulting void below y=-0.8 receives one authoritative lethal batch.
+  Roofs and walls do not protect a removed district.
+- All nine districts have equal initial eligibility, including center and warehouse.
+  No named refuge is permanently immune, including during Flood. Remaining ground must
+  stay connected; an intersecting active Volcano may temporarily defer a selection.
+- A removed district renders as pure absence: the sky background shows straight through
+  the hole, with no pit walls, floor plane or invisible collider. Props knocked into the
+  gap despawn below the kill depth on every peer and return at their spawn on rematch.
+- Removed/pending ground is excluded from hazard targeting. Remaining high-ground routes
+  are protected; unsafe new hazards are deferred. Ordinary MeteorShower remains explosive.
+
 ## Prepare and verify the package
 
 1. Extract the ZIP to a local folder on every PC. Keep `DisasterParty.exe`,

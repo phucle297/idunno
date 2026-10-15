@@ -24,6 +24,7 @@ var selection_history: Array[String] = []
 var last_seed := 0
 var finished_replay_record: Dictionary = {}
 var match_preset := "normal"
+var start_is_viable: Callable
 
 var _match_manager: MatchManager
 var _disasters: Dictionary = {}
@@ -201,6 +202,8 @@ func _eligible_candidates() -> Array[String]:
 		var disaster := entry.node as Node
 		var metadata: Dictionary = entry.metadata
 		if disaster.is_active():
+			continue
+		if start_is_viable.is_valid() and not bool(start_is_viable.call(disaster_name)):
 			continue
 		if float(metadata.get("minimum_match_time", 0.0)) > _match_manager.elapsed_time:
 			continue

@@ -53,9 +53,13 @@ lịch sử, không phải trạng thái source hiện tại.
 
 **Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
-[Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Disaster Phase9
-đã chạy trong source/package/public c0a7800; Phase10 có source/local package nhưng
-chưa deploy. Phase11–12 chưa bắt đầu.
+scope vòng co nhưng owner đã hủy; thay bằng
+[Phase11 — Meteor Terrain Collapse](docs/checklists/phase-11-meteor-terrain-collapse.md)
+(snapshot scope cũ lưu ở `docs/old-docs/phase-11-superseded-zone/`). Disaster Phase9
+đã chạy trong source/package/public c0a7800; Phase10 đã commit/deploy `945aa9f`.
+Phase11 đã implement xong trong source, validation xanh, nhưng chưa commit/push/deploy
+(owner đã duyệt commit/push/release sau khi sửa Oracle và bỏ vùng miễn nhiễm;
+đang kiểm tra bản cuối và đóng gói); Phase12 vẫn ở trạng thái planned.
 Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist

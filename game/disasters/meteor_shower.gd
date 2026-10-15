@@ -45,6 +45,7 @@ var variant := Variant.CLUSTER
 var strike_points: Array[Vector3] = [] # All frozen points in the current wave.
 var wind_active := false
 var surface_height: Callable
+var navigable_area_query: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -80,7 +81,10 @@ func set_route_safety_query(query: Callable) -> void:
 
 
 func wave_budget_for_area() -> int:
-	return mini(MAX_WAVE_EFFECTS, maxi(0, floori(usable_area.get_area() / AREA_PER_STRIKE)))
+	var area := usable_area.get_area()
+	if navigable_area_query.is_valid():
+		area = minf(area, maxf(float(navigable_area_query.call()), 0.0))
+	return mini(MAX_WAVE_EFFECTS, maxi(0, floori(area / AREA_PER_STRIKE)))
 
 
 func set_wind_active(active: bool) -> bool:

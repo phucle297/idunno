@@ -51,6 +51,22 @@ without a reproduced application-RPC failure that requires them.
 - Report expected occupied-port negatives and shutdown-only resource diagnostics
   separately from unexpected runtime failures.
 
+## Listen-host fixture teardown
+
+Listen-host mode deliberately retains relay. Phase11's real2/4/8/20-peer terrain-collapse
+fixture reproduced the same native channel-zero error when every observer closed
+at once, even after stopping Main snapshot producers. Do not disable production
+listen-host relay to fix a test departure race. In the fixture, stop gameplay RPC
+producers, ask one observer to depart through an authority RPC, and wait for
+authority's real roster/disconnect acknowledgement before asking the next observer.
+Close/detach transport before freeing Main. Keep pending transport polling alive
+until acknowledgement.
+
+Run `bash tests/run_terrain_collapse_network_test.sh` (PLAYER_COUNTS='2 4 8 20')
+and require both-map server/client markers, five rematches and no runtime errors.
+The bash runner must `wait` every child per matrix cell and `timeout` each Godot
+process; never leave a failed server consuming the next cell's port.
+
 ## HTTP outage distinction
 
 After a deliberate heartbeat HTTP outage, resuming the listener can process

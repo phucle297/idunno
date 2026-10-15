@@ -1,0 +1,149 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-15",
+  "project": "Disaster Party",
+  "source_of_truth": true,
+  "workflow_state": "in_progress",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended, not completed; reopen only on owner request."},
+  "previous_phase_archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_11_shrinking_survival_zone", "milestone": "11.4", "task": null},
+  "phase": {
+    "id": "phase_11_shrinking_survival_zone",
+    "title": "Shrinking Survival Zone and Integrated Local Delivery",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md",
+    "authorization": "2026-10-15 owner: Continue implement. Next planned phase per roadmap; no public shipment inferred.",
+    "milestones": [
+      {"id": "11.1", "title": "Map route and hazard feasibility before damaging players", "status": "completed", "gate": "passed", "tasks": [{"id": "11.1a", "status": "completed", "gate": "passed"}, {"id": "11.1b", "status": "completed", "gate": "passed"}, {"id": "11.1c", "status": "completed", "gate": "passed"}]},
+      {"id": "11.2", "title": "Authoritative zone, exposure and replication", "status": "completed", "gate": "passed", "tasks": [{"id": "11.2a", "status": "completed", "gate": "passed"}, {"id": "11.2b", "status": "completed", "gate": "passed"}, {"id": "11.2c", "status": "completed", "gate": "passed"}]},
+      {"id": "11.3", "title": "Readable boundary and disaster integration", "status": "completed", "gate": "passed"},
+      {"id": "11.4", "title": "Integrated regression, performance and matching local packages", "status": "in_progress", "gate": "not_run"}
+    ]
+  },
+  "completed_followup": {"id": "phase_10_volcanic_relief_followup", "status": "completed_technical_source_gates", "archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json", "qualification": "Unequal faceted relief with matching collision/contact, Volcano284/Integration47, map routes424/prop routes191, both-map4-peer/five-rematch checks and24 inspected captures pass. Map-variety retains shutdown-only ObjectDB/resource diagnostics. Source uncommitted/unpushed, old packages unchanged, no public shipment/native GPU/human approval claim."},
+  "completed_phase": {
+    "id": "phase_10_swarms_ufo_volcano",
+    "title": "Swarms, UFO and Volcanic Terrain",
+    "status": "completed_agent_owned_source_and_local_package_gates",
+    "archive": "docs/old-docs/phase-10-swarms-ufo-volcano/progress.json",
+    "qualification": "All six technical milestones pass: Bees/UFO/Volcano/heat,49-suite/five-network-group/managed20/settings restart,41 Python tests, both-map2/4/8/20 real peers/five rematches,40 inspected renders, bounded soak and matching local packages. Three verbose clean exported-PCK repeats per hazard and standalone Linux lifecycle pass. Source uncommitted/unpushed; no new public deployment/release. Native Windows/GPU/audio/human/separate-network acceptance unverified under preserved waiver."
+  },
+  "planned_phases": [
+    {"id": "phase_11_shrinking_survival_zone", "status": "active", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Activated by owner continuation on2026-10-15. Former Phase8 postponed; expanded/mutated Phase10 geometry must be revalidated before damage."},
+    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Planning only; implementation priority not activated."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"task": "11.1a", "status": "failed", "command": "godot --headless --fixed-fps 60 --path . --script res://.scratch/zone_route_measurement.gd", "evidence": "/tmp/phase11-zone-routes-v4.log; /tmp/phase11-zone-routes-v5.log", "result": "Exploratory straight-line waypoints collided with GardenBench/GardenPlanter and CivicLamp/CivicPlanter. These paths were invalid; no evidence of a sealed map exit. Inspected actual collider dimensions and corrected test paths without changing scenery."},
+    {"task": "11.1a", "status": "passed", "command": "godot --headless --fixed-fps 60 --path . --script res://.scratch/zone_route_measurement.gd -- --probe-failures", "evidence": "/tmp/phase11-zone-route-probe-v6.log", "result": "Focused corrected GardenCafe11.53s/NorthWest6.37s walks pass. Volcano shelf-distance measurement places Town inside final candidate28m and Harbor outside22m. Probe is not full gate evidence; scratch teardown retains ObjectDB/audio resource diagnostics."},
+    {"task": "11.1a/11.1b", "status": "failed", "command": "godot --headless --fixed-fps 60 --path . --script res://tests/test_survival_zone_routes.gd", "evidence": "/tmp/phase11-durable-routes-v1.log", "result": "New footprint code assumed optional half_extent existed on Harbor; fixed to use the same32m fallback as existing map geometry. Also corrected asymmetric East civic route: both lamp offsets are+2m, so mirroring the West path hits a lamp. Cascaded Harbor assertions invalid after failed map configuration; no gate pass."},
+    {"task": "11.1a/11.1b", "status": "passed", "command": "godot --headless --fixed-fps 60 --path . --script res://tests/test_survival_zone_routes.gd", "evidence": "/tmp/phase11-durable-routes-v2.log", "result": "SURVIVAL_ZONE_ROUTES_OK checks14414 routes672 maps2 presets2 structure_states3 longest_walk12.78s. Dry/intact plus cooled real Volcano with Rain/damaged and Snow/broken. All20 authority spawn slots, refuge centers/exits and major rooms; structural high-ground approaches, support patches and return routes remain inside every stage. Clean exit, no runtime/resource diagnostics. Collision-only route measurements, not human/network/active overlapping-hazard acceptance."},
+    {"task": "11.1c", "status": "passed", "command": "godot --headless --verbose --path . --script res://tests/test_survival_footprint.gd", "evidence": "/tmp/phase11-footprint-v2.log", "result": "SURVIVAL_FOOTPRINT_OK checks42. Town full5048/half3820/final980m2; Harbor2332/1948/812. Immutable authored supports, layered clearance/dedup, inaccessible roof rejection, eruption/cooling/removal, stale map cancellation. Max16 physics queries/frame, measured max509us Town/208us Harbor. Zero new shrink queries. Clean exit. Conservative area allowance, not arbitrary pathfinding."},
+    {"task": "11.1c", "status": "failed", "command": "godot --headless --path . --script res://tests/test_survival_zone_hazards.gd", "evidence": "/tmp/phase11-zone-hazards-v1.log", "result": "Fixture called typed Rect2 array API through dynamically typed main property; Godot rejected untyped Array after first Town matrix. Fixed fixture with explicit SurvivalFootprint reference. Process stopped after confirmed stalled coroutine; no gate pass."},
+    {"task": "11.1c", "status": "passed", "command": "godot --headless --path . --script res://tests/test_survival_zone_hazards.gd", "evidence": "/tmp/phase11-zone-hazards-v2.log", "result": "SURVIVAL_ZONE_HAZARDS_OK checks1289 maps2 presets2. Six stage points; nonincreasing actual-area meteor budget/zero final waves, bounded16 lightning/tornado attempts, supported predicted-circle targets, clipped tornado with surviving high refuge, new Flood/Harbor Volcano deferral, frozen lightning and warned Fire propagation, half-remaining-site Fire cap. Clean exit. No damaging zone or rendered/network acceptance yet; related regression checks running."}
+  ],
+  "zone_authority_validation": {
+    "status": "passed", "gate": "G11.2",
+    "commands": ["godot --headless --path . --script res://tests/test_survival_zone.gd", "python3 tests/run_survival_zone_network_test.py --players 2 --port 29830", "python3 tests/run_survival_zone_network_test.py --players '4 8 20' --port 29840"],
+    "evidence": ["/tmp/phase11-zone-authority-final.log", "/tmp/phase11-zone-network-v4.log", "/tmp/phase11-zone-network-scale-v3.log"],
+    "result": "334 assertions, both maps/600s and60s durations: exact root boundary/height, split rates and analytic crossing, delta partition invariance, capped timeout batch/shared winners, solo/re-entry/dead/results/lobby/client rejection, five resets, compact finite/consistent/stale state. Real separate-process ENet2/4/8/20 total peers on both maps: damage/re-entry, client denial, center/radius/clock convergence, shared last zone deaths at timeout and five rematches. Accelerated10s fixture clock, not full-duration/human play. Clean final logs.",
+    "transport": "Actual full active payloads Town4/8/20=1168/1288/1648 bytes; Harbor992/1112/1472. Existing1200-byte ordered-unreliable threshold and reliable fallback retained; both transports executed.",
+    "regressions": "Meteor148/Lightning24/Tornado48/Fire95/Quake96/Bee77/UFO78/Volcano284/Director115/Phase10Integration47/Footprint42 pass; then MatchManager69/MapIdentity42/ResultsActions33/SessionLifecycle51/RoomUI82/Hazards1289 pass after authority changes. Full integrated suite and delivery not run yet.",
+    "retained_failures": "Authority v1 incorrectly used legacy reset_to_lobby (does not clear elapsed until start) instead of real prepare_lobby path; corrected fixture. Session lifecycle hand-built roster lacked new required clock/zone fields; updated fixture, not production compatibility fallback. Network initial probe used inside-zone coordinate; derived actual outside point. v2 freed Main before disconnect and retained RPCs; close/detach transport before free. v3 froze network cadence along with clock, stalling Harbor roster; freeze only authority time. Scale v1 compared unordered winner set with sorted IDs and short-circuited rematch; sort test copy and execute restart separately. Scale v2 simultaneous listen-host teardown hit known relay channel-zero error; stop producers and acknowledge serialized departures. Final scale v3 clean; no runtime-error filtering added."
+  },
+  "changed_files": ["game/main.gd", "game/session/match_manager.gd", "game/session/survival_footprint.gd", "game/session/survival_zone.gd", "game/disasters/meteor_shower.gd", "game/disasters/lightning.gd", "game/disasters/tornado.gd", "game/disasters/earthquake.gd", "game/disasters/fire.gd", "game/disasters/bee_swarm.gd", "game/disasters/ufo.gd", "game/disasters/volcano.gd", "game/disasters/disaster_director.gd", "tests/test_survival_zone_routes.gd", "tests/test_survival_footprint.gd", "tests/test_survival_zone_hazards.gd", "tests/test_survival_zone.gd", "tests/survival_zone_network_peer.gd", "tests/run_survival_zone_network_test.py", "tests/test_phase10_integration.gd", "tests/test_session_lifecycle.gd", "tests/test_room_ui.gd", "progress.json", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-11-shrinking-survival-zone.md"],
+  "zone_presentation_validation": {
+    "status": "passed", "gate": "G11.3",
+    "commands": ["godot --headless --path . --script res://tests/test_survival_zone_presentation.gd", "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh"],
+    "evidence": ["/tmp/phase11-presentation-final-v2.log", "/tmp/phase11-render-v2.log", "/tmp/phase11-interaction-v2.log", ".amp/in/artifacts/phase11"],
+    "result": "Presentation175 checks:720p/1080p eight clock states/eight Godot camera headings, exact-height-independent root entry guidance, separate timer/two disaster chips, spectator/lobby/results suppression, deferred/deduplicated bounded warning audio and rematch reset. Zone334 rerun clean.32 actual Compatibility/llvmpipe captures inspected, including roofs/indoors/late Flood+Lightning/spectator.450-frame15s interaction clip inspected: real controller outside100→94.400HP, re-entry93.633HP then stable without healing; accelerated230→550s staging,6HP zone death/spectate, explicit final survivors damage batch/results/real rematch. Three local bodies, not network/human/native GPU/audio acceptance.",
+    "retained_failures": "Initial import could not infer personal bool; explicitly typed. Guidance rounded5m to6m at a float boundary; uses authority tolerance. Camera arrow sign corrected against actual Godot basis and eight-heading contract. Renderer first left observers at old-map low positions so Flood killed them before spectate; place on actual high refuges. Interaction initial explicit batch needed typed Array[Dictionary]. Full regression v1 legacy director fixture400/600s correctly rejected by late feasibility; use400/1800s grace, preserving director intensity3. Combinations102 passes. v2 isolated quake expected every late selection to start despite stationary out-of-zone target; now requires start or explicit empty late deferral, full600s HP100 unchanged, QuakeEscape66 passes. Full regression v3 running."
+  },
+  "presentation_changed_files": ["game/session/survival_boundary.gd", "game/gameplay_audio_controller.gd", "game/ui/gameplay_hud.gd", "scenes/main.tscn", "assets/manifest.json", "tests/test_survival_zone_presentation.gd", "tests/test_disaster_combinations.gd", "tests/test_quake_escape.gd", "tests/run_ui_regression.sh", "tools/render_phase11.gd", ".agents/skills/recovering-enet-room-disconnects/SKILL.md"],
+  "integrated_validation": {
+    "status": "in_progress", "gate": "G11.4",
+    "evidence": ["/tmp/phase11-full-regression-v3.log", "/tmp/phase11-python.log", "/tmp/phase11-boundary-presentation.log", "/tmp/phase11-profile-town720.log", "/tmp/phase11-profile-town1080.log", "/tmp/phase11-profile-harbor720.log", "/tmp/phase11-profile-harbor1080.log", "/tmp/phase11-managed-profiles20.log", "/tmp/phase11-zone-overlap-v3.log", "/tmp/phase11-zone-overlap-scale.log", "/tmp/phase11-boundary-soak.log", "/tmp/phase11-boundary-soak-town.log", ".amp/in/artifacts/phase11/technical-evidence.txt"],
+    "result": "41 Python tests pass. Rendered presentation344 checks pass, including actual ring AABB radius at eight transitions, later notices after hidden holds, <=16 height queries/frame and stable four-node visual pool. Review found hidden next mesh could retain old radius at a later notice; mark dirty when next visibility changes. Full v3 passed672 real-time collision routes/14414 checks but failed legacy WeatherIntegration solo/composition fixture: Rockslide correctly deferred at300/600s. Weather fixture now stages300/1800s before pressure; focused WeatherIntegration471 passes. Added explicit both-map/preset final-zone Rockslide rejection assertion to hazard suite. Full v4 running with collision-only routes at fixed60Hz and zone2/4/8/20 matrix; no aggregate pass yet.",
+    "regression_followup_evidence": ["/tmp/phase11-weather-integration-v2.log", "/tmp/phase11-full-regression-v4.log"],
+    "regression_followup_files": ["tests/test_weather_integration.gd", "tests/test_survival_zone_hazards.gd"],
+    "software_performance": "Compatibility/llvmpipe,4 local bodies/3 props/real Flood+Tornado held through sampling,120 warmup/600 samples,VSync disabled,cosmetics enabled. p95 frame Town720/1080=302.59/392.65ms, Harbor720/1080=106.73/216.95ms; p95 physics1.03/1.13/1.25/1.09ms. UI identities stable, boundary nodes4, both hazard lines observed. Software 60FPS NOT met; no native GPU acceptance or isolated performance improvement claim. Concurrent headless regression disclosed.",
+    "resource_soak": "Actual Compatibility rendering, six rematches per map: resources113 every round; Harbor nodes1402 then1409 stable, Town6621 then6628 stable; boundary four visual nodes throughout. One-time seven-node initialization, no per-rematch growth.",
+    "real_peer_matrix": "Both-map2/4/8/20 ENet matrix rerun with late real Flood HOLDING + Lightning WARNING + replicated zone/HUD barrier; outside damage/re-entry, shared final deaths and five rematches pass. Ten-second authority fixture, real-time transport, loopback only. Managed20 profile matrix additionally passes owner transfer, dedicated crash/retry, reward/open/equip and changed-peer-ID persistence with accelerated120s authority reward clock. Docker daemon unavailable; container/separate-network acceptance not_run.",
+    "retained_overlap_failures": "First overlap attempts kept Main physics active while staging positions, so actual avatars fell into Flood during footprint wait. Fixture now stops authority movement, not ENet polling, and waits for actual replicated hazard/HUD convergence. No production immunity, hazard weakening or runtime-error filter added.",
+    "delivery": "README/GUIDE describe source-only Phase11 rules and explicitly prohibit mixing with deployed Phase10. Matching committed-HEAD packages remain not_run within the current delivery boundary."
+  },
+  "blockers": [],
+  "phase10_local_delivery": {
+    "status": "historical_validated_snapshot_before_volcanic_relief_followup",
+    "snapshot_identity": "7cc8c00f8ef97af9422c3521f1cf1d1e24e6d65e",
+    "identity_type": "content snapshot hash, NOT a Git commit",
+    "directory": ".amp/in/artifacts/phase10-packages",
+    "windows": "DisasterParty-Windows-phase10-local.zip",
+    "windows_sha256": "8e01221b51849a43a8f879ba9782d1bd0c592c84f45953511437e5c465e67955",
+    "linux_server": "DisasterParty-Linux-server-phase10-local.tar.gz",
+    "linux_sha256": "c0d827e106820038b5c119ee5313d91fe3c110889679233acd48e9d501f60f94",
+    "pck_sha256": "da4159fd4dbcf67147d33afb1705932d85e1c634a817024b00fd5ef785aae15f",
+    "qualification": "Windows/Linux same117-entry PCK, manifest/content checks and standalone Linux no-editor/no-cache lifecycle pass. No native Windows execution/public release/deployment. Source remains uncommitted/unpushed; do not mix with public Phase9 server."
+  },
+  "historical_delivery_metadata": {
+    "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
+    "continuation_archive": "docs/old-docs/phase-10-swarms-ufo-volcano/progress.json",
+    "preserved_keys": ["phase9_local_delivery", "phase8_local_delivery", "integrated_town_release", "collision_followup_delivery", "historical_delivery_metadata", "commit_test_policy"],
+    "public_build": "e68a912a91c6dce339ddb254a559e68be26c53ce",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
+    "endpoint": "https://server.permees.com",
+    "qualification": "Historical authorizations and delivery details remain intact in archives. Current public Phase9 shipment is recorded separately below."
+  },
+  "phase9_release": {
+    "authorization": "2026-10-14 owner: release and deploy after finish",
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "c0a780067c10372ca6676725f03916503994aa5e",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38615376266",
+    "deployment_status": "passed_exact_head_backend_readiness",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800",
+    "endpoint": "https://server.permees.com",
+    "windows": "DisasterParty-Windows-Internet-c0a7800.zip",
+    "windows_sha256": "dbf2b2cb1507e263770e9c8d2b9613336814924c4ae95b4d37041b5000262bb1",
+    "linux_server": "DisasterParty-Linux-server-c0a7800.tar.gz",
+    "linux_sha256": "dc63f97a8e3e0b547ad986cdd2fab3cc13d2ee0ee63e5addfe2c6a7b7aed91c4",
+    "pck_sha256": "8ef57972b339fed6f3b325f94074e407590bbbcbcff2f0f139e177998c6dbb76",
+    "evidence_directory": ".amp/in/artifacts/phase9-release",
+    "source_gate": "Staged-tree pre-commit passes45 Godot suites/5 network groups/managed20/settings restart and41 Python tests. Technical archive also preserves both-map2/4/8/20 weather-aware matrices and clean focused repeats.",
+    "delivery_gate": "Exact-head CI deploy passes. Final Windows uses byte-exact deployed PCK; all105 payload entries independently match local export although container bytes differ. Both final unpack/hash/content checks and standalone Linux lifecycle pass; exact deployed-PCK Weather471/Rock72 clean exits pass. Two public exact-PCK clients pass verified HTTPS/tickets/ENet/Ready/Start/ACTIVE/remote movement plus unknown-room404/old-build409. Three published assets downloaded/hash compared and tag verified.",
+    "qualification": "Two Linux editor-driven clients in one orb/upstream, not native Windows/GPU/audio/human or separate-network acceptance. Existing EC2 capacity/configuration/store unchanged; no Steam publication. Earlier uncommitted local snapshot remains historical evidence."
+  },
+  "phase10_deployment": {
+    "authorization": "2026-10-15 owner: Check, if finish commit and push and deploy",
+    "status": "deployed_and_public_smoke_verified",
+    "revision": "945aa9f69631439c46b78983270b016f6668676c",
+    "commit_url": "https://github.com/phucle297/idunno/commit/945aa9f69631439c46b78983270b016f6668676c",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38683932261",
+    "endpoint": "https://server.permees.com",
+    "source_gate": "Fresh staged-tree hook: UI_REGRESSION_OK suites49 matrices5 managed_clients20 persistence_restart passed;41 Python tests pass; PRE_COMMIT_OK staged_tree bf3c3fc51a887b00d25b4b12225547a4072fcbc5. Known shutdown-only Dummy-audio/ObjectDB/resource diagnostics remain qualified in the technical archive.",
+    "delivery_gate": "Exact-head build/deploy workflow success; EXISTING_EC2_DEPLOY_OK backend passed. CI artifact117-entry PCK independently matches every local Windows payload, then byte-exact CI PCK placed into Windows bundle. Export verifier and standalone Linux lifecycle pass. Exact CI-PCK Volcano284/Integration47 pass with no runtime/leak diagnostics. Public HTTPS unknown404/old409 plus real tickets, two ENet peers, Ready/Start/ACTIVE and remote movement pass; client logs contain no runtime errors.",
+    "directory": ".amp/in/artifacts/phase10-deploy",
+    "windows": "DisasterParty-Windows-Internet-945aa9f.zip",
+    "windows_sha256": "2dae576073f906607aa6be5db27f7e5896f980d85f1b85798329d95b4e4a820f",
+    "linux_server": "DisasterParty-Linux-server-945aa9f.tar.gz",
+    "linux_sha256": "53f220d22d7a60170d6d6a82c3cd7126f3f0399ca25ac53dbc9621b71a90c630",
+    "pck_sha256": "c4c685ed50369c17f3d21deb3c6127d7d066e14ce3c861e6449c8a85b689c271",
+    "qualification": "Source committed/pushed; existing EC2 deployed without capacity/configuration/store changes. Bundles supplied as thread artifacts, not a newly published GitHub Release. Public smoke uses two Linux editor-driven clients with exact deployed PCK on one orb/upstream, not native Windows/GPU/audio/human/separate-network acceptance. Earlier uncommitted/no-deployment statements and old local packages are historical. Phase11/12 not activated."
+  },
+  "delivery_boundary": "Phase10 remains deployed. Phase11 is now source implementation only; do not commit, push, deploy or restart the public server unless the owner explicitly authorizes that follow-up.",
+  "next_action": "Finish G11.4 full regression, real-peer/profile/crash-retry matrices and software performance/resource measurements, then matching local package gate within the recorded delivery boundary."
+}

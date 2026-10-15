@@ -47,6 +47,7 @@ var path_presets: Array = [
 ]
 var _effect: Node3D
 var surface_height: Callable
+var path_for_terrain: Callable
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -66,12 +67,18 @@ func get_disaster_metadata() -> Dictionary:
 func start_disaster(rng: RandomNumberGenerator) -> bool:
 	if path_presets.is_empty():
 		return false
-	path_preset_index = rng.randi_range(0, path_presets.size() - 1)
-	path_reversed = (rng.randi_range(0, 1) == 1)
-	var path: Array = path_presets[path_preset_index]
-	if path_reversed:
-		return start_warning(path[1], path[0])
-	return start_warning(path[0], path[1])
+	for attempt in 16:
+		path_preset_index = rng.randi_range(0, path_presets.size() - 1)
+		path_reversed = (rng.randi_range(0, 1) == 1)
+		var path: Array = path_presets[path_preset_index]
+		if path_for_terrain.is_valid():
+			path = path_for_terrain.call(path)
+		if path.size() != 2:
+			continue
+		if path_reversed:
+			return start_warning(path[1], path[0])
+		return start_warning(path[0], path[1])
+	return false
 
 
 func is_active() -> bool:

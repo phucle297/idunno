@@ -3,20 +3,81 @@
   "updated_at": "2026-10-15",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
-  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended, not completed; reopen only on owner request."},
-  "previous_phase_archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json",
+  "workflow_state": "in_progress",
+  "archive_policy": "Historical snapshot is superseded/cancelled, not a completed phase archive; preserve its three files unchanged.",
+  "previous_phase_archive": {
+    "path": "docs/old-docs/phase-11-superseded-zone/progress.json",
+    "status": "superseded_cancelled",
+    "source_of_truth": false,
+    "qualification": "Byte-for-byte snapshot of the former active zone tracking before scope replacement; prior passes apply only to that rejected implementation."
+  },
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
-    "hierarchy": ["phase", "milestone", "task"],
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
     "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
-    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
-    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
-  "completed_followup": {"id": "phase_10_volcanic_relief_followup", "status": "completed_technical_source_gates", "archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json", "qualification": "Unequal faceted relief with matching collision/contact, Volcano284/Integration47, map routes424/prop routes191, both-map4-peer/five-rematch checks and24 inspected captures pass. Map-variety retains shutdown-only ObjectDB/resource diagnostics. Source uncommitted/unpushed, old packages unchanged, no public shipment/native GPU/human approval claim."},
+  "current": {
+    "phase": "phase_11_meteor_terrain_collapse",
+    "milestone": "11.4",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_11_meteor_terrain_collapse",
+    "title": "Meteor District Collapse",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-11-meteor-terrain-collapse.md",
+    "authorization": "2026-10-15 owner: equal eligibility for all districts, fix all Oracle findings, then commit, push and release. Existing main push workflow automatically builds/deploys the matching server.",
+    "milestones": [
+      {
+        "id": "11.1",
+        "title": "Real holes, collision, fall death and reset",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "11.2",
+        "title": "Telegraph, schedule, escape and hazard fairness",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "11.3",
+        "title": "Authoritative compact snapshots and real peers",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "11.4",
+        "title": "Rendered/regression/resource/matching committed-HEAD package evidence",
+        "status": "in_progress",
+        "gate": "not_run"
+      }
+    ]
+  },
+  "completed_followup": {
+    "id": "phase_10_volcanic_relief_followup",
+    "status": "completed_technical_source_gates",
+    "archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json",
+    "qualification": "Unequal faceted relief with matching collision/contact, Volcano284/Integration47, map routes424/prop routes191, both-map4-peer/five-rematch checks and24 inspected captures pass. Map-variety retains shutdown-only ObjectDB/resource diagnostics. Source uncommitted/unpushed, old packages unchanged, no public shipment/native GPU/human approval claim."
+  },
   "completed_phase": {
     "id": "phase_10_swarms_ufo_volcano",
     "title": "Swarms, UFO and Volcanic Terrain",
@@ -25,19 +86,66 @@
     "qualification": "All six technical milestones pass: Bees/UFO/Volcano/heat,49-suite/five-network-group/managed20/settings restart,41 Python tests, both-map2/4/8/20 real peers/five rematches,40 inspected renders, bounded soak and matching local packages. Three verbose clean exported-PCK repeats per hazard and standalone Linux lifecycle pass. Source uncommitted/unpushed; no new public deployment/release. Native Windows/GPU/audio/human/separate-network acceptance unverified under preserved waiver."
   },
   "planned_phases": [
-    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by owner priority; revalidate expanded/mutated map and new hazards before implementation. Not activated."},
-    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Planning only; implementation priority not activated."}
+    {
+      "id": "phase_11_meteor_terrain_collapse",
+      "status": "active",
+      "checklist": "docs/checklists/phase-11-meteor-terrain-collapse.md",
+      "depends_on": "phase_10_swarms_ufo_volcano",
+      "qualification": "Owner scope replacement on2026-10-15; former zone work is archived as superseded/cancelled and supplies no new gate evidence."
+    },
+    {
+      "id": "phase_12_match_powerup_drops",
+      "status": "planned",
+      "checklist": "docs/checklists/phase-12-match-powerup-drops.md",
+      "qualification": "Planning only; implementation priority not activated."
+    }
   ],
-  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "phase_renumbering": {
+    "date": "2026-10-15",
+    "from": "phase_11_shrinking_survival_zone",
+    "to": "phase_11_meteor_terrain_collapse",
+    "reason": "Owner rejected the uncommitted circle/gradual-HP-loss scope. Phase number remains stable; snapshot is superseded/cancelled, not completed."
+  },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
     "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
     "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
-  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "validation_log": [],
-  "changed_files": [],
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "changed_files": [
+    "game/session/terrain_collapse.gd",
+    "game/breakable_structure.gd",
+    "game/main.gd",
+    "game/ui/gameplay_hud.gd",
+    "game/gameplay_audio_controller.gd",
+    "game/disasters/{bee_swarm,disaster_director,earthquake,fire,lightning,meteor_shower,tornado,ufo}.gd",
+    "scenes/main.tscn",
+    "tests/test_terrain_collapse.gd",
+    "tests/test_terrain_collapse_routes.gd",
+    "tests/test_terrain_collapse_presentation.gd",
+    "tests/terrain_collapse_network_peer.gd",
+    "tests/run_terrain_collapse_network_test.sh",
+    "tests/test_room_ui.gd",
+    "tests/test_session_lifecycle.gd",
+    "tests/test_prop_role_feasibility.gd",
+    "tools/render_terrain_collapse.gd",
+    "assets/manifest.json",
+    ".agents/skills/recovering-enet-room-disconnects/SKILL.md",
+    "docs/checklists/phase-11-meteor-terrain-collapse.md",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "docs/old-docs/phase-11-superseded-zone/{checklist.md,decisions.md,progress.json}",
+    "README.md",
+    "GUIDE.md",
+    "progress.json"
+  ],
   "blockers": [],
   "phase10_local_delivery": {
     "status": "historical_validated_snapshot_before_volcanic_relief_followup",
@@ -54,7 +162,14 @@
   "historical_delivery_metadata": {
     "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
     "continuation_archive": "docs/old-docs/phase-10-swarms-ufo-volcano/progress.json",
-    "preserved_keys": ["phase9_local_delivery", "phase8_local_delivery", "integrated_town_release", "collision_followup_delivery", "historical_delivery_metadata", "commit_test_policy"],
+    "preserved_keys": [
+      "phase9_local_delivery",
+      "phase8_local_delivery",
+      "integrated_town_release",
+      "collision_followup_delivery",
+      "historical_delivery_metadata",
+      "commit_test_policy"
+    ],
     "public_build": "e68a912a91c6dce339ddb254a559e68be26c53ce",
     "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
     "endpoint": "https://server.permees.com",
@@ -95,6 +210,28 @@
     "pck_sha256": "c4c685ed50369c17f3d21deb3c6127d7d066e14ce3c861e6449c8a85b689c271",
     "qualification": "Source committed/pushed; existing EC2 deployed without capacity/configuration/store changes. Bundles supplied as thread artifacts, not a newly published GitHub Release. Public smoke uses two Linux editor-driven clients with exact deployed PCK on one orb/upstream, not native Windows/GPU/audio/human/separate-network acceptance. Earlier uncommitted/no-deployment statements and old local packages are historical. Phase11/12 not activated."
   },
-  "delivery_boundary": "Authorized Phase10 with faceted volcanic relief committed/pushed/deployed and public smoke verified. Matching client supplied; old Phase9 clients are incompatible. No new GitHub Release publication or capacity/storage changes.",
-  "next_action": "Await owner feedback or next scope using the matching deployed Phase10 client; Phase11/12 remain planned."
+  "delivery_boundary": "Owner explicitly authorizes fixing all current findings then commit/push/release. Push to existing main runs the existing exact-head EC2 deployment; no capacity/configuration/store changes authorized. Native Windows/GPU/human acceptance remains unverified.",
+  "next_action": "Finish staged-tree regression for the all-district/Oracle fixes, commit and push, verify exact-head server CI, then export/verify/publish matching Windows and Linux release packages and archive Phase11.",
+  "validation": [
+    {
+      "milestone": "11.1",
+      "status": "passed",
+      "result": "Core4142 (/tmp/collapse-equal-core.log): all18 map/district combinations including centers and warehouse, lethal fall/prop parking/reset, earthquake cannot restore removed support, broken-then-collapse collider restores at rematch, ordinary rubble depth cleanup. Routes2818 walks18 legal_masks278 (/tmp/collapse-equal-routes2.log) checks surviving AND removed ramp support, center/warehouse escapes. Earlier routes run failed because queued reset re-enabled removed colliders and three legacy waypoints crossed solid walls/rails; removal is now queued last and routes use actual doorway/gangway exits."
+    },
+    {
+      "milestone": "11.2",
+      "status": "passed",
+      "result": "No permanently protected districts, including during Flood. Harbor north seam moved z=-16 to-10 so the whole now-removable warehouse lies inside its warning. Existing active volcanic geometry may only temporarily defer an intersecting cut. Forty rendered captures include center and north warnings/removal on both maps (/tmp/collapse-equal-render.log); center holes and warehouse removal visually inspected as pure blue-sky absence. Warning HUD readable; wide overview amber outline is thin, no gameplay-camera readability/feel claim."
+    },
+    {
+      "milestone": "11.3",
+      "status": "passed",
+      "result": "Real ENet matrix8/8 cases2/4/8/20 both maps (/tmp/collapse-equal-enet.log): center removed first, north second, authoritative collision/fall and prop parking/unparking through five rematches. Prop parking now uses only the existing ordered snapshot stream; redundant cross-channel one-shot despawn RPC deleted to eliminate stale-event round races."
+    },
+    {
+      "milestone": "11.4",
+      "status": "not_run",
+      "result": "Earlier revision passed full52-suite/five-matrix/managed20/settings regression and eight-rematch soak. Final equal-district/Oracle fixes await staged-tree gate, committed-HEAD packages and exact-head deployment/release verification; delivery is now authorized."
+    }
+  ]
 }

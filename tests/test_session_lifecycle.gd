@@ -72,6 +72,9 @@ func _run() -> void:
 	main._spawn_network_player(3, "Late Player", Vector3(6, 0, 4), 10)
 	var roster_arrays := {
 		"state": MatchManager.MatchState.LOBBY,
+		"elapsed_time": 0.0,
+		"match_duration": 600.0,
+		"terrain": PackedFloat32Array([0, -1, 0, 0]),
 		"player_ids": PackedInt32Array([1, 2]),
 		"player_ready": PackedByteArray([1, 1]),
 		"player_health": PackedFloat32Array([100.0, 100.0]),

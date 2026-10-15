@@ -149,8 +149,17 @@ func _scenario_buoyant_support(tilted: bool) -> void:
 	for tick in 90:
 		_passenger.apply_movement_input(_toward(_passenger, walk_start + Vector3(2.0, 0.0, 0.0)), false, false, STEP)
 		await _physics_step()
+	# The crate origin is at its authored bottom, not its center of mass.
+	# A sideways/tilted settled crate legitimately raises that origin; measure
+	# its actual collider against the support instead of assuming it is upright.
+	var collider: CollisionShape3D
+	for child in crate.get_children():
+		if child is CollisionShape3D:
+			collider = child
+	var bounds := collider.global_transform * collider.shape.get_debug_mesh().get_aabb()
+	var support := _main.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(crate.global_position + Vector3.UP * 10, crate.global_position - Vector3.UP * 2, 1))
 	_expect(
-		_passenger.position.is_finite() and crate.global_position.y < 0.35 and _passenger.position.y < 0.5,
+		_passenger.position.is_finite() and not support.is_empty() and absf(bounds.position.y - support.position.y) < 0.12 and crate.linear_velocity.length() < 0.2 and _passenger.position.y < 0.5 and _passenger.position.distance_to(walk_start) > 1.5,
 		"After drainage the settled crate must let the passenger walk off: crate=%s passenger=%s" % [crate.global_position, _passenger.position]
 	)
 	print("PROP_ROLE_EVIDENCE buoyant_%s drainage_walkoff=passenger_free" % ("tilted" if tilted else "upright"))

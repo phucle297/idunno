@@ -29,6 +29,7 @@ const PALETTE := {
 }
 const UITokens = preload("res://game/ui/ui_tokens.gd")
 const SpectatorControllerScript = preload("res://game/session/spectator_controller.gd")
+const TerrainCollapseScript = preload("res://game/session/terrain_collapse.gd")
 const PlayerScene = preload("res://scenes/player.tscn")
 const Tuning = preload("res://game/player/player_tuning.gd")
 const DEFAULT_NETWORK_PORT := 29730
@@ -66,6 +67,7 @@ const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
 @onready var gameplay_hud: GameplayHud = $Interface
 
 var spectator_controller: Node
+var terrain_collapse: TerrainCollapse
 var _player_nodes: Dictionary = {}
 var _network_mode := false
 var _network_role := "offline"
@@ -108,6 +110,12 @@ func _ready() -> void:
 	])
 	_configure_ui_theme()
 	_build_lighting()
+	terrain_collapse = TerrainCollapseScript.new()
+	terrain_collapse.name = "TerrainCollapse"
+	add_child(terrain_collapse)
+	terrain_collapse.surface_height = get_map_surface_height
+	terrain_collapse.candidate_is_safe = _collapse_district_is_safe
+	terrain_collapse.warning_started.connect(gameplay_audio.queue_collapse_notice)
 	_build_sandbox()
 	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()
@@ -117,17 +125,25 @@ func _ready() -> void:
 	match_manager.match_finished.connect(_on_match_finished)
 	match_manager.state_changed.connect(_on_match_state_changed)
 	meteor_shower.configure(match_manager)
+	meteor_shower.navigable_area_query = func() -> float: return terrain_collapse.remaining_area(meteor_shower.usable_area, true)
 	flood.configure(match_manager)
 	tornado.configure(match_manager)
+	tornado.path_for_terrain = _tornado_path_for_terrain
 	earthquake.configure(match_manager)
 	earthquake.set_structure_root($Sandbox)
+	earthquake.fracture_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, earthquake.fracture_radius + 1.5, true)
+	earthquake.structure_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, 0.0, true)
 	lightning.configure(match_manager)
+	lightning.target_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, lightning.strike_radius + 1.5, true)
 	fire.configure(match_manager)
+	fire.target_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, fire.zone_radius + 1.5, true)
 	rain.configure(match_manager)
 	snowfall.configure(match_manager)
 	rockslide.configure(match_manager)
 	bee_swarm.configure(match_manager)
+	bee_swarm.target_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, BeeSwarm.REACH + 1.5, true)
 	ufo.configure(match_manager)
+	ufo.target_is_viable = func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, UFO.BEAM_RADIUS + 1.5, true)
 	ufo.support_height = get_map_support_height
 	volcano.configure(match_manager)
 	volcano.support_height = get_map_support_height
@@ -151,6 +167,7 @@ func _ready() -> void:
 	earthquake.warning_started.connect(_on_earthquake_warning_started)
 	earthquake.finished.connect(_on_earthquake_finished)
 	disaster_director.configure(match_manager)
+	disaster_director.start_is_viable = _new_disaster_fits_terrain
 	disaster_director.register_disaster(meteor_shower)
 	disaster_director.register_disaster(flood)
 	disaster_director.register_disaster(tornado)
@@ -635,6 +652,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 func _physics_process(delta: float) -> void:
 	tick_weather(delta)
 	_eliminate_out_of_bounds()
+	_despawn_fallen_props()
 	_tick_server_emotes()
 	if not _network_mode:
 		return
@@ -705,7 +723,9 @@ func _eliminate_out_of_bounds() -> void:
 		if not match_manager.is_player_alive(peer_id):
 			continue
 		var position := player.global_position
-		if absf(position.x) > get_map_half_extent() or absf(position.z) > get_map_half_extent() or position.y < MAP_KILL_Y:
+		if terrain_collapse.is_void(position):
+			events.append({"peer_id": peer_id, "amount": match_manager.get_health(peer_id), "cause": TerrainCollapse.DEATH_CAUSE})
+		elif absf(position.x) > get_map_half_extent() or absf(position.z) > get_map_half_extent() or position.y < MAP_KILL_Y:
 			events.append({"peer_id": peer_id, "amount": match_manager.get_health(peer_id), "cause": "Out of bounds"})
 	# Evaluate winners only after every escape in this simulation step is recorded.
 	match_manager.apply_damage_batch(events)
@@ -811,6 +831,15 @@ func _apply_prop_snapshots(
 		var body := _network_prop(prop_ids[index])
 		if not is_instance_valid(body):
 			continue
+		# The ordered prop stream is the sole parking-state source; a delayed
+		# event from a previous round cannot hide a restored prop.
+		if positions[index].y < MAP_KILL_Y:
+			_park_fallen_prop(body)
+			continue
+		if body.has_meta("void_parked"):
+			# Clients never run _reset_sandbox; the stream unparks after rematch.
+			body.remove_meta("void_parked")
+			body.show()
 		var rotation := rotations[index]
 		body.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 		body.freeze = true
@@ -824,6 +853,34 @@ func _network_prop(prop_id: int) -> RigidBody3D:
 		if int(candidate.get_meta("network_prop_id", 0)) == prop_id:
 			return candidate as RigidBody3D
 	return null
+
+
+# Collapsed districts are the only fall path off the map; nothing may fall
+# forever (the Phase1 endless-fall crash class). Park prop bodies past the
+# kill depth out of simulation and sight until the rematch reset; snapshots
+# keep carrying the parked position so rebuilt clients converge too.
+func _despawn_fallen_props() -> void:
+	if terrain_collapse.removed_mask == 0:
+		return
+	if _network_mode and not multiplayer.is_server():
+		return
+	for candidate in get_tree().get_nodes_in_group("network_prop"):
+		var body := candidate as RigidBody3D
+		if not is_instance_valid(body) or body.has_meta("void_parked"):
+			continue
+		if body.global_position.y < MAP_KILL_Y:
+			_park_fallen_prop(body)
+
+
+func _park_fallen_prop(body: RigidBody3D) -> void:
+	body.set_meta("void_parked", true)
+	body.freeze = true
+	body.linear_velocity = Vector3.ZERO
+	body.angular_velocity = Vector3.ZERO
+	# Below every support/surface ray, which all stop at MAP_KILL_Y.
+	body.global_position = Vector3(body.global_position.x, MAP_KILL_Y - 4.0, body.global_position.z)
+	PhysicsServer3D.body_set_state(body.get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, body.global_transform)
+	body.hide()
 
 
 func _store_movement_input(peer_id: int, input_2d: Vector2, sprinting: bool, jump_pressed: bool, camera_yaw: float, sequence: int, jump_sequence: int = -1) -> void:
@@ -1070,6 +1127,7 @@ func _process(delta: float) -> void:
 				multiplayer.multiplayer_peer.close()
 				_on_connection_failed()
 	match_manager.tick_match(delta)
+	terrain_collapse.tick(match_manager, disaster_director.last_seed)
 	if not _network_mode and Input.is_action_just_pressed("jump"):
 		gameplay_audio.play_jump()
 	if _network_mode and multiplayer.is_server():
@@ -1100,6 +1158,11 @@ func _process(delta: float) -> void:
 		_match_state_text(),
 		match_manager.state == MatchManager.MatchState.RESULTS
 	)
+	var active := match_manager.state == MatchManager.MatchState.ACTIVE
+	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
+	var personal: bool = active and is_instance_valid(local_player) and match_manager.is_player_alive(local_peer_id) and not spectator_controller.active
+	gameplay_hud.present_collapse(terrain_collapse.describe(match_manager.elapsed_time), active, local_player.global_position if personal else Vector3.ZERO, personal)
+	terrain_collapse.present(match_manager.elapsed_time, match_manager.match_duration, active)
 	gameplay_hud.present_hazards(_active_disaster_lines())
 	_update_major_warning()
 	_update_context_prompt(local_peer_id)
@@ -1119,7 +1182,6 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 		var sequence := int(snapshot.match_sequence)
 		if sequence <= _last_match_snapshot_sequence:
 			return
-		_last_match_snapshot_sequence = sequence
 		# Spawns and snapshots travel on different channels, so a lost and
 		# resent snapshot can arrive after a spawn it predates. A snapshot
 		# from before the newest spawn must never rewrite the roster and
@@ -1129,6 +1191,12 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	# Map identity is server-selected and must be loaded before the match
 	# state it belongs to; apply it before anything else in the payload.
 	var incoming_map := String(snapshot.get("map_id", map_id))
+	if incoming_map not in MAP_IDS or not (snapshot.get("elapsed_time") is float or snapshot.get("elapsed_time") is int) or not (snapshot.get("match_duration") is float or snapshot.get("match_duration") is int):
+		return
+	if not TerrainCollapse.snapshot_is_valid(incoming_map, snapshot.get("terrain"), float(snapshot.elapsed_time), float(snapshot.match_duration)):
+		return
+	if snapshot.has("match_sequence"):
+		_last_match_snapshot_sequence = int(snapshot.match_sequence)
 	if incoming_map != map_id:
 		set_map_id(incoming_map)
 	# The match preset rides the same pre-countdown contract as map identity.
@@ -1165,6 +1233,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	bee_swarm.apply_presentation_snapshot(disasters.get("bees", {}))
 	ufo.apply_presentation_snapshot(disasters.get("ufo", {}))
 	volcano.apply_presentation_snapshot(disasters.get("volcano", {}))
+	terrain_collapse.apply_snapshot(snapshot.terrain)
 
 
 func _has_nonintact_structures() -> bool:
@@ -1178,6 +1247,7 @@ func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
 	snapshot.map_id = map_id
 	snapshot.match_preset = match_preset
+	snapshot.terrain = terrain_collapse.create_snapshot()
 	if _dedicated_server:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
@@ -2171,7 +2241,9 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
 	_pending_fall_damage.clear()
+	gameplay_audio.reset_collapse_notices()
 	if state == MatchManager.MatchState.LOBBY:
+		terrain_collapse.reset()
 		weather_surfaces.cleanup()
 		volcano.cleanup()
 	if is_instance_valid(collection) and state == MatchManager.MatchState.ACTIVE:
@@ -2419,6 +2491,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 		volcano.set_district("town_plaza", Vector3(0, 0.12, 0), Vector2(18, 18))
 	else:
 		volcano.set_district("harbor_boardwalk", Vector3(0, 0.05, 22), Vector2(24, 6))
+	terrain_collapse.configure(map_id, $Sandbox)
 	_configure_weather_patches.call_deferred()
 
 
@@ -2468,9 +2541,38 @@ func _meteor_routes_clear(points: Array[Vector3]) -> bool:
 		reserved.append(route.low)
 		reserved.append(route.high)
 	for point in points:
+		if not terrain_collapse.supports_point(point, meteor_shower.impact_radius + 1.5, true):
+			return false
 		for exit in reserved:
 			if absf(exit.y - point.y) <= meteor_shower.vertical_exposure and Vector2(point.x - exit.x, point.z - exit.z).length() <= meteor_shower.impact_radius + 1.5:
 				return false
+	return true
+
+
+func _collapse_district_is_safe(bounds: Rect2) -> bool:
+	# Existing changed volcanic support must not bridge a new void. Postpone
+	# that district instead of deleting an already-announced eruption.
+	if volcano.is_active() or volcano.mutated:
+		var center := Vector2(volcano.district_center.x, volcano.district_center.z)
+		if bounds.intersects(Rect2(center - volcano.district_size / 2, volcano.district_size).grow(1.8)):
+			return false
+	return true
+
+
+func _tornado_path_for_terrain(path: Array) -> Array:
+	if path.size() != 2 or not terrain_collapse.supports_path(path[0], path[1], tornado.influence_radius + 1.5):
+		return []
+	return path
+
+
+func _new_disaster_fits_terrain(disaster_name: String) -> bool:
+	if disaster_name == "Meteor Shower":
+		return meteor_shower.wave_budget_for_area() > 0
+	if disaster_name == "Rockslide":
+		return terrain_collapse.supports_path(rockslide.lane.high, rockslide.lane.low, 3.5) and terrain_collapse.supports_point(rockslide.lane.cover, 3.5, true)
+	if disaster_name == "Volcano":
+		var center := volcano.district_center
+		return terrain_collapse.supports_point(center, volcano.district_size.length() / 2 + 1.8, true)
 	return true
 
 
@@ -2789,12 +2891,16 @@ func _build_toy_harbor() -> Dictionary:
 func _reset_sandbox() -> void:
 	# Rematches restore mutable world state without rebuilding thousands of
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
+	terrain_collapse.reset()
 	volcano.cleanup()
 	if map_anchors.get("map_id", "") == map_id:
 		for child in $Sandbox.get_children():
 			if child is BreakableStructure:
 				child.reset_structure()
 			elif child is RigidBody3D and child.is_in_group("network_prop"):
+				if child.has_meta("void_parked"):
+					child.remove_meta("void_parked")
+					child.show()
 				child.freeze = false
 				child.global_transform = child.get_meta("spawn_transform")
 				child.linear_velocity = Vector3.ZERO
@@ -2811,15 +2917,35 @@ func _add_static_box(node_name: String, size: Vector3, position: Vector3, color:
 	var body := StaticBody3D.new()
 	body.name = node_name
 	body.position = position
+	$Sandbox.add_child(body)
+	# Partition broad planar foundations before any district can disappear.
+	# Sloped ramps retain their authored transform and are removed as a whole.
+	var bounds := Rect2(Vector2(position.x - size.x / 2, position.z - size.z / 2), Vector2(size.x, size.z))
+	var pieces: Array[Rect2] = []
+	if not (node_name.contains("Ramp") or node_name.contains("Stairs") or node_name == "RockslideSlope"):
+		for district: Rect2 in TerrainCollapse.map_regions(map_id):
+			var piece := bounds.intersection(district)
+			if piece.has_area():
+				pieces.append(piece)
+	if pieces.size() <= 1:
+		_add_district_box_piece(body, size, Vector3.ZERO, color)
+	else:
+		for piece in pieces:
+			var center := piece.get_center()
+			_add_district_box_piece(body, Vector3(piece.size.x, size.y, piece.size.y), Vector3(center.x - position.x, 0, center.y - position.z), color)
+
+
+func _add_district_box_piece(body: StaticBody3D, size: Vector3, offset: Vector3, color: Color) -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = _toy_box_mesh(size, color)
+	mesh_instance.position = offset
 	body.add_child(mesh_instance)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
 	collision.shape = shape
+	collision.position = offset
 	body.add_child(collision)
-	$Sandbox.add_child(body)
 
 
 func _add_ramp(node_name: String, width: float, low: Vector3, high: Vector3) -> void:

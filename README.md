@@ -10,6 +10,16 @@ regression and two-client public exact-PCK smoke pass. Use the supplied
 Matching package hashes/evidence are in root `progress.json`. No new GitHub Release
 was published. Earlier delivery statements below describe historical snapshots.
 
+Phase11 is now active in source: warned heavy meteors permanently remove bounded,
+connected terrain districts, leaving real collision holes and authoritative instant
+void-fall death. A removed district renders as pure absence — the sky background shows
+through the hole. All nine districts are eligible, including center and warehouse.
+Owner authorized commit/push/release after the all-district and Oracle fixes;
+committed-HEAD package and delivery verification is in progress.
+See [Phase11](docs/checklists/phase-11-meteor-terrain-collapse.md).
+See [source-only terrain-collapse rules](GUIDE.md#phase11-meteor-terrain-collapse--source-builds-only).
+The public Phase10 server/bundle is unchanged and cannot be mixed with new clients.
+
 The current source expands Toy Town to **112×112m**: continuous rounded building
 shells, curved striped shop canopy, shared staggered paving, populated side/civic
 terraces, a garden and connected roof walks. Harbor retains its64m footprint.
@@ -63,7 +73,7 @@ The [earlier Terraform module](infra/ec2/README.md) is an optional reference onl
 No EKS is needed; EC2 capacity/configuration is unchanged. GPU, audio and separate-network
 Windows acceptance remain unverified; the completed public smoke is not a capacity claim.
 Profile/reward persistence still requires an explicitly profile-enabled server;
-this deployment does not enable new storage. Chunk streaming and shrinking safe
+this deployment does not enable new storage. Chunk streaming and meteor terrain collapse
 zones are not included. [Phase8](docs/old-docs/phase-8-character-disaster-counterplay/checklist.md)
 now completed its source/render/network/local-package technical gates: character
 animation continuity, removal of crouch/temporary removal of grabbing/holding,
@@ -101,10 +111,11 @@ are planning only: temporary random Speed/Jump pickups, not permanent cosmetic s
 Held hammer/wood interactions are
 [future backlog only](docs/implementation-checklist.md#explicitly-deferred).
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
-rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
-[Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
-gates pass. Phase9 is shipped under separate owner authorization; Phase10 is local
-only and Phase11–12 remain plans. They are not included in the released build.
+rockslides; Phase10 adds bees/UFO/volcano. Phase11 is now
+[warned meteor terrain collapse](docs/checklists/phase-11-meteor-terrain-collapse.md);
+the rejected circle/gradual-HP-loss tracking is archived as superseded/cancelled.
+Phase9 is shipped under separate owner authorization; the public Phase10 bundle does
+not include Phase11–12 work.
 
 ## Windows playtest export
 

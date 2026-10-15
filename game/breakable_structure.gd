@@ -20,6 +20,7 @@ var _intact_color := Color.WHITE
 var _visual: MeshInstance3D
 var _collision: CollisionShape3D
 var _debris: RigidBody3D
+var _terrain_removed := false
 
 
 func configure(id: String, size: Vector3, color: Color, role: String = ROLE_DECORATIVE, group: String = "") -> void:
@@ -71,6 +72,16 @@ func reset_structure() -> void:
 	set_structure_state(StructureState.INTACT)
 
 
+func set_terrain_removed(removed: bool) -> void:
+	_terrain_removed = removed
+	_apply_visual_state()
+
+
+func _physics_process(_delta: float) -> void:
+	if is_instance_valid(_debris) and _debris.global_position.y < -8.0:
+		_remove_debris()
+
+
 func get_debris() -> RigidBody3D:
 	return _debris
 
@@ -83,8 +94,8 @@ func supports_point(point: Vector3) -> bool:
 func _apply_visual_state() -> void:
 	if not is_instance_valid(_visual) or not is_instance_valid(_collision):
 		return
-	_visual.visible = structure_state != StructureState.BROKEN
-	_collision.disabled = structure_state == StructureState.BROKEN
+	_visual.visible = not _terrain_removed and structure_state != StructureState.BROKEN
+	_collision.disabled = _terrain_removed or structure_state == StructureState.BROKEN
 	if not _visual.visible:
 		return
 	var material := StandardMaterial3D.new()

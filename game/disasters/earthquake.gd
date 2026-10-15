@@ -38,6 +38,8 @@ var pulse_count := 0
 var refuge_pressure := false
 var fracture_positions := PackedVector3Array()
 var support_height: Callable
+var fracture_is_viable: Callable
+var structure_is_viable: Callable
 
 var _match_manager: MatchManager
 var _players: Dictionary = {}
@@ -138,6 +140,9 @@ func start_warning() -> bool:
 	_pulse_remaining = 0.0
 	pulse_count = 0
 	_select_fractures()
+	if fracture_is_viable.is_valid() and fracture_positions.is_empty():
+		_reset_phase_state()
+		return false
 	_spawn_effect()
 	warning_started.emit(warning_duration)
 	return true
@@ -277,6 +282,8 @@ func _select_fractures() -> void:
 		if support_height.is_valid():
 			center.y = float(support_height.call(center))
 		center.y += 0.06
+		if fracture_is_viable.is_valid() and not bool(fracture_is_viable.call(center)):
+			continue
 		if fracture_positions.size() >= max_fractures:
 			break
 		var separated := true
@@ -315,6 +322,8 @@ func _damage_structure() -> void:
 	var candidates: Array[BreakableStructure] = []
 	var broken_count := 0
 	for section in _sections():
+		if structure_is_viable.is_valid() and not bool(structure_is_viable.call(section.global_position)):
+			continue
 		if section.structure_state == BreakableStructure.StructureState.BROKEN:
 			broken_count += 1
 			continue
