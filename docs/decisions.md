@@ -52,3 +52,12 @@ the platform below. An expanded all-mask test also found same-frame reset/remova
 ordering could re-enable static colliders; removal now always queues last. Three
 old escape waypoints crossed walls/rails once those colliders were correctly
 restored; routes now use the garden west exit and the actual dock gangways.
+
+Follow-up Oracle review found an additional client-only rematch issue: an empty
+earthquake snapshot means idle with every structure intact, but clients previously
+only cleared the quake effects and retained broken structures. Empty snapshots now
+reset damaged sections; explicit idle snapshots still preserve their encoded damage.
+The real-peer fixture first breaks a roof panel, then removes center/north terrain,
+and verifies intact visual/collision state and a ray hitting the restored panel after
+each rematch. Harbor two-player reproduction failed before this fix and passed after
+it (`/tmp/collapse-reset-before.log`, `/tmp/collapse-reset-after.log`).

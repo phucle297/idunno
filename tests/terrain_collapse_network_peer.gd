@@ -24,6 +24,8 @@ class FixtureMain extends "res://game/main.gd":
 			if not collapse_acks.has(stage_name):
 				collapse_acks[stage_name] = {}
 			collapse_acks[stage_name][multiplayer.get_remote_sender_id()] = ok
+			if not ok:
+				print("COLLAPSE_ACK_FAILED stage=%s peer=%d" % [stage_name, multiplayer.get_remote_sender_id()])
 
 	func wait_for_collapse(stage_name: String, expected: int, deadline: int) -> bool:
 		while (not collapse_acks.has(stage_name) or collapse_acks[stage_name].size() != expected or collapse_acks[stage_name].values().has(false)) and Time.get_ticks_msec() < deadline:
@@ -81,6 +83,10 @@ func _run_server(main: FixtureMain) -> void:
 	var client_count := player_count - 1
 	var all_passed := peers.size() == player_count and manager.get_alive_count() == player_count
 	var removed_count := 0
+	var section := main.get_node("Sandbox/" + ("RoofPanelWarehouse" if map_id == "toy_harbor" else "RoofPanelShop")) as BreakableStructure
+	section.set_structure_state(BreakableStructure.StructureState.BROKEN)
+	main._match_snapshot_remaining = 0.0
+	all_passed = all_passed and await main.wait_for_collapse("broken_structure", client_count, deadline)
 	# Advance through each real warning and wait for actual replicated state.
 	for stage_index in 4:
 		# Cover formerly immune districts with real authoritative warnings.
@@ -161,6 +167,7 @@ func _run_server(main: FixtureMain) -> void:
 		await process_frame
 		rematches_ok = rematches_ok and await main.wait_for_collapse("rematch_%d" % cycle, client_count, deadline)
 		rematches_ok = rematches_ok and terrain.removed_mask == 0 and terrain.pending == -1 and terrain.stage == 0
+		rematches_ok = rematches_ok and section.structure_state == BreakableStructure.StructureState.INTACT and section.get_node("Visual").visible and not section.get_node("Collision").disabled
 		var reset_crate := main.get_tree().get_nodes_in_group("network_prop")[0] as RigidBody3D
 		rematches_ok = rematches_ok and reset_crate.visible and not reset_crate.has_meta("void_parked") and not reset_crate.freeze
 		for peer_id in peers:
@@ -204,6 +211,11 @@ func _run_client(main: FixtureMain) -> void:
 	client_authority_ok = client_authority_ok and terrain.pending == -1 and terrain.removed_mask == 0 and manager.is_player_alive(local_id)
 	var sequence := main._last_match_snapshot_sequence
 	var passed := client_authority_ok
+	var section := main.get_node("Sandbox/" + ("RoofPanelWarehouse" if map_id == "toy_harbor" else "RoofPanelShop")) as BreakableStructure
+	while section.structure_state != BreakableStructure.StructureState.BROKEN and Time.get_ticks_msec() < deadline:
+		await process_frame
+	passed = passed and section.structure_state == BreakableStructure.StructureState.BROKEN
+	main.rpc_id(1, "acknowledge_collapse", "broken_structure", section.structure_state == BreakableStructure.StructureState.BROKEN)
 	for stage_index in 4:
 		while (terrain.pending < 0 or terrain.stage != stage_index) and Time.get_ticks_msec() < deadline:
 			await process_frame
@@ -249,6 +261,16 @@ func _run_client(main: FixtureMain) -> void:
 		while client_crate.has_meta("void_parked") and Time.get_ticks_msec() < unpark_deadline:
 			await process_frame
 		reset_ok = reset_ok and client_crate.visible and not client_crate.has_meta("void_parked")
+		var top: float = section.global_position.y + (section.get_node("Collision").shape as BoxShape3D).size.y * 0.5
+		var point := Vector3(section.global_position.x, top, section.global_position.z)
+		# Terrain restores shapes with set_deferred. ACTIVE/prop snapshots may
+		# arrive before the physics space has incorporated those shape changes.
+		await physics_frame
+		await physics_frame
+		var restored_hit := main.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP, point - Vector3.UP * 0.02, 1))
+		reset_ok = reset_ok and section.structure_state == BreakableStructure.StructureState.INTACT and section.get_node("Visual").visible and not section.get_node("Collision").disabled and not restored_hit.is_empty() and restored_hit.collider == section
+		if not reset_ok:
+			print("COLLAPSE_RESET_FAILED cycle=%d health=%.1f parked=%s structure=%d visible=%s disabled=%s hit=%s" % [cycle, manager.get_health(local_id), client_crate.has_meta("void_parked"), section.structure_state, section.get_node("Visual").visible, section.get_node("Collision").disabled, restored_hit])
 		passed = passed and reset_ok
 		main.rpc_id(1, "acknowledge_collapse", "rematch_%d" % cycle, reset_ok)
 	main.rpc_id(1, "acknowledge_collapse", "done", passed)

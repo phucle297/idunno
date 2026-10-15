@@ -41,6 +41,15 @@ Gate G11.4: rendered, regression, resource and matching-package evidence passes.
 
 ## Validation log
 
+- 2026-10-15 — Follow-up Oracle client-reset finding reproduced failing on Harbor2
+  before the empty-quake reset and passing after it. Latest fixture breaks a real
+  roof first, then requires restored intact visual/collider and a ray hitting that
+  panel after all five rematches. Final matrix passes8/8 both maps2/4/8/20
+  (`/tmp/collapse-reset-final-matrix.log`), plus a separate Harbor20 pass. An earlier
+  Harbor20 rematch assertion failed intermittently; the diagnostic-only rerun passed,
+  so its exact original predicate remains unknown. Ray queries now wait two physics
+  frames for deferred shape restoration, matching removal probes. No tolerance or
+  timeout was relaxed; failed logs are retained and per-stage diagnostics remain.
 - 2026-10-15 — Latest all-district/Oracle iteration supersedes earlier protection rules:
   center and Harbor north removed first in the real-peer matrix (8/8 both maps,
   2/4/8/20 peers); parking uses the ordered prop stream only, not cross-channel RPC.

@@ -214,6 +214,21 @@
   "next_action": "Finish staged-tree regression for the all-district/Oracle fixes, commit and push, verify exact-head server CI, then export/verify/publish matching Windows and Linux release packages and archive Phase11.",
   "validation": [
     {
+      "milestone": "11.3",
+      "status": "passed",
+      "result": "Latest client-reset fixture passes8/8 cases, both maps2/4/8/20 with five rematches (/tmp/collapse-reset-final-matrix.log), plus a separate Harbor20 pass (/tmp/collapse-reset-harbor20-settled.log). Diagnostic-only rerun of the earlier intermittent Harbor20 failure also passed, so its exact original failing predicate was not recovered. Fixture now waits two physics frames before querying deferred restored shapes, matching the existing removal-ray precondition; tolerances/timeouts unchanged. All client/server acknowledgement, collider and health assertions remain strict."
+    },
+    {
+      "milestone": "11.3",
+      "status": "failed",
+      "result": "Expanded client-reset matrix passed7/8 cases but Harbor20 reported rematches=false (/tmp/collapse-reset-full-matrix.log; original peer logs preserved at .scratch/collapse-reset-harbor20-failed). Push/release remains blocked. Added per-stage acknowledgement and collider-ray failure diagnostics; investigating the first failing assertion rather than increasing timeouts or ignoring it."
+    },
+    {
+      "milestone": "11.3",
+      "status": "passed",
+      "result": "Follow-up Oracle identified client breakables staying BROKEN after same-map rematch when the sender omits the idle/all-intact quake payload. Harbor two-player fixture reproduces failure before the empty-snapshot reset (/tmp/collapse-reset-before.log) and passes after it (/tmp/collapse-reset-after.log). Fixture now replicates a broken roof before center/north collapse and requires intact visual/collider plus a ray hitting the restored panel after each of five rematches. Expanded eight-case matrix queued behind the staged-tree regression to avoid concurrent heavy jobs."
+    },
+    {
       "milestone": "11.1",
       "status": "passed",
       "result": "Core4142 (/tmp/collapse-equal-core.log): all18 map/district combinations including centers and warehouse, lethal fall/prop parking/reset, earthquake cannot restore removed support, broken-then-collapse collider restores at rematch, ordinary rubble depth cleanup. Routes2818 walks18 legal_masks278 (/tmp/collapse-equal-routes2.log) checks surviving AND removed ramp support, center/warehouse escapes. Earlier routes run failed because queued reset re-enabled removed colliders and three legacy waypoints crossed solid walls/rails; removal is now queued last and routes use actual doorway/gangway exits."
@@ -231,7 +246,7 @@
     {
       "milestone": "11.4",
       "status": "not_run",
-      "result": "Earlier revision passed full52-suite/five-matrix/managed20/settings regression and eight-rematch soak. Final equal-district/Oracle fixes await staged-tree gate, committed-HEAD packages and exact-head deployment/release verification; delivery is now authorized."
+      "result": "Equal-district/first Oracle fixes passed staged-tree gate c15b5fed335c83f86989a3520e8e91603211cd3a:52 Godot suites,5 network matrices,managed20,five rematches,settings restart and41 Python tests (/tmp/phase11-commit.log). Eight-rematch soak53 checks has zero node/orphan growth (/tmp/collapse-equal-soak.log). Local feature commit exists, not pushed. Latest client-breakable reset fix is running its expanded matrix and will receive a fresh staged-tree gate before push. Committed-HEAD packages/exact-head deploy/release remain pending. Known shutdown-only audio/ObjectDB/resource diagnostics remain qualified; no runtime errors ignored."
     }
   ]
 }

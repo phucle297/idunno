@@ -230,6 +230,12 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 		_update_effect()
 	var structure_states: PackedByteArray = snapshot.get("structure_states", PackedByteArray())
 	var sections := _sections()
+	# The sender omits the entire quake only when idle AND every section is
+	# intact. An explicit idle snapshot still carries persistent broken states.
+	if snapshot.is_empty():
+		for section: BreakableStructure in sections:
+			if section.structure_state != BreakableStructure.StructureState.INTACT:
+				section.reset_structure()
 	for index in mini(structure_states.size(), sections.size()):
 		sections[index].set_structure_state(int(structure_states[index]), false)
 	_apply_burning_rubble_presentation(snapshot.get("burning_rubble", PackedVector3Array()))
