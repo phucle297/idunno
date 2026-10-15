@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -19,6 +19,9 @@
 [ext_resource type="Script" path="res://game/disasters/weather_surfaces.gd" id="18_weather"]
 [ext_resource type="Script" path="res://game/disasters/precipitation.gd" id="19_precipitation"]
 [ext_resource type="Script" path="res://game/disasters/rockslide.gd" id="20_rockslide"]
+[ext_resource type="Script" path="res://game/disasters/bee_swarm.gd" id="21_bees"]
+[ext_resource type="Script" path="res://game/disasters/ufo.gd" id="22_ufo"]
+[ext_resource type="Script" path="res://game/disasters/volcano.gd" id="23_volcano"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -66,6 +69,15 @@ script = ExtResource("18_weather")
 
 [node name="Rockslide" type="Node3D" parent="."]
 script = ExtResource("20_rockslide")
+
+[node name="BeeSwarm" type="Node3D" parent="."]
+script = ExtResource("21_bees")
+
+[node name="UFO" type="Node3D" parent="."]
+script = ExtResource("22_ufo")
+
+[node name="Volcano" type="Node3D" parent="."]
+script = ExtResource("23_volcano")
 
 [node name="Rain" type="Node3D" parent="."]
 script = ExtResource("19_precipitation")

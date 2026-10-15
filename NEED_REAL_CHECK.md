@@ -1,5 +1,16 @@
 # Báo lỗi khi gặp thực tế
 
+**Phase10 hoàn tất gate kỹ thuật/local (2026-10-15):**
+Ong/UFO/núi lửa đã implement ở source và có gói matching Windows/Linux local tại
+`.amp/in/artifacts/phase10-packages`; đây là snapshot chưa commit, không phải bản public.
+Không ghép client này với server Phase9. Kiểm tra tự động và render phần mềm không
+thay xác nhận Windows gốc/GPU/audio/người thật/hai mạng riêng. Waiver cũ giữ nguyên;
+không thêm checklist người dùng bắt buộc.49 suite/5 matrix/managed20,41 Python test,
+Town/Harbor2/4/8/20 peer với5 rematch,40 ảnh và exact-PCK/standalone Linux pass.
+[Evidence](docs/old-docs/phase-10-swarms-ufo-volcano/progress.json) và
+[checklist Phase10](docs/old-docs/phase-10-swarms-ufo-volcano/checklist.md) đã archive.
+Source chưa commit/push; public Phase9 không đổi; Phase11/12 chưa bắt đầu.
+
 **Phase9 hoàn tất gate kỹ thuật/local (2026-10-14):**
 [Checklist/evidence](docs/old-docs/phase-9-weather-rockslides/checklist.md).
 Rain/Snowfall/Rockslide chạy trên cả hai map;45 suite/5 matrix/managed20 và
@@ -8,7 +19,7 @@ tại `.amp/in/artifacts/phase9-packages`, ảnh đã inspect tại `.amp/in/art
 User sau đó duyệt release/deploy; source c0a7800 đã push, EC2 và pre-release matching
 đã kiểm tra. Gói uncommitted local ở trên là evidence lịch sử, không ghép với server public.
 Native Windows/GPU/audio/người thật/hai mạng riêng chưa xác minh; waiver cũ giữ
-nguyên, không thêm checklist người dùng bắt buộc. Phase10–12 vẫn là plan.
+nguyên, không thêm checklist người dùng bắt buộc. Đây là trạng thái lịch sử trước Phase10.
 
 **Follow-up collision:** [evidence](docs/old-docs/phase-8-collision-followup/checklist.md)
 cho lan can, bụi/chậu cây, đèn, vent, cọc/crate Harbor đã có trong bản public e68a912.
@@ -32,7 +43,8 @@ lịch sử, không phải trạng thái source hiện tại.
 **Planning tiếp theo:**
 Phase9 thời tiết/đá lở, Phase10 ong/UFO/núi lửa. Safe zone Phase8 cũ chuyển sang
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md). Disaster Phase9
-đã chạy trong source/package/public c0a7800; Phase10–12 chưa bắt đầu/deploy.
+đã chạy trong source/package/public c0a7800; Phase10 có source/local package nhưng
+chưa deploy. Phase11–12 chưa bắt đầu.
 Tương tác búa/mảnh gỗ chỉ nằm trong backlog. Phase2 đã chuyển
 vào old-docs, chỉ mở lại khi user yêu cầu, chưa đánh dấu hoàn tất. Báo cáo hazard/
 animation của user được giữ làm đầu vào tái hiện, không tự đánh dấu đã fix. Không thêm checklist

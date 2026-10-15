@@ -1,0 +1,133 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-15",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive": {"phase_id": "phase_10_swarms_ufo_volcano", "title": "Swarms, UFO and Volcanic Terrain", "status": "completed_agent_owned_source_and_local_package_gates", "archived_at": "2026-10-15T03:58:12Z", "superseded_by": "../../../progress.json", "qualification": "Technical/local closure only; source uncommitted/unpushed and no public delivery/native acceptance claimed. Historical workspace paths and chronological pending logs retained; final_validation supersedes them."},
+  "workflow_state": "completed_agent_owned_source_and_local_package_gates",
+  "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended, not completed; reopen only on owner request."},
+  "previous_phase_archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "development_model": {
+    "hierarchy": ["phase", "milestone", "task"],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
+    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {"phase": "phase_10_swarms_ufo_volcano", "milestone": "10.6", "task": null},
+  "phase": {
+    "id": "phase_10_swarms_ufo_volcano",
+    "title": "Swarms, UFO and Volcanic Terrain",
+    "status": "completed",
+    "authorization": "2026-10-15 owner requests next phase through completion; no public release/deployment inferred",
+    "checklist": "checklist.md",
+    "milestones": [
+      {"id": "10.1", "title": "Bee pursuit and counterplay", "status": "completed", "gate": "passed", "qualification": "77 solo checks; both-map two-peer transport passes; final larger matrix in10.6"},
+      {"id": "10.2", "title": "UFO lift and safe release", "status": "completed", "gate": "passed", "qualification": "78 solo checks; integration47 real ordinary landing damage; four simultaneous captures/ragdoll/disconnect scratch checks pass"},
+      {"id": "10.3", "title": "Authored volcanic terrain", "status": "completed", "gate": "passed", "qualification": "260 initial checks plus final integration47 crossing/remote collision checks; final standalone rerun included in10.6"},
+      {"id": "10.4", "title": "Contact heat and local cooling", "status": "completed", "gate": "passed", "qualification": "Dry/rain/snow/partial immersion delta partitions; roof versus precipitation and exact immersion integration checks pass"},
+      {"id": "10.5", "title": "Replication and lifecycle", "status": "completed", "gate": "passed", "qualification": "Town/Harbor2/4/8/20 real peers and five rematches; managed20 crash/retry/owner transfer; remote heat/collision/targets/captures/reset pass"},
+      {"id": "10.6", "title": "Integrated regression, renders, budgets and local packages", "status": "completed", "gate": "passed", "qualification": "49 suites/5 network matrices/managed20/persistence restart;41 Python tests;40 inspected renders; bounded soak; matching117-entry PCKs; standalone Linux; three clean verbose exported-PCK repeats per hazard. Native/GPU/human acceptance unverified under waiver."}
+    ]
+  },
+  "completed_phase": {
+    "id": "phase_9_weather_rockslides",
+    "title": "Weather and Rockslides",
+    "status": "completed_agent_owned_source_and_local_package_gates",
+    "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
+    "qualification": "Rain/Snowfall/Rockslide,45-suite/five-matrix/managed20 regression, both-map2/4/8/20 real-peer weather/reset matrices, inspected720p/1080p renders, bounded soak and matching local packages pass. Technical closure archive preserves its then-uncommitted state; subsequent owner-authorized source/public delivery is verified in phase9_release. Human/native Windows/GPU/audio/separate-network acceptance unverified under preserved waiver."
+  },
+  "planned_phases": [
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by owner priority; revalidate expanded/mutated map and new hazards before implementation."},
+    {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Planning only; implementation priority not activated."}
+  ],
+  "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
+    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
+    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
+  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "validation_log": [
+    {"command": "godot --headless --editor --path . --quit", "status": "passed", "result": "Bee class/import and main scene load without script errors"},
+    {"command": "godot --headless --path . --script res://tests/test_bee_swarm.gd", "status": "passed", "result": "BEE_SWARM_OK checks=77 maps=2 resets=5; reach, wall, roof, water, bounded pursuit, seeded replay, target rotation and disconnect; rendered/audio/integrated network gates remain pending"},
+    {"command": "godot --headless --path . --script res://tests/test_ufo.gd", "status": "failed", "result": "Initial fixture called nonexistent environment-damage helper; stopped after stable runtime error. Inspection confirmed no ordinary fall damage existed. Implemented actual landing signal and authority-batched impact curve. Subsequent height assertion incorrectly used nominal Town spawn0.05 instead of actual support0.12; corrected to collision-backed beam support."},
+    {"command": "godot --headless --path . --script res://tests/test_ufo.gd", "status": "passed", "result": "UFO_OK checks=78 maps=2 resets=5 actual_lift_walk_fall_roof=passed; no script/runtime errors"},
+    {"command": "godot --headless --path . --script res://tools/audio_generation/generate_audio.gd", "status": "passed", "result": "AUDIO_GENERATION_OK sounds=14; three new deterministic warnings; existing WAVs unchanged; import passed"},
+    {"command": "godot --headless --path . --script res://tests/test_volcano.gd", "status": "passed", "result": "Initial VOLCANO_OK260 both maps/five resets, evacuation, collision, contact and cooling partitions. Rounded shelves/ramp/edge final rerun pending."},
+    {"command": "PLAYER_COUNTS=2 GODOT_BIN=$(command -v godot) tests/run_playable_scale_test.sh", "status": "passed", "result": "Town two real peers, new target/beam/terrain snapshots and five rematches pass; larger/both-map matrices pending."},
+    {"command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh", "status": "not_run", "result": "Final run in progress. Earlier runs caught duplicate landing listeners on reused offline avatar (fixed) and free-fall assumptions in roof/Flood grace fixture (updated). Final marker required."},
+    {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script res://tools/render_phase10.gd", "status": "not_run", "result": "Final40 recaptures complete after fixing actual Flood rise and stale frozen HUD exposure. Final inspection pending; earlier contact sheets confirmed terrain/color/water differences, individual UFO720 confirmed visible lifted player and footprint."},
+    {"command": "godot --headless --path . --script res://tests/test_phase10_integration.gd", "status": "passed", "result": "PHASE10_INTEGRATION_OK47 maps2: roof/weather/immersion, remote reconstruction/read-only/malformed/reset/cooled state, actual postmutation walking crossings, director exclusions, distinct audio and safe jump/lethal real fall. Exported-PCK repeat running."},
+    {"command": "godot --headless --path . --script res://.scratch/measure_phase10.gd", "status": "passed", "result": "Four-player synthetic five600-tick cycles/map; simultaneous UFO capture/ragdoll/disconnect controls pass. Town p95 combined tick62us, snapshots556bytes, nodes6767 stable, static memory103957803→104101927. Harbor51us/560bytes/nodes1548 stable, memory75120270→75213614. Headless subsystem cost only, not GPU/frame throughput; synthetic three-hazard stress exceeds production max2 only in fixture."},
+    {"command": "python3 -m unittest discover -s tests -p 'test_*.py'", "status": "passed", "result": "41 tests OK in119.454s"},
+    {"command": "MAP_ID=toy_harbor PLAYER_COUNTS=2 PORT=30140 tests/run_playable_scale_test.sh", "status": "passed", "result": "Two real peers, all new snapshots, five rematches, movement/results/spectator/disconnect markers pass"},
+    {"command": "Isolated uncommitted snapshot Windows/Linux Godot exports; verify_exported_artifacts.py; run_release_linux_test.py", "status": "passed", "result": "Missing export templates caused first export failure; installed official4.7.2 templates and reexported. Both manifests pass3/5 files, PCKv4 entries117 and byte-identical PCK sha256 da4159fd4dbcf67147d33afb1705932d85e1c634a817024b00fd5ef785aae15f. Content snapshot identity7cc8c00f8ef97af9422c3521f1cf1d1e24e6d65e is NOT a Git commit. Standalone Linux no-editor/no-cache create/join, version rejection, crash/retry, SIGTERM/port reclaim pass. No public deployment/native Windows execution. Archive packaging pending."}
+  ],
+  "final_validation": {
+    "regression": "UI_REGRESSION_OK suites=49 matrices=5 managed_clients=20 persistence_restart=passed;41 Python tests OK",
+    "transport": "Both maps2/4/8/20 real ENet peers;5 rematches each; movement, all new hazard snapshots, exact changed terrain/heat reset, results/spectator and disconnected registries pass. Loopback, not separate-network acceptance.",
+    "focused_export": "Exact final PCK bootstrap with external test scripts and exported global class registry, no runtime source tree: Bees77/UFO78/Volcano260 each3 consecutive verbose clean exits; Integration47 also clean. No script/runtime/resource-leak diagnostics in new fixtures.",
+    "visuals": "40 final screenshots, ten states per map at720p/1080p; four contact sheets and targeted originals inspected. Corrected fixture-only actual water rise and stale frozen Flood HUD. Before/hot/warm/cooled geometry, warnings/targets/lift/footprints and partial immersion consistent. Xvfb/Compatibility llvmpipe, not native GPU.",
+    "simultaneous": "Four actual grounded victims/map die to one heat batch and share last-place winners per existing MatchManager policy. Earlier scratch assertions incorrectly assumed empty winners and reused a roster already stung by Bees; corrected fixture, not production behavior. Four simultaneous UFO captures, ragdoll and unregister release pass.",
+    "budgets": "Five600-tick cycles/map,4 bodies, synthetic three-hazard stress; initial p95 combined tick62/51us Town/Harbor, added snapshot556/560bytes, nodes6767/1548 stable. Final simultaneous-controls run includes retained result UI pools on Harbor:1576 stable. Static memory remains bounded; this measures headless subsystem work, not60FPS/GPU throughput.",
+    "known_diagnostics": "Existing legacy fixtures and dedicated guest retain Dummy-audio shutdown-only ObjectDB/WAV resources. Existing runner allows only that resource-exit diagnostic; runtime/parser/assertion checks remain strict. New focused fixtures and final render exit cleanly. No human audio claim.",
+    "logs": ".amp/in/artifacts/phase10-evidence",
+    "review": "Self-reviewed authority, signal idempotence, cleanup/collision/contact bounds and actual diff; git diff --check and JSON validation pass. Earlier pending diary entries are chronological and superseded by this final evidence."
+  },
+  "phase10_local_delivery": {
+    "status": "validated_local_uncommitted_snapshot_not_published_or_deployed",
+    "snapshot_identity": "7cc8c00f8ef97af9422c3521f1cf1d1e24e6d65e",
+    "identity_type": "content snapshot hash, NOT a Git commit",
+    "directory": ".amp/in/artifacts/phase10-packages",
+    "windows": "DisasterParty-Windows-phase10-local.zip",
+    "windows_sha256": "8e01221b51849a43a8f879ba9782d1bd0c592c84f45953511437e5c465e67955",
+    "linux_server": "DisasterParty-Linux-server-phase10-local.tar.gz",
+    "linux_sha256": "c0d827e106820038b5c119ee5313d91fe3c110889679233acd48e9d501f60f94",
+    "pck_sha256": "da4159fd4dbcf67147d33afb1705932d85e1c634a817024b00fd5ef785aae15f",
+    "qualification": "Windows/Linux same117-entry PCK, manifest/content checks and standalone Linux no-editor/no-cache lifecycle pass. No native Windows execution/public release/deployment. Source remains uncommitted/unpushed; do not mix with public Phase9 server."
+  },
+  "changed_files": ["game/disasters/bee_swarm.gd", "game/disasters/ufo.gd", "game/disasters/volcano.gd", "game/main.gd", "game/player/player.gd", "game/player/player_tuning.gd", "game/gameplay_audio_controller.gd", "scenes/main.tscn", "game/ui/gameplay_hud.gd", "game/ui/disaster_icon.gd", "tests/test_bee_swarm.gd", "tests/test_ufo.gd", "tests/test_volcano.gd", "tests/test_phase10_integration.gd", "tests/test_map_safety.gd", "tests/playable_scale_peer.gd", "tools/render_phase10.gd", "tools/audio_generation/generate_audio.gd", "assets/audio/generated/{bee,ufo,volcano}_warning.wav", "assets/manifest.json", "README.md", "GUIDE.md", "NEED_REAL_CHECK.md", "docs/checklists/phase-10-swarms-ufo-volcano.md", "docs/decisions.md", "docs/implementation-checklist.md", "progress.json"],
+  "blockers": [],
+  "phase9_local_delivery": {
+    "status": "validated_local_uncommitted_snapshot_not_published_or_deployed",
+    "identity": "uncommitted-c8727ddf956e9de19f9e7fa27719",
+    "directory": ".amp/in/artifacts/phase9-packages",
+    "windows": "DisasterParty-Windows-phase9-local.zip",
+    "windows_sha256": "3d28836af292ba9eb55669aeed9a234cc224fd44e3609adeb54a808832b59601",
+    "linux_server": "DisasterParty-Linux-server-phase9-local.tar.gz",
+    "linux_sha256": "2cfa271fcf5d1577f899e78026d2280fdada406a6a3b3b655ce000038e9e6c9b",
+    "pck_sha256": "98b3837ae1d872b05f2a5b36664c088f9b1efb1d3929d30f6bdd654ac03ce7ce",
+    "qualification": "Historical preauthorization packages: exact runtime snapshot provenance, standalone lifecycle and fixtures preserved in Phase9 archive/artifact notes. Do not mix this uncommitted snapshot with the later public release."
+  },
+  "historical_delivery_metadata": {
+    "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
+    "preserved_keys": ["phase8_local_delivery", "integrated_town_release", "collision_followup_delivery", "historical_delivery_metadata", "commit_test_policy"],
+    "public_build": "e68a912a91c6dce339ddb254a559e68be26c53ce",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
+    "endpoint": "https://server.permees.com",
+    "qualification": "Historical authorizations and delivery details remain intact in the archive; not authority to deploy/release Phase9 or enable storage/capacity."
+  },
+  "phase9_release": {
+    "authorization": "2026-10-14 owner: release and deploy after finish",
+    "status": "deployed_and_published_prerelease_verified",
+    "revision": "c0a780067c10372ca6676725f03916503994aa5e",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38615376266",
+    "deployment_status": "passed_exact_head_backend_readiness",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800",
+    "endpoint": "https://server.permees.com",
+    "windows": "DisasterParty-Windows-Internet-c0a7800.zip",
+    "windows_sha256": "dbf2b2cb1507e263770e9c8d2b9613336814924c4ae95b4d37041b5000262bb1",
+    "linux_server": "DisasterParty-Linux-server-c0a7800.tar.gz",
+    "linux_sha256": "dc63f97a8e3e0b547ad986cdd2fab3cc13d2ee0ee63e5addfe2c6a7b7aed91c4",
+    "pck_sha256": "8ef57972b339fed6f3b325f94074e407590bbbcbcff2f0f139e177998c6dbb76",
+    "evidence_directory": ".amp/in/artifacts/phase9-release",
+    "source_gate": "Staged-tree pre-commit passes45 Godot suites/5 network groups/managed20/settings restart and41 Python tests. Technical archive also preserves both-map2/4/8/20 weather-aware matrices and clean focused repeats.",
+    "delivery_gate": "Exact-head CI deploy passes. Final Windows uses byte-exact deployed PCK; all105 payload entries independently match local export although container bytes differ. Both final unpack/hash/content checks and standalone Linux lifecycle pass; exact deployed-PCK Weather471/Rock72 clean exits pass. Two public exact-PCK clients pass verified HTTPS/tickets/ENet/Ready/Start/ACTIVE/remote movement plus unknown-room404/old-build409. Three published assets downloaded/hash compared and tag verified.",
+    "qualification": "Two Linux editor-driven clients in one orb/upstream, not native Windows/GPU/audio/human or separate-network acceptance. Existing EC2 capacity/configuration/store unchanged; no Steam publication. Earlier uncommitted local snapshot remains historical evidence."
+  },
+  "delivery_boundary": "Owner-authorized Phase9 release/deployment is complete and verified. No storage/capacity change or Phase10 implementation authorized by that shipment.",
+  "next_action": "Archive Phase10 technical/local-package evidence and return to idle; source commit/push and public shipment remain separate delivery steps."
+}

@@ -16,6 +16,9 @@ const SOUNDS := {
 	"rain_warning": 1.0,
 	"snow_warning": 1.0,
 	"rock_warning": 1.0,
+	"bee_warning": 1.0,
+	"ufo_warning": 1.0,
+	"volcano_warning": 1.0,
 }
 
 
@@ -87,6 +90,12 @@ func _sample(sound_name: String, time: float, duration: float, index: int) -> fl
 			return (sin(TAU * 1046.5 * time) + sin(TAU * 1568.0 * time) * 0.4) * 0.2 * envelope
 		"rock_warning":
 			return (sin(TAU * 110.0 * time) * 0.25 + _noise(index) * 0.18) * envelope * (0.6 + 0.4 * sin(TAU * 8 * time))
+		"bee_warning":
+			return (sin(TAU * 180 * time) + sin(TAU * 360 * time) * 0.4) * 0.22 * envelope * (0.7 + 0.3 * sin(TAU * 12 * time))
+		"ufo_warning":
+			return sin(TAU * (520 * time + 12 * sin(TAU * 3 * time))) * 0.3 * envelope
+		"volcano_warning":
+			return (sin(TAU * 65 * time) * 0.24 + _noise(index) * 0.14) * envelope * (0.6 + 0.4 * sin(TAU * 3 * time))
 	return 0.0
 
 

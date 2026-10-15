@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-14",
+  "updated_at": "2026-10-15",
   "project": "Disaster Party",
   "source_of_truth": true,
   "workflow_state": "awaiting_next_scope",
   "archive_policy": {"directory": "docs/old-docs", "filename_pattern": "{phase-slug}/progress.json", "rule": "Never overwrite historical archives. Phase2 is suspended, not completed; reopen only on owner request."},
-  "previous_phase_archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
+  "previous_phase_archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json",
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
@@ -16,16 +16,16 @@
   },
   "current": {"phase": null, "milestone": null, "task": null},
   "phase": null,
+  "completed_followup": {"id": "phase_10_volcanic_relief_followup", "status": "completed_technical_source_gates", "archive": "docs/old-docs/phase-10-volcanic-relief-followup/progress.json", "qualification": "Unequal faceted relief with matching collision/contact, Volcano284/Integration47, map routes424/prop routes191, both-map4-peer/five-rematch checks and24 inspected captures pass. Map-variety retains shutdown-only ObjectDB/resource diagnostics. Source uncommitted/unpushed, old packages unchanged, no public shipment/native GPU/human approval claim."},
   "completed_phase": {
-    "id": "phase_9_weather_rockslides",
-    "title": "Weather and Rockslides",
+    "id": "phase_10_swarms_ufo_volcano",
+    "title": "Swarms, UFO and Volcanic Terrain",
     "status": "completed_agent_owned_source_and_local_package_gates",
-    "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
-    "qualification": "Rain/Snowfall/Rockslide,45-suite/five-matrix/managed20 regression, both-map2/4/8/20 real-peer weather/reset matrices, inspected720p/1080p renders, bounded soak and matching local packages pass. Technical closure archive preserves its then-uncommitted state; subsequent owner-authorized source/public delivery is verified in phase9_release. Human/native Windows/GPU/audio/separate-network acceptance unverified under preserved waiver."
+    "archive": "docs/old-docs/phase-10-swarms-ufo-volcano/progress.json",
+    "qualification": "All six technical milestones pass: Bees/UFO/Volcano/heat,49-suite/five-network-group/managed20/settings restart,41 Python tests, both-map2/4/8/20 real peers/five rematches,40 inspected renders, bounded soak and matching local packages. Three verbose clean exported-PCK repeats per hazard and standalone Linux lifecycle pass. Source uncommitted/unpushed; no new public deployment/release. Native Windows/GPU/audio/human/separate-network acceptance unverified under preserved waiver."
   },
   "planned_phases": [
-    {"id": "phase_10_swarms_ufo_volcano", "status": "planned", "checklist": "docs/checklists/phase-10-swarms-ufo-volcano.md", "depends_on": "phase_9_weather_rockslides"},
-    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by owner priority; revalidate expanded/mutated map and new hazards before implementation."},
+    {"id": "phase_11_shrinking_survival_zone", "status": "planned", "checklist": "docs/checklists/phase-11-shrinking-survival-zone.md", "depends_on": "phase_10_swarms_ufo_volcano", "qualification": "Former Phase8 postponed by owner priority; revalidate expanded/mutated map and new hazards before implementation. Not activated."},
     {"id": "phase_12_match_powerup_drops", "status": "planned", "checklist": "docs/checklists/phase-12-match-powerup-drops.md", "qualification": "Planning only; implementation priority not activated."}
   ],
   "phase_renumbering": {"date": "2026-10-14", "from": "phase_8_shrinking_survival_zone", "to": "phase_11_shrinking_survival_zone", "reason": "Prioritize character/UI and disaster counterplay/content. Historical archives retain original IDs; no completed work reset."},
@@ -39,24 +39,26 @@
   "validation_log": [],
   "changed_files": [],
   "blockers": [],
-  "phase9_local_delivery": {
-    "status": "validated_local_uncommitted_snapshot_not_published_or_deployed",
-    "identity": "uncommitted-c8727ddf956e9de19f9e7fa27719",
-    "directory": ".amp/in/artifacts/phase9-packages",
-    "windows": "DisasterParty-Windows-phase9-local.zip",
-    "windows_sha256": "3d28836af292ba9eb55669aeed9a234cc224fd44e3609adeb54a808832b59601",
-    "linux_server": "DisasterParty-Linux-server-phase9-local.tar.gz",
-    "linux_sha256": "2cfa271fcf5d1577f899e78026d2280fdada406a6a3b3b655ce000038e9e6c9b",
-    "pck_sha256": "98b3837ae1d872b05f2a5b36664c088f9b1efb1d3929d30f6bdd654ac03ce7ce",
-    "qualification": "Historical preauthorization packages: exact runtime snapshot provenance, standalone lifecycle and fixtures preserved in Phase9 archive/artifact notes. Do not mix this uncommitted snapshot with the later public release."
+  "phase10_local_delivery": {
+    "status": "historical_validated_snapshot_before_volcanic_relief_followup",
+    "snapshot_identity": "7cc8c00f8ef97af9422c3521f1cf1d1e24e6d65e",
+    "identity_type": "content snapshot hash, NOT a Git commit",
+    "directory": ".amp/in/artifacts/phase10-packages",
+    "windows": "DisasterParty-Windows-phase10-local.zip",
+    "windows_sha256": "8e01221b51849a43a8f879ba9782d1bd0c592c84f45953511437e5c465e67955",
+    "linux_server": "DisasterParty-Linux-server-phase10-local.tar.gz",
+    "linux_sha256": "c0d827e106820038b5c119ee5313d91fe3c110889679233acd48e9d501f60f94",
+    "pck_sha256": "da4159fd4dbcf67147d33afb1705932d85e1c634a817024b00fd5ef785aae15f",
+    "qualification": "Windows/Linux same117-entry PCK, manifest/content checks and standalone Linux no-editor/no-cache lifecycle pass. No native Windows execution/public release/deployment. Source remains uncommitted/unpushed; do not mix with public Phase9 server."
   },
   "historical_delivery_metadata": {
     "archive": "docs/old-docs/phase-9-weather-rockslides/progress.json",
-    "preserved_keys": ["phase8_local_delivery", "integrated_town_release", "collision_followup_delivery", "historical_delivery_metadata", "commit_test_policy"],
+    "continuation_archive": "docs/old-docs/phase-10-swarms-ufo-volcano/progress.json",
+    "preserved_keys": ["phase9_local_delivery", "phase8_local_delivery", "integrated_town_release", "collision_followup_delivery", "historical_delivery_metadata", "commit_test_policy"],
     "public_build": "e68a912a91c6dce339ddb254a559e68be26c53ce",
     "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912",
     "endpoint": "https://server.permees.com",
-    "qualification": "Historical authorizations and delivery details remain intact in the archive; not authority to deploy/release Phase9 or enable storage/capacity."
+    "qualification": "Historical authorizations and delivery details remain intact in archives. Current public Phase9 shipment is recorded separately below."
   },
   "phase9_release": {
     "authorization": "2026-10-14 owner: release and deploy after finish",
@@ -76,6 +78,7 @@
     "delivery_gate": "Exact-head CI deploy passes. Final Windows uses byte-exact deployed PCK; all105 payload entries independently match local export although container bytes differ. Both final unpack/hash/content checks and standalone Linux lifecycle pass; exact deployed-PCK Weather471/Rock72 clean exits pass. Two public exact-PCK clients pass verified HTTPS/tickets/ENet/Ready/Start/ACTIVE/remote movement plus unknown-room404/old-build409. Three published assets downloaded/hash compared and tag verified.",
     "qualification": "Two Linux editor-driven clients in one orb/upstream, not native Windows/GPU/audio/human or separate-network acceptance. Existing EC2 capacity/configuration/store unchanged; no Steam publication. Earlier uncommitted local snapshot remains historical evidence."
   },
-  "delivery_boundary": "Owner-authorized Phase9 release/deployment is complete and verified. No storage/capacity change or Phase10 implementation authorized by that shipment.",
-  "next_action": "Await owner's next scope; Phase10–12 remain planned and are not started."
+  "phase10_deployment": {"authorization": "2026-10-15 owner: Check, if finish commit and push and deploy", "status": "checking_before_commit", "scope": "Phase10 including faceted volcanic relief; existing main-branch EC2 workflow, no capacity/configuration changes", "qualification": "Earlier uncommitted/no-deployment statements describe historical snapshots. A new public release publication is not requested. Matching client delivery and exact-head backend checks must follow deployment."},
+  "delivery_boundary": "Owner now authorizes commit, push and deployment after checks. Existing Phase9 release remains historical; do not claim Phase10 deployed until exact-head workflow and public checks pass. No capacity/storage changes or Phase11/12 activation.",
+  "next_action": "Pass staged-tree regression, commit/push Phase10 with relief, then verify exact-head deployment and matching client package."
 }

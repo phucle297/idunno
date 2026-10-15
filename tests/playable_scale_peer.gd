@@ -203,6 +203,12 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		main.tick_weather(20)
 		main.rockslide.tick(5)
 		main.rockslide.tick(0.01)
+		# Transport stress only: director compatibility still caps real matches
+		# at two. Include all new state, including persistent changed collision.
+		for hazard in [main.bee_swarm, main.ufo, main.volcano]:
+			hazard.set_physics_process(false)
+			disaster_passed = hazard.start_disaster(meteor_rng) and disaster_passed
+		main.volcano.tick(12)
 		await create_timer(0.5).timeout
 		var damage_events: Array[Dictionary] = []
 		for peer_id: int in peer_ids:
@@ -407,6 +413,13 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		and main.weather_surfaces.precipitation == "Snowfall"
 		and main.rockslide.phase == Rockslide.Phase.ACTIVE
 		and main.rockslide._remote_rocks.size() == 1
+		and main.bee_swarm.phase == BeeSwarm.Phase.WARNING
+		and main.bee_swarm.target_id > 0
+		and main.ufo.phase == UFO.Phase.WARNING
+		and main.volcano.mutated
+		and main.volcano.centers.size() == 9
+		and main.volcano.heat.size() == 9
+		and main.volcano.heat[4] == 60.0
 	)
 	if not disaster_passed:
 		print("SCALE_HAZARDS_DIAGNOSTIC map=%s expected=%s meteor=%d effects=%d points=%d fire=%d quake=%d fractures=%d hud=%s" % [main.get_map_id(), map_id, meteor.phase, meteor.active_effect_count(), meteor.strike_points.size(), (main.get_node("Fire") as Fire).phase, (main.get_node("Earthquake") as Earthquake).phase, (main.get_node("Earthquake") as Earthquake).fracture_positions.size(), main.gameplay_hud.get_presented_hazards()])
@@ -496,6 +509,7 @@ func _run_client(main: Node, probe: PlayableScaleProbe) -> void:
 		rematch_ok = rematch_ok and is_instance_valid(host_copy) and host_copy.get_emote_id() == 0 and local_player.get_emote_id() == 0
 		var surfaces: Dictionary = main.weather_surfaces.create_presentation_snapshot()
 		rematch_ok = rematch_ok and not main.rain.is_active() and not main.snowfall.is_active() and not main.rockslide.is_active() and main.rockslide._remote_rocks.is_empty()
+		rematch_ok = rematch_ok and not main.bee_swarm.is_active() and not main.ufo.is_active() and not main.volcano.mutated and main.volcano.centers.is_empty()
 		for snow: float in surfaces.snow:
 			rematch_ok = rematch_ok and snow == 0.0
 		for wetness: float in surfaces.wetness:
@@ -551,6 +565,9 @@ func _disconnected_registries_are_clean(main: Node, original_peer_ids: Array[int
 			or (main.get_node("Lightning") as Lightning)._players.has(peer_id)
 			or (main.get_node("Fire") as Fire)._players.has(peer_id)
 			or main.rockslide._players.has(peer_id)
+			or main.bee_swarm._players.has(peer_id)
+			or main.ufo._players.has(peer_id)
+			or main.volcano._players.has(peer_id)
 		):
 			return false
 	return true

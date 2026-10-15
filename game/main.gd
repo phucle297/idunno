@@ -59,6 +59,9 @@ const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
 @onready var rain: Precipitation = $Rain
 @onready var snowfall: Precipitation = $Snowfall
 @onready var rockslide: Rockslide = $Rockslide
+@onready var bee_swarm: BeeSwarm = $BeeSwarm
+@onready var ufo: UFO = $UFO
+@onready var volcano: Volcano = $Volcano
 @onready var gameplay_audio: GameplayAudioController = $GameplayAudio
 @onready var gameplay_hud: GameplayHud = $Interface
 
@@ -94,6 +97,7 @@ var _connection_remaining := 0.0
 var map_id := "toy_town"
 var match_preset := "normal"
 var map_anchors: Dictionary = {}
+var _pending_fall_damage: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -122,6 +126,14 @@ func _ready() -> void:
 	rain.configure(match_manager)
 	snowfall.configure(match_manager)
 	rockslide.configure(match_manager)
+	bee_swarm.configure(match_manager)
+	ufo.configure(match_manager)
+	ufo.support_height = get_map_support_height
+	volcano.configure(match_manager)
+	volcano.support_height = get_map_support_height
+	volcano.exposed = weather_surfaces.is_exposed
+	volcano.environment = func() -> Dictionary: return {"rain": rain.phase == Precipitation.Phase.ACTIVE, "snow": snowfall.phase == Precipitation.Phase.ACTIVE, "water": flood.water_level if flood.is_active() else -INF}
+	bee_swarm.water_level = func() -> float: return flood.water_level if flood.is_active() else -INF
 	fire.surface_wetness = weather_surfaces.sample_surface
 	weather_surfaces.support_height = get_map_support_height
 	$ShoveManager.configure(match_manager)
@@ -148,6 +160,9 @@ func _ready() -> void:
 	disaster_director.register_disaster(rain)
 	disaster_director.register_disaster(snowfall)
 	disaster_director.register_disaster(rockslide)
+	disaster_director.register_disaster(bee_swarm)
+	disaster_director.register_disaster(ufo)
+	disaster_director.register_disaster(volcano)
 	gameplay_audio.configure(match_manager, {
 		"meteor": meteor_shower,
 		"flood": flood,
@@ -158,6 +173,9 @@ func _ready() -> void:
 		"rain": rain,
 		"snowfall": snowfall,
 		"rockslide": rockslide,
+		"bees": bee_swarm,
+		"ufo": ufo,
+		"volcano": volcano,
 	})
 	gameplay_hud.warning_countdown_tick.connect(gameplay_audio.play_warning_countdown)
 	gameplay_hud.spectator_cycle_requested.connect(_cycle_spectator)
@@ -475,6 +493,9 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 	lightning.unregister_player(peer_id)
 	fire.unregister_player(peer_id)
 	rockslide.unregister_player(peer_id)
+	bee_swarm.unregister_player(peer_id)
+	ufo.unregister_player(peer_id)
+	volcano.unregister_player(peer_id)
 	_remove_network_player(peer_id)
 	if _dedicated_server and _room_owner_id == peer_id:
 		# Dictionary insertion order is connection order, not numeric peer ID order.
@@ -516,7 +537,7 @@ func _on_server_disconnected() -> void:
 	_emote_sequences.clear()
 	_emote_seen_sequences.clear()
 	for peer_id: int in match_manager.players.keys():
-		for component: Node in [meteor_shower, flood, tornado, earthquake, lightning, fire, rockslide, match_manager]:
+		for component: Node in [meteor_shower, flood, tornado, earthquake, lightning, fire, rockslide, bee_swarm, ufo, volcano, match_manager]:
 			component.unregister_player(peer_id)
 	for peer_id: int in _player_nodes.keys():
 		_remove_network_player(peer_id)
@@ -996,6 +1017,8 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 	player.configure_emotes(self)
 	player.configure_identity(peer_id)
 	player.weather_surfaces = weather_surfaces
+	if not player.landed.is_connected(_on_player_landed.bind(peer_id)):
+		player.landed.connect(_on_player_landed.bind(peer_id))
 	return (
 		match_manager.register_player(peer_id, player_name)
 		and $ShoveManager.register_player(peer_id, player)
@@ -1006,7 +1029,28 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 		and lightning.register_player(peer_id, player)
 		and fire.register_player(peer_id, player)
 		and rockslide.register_player(peer_id, player)
+		and bee_swarm.register_player(peer_id, player)
+		and ufo.register_player(peer_id, player)
+		and volcano.register_player(peer_id, player)
 	)
+
+
+func _on_player_landed(impact_speed: float, peer_id: int) -> void:
+	if _network_mode and not multiplayer.is_server():
+		return
+	if match_manager.state != MatchManager.MatchState.ACTIVE or impact_speed <= Tuning.FALL_DAMAGE_START_SPEED:
+		return
+	var severity := clampf((impact_speed - Tuning.FALL_DAMAGE_START_SPEED) / (Tuning.FALL_DAMAGE_LETHAL_SPEED - Tuning.FALL_DAMAGE_START_SPEED), 0, 1)
+	_pending_fall_damage.append({"peer_id": peer_id, "amount": 100.0 * severity * severity, "cause": "Fall"})
+	if _pending_fall_damage.size() == 1:
+		_flush_fall_damage.call_deferred()
+
+
+func _flush_fall_damage() -> void:
+	# All landings in the same physics frame resolve before winner evaluation.
+	var events := _pending_fall_damage
+	_pending_fall_damage = []
+	match_manager.apply_damage_batch(events)
 
 
 func _network_spawn_position(index: int) -> Vector3:
@@ -1118,6 +1162,9 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	snowfall.apply_presentation_snapshot(disasters.get("snowfall", {}))
 	weather_surfaces.apply_presentation_snapshot(disasters.get("weather", {}))
 	rockslide.apply_presentation_snapshot(disasters.get("rockslide", {}))
+	bee_swarm.apply_presentation_snapshot(disasters.get("bees", {}))
+	ufo.apply_presentation_snapshot(disasters.get("ufo", {}))
+	volcano.apply_presentation_snapshot(disasters.get("volcano", {}))
 
 
 func _has_nonintact_structures() -> bool:
@@ -1161,6 +1208,12 @@ func _create_playable_snapshot() -> Dictionary:
 	disasters.weather = weather_surfaces.create_presentation_snapshot()
 	if rockslide.is_active():
 		disasters.rockslide = rockslide.create_presentation_snapshot()
+	if bee_swarm.is_active():
+		disasters.bees = bee_swarm.create_presentation_snapshot()
+	if ufo.is_active():
+		disasters.ufo = ufo.create_presentation_snapshot()
+	if volcano.is_active() or volcano.mutated:
+		disasters.volcano = volcano.create_presentation_snapshot()
 	snapshot.disasters = disasters
 	return snapshot
 
@@ -1214,6 +1267,8 @@ func _update_context_prompt(local_peer_id: int) -> void:
 		return
 	var context := earthquake.get_escape_context(player.global_position)
 	if context.is_empty():
+		context = volcano.get_escape_context(player.global_position)
+	if context.is_empty():
 		context = fire.get_escape_context(player.global_position)
 	if context.is_empty() and player.is_on_floor():
 		var surface := weather_surfaces.sample_surface(player.global_position)
@@ -1239,6 +1294,9 @@ func _update_major_warning() -> void:
 			["rain", rain, Precipitation.Phase.WARNING],
 			["snowfall", snowfall, Precipitation.Phase.WARNING],
 			["rockslide", rockslide, Rockslide.Phase.WARNING],
+			["bees", bee_swarm, BeeSwarm.Phase.WARNING],
+			["ufo", ufo, UFO.Phase.WARNING],
+			["volcano", volcano, Volcano.Phase.WARNING],
 		]:
 			if entry[1].phase == entry[2] and entry[1].warning_remaining < soonest:
 				selected_id = entry[0]
@@ -1274,6 +1332,9 @@ func _active_disaster_lines() -> Array[String]:
 		["RAIN", rain, false],
 		["SNOWFALL", snowfall, false],
 		["ROCKSLIDE", rockslide, false],
+		["BEE SWARM", bee_swarm, false],
+		["UFO", ufo, false],
+		["VOLCANO", volcano, false],
 	]:
 		if entry[1].is_active() and not entry[2]:
 			lines.append(entry[0])
@@ -1833,6 +1894,9 @@ func _prepare_offline_player_for_join() -> void:
 	lightning.unregister_player(1)
 	fire.unregister_player(1)
 	rockslide.unregister_player(1)
+	bee_swarm.unregister_player(1)
+	ufo.unregister_player(1)
+	volcano.unregister_player(1)
 	match_manager.unregister_player(1)
 	match_manager.prepare_lobby()
 	# Removing the last offline participant can finish that match before joining.
@@ -2106,8 +2170,10 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
+	_pending_fall_damage.clear()
 	if state == MatchManager.MatchState.LOBBY:
 		weather_surfaces.cleanup()
+		volcano.cleanup()
 	if is_instance_valid(collection) and state == MatchManager.MatchState.ACTIVE:
 		collection.dismiss()
 		_reward_notice.clear()
@@ -2205,7 +2271,11 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	lightning.register_player(peer_id, player)
 	fire.register_player(peer_id, player)
 	rockslide.register_player(peer_id, player)
+	bee_swarm.register_player(peer_id, player)
+	ufo.register_player(peer_id, player)
+	volcano.register_player(peer_id, player)
 	player.weather_surfaces = weather_surfaces
+	player.landed.connect(_on_player_landed.bind(peer_id))
 
 
 func _build_lighting() -> void:
@@ -2345,6 +2415,10 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	fire.support_height = get_map_support_height
 	earthquake.support_height = get_map_support_height
 	rockslide.set_lane(anchors.rockslide_lane)
+	if map_id == "toy_town":
+		volcano.set_district("town_plaza", Vector3(0, 0.12, 0), Vector2(18, 18))
+	else:
+		volcano.set_district("harbor_boardwalk", Vector3(0, 0.05, 22), Vector2(24, 6))
 	_configure_weather_patches.call_deferred()
 
 
@@ -2715,6 +2789,7 @@ func _build_toy_harbor() -> Dictionary:
 func _reset_sandbox() -> void:
 	# Rematches restore mutable world state without rebuilding thousands of
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
+	volcano.cleanup()
 	if map_anchors.get("map_id", "") == map_id:
 		for child in $Sandbox.get_children():
 			if child is BreakableStructure:

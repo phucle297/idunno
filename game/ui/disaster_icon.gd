@@ -51,6 +51,23 @@ func _draw() -> void:
 			draw_colored_polygon(PackedVector2Array([Vector2(3, 42), Vector2(17, 8), Vector2(26, 42)]), ink)
 			for point in [Vector2(30, 13), Vector2(37, 25), Vector2(41, 39)]:
 				draw_circle(point, 5, ink)
+		"volcano":
+			draw_colored_polygon(PackedVector2Array([Vector2(3, 43), Vector2(18, 18), Vector2(30, 18), Vector2(45, 43)]), ink)
+			for x in [13, 24, 35]:
+				draw_line(Vector2(24, 14), Vector2(x, 3), ink, 3, true)
+		"ufo":
+			var oval := PackedVector2Array()
+			for index in 24:
+				oval.append(Vector2(24, 22) + Vector2(cos(index * TAU / 24) * 20, sin(index * TAU / 24) * 8))
+			draw_colored_polygon(oval, ink)
+			draw_arc(Vector2(24, 20), 10, PI, TAU, 16, ink, 4, true)
+			for x in [14, 24, 34]:
+				draw_line(Vector2(x, 32), Vector2(x, 44), ink, 3, true)
+		"bees":
+			draw_circle(Vector2(17, 14), 9, ink)
+			draw_circle(Vector2(31, 14), 9, ink)
+			draw_style_box(_person_style(ink), Rect2(12, 22, 24, 16))
+			draw_line(Vector2(24, 23), Vector2(24, 37), DisasterPartyUI.WARNING, 4, true)
 		"fire":
 			draw_colored_polygon(PackedVector2Array([Vector2(24, 2), Vector2(34, 22), Vector2(39, 15), Vector2(44, 32), Vector2(36, 44), Vector2(13, 44), Vector2(5, 31), Vector2(15, 15), Vector2(16, 28)]), ink)
 			draw_circle(Vector2(25, 35), 6, DisasterPartyUI.WARNING)

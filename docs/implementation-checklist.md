@@ -6,7 +6,6 @@
 
 | Phase | Status | Checklist |
 | --- | --- | --- |
-| 10 — Swarms, UFO and Volcanic Terrain | Planned; after9 | [Phase 10](checklists/phase-10-swarms-ufo-volcano.md) |
 | 11 — Shrinking Survival Zone and Integrated Local Delivery | Former8 postponed; revalidation after8–10 | [Phase 11](checklists/phase-11-shrinking-survival-zone.md) |
 | 12 — Random In-Match Movement Power-Ups | Plan only; implementation priority not activated | [Phase 12](checklists/phase-12-match-powerup-drops.md) |
 
@@ -19,8 +18,10 @@ stays a separate proposal. Existing human waiver and deployment boundaries remai
 
 On2026-10-14 Phase9 completed all agent-owned source/local-package gates:
 Rain/Snowfall/Rockslide, full45-suite regression, both-map2/4/8/20 weather/reset
-matrices, inspected renders and matching local packages. Root is idle; Phase10–12
-remain planned. The technical archive records the then-uncommitted closure;
+matrices, inspected renders and matching local packages. Phase10 subsequently
+completed six technical/local-package gates2026-10-15;11–12 remain planned.
+Phase10 source is uncommitted/unpushed and not publicly deployed; root is idle.
+The Phase9 technical archive records the then-uncommitted closure;
 subsequent owner-authorized source push, EC2 deployment and matching
 [public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
 are verified in root `progress.json`. The preceding idle state's delivery/hook evidence is
@@ -36,6 +37,8 @@ and continuation waiver remain intact. Current state and action live only in roo
 
 ## Completed phases
 
+- [Phase 10F — Volcanic Relief](old-docs/phase-10-volcanic-relief-followup/checklist.md) · [decisions](old-docs/phase-10-volcanic-relief-followup/decisions.md) · [evidence](old-docs/phase-10-volcanic-relief-followup/progress.json) — faceted support/contact, both-map routes and four-peer rematches,24 inspected renders; source only, old packages unchanged. Map-variety retains shutdown-only resource diagnostics.
+- [Phase 10 — Swarms, UFO and Volcanic Terrain](old-docs/phase-10-swarms-ufo-volcano/checklist.md) · [decisions](old-docs/phase-10-swarms-ufo-volcano/decisions.md) · [evidence](old-docs/phase-10-swarms-ufo-volcano/progress.json) — six technical/local-package milestones pass;49 suites/five matrices/managed20, both-map2/4/8/20 peers,40 inspected renders and matching local exports. Source uncommitted/unpushed, no public deployment or native/human acceptance claim.
 - [Phase 9 — Weather and Rockslides](old-docs/phase-9-weather-rockslides/checklist.md) · [decisions](old-docs/phase-9-weather-rockslides/decisions.md) · [evidence](old-docs/phase-9-weather-rockslides/progress.json) — all four technical/local-package milestones pass; subsequent authorized source/public shipment verified in root progress. No native/human acceptance claim.
 
 Completed-phase checklists, decisions and progress are grouped in [old-docs](old-docs/README.md):

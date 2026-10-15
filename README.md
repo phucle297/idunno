@@ -2,6 +2,12 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
+2026-10-15: the owner authorized checking, committing, pushing and deploying
+Phase10 including the faceted volcanic-relief refinement. Delivery is being
+verified in root `progress.json`; earlier package/deployment statements below
+describe the preceding Phase9 release and historical Phase10 local snapshot.
+Do not use the old Phase9 client after the server advances to Phase10.
+
 The current source expands Toy Town to **112×112m**: continuous rounded building
 shells, curved striped shop canopy, shared staggered paving, populated side/civic
 terraces, a garden and connected roof walks. Harbor retains its64m footprint.
@@ -69,10 +75,21 @@ Rain wets exposed ground/suppresses Fire, bounded snow affects grounded traction
 and collision-backed rock slopes have lateral exits/solid cover on both maps.
 Full45-suite/five-matrix/managed20 regression and Town/Harbor2/4/8/20 weather/reset
 checks pass; matching local uncommitted Windows/Linux packages and inspected renders
-remain in `.amp/in/artifacts/phase9-packages` and `phase9`. Root awaits next scope;
+remain in `.amp/in/artifacts/phase9-packages` and `phase9`. This is historical;
 the subsequently authorized release/deployment is verified in root progress and
 `.amp/in/artifacts/phase9-release`. Use the public release, not the historical
-uncommitted snapshot, for Internet joining. Phase10 is not started.
+uncommitted snapshot, for Internet joining. Phase10 now adds source/local-build
+bee pursuit with cover/water counters, bounded UFO capture with ordinary fall damage,
+and authored volcanic collision/heat with local weather/Flood cooling. Matching
+uncommitted local packages and inspected720p/1080p states are in
+`.amp/in/artifacts/phase10-packages` and `phase10`; they are not deployed and
+must not be mixed with the public Phase9 service. All six technical/local gates
+pass; [Phase10 evidence](docs/old-docs/phase-10-swarms-ufo-volcano/progress.json)
+is archived, root is idle, and source remains uncommitted/unpushed.
+Native Windows/GPU/audio/human acceptance remains unverified.
+The owner's subsequent volcanic-relief refinement replaces flat shelves with
+collision-backed faceted peaks and shallow walking crowns. This source follow-up
+is not included in the previously exported Phase10 packages; see root progress.
 The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/checklist.md)
 adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
 Release validation corrected blocked ramp approaches/crate crossings by leaving
@@ -84,8 +101,8 @@ Held hammer/wood interactions are
 Phase2 is suspended in old-docs and reopens only on owner request. Phase9 adds weather/
 rockslides; Phase10 adds bees/UFO/volcano. The former shrinking-zone Phase8 is now
 [Phase11](docs/checklists/phase-11-shrinking-survival-zone.md), deferred until those
-gates pass. Phase9 is shipped under separate owner authorization; Phase10–12 remain
-plans and are not included in the released build.
+gates pass. Phase9 is shipped under separate owner authorization; Phase10 is local
+only and Phase11–12 remain plans. They are not included in the released build.
 
 ## Windows playtest export
 

@@ -1,6 +1,8 @@
 class_name PartyPlayer
 extends CharacterBody3D
 
+signal landed(impact_speed: float)
+
 const Tuning = preload("res://game/player/player_tuning.gd")
 const RagdollScene = preload("res://game/player/cosmetic_ragdoll.gd")
 
@@ -179,7 +181,7 @@ func apply_movement_input(
 
 	if wish_direction.length_squared() > 0.01:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
-	move_and_slide()
+	_move_and_report_landing()
 
 
 func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, jump_pressed: bool, delta: float) -> void:
@@ -394,10 +396,18 @@ func _process_knockdown(delta: float) -> void:
 	velocity.y -= Tuning.GRAVITY * delta
 	velocity.x = move_toward(velocity.x, 0.0, 5.0 * delta)
 	velocity.z = move_toward(velocity.z, 0.0, 5.0 * delta)
-	move_and_slide()
+	_move_and_report_landing()
 	if _knockdown_remaining <= 0.0:
 		_clear_cosmetic_ragdoll()
 		_update_capsule()
+
+
+func _move_and_report_landing() -> void:
+	var airborne := not is_on_floor()
+	var impact_speed := maxf(-velocity.y, 0)
+	move_and_slide()
+	if airborne and is_on_floor() and impact_speed > 0:
+		landed.emit(impact_speed)
 
 
 func _update_capsule() -> void:

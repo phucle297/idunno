@@ -13,6 +13,9 @@ const TornadoWarningSound = preload("res://assets/audio/generated/tornado_warnin
 const RainWarningSound = preload("res://assets/audio/generated/rain_warning.wav")
 const SnowWarningSound = preload("res://assets/audio/generated/snow_warning.wav")
 const RockWarningSound = preload("res://assets/audio/generated/rock_warning.wav")
+const BeeWarningSound = preload("res://assets/audio/generated/bee_warning.wav")
+const UFOWarningSound = preload("res://assets/audio/generated/ufo_warning.wav")
+const VolcanoWarningSound = preload("res://assets/audio/generated/volcano_warning.wav")
 
 var warning_play_count := 0
 var effect_play_count := 0
@@ -82,6 +85,12 @@ func play_warning(disaster_name: String) -> void:
 			_warning_voice.stream = SnowWarningSound
 		"rockslide":
 			_warning_voice.stream = RockWarningSound
+		"bees":
+			_warning_voice.stream = BeeWarningSound
+		"ufo":
+			_warning_voice.stream = UFOWarningSound
+		"volcano":
+			_warning_voice.stream = VolcanoWarningSound
 		_:
 			_warning_voice.stream = WarningSound
 	_warning_voice.play()

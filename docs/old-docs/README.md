@@ -22,6 +22,8 @@ new follow-up evidence belongs in a separately named archive.
 | 8 — Character, UI and Disaster Counterplay | [Checklist](phase-8-character-disaster-counterplay/checklist.md) | [Decisions](phase-8-character-disaster-counterplay/decisions.md) | [Progress](phase-8-character-disaster-counterplay/progress.json) |
 | 8F — Solid Environment Collision | [Checklist](phase-8-collision-followup/checklist.md) | [Decisions](phase-8-collision-followup/decisions.md) | [Progress](phase-8-collision-followup/progress.json) |
 | 9 — Weather and Rockslides | [Checklist](phase-9-weather-rockslides/checklist.md) | [Decisions](phase-9-weather-rockslides/decisions.md) | [Progress](phase-9-weather-rockslides/progress.json) |
+| 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
+| 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 
 Phase 6 completed agent-owned source/local-package gates on2026-10-13, not deployment
 or publication. The original Phase7 archive retains functional regression evidence, but its
@@ -40,7 +42,9 @@ matrices/managed20, both-map2/4/8/20 weather transport/reset checks,40 inspected
 render states and matching local packages. Its archive preserves the then-uncommitted,
 preauthorization closure. Subsequent owner-authorized source push, EC2 deployment and
 [matching public pre-release](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800)
-are verified in root `progress.json`; Phase10–12 remain planned. No native
+are verified in root `progress.json`; Phase10 subsequently completed technical/local
+gates2026-10-15, while11–12 remain planned. Phase10 source is uncommitted/unpushed;
+matching local packages are not public deployment/release. No native
 Windows/GPU/audio/human acceptance is claimed. Earlier
 pending statements in the Phase9 diary are chronological and superseded by its final
 entries. Existing human waiver and all actual failure logs/evidence are preserved.

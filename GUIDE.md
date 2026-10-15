@@ -1,5 +1,10 @@
 # Disaster Party Play Guide
 
+2026-10-15 delivery update: Phase10 with uneven volcanic relief is authorized for
+commit/push/deployment after checks. Root `progress.json` records the actual
+delivery outcome. The Phase9 download below is historical once that deployment
+completes; use a matching Phase10 client, not the old bundle.
+
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
@@ -13,6 +18,25 @@ Task 2.2.7's `94ad2fd` bundles and older `7eb1f25` direct-IP ZIP are historical.
 No lobby browser, Steam invites or
 NAT traversal is implemented.
 Same-PC checks do not prove physical LAN or Internet play.
+
+## Phase10 source/local-build hazards (not on the public Phase9 server)
+
+- **Bee Swarm:** the buzz and target label precede pursuit. Walk away, get under
+  real overhead cover, or immerse your head. Walls block stings. The swarm is
+  slower than normal walking and warns again before changing targets.
+- **UFO:** leave the marked ring during its five-second warning or take overhead
+  shelter. If caught, move sideways; horizontal control remains. Lift is capped
+  at2.5m above the chosen support. Release adds no launch impulse. Ordinary high
+  falls now cause authoritative damage; normal jumps and baseline UFO drops are safe.
+- **Volcano:** leave the outlined district during its twelve-second warning.
+  Raised banks and broad crossing corridors replace the original surface. Orange
+  and sand-colored ground damages on contact immediately; slate ground is cooled
+  and safe. Dry heat lasts60s; exposed Rain/Snow cool faster, and actual Flood
+  immersion cools only the reached shelves. Raised dry banks can remain hot.
+  The changed collision stays for the round and resets on rematch/map change.
+
+Phase10 local packages require their matching local server; do not mix them with
+the public Phase9 service or claim a new deployment from these source changes.
 
 ## Prepare and verify the package
 
