@@ -60,6 +60,17 @@ func _run() -> void:
 		player.reset_for_match(Vector3(side * 44.5, top + 0.03, 4))
 		await _walk(player, Vector2(side * 52, 4), 180)
 		_expect(absf(player.position.x - side * 52) < 0.4 and absf(player.position.y - top) < 0.1, "%s roof bridge is walkable across both joints" % tag)
+		bridge.set_structure_state(BreakableStructure.StructureState.DAMAGED)
+		await physics_frame
+		var visual := bridge.get_node("Visual") as MeshInstance3D
+		for edge in [-2.0, 2.0]:
+			var visible_top := visual.to_global(Vector3(edge, 0.125, 0))
+			var contact := _ray(main, visible_top + Vector3.UP, visible_top - Vector3.UP)
+			_expect(not contact.is_empty() and absf(contact.position.y - visible_top.y) < 0.02, "%s damaged bridge keeps visible deck aligned with physical footing" % tag)
+		for rail: MeshInstance3D in visual.get_children():
+			var rail_material := rail.get_active_material(0) as StandardMaterial3D
+			var deck_material := visual.get_active_material(0) as StandardMaterial3D
+			_expect(rail_material.albedo_color == deck_material.albedo_color, "%s damaged rails share the deck warning color" % tag)
 		bridge.set_structure_state(BreakableStructure.StructureState.BROKEN)
 		await physics_frame
 		_expect(_ray(main, from, to).is_empty(), "%s broken bridge leaves a genuine elevated gap" % tag)

@@ -1,10 +1,11 @@
 # Active phase decisions
 
-No active phase. Phase12 completed its technical/local-package gates and source
+Phase13 Toy Town follow-up review is active. Phase12 completed its technical/local-package gates and source
 delivery; [decisions](old-docs/phase-12-match-powerup-drops/decisions.md) and
 [evidence](old-docs/phase-12-match-powerup-drops/progress.json) are archived.
 Public Phase11 remains unchanged. Root `progress.json` owns delivery boundaries
-and the next action; no further phase or public deployment is inferred.
+and the next action; no public deployment is inferred. Dated entries below retain
+their original planning/execution context.
 
 ## 2026-10-16 — Map audit and proposed Phase13, not implementation
 
@@ -82,3 +83,16 @@ not public packaging/deployment. The plan is already pushed; implementation adop
 - Final contact probes caught the remaining ghost House gable: rays previously hit
   the flat slab at4.855m despite the higher visible roof. Matching rotated roof
   colliders now return5.39598m on both sampled halves, with a permanent regression.
+
+## 2026-10-16 — Follow-up damaged bridge review
+
+- Reproduced both bridges' damaged-state visual tilt leaving their collider flat:
+  four sampled deck contacts diverge, and16 rail meshes retain the intact material.
+- Railed bridge decks now stay level through DAMAGED, preserving physical joints
+  and rail alignment. Darkening deck and rails together provides the warning;
+  other breakables retain the existing tilt telegraph. BROKEN/reset ownership is
+  unchanged. Layout6874 and earthquake96 checks pass; all four bridge states were
+  rendered with production lighting and inspected.
+- Independent nine-district runtime visibility probe found no surviving visible
+  mesh accidentally hidden by removal of a neighboring district (zero failures).
+  This is a targeted control, not exhaustive proof of every camera/contact case.

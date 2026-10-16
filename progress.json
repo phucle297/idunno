@@ -94,7 +94,7 @@
     {"command": "Oracle read-only Toy Town layout/source review; inspect builders, collapse partitions, route tests and revised plan; jq empty progress.json; git diff --check; local-link/scope consistency checks", "status": "passed", "result": "Owner narrows scope to Town, requests larger/denser/more detailed layout and bridge/curb redesign. Plan revised to candidate144m/13m frontage pitch/four added functional buildings, connected blocks, real elevated optional bridges, continuous sidewalk/crossing/landing and collapse-aware cuts. Source confirms low plaza bridges retain ground beneath, Civic stairs overlap north road, roofwalk rail clear width2.68m. Oracle's Apartments/Market seam support concern remains source-level, not runtime reproduced. Harbor content deferred; shared-helper regression only. Documentation/source review, not gameplay verification; no source, DESIGN bible, assets or release changed."
     }
   ],
-  "blockers": ["Deferred by owner, not a map-planning blocker: blanket packet-loss stability remains unproven after one100ms/20ms-jitter/10%-loss timeout; diagnostic and original confirmations pass without a fix. Preserve failure for later ENet/fixture diagnostics.", "Final staged-tree regression/commit gate is running. Software llvmpipe60FPS target failed before and after; native Windows/GPU remains unverified, not a fabricated pass."],
+  "blockers": ["Deferred by owner, not a map-planning blocker: blanket packet-loss stability remains unproven after one100ms/20ms-jitter/10%-loss timeout; diagnostic and original confirmations pass without a fix. Preserve failure for later ENet/fixture diagnostics.", "Software llvmpipe60FPS target failed before and after; native Windows/GPU remains unverified, not a fabricated pass. Original staged-tree gate passed and source was pushed; follow-up damaged-bridge fix awaits its own staged-tree gate."],
   "phase12_delivery": {
     "status": "source_pushed_local_packages_verified_not_deployed",
     "revision": "3b45765cdcbf47f3f0cbae6666f8cc85e5a83ef0",
@@ -124,7 +124,7 @@
   },
   "delivery_boundary": "Latest authorized Phase11 shipment is complete. No capacity/configuration/store changes or Steam publication authorized; future deployment requires its own applicable authorization.",
   "phase13_execution": {
-    "status": "implementation_and_validation_in_progress_not_delivered",
+    "status": "source_pushed_316f7e3_followup_review_in_progress_not_deployed",
     "changes": "144m candidate,13m district pitch, four new courts, solid furniture/garage shelf/pool/canopy, elevated bridge roles, Town-only district geometry clipping, functional interior module with flush floors, House gable contact and garage beam/canopy clearance raised to keep4m arrival usable.",
     "oracle_review": "Executed source review: corrected terrace roof-ramp approach, rail clear width and rockslide/annex overlap. Collapse cuts72/-30/30 and z-37/32 require vertical clipping of crossing geometry.",
     "validation": [
@@ -145,5 +145,17 @@
       {"check": "20-peer loopback authority profile", "status": "passed", "command": "PLAYER_COUNTS=20 GODOT_BIN=.scratch/phase13/profile-godot tests/run_playable_scale_test.sh", "result": "PLAYABLE_SCALE_MATRIX_OK map=toy_town players=20 and PLAYABLE_SCALE_SERVER_OK players=20 movement/hud/disaster/cleanup passed; five rematches and owner/crash/retry recovery passed. Server ACTIVE profile after120 warmup:184 samples, p95_process_ms=188.564, p95_physics_ms=29.263 headless loopback. Rendering excluded (headless); native GPU/Internet latency unverified."}
     ]
   },
-  "next_action": "Commit/push the final evidence/doc snapshot and report delivery state; no packaging/deployment without separate authorization."
+  "phase13_followup_review": {
+    "request": "Owner asks for another Toy Town review and immediate fixes for confirmed defects.",
+    "status": "fix_verified_pending_staged_gate_and_push",
+    "finding": "Both damaged bridges tilt visible deck/rails while physics stays level; rails keep intact color. Original regression reproduced four contact and16 rail-material failures. Keep railed bridges level and darken rails with deck; retain existing tilt for other breakables.",
+    "validation": [
+      {"command": "godot --headless --path . --script tests/test_town_layout.gd", "status": "passed", "result": "TOWN_LAYOUT_OK checks=6874 after fix, including20 new damaged-state assertions. Original reproduction .scratch/phase13/review-before.log; fixed .scratch/phase13/review-after.log."},
+      {"command": "godot --headless --path . --script tests/test_earthquake.gd", "status": "passed", "result": "EARTHQUAKE_OK checks=96 pulses=1 sections=6; other breakables retain tilt warning."},
+      {"command": "godot --headless --path . --script .scratch/phase13/review.gd", "status": "passed", "result": "REVIEW_VISIBILITY failures=0 across each of9 individual district removals; no surviving visible mesh hidden by a removed ancestor."},
+      {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script .scratch/phase13/review_render.gd", "status": "passed", "result": "REVIEW_RENDER_OK states=intact,damaged,broken,reset production_lighting=true. All four1280x720 captures inspected: level joints/rails and shared damage color, full gap when broken, restored intact bridge. .amp/in/artifacts/phase13/review-bridge-*.png. No capture-only lights added."}
+    ],
+    "limits": "Native GPU/performance, real Internet latency and human interior readability remain unverified. No deployment or package changes."
+  },
+  "next_action": "Run exact staged-tree gate for damaged-bridge fix, commit/push if green, and report review findings without deployment."
 }

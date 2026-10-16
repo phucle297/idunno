@@ -130,7 +130,11 @@ func _apply_visual_state() -> void:
 	material.albedo_color = _intact_color if structure_state == StructureState.INTACT else _intact_color.darkened(0.32)
 	material.roughness = 0.82
 	_visual.material_override = material
-	_visual.rotation.z = 0.0 if structure_state == StructureState.INTACT else deg_to_rad(4.0)
+	# A railed bridge must keep its walking joints and rails aligned with the
+	# unchanged physics. Darkening still warns of damage without phantom steps.
+	_visual.rotation.z = 0.0 if structure_state == StructureState.INTACT or not _rail_collisions.is_empty() else deg_to_rad(4.0)
+	for rail: MeshInstance3D in _visual.get_children():
+		rail.material_override = material
 
 
 func _spawn_debris() -> void:
