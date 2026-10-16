@@ -502,6 +502,10 @@ func _nearest_fire_zone(fire: Fire, position: Vector3) -> int:
 	var best_distance := Earthquake.BURNING_RUBBLE_RADIUS
 	for zone_id in fire.zone_positions.size():
 		var zone_position: Vector3 = fire.zone_positions[zone_id]
+		# Match ignition's floor separation; a roof bridge is no longer a
+		# ground-level slab beside plaza flames.
+		if absf(position.y + 0.2 - zone_position.y) > 2.0:
+			continue
 		var distance := Vector2(position.x, position.z).distance_to(Vector2(zone_position.x, zone_position.z))
 		if distance <= best_distance:
 			best_distance = distance

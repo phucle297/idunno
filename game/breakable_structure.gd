@@ -21,6 +21,29 @@ var _visual: MeshInstance3D
 var _collision: CollisionShape3D
 var _debris: RigidBody3D
 var _terrain_removed := false
+var _rail_collisions: Array[CollisionShape3D] = []
+
+
+func add_bridge_rails() -> void:
+	# Rails share this deck's lifecycle, including terrain removal and rematch.
+	for side in [-1.0, 1.0]:
+		for part in 4:
+			var size := Vector3(_size.x, 0.12, 0.12) if part == 0 else Vector3(0.14, 0.9, 0.14)
+			var position := Vector3(0, _size.y / 2 + 0.95, side * (_size.z / 2 - 0.1)) if part == 0 else Vector3((part - 2) * (_size.x / 2 - 0.1), _size.y / 2 + 0.45, side * (_size.z / 2 - 0.1))
+			var mesh := BoxMesh.new()
+			mesh.size = size
+			mesh.material = _visual.material_override
+			var visual := MeshInstance3D.new()
+			visual.mesh = mesh
+			visual.position = position
+			_visual.add_child(visual)
+			var shape := BoxShape3D.new()
+			shape.size = size
+			var collision := CollisionShape3D.new()
+			collision.shape = shape
+			collision.position = position
+			add_child(collision)
+			_rail_collisions.append(collision)
 
 
 func configure(id: String, size: Vector3, color: Color, role: String = ROLE_DECORATIVE, group: String = "") -> void:
@@ -33,6 +56,9 @@ func configure(id: String, size: Vector3, color: Color, role: String = ROLE_DECO
 
 
 func build_visuals() -> void:
+	for rail in _rail_collisions:
+		rail.free()
+	_rail_collisions.clear()
 	if is_instance_valid(_visual):
 		_visual.queue_free()
 	if is_instance_valid(_collision):
@@ -96,6 +122,8 @@ func _apply_visual_state() -> void:
 		return
 	_visual.visible = not _terrain_removed and structure_state != StructureState.BROKEN
 	_collision.disabled = _terrain_removed or structure_state == StructureState.BROKEN
+	for rail in _rail_collisions:
+		rail.disabled = _collision.disabled
 	if not _visual.visible:
 		return
 	var material := StandardMaterial3D.new()

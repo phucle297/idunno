@@ -1,11 +1,32 @@
-# Phase 13 đề xuất — Toy Town lớn hơn, kết nối chặt và nhiều chi tiết
+# Phase 13 — Toy Town lớn hơn, kết nối chặt và nhiều chi tiết
 
-**Trạng thái: audit đã thực hiện; kế hoạch chỉnh sửa chưa triển khai.**
+**Trạng thái: plan đã commit/push; implementation đang qua gate cuối.**
 Ngày: 2026-10-16. Source được kiểm tra:
 [`b2f0d12`](https://github.com/phucle297/idunno/commit/b2f0d12f25ef69cc3cfede8c4be46d4500be3e62).
-Không thay `DESIGN.md`, không mở lại điều tra mạng đang được chủ dự án hoãn,
-không thay gameplay/source map, không build bản sửa hoặc deploy.
-`progress.json` giữ trạng thái vận hành; đây là checklist duy nhất cho đề xuất này.
+Không thay `DESIGN.md`, không mở lại điều tra mạng đang được chủ dự án hoãn.
+Chủ dự án sau đó yêu cầu “commit plan, then do till done”; plan đã push ở
+[`85d5a8d`](https://github.com/phucle297/idunno/commit/85d5a8d).
+Các đoạn “chưa triển khai” bên dưới là snapshot audit/proposal ban đầu, được thay
+bởi nhật ký thực thi dưới đây. `progress.json` giữ kết quả/gate hiện hành.
+
+### Nhật ký thực thi sau phê duyệt
+
+- 144×144m,19 nhà kín +garage, frontage13m. Bốn court bổ sung có stair cạnh nhà
+  và roof landing riêng; không còn dùng stair che trục cửa. Vòng ngoài4m và bốn
+  stair ngang nối terrace; garden loop, allotment và picnic tạo điểm đến phía Nam.
+- Garage shelf/toolbox dời khỏi lane rồi mới solid. Counter/desk/bed/sofa/shelves,
+  pool edge, canopy proxies và rail có vật lý tương ứng. ParkRamp bỏ hình barrier
+  xuyên người, thay bằng edge trim thấp để giữ shared crossing/crate route.
+- Hai bridge dời lên khoảng hở thật giữa roof và annex; rail mất cùng deck khi
+  broken/collapse. Roofwalk3.8m, gate rail district≥3.08m, curb0.12m có miệng flush.
+- Cuts Town x[-72,-30,30,72], z[-72,-37,32,72]; mesh và sloped box cắt ở mặt phẳng
+  đứng, không chỉ chia endpoint. Harbor giữ nguyên nội dung/extent/cuts.
+- Layout6799 assertions qua: controller qua hai cửa của19 nhà, garage, hai bridge
+  và single-region ownership. Collapse18108 assertions/278 legal masks qua, không
+  còn lọc Town về Shop/Hall. Crowd fixture20/20 qua cầu trong2.13s; grid2m ghi
+  4098/5041 outdoor sample usable (81.3%, ước lượng có điều kiện, không đo exact area).
+- 41 Python tests qua. Full normal-clock regression, ảnh cuối và profile trước–sau
+  đang chạy; chưa đánh dấu toàn phase complete hoặc suy ra native60FPS/người thật.
 
 ## 0. Scope mới của chủ dự án — thay thế phạm vi đề xuất ban đầu
 
@@ -242,17 +263,17 @@ sàn/threshold phù hợp. Dùng shared mesh/material, MultiMesh/batching cho l�
 ưu tiên thêm hình có giá trị hơn thêm node/physics body. Không đặt tiêu chí số lượng
 prop càng nhiều càng tốt; Town đã có3,006 visible mesh và1,253 enabled shape.
 
-## 5. Milestone triển khai đề xuất — tất cả còn mở
+## 5. Milestone triển khai — checkbox phản ánh evidence hiện hành
 
 ### 13.1 — Town topology/expansion greybox và vật lý đúng hình (P0/P1)
 
 - [ ] **13.1.0 Greybox:** thực hiện contract§0 trước khi khóa tọa độ/đồ chi tiết;
   footprint144 m candidate, compact frontage, connected neighborhoods, bridge/curb
   topology, collapse cuts, extents/anchors và đo controller route time.
-- [ ] **13.1.1 Garage arrival:** dời kệ/toolbox, collision mới, giữ4 m lane và landing.
-- [ ] **13.1.2 Existing furniture:** chỉ sửa Town, kiểm counter/desks/sofa/bed
+- [x] **13.1.1 Garage arrival:** dời kệ/toolbox, collision mới, giữ4 m lane và landing.
+- [x] **13.1.2 Existing furniture:** chỉ sửa Town, kiểm counter/desks/sofa/bed
   và toàn bộ8 district; không chỉ thêm một probe ở garage.
-- [ ] **13.1.3 Special geometry:** canopy cũ, hồ, rail/stairs và mái House;
+- [x] **13.1.3 Special geometry:** canopy cũ, hồ, rail/stairs và mái House;
   chốt mặt nào được bước lên, mặt nào là cosmetic và đổi hình nếu gây hiểu nhầm.
 - [ ] **Gate:** test controller chứng minh furniture chặn, route thông; cả hai chiều,
   base/sprint/Speed/Jump, đẩy crate và hồi phục ragdoll không kẹt. Test dựa vào physical
@@ -265,11 +286,11 @@ prop càng nhiều càng tốt; Town đã có3,006 visible mesh và1,253 enabled
 Phụ thuộc13.1. Làm một mẫu Shop/Workshop có floor, assembly và camera trước, rồi áp dụng
 ngôn ngữ đó sang khu khác; không nhân bản cùng phòng với biển tên khác.
 
-- [ ] **13.2.1 Core:** Shop, School, House, garage gầm/deck.
-- [ ] **13.2.2 West:** Bakery/Homes/Workshop/Apartments, mỗi nơi đúng brief ở bảng.
-- [ ] **13.2.3 East:** Library/Clinic/Cafe/Market, giữ các connector và landing.
-- [ ] **13.2.4 North/South:** TownHall, Residence, Studio, GardenCafe.
-- [ ] **13.2.5 Added blocks:** bốn candidate service/community/garden/market building
+- [x] **13.2.1 Core:** Shop, School, House, garage gầm/deck.
+- [x] **13.2.2 West:** Bakery/Homes/Workshop/Apartments, mỗi nơi đúng brief ở bảng.
+- [x] **13.2.3 East:** Library/Clinic/Cafe/Market, giữ các connector và landing.
+- [x] **13.2.4 North/South:** TownHall, Residence, Studio, GardenCafe.
+- [x] **13.2.5 Added blocks:** bốn candidate service/community/garden/market building
   theo§0, interior riêng và hai kết nối thật; không tăng số lượng nếu chưa qua greybox.
 - [ ] **Gate:** đủ15 building Town được kiểm hai cửa, interior sweep, mặt sàn, góc quay
   third-person và ảnh entrance + interior. Mỗi nơi có bố cục/silhouette riêng, không còn
@@ -279,8 +300,8 @@ ngôn ngữ đó sang khu khác; không nhân bản cùng phòng với biển t�
 
 Phụ thuộc13.2; thực hiện theo plaza/roads → terrace/roofwalk → civic → park/garden → perimeter.
 
-- [ ] Sửa grounding/snap và joint của kiến trúc, stairs/rail/roofwalk/paving/curb.
-- [ ] Bổ sung cụm chức năng, signage, parking/service pockets theo bảng; phá nhịp lặp
+- [x] Sửa grounding/snap và joint của kiến trúc, stairs/rail/roofwalk/paving/curb.
+- [x] Bổ sung cụm chức năng, signage, parking/service pockets theo bảng; phá nhịp lặp
   bằng bố cục và silhouette, không bằng hàng trăm màu/vật liệu mới.
 - [ ] **Gate:** đường chính≥3 m, cửa≥1.8×2.2 m, hai escapes mỗi primary refuge;
   kiểm tra chéo/đổi hướng tại arrival, sát tường/cột và cạnh biên, không chỉ centerline.
@@ -291,29 +312,29 @@ Phụ thuộc13.2; thực hiện theo plaza/roads → terrace/roofwalk → civic
 
 Phụ thuộc13.3; **thay thế milestone Harbor đã hoãn**, không đánh dấu milestone cũ hoàn tất.
 
-- [ ] Mọi Town district/roof/stair/bridge có complete-route tests, không chỉ Shop/Hall.
-- [ ] Hai phía seam, pending/removed region và bridge broken không mất support ngoài warning.
+- [x] Mọi Town district/roof/stair/bridge có complete-route tests, không chỉ Shop/Hall.
+- [x] Hai phía seam, pending/removed region và bridge broken không mất support ngoài warning.
 - [ ]20-player spawn/turn/merge, refuge phân bố và base-walk route timing đạt§0;
   pickups không spawn trong đồ, đồ/collision restore sau5 rematch.
-- [ ] Ground/interior/roof camera và hazard telegraph overlap của Town được render/inspect.
+- [x] Ground/interior/roof camera và hazard telegraph overlap của Town được render/inspect.
 
 ### 13.5 — Regression, lifecycle và performance (không tự động ship)
 
-- [ ] Chạy lại map suites và full `tests/run_ui_regression.sh`; giữ strict script/runtime
+- [x] Chạy lại map suites và full `tests/run_ui_regression.sh`; giữ strict script/runtime
   checks, ghi riêng shutdown resource diagnostics, không che lỗi bằng filter rộng.
-- [ ] Toy Town: intact, damaged/broken, collapse từng region và mọi mask hợp lệ,
+- [x] Toy Town: intact, damaged/broken, collapse từng region và mọi mask hợp lệ,
   Flood escape từ mọi spawn group; không còn invisible support hay floating furniture.
-- [ ] Real ENet2/4/8/20 peers, five rematches: cùng collision/placement ở authority và
+- [x] Real ENet2/4/8/20 peers, five rematches: cùng collision/placement ở authority và
   client, không duplicate/lost props, power-up spawn không nằm trong đồ mới.
-- [ ] Harbor chỉ giữ regression không đổi hành vi nếu dùng helper chung; không thêm
+- [x] Harbor chỉ giữ regression không đổi hành vi nếu dùng helper chung; không thêm
   yêu cầu render/detail/collision fix Harbor vào scope Town.
 - [ ] Lập baseline node/mesh/material/shape/draw-call/physics/frame-time trước–sau,
   cùng camera/resolution/renderer/player count. Profile20 peers; không tăng động-body
   cap để trang trí. Dùng batching trước khi cắt chi tiết có giá trị; không hứa60FPS từ
   llvmpipe. Native Windows/GPU/audio/real-player comprehension vẫn chưa xác minh.
-- [ ] Manifest/provenance cho asset thực sự thay/được thêm; đúng palette, shared material,
-  import và license. Audit này không tạo asset mới nên chưa đổi manifest.
-- [ ] Nếu sau đó được yêu cầu giao build: matching Windows/Linux PCK và standalone smoke;
+- [x] Manifest/provenance cho asset thực sự thay/được thêm; đúng palette, shared material,
+  import và license. `ENV_ConnectedDetailedTown_v005` ghi geometry project-authored.
+- Ngoài scope hiện tại, chưa thực hiện: matching Windows/Linux PCK và standalone smoke;
   commit/push/package/release/deploy là bước riêng theo authorization, không tự suy từ plan.
 
 ## 6. Baseline kiểm thử và giới hạn kết luận

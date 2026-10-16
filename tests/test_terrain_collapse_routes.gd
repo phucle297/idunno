@@ -80,10 +80,12 @@ func _check_legal_support_masks(main: Node3D, map_id: String) -> void:
 		await physics_frame
 		await physics_frame
 		for route: Dictionary in main.map_anchors.elevation_routes:
-			if route.name not in ["ShopRoofRamp", "HallRoofRamp", "WarehouseRoofRamp", "CraneRamp"]:
+			if map_id != "toy_town" and route.name not in ["WarehouseRoofRamp", "CraneRamp"]:
 				continue
 			for fraction: float in [0, 0.25, 0.5, 0.75, 1]:
-				var point: Vector3 = route.low.lerp(route.high, fraction)
+				# Sample inside the route, not exactly on a shared region plane
+				# where a ray can legally hit the adjacent surviving face.
+				var point: Vector3 = route.low.lerp(route.high, clampf(fraction, 0.0005, 0.9995))
 				var hit := main.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 10, point - Vector3.UP, 1))
 				if main.terrain_collapse.supports_point(point):
 					_expect(not hit.is_empty() and hit.position.y >= point.y - 0.35, "SUPPORT map=%s mask=%03x route=%s point=%s retains real collision" % [map_id, mask, route.name, point])
@@ -100,13 +102,21 @@ func _walk_escape_cases(main: Node, player: PartyPlayer, map_id: String) -> void
 		# Indoor doorway waypoints are measured from the real furnished buildings.
 		cases = [
 			{"name": "Center_plaza", "start": Vector3(0, 0.05, 0), "points": [Vector2(31, 0)], "threatened": 4},
-			{"name": "Homes_refuge", "start": Vector3(-42, 1.25, -7), "points": [Vector2(-42, -12.5), Vector2(-29, -12.5)], "threatened": 3},
-			{"name": "Clinic_refuge", "start": Vector3(42, 1.75, -7), "points": [Vector2(42, -12.5), Vector2(29, -12.5)], "threatened": 5},
+			{"name": "Homes_refuge", "start": Vector3(-42, 1.25, -9), "points": [Vector2(-42, -14.5), Vector2(-29, -14.5)], "threatened": 3},
+			{"name": "Clinic_refuge", "start": Vector3(42, 1.75, -9), "points": [Vector2(42, -14.5), Vector2(29, -14.5)], "threatened": 5},
 			{"name": "NorthWest_room", "start": Vector3(-24, 2, -45), "points": [Vector2(-24, -39.5), Vector2(-28, -39.5), Vector2(-28, -33)], "threatened": 1},
 			{"name": "NorthEast_room", "start": Vector3(24, 2, -45), "points": [Vector2(24, -39.5), Vector2(24, -33)], "threatened": 1},
 			{"name": "GardenCafe_room", "start": Vector3(-18, 0, 44), "points": [Vector2(-18, 38.5), Vector2(-31, 38.5)], "threatened": 7},
 			{"name": "WestGarden_spawn", "start": Vector3(-42, 0.05, 44), "points": [Vector2(-42, 42), Vector2(-29, 42)], "threatened": 6},
 			{"name": "EastGarden_spawn", "start": Vector3(42, 0.05, 44), "points": [Vector2(42, 42), Vector2(29, 42)], "threatened": 8},
+			{"name": "PostOffice_room", "start": Vector3(-56, 0.1, -56), "points": [Vector2(-56, -49.5), Vector2(-56, -35.5)], "threatened": 0, "budget": 15.0},
+			{"name": "CommunityRoom_room", "start": Vector3(56, 0.1, -56), "points": [Vector2(56, -49.5), Vector2(56, -35.5)], "threatened": 2, "budget": 15.0},
+			{"name": "GardenPavilion_room", "start": Vector3(-56, 0.1, 56), "points": [Vector2(-56, 49.5), Vector2(-56, 31)], "threatened": 6, "budget": 15.0},
+			{"name": "MarketStore_room", "start": Vector3(56, 0.1, 56), "points": [Vector2(56, 49.5), Vector2(56, 31)], "threatened": 8, "budget": 15.0},
+			{"name": "PostOffice_roof", "start": Vector3(-56, 4.935, -56), "points": [Vector2(-48, -58), Vector2(-48, -40), Vector2(-48, -35.5)], "threatened": 0, "budget": 15.0},
+			{"name": "CommunityRoom_roof", "start": Vector3(56, 4.935, -56), "points": [Vector2(48, -58), Vector2(48, -40), Vector2(48, -35.5)], "threatened": 2, "budget": 15.0},
+			{"name": "GardenPavilion_roof", "start": Vector3(-56, 4.935, 56), "points": [Vector2(-48, 58), Vector2(-48, 38), Vector2(-56, 38), Vector2(-56, 31)], "threatened": 6, "budget": 15.0},
+			{"name": "MarketStore_roof", "start": Vector3(56, 4.935, 56), "points": [Vector2(48, 58), Vector2(48, 38), Vector2(56, 38), Vector2(56, 31)], "threatened": 8, "budget": 15.0},
 		]
 	else:
 		cases = [
@@ -121,7 +131,8 @@ func _walk_escape_cases(main: Node, player: PartyPlayer, map_id: String) -> void
 		await _apply_warning_snapshot(main, int(route.threatened))
 		var result := await _walk_case(player, route.start, route.points)
 		var escaped: bool = not main.terrain_collapse.regions[int(route.threatened)].has_point(Vector2(player.position.x, player.position.z))
-		_expect(result.reached and escaped and result.seconds < WARNING_SECONDS and is_equal_approx(main.match_manager.get_health(1), 100.0), "ESCAPE map=%s case=%s district=%d seconds=%.2f pos=%s health=%.1f" % [map_id, route.name, route.threatened, result.seconds, player.position, main.match_manager.get_health(1)])
+		_expect(result.reached and escaped and result.seconds < float(route.get("budget", WARNING_SECONDS)) and is_equal_approx(main.match_manager.get_health(1), 100.0), "ESCAPE map=%s case=%s district=%d seconds=%.2f pos=%s health=%.1f" % [map_id, route.name, route.threatened, result.seconds, player.position, main.match_manager.get_health(1)])
+		print("MAP_ESCAPE_TIMING map=%s case=%s seconds=%.2f" % [map_id, route.name, result.seconds])
 		walked_cases += 1
 
 

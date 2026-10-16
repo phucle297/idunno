@@ -34,14 +34,17 @@ func _run() -> void:
 	for map_name in ["toy_town", "toy_harbor"]:
 		_expect(main.set_map_id(map_name), "Select %s" % map_name)
 		await _check_map(main, player, flood, map_name)
+	main.gameplay_audio.reset_for_match()
+	await create_timer(0.1).timeout
 	main.free()
+	await create_timer(0.1).timeout
 	_finish()
 
 
 func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: String) -> void:
 	var anchors: Dictionary = main.get_node("Sandbox").get_meta("map_anchors")
 	_expect(anchors.map_id == map_name, "Sandbox anchors belong to %s" % map_name)
-	var expected_extent := 56.0 if map_name == "toy_town" else 32.0
+	var expected_extent := 72.0 if map_name == "toy_town" else 32.0
 	_expect(main.get_map_half_extent() == expected_extent, "%s uses its own playable extent" % map_name)
 	_expect(flood.map_half_extent == expected_extent, "%s flood covers its whole map" % map_name)
 	for key in ["spawn_origin", "cover_volumes", "tornado_paths", "strike_half_extent", "fire_zones", "fire_zone_neighbors", "elevation_routes", "refuges", "spawn_groups"]:
@@ -70,7 +73,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	await physics_frame
 	if map_name == "toy_town":
 		_expect(get_nodes_in_group("shelter").size() >= 12, "Expanded Town has populated buildings, not just a bigger empty floor")
-		for sample in [[Vector3(-34, 0, 0), 1.25], [Vector3(34, 0, 0), 1.75], [Vector3(10, 0, -42), 2.0], [Vector3(4, 0, 45), 0.65], [Vector3(-42, 0, 23), 5.405]]:
+		for sample in [[Vector3(-34, 0, 0), 1.25], [Vector3(34, 0, 0), 1.75], [Vector3(10, 0, -42), 2.0], [Vector3(4, 0, 45), 0.65], [Vector3(-42, 0, 17), 5.405]]:
 			_expect(absf(main.get_map_surface_height(sample[0]) - sample[1]) < 0.02, "Terrace/roof has real collision at %s, height %s" % [sample[0], sample[1]])
 		var elevated_targets := 0
 		var rng := RandomNumberGenerator.new()
@@ -152,6 +155,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 		walked += await _walk_to(main, player, Vector2(high.x, high.z), 480, flood)
 		_expect(player.is_on_floor() and absf(player.position.y - high.y) < 0.35, "%s spawn group %s must reach refuge %s: %s" % [map_name, group.name, group.route, player.position])
 		_expect(walked / 60.0 < flood.warning_duration + flood.rise_duration and main.match_manager.is_player_alive(1), "%s spawn group %s reaches refuge alive before peak: %d ticks" % [map_name, group.name, walked])
+		print("MAP_REFUGE_APPROACH map=%s group=%s walk_seconds=%.2f" % [map_name, group.name, walked / 60.0])
 		# The escape contract is "the flood does not drown the player who made
 		# it to high ground": health must hold through the peak while alive.
 		var health_before: float = main.match_manager.get_health(1)

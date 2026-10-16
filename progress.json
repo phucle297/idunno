@@ -3,7 +3,7 @@
   "updated_at": "2026-10-16",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "map_design_audit_complete_plan_proposed",
+  "workflow_state": "implementing_phase_13",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
     "status": "completed",
@@ -17,24 +17,24 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_13_map_physical_design_and_detail", "milestone": "13.5", "task": null},
+  "phase": {"id": "phase_13_map_physical_design_and_detail", "status": "in_progress", "checklist": "docs/checklists/phase-13-map-physical-design-and-detail.md"},
   "planned_phases": [
     {
       "id": "phase_13_map_physical_design_and_detail",
       "title": "Larger, Connected and Detailed Toy Town",
-      "status": "planned",
-      "implementation_authorized": false,
+      "status": "in_progress",
+      "implementation_authorized": true,
       "maps_in_scope": ["toy_town"],
       "deferred_maps": ["toy_harbor"],
-      "design_candidate": {"extent_m": 144, "current_extent_m": 112, "district_frontage_pitch_m": 13, "current_pitch_m": 15, "additional_buildings": 4, "status": "proposed_pending_greybox_checks_not_implemented"},
+      "design_candidate": {"extent_m": 144, "previous_extent_m": 112, "district_frontage_pitch_m": 13, "previous_pitch_m": 15, "additional_buildings": 4, "status": "implemented_pending_final_regression_and_render_profile_gates"},
       "checklist": "docs/checklists/phase-13-map-physical-design-and-detail.md",
       "milestones": [
-        {"id": "13.1", "title": "Town expansion/circulation greybox then physical truth", "status": "planned", "gate": "not_run"},
-        {"id": "13.2", "title": "Distinct functional Town interiors", "status": "planned", "gate": "not_run"},
-        {"id": "13.3", "title": "Coherent detailed Town outdoors", "status": "planned", "gate": "not_run"},
-        {"id": "13.4", "title": "Whole-Town routes, collapse and crowd acceptance", "status": "planned", "gate": "not_run"},
-        {"id": "13.5", "title": "Regression, lifecycle and performance", "status": "planned", "gate": "not_run"}
+        {"id": "13.1", "title": "Town expansion/circulation greybox then physical truth", "status": "in_progress", "gate": "not_run", "evidence": "Implemented; map safety233, variety492, prop191 assertions pass. Final normal-clock gate running."},
+        {"id": "13.2", "title": "Distinct functional Town interiors", "status": "in_progress", "gate": "not_run", "evidence": "Implemented module plus solid core furniture; all19 door-to-door controller walks pass; final rendered inspection pending."},
+        {"id": "13.3", "title": "Coherent detailed Town outdoors", "status": "in_progress", "gate": "not_run", "evidence": "Implemented connected service courts, lateral terrace stairs, garden/allotment/picnic loops and physical curbs; final captures pending."},
+        {"id": "13.4", "title": "Whole-Town routes, collapse and crowd acceptance", "status": "in_progress", "gate": "not_run", "evidence": "Collapse18108/278 masks; layout6799 and local20/20 bridge merge2.13s pass. Real-peer regression running."},
+        {"id": "13.5", "title": "Regression, lifecycle and performance", "status": "in_progress", "gate": "not_run"}
       ]
     }
   ],
@@ -52,7 +52,7 @@
     "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
   },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "docs/checklists/phase-13-map-physical-design-and-detail.md"],
+  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "docs/checklists/phase-13-map-physical-design-and-detail.md", "assets/manifest.json", "game/main.gd", "game/breakable_structure.gd", "game/session/terrain_collapse.gd", "game/world/town_interiors.gd", "game/world/town_partitions.gd", "tests/test_town_layout.gd", "tests/test_map_variety.gd", "tests/test_map_detail_collision.gd", "tests/test_terrain_collapse_routes.gd", "tests/test_disaster_combinations.gd"],
   "verification_scope": {
     "request": "Owner asks to double-check everything works; rerun current source and local package gates without inventing a phase or deploying.",
     "revision": "b2f0d12f25ef69cc3cfede8c4be46d4500be3e62",
@@ -94,7 +94,7 @@
     {"command": "Oracle read-only Toy Town layout/source review; inspect builders, collapse partitions, route tests and revised plan; jq empty progress.json; git diff --check; local-link/scope consistency checks", "status": "passed", "result": "Owner narrows scope to Town, requests larger/denser/more detailed layout and bridge/curb redesign. Plan revised to candidate144m/13m frontage pitch/four added functional buildings, connected blocks, real elevated optional bridges, continuous sidewalk/crossing/landing and collapse-aware cuts. Source confirms low plaza bridges retain ground beneath, Civic stairs overlap north road, roofwalk rail clear width2.68m. Oracle's Apartments/Market seam support concern remains source-level, not runtime reproduced. Harbor content deferred; shared-helper regression only. Documentation/source review, not gameplay verification; no source, DESIGN bible, assets or release changed."
     }
   ],
-  "blockers": ["Deferred by owner, not a map-planning blocker: blanket packet-loss stability remains unproven after one100ms/20ms-jitter/10%-loss timeout; diagnostic and original confirmations pass without a fix. Preserve failure for later ENet/fixture diagnostics.", "Map implementation gates are not run. Existing map-variety/detail-collision behavior assertions pass but shutdown ObjectDB/resource diagnostics prevent a clean strict baseline; retain and classify in the proposed regression milestone."],
+  "blockers": ["Deferred by owner, not a map-planning blocker: blanket packet-loss stability remains unproven after one100ms/20ms-jitter/10%-loss timeout; diagnostic and original confirmations pass without a fix. Preserve failure for later ENet/fixture diagnostics.", "Final staged-tree regression/commit gate is running. Software llvmpipe60FPS target failed before and after; native Windows/GPU remains unverified, not a fabricated pass."],
   "phase12_delivery": {
     "status": "source_pushed_local_packages_verified_not_deployed",
     "revision": "3b45765cdcbf47f3f0cbae6666f8cc85e5a83ef0",
@@ -123,5 +123,25 @@
     "preserved_keys": ["phase11_release", "phase12_delivery", "historical_delivery_metadata"]
   },
   "delivery_boundary": "Latest authorized Phase11 shipment is complete. No capacity/configuration/store changes or Steam publication authorized; future deployment requires its own applicable authorization.",
-  "next_action": "Use the revised Town-only Phase13 design for the next implementation request: first144m candidate greybox with compact13m frontages, real bridge/curb circulation and collapse cuts, before detailing; Harbor and network investigation remain deferred."
+  "phase13_execution": {
+    "status": "implementation_and_validation_in_progress_not_delivered",
+    "changes": "144m candidate,13m district pitch, four new courts, solid furniture/garage shelf/pool/canopy, elevated bridge roles, Town-only district geometry clipping, functional interior module with flush floors, House gable contact and garage beam/canopy clearance raised to keep4m arrival usable.",
+    "oracle_review": "Executed source review: corrected terrace roof-ramp approach, rail clear width and rockslide/annex overlap. Collapse cuts72/-30/30 and z-37/32 require vertical clipping of crossing geometry.",
+    "validation": [
+      {"check": "Godot4.7.2 editor import", "status": "passed", "qualification": "Initial import only; rerun after subsequent edits."},
+      {"check": "First focused implementation run", "status": "failed", "qualification": "Identity assertions pass but polygon partition errors; safety catches solid curb blocking GarageRamp. Nil indices and zero-width bounds corrected; curb arrival opening added. Reruns pending."},
+      {"check": "First rendered candidate", "status": "passed", "qualification": "Seven1600x1000 software-render captures generated. Overview/garage/bridge/court inspected; outer circulation and side flights subsequently refined. Final captures pending."},
+      {"check": "Corrected map suites (accelerated fixed60Hz)", "status": "passed", "qualification": "Identity42/safety233/variety492/detail82/prop191/collapse18108 and layout6799 assertions pass. Accelerated audio teardown can emit WAV/playback shutdown diagnostics; no normal-clock claim from this pass. Full regression running."},
+      {"check": "Whole-Town physical contracts", "status": "passed", "qualification": "All19 enclosed doors controller-walked, bridge joints/gaps/rail reset, garage arrival and all cached static mesh/collider single-region ownership.278 legal masks across2 maps;18 escape/remaining-refuge walks."},
+      {"check": "Local crowd/open outdoor sampling", "status": "passed", "command": "godot --headless --path . --script res://.scratch/phase13/crowd.gd", "result": "TOWN_CROWD20/20 in2.13s;4098/5041 samples81.3% on2m grid, excluding roofs/indoors/steep/blocked sites. Approximate sampled outdoor coverage, not exact continuous-area or networking proof."},
+      {"check": "Python regression", "status": "passed", "command": "python3 -m unittest discover -s tests -p 'test_*.py'", "result": "41 tests in247.395s; OK; managed equipment peer lifecycle included."},
+      {"check": "Four-player rendered comparison", "status": "passed", "result": "Same1280x720 Compatibility/llvmpipe,120 warmup/600 samples: before85d5a8d p95 frame472.88ms/process483.13ms/physics0.95ms,4384 draws/6900 nodes; after636.87ms/process637.49ms/physics0.95ms,5889 draws/10404 nodes. Physics stable and7 authoritative bodies unchanged; rendering35% slower with expanded map.60FPS target FAILED in both software-rendered runs; native hardware unknown. This passes measurement, not performance target."},
+      {"check": "House gable contact regression", "status": "passed", "result": "Final review reproduced visible sloping roof unsupported: rays hit hidden slab at y4.855 on both halves. Added matching rotated slab colliders; identical rays now hit visible slopes at y5.39598. Final layout6849 assertions passed including19 flush interior floors."},
+      {"check": "Normal-clock full regression", "status": "passed", "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh", "result": "UI_REGRESSION_OK suites=55 matrices=6 managed_clients=20 persistence_restart=passed. Map-variety492/detail82 shutdown clean in this normal-clock run. Six real ENet matrices include2/4/8/20 player coverage, both-map powerups and five rematches. Staged-tree exact-source hook now reruns full suite plus Python."},
+      {"check": "Rendered visual inspection", "status": "passed", "result": "Final1600x1000 captures: overview, district/civic/courts/garden, garage, intact/broken bridge,19 interiors, real third-person ground/School/garage/interior/roof cameras and Flood+meteor+tornado gameplay HUD. Directly inspected images/contact sheets. BridgeEast deck/rails gone together; background bridge intentionally intact. Hazard chip text visible; meteor ring intentionally occupies threatened roof. No exhaustive camera/human comprehension claim."},
+      {"check": "Garage overhead clearance", "status": "passed", "result": "Rendered review showed low solid beam/canopy headroom over the arrival. Beams/canopy/columns raised so all arrival lanes keep2.575m solid-beam and2.675m canopy clearance; permanent three-lane overhead rays added. Focused layout/safety checks passed6854/233."},
+      {"check": "Outer court escape timing", "status": "passed", "command": "godot --headless --path . --script tests/test_terrain_collapse_routes.gd --fixed-fps 60", "result": "TERRAIN_COLLAPSE_ROUTES_OK checks=18124 walks=26 legal_masks=278 maps=2. New rooms4.57-5.57s and roofs6.87-9.65s leave warned districts, below15s target and30s warning. Roof routes deliberately turn outside stair rail posts at z±38 rather than clipping them."}
+    ]
+  },
+  "next_action": "Finish exact staged-tree regression and20-peer loopback profile, then commit/push source plus evidence without deployment."
 }

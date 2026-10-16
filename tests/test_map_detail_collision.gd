@@ -33,7 +33,10 @@ func _run() -> void:
 			await physics_frame
 			_expect(get_nodes_in_group("solid_map_detail").size() == count, "Rematch must not duplicate or lose solid details")
 		print("MAP_DETAIL_COLLIDERS map=%s bodies=%d" % [map_id, count])
+	main.gameplay_audio.reset_for_match()
+	await create_timer(0.1).timeout
 	main.free()
+	await create_timer(0.1).timeout
 	for failure in failures:
 		push_error(failure)
 	if failures.is_empty():

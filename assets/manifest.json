@@ -146,6 +146,21 @@
       "validation_status": "all_six_warning_and_24px_chip_icons_inspected_at_720p; paired_interaction_icons_and_copy_inspected_at_720p_and_1080p; dark_world_chip_contrast_inspected_at_720p"
     },
     {
+      "asset_id": "ENV_ConnectedDetailedTown_v005",
+      "category": "runtime_environment_assembly",
+      "source_path": "game/main.gd; game/world/town_interiors.gd; game/world/town_partitions.gd",
+      "export_path": "scenes/main.tscn::Sandbox (toy_town only)",
+      "generator_script": "game/main.gd",
+      "generator_version": "5_town_connected_courts_and_physical_truth",
+      "seed": 0,
+      "intended_dimensions_m": {"town_footprint": [144, 144], "district_building_pitch": 13, "roofwalk_deck_width": 3.8, "outer_walk_width": 4, "curb_height": 0.12, "garage_minimum_beam_headroom": 2.575, "garage_canopy_headroom": 2.675, "interior_floor_finish": 0.02},
+      "material_ids": ["PALETTE.cream", "PALETTE.teal", "PALETTE.coral", "PALETTE.slate", "PALETTE.sand", "PALETTE.grass"],
+      "collider_type": "Dimension-matched static boxes and convex detail hulls; crossing static geometry clipped at vertical district planes; bridge rails owned by breakable deck state",
+      "provenance": "Project-authored deterministic Godot geometry and editable engine labels. Functional furniture module authored for this phase. No external downloads, textures, tools or new dependencies; no CC0 attribution. Seed unused.",
+      "validation_status": "Town layout6854 assertions: all19 enclosed door-to-door controller walks, real bridge joints/gaps, garage shelf/arrival/solid overhead clearance, House gable contact and single-district geometry ownership passed. Whole-route collapse18124 assertions/278 legal masks/26 walks passed, including all four new rooms and roofs escaping under10s.20 local capsules crossed bridge in2.13s. Normal-clock55-suite/6-matrix/managed20 regression passed before final overhead refinement; exact final staged-tree gate and rendered inspection recorded in phase evidence linked by progress.json.",
+      "qualification": "Supersedes earlier Town runtime layout entries; Harbor content unchanged. Decorative goods, foliage and low edge trim are not barriers. No native Windows/GPU/60FPS/human aesthetic or Internet-network claim."
+    },
+    {
       "asset_id": "ENV_TownPerimeter_v001",
       "category": "runtime_environment_assembly",
       "source_path": "game/main.gd::_build_sandbox",

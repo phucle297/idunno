@@ -2535,11 +2535,13 @@ func request_match_preset(preset: String) -> bool:
 func _build_sandbox() -> void:
 	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
 	anchors.rockslide_lane = _build_rockslide_lane()
+	if map_id == "toy_town":
+		preload("res://game/world/town_partitions.gd").partition($Sandbox)
 	_apply_map_anchors(anchors)
 
 
 func _build_rockslide_lane() -> Dictionary:
-	var low := Vector3(50, 1.75, 12) if map_id == "toy_town" else Vector3(27, 0, -1)
+	var low := Vector3(60, 0, 12) if map_id == "toy_town" else Vector3(27, 0, -1)
 	var high := low + Vector3(0, 4, -18)
 	# A dedicated smooth toy embankment, outside existing refuge entrances.
 	var angle := -atan((high.y - low.y) / (high.z - low.z))
@@ -2698,7 +2700,7 @@ func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:
 
 
 func _build_toy_town() -> Dictionary:
-	_build_map_base(56.0)
+	_build_map_base(72.0)
 	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
@@ -2734,8 +2736,14 @@ func _build_toy_town() -> Dictionary:
 	# Panel tops meet the surrounding 4.855m roof; no raised walking obstacle.
 	_add_breakable_structure("roof_panel_shop", "RoofPanelShop", Vector3(2.0, 0.24, 2.0), Vector3(-16.0, 4.735, -13.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "town_roof_refuges")
 	_add_breakable_structure("roof_panel_hall", "RoofPanelHall", Vector3(2.0, 0.24, 2.0), Vector3(16.0, 4.735, -13.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED, "town_roof_refuges")
-	_add_breakable_structure("bridge_west", "BridgeWest", Vector3(3.0, 0.25, 1.5), Vector3(-8.0, 0.25, 9.0), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
-	_add_breakable_structure("bridge_east", "BridgeEast", Vector3(3.0, 0.25, 1.5), Vector3(8.0, 0.25, 9.0), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
+	# Shortcuts have a genuine gap at roof height, not a second floor beneath.
+	for side in [-1.0, 1.0]:
+		var tag := "West" if side < 0 else "East"
+		var top := 5.405 if side < 0 else 5.905
+		_add_static_box("Annex" + tag, Vector3(6, top, 8), Vector3(side * 53, top * 0.5, 4), PALETTE.teal)
+		_add_breakable_structure("bridge_" + tag.to_lower(), "Bridge" + tag, Vector3(4.8, 0.25, 3.8), Vector3(side * 47.7, top - 0.125, 4), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
+		($Sandbox.get_node("Bridge" + tag) as BreakableStructure).add_bridge_rails()
+		_add_ramp("Annex" + tag + "Stairs", 4, Vector3(side * 54, 0.05, 24), Vector3(side * 54, top, 8))
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
 	_add_park_detail()
@@ -2749,7 +2757,7 @@ func _build_toy_town() -> Dictionary:
 	var districts := _add_town_districts()
 	var anchors := {
 		"map_id": "toy_town",
-		"half_extent": 56.0,
+		"half_extent": 72.0,
 		"spawn_origin": Vector3(0.0, 0.05, 7.0),
 		"cover_volumes": [
 			AABB(Vector3(-21.0, 0.0, -17.0), Vector3(10.0, 4.5, 8.0)),
@@ -2761,7 +2769,7 @@ func _build_toy_town() -> Dictionary:
 			[Vector3(-12.0, 0.0, -24.0), Vector3(12.0, 0.0, 24.0)],
 			[Vector3(12.0, 0.0, -24.0), Vector3(-12.0, 0.0, 24.0)],
 		],
-		"strike_half_extent": 52.0,
+		"strike_half_extent": 68.0,
 		"fire_zones": [
 			Vector3(-12.0, 0.08, -5.0), Vector3(-5.0, 0.08, -5.0), Vector3(2.0, 0.08, -5.0), Vector3(9.0, 0.08, -5.0),
 			Vector3(-12.0, 0.08, 5.0), Vector3(-5.0, 0.08, 5.0), Vector3(2.0, 0.08, 5.0), Vector3(9.0, 0.08, 5.0),
@@ -2800,17 +2808,30 @@ func _build_toy_town() -> Dictionary:
 		anchors.fire_zones.append(point)
 		anchors.fire_zone_neighbors.append([nearest])
 		anchors.fire_zone_neighbors[nearest].append(index)
+	for building in $Sandbox.get_children():
+		if building.is_in_group("shelter"):
+			preload("res://game/world/town_interiors.gd").furnish(self, building, str(building.name))
+	for side in [-1.0, 1.0]:
+		var tag := "West" if side < 0 else "East"
+		var top := 5.405 if side < 0 else 5.905
+		anchors.elevation_routes.append({"name": "Annex" + tag + "Stairs", "low": Vector3(side * 54, 0.05, 24), "high": Vector3(side * 54, top, 8)})
 	return anchors
 
 
 func _add_town_districts() -> Dictionary:
 	var data := {"cover_volumes": [], "tornado_paths": [], "elevation_routes": [], "refuges": [], "spawn_groups": [], "fire_zones": []}
+	# Elevated shortcuts remain exposed to Fire at their actual floor, not
+	# ground-floor flames that cannot ignite rubble several metres above them.
+	for side in [-1.0, 1.0]:
+		data.fire_zones.append(Vector3(side * 16, 4.935, -13))
+		data.fire_zones.append(Vector3(side * 53, 5.485 if side < 0 else 5.985, 4))
 	# Real, collision-backed elevation districts surround the retained central
 	# survival routes. All entrances connect to ground or another terrace.
-	_add_static_box("CivicTerrace", Vector3(96, 2, 18), Vector3(0, 1, -44), PALETTE.sand)
-	_add_continuous_cornice($Sandbox/CivicTerrace, Vector2(96, 18), 1, PALETTE.cream)
-	_add_paving("CivicPaving", Vector3(0, 2, -44), Vector2(96, 18))
-	_add_static_box("RingCrossRoadNorth", Vector3(62, 0.04, 4), Vector3(0, 0.02, -30), PALETTE.slate)
+	_add_static_box("CivicTerrace", Vector3(90, 2, 18), Vector3(0, 1, -44), PALETTE.sand)
+	_add_continuous_cornice($Sandbox/CivicTerrace, Vector2(90, 18), 1, PALETTE.cream)
+	_add_paving("CivicPaving", Vector3(0, 2, -44), Vector2(90, 18))
+	# Continuous five-metre road in front of the recessed civic flights.
+	_add_static_box("CivicRoad", Vector3(63, 0.04, 5), Vector3(0, 0.02, -24), PALETTE.slate)
 	for route in [
 		["CivicStairs", 6.0, Vector3(0, 0.05, -28), Vector3(0, 2, -35.05)],
 		["CivicWestStairs", 4.0, Vector3(-27, 0.05, -28), Vector3(-27, 2, -35.05)],
@@ -2836,13 +2857,14 @@ func _add_town_districts() -> Dictionary:
 			_add_detail_box($Sandbox, "RingLane%s%d" % [side, z], Vector3(0.18, 0.02, 1.7), Vector3(side * 29, 0.05, -28 + z * 4), PALETTE.cream)
 		var names := ["Bakery", "Homes", "Workshop", "Apartments"] if side < 0 else ["Library", "Clinic", "Cafe", "Market"]
 		for row in 4:
-			var center := Vector3(side * 42, y, -22 + row * 15)
+			var center := Vector3(side * 42, y, -22 + row * 13)
 			var title: String = names[row]
 			var accent: Color = PALETTE.coral if row % 2 == 0 else PALETTE.teal
 			_add_open_building(title, center, Vector2(8, 8), 3.8, accent, PALETTE.cream.lerp(accent, 0.22))
 			var building := $Sandbox.get_node(title)
 			# Readable furnished shops/homes leave the full central through-path.
-			_add_detail_box(building, "InteriorCounter", Vector3(2.3, 0.85, 0.7), Vector3(-2.6, 0.425, -1.5), PALETTE.sand)
+			_add_detail_box(building, "InteriorCounter", Vector3(2.3, 0.85, 0.7), Vector3(-2.6, 0.425, -1.5), PALETTE.sand, true)
+			_add_detail_box(building, "ShelvingFrame", Vector3(0.7, 2.1, 2.4), Vector3(3.2, 1.05, 0), PALETTE.slate, true)
 			for shelf in 3:
 				_add_detail_box(building, "Shelf%d" % shelf, Vector3(0.65, 0.12, 2.3), Vector3(3.2, 0.75 + shelf * 0.55, 0), PALETTE.teal)
 				_add_detail_box(building, "ShelfGoods%d" % shelf, Vector3(0.4, 0.35, 0.6), Vector3(3.2, 0.95 + shelf * 0.55, shelf * 0.6 - 0.6), PALETTE.coral)
@@ -2855,18 +2877,18 @@ func _add_town_districts() -> Dictionary:
 			for offset in [-2.8, 2.8]:
 				_add_street_planter("DistrictPlanter%s%d%s" % [tag, row, offset], center + Vector3(offset, 0, 5.5))
 			if row < 3:
-				_add_static_box("RoofWalk%s%d" % [tag, row], Vector3(3, 0.24, 7), center + Vector3(0, 4.035, 7.5), PALETTE.cream)
+				_add_static_box("RoofWalk%s%d" % [tag, row], Vector3(3.8, 0.24, 5), center + Vector3(0, 4.035, 6.5), PALETTE.cream)
 				for edge in [-1.0, 1.0]:
-					_add_toy_rail($Sandbox, "RoofWalkRail%s%d%s" % [tag, row, edge], center + Vector3(edge * 1.45, 4.155, 7.5), 6.8, true)
+					_add_toy_rail($Sandbox, "RoofWalkRail%s%d%s" % [tag, row, edge], center + Vector3(edge * 1.8, 4.155, 6.5), 4.8, true)
 		for route in [
 			[tag + "TerraceStairs", 4.0, Vector3(side * 34.5, 0.05, 37), Vector3(side * 34.5, y, 31)],
 			[tag + "NorthStairs", 4.0, Vector3(side * 34.5, y, -30.5), Vector3(side * 34.5, 2, -35.05)],
-			[tag + "RoofStairs", 3.2, Vector3(side * 42, 0.05, 42), Vector3(side * 42, y + 4.155, 27.3)]
+			[tag + "RoofStairs", 3.8, Vector3(side * 42, y, 30), Vector3(side * 42, y + 4.155, 21.3)]
 		]:
 			_add_ramp(route[0], route[1], route[2], route[3])
 			data.elevation_routes.append({"name": route[0], "low": route[2], "high": route[3]})
-		data.refuges.append({"name": tag + "RoofWalk", "kind": "elevation", "center": Vector3(side * 42, y + 4.155, 8), "exits": [Vector3(side * 42, y + 4.155, -22), Vector3(side * 42, y + 4.155, 23)]})
-		data.spawn_groups.append({"name": tag + "Garden", "spawn": Vector3(side * 42, 0.05, 44), "waypoints": [Vector3(side * 42, 0.05, 42)], "route": tag + "RoofStairs"})
+		data.refuges.append({"name": tag + "RoofWalk", "kind": "elevation", "center": Vector3(side * 42, y + 4.155, 4), "exits": [Vector3(side * 42, y + 4.155, -22), Vector3(side * 42, y + 4.155, 17)]})
+		data.spawn_groups.append({"name": tag + "Garden", "spawn": Vector3(side * 42, 0.05, 39), "waypoints": [Vector3(side * 34.5, 0.05, 38), Vector3(side * 34.5, y, 30), Vector3(side * 42, y, 31)], "route": tag + "RoofStairs"})
 		data.tornado_paths.append([Vector3(side * 42, 0, -49), Vector3(side * 42, 0, 49)])
 		for i in 5:
 			var position := Vector3(side * (10 + i * 8), 2, -36.5)
@@ -2887,8 +2909,10 @@ func _add_town_districts() -> Dictionary:
 	_add_static_box("GardenPromenade", Vector3(60, 0.07, 6), Vector3(0, 0.035, 33), PALETTE.sand)
 	_add_paving("GardenPromenadePaving", Vector3(0, 0.07, 33), Vector2(60, 6))
 	_add_paving("GardenCourt", Vector3(10, 0.65, 44), Vector2(17, 10))
-	_add_detail_box($Sandbox, "GardenPoolRim", Vector3(5, 0.3, 4), Vector3(14, 0.8, 45), PALETTE.cream)
-	_add_detail_box($Sandbox, "GardenPool", Vector3(4.5, 0.03, 3.5), Vector3(14, 0.97, 45), PALETTE.water)
+	for side in [-1.0, 1.0]:
+		_add_detail_box($Sandbox, "PoolEdgeX" + str(side), Vector3(0.25, 0.3, 4), Vector3(14 + side * 2.375, 0.8, 45), PALETTE.cream, true)
+		_add_detail_box($Sandbox, "PoolEdgeZ" + str(side), Vector3(4.5, 0.3, 0.25), Vector3(14, 0.8, 45 + side * 1.875), PALETTE.cream, true)
+	_add_detail_box($Sandbox, "GardenPool", Vector3(4.5, 0.03, 3.5), Vector3(14, 0.675, 45), PALETTE.water)
 	for i in 8:
 		var x := -25 + i * 7
 		_add_tree("GardenTree%d" % i, Vector3(x, 0, 50.5))
@@ -2907,7 +2931,67 @@ func _add_town_districts() -> Dictionary:
 	for x in [-9.0, 9.0]:
 		for z in [-22.0, -12.0, 13.0, 23.0]:
 			_add_street_planter("CentralPlanter%s%s" % [x, z], Vector3(x, 0, z))
+	_add_town_neighborhoods(data)
 	return data
+
+
+func _add_town_neighborhoods(data: Dictionary) -> void:
+	# A connected outer pedestrian circuit, with four furnished service courts.
+	for side in [-1.0, 1.0]:
+		_add_static_box("OuterWalkX" + str(side), Vector3(4, 0.08, 136), Vector3(side * 66, 0.04, 0), PALETTE.sand)
+		_add_static_box("OuterWalkZ" + str(side), Vector3(128, 0.08, 4), Vector3(0, 0.04, side * 66), PALETTE.sand)
+		# Two perpendicular arrivals meet the terrace edge instead of running
+		# a painted ground path through the terrace's solid retaining wall.
+		for z in [-12.0, 29.0]:
+			var low := Vector3(side * 62, 0.08, z)
+			var high := Vector3(side * 52.05, 1.25 if side < 0 else 1.75, z)
+			var route := "DistrictLink%d_%dStairs" % [side, z]
+			_add_static_box(route + "Arrival", Vector3(6, 0.08, 4), Vector3(side * 65, 0.04, z), PALETTE.sand)
+			_add_ramp(route, 4, low, high)
+			data.elevation_routes.append({"name": route, "low": low, "high": high})
+		for north in [true, false]:
+			var z := -56.0 if north else 56.0
+			var title := ("PostOffice" if side < 0 else "CommunityRoom") if north else ("GardenPavilion" if side < 0 else "MarketStore")
+			var center := Vector3(side * 56, 0, z)
+			_add_static_box(title + "Court", Vector3(24, 0.08, 24), center + Vector3(0, 0.04, 0), PALETTE.sand)
+			_add_open_building(title, center + Vector3(0, 0.08, 0), Vector2(10, 10), 4.5, PALETTE.teal if north else PALETTE.coral)
+			# Side flight and a proper roof landing leave BOTH door approaches
+			# open; no low stair ceiling directly in front of the entrance.
+			var low := Vector3(side * 48, 0.08, z + (16 if north else -16))
+			var high := Vector3(side * 48, 4.935, z)
+			_add_static_box(title + "RoofLanding", Vector3(6, 0.24, 4), Vector3(side * 49, 4.815, z + (-2 if north else 2)), PALETTE.cream)
+			var route_name := title + "RoofStairs"
+			_add_ramp(route_name, 4, low, high)
+			data.elevation_routes.append({"name": route_name, "low": low, "high": high})
+			data.spawn_groups.append({"name": title + "Court", "spawn": low + Vector3(0, 0, 1 if north else -1), "waypoints": [low], "route": route_name})
+			data.cover_volumes.append(AABB(center + Vector3(-4.5, 0.08, -4.5), Vector3(9, 4.5, 9)))
+			data.refuges.append({"name": title + "Roof", "kind": "elevation", "center": center + Vector3(0, 4.935, 0), "exits": [high + Vector3(0, 0, -2 if north else 2), center + Vector3(0, 4.935, -5.1 if north else 5.1)]})
+			data.tornado_paths.append([Vector3(center.x, 0, -64), Vector3(center.x, 0, 64)])
+			data.fire_zones.append(center + Vector3(7, 0.16, 0))
+			for edge in [-1.0, 1.0]:
+				_add_tree(title + "Tree" + str(edge), center + Vector3(edge * 9, 0.08, -8))
+				_add_bench(title + "Bench" + str(edge), center + Vector3(edge * 8, 0.08, 8))
+				_add_toy_lamp($Sandbox, title + "Lamp" + str(edge), center + Vector3(edge * 10, 0.08, 3))
+			# Parking/service bays are paint, never low invisible collision walls.
+			for bay in 3:
+				_add_detail_box($Sandbox, title + "Bay" + str(bay), Vector3(0.08, 0.015, 3), center + Vector3(7 + bay * 1.5, 0.095, -1), PALETTE.cream)
+	# The southern green is a shared destination, not unused expansion lawn.
+	_add_static_box("GardenLoop", Vector3(104, 0.08, 4), Vector3(0, 0.04, 59), PALETTE.sand)
+	_add_static_box("GardenSpine", Vector3(4, 0.08, 27), Vector3(0, 0.04, 49.5), PALETTE.sand)
+	for side in [-1.0, 1.0]:
+		_add_static_box("CourtGardenLink" + str(side), Vector3(16, 0.08, 4), Vector3(side * 48, 0.04, 63), PALETTE.sand)
+		_add_world_label("GardenWayfinding" + str(side), "GARDENS  /  SERVICE COURTS", Vector3(side * 28, 1, 59), PALETTE.teal)
+	for plot in 6:
+		var center := Vector3(-39 + (plot % 3) * 5, 0, 48 + (plot / 3) * 6)
+		_add_detail_box($Sandbox, "AllotmentBed" + str(plot), Vector3(3, 0.35, 3), center + Vector3.UP * 0.175, PALETTE.sand, true)
+		for plant in 3:
+			_add_round_detail($Sandbox, "AllotmentCrop%s%s" % [plot, plant], center + Vector3((plant - 1) * 0.8, 0.55, 0), Vector3(0.4, 0.35, 0.7), PALETTE.grass)
+	for x in [28.0, 35.0]:
+		_add_detail_box($Sandbox, "PicnicTop" + str(x), Vector3(2.2, 0.16, 1.2), Vector3(x, 0.85, 48), PALETTE.sand, true)
+		for edge in [-1.0, 1.0]:
+			_add_detail_box($Sandbox, "PicnicLeg%s%s" % [x, edge], Vector3(0.18, 0.8, 1.2), Vector3(x + edge * 0.8, 0.4, 48), PALETTE.slate, true)
+			_add_bench("PicnicSeat%s%s" % [x, edge], Vector3(x, 0, 48 + edge * 1.5))
+	_add_world_label("AllotmentSign", "COMMUNITY GARDEN", Vector3(-34, 1.5, 57), PALETTE.teal)
 
 
 func _build_toy_harbor() -> Dictionary:
@@ -3056,6 +3140,19 @@ func _add_district_box_piece(body: StaticBody3D, size: Vector3, offset: Vector3,
 
 
 func _add_ramp(node_name: String, width: float, low: Vector3, high: Vector3) -> void:
+	if not is_equal_approx(low.x, high.x):
+		# Build the same stair profile along local +Z, then orient both its
+		# collider and presentation together around the actual arrival point.
+		var run := Vector2(high.x - low.x, high.z - low.z).length()
+		_add_ramp(node_name, width, low, Vector3(low.x, high.y, low.z + run))
+		var turn := Basis(Vector3.UP, atan2(high.x - low.x, high.z - low.z))
+		var body := $Sandbox.get_node(node_name) as Node3D
+		body.position = low + turn * (body.position - low)
+		body.basis = turn * body.basis
+		var stairs := $Sandbox.get_node_or_null(node_name + "Stairs") as Node3D
+		if stairs != null:
+			stairs.basis = turn * stairs.basis
+		return
 	# Endpoints describe the walking surface, not the box's center/bottom face.
 	var angle := -atan((high.y - low.y) / (high.z - low.z))
 	var size := Vector3(width, 0.35, low.distance_to(high))
@@ -3092,19 +3189,23 @@ func _add_stair_presentation(node_name: String, width: float, low: Vector3, high
 		step.position = Vector3(0, (i + 0.5) * rise - 0.02, direction * (i + 0.5) * tread)
 		stairs.add_child(step)
 	for side in [-1.0, 1.0]:
-		var a := Vector3(side * (width * 0.5 - 0.08), 0.85, 0)
+		if node_name == "ParkRamp":
+			# This shared plaza crossing is deliberately unguarded. A low edge
+			# trim replaces the old pass-through handrail; props can cross it.
+			var trim := _add_detail_box(stairs, "EdgeTrim%s" % side, Vector3(0.08, 0.06, low.distance_to(high)), Vector3(side * (width * 0.5 + 0.1), (high.y - low.y) / 2 - 0.04, direction * run / 2), PALETTE.teal)
+			trim.rotation.x = -atan((high.y - low.y) / (high.z - low.z))
+			continue
+		var solid := map_id == "toy_town"
+		var a := Vector3(side * (width * 0.5 + 0.15 if solid else width * 0.5 - 0.08), 0.85, 0)
 		var b := Vector3(a.x, high.y - low.y + 0.85, direction * run)
-		# Stair rails are a presentation layer over the already-solid ramp
-		# slab. Solid side posts trap the diagonal ground approach and block
-		# the crate-boost shove across the slab, so they stay decorative;
-		# the ramp collider still governs walking and the crossing rules.
-		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal)
+		# Town barriers are solid and outside the full advertised flight width.
+		var bar := _add_detail_box(stairs, "Handrail%s" % side, Vector3(0.12, 0.12, a.distance_to(b)), (a + b) * 0.5, PALETTE.teal, solid)
 		bar.rotation.x = -atan((b.y - a.y) / (b.z - a.z))
 		var stringer := _add_detail_box(stairs, "Stringer%s" % side, Vector3(0.18, 0.25, a.distance_to(b)), (a + b) * 0.5 - Vector3.UP * 1.02, PALETTE.slate)
 		stringer.rotation.x = bar.rotation.x
 		for i in 5:
 			var t := i / 4.0
-			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal)
+			_add_detail_box(stairs, "Baluster%s%d" % [side, i], Vector3(0.12, 0.85, 0.12), Vector3(a.x, (high.y - low.y) * t + 0.425, direction * run * t), PALETTE.teal, solid)
 			if low.y < 0.1 and (high.y - low.y) * t > 0.25:
 				var support_height := (high.y - low.y) * t - 0.2
 				_add_box_to(stairs, "Support%s%d" % [side, i], Vector3(0.18, support_height, 0.18), Vector3(a.x, support_height * 0.5, direction * run * t), PALETTE.slate)
@@ -3139,7 +3240,10 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	_add_box_to(root, "RoofNorth", Vector3(2.0, 0.35, end_depth), Vector3(0.0, height + 0.18, -(roof_depth + 2.0) * 0.25), PALETTE.cream)
 	_add_box_to(root, "RoofSouth", Vector3(2.0, 0.35, end_depth), Vector3(0.0, height + 0.18, (roof_depth + 2.0) * 0.25), PALETTE.cream)
 	_add_box_to(root, "EntranceLintel", Vector3(door_width + 0.5, 0.35, 0.5), Vector3(0.0, 3.0, footprint.y * 0.5 + 0.2), PALETTE.amber)
-	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + 0.9), PALETTE.cream)
+	# The final district building has a roof flight over its south entrance;
+	# use a recessed drip cap, not an awning projecting into that walking plane.
+	var recessed := map_id == "toy_town" and node_name in ["Apartments", "Market"]
+	_add_box_to(root, "EntranceAwning", Vector3(door_width + 1.0, 0.18, 0.3 if recessed else 2.0), Vector3(0.0, 3.35, footprint.y * 0.5 + (0.05 if recessed else 0.9)), PALETTE.cream)
 	_add_label_to(root, "BuildingLabel", node_name.to_upper(), Vector3(0.0, 3.85, footprint.y * 0.5 + 0.22), PALETTE.slate)
 	_add_building_envelope(root, footprint, height, wall_color)
 	_add_authored_facade(root, footprint, height, accent)
@@ -3156,14 +3260,14 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 	if node_name == "Shop":
 		# A representative usable interior: counter and shelving along the west
 		# wall, clear of the two 2.4 m doors and the central through-path.
-		_add_detail_box(root, "Counter", Vector3(3.6, 0.9, 0.8), Vector3(-footprint.x * 0.5 + 2.0, 0.45, -2.6), PALETTE.sand)
+		_add_detail_box(root, "Counter", Vector3(3.6, 0.9, 0.8), Vector3(-footprint.x * 0.5 + 2.0, 0.45, -2.6), PALETTE.sand, true)
 		_add_detail_box(root, "ShelfTop", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.5, -2.6), PALETTE.teal)
 		_add_detail_box(root, "ShelfBottom", Vector3(1.2, 0.12, 0.6), Vector3(-footprint.x * 0.5 + 0.8, 1.05, -2.6), PALETTE.teal)
 		# Rear stock alcove on the east wall keeps the west sales counter and
 		# the north/south doors clear.
-		_add_detail_box(root, "StockShelf", Vector3(1.6, 1.3, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.65, -2.6), PALETTE.slate)
-		_add_detail_box(root, "StockCrateA", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.3, -1.4), PALETTE.sand)
-		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand)
+		_add_detail_box(root, "StockShelf", Vector3(1.6, 1.3, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.65, -2.6), PALETTE.slate, true)
+		_add_detail_box(root, "StockCrateA", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.3, -1.4), PALETTE.sand, true)
+		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand, true)
 
 
 func _rounded_wall_outline(footprint: Vector2, radius: float) -> Array[Vector3]:
@@ -3251,6 +3355,16 @@ func _add_continuous_cornice(parent: Node3D, footprint: Vector2, height: float, 
 
 func _add_shop_canopy(parent: Node3D, footprint: Vector2) -> void:
 	(parent.get_node("EntranceAwning").get_child(0) as MeshInstance3D).hide()
+	(parent.get_node("EntranceAwning").get_child(1) as CollisionShape3D).disabled = true
+	# Shallow sloped proxies follow the fabric rather than retaining the old slab.
+	for section in 4:
+		var a := section * PI / 8.0
+		var b := (section + 1) * PI / 8.0
+		var p := Vector3(0, 3.5 - 0.6 * (1 - cos(a)), footprint.y * 0.5 + 0.15 + 1.85 * sin(a))
+		var q := Vector3(0, 3.5 - 0.6 * (1 - cos(b)), footprint.y * 0.5 + 0.15 + 1.85 * sin(b))
+		var proxy := _add_detail_box(parent, "CanopySupport%d" % section, Vector3(footprint.x - 0.6, 0.06, p.distance_to(q)), (p + q) * 0.5 - Vector3.UP * 0.03, PALETTE.teal, true)
+		proxy.rotation.x = -atan2(q.y - p.y, q.z - p.z)
+		proxy.hide()
 	var width := footprint.x - 0.6
 	var stripe_width := width / 16.0
 	for stripe in 16:
@@ -3382,7 +3496,8 @@ func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accen
 	if root.name != "House":
 		for side in [-1.0, 1.0]:
 			for sx in [-1.0, 1.0]:
-				_add_toy_rail(root, "RoofRail%s%s" % [side, sx], Vector3(sx * (footprint.x * 0.5 - 1.5), height + 0.36, side * (footprint.y * 0.5 - 0.3)), 2.3)
+				var rail_length := 1.7 if map_id == "toy_town" and footprint == Vector2(8, 8) else 2.3
+				_add_toy_rail(root, "RoofRail%s%s" % [side, sx], Vector3(sx * (footprint.x * 0.5 - 1.5), height + 0.36, side * (footprint.y * 0.5 - 0.3)), rail_length)
 			var planter := Vector3(side * (footprint.x * 0.5 - 1.1), height + 0.58, -footprint.y * 0.5 + 1.25)
 			_add_detail_box(root, "RoofPlanter%s" % side, Vector3(1.3, 0.44, 1.1), planter, PALETTE.cream, true)
 			for i in 3:
@@ -3398,7 +3513,7 @@ func _add_authored_facade(root: Node3D, footprint: Vector2, height: float, accen
 		_add_detail_box(root, "ClockHand", Vector3(0.06, 0.26, 0.06), Vector3(3.0, 3.74, footprint.y * 0.5 + 0.86), PALETTE.slate)
 	elif root.name == "House":
 		for side in [-1.0, 1.0]:
-			var roof := _add_detail_box(root, "Gable%s" % side, Vector3(4.4, 0.18, 8.5), Vector3(side * 1.9, 5.5, 0), PALETTE.coral)
+			var roof := _add_detail_box(root, "Gable%s" % side, Vector3(4.4, 0.18, 8.5), Vector3(side * 1.9, 5.5, 0), PALETTE.coral, true)
 			roof.rotation.z = -side * 0.32
 			var face := MeshInstance3D.new()
 			face.name = "GableFace%s" % side
@@ -3458,24 +3573,24 @@ func _add_parking_garage() -> void:
 	_add_box_to(root, "Deck", Vector3(14.0, 0.35, 12.0), Vector3(0.0, 2.4, 0.0), PALETTE.cream)
 	for x in [-5.5, 5.5]:
 		for z in [-4.5, 4.5]:
-			_add_box_to(root, "Pillar_%s_%s" % [x, z], Vector3(0.7, 4.8, 0.7), Vector3(x, 2.4, z), PALETTE.slate)
+			_add_box_to(root, "Pillar_%s_%s" % [x, z], Vector3(0.7, 5.4, 0.7), Vector3(x, 2.7, z), PALETTE.slate)
 	# Ground the coral canopy: inset columns run from the deck surface to the
 	# canopy underside, and corner braces tie the canopy frame to the outer
 	# pillar tops so the silhouette reads as one supported beam frame.
 	var canopy_half := Vector2(4.0, 3.0)
 	var deck_top := 2.575
-	var canopy_bottom := 4.65
+	var canopy_bottom := 5.25
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
 			var column_height := canopy_bottom - deck_top
 			_add_box_to(root, "CanopySupport_%s_%s" % [sx, sz], Vector3(0.5, column_height, 0.5), Vector3(3.4 * sx, (deck_top + canopy_bottom) * 0.5, 2.4 * sz), PALETTE.slate)
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
-			var canopy_corner := Vector3(canopy_half.x * sx, 4.8, canopy_half.y * sz)
-			var pillar_top := Vector3(5.5 * sx, 4.8, 4.5 * sz)
+			var canopy_corner := Vector3(canopy_half.x * sx, 5.4, canopy_half.y * sz)
+			var pillar_top := Vector3(5.5 * sx, 5.4, 4.5 * sz)
 			var brace := _add_box_to(root, "CanopyBrace_%s_%s" % [sx, sz], Vector3(2.5, 0.26, 0.38), (canopy_corner + pillar_top) * 0.5, PALETTE.slate)
 			brace.rotation.y = -atan2(pillar_top.z - canopy_corner.z, pillar_top.x - canopy_corner.x)
-	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 4.8, 0.0), PALETTE.coral)
+	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 5.4, 0.0), PALETTE.coral)
 	_add_detail_box(root, "GarageSignboard", Vector3(5.0, 0.8, 0.18), Vector3(0, 3.65, 6.1), PALETTE.cream)
 	_add_label_to(root, "GarageLabel", "GARAGE", Vector3(0.0, 3.65, 6.21), PALETTE.slate)
 
@@ -3487,21 +3602,21 @@ func _add_school_interior() -> void:
 	# sight lines stay open and no classroom becomes a sealed trap.
 	var partition_height := 2.8
 	var segment_length := (12.0 - 2.4) * 0.5
-	for px: float in [-1.5, 1.5]:
+	for px: float in [-1.7, 1.7]:
 		var side := "West" if px < 0.0 else "East"
 		_add_box_to(hall, "Partition%sNorth" % side, Vector3(0.3, partition_height, segment_length), Vector3(px, partition_height * 0.5, -(1.2 + segment_length * 0.5)), PALETTE.slate)
 		_add_box_to(hall, "Partition%sSouth" % side, Vector3(0.3, partition_height, segment_length), Vector3(px, partition_height * 0.5, 1.2 + segment_length * 0.5), PALETTE.slate)
 	# Furniture per classroom: a board on the north wall, two desks facing it,
-	# and a coat rack near the south wall. Grounded visual-only decoration.
+	# and a solid coat rack near the south wall. Keep the through-corridor clear.
 	for side_x: float in [-3.75, 3.75]:
 		var side := "West" if side_x < 0.0 else "East"
 		_add_detail_box(hall, "Board%s" % side, Vector3(2.2, 1.2, 0.1), Vector3(side_x, 2.0, -5.8), PALETTE.slate)
 		_add_detail_box(hall, "BoardTrim%s" % side, Vector3(2.4, 0.12, 0.04), Vector3(side_x, 2.62, -5.83), PALETTE.cream)
 		for desk in 2:
 			var dz := -3.2 + desk * 2.0
-			_add_detail_box(hall, "DeskBody%s%d" % [side, desk], Vector3(0.9, 0.5, 0.6), Vector3(side_x, 0.25, dz), PALETTE.sand)
-			_add_detail_box(hall, "DeskTop%s%d" % [side, desk], Vector3(0.9, 0.06, 0.6), Vector3(side_x, 0.53, dz), PALETTE.slate)
-		_add_detail_box(hall, "CoatRack%s" % side, Vector3(1.1, 1.3, 0.5), Vector3(side_x * 0.85, 0.65, 3.2), PALETTE.coral)
+			_add_detail_box(hall, "DeskBody%s%d" % [side, desk], Vector3(0.9, 0.5, 0.6), Vector3(side_x, 0.25, dz), PALETTE.sand, true)
+			_add_detail_box(hall, "DeskTop%s%d" % [side, desk], Vector3(0.9, 0.06, 0.6), Vector3(side_x, 0.53, dz), PALETTE.slate, true)
+		_add_detail_box(hall, "CoatRack%s" % side, Vector3(1.1, 1.3, 0.5), Vector3(side_x * 0.85, 0.65, 3.2), PALETTE.coral, true)
 
 
 func _add_house_interior() -> void:
@@ -3511,16 +3626,16 @@ func _add_house_interior() -> void:
 	_add_box_to(house, "RoofCenter", Vector3(2.0, 0.35, 2.0), Vector3(0.0, 4.68, 0.0), PALETTE.cream)
 	# Single-storey home: kitchen along the west wall, a dining table in the
 	# middle, a bed nook in the north-east corner and a sofa against the east
-	# wall. Grounded visual-only furniture; doors stay clear.
-	_add_detail_box(house, "KitchenCounter", Vector3(2.0, 0.9, 0.7), Vector3(-2.7, 0.45, 1.6), PALETTE.slate)
+	# wall. Solid furniture stays outside the central door-to-door aisle.
+	_add_detail_box(house, "KitchenCounter", Vector3(2.0, 0.9, 0.7), Vector3(-2.7, 0.45, 1.6), PALETTE.slate, true)
 	_add_detail_box(house, "KitchenSink", Vector3(1.0, 0.12, 0.5), Vector3(-2.7, 0.95, 1.6), PALETTE.cream)
-	_add_detail_box(house, "DiningTable", Vector3(1.8, 0.1, 1.0), Vector3(0.8, 0.72, 1.4), PALETTE.sand)
+	_add_detail_box(house, "DiningTable", Vector3(1.2, 0.1, 1.0), Vector3(2.6, 0.72, 0.3), PALETTE.sand, true)
 	for dx: float in [-0.45, 0.45]:
-		_add_detail_box(house, "TableLeg%s" % ("L" if dx < 0.0 else "R"), Vector3(0.12, 0.7, 0.12), Vector3(0.8 + dx, 0.35, 1.4), PALETTE.slate)
-	_add_detail_box(house, "Bed", Vector3(2.0, 0.5, 1.4), Vector3(2.7, 0.25, -2.9), PALETTE.coral)
+		_add_detail_box(house, "TableLeg%s" % ("L" if dx < 0.0 else "R"), Vector3(0.12, 0.7, 0.12), Vector3(2.6 + dx, 0.35, 0.3), PALETTE.slate, true)
+	_add_detail_box(house, "Bed", Vector3(2.0, 0.5, 1.4), Vector3(2.7, 0.25, -2.9), PALETTE.coral, true)
 	_add_detail_box(house, "Pillow", Vector3(0.6, 0.16, 0.5), Vector3(3.3, 0.5, -2.9), PALETTE.cream)
-	_add_detail_box(house, "Sofa", Vector3(2.2, 0.7, 0.9), Vector3(2.6, 0.35, 3.0), PALETTE.teal)
-	_add_detail_box(house, "SofaBack", Vector3(2.2, 0.75, 0.32), Vector3(2.6, 0.8, 3.35), PALETTE.teal)
+	_add_detail_box(house, "Sofa", Vector3(2.2, 0.7, 0.9), Vector3(2.6, 0.35, 3.0), PALETTE.teal, true)
+	_add_detail_box(house, "SofaBack", Vector3(2.2, 0.75, 0.32), Vector3(2.6, 0.8, 3.35), PALETTE.teal, true)
 	for x in [1.6, 3.6]:
 		_add_detail_box(house, "SofaArm%s" % x, Vector3(0.32, 0.7, 0.9), Vector3(x, 0.6, 3.0), PALETTE.teal)
 	for x in [2.05, 3.15]:
@@ -3529,16 +3644,15 @@ func _add_house_interior() -> void:
 
 func _add_garage_detail() -> void:
 	var garage := $Sandbox.get_node("ParkingGarage") as Node3D
-	# Painted bay lines on the deck and a perimeter tool shelf; kept off the
-	# ramp arrival and canopy support columns. Visual-only.
+	# The full ramp arrival remains clear; substantial tools live in a side bay.
 	for bay: float in [-2.0, 0.0, 2.0]:
 		_add_detail_box(garage, "BayLine%s" % bay, Vector3(0.14, 0.02, 9.0), Vector3(bay, 2.585, 0.0), PALETTE.amber)
-	_add_detail_box(garage, "ToolShelving", Vector3(5.0, 1.4, 0.6), Vector3(0.0, 3.28, -5.0), PALETTE.slate)
-	_add_detail_box(garage, "ToolBoxA", Vector3(0.7, 0.5, 0.5), Vector3(-1.2, 2.83, -4.0), PALETTE.coral)
-	_add_detail_box(garage, "ToolBoxB", Vector3(0.7, 0.5, 0.5), Vector3(0.0, 2.83, -4.0), PALETTE.cream)
+	_add_detail_box(garage, "ToolShelving", Vector3(0.6, 1.4, 4.0), Vector3(-5.9, 3.28, 0.0), PALETTE.slate, true)
+	_add_detail_box(garage, "ToolBoxA", Vector3(0.7, 0.5, 0.5), Vector3(-4.8, 2.83, -1.0), PALETTE.coral, true)
+	_add_detail_box(garage, "ToolBoxB", Vector3(0.7, 0.5, 0.5), Vector3(-4.8, 2.83, 1.0), PALETTE.cream, true)
 	for side in [-1.0, 1.0]:
 		_add_detail_box(garage, "DeckFascia%s" % side, Vector3(14.2, 0.22, 0.25), Vector3(0, 2.3, side * 6.08), PALETTE.teal)
-		_add_detail_box(garage, "Header%s" % side, Vector3(10.5, 0.5, 0.3), Vector3(0, 4.3, side * 4.6), PALETTE.cream)
+		_add_detail_box(garage, "Header%s" % side, Vector3(10.5, 0.5, 0.3), Vector3(0, 5.4, side * 4.6), PALETTE.cream, true)
 		_add_toy_rail(garage, "GarageRail%s" % side, Vector3(side * 6.7, 2.575, 0), 10.0, true)
 
 
@@ -3557,7 +3671,7 @@ func _add_park_detail() -> void:
 
 
 func _add_street_detail() -> void:
-	# Crosswalk bars across the vertical road (aligned with the two bridges)
+	# Flush pedestrian crossings across the vertical road
 	# and a dashed centre line beyond the plaza. Thin visual overlays only.
 	for z: float in [-9.0, 9.0]:
 		for stripe: float in [-1.2, -0.4, 0.4, 1.2]:
@@ -3570,10 +3684,12 @@ func _add_street_detail() -> void:
 	for side in [-1.0, 1.0]:
 		for segment in 20:
 			var offset := -30.0 + segment * 3.0
-			if absf(offset) < 10.0:
+			if absf(offset) < 10.0 or absf(offset + 24.0) < 4.0:
 				continue
-			_add_detail_box($Sandbox, "CurbX%s%d" % [side, segment], Vector3(2.9, 0.16, 0.3), Vector3(offset, 0.08, side * 2.7), PALETTE.cream)
-			_add_detail_box($Sandbox, "CurbZ%s%d" % [side, segment], Vector3(0.3, 0.16, 2.9), Vector3(side * 2.7, 0.08, offset), PALETTE.cream)
+			# Four-metre flush openings meet garage/park and shop approaches.
+			if absf(absf(offset) - 15.0) > 4.0:
+				_add_detail_box($Sandbox, "CurbX%s%d" % [side, segment], Vector3(2.9, 0.12, 0.3), Vector3(offset, 0.06, side * 2.7), PALETTE.cream, true)
+			_add_detail_box($Sandbox, "CurbZ%s%d" % [side, segment], Vector3(0.3, 0.12, 2.9), Vector3(side * 2.7, 0.06, offset), PALETTE.cream, true)
 	for position in [Vector3(-8, 0.12, -8), Vector3(8, 0.12, -8), Vector3(-8, 0.12, 8), Vector3(8, 0.12, 8)]:
 		_add_toy_lamp($Sandbox, "PlazaLamp%s" % position, position)
 	for center in [Vector3(-16, 0, -6), Vector3(16, 0, -5)]:

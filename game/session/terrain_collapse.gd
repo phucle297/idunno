@@ -33,8 +33,8 @@ var height_query_count := 0
 static func map_regions(map_id: String) -> Array[Rect2]:
 	# Cuts avoid every authored walkable structure (roofs, stairs, ramps and
 	# gangways) so removal never deletes footholds outside its warning.
-	var xs := [-56.0, -30.0, 30.0, 56.0] if map_id == "toy_town" else [-32.0, -12.0, 12.0, 32.0]
-	var zs := [-56.0, -37.0, 20.0, 56.0] if map_id == "toy_town" else [-32.0, -10.0, 14.0, 32.0]
+	var xs := [-72.0, -30.0, 30.0, 72.0] if map_id == "toy_town" else [-32.0, -12.0, 12.0, 32.0]
+	var zs := [-72.0, -37.0, 32.0, 72.0] if map_id == "toy_town" else [-32.0, -10.0, 14.0, 32.0]
 	var result: Array[Rect2] = []
 	for row in 3:
 		for column in 3:

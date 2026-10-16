@@ -182,7 +182,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 	var garage := main.get_node("Sandbox/ParkingGarage") as Node3D
 	var canopy := garage.get_node("UpperShelter") as StaticBody3D
 	var canopy_collider := canopy.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D
-	_expect((canopy_collider.shape as BoxShape3D).size == Vector3(8.0, 0.3, 6.0) and canopy.position == Vector3(0.0, 4.8, 0.0), "Garage canopy keeps its sheltered-deck geometry")
+	_expect((canopy_collider.shape as BoxShape3D).size == Vector3(8.0, 0.3, 6.0) and canopy.position == Vector3(0.0, 5.4, 0.0), "Garage canopy clears the player and camera above the sheltered deck")
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
 			var column := garage.get_node_or_null("CanopySupport_%s_%s" % [sx, sz]) as StaticBody3D
@@ -192,7 +192,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 			var mesh_size := (column.find_children("*", "MeshInstance3D", false, false)[0] as MeshInstance3D).mesh.get_aabb().size
 			var collider_size := ((column.find_children("*", "CollisionShape3D", false, false)[0] as CollisionShape3D).shape as BoxShape3D).size
 			_expect(mesh_size.is_equal_approx(collider_size), "Support column mesh and collider must agree at %s,%s" % [sx, sz])
-			_expect(absf(column.position.y + mesh_size.y * 0.5 - 4.65) < 0.01 and absf(column.position.y - mesh_size.y * 0.5 - 2.575) < 0.01, "Support column must span deck surface to canopy underside at %s,%s" % [sx, sz])
+			_expect(absf(column.position.y + mesh_size.y * 0.5 - 5.25) < 0.01 and absf(column.position.y - mesh_size.y * 0.5 - 2.575) < 0.01, "Support column must span deck surface to canopy underside at %s,%s" % [sx, sz])
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
 			var brace := garage.get_node_or_null("CanopyBrace_%s_%s" % [sx, sz]) as StaticBody3D
@@ -208,7 +208,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 	player.reset_for_match(Vector3(-15.0, 2.75, 9.2))
 	await _walk_roof(player, Vector2(-15.0, 15.0), 180)
 	_expect(player.is_on_floor() and absf(player.position.y - 2.575) < 0.05, "Deck walk under the canopy stays on the deck without jumping")
-	_expect(player.get_head_sample_position().y < 4.65, "Player head stays below the canopy underside")
+	_expect(player.get_head_sample_position().y < 5.25, "Player head stays below the canopy underside")
 	var gameplay_camera := player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
 	gameplay_camera.make_current()
 	main._process(0.0)
@@ -245,7 +245,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 				_expect(rebuilt.get_node_or_null("CanopyBrace_%s_%s" % [sx, sz]) != null, "Rematch %d restores canopy brace %s,%s" % [round_index + 1, sx, sz])
 	player.reset_for_match(Vector3(-15.0, 2.75, 9.2))
 	await _walk_roof(player, Vector2(-15.0, 15.0), 180)
-	_expect(player.is_on_floor() and absf(player.position.y - 2.575) < 0.05 and player.get_head_sample_position().y < 4.65, "Five rematches later the sheltered deck traversal still works")
+	_expect(player.is_on_floor() and absf(player.position.y - 2.575) < 0.05 and player.get_head_sample_position().y < 5.25, "Five rematches later the sheltered deck traversal still works")
 	gameplay_camera.make_current()
 
 

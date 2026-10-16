@@ -52,3 +52,33 @@ plan, collapse ownership and route tests; revised contract is checklist§0.
 - Milestone13.1 now starts with topology/expansion greybox;13.4 becomes Town route,
   collapse and crowd acceptance instead of Harbor work. Preserve stable IDs and
   not_run gates; current changes are local planning only, not a redesigned build.
+
+## 2026-10-16 — Implement the approved connected Town layout
+
+The owner's subsequent “commit plan, then do till done” authorizes source delivery,
+not public packaging/deployment. The plan is already pushed; implementation adopts
+144m extent with13m district pitch,19 enclosed buildings and the open garage.
+
+- New outer stairs are beside building doors, with roof turn landings. Four lateral
+  flights connect outer circuit to the two terraces; the civic approach has a
+  continuous five-metre road. Compact streets do not imply narrower roofwalk gates.
+- Substantial furniture, stair rails, canopy slopes, pool edges and House gable
+  slabs have matching collision. The garage shelf moves to its west service bay
+  before becoming solid. ParkRamp uses low edge trim rather than a ghost barrier,
+  retaining the shared crossing needed by the crate route.
+- Bridges are optional raised shortcuts between district roofs and independently
+  accessible annexes. Breakage/collapse removes deck AND rails; reset restores both.
+  Roof-level Fire anchors preserve rubble ignition at the new bridge height without
+  changing damage or vertical ignition rules.
+- Town cuts move with layout. Static mesh triangles and rotated box proxies are
+  clipped at district planes; retained children keep their own transforms/lifetimes.
+  All Town ascent routes are checked across278 legal masks on the two maps, instead
+  of treating Shop/Hall as representative of every new neighborhood.
+- Rendered four-player software comparison records the cost rather than claiming
+  native performance: p95 frame472.88→636.87ms; draws4384→5889; physics p950.95ms
+  unchanged; authoritative bodies remain7. No dynamic bodies are added for detail.
+  Both llvmpipe runs fail60FPS. Native GPU/audio/human readability remain unverified;
+  this is not permission to remove meaningful detail or alter player capacity.
+- Final contact probes caught the remaining ghost House gable: rays previously hit
+  the flat slab at4.855m despite the higher visible roof. Matching rotated roof
+  colliders now return5.39598m on both sampled halves, with a permanent regression.
