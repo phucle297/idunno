@@ -4,13 +4,15 @@
 
 ## Active and planned phases
 
-Phase14 is active: character jump/stop animation stability and explicit startup
-mode/map/outfit preparation. Phase13 is deployed/published; its full evidence is
-archived. Network-timeout investigation remains deferred.
+No implementation phase is active. Phase14 character jump/stop stability and
+startup mode/map/outfit preparation passed all source gates and is pushed;
+it is not deployed/released. Public Phase13 remains unchanged.
+Network-timeout investigation remains deferred.
 
-- [Phase14 — Character Stability and Preparation](checklists/phase-14-character-stability-and-preparation.md)
+- [Phase14 — Character Stability and Preparation](old-docs/phase-14-character-stability-and-preparation/checklist.md)
   — reported animation defects, pre-match selection, acknowledged equipment and
-  regression/source delivery. Public Phase13 is unchanged by local implementation.
+  regression/source delivery completed:57 Godot suites,6 matrices, managed20 and
+  41 Python tests; [full evidence](old-docs/phase-14-character-stability-and-preparation/progress.json).
 - [Phase 13 — Larger, Connected and Detailed Toy Town](old-docs/phase-13-map-physical-design-and-detail/checklist.md)
   — both-map runtime inventory, garage walk-through reproduction, the historical16-building
   audit samples, the current19-building plus garage door-to-door layout contract, and

@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-16",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "archived_phase_14",
+  "archive": {"phase_id": "phase_14_character_stability_and_preparation", "title": "Stable Character Animation and Pre-Match Preparation", "status": "completed_source_delivery", "archived_at": "2026-10-16T11:24:35Z", "superseded_by": "../../../progress.json", "note": "Historical root-relative paths and earlier pending validation snapshots are retained; final staged-tree evidence below supersedes them."},
+  "previous_phase_archive": {"path": "docs/old-docs/phase-13-map-physical-design-and-detail/progress.json", "status": "completed_agent_gates_and_public_shipment", "source_of_truth": false},
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
+  "development_model": {"hierarchy": ["phase", "milestone", "task"], "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units", "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"], "gate_status_values": ["not_run", "passed", "failed", "blocked"], "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"},
+  "current": {"phase": "phase_14_character_stability_and_preparation", "milestone": "14.3", "task": null},
+  "phase": {
+    "id": "phase_14_character_stability_and_preparation",
+    "title": "Stable Character Animation and Pre-Match Preparation",
+    "status": "completed",
+    "checklist": "docs/checklists/phase-14-character-stability-and-preparation.md",
+    "milestones": [
+      {"id": "14.1", "title": "Stable jump and stop presentation", "status": "completed", "gate": "passed", "evidence": "Reproduced one-shot restarts and affine face blend distortion. Generated component tracks and symmetric held air poses; CHARACTER_ANIMATION_OK67 including interrupted shove/get-up and repeat setup."},
+      {"id": "14.2", "title": "Explicit startup mode/map/outfit preparation", "status": "completed", "gate": "passed", "evidence": "STARTUP_MENU_OK17: no timer/director before play, actual starter equip, map/preset selection, explicit solo start and results-to-lobby. Final720p/1080p startup/equipped/map-selection captures inspected, labels/placeholder fit."},
+      {"id": "14.3", "title": "Integration regression and source delivery", "status": "completed", "gate": "passed", "evidence": "Exact staged-tree hook:57 Godot suites,6 real-peer matrices, managed20/five rematches and41 Python tests passed. Source5296ce2 pushed to main with skip-CI; no deployment/release."}
+    ]
+  },
+  "scope": {"request": "Owner reports jumping arm wobble, face movement on stopping, unavailable equipment and immediate solo instead of a mode/outfit/map menu.", "constraints": "Reuse existing lobby/collection/preset contracts, preserve dedicated authority and CLI network/demo startup. No new model geometry, maps, hazards or infrastructure.", "delivery": "Source commit/push per repository policy. Prior Phase13 deploy/release authorization was fulfilled; no new deployment inferred."},
+  "user_acceptance_waiver": {"date": "2026-10-09", "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Full original waiver preserved in previous phase archive."},
+  "public_delivery": {"revision_url": "https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50", "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4", "endpoint": "https://server.permees.com", "evidence": "docs/old-docs/phase-13-map-physical-design-and-detail/progress.json#phase13_shipment"},
+  "validation": [
+    {"command": "godot --headless --path . --script res://tests/test_character_animation.gd", "status": "passed", "result": "CHARACTER_ANIMATION_OK checks=67. Takeoff held0.6s, falling cycle, walk/run-to-idle face stability, cue interruption and idempotent setup."},
+    {"command": "godot --headless --path . --script res://tests/test_startup_menu.gd", "status": "passed", "result": "STARTUP_MENU_OK checks=17; rendered same scenario with xvfb and Dummy audio. Initial immediate shutdown retained WAV playback resources; fixture now drains audio before freeing, rendered log clean apart from software V-Sync warning."},
+    {"command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh and serial continuation", "status": "failed", "result": "Initial stop: map-detail rematch assertions assumed automatic solo startup. Subsequent continuation caught obsolete preparation-close expectation and audio test assuming no prior focus cue/voice index0. Fixtures now explicitly start active rounds; preparation must remain open, audio assertions measure relative effects and actual reused voice. No production authority/audio weakened. Later suites passing; final staged-tree regression pending."},
+    {"command": "xvfb-run Godot tests/test_startup_menu.gd --capture-menu with720p/1080p and Dummy audio", "status": "passed", "result": "STARTUP_MENU_OK17 at both widths. All six final startup/equipped/map-mode captures inspected; no clipping or HUD overlap. Shortened room-ID placeholder after initial1080p inspection caught truncation. .amp/in/artifacts/character-menu/; software V-Sync warning only."},
+    {"command": "xvfb-run Godot scratch manual animation sampler; ffmpeg frame sequence", "status": "passed", "result": "CHARACTER_RENDER_OK138 frames sampled30Hz, final animation.mp4 inspected: stable held takeoff/falling, run-to-idle face remains attached. Oblique projection accounts for screen arm length difference; equal rotations asserted. Three-frame shove interruption not legible at video sampling; its restoration is covered by focused numerical regression, not claimed visually proven."},
+    {"command": "GODOT_BIN=scratch-Dummy-wrapper xvfb-run python3 tests/run_pointer_input_test.py --role offline|host|client", "status": "passed", "result": "POINTER_OS_INPUT_OK for all three roles, actual X11 clicks/motion/keys: startup Play Solo, camera, pause/settings/resume/focus and server-loss return to preparation then explicit solo Start. No audible-audio claim."},
+    {"command": "Repeat generator9 character-only seed297; archive/links/manifest validation", "status": "passed", "result": "CHARACTER_GENERATION_DETERMINISTIC_OK byte-identical. PHASE13_ARCHIVE_PAYLOAD_OK all27 original keys preserved except historical source/workflow flags; tracking Markdown targets, JSON and character SHA256 match."},
+    {"command": "Serial remaining Godot suites followed by git commit with .githooks/pre-commit enabled", "status": "passed", "result": "UI_REGRESSION_OK suites=57 matrices=6 managed_clients=20 persistence_restart=passed. All41 Python tests passed in248.154s. PRE_COMMIT_OK staged_tree=216a38be17b6a570062e9d4f18b8750ef512204c. Full clean staged snapshot supersedes earlier fixture-assumption failures; no gate bypass. Log:.scratch/character-menu/commit.log."},
+    {"command": "git push origin main", "status": "passed", "result": "Source pushed successfully. No workflow dispatch, tags, public package or deployment performed."},
+    {"command": "JSON/archive payload, Markdown targets, idle-state and staged-gate marker assertions; git diff --check", "status": "passed", "result": "PHASE14_TRACKING_OK payload_preserved=true links=true idle=true staged_gate=true. Prior validation payloads and decision body retained; all milestones passed; fresh root contains no completed validation diary."}
+  ],
+  "source_delivery": {"revision_url": "https://github.com/phucle297/idunno/commit/5296ce2b81f711ef2f426768c6e97fc53255f687", "branch": "main", "pushed": true, "deployed": false, "released": false},
+  "changed_files": ["game/main.gd", "game/player/toy_character_visual.gd", "scenes/main.tscn", "assets/generated/CHR_Base_v001.tscn", "tools/asset_generation/generate_assets.gd", "assets/manifest.json", "tests/test_character_animation.gd", "tests/test_startup_menu.gd", "tests (explicit active-gameplay fixture setup)", "progress.json", "docs/checklists/phase-14-character-stability-and-preparation.md", "docs/decisions.md", "docs/old-docs/phase-13-map-physical-design-and-detail", "docs/implementation-checklist.md", "docs/old-docs/README.md", "GUIDE.md", "NEED_REAL_CHECK.md"],
+  "blockers": [],
+  "limits": ["Native Windows/GPU/audio and human animation feel unverified.", "Earlier intermittent packet-loss timeout remains deferred; this task does not investigate it.", "Software rendering does not establish60FPS."],
+  "next_action": "Await owner feedback or explicit authorization for a matching Phase14 deployment/release."
+}

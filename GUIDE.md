@@ -14,7 +14,7 @@ longer blends the face as an affine transform. This is not in the public ZIP bel
 [775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
 Download `DisasterParty-Windows-Internet-775f6c4.zip` from the
 [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4);
-root `progress.json` records hashes and
+the [Phase13 archive](docs/old-docs/phase-13-map-physical-design-and-detail/progress.json) records hashes and
 [successful deployment](https://github.com/phucle297/idunno/actions/runs/38873953399).
 This bundle uses the byte-exact deployed PCK. It includes144m Toy Town with19 enclosed
 buildings, furnished interiors, solid garage/furniture/curbs, connected service courts
@@ -105,9 +105,11 @@ Double-click `DisasterParty.exe`, or launch from its package folder:
 .\DisasterParty.exe --log-file solo.log
 ```
 
-The solo match starts automatically and continues until death or timeout; having
-one player does not immediately declare a winner. The first warning can appear
-after about 10 seconds. Use **L** to open the lobby for network play.
+The public Phase13 package starts solo automatically. Phase14 source instead
+opens preparation: choose map, match mode and outfit, then **PLAY SOLO**; developers
+can pass `--solo` for explicit immediate play. Once started, solo continues until
+death or timeout; one player does not immediately declare a winner. The first
+warning can appear after about10 seconds. Use **L** to open the lobby for network play.
 Developers can still run `godot --path .`; see `README.md` for build commands.
 
 ## Create or join a room
@@ -214,7 +216,7 @@ The HUD shows health at bottom-left, match time at top-center, and alive players
 
 When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
 
-The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **START MATCH** to resume solo play. Every peer can open **SETTINGS** from results or the local pause menu. Master, effects and warning volume, mouse sensitivity, invert-Y, camera shake, fullscreen and reduced motion save automatically across restarts. Opening the menu blocks only your input: hazards, networking and the match timer keep running. Reduced motion disables UI transitions and camera shake; warning identity and audio remain available.
+The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **PLAY SOLO** to resume solo play. Every peer can open **SETTINGS** from results or the local pause menu. Master, effects and warning volume, mouse sensitivity, invert-Y, camera shake, fullscreen and reduced motion save automatically across restarts. Opening the menu blocks only your input: hazards, networking and the match timer keep running. Reduced motion disables UI transitions and camera shake; warning identity and audio remain available.
 
 **Windowed Resolution** selects client-window pixels: 1280×720, 1366×768, 1600×900, 1920×1080 or 2560×1440 when the desktop and native window frame fit. Smaller displays get a fitting fallback. Manual sizes are remembered as custom choices; changing audio/input settings does not undo resizing. The selector is disabled in fullscreen, and returning to windowed restores the last windowed size. This is not internal render scaling.
 

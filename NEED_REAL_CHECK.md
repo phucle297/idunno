@@ -1,8 +1,10 @@
 # Báo lỗi khi gặp thực tế
 
-**Source Phase14 đang kiểm tra (chưa release):** sửa tay khi nhảy, mặt khi dừng và
+**Source Phase14 đã push, chưa deploy/release:** [source](https://github.com/phucle297/idunno/commit/5296ce2b81f711ef2f426768c6e97fc53255f687)
+sửa tay khi nhảy, mặt khi dừng và
 menu chuẩn bị chọn solo/phòng, map, chế độ trận, trang phục. Khi có build matching,
 nếu còn lỗi hãy ghi lúc nhảy/rơi/dừng hay ngắt shove/get-up và bộ đồ đang dùng.
+57 suite/6 matrix/managed20 và41 Python pass; [evidence](docs/old-docs/phase-14-character-stability-and-preparation/progress.json).
 Automation/render Linux không thay cảm nhận animation hoặc Windows/GPU thật.
 Không thêm checklist bắt buộc, không tự áp dụng báo lỗi này thành pass.
 

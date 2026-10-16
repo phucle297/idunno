@@ -22,11 +22,16 @@ No new geometry, gameplay rules or infrastructure. DESIGN remains authoritative.
 
 ## 14.3 — Regression and source delivery
 
-- [ ] Full Godot/Python and real-peer matrices including dedicated startup/rematches.
+- [x] Full Godot/Python and real-peer matrices including dedicated startup/rematches.
 - [x] Inspect final720p/1080p menu/outfit/map-selected captures and character animation recording.
 - [x] Review diff, manifest checksums, JSON, archive preservation and tracking links.
-- [ ] Commit/push source with verified staged-tree hook. No new deploy/release assumed.
+- [x] Commit/push source with verified staged-tree hook. No new deploy/release assumed.
+
+Final gate:57 Godot suites,6 network matrices, managed20/five rematches,
+settings restart and41 Python tests passed against the staged tree.
+[Source](https://github.com/phucle297/idunno/commit/5296ce2b81f711ef2f426768c6e97fc53255f687)
+is pushed; public Phase13 remains unchanged. Full evidence is in [progress](progress.json).
 
 Linux llvmpipe and automation do not prove Windows/GPU60FPS/audio or human feel.
-Existing user waiver is preserved; [NEED_REAL_CHECK](../../NEED_REAL_CHECK.md)
+Existing user waiver is preserved; [NEED_REAL_CHECK](../../../NEED_REAL_CHECK.md)
 does not add a required acceptance gate.
