@@ -106,8 +106,8 @@ The subsequent [collision follow-up](docs/old-docs/phase-8-collision-followup/ch
 adds solid rails, bushes/planters, lamps, vents and Harbor cargo.
 Release validation corrected blocked ramp approaches/crate crossings by leaving
 stair presentation rails decorative over solid ramp slabs; other rails remain solid.
-Full CI and public admission/Ready/Start pass. [Phase12 movement drops](docs/checklists/phase-12-match-powerup-drops.md)
-are implemented in source and finishing local validation: temporary random
+Full CI and public admission/Ready/Start pass. [Phase12 movement drops](docs/old-docs/phase-12-match-powerup-drops/checklist.md)
+have passed technical/local-package gates and source delivery: temporary random
 Speed (+20% walk/sprint,12s) and Jump (+20% height,10s), not permanent cosmetic stats.
 Collection is automatic and server-authoritative; one buff at a time, same type
 refreshes and another type replaces. They are not in the public Phase11 build;

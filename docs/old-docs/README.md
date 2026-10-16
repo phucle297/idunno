@@ -8,6 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 12 — Movement Power-Ups | [Checklist](phase-12-match-powerup-drops/checklist.md) | [Decisions](phase-12-match-powerup-drops/decisions.md) | [Progress](phase-12-match-powerup-drops/progress.json) |
 | 0 — Init Project | [Checklist](phase-0-init-project/checklist.md) | [Decisions](phase-0-init-project/decisions.md) | [Progress](phase-0-init-project/progress.json) |
 | 1 — UI Identity and Feedback | [Checklist](phase-1-ui-identity-and-feedback/checklist.md) | [Decisions](phase-1-ui-identity-and-feedback/decisions.md) | [Progress](phase-1-ui-identity-and-feedback/progress.json) |
 | 3 — Player-Caused Chaos | [Checklist](phase-3-player-caused-chaos/checklist.md) | [Decisions](phase-3-player-caused-chaos/decisions.md) | [Progress](phase-3-player-caused-chaos/progress.json) |
@@ -25,6 +26,11 @@ new follow-up evidence belongs in a separately named archive.
 | 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 | 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
+
+Phase12 completed all four technical/local-package gates and source push with
+skip-CI on2026-10-15:54 suites/6 matrices/managed20/41 Python, both-map2/4/8/20 peers,
+24 inspected renders and matching125-entry PCK packages. No public deployment/release;
+native Windows/GPU/audio/human/separate-network acceptance remains unverified.
 
 Phase11 completed all four agent-owned milestones, source push, exact-head EC2
 deployment and [matching prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1)

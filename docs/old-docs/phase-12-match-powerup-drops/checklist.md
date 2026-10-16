@@ -1,6 +1,7 @@
 # Phase 12 — Random In-Match Movement Power-Ups
 
-Status: implementation active after owner continuation2026-10-15; not deployed.
+Status: all four technical/local-package gates complete2026-10-15; source pushed,
+not publicly deployed/released. Native/human acceptance remains unverified.
 Number12 preserves the existing roadmap numbering without renumbering9–11.
 
 ## Outcome / boundaries
@@ -82,10 +83,10 @@ Load asset-validation skill before creating pickup visuals and record provenance
 
 ## 12.4 — Integration / package gates
 
-- [ ] Both maps actual2/4/8/20 peers, simultaneous claims, late snapshots,5 rematches,
+- [x] Both maps actual2/4/8/20 peers, simultaneous claims, late snapshots,5 rematches,
   crash retry/owner departure; cosmetics/profile/rewards remain unchanged.
-- [ ] Hazard/boundary/route regression, CPU/snapshot/body/effect/memory measurements.
-- [ ] Matching client/server exports and standalone lifecycle; source delivery separate
+- [x] Hazard/boundary/route regression, CPU/snapshot/body/effect/memory measurements.
+- [x] Matching client/server exports and standalone lifecycle; source delivery separate
   from public deploy/release. No unexecuted GPU/human difficulty approval inferred.
 
 Evidence so far:105 movement/authority assertions,111 presentation assertions and24
@@ -94,8 +95,15 @@ rematches.83 room-UI and82 powered-collision checks pass. Scratch negative cases
 cover occupied/meteor/invalid support/skip backlog/expiry/cap/knockdown/boundary.
 Forced20buffs+6drops p95 tick219us Town/197us Harbor; serialized snapshots4324/4148B
 use the existing oversized-packet fallback. Eight warmed rematches per map retain
-zero node/orphan growth;204 mesh triangles/token, no pickup bodies. Full regression,
-managed crash-retry/owner departure and committed-HEAD packages remain pending.
+zero node/orphan growth;204 mesh triangles/token, no pickup bodies. Final staged gate
+passes54 suites/6 matrices/managed20/five rematches/owner transfer/crash retry/settings
+restart and41 Python tests. Committed-HEAD Windows/Linux exports have byte-identical
+125-entry PCKs, independent payload hashes and fresh ZIP/TAR manifest verification.
+Standalone Linux lifecycle and local profile restart/reward/equipment isolation pass.
+Exact PCK105/111/4142 checks plus both-map two-peer/five-rematch network pass.
+[Source](https://github.com/phucle297/idunno/commit/3b45765cdcbf47f3f0cbae6666f8cc85e5a83ef0)
+is pushed with skip-CI. Local packages `.amp/in/artifacts/phase12-packages` must not be
+mixed with public Phase11. Full logs/failures/hashes are preserved in progress.
 
 Human feel/balance and native GPU acceptance remain unverified under the existing
 waiver; do not add mandatory human checklists or treat proposed defaults as tested.

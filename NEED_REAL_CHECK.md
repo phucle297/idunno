@@ -1,12 +1,13 @@
 # Báo lỗi khi gặp thực tế
 
-**Phase12 đang chốt gate kỹ thuật/local (2026-10-15):** Speed (+20% chạy12s) và
+**Phase12 hoàn tất gate kỹ thuật/local, source đã push (2026-10-15):** Speed (+20% chạy12s) và
 Jump (+20% độ cao10s) đã implement, một buff/người, nhặt cùng loại làm mới thời gian,
 khác loại thay thế. Test105/111 và cả hai map2/4/8/20 peer/five rematches đã pass;
-ảnh720p/1080p được inspect. Regression/package cuối đang chạy; **chưa deploy/release**,
+ảnh720p/1080p được inspect.54 suite/6 matrix/managed20 và41 Python pass; matching
+Windows/Linux125-entry PCK và standalone lifecycle đã kiểm tra; **chưa deploy/release**,
 public vẫn Phase11 bên dưới. Không ghép client Phase12 với server public Phase11.
 Native Windows/GPU/60FPS/audio/người thật/hai mạng riêng chưa xác minh; waiver cũ
-giữ nguyên, không thêm checklist bắt buộc. [Theo dõi Phase12](docs/checklists/phase-12-match-powerup-drops.md).
+giữ nguyên, không thêm checklist bắt buộc. [Evidence Phase12](docs/old-docs/phase-12-match-powerup-drops/progress.json).
 
 **Bản public mới nhất — Phase11 (2026-10-15):**
 [6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600)
