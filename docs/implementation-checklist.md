@@ -5,7 +5,19 @@
 ## Active and planned phases
 
 No active phase. Phase12 completed technical/local-package gates and source push;
-public Phase11 remains unchanged. No further implementation phase is scheduled.
+public Phase11 remains unchanged. The owner has deferred network investigation and
+requested a full-map collision/placement audit followed by a detailed improvement plan.
+
+- [Phase 13 proposal — Larger, Connected and Detailed Toy Town](checklists/phase-13-map-physical-design-and-detail.md)
+  — both-map runtime inventory, garage walk-through reproduction, all16 building
+  door/roof samples and39 inspected captures recorded. The plan covers collision,
+  area-specific interiors and regression/performance. Latest owner direction narrows
+  implementation planning to **Toy Town only**; Harbor content is deferred. Oracle
+  review informs the candidate144m footprint, compact13m frontage pitch, four added
+  functional blocks and redesigned real bridges/curbs/landings/collapse cuts.
+  **Planning only; implementation has not started or been inferred as authorized.**
+  Findings and existing shutdown-resource diagnostics remain open. Current action
+  lives only in root `progress.json`; no new build/deployment or human pass is claimed.
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
