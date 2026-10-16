@@ -17,10 +17,10 @@ public Phase11 remain unchanged; network-timeout investigation is deferred.
   review informs the candidate144m footprint, compact13m frontage pitch, four added
   functional blocks and redesigned real bridges/curbs/landings/collapse cuts.
   Plan committed/pushed;144m Town,13m frontage pitch, four functional courts,
-  solid furniture and real elevated bridges are implemented and under final
-  normal-clock regression/render/profile validation. Current action and exact
-  results live only in root `progress.json`. Source delivery is authorized;
-  no new public build/deployment or human pass is claimed.
+  solid furniture and real elevated bridges are implemented; full normal-clock
+  regression and follow-up damaged-bridge review passed. Current action and exact
+  results live only in root `progress.json`. Owner now explicitly authorizes
+  deployment and release after review; hardware/human acceptance is not implied.
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
