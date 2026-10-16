@@ -4,11 +4,17 @@
 
 ## Active and planned phases
 
-Phase15 is active: approved A-direction fullscreen Home and separate Choose Map,
-followed by owner-authorized matching deployment/release. Public Phase13 stays
-unchanged until shipment passes. Network-timeout investigation remains deferred.
+No active phase. Phase15 source, matching public deployment and prerelease are
+complete; await the owner's next scope. Network-timeout investigation remains deferred.
 
-- [Phase15 — Home and Map Selection](checklists/phase-15-home-and-map-selection.md)
+## Recently completed phases
+
+- [Phase15 — Home and Map Selection](old-docs/phase-15-home-and-map-selection/checklist.md)
+  — independent Home/Choose Map, live equipped avatar and explicit start;
+  57 suites/6 matrices/managed20/41 Python, inspected720p/1080p and exact-deployed
+  PCK renders, standalone lifecycle and public two-client movement passed.
+  Matching [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938)
+  published; [full evidence](old-docs/phase-15-home-and-map-selection/progress.json).
 
 - [Phase14 — Character Stability and Preparation](old-docs/phase-14-character-stability-and-preparation/checklist.md)
   — reported animation defects, pre-match selection, acknowledged equipment and

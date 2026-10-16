@@ -1,34 +1,37 @@
 # Disaster Party Play Guide
 
-## Source update — dedicated Home and Choose Map (shipment pending)
+## Current release — dedicated Home and Choose Map
 
-The source opens on fullscreen Home with the equipped character. **PLAY SOLO**
+The game opens on fullscreen Home with the equipped character. **PLAY SOLO**
 opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor and
 Normal/Hard, then **START SOLO**. **BACK** preserves choices. **MULTIPLAYER**
 opens the existing Create/Join room flow. **OUTFITS** previews and equips owned
 items before play. Four starter items are available offline; earned costumes still
 require acknowledged ownership in a profile-enabled room. `--solo` explicitly
 starts an offline round for automation. Jump/fall poses are held and stopping no
-longer blends the face as an affine transform. This is not in the public ZIP below.
+longer blends the face as an affine transform. These Phase14 fixes are included.
 
-2026-10-16: **Phase13 Expanded Toy Town is deployed and published** from
-[775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
-Download `DisasterParty-Windows-Internet-775f6c4.zip` from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4);
-the [Phase13 archive](docs/old-docs/phase-13-map-physical-design-and-detail/progress.json) records hashes and
-[successful deployment](https://github.com/phucle297/idunno/actions/runs/38873953399).
+2026-10-16: **Phase15 Home and Choose Map is deployed and published** from
+[3e2d938](https://github.com/phucle297/idunno/commit/3e2d93898aff300f5f86dc41b737473329423876).
+Download `DisasterParty-Windows-Internet-3e2d938.zip` from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938);
+the [Phase15 archive](docs/old-docs/phase-15-home-and-map-selection/progress.json) records hashes and
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/38910303214).
 This bundle uses the byte-exact deployed PCK. It includes144m Toy Town with19 enclosed
 buildings, furnished interiors, solid garage/furniture/curbs, connected service courts
 and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
-needed. Current builds default to dedicated-room create/join by ID;
-`https://server.permees.com` is built in. Extract the matching Phase13 bundle and run
+needed. Home offers solo preparation or dedicated-room create/join by ID;
+`https://server.permees.com` is built in. Extract the matching Phase15 bundle and run
 `DisasterParty.exe`; older bundles, including the historical
 [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
 are incompatible. Public two-client exact-PCK
 Linux editor-driven smoke passed, not native Windows/separate-network acceptance.
+Public profile storage remains disabled; starter outfits work, but durable earned
+inventory requires an explicitly profile-enabled room service. Isolated local
+profile/reward package tests do not establish public persistence.
 Task 2.2.7's `94ad2fd` bundles and older `7eb1f25` direct-IP ZIP are historical.
 No lobby browser, Steam invites or
 NAT traversal is implemented.

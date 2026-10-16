@@ -1,10 +1,7 @@
 # Active phase decisions
 
-## Phase15 — Approved A direction, two pages
+No active phase; waiting for the owner's next scoped request.
 
-Home is a dedicated opaque full-canvas surface, not a room dialog over gameplay.
-Play Solo leads to Choose Map; only Start begins the round. Map/mode selections
-survive Back. Multiplayer uses existing authoritative room preparation. Actual
-map renders and the live equipped model replace concept illustrations. No new
-gameplay rules, earned inventory bypass or online claims. Owner authorizes
-commit/push and matching public release/deployment after validation.
+The completed Home/Choose Map implementation and public-shipment decisions are
+archived in [Phase15](old-docs/phase-15-home-and-map-selection/decisions.md).
+Root `progress.json` remains the operational source of truth.

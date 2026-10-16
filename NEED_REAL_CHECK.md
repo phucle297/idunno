@@ -1,5 +1,23 @@
 # Báo lỗi khi gặp thực tế
 
+**Bản public hiện tại — Phase15 Home và Choose Map (2026-10-16):**
+[source](https://github.com/phucle297/idunno/commit/3e2d93898aff300f5f86dc41b737473329423876)
+đã commit/push/deploy và [publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938).
+Tải `DisasterParty-Windows-Internet-3e2d938.zip`, giải nén hết rồi chạy EXE cạnh PCK.
+Home độc lập → Play Solo → Choose Map → Start Solo; Back giữ lựa chọn.
+Outfits có preview nhân vật thật; gồm sửa tay khi nhảy/mặt khi dừng của Phase14.
+Multiplayer dùng `https://server.permees.com`; mọi người phải dùng cùng bản mới.
+57 suite/6 matrix/managed20/41 Python, chuột X11 thật, ảnh720p/1080p,
+exact-deployed-PCK render, standalone Linux và public2 client Ready/Start/movement
+đã pass; tag/asset đã tải lại so byte/hash. [Evidence](docs/old-docs/phase-15-home-and-map-selection/progress.json).
+Public profile storage vẫn tắt như trước; test profile/reward local không phải
+xác nhận inventory earned được lưu trên public. Không suy thành Windows gốc,
+GPU/60FPS/audio/cảm nhận animation hoặc hai mạng riêng đã pass. Giữ waiver cũ,
+không thêm checklist bắt buộc. Nếu gặp lỗi, ghi build, màn hình/map, trang phục,
+thao tác và lúc nhảy/rơi/dừng hay mất kết nối; ảnh/video nếu thuận tiện.
+
+Các mục bên dưới là snapshot lịch sử, không phải trạng thái public hiện tại.
+
 **Source Phase14 đã push, chưa deploy/release:** [source](https://github.com/phucle297/idunno/commit/5296ce2b81f711ef2f426768c6e97fc53255f687)
 sửa tay khi nhảy, mặt khi dừng và
 menu chuẩn bị chọn solo/phòng, map, chế độ trận, trang phục. Khi có build matching,

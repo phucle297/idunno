@@ -8,6 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 15 — Home and Map Selection (deployed/released) | [Checklist](phase-15-home-and-map-selection/checklist.md) | [Decisions](phase-15-home-and-map-selection/decisions.md) | [Progress](phase-15-home-and-map-selection/progress.json) |
 | 14 — Character Stability and Preparation (source only) | [Checklist](phase-14-character-stability-and-preparation/checklist.md) | [Decisions](phase-14-character-stability-and-preparation/decisions.md) | [Progress](phase-14-character-stability-and-preparation/progress.json) |
 | 13 — Expanded Toy Town | [Checklist](phase-13-map-physical-design-and-detail/checklist.md) | [Decisions](phase-13-map-physical-design-and-detail/decisions.md) | [Progress](phase-13-map-physical-design-and-detail/progress.json) |
 | 12 — Movement Power-Ups | [Checklist](phase-12-match-powerup-drops/checklist.md) | [Decisions](phase-12-match-powerup-drops/decisions.md) | [Progress](phase-12-match-powerup-drops/progress.json) |

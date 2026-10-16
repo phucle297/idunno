@@ -2,14 +2,17 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-16: **Phase13 Expanded Toy Town is deployed and published** at
-`https://server.permees.com` from [775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
+2026-10-16: **Phase15 Home and Choose Map is deployed and published** at
+`https://server.permees.com` from [3e2d938](https://github.com/phucle297/idunno/commit/3e2d93898aff300f5f86dc41b737473329423876).
 Download the matching Windows ZIP from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38873953399), final55-suite/41-Python
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38910303214), final57-suite/41-Python
 regression and public two-client exact-PCK smoke pass. Old clients are incompatible.
-Includes Phase12 Speed/Jump drops and the enlarged, furnished Toy Town.
-Package hashes/evidence are in root `progress.json`.
+Includes independent Home → Choose Map → Start, live equipped character preview,
+Phase14 animation fixes, Phase12 Speed/Jump drops and the enlarged, furnished Toy Town.
+Package hashes/evidence are in the [Phase15 archive](docs/old-docs/phase-15-home-and-map-selection/progress.json),
+linked from root `progress.json`. Public profile storage remains disabled; local
+profile-enabled package validation is not a public persistence claim.
 Earlier delivery statements below describe historical snapshots.
 
 Warned heavy meteors permanently remove bounded,
