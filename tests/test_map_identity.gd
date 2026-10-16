@@ -21,8 +21,7 @@ func _run() -> void:
 	root.multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	await process_frame
 	await process_frame
-	# The game boots straight into a solo match; the map-selection contract
-	# lives at the lobby boundary.
+	# Default startup is already at the pre-match map-selection boundary.
 	server.match_manager.prepare_lobby()
 	client.match_manager.prepare_lobby()
 

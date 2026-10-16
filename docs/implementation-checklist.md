@@ -4,12 +4,14 @@
 
 ## Active and planned phases
 
-Phase13 is active: the owner approved the Toy Town plan and explicitly requested
-its commit followed by implementation through completion. Phase13 is now deployed
-and published with matching packages, including Phase12 power-ups; the previous
-public Phase11 is superseded. Network-timeout investigation remains deferred.
+Phase14 is active: character jump/stop animation stability and explicit startup
+mode/map/outfit preparation. Phase13 is deployed/published; its full evidence is
+archived. Network-timeout investigation remains deferred.
 
-- [Phase 13 — Larger, Connected and Detailed Toy Town](checklists/phase-13-map-physical-design-and-detail.md)
+- [Phase14 — Character Stability and Preparation](checklists/phase-14-character-stability-and-preparation.md)
+  — reported animation defects, pre-match selection, acknowledged equipment and
+  regression/source delivery. Public Phase13 is unchanged by local implementation.
+- [Phase 13 — Larger, Connected and Detailed Toy Town](old-docs/phase-13-map-physical-design-and-detail/checklist.md)
   — both-map runtime inventory, garage walk-through reproduction, the historical16-building
   audit samples, the current19-building plus garage door-to-door layout contract, and
   inspected captures recorded per phase evidence. The plan covers collision,
@@ -20,7 +22,7 @@ public Phase11 is superseded. Network-timeout investigation remains deferred.
   Plan committed/pushed;144m Town,13m frontage pitch, four functional courts,
   solid furniture and real elevated bridges are implemented; full normal-clock
   regression and follow-up damaged-bridge review passed. Current action and exact
-  results live only in root `progress.json`. Owner-authorized deployment and release
+  results live in its [archive](old-docs/phase-13-map-physical-design-and-detail/progress.json). Owner-authorized deployment and release
   are verified; hardware/human acceptance is not implied.
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim

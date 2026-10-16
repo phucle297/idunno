@@ -11,6 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	_expect(main.start_local_match(), "Collision/rematch fixture explicitly starts solo")
 	main.set_process(false)
 	main.set_physics_process(false)
 	var player := main.get_node("Player") as PartyPlayer

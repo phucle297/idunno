@@ -1,6 +1,11 @@
 # Phase 13 — Toy Town lớn hơn, kết nối chặt và nhiều chi tiết
 
-**Trạng thái: plan đã commit/push; implementation đang qua gate cuối.**
+**Archived: agent gates, source delivery and public shipment completed.**
+Final55-suite/6-matrix/managed20/41-Python, damaged-bridge review and exact-PCK
+shipment evidence live in [progress](progress.json). Native hardware/human checks
+remain unverified. Pending statements below are chronological snapshots.
+
+**Trạng thái lịch sử: plan đã commit/push; implementation đang qua gate cuối.**
 Ngày: 2026-10-16. Source được kiểm tra:
 [`b2f0d12`](https://github.com/phucle297/idunno/commit/b2f0d12f25ef69cc3cfede8c4be46d4500be3e62).
 Không thay `DESIGN.md`, không mở lại điều tra mạng đang được chủ dự án hoãn.
@@ -144,7 +149,7 @@ kiến trúc và bố cục có chủ đích, không bằng cách rải thêm bl
 - Mở rộng biên Town theo candidate ở§0; không thêm map mới, chunk streaming,
   điều khiển xe/cần cẩu, hazard mới hoặc sửa damage/cover chỉ để làm cảnh đẹp hơn.
 - Chưa yêu cầu người dùng chạy lại checklist bắt buộc; waiver trong
-  [NEED_REAL_CHECK.md](../../NEED_REAL_CHECK.md) giữ nguyên. Không suy ra aesthetic approval.
+  [NEED_REAL_CHECK.md](../../../NEED_REAL_CHECK.md) giữ nguyên. Không suy ra aesthetic approval.
 
 ## 2. Audit thực tế: đã kiểm tra gì, chưa chứng minh gì
 
@@ -365,12 +370,12 @@ chỉ có sau implementation và các gate13.1–13.5; hiện chưa đạt/chưa
 
 ### Điểm vào source khi bắt đầu triển khai
 
-- [Town/district/Harbor builders](../../game/main.gd#L2700),
-  [stairs và building shell](../../game/main.gd#L3068),
-  [canopy/detail collision](../../game/main.gd#L3252),
-  [garage/interiors/Harbor kit](../../game/main.gd#L3451).
-- [Map safety](../../tests/test_map_safety.gd),
-  [detail collision](../../tests/test_map_detail_collision.gd),
-  [map variety](../../tests/test_map_variety.gd),
-  [prop feasibility](../../tests/test_prop_role_feasibility.gd),
-  [collapse routes](../../tests/test_terrain_collapse_routes.gd).
+- [Town/district/Harbor builders](../../../game/main.gd#L2700),
+  [stairs và building shell](../../../game/main.gd#L3068),
+  [canopy/detail collision](../../../game/main.gd#L3252),
+  [garage/interiors/Harbor kit](../../../game/main.gd#L3451).
+- [Map safety](../../../tests/test_map_safety.gd),
+  [detail collision](../../../tests/test_map_detail_collision.gd),
+  [map variety](../../../tests/test_map_variety.gd),
+  [prop feasibility](../../../tests/test_prop_role_feasibility.gd),
+  [collapse routes](../../../tests/test_terrain_collapse_routes.gd).

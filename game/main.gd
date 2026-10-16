@@ -221,6 +221,20 @@ func _ready() -> void:
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
 	_load_starter_outfit()
+	# Normal startup is a preparation screen, never an already-running round.
+	# Explicit solo/demo entry points remain available for automation and captures.
+	var immediate_play := (
+		_has_argument("--solo") or _has_disaster_demo_argument()
+		or _has_argument("--spectator-demo") or _has_argument("--four-player-demo")
+		or _has_argument("--lethal") or _has_argument("--knockdown")
+	)
+	if not immediate_play:
+		$Interface/LobbyPanel/Status.text = "Choose your map and match mode, then play solo or create / join a room. Change your outfit before starting."
+		_set_lobby_visible(true)
+		var startup_capture := _argument_value("--capture=")
+		if not startup_capture.is_empty():
+			capture_after_frames(startup_capture, 5)
+		return
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
@@ -1663,7 +1677,7 @@ func _configure_collection() -> void:
 	$Interface.add_child(collection)
 	var lobby_button := Button.new()
 	lobby_button.name = "Collection"
-	lobby_button.text = "COLLECTION"
+	lobby_button.text = "OUTFITS / COLLECTION"
 	lobby_button.position = Vector2(136, 554)
 	lobby_button.size = Vector2(112, 39)
 	lobby_button.add_theme_font_size_override("font_size", 14)
@@ -1826,6 +1840,8 @@ func _set_lobby_visible(visible: bool) -> void:
 	if not visible and room_client.busy:
 		room_client.cancel()
 		$Interface/LobbyPanel/Status.text = "Request cancelled. Create or join when ready."
+	if not _network_mode and match_manager.state == MatchManager.MatchState.LOBBY:
+		visible = true # Leave preparation only through an explicit play action.
 	visible = visible and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyPanel.visible = visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible or (is_instance_valid(pause_settings) and pause_settings.visible) or spectator_controller.active or match_manager.state == MatchManager.MatchState.RESULTS else Input.MOUSE_MODE_CAPTURED
@@ -1875,7 +1891,7 @@ func _input(event: InputEvent) -> void:
 
 func _lobby_focus_controls() -> Array[Control]:
 	var controls: Array[Control] = []
-	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "MapSelect", "PlayerList", "ConnectionMode", "Collection", "Close"]:
+	for node_name: String in ["RoomId", "Password", "Address", "Port", "Host", "Join", "Ready", "Start", "PresetSelect", "MapSelect", "PlayerList", "ConnectionMode", "Collection", "Close"]:
 		var control: Control = $Interface/LobbyPanel.get_node(node_name)
 		if control.visible and control.focus_mode != Control.FOCUS_NONE and not (control is Button and control.disabled):
 			controls.append(control)
@@ -2026,7 +2042,7 @@ func _update_lobby_ui() -> void:
 		panel.get_node(field).visible = _direct_ip_mode
 	for field: String in ["RoomId", "Password", "RoomIdLabel", "PasswordLabel"]:
 		panel.get_node(field).visible = not _direct_ip_mode
-	panel.get_node("Title").text = ("ROOM " + _room_id) if not _room_id.is_empty() else ("DIRECT-IP LOBBY" if _direct_ip_mode else "PLAY WITH FRIENDS")
+	panel.get_node("Title").text = ("ROOM " + _room_id) if not _room_id.is_empty() else ("DIRECT-IP LOBBY" if _direct_ip_mode else ("CHOOSE HOW TO PLAY" if in_lobby and not _network_mode else "PLAY WITH FRIENDS"))
 	panel.get_node("Title").tooltip_text = panel.get_node("Title").text
 	panel.get_node("Host").text = "CREATE" if _direct_ip_mode else "CREATE ROOM"
 	panel.get_node("Join").text = "JOIN" if _direct_ip_mode else "JOIN ROOM"
@@ -2045,6 +2061,7 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
 	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
 	panel.get_node("Start").disabled = not _outfit_pending.is_empty() or ((not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false)
+	panel.get_node("Close").visible = not in_lobby or _network_mode or lobby_demo
 	var map_select: OptionButton = panel.get_node("MapSelect")
 	map_select.visible = in_lobby
 	panel.get_node("MapLabel").visible = in_lobby
@@ -2076,7 +2093,7 @@ func _update_lobby_ui() -> void:
 	$Interface/LobbyBackdrop.visible = panel.visible
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		local_player.local_input_blocked = panel.visible or (is_instance_valid(pause_settings) and pause_settings.visible) or match_manager.state == MatchManager.MatchState.RESULTS
+		local_player.local_input_blocked = panel.visible or collection.visible or (is_instance_valid(pause_settings) and pause_settings.visible) or match_manager.state == MatchManager.MatchState.RESULTS
 	gameplay_hud.present_lobby_overlay(panel.visible)
 	_refresh_lobby_focus()
 

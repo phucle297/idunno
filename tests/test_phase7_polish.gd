@@ -26,21 +26,24 @@ func _run() -> void:
 
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
+	_expect(main.start_local_match(), "Audio/results fixture explicitly starts solo")
 	await process_frame
 	var audio := main.get_node("GameplayAudio") as GameplayAudioController
 	_expect(audio.get_child_count() == 5, "Audio must use one reserved warning voice and four capped effect voices")
 	audio.play_warning("meteor")
 	var reserved_stream := audio._warning_voice.stream
+	var effects_before := audio.effect_play_count
 	for effect_index: int in 8:
 		audio.play_effect(load("res://assets/audio/generated/impact.wav"))
 	_expect(audio.warning_voice_is_reserved(), "Effect overlap must not take the dedicated warning voice")
 	_expect(audio._warning_voice.stream == reserved_stream, "Effect overlap must preserve the active warning stream")
-	_expect(audio.effect_play_count == 8, "Effect pool must accept overlap through bounded voice reuse")
+	_expect(audio.effect_play_count == effects_before + 8, "Effect pool must accept overlap through bounded voice reuse")
+	var countdown_voice: AudioStreamPlayer = audio._effect_voices[audio._next_effect_voice]
 	audio.play_warning_countdown()
-	_expect(audio._effect_voices[0].volume_db == -16.0, "Countdown cue must remain quieter than the dedicated warning voice")
+	_expect(countdown_voice.volume_db == -16.0, "Countdown cue must remain quieter than the dedicated warning voice")
 	for effect_index: int in 4:
 		audio.play_effect(load("res://assets/audio/generated/impact.wav"))
-	_expect(audio._effect_voices[0].volume_db == -7.0, "Reused countdown voice must restore the normal effect volume")
+	_expect(countdown_voice.volume_db == -7.0, "Reused countdown voice must restore the normal effect volume")
 	_expect(audio._warning_voice.stream == reserved_stream and audio.get_child_count() == 5, "Countdown audio must not replace warning audio or expand the voice pool")
 
 	var meteor := main.get_node("MeteorShower") as MeteorShower

@@ -11,6 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
+	_expect(main.start_local_match(), "HUD fixture explicitly starts solo")
 	await process_frame
 	main.set_process(false)
 	main.disaster_director.cleanup()
@@ -90,7 +91,7 @@ func _run() -> void:
 	_expect(root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/Host"), "Buttons must support visible keyboard focus")
 	await _capture("button-focus")
 	main.get_node("Interface/LobbyToggle").pressed.emit()
-	_expect(not main.get_node("Interface/LobbyPanel").visible, "The persistent lobby button must actually close the lobby")
+	_expect(main.get_node("Interface/LobbyPanel").visible, "Preparation cannot dismiss into a world with no active round")
 	main.get_node("Interface/LobbyToggle").pressed.emit()
 	await process_frame
 	_expect(main.get_node("Interface/LobbyPanel").visible and root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/RoomId"), "The persistent lobby button must reopen the lobby and restore field focus")

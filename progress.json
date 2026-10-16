@@ -3,186 +3,37 @@
   "updated_at": "2026-10-16",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "implementing_phase_13",
-  "previous_phase_archive": {
-    "path": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
-    "status": "completed",
-    "source_of_truth": false
-  },
+  "workflow_state": "implementing_phase_14",
+  "previous_phase_archive": {"path": "docs/old-docs/phase-13-map-physical-design-and-detail/progress.json", "status": "completed_agent_gates_and_public_shipment", "source_of_truth": false},
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
-  "development_model": {
-    "hierarchy": ["phase", "milestone", "task"],
-    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
-    "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"],
-    "gate_status_values": ["not_run", "passed", "failed", "blocked"],
-    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
-  },
-  "current": {"phase": "phase_13_map_physical_design_and_detail", "milestone": "13.5", "task": null},
-  "phase": {"id": "phase_13_map_physical_design_and_detail", "status": "in_progress", "checklist": "docs/checklists/phase-13-map-physical-design-and-detail.md"},
-  "planned_phases": [
-    {
-      "id": "phase_13_map_physical_design_and_detail",
-      "title": "Larger, Connected and Detailed Toy Town",
-      "status": "in_progress",
-      "implementation_authorized": true,
-      "maps_in_scope": ["toy_town"],
-      "deferred_maps": ["toy_harbor"],
-      "design_candidate": {"extent_m": 144, "previous_extent_m": 112, "district_frontage_pitch_m": 13, "previous_pitch_m": 15, "additional_buildings": 4, "status": "implemented_pending_final_regression_and_render_profile_gates"},
-      "checklist": "docs/checklists/phase-13-map-physical-design-and-detail.md",
-      "milestones": [
-        {"id": "13.1", "title": "Town expansion/circulation greybox then physical truth", "status": "in_progress", "gate": "not_run", "evidence": "Implemented; map safety233, variety492, prop191 assertions pass. Final normal-clock gate running."},
-        {"id": "13.2", "title": "Distinct functional Town interiors", "status": "in_progress", "gate": "not_run", "evidence": "Implemented module plus solid core furniture; all19 door-to-door controller walks pass; final rendered inspection pending."},
-        {"id": "13.3", "title": "Coherent detailed Town outdoors", "status": "in_progress", "gate": "not_run", "evidence": "Implemented connected service courts, lateral terrace stairs, garden/allotment/picnic loops and physical curbs; final captures pending."},
-        {"id": "13.4", "title": "Whole-Town routes, collapse and crowd acceptance", "status": "in_progress", "gate": "not_run", "evidence": "Collapse18108/278 masks; layout6799 and local20/20 bridge merge2.13s pass. Real-peer regression running."},
-        {"id": "13.5", "title": "Regression, lifecycle and performance", "status": "in_progress", "gate": "not_run"}
-      ]
-    }
-  ],
-  "completed_phase": {
-    "id": "phase_12_match_powerup_drops",
-    "title": "Random In-Match Movement Power-Ups",
-    "status": "completed_source_and_local_packages",
-    "archive": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
-    "qualification": "Four agent-owned gates pass; source pushed, local packages verified. Public Phase11 unchanged. Native Windows/GPU/60FPS/audio/human/separate-network acceptance unverified."
-  },
-  "user_acceptance_waiver": {
-    "date": "2026-10-09",
-    "scope": "Existing manual/user acceptance checklists and baseline-dependent Milestones2.4-2.6",
-    "decision": "User explicitly asks to assume testing for continuation, delete checklists and report bugs later. Cancel required2.4-2.6 work and remove existing manual-check prerequisites for continuation; preserve all actual test outcomes and unresolved technical causes. No human/session/feel result is claimed passed, no speculative tuning, no capacity increase or deployment authorized.",
-    "continuation": "Proceed with gameplay/character-model/terrain investigation without waiting for baseline reports. Existing not_run/blocked human gates are historical unverified state, not a continuation blocker under this override. Technical regression checks still apply to future code changes."
-  },
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
-  "changed_files": ["progress.json", "docs/implementation-checklist.md", "docs/decisions.md", "docs/checklists/phase-13-map-physical-design-and-detail.md", "assets/manifest.json", "game/main.gd", "game/breakable_structure.gd", "game/session/terrain_collapse.gd", "game/world/town_interiors.gd", "game/world/town_partitions.gd", "tests/test_town_layout.gd", "tests/test_map_variety.gd", "tests/test_map_detail_collision.gd", "tests/test_terrain_collapse_routes.gd", "tests/test_disaster_combinations.gd"],
-  "verification_scope": {
-    "request": "Owner asks to double-check everything works; rerun current source and local package gates without inventing a phase or deploying.",
-    "revision": "b2f0d12f25ef69cc3cfede8c4be46d4500be3e62",
-    "status": "completed_with_unresolved_intermittent_stress_timeout",
-    "environment": "Linux orb, Godot 4.7.2 official, Compatibility/llvmpipe, loopback real processes; not native Windows, physical GPU, audible audio or separate Internet networks."
-  },
-  "map_design_audit": {
-    "request": "Owner defers network investigation; audit collision and object placement across the entire map, then propose a detailed repair/enrichment plan. No implementation or deployment requested.",
-    "status": "completed_findings_open_plan_proposed",
-    "maps": ["toy_town", "toy_harbor"],
-    "revision": "b2f0d12f25ef69cc3cfede8c4be46d4500be3e62",
-    "evidence": ".scratch/map-design-audit/",
-    "captures": ".amp/in/artifacts/map-design-audit/",
-    "checklist": "docs/checklists/phase-13-map-physical-design-and-detail.md",
-    "coverage": {"town_visible_meshes": 3006, "town_bodies": 1211, "town_enabled_shapes": 1253, "harbor_visible_meshes": 354, "harbor_bodies": 111, "harbor_enabled_shapes": 142, "mesh_axis_rays": 10080, "focused_rays": 20, "building_door_rays": 32, "building_roof_rays": 16, "rendered_captures": 39, "inspected_contact_sheets": 6},
-    "observations": "Controller crosses Garage ToolShelving on floor from z9.2 to12.061. Ghost furniture confirmed across both maps and8 Town districts; crane tower/jib and raised garden pool have no collision. Curved canopy retains old hidden slab. All16 sampled roof centers supported and32 door center rays clear. Full Sandbox mesh inventory screened, not every non-solid decoration classified as a bug. Interior captures confirm8 repeated district templates and4 empty Town interiors; older Shop/School/House/Warehouse have grass floors. D01-D10 and per-area briefs distinguish confirmed defects, policy questions and detail proposals.",
-    "limits": "Intact-map audit in Linux Compatibility/llvmpipe with Dummy audio. Center-axis rays and independent review cameras do not prove every contact, gameplay-camera angle, crowd case, damaged-state route or native-GPU performance. Future implementation gates remain not_run.",
-    "delivery": "Local planning/tracking edits only; no gameplay source/assets changed, commit, push, new package, release or deployment."
-  },
-  "validation": [
-    {"command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v", "status": "passed", "result": "41 tests in 142.196s, OK; includes room allocator/admission, profiles/rewards/equipment, staged-test selection and real UDP delay proxy. Log: .scratch/double-check/python.log."},
-    {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script res://tests/test_match_powerups_presentation.gd -- --capture-powerups", "status": "passed", "result": "MATCH_POWERUPS_PRESENTATION_OK checks=111 maps=2 widths=2 states=6. All 24 final captures inspected as four contact sheets: readable drops/Speed/refresh/replace Jump/expiry/overlap, no HUD/HP/warning clipping or overlap. .amp/in/artifacts/double-check/{toy_town,toy_harbor}-{720,1080}.png. Software rendering only; expected unsupported V-Sync warning. Log: .scratch/double-check/presentation.log."},
-    {"command": "tools/export_playtest.sh windows|linux-server; cmp Windows/Linux DisasterParty.pck; tests/run_release_linux_test.py with and without --profiles", "status": "passed", "result": "Fresh clean-HEAD exports pass manifests and125-entry PCK checks, byte-identical PCK. Official matching templates downloaded and SHA512 verified. Standalone Linux cache-absent/version rejection/create/join/crash retry/SIGTERM/port reclaim pass; external profile-store restart/reward replay/equipment/isolation pass (synthetic completion). Logs: .scratch/double-check/export-{windows,linux}.log and release{-profiles,}-result.log. Packages are scratch validation outputs, not published delivery; native Windows executable not run."},
-    {"command": "xvfb-run -a python3 tests/run_pointer_input_test.py --role offline", "status": "failed", "result": "POINTER_INPUT_OK checks=14 actual_os_events=true, but strict runner rejects ALSA ERR_CANT_OPEN because orb has no sound card. Preserve .scratch/double-check/pointer-offline.log and pointer-offline/peer.log. Resolved for input validation by selecting Dummy audio below; no production audio change."},
-    {"command": "GODOT_BIN=scratch-wrapper-selecting-Dummy xvfb-run -a python3 tests/run_pointer_input_test.py --role offline|host|client", "status": "passed", "result": "POINTER_OS_INPUT_OK for all three roles with actual X11 events: lobby mouse/camera capture, pause/settings/resume/focus return, plus dedicated server-loss recovery. Strict runtime checks retained. Logs: .scratch/double-check/pointer-dummy-{offline,host,client}.log. Does not verify audible audio."},
-    {"command": "godot --headless --main-pack fresh-linux-export/DisasterParty.pck --script external test_match_powerups.gd|test_terrain_collapse.gd|test_match_powerups_presentation.gd", "status": "passed", "result": "Exact125-entry exported PCK passes105 power-up authority/movement/five-rematch,4142 physical-hole/fall/batch/reset/schedule and111 presentation checks. Logs: .scratch/double-check/pck-test_*.log. Editor-driven exported payload, not native Windows execution."},
-    {"command": "python3 tests/run_movement_latency_test.py --delays 0 100 200 --jitter-ms 20 --loss-every 10 --max-response-ms 50", "status": "failed", "result": "0ms and200ms cases pass response bound (median local response9.89-12.64ms). Initial100ms case times out at server awaiting done; an original player ID was removed before server measurement, consistent with disconnect. No client assertion/error before runner terminates remaining peers. Real UDP proxy drops10% each direction. .scratch/double-check/latency.log and latency/added-100ms preserve evidence. Diagnostic copy with wait-callsite/disconnect logging passes unchanged100ms stress (median12.8/13.0ms); no production or timeout change, root cause not established. Subsequent passes below do not erase this failure. Diagnostic scripts removed after validation; logs retained."},
-    {"command": "python3 tests/run_movement_latency_test.py --delays 100 --jitter-ms 20 --max-response-ms 50; same original runner with --loss-every 10", "status": "passed", "result": "No-loss control and unchanged original packet-loss confirmation both MOVEMENT_LATENCY_OK response-bound. Loss confirmation median owner12.60/guest12.70ms, p95 correction0.108m, maximum correction0.386m; all walk/sprint/reversal/jump/stairs/contact/knockdown/prop-footing/shove assertions pass. Logs: .scratch/double-check/latency-{control,confirm}.log. Initial intermittent100ms failure remains unexplained, not claimed fixed."},
-    {"command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh", "status": "passed", "result": "UI_REGRESSION_OK suites=54 matrices=6 managed_clients=20 persistence_restart=passed. Real2/4/8/20 client match matrix, playable movement/props/ragdoll/health/hazards/death/spectator/results, dedicated five-rematch/recovery, both-map2/4/8/20 power-up matrix, managed20 authority/capacity/five rematches/owner-transfer/crash-retry. Log: .scratch/double-check/regression.log. Existing intermittent shutdown-only ObjectDB/resource diagnostics remain; explicit verbose session-lifecycle and phase7-polish controls exit clean. No unexpected script/runtime errors in inspected gate logs."},
-    {"command": "GODOT_BIN=$(command -v godot) tests/run_terrain_collapse_network_test.sh", "status": "passed", "result": "8/8 cases, Town/Harbor2/4/8/20 real ENet peers; pending/removed acknowledgements, monotonic sequence, client authority no-op and five rematches. TERRAIN_COLLAPSE_ENET_MATRIX_OK. .scratch/double-check/collapse-network.log."},
-    {"command": "GODOT_BIN=$(command -v godot) python3 tests/run_managed_scale_test.py --clients 4 --profiles", "status": "passed", "result": "MANAGED_SCALE_OK profiles=passed reward_open_equip=passed rematches=5 owner_transfer=passed crash_retry=passed retry_equipped_changed_peer_id=passed. Real service/clients;120s reward qualification uses accelerated authority clock, not120s wall-clock human gameplay. .scratch/double-check/managed-profiles.log."},
-    {"command": "bash -n tests/*.sh tools/*.sh .githooks/* (each file); jq empty progress.json assets/manifest.json assets/cosmetic_catalog.json; git diff --check", "status": "passed", "result": "Shell syntax, current JSON documents and whitespace pass. Only tracked edit is this verification record; no gameplay source changed, commit, push, release or deployment performed."},
-    {"command": "docker info; inspect available platform/display/audio", "status": "blocked", "result": "Docker executable exists but daemon socket is unavailable, so container namespace suites were not rerun. Native Windows execution, physical GPU/60FPS, audible sound, real-player sessions and separate Internet networks cannot be validated in this Linux software-rendering orb. Existing acceptance waiver and delivery boundaries unchanged."},
-    {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script res://.scratch/map-design-audit/audit.gd", "status": "passed", "result": "MAP_DESIGN_AUDIT_DONE maps=2 captures=39 observation_failures=0. This reproduces defects, not a claim the map is correct. All3360 visible meshes sampled with10080 axis rays;20 focused probes plus32 doors/16 roofs; actual controller crosses garage shelf. Six contact sheets covering all39 captures inspected directly; interior walls/floors are genuinely sparse/dark, not asserted as camera clipping. inventory.json exported as review data. Log and script: .scratch/map-design-audit/."},
-    {"command": "godot --headless --path . --script res://tests/test_map_identity.gd|test_map_safety.gd|test_prop_role_feasibility.gd|test_terrain_collapse_routes.gd (separate processes)", "status": "passed", "result": "MAP_IDENTITY_OK42; MAP_SAFETY_OK233; PROP_ROLE_FEASIBILITY_OK191; TERRAIN_COLLAPSE_ROUTES_OK2818 walks18 legal_masks278 maps2. No script/runtime diagnostics in these four logs. Current routes passing do not validate collision fidelity of furniture. Logs: .scratch/map-design-audit/test_*.log."},
-    {"command": "godot --headless --path . --script res://tests/test_map_variety.gd|test_map_detail_collision.gd (separate processes, strict diagnostic inspection)", "status": "failed", "result": "Behavior assertions pass: MAP_VARIETY_OK424 and MAP_DETAIL_COLLISION_OK82, both process exit0. Strict wrapper stops after variety because both suites emit2 ObjectDB leaked instances and1 resource-in-use ERROR at shutdown; retained as unclean cleanup, not all-green. No assertion/script error before success markers. Does not invalidate garage/furniture reproduction; no gameplay or test changes made. Logs: .scratch/map-design-audit/test_{map_variety,map_detail_collision}.log."},
-    {"command": "jq empty progress.json; git diff --check; local Markdown target and proposed-phase consistency assertions", "status": "passed", "result": "MAP_PLAN_TRACKING_OK links=passed phase=proposed_only gates=not_run. Four planning/tracking files only; no gameplay/asset changes. Earlier verification history, human waiver and public delivery metadata preserved."
-    },
-    {"command": "Oracle read-only Toy Town layout/source review; inspect builders, collapse partitions, route tests and revised plan; jq empty progress.json; git diff --check; local-link/scope consistency checks", "status": "passed", "result": "Owner narrows scope to Town, requests larger/denser/more detailed layout and bridge/curb redesign. Plan revised to candidate144m/13m frontage pitch/four added functional buildings, connected blocks, real elevated optional bridges, continuous sidewalk/crossing/landing and collapse-aware cuts. Source confirms low plaza bridges retain ground beneath, Civic stairs overlap north road, roofwalk rail clear width2.68m. Oracle's Apartments/Market seam support concern remains source-level, not runtime reproduced. Harbor content deferred; shared-helper regression only. Documentation/source review, not gameplay verification; no source, DESIGN bible, assets or release changed."
-    }
-  ],
-  "blockers": ["Deferred by owner, not a map-planning blocker: blanket packet-loss stability remains unproven after one100ms/20ms-jitter/10%-loss timeout; diagnostic and original confirmations pass without a fix. Preserve failure for later ENet/fixture diagnostics.", "Software llvmpipe60FPS target failed before and after; native Windows/GPU remains unverified, not a fabricated pass. Both original and follow-up staged-tree regression gates passed."],
-  "phase12_delivery": {
-    "status": "source_pushed_local_packages_verified_not_deployed",
-    "revision": "3b45765cdcbf47f3f0cbae6666f8cc85e5a83ef0",
-    "commit_url": "https://github.com/phucle297/idunno/commit/3b45765cdcbf47f3f0cbae6666f8cc85e5a83ef0",
-    "directory": ".amp/in/artifacts/phase12-packages",
-    "windows": "DisasterParty-Windows-Local-3b45765.zip",
-    "windows_sha256": "25655460a3bd0239b44cb3ab5872374d7208dbd803631bcbf800c4afdbc2f2f1",
-    "linux_server": "DisasterParty-Linux-server-3b45765.tar.gz",
-    "linux_sha256": "0ac8cf0bdfedb9144f3d8033e917240dad0b3cb31999143015c3e9263dee0469",
-    "pck_sha256": "fe55499660db23550409bc6f4874139d5843ffe51c14137475b82aad9b2a1bb0",
-    "evidence": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
-    "qualification": "Skip-CI source delivery, no public Phase12 deployment/release. Local clients must not be mixed with public Phase11. All gate logs, recovery incident and full delivery metadata archived."
-  },
-  "phase11_release": {
-    "status": "deployed_and_published_prerelease_verified",
-    "revision": "6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600",
-    "commit_url": "https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600",
-    "workflow": "https://github.com/phucle297/idunno/actions/runs/38741742369",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1",
-    "endpoint": "https://server.permees.com",
-    "evidence": "docs/old-docs/phase-11-meteor-terrain-collapse/progress.json",
-    "full_delivery_metadata": "docs/old-docs/phase-12-match-powerup-drops/progress.json#phase11_release"
-  },
-  "historical_delivery_metadata": {
-    "archive": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
-    "preserved_keys": ["phase11_release", "phase12_delivery", "historical_delivery_metadata"]
-  },
-  "delivery_boundary": "Owner-authorized Phase13 deploy/release is complete and verified (2026-10-16), superseding public Phase11. Existing EC2 capacity/configuration/store settings unchanged; no Steam publication or further deployment authorized.",
-  "phase13_execution": {
-    "status": "source_delivered_review_verified_deployed_published_prerelease",
-    "changes": "144m candidate,13m district pitch, four new courts, solid furniture/garage shelf/pool/canopy, elevated bridge roles, Town-only district geometry clipping, functional interior module with flush floors, House gable contact and garage beam/canopy clearance raised to keep4m arrival usable.",
-    "oracle_review": "Executed source review: corrected terrace roof-ramp approach, rail clear width and rockslide/annex overlap. Collapse cuts72/-30/30 and z-37/32 require vertical clipping of crossing geometry.",
-    "validation": [
-      {"check": "Godot4.7.2 editor import", "status": "passed", "qualification": "Initial import only; rerun after subsequent edits."},
-      {"check": "First focused implementation run", "status": "failed", "qualification": "Identity assertions pass but polygon partition errors; safety catches solid curb blocking GarageRamp. Nil indices and zero-width bounds corrected; curb arrival opening added. Reruns pending."},
-      {"check": "First rendered candidate", "status": "passed", "qualification": "Seven1600x1000 software-render captures generated. Overview/garage/bridge/court inspected; outer circulation and side flights subsequently refined. Final captures pending."},
-      {"check": "Corrected map suites (accelerated fixed60Hz)", "status": "passed", "qualification": "Identity42/safety233/variety492/detail82/prop191/collapse18108 and layout6799 assertions pass. Accelerated audio teardown can emit WAV/playback shutdown diagnostics; no normal-clock claim from this pass. Full regression running."},
-      {"check": "Whole-Town physical contracts", "status": "passed", "qualification": "All19 enclosed doors controller-walked, bridge joints/gaps/rail reset, garage arrival and all cached static mesh/collider single-region ownership.278 legal masks across2 maps;18 escape/remaining-refuge walks."},
-      {"check": "Local crowd/open outdoor sampling", "status": "passed", "command": "godot --headless --path . --script res://.scratch/phase13/crowd.gd", "result": "TOWN_CROWD20/20 in2.13s;4098/5041 samples81.3% on2m grid, excluding roofs/indoors/steep/blocked sites. Approximate sampled outdoor coverage, not exact continuous-area or networking proof."},
-      {"check": "Python regression", "status": "passed", "command": "python3 -m unittest discover -s tests -p 'test_*.py'", "result": "41 tests in247.395s; OK; managed equipment peer lifecycle included."},
-      {"check": "Four-player rendered comparison", "status": "passed", "result": "Same1280x720 Compatibility/llvmpipe,120 warmup/600 samples: before85d5a8d p95 frame472.88ms/process483.13ms/physics0.95ms,4384 draws/6900 nodes; after636.87ms/process637.49ms/physics0.95ms,5889 draws/10404 nodes. Physics stable and7 authoritative bodies unchanged; rendering35% slower with expanded map.60FPS target FAILED in both software-rendered runs; native hardware unknown. This passes measurement, not performance target."},
-      {"check": "House gable contact regression", "status": "passed", "result": "Final review reproduced visible sloping roof unsupported: rays hit hidden slab at y4.855 on both halves. Added matching rotated slab colliders; identical rays now hit visible slopes at y5.39598. Final layout6849 assertions passed including19 flush interior floors."},
-      {"check": "Normal-clock full regression", "status": "passed", "command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh", "result": "UI_REGRESSION_OK suites=55 matrices=6 managed_clients=20 persistence_restart=passed. Map-variety492/detail82 shutdown clean in this normal-clock run. Six real ENet matrices include2/4/8/20 player coverage, both-map powerups and five rematches. Staged-tree exact-source hook now reruns full suite plus Python."},
-      {"check": "Rendered visual inspection", "status": "passed", "result": "Final1600x1000 captures: overview, district/civic/courts/garden, garage, intact/broken bridge,19 interiors, real third-person ground/School/garage/interior/roof cameras and Flood+meteor+tornado gameplay HUD. Directly inspected images/contact sheets. BridgeEast deck/rails gone together; background bridge intentionally intact. Hazard chip text visible; meteor ring intentionally occupies threatened roof. No exhaustive camera/human comprehension claim."},
-      {"check": "Garage overhead clearance", "status": "passed", "result": "Rendered review showed low solid beam/canopy headroom over the arrival. Beams/canopy/columns raised so all arrival lanes keep2.575m solid-beam and2.675m canopy clearance; permanent three-lane overhead rays added. Focused layout/safety checks passed6854/233."},
-      {"check": "Outer court escape timing", "status": "passed", "command": "godot --headless --path . --script tests/test_terrain_collapse_routes.gd --fixed-fps 60", "result": "TERRAIN_COLLAPSE_ROUTES_OK checks=18124 walks=26 legal_masks=278 maps=2. New rooms4.57-5.57s and roofs6.87-9.65s leave warned districts, below15s target and30s warning. Roof routes deliberately turn outside stair rail posts at z±38 rather than clipping them."},
-      {"check": "Exact staged-tree commit gate", "status": "passed", "command": "git commit via .githooks/pre-commit -> tools/test_changed.py", "result": "PRE_COMMIT_OK staged_tree=2be434fb1747f42d55ad8400061e125e0c1365ce then commit24859fe. Full55-suite/6-matrix/managed20/Python rerun on the exact staged snapshot: UI_REGRESSION_OK suites=55 matrices=6 managed_clients=20 persistence_restart=passed; collapse18124/26 walks in snapshot logs."},
-      {"check": "20-peer loopback authority profile", "status": "passed", "command": "PLAYER_COUNTS=20 GODOT_BIN=.scratch/phase13/profile-godot tests/run_playable_scale_test.sh", "result": "PLAYABLE_SCALE_MATRIX_OK map=toy_town players=20 and PLAYABLE_SCALE_SERVER_OK players=20 movement/hud/disaster/cleanup passed; five rematches and owner/crash/retry recovery passed. Server ACTIVE profile after120 warmup:184 samples, p95_process_ms=188.564, p95_physics_ms=29.263 headless loopback. Rendering excluded (headless); native GPU/Internet latency unverified."}
+  "development_model": {"hierarchy": ["phase", "milestone", "task"], "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units", "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"], "gate_status_values": ["not_run", "passed", "failed", "blocked"], "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"},
+  "current": {"phase": "phase_14_character_stability_and_preparation", "milestone": "14.3", "task": null},
+  "phase": {
+    "id": "phase_14_character_stability_and_preparation",
+    "title": "Stable Character Animation and Pre-Match Preparation",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-14-character-stability-and-preparation.md",
+    "milestones": [
+      {"id": "14.1", "title": "Stable jump and stop presentation", "status": "completed", "gate": "passed", "evidence": "Reproduced one-shot restarts and affine face blend distortion. Generated component tracks and symmetric held air poses; CHARACTER_ANIMATION_OK67 including interrupted shove/get-up and repeat setup."},
+      {"id": "14.2", "title": "Explicit startup mode/map/outfit preparation", "status": "completed", "gate": "passed", "evidence": "STARTUP_MENU_OK17: no timer/director before play, actual starter equip, map/preset selection, explicit solo start and results-to-lobby. Final720p/1080p startup/equipped/map-selection captures inspected, labels/placeholder fit."},
+      {"id": "14.3", "title": "Integration regression and source delivery", "status": "in_progress", "gate": "not_run"}
     ]
   },
-  "phase13_followup_review": {
-    "request": "Owner asks for another Toy Town review and immediate fixes for confirmed defects.",
-    "status": "fix_validated_included_in_phase13_shipment",
-    "source_commit": "https://github.com/phucle297/idunno/commit/2eed998",
-    "finding": "Both damaged bridges tilt visible deck/rails while physics stays level; rails keep intact color. Original regression reproduced four contact and16 rail-material failures. Keep railed bridges level and darken rails with deck; retain existing tilt for other breakables.",
-    "validation": [
-      {"command": "godot --headless --path . --script tests/test_town_layout.gd", "status": "passed", "result": "TOWN_LAYOUT_OK checks=6874 after fix, including20 new damaged-state assertions. Original reproduction .scratch/phase13/review-before.log; fixed .scratch/phase13/review-after.log."},
-      {"command": "godot --headless --path . --script tests/test_earthquake.gd", "status": "passed", "result": "EARTHQUAKE_OK checks=96 pulses=1 sections=6; other breakables retain tilt warning."},
-      {"command": "godot --headless --path . --script .scratch/phase13/review.gd", "status": "passed", "result": "REVIEW_VISIBILITY failures=0 across each of9 individual district removals; no surviving visible mesh hidden by a removed ancestor."},
-      {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script .scratch/phase13/review_render.gd", "status": "passed", "result": "REVIEW_RENDER_OK states=intact,damaged,broken,reset production_lighting=true. All four1280x720 captures inspected: level joints/rails and shared damage color, full gap when broken, restored intact bridge. .amp/in/artifacts/phase13/review-bridge-*.png. No capture-only lights added. Temporary visibility/render fixtures removed after validation; logs/captures retained."},
-      {"command": "git commit via .githooks/pre-commit -> tools/test_changed.py", "status": "passed", "result": "PRE_COMMIT_OK staged_tree=d11bc89c978d1abb41f007861ac1e402c13d9777; source commit2eed998. Exact staged snapshot: UI_REGRESSION_OK suites=55 matrices=6 managed_clients=20 persistence_restart=passed;41 Python tests in267.606s OK. .scratch/phase13/review-commit.log."}
-    ],
-    "limits": "Native GPU/performance and human interior readability remain unverified. Review-only checks above preceded shipment; public smoke and package/deployment verification are recorded separately below."
-  },
-  "phase13_shipment": {
-    "status": "deployed_published_prerelease_verified",
-    "authorization": "Owner: after finish, deploy and release",
-    "scope": "Existing EC2 plus matching Windows/Linux GitHub prerelease; no capacity/store/configuration or Steam changes.",
-    "revision": "775f6c42a208afcef0ee424a308a5e1841099c50",
-    "commit_url": "https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50",
-    "workflow": "https://github.com/phucle297/idunno/actions/runs/38873953399",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4",
-    "endpoint": "https://server.permees.com",
-    "directory": ".amp/in/artifacts/phase13-release",
-    "windows": "DisasterParty-Windows-Internet-775f6c4.zip",
-    "windows_sha256": "24b5c63895e28addf19bdd52619a6c87141479716c6e5d40c742801ab5b20a15",
-    "linux_server": "DisasterParty-Linux-server-775f6c4.tar.gz",
-    "linux_sha256": "e137784fffa22325a1e12673fd7031aaed5c67c262a46b5e3b753365fed54a86",
-    "pck_sha256": "1116146228d319a2e92154ca44e7f2a317b790f6997b3151542c875d8acd0f11",
-    "verification": [
-      "Windows/Linux local exports passed129-entry manifest checks. Local PCKs byte-identical; deployed CI PCK contains the same129 entry hashes but differs in container bytes. Windows release uses byte-exact deployed CI PCK and regenerated SHA256SUMS, not the local container.",
-      "Exact deployed PCK passes TOWN_LAYOUT_OK6874. Exact deployed Linux archive passes standalone checksum/version-rejection/create-join/crash-retry/SIGTERM/port-reclaim/cache-absent and external-profile-store restart/reward-replay/equipment/isolation checks; reward fixture synthetic and local only.",
-      "Workflow head matches revision and EXISTING_EC2_DEPLOY_OK backend=passed. Fresh public HTTPS join returns404 unknown_room for unused ID using matching build.",
-      "PUBLIC_TWO_CLIENT_SMOKE_OK exact_deployed_pck=true: owner and guest create/join over HTTPS, ENet admission, ready/start/ACTIVE, local and observed remote displacement3.600m each. Both disconnect; public test room subsequently404 unknown_room. Linux editor-driven clients share one orb/upstream, not native Windows/separate-network proof.",
-      "Draft upload remote SHA256 digests matched all3 local assets before publication. Published release is non-draft prerelease; tag resolves to exact deployed revision. Both archives downloaded again and compared byte-for-byte; Windows ZIP flat manifest/PCK verified after extraction."
-    ],
-    "logs": [".scratch/phase13/deploy.log", ".scratch/phase13/deployed-pck-layout.log", ".scratch/phase13/deployed-lifecycle-result.log", ".scratch/phase13/public-smoke-result.log"],
-    "qualification": "Native Windows/GPU/60FPS/audio/human feel and separate-network acceptance remain unverified. Earlier intermittent packet-loss timeout remains deferred, not fixed. Temporary public-smoke drivers removed after validation; private profile files are ignored and not published. No production profile-store migration or reward fixture used."
-  },
-  "next_action": "Await owner's feedback on the matching Phase13 release; preserve deferred network investigation and hardware/human acceptance limits."
+  "scope": {"request": "Owner reports jumping arm wobble, face movement on stopping, unavailable equipment and immediate solo instead of a mode/outfit/map menu.", "constraints": "Reuse existing lobby/collection/preset contracts, preserve dedicated authority and CLI network/demo startup. No new model geometry, maps, hazards or infrastructure.", "delivery": "Source commit/push per repository policy. Prior Phase13 deploy/release authorization was fulfilled; no new deployment inferred."},
+  "user_acceptance_waiver": {"date": "2026-10-09", "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Full original waiver preserved in previous phase archive."},
+  "public_delivery": {"revision_url": "https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50", "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4", "endpoint": "https://server.permees.com", "evidence": "docs/old-docs/phase-13-map-physical-design-and-detail/progress.json#phase13_shipment"},
+  "validation": [
+    {"command": "godot --headless --path . --script res://tests/test_character_animation.gd", "status": "passed", "result": "CHARACTER_ANIMATION_OK checks=67. Takeoff held0.6s, falling cycle, walk/run-to-idle face stability, cue interruption and idempotent setup."},
+    {"command": "godot --headless --path . --script res://tests/test_startup_menu.gd", "status": "passed", "result": "STARTUP_MENU_OK checks=17; rendered same scenario with xvfb and Dummy audio. Initial immediate shutdown retained WAV playback resources; fixture now drains audio before freeing, rendered log clean apart from software V-Sync warning."},
+    {"command": "GODOT_BIN=$(command -v godot) tests/run_ui_regression.sh and serial continuation", "status": "failed", "result": "Initial stop: map-detail rematch assertions assumed automatic solo startup. Subsequent continuation caught obsolete preparation-close expectation and audio test assuming no prior focus cue/voice index0. Fixtures now explicitly start active rounds; preparation must remain open, audio assertions measure relative effects and actual reused voice. No production authority/audio weakened. Later suites passing; final staged-tree regression pending."},
+    {"command": "xvfb-run Godot tests/test_startup_menu.gd --capture-menu with720p/1080p and Dummy audio", "status": "passed", "result": "STARTUP_MENU_OK17 at both widths. All six final startup/equipped/map-mode captures inspected; no clipping or HUD overlap. Shortened room-ID placeholder after initial1080p inspection caught truncation. .amp/in/artifacts/character-menu/; software V-Sync warning only."},
+    {"command": "xvfb-run Godot scratch manual animation sampler; ffmpeg frame sequence", "status": "passed", "result": "CHARACTER_RENDER_OK138 frames sampled30Hz, final animation.mp4 inspected: stable held takeoff/falling, run-to-idle face remains attached. Oblique projection accounts for screen arm length difference; equal rotations asserted. Three-frame shove interruption not legible at video sampling; its restoration is covered by focused numerical regression, not claimed visually proven."},
+    {"command": "GODOT_BIN=scratch-Dummy-wrapper xvfb-run python3 tests/run_pointer_input_test.py --role offline|host|client", "status": "passed", "result": "POINTER_OS_INPUT_OK for all three roles, actual X11 clicks/motion/keys: startup Play Solo, camera, pause/settings/resume/focus and server-loss return to preparation then explicit solo Start. No audible-audio claim."},
+    {"command": "Repeat generator9 character-only seed297; archive/links/manifest validation", "status": "passed", "result": "CHARACTER_GENERATION_DETERMINISTIC_OK byte-identical. PHASE13_ARCHIVE_PAYLOAD_OK all27 original keys preserved except historical source/workflow flags; tracking Markdown targets, JSON and character SHA256 match."}
+  ],
+  "changed_files": ["game/main.gd", "game/player/toy_character_visual.gd", "scenes/main.tscn", "assets/generated/CHR_Base_v001.tscn", "tools/asset_generation/generate_assets.gd", "assets/manifest.json", "tests/test_character_animation.gd", "tests/test_startup_menu.gd", "tests (explicit active-gameplay fixture setup)", "progress.json", "docs/checklists/phase-14-character-stability-and-preparation.md", "docs/decisions.md", "docs/old-docs/phase-13-map-physical-design-and-detail", "docs/implementation-checklist.md", "docs/old-docs/README.md", "GUIDE.md", "NEED_REAL_CHECK.md"],
+  "blockers": [],
+  "limits": ["Native Windows/GPU/audio and human animation feel unverified.", "Earlier intermittent packet-loss timeout remains deferred; this task does not investigate it.", "Software rendering does not establish60FPS."],
+  "next_action": "Finish remaining serial suites, then run the exact staged-tree commit gate and push verified source without deploying."
 }

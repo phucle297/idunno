@@ -15,6 +15,7 @@ const SUIT_COLORS := [
 var cosmetic_variant := 0
 var current_clip := "idle"
 var _animation_player: AnimationPlayer
+var _clip_started := false
 
 
 static func catalog() -> Dictionary:
@@ -36,7 +37,10 @@ func ensure_runtime_setup() -> void:
 func play_clip(clip_name: String) -> bool:
 	if not clip_name in REQUIRED_CLIPS or not is_instance_valid(_animation_player):
 		return false
-	if current_clip == clip_name and _animation_player.is_playing():
+	# A non-looping presentation (notably takeoff) may finish while the player
+	# is still airborne. Keep its terminal pose until state selection advances
+	# to falling instead of restarting it every process frame.
+	if current_clip == clip_name and _clip_started:
 		return true
 	# Locomotion clips share a gait cycle. When walk/run/idle replace one another
 	# on a rapid Shift edge, restart the new clip at the same normalized phase
@@ -47,6 +51,7 @@ func play_clip(clip_name: String) -> bool:
 		phase = clampf(_animation_player.current_animation_position / _animation_player.current_animation_length, 0.0, 1.0)
 	current_clip = clip_name
 	_animation_player.play(clip_name, 0.12 if previous in LOCOMOTION_CLIPS and clip_name in LOCOMOTION_CLIPS else 0.0)
+	_clip_started = true
 	if clip_name in LOCOMOTION_CLIPS and phase > 0.0:
 		var length := _animation_player.current_animation_length
 		if length > 0.0:
@@ -233,8 +238,27 @@ func _build_animation_library() -> void:
 	add_child(_animation_player)
 	var library := AnimationLibrary.new()
 	for clip_name in REQUIRED_CLIPS:
-		library.add_animation(clip_name, _create_clip(clip_name))
+		var animation := _create_clip(clip_name)
+		_split_transform_tracks(animation)
+		library.add_animation(clip_name, animation)
 	_animation_player.add_animation_library("", library)
+
+
+func _split_transform_tracks(animation: Animation) -> void:
+	# Blend position/rotation/scale separately. Blending affine Transform3D
+	# values distorts the flattened face basis even between identical rest poses.
+	for track in range(animation.get_track_count() - 1, -1, -1):
+		var path := String(animation.track_get_path(track))
+		if not path.ends_with(":transform"):
+			continue
+		for property in ["position", "rotation", "scale"]:
+			var component := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(component, NodePath(path.trim_suffix("transform") + property))
+			for key in animation.track_get_key_count(track):
+				var pose: Transform3D = animation.track_get_key_value(track, key)
+				var value := pose.origin if property == "position" else (pose.basis.orthonormalized().get_euler() if property == "rotation" else pose.basis.get_scale())
+				animation.track_insert_key(component, animation.track_get_key_time(track, key), value)
+		animation.remove_track(track)
 
 
 func _create_clip(clip_name: String) -> Animation:
@@ -392,14 +416,15 @@ func _create_clip(clip_name: String) -> Animation:
 	elif clip_name == "get_up":
 		arm_angle = 0.7
 		leg_angle = 0.5
-	_add_rotation_track(animation, "LeftArm", arm_angle)
-	_add_rotation_track(animation, "RightArm", -arm_angle)
+	var arm_motion := clip_name not in ["jump_takeoff", "falling"]
+	_add_rotation_track(animation, "LeftArm", arm_angle, arm_motion)
+	_add_rotation_track(animation, "RightArm", -arm_angle if arm_motion else arm_angle, arm_motion)
 	if clip_name in ["walk", "run"]:
 		_add_gait_tracks(animation, "Left", 0.0)
 		_add_gait_tracks(animation, "Right", 0.5)
 	else:
-		_add_rotation_track(animation, "LeftLeg", -leg_angle)
-		_add_rotation_track(animation, "RightLeg", leg_angle)
+		_add_rotation_track(animation, "LeftLeg", -leg_angle, arm_motion)
+		_add_rotation_track(animation, "RightLeg", leg_angle if arm_motion else -leg_angle, arm_motion)
 	return animation
 
 
@@ -424,11 +449,11 @@ func _add_gait_tracks(animation: Animation, side: String, offset: float) -> void
 			animation.track_insert_key(tracks[index], sample / 32.0 * animation.length, values[index])
 
 
-func _add_rotation_track(animation: Animation, node_name: String, angle: float) -> void:
+func _add_rotation_track(animation: Animation, node_name: String, angle: float, oscillates := true) -> void:
 	var track := animation.add_track(Animation.TYPE_VALUE)
 	animation.track_set_path(track, NodePath("%s:rotation" % node_name))
 	animation.track_insert_key(track, 0.0, Vector3(angle, 0.0, 0.0))
-	animation.track_insert_key(track, animation.length * 0.5, Vector3(-angle, 0.0, 0.0))
+	animation.track_insert_key(track, animation.length * 0.5, Vector3(-angle if oscillates else angle, 0.0, 0.0))
 	animation.track_insert_key(track, animation.length, Vector3(angle, 0.0, 0.0))
 
 

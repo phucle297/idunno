@@ -19,6 +19,7 @@ func _run() -> void:
 	main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	main.name = "Main"
 	root.add_child(main)
+	_expect(main.start_local_match(), "Room overlay fixture explicitly starts solo")
 	await process_frame
 	_expect(ProjectSettings.get_setting("network/room_service_url", "") == "https://server.permees.com", "Build must configure the public room service without a launcher")
 	var override_url: String = main._argument_value("--room-service-url=")

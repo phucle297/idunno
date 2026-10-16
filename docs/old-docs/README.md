@@ -8,6 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 13 — Expanded Toy Town | [Checklist](phase-13-map-physical-design-and-detail/checklist.md) | [Decisions](phase-13-map-physical-design-and-detail/decisions.md) | [Progress](phase-13-map-physical-design-and-detail/progress.json) |
 | 12 — Movement Power-Ups | [Checklist](phase-12-match-powerup-drops/checklist.md) | [Decisions](phase-12-match-powerup-drops/decisions.md) | [Progress](phase-12-match-powerup-drops/progress.json) |
 | 0 — Init Project | [Checklist](phase-0-init-project/checklist.md) | [Decisions](phase-0-init-project/decisions.md) | [Progress](phase-0-init-project/progress.json) |
 | 1 — UI Identity and Feedback | [Checklist](phase-1-ui-identity-and-feedback/checklist.md) | [Decisions](phase-1-ui-identity-and-feedback/decisions.md) | [Progress](phase-1-ui-identity-and-feedback/progress.json) |

@@ -1,5 +1,15 @@
 # Disaster Party Play Guide
 
+## Source update — character and startup preparation (not yet released)
+
+The source now opens in preparation rather than immediately starting solo. Choose
+**PLAY SOLO**, **CREATE ROOM** or **JOIN ROOM**; select **MATCH MODE** (Normal/Hard)
+and **MAP** before starting. **OUTFITS / COLLECTION** previews and equips owned
+items before play. Four starter items are available offline; earned costumes still
+require acknowledged ownership in a profile-enabled room. `--solo` explicitly
+starts an offline round for automation. Jump/fall poses are held and stopping no
+longer blends the face as an affine transform. This is not in the public ZIP below.
+
 2026-10-16: **Phase13 Expanded Toy Town is deployed and published** from
 [775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
 Download `DisasterParty-Windows-Internet-775f6c4.zip` from the

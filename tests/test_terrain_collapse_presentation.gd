@@ -11,6 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
+	_expect(main.start_local_match(), "Collapse HUD fixture explicitly starts solo")
 	await process_frame
 	main.set_process(false)
 	main.set_physics_process(false)

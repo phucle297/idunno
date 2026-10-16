@@ -18,6 +18,7 @@ func settle() -> void:
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	expect(main.start_local_match(), "Window/settings/results fixture explicitly starts solo")
 	await settle()
 	main.disaster_director.cleanup()
 	var menu = main.pause_settings

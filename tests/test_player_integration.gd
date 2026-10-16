@@ -279,6 +279,7 @@ func _test_knockdown_recovery() -> void:
 func _test_default_scene_offline_input() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
+	_expect(main.start_local_match(), "Offline gameplay fixture explicitly starts from preparation")
 	await process_frame
 	var playable_player := main.get_node("Player") as PartyPlayer
 	_expect(main.get_tree().get_nodes_in_group("landmark").size() >= 4, "Toy Town must expose at least three distinct landmarks plus the pocket park")

@@ -40,10 +40,8 @@ func _run() -> void:
 	player.reset_for_match(Vector3(0.0, 0.05, 7.0))
 	if cosmetics:
 		player.character.set_outfit_id("raincoat")
-	# main.tscn boots into a solo ACTIVE match; stage the roster in LOBBY
-	# first so the extra players can register (register_player rejects
-	# during ACTIVE).
-	match_manager.state = MatchManager.MatchState.LOBBY
+	# Stage the additional players at the normal preparation boundary.
+	match_manager.prepare_lobby()
 	for peer_id: int in [2, 3, 4]:
 		var extra := (load("res://scenes/player.tscn") as PackedScene).instantiate() as PartyPlayer
 		extra.name = "ProfilePlayer%d" % peer_id
@@ -55,9 +53,7 @@ func _run() -> void:
 	for peer_id: int in [1, 2, 3, 4]:
 		match_manager.set_player_ready(peer_id, true)
 	match_manager.start_match()
-	# Boot-time solo auto-start leaves the disaster director scheduling its
-	# own hazards; quiesce it so the profiled overlap is exactly the two
-	# driven hazards and the scenario is deterministic.
+	# Quiesce scheduling so this profile contains only the two driven hazards.
 	main.disaster_director.cleanup()
 	var flood := main.get_node("Flood")
 	var tornado := main.get_node("Tornado")

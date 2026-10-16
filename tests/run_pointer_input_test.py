@@ -80,7 +80,7 @@ def main():
                     x.XSetInputFocus(display, window, 1, 0)
                     x.XFlush(display)
                     time.sleep(.15)
-                    if stage in ('close_lobby', 'settings', 'back', 'close_recovery'):
+                    if stage in ('close_lobby', 'settings', 'back', 'start_solo'):
                         px, py, child = c.c_int(), c.c_int(), c.c_ulong()
                         x.XTranslateCoordinates(display, window, root, int(record['position'][0]), int(record['position'][1]), c.byref(px), c.byref(py), c.byref(child))
                         print(f"POINTER_INJECT stage={stage} client={record['position']} root={[px.value, py.value]}", flush=True)

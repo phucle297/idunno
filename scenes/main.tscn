@@ -565,7 +565,7 @@ offset_top = 520.0
 offset_right = 72.0
 offset_bottom = 540.0
 theme_override_font_sizes/font_size = 14
-text = "PRESET"
+text = "MATCH MODE"
 
 [node name="PresetSelect" type="OptionButton" parent="Interface/LobbyPanel"]
 offset_left = 74.0
@@ -610,7 +610,7 @@ offset_top = 64.0
 offset_right = 180.0
 offset_bottom = 100.0
 max_length = 24
-placeholder_text = "Blank = random ID"
+placeholder_text = "Blank = random"
 
 [node name="Password" type="LineEdit" parent="Interface/LobbyPanel"]
 offset_left = 192.0

@@ -52,10 +52,12 @@ func _run() -> void:
 		# Keep deliberate server-loss recovery inside this fixture's deadline.
 		main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 100, 300)
 	if role == "offline":
-		stage("open_lobby")
-		await wait_for(func() -> bool: return main.get_node("Interface/LobbyPanel").visible, "OS L must open solo lobby")
-	stage("close_lobby", main.get_node("Interface/LobbyPanel/Close"))
-	await wait_for(func() -> bool: return not main.get_node("Interface/LobbyPanel").visible, "Actual OS click must close lobby")
+		expect(main.get_node("Interface/LobbyPanel").visible, "Offline startup opens preparation")
+		stage("start_solo", main.get_node("Interface/LobbyPanel/Start"))
+		await wait_for(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Actual OS click explicitly starts solo")
+	else:
+		stage("close_lobby", main.get_node("Interface/LobbyPanel/Close"))
+		await wait_for(func() -> bool: return not main.get_node("Interface/LobbyPanel").visible, "Actual OS click must close lobby")
 	var player: PartyPlayer = main._player_nodes[main.multiplayer.get_unique_id()]
 	var yaw := player.get_camera_yaw()
 	stage("camera")
@@ -81,8 +83,8 @@ func _run() -> void:
 	if role == "client":
 		stage("server_loss")
 		await wait_for(func() -> bool: return main.get_network_role() == "offline", "Server loss must recover client to offline lobby")
-		stage("close_recovery", main.get_node("Interface/LobbyPanel/Close"))
-		await wait_for(func() -> bool: return not main.get_node("Interface/LobbyPanel").visible, "Actual OS click must close recovered lobby")
+		stage("start_solo", main.get_node("Interface/LobbyPanel/Start"))
+		await wait_for(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Actual OS click starts solo after server-loss recovery")
 		player = main.get_node("Player")
 		yaw = player.get_camera_yaw()
 		stage("camera_after_recovery")

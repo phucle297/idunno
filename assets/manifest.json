@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "8",
+    "version": "9",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -14,7 +14,7 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "8",
+      "generator_version": "9",
       "intended_dimensions_m": [1.08, 1.6, 0.656],
       "triangle_count": 5992,
       "cosmetic_catalog": "assets/cosmetic_catalog.json",
@@ -23,6 +23,7 @@
       "outfit_triangle_counts_including_base": {"plain": 5992, "cap": 6136, "hard_hat": 6112, "backpack": 6004, "raincoat": 6172, "mechanic": 6052, "park_ranger": 6160, "meteor_observer": 6160},
       "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168},
       "outfit_physics": "Same player capsule/controller; visible accessories copied onto existing 11 ragdoll bodies/10 joints/55kg. No accessory colliders or authoritative bodies.",
+      "animation_stability_validation": "Generator9 seed297 character-only regeneration: stable symmetric takeoff/falling, completed one-shot held, face/accessory Transform3D tracks split into position/rotation/scale with orthonormal rotation. CHARACTER_ANIMATION_OK67 covers walk/run stop, interrupted shove/get-up and idempotent setup. Geometry/materials/capsule unchanged. Rendered held-pose and stop sequence in Linux Compatibility/llvmpipe; human/native-GPU feel not established.",
       "outfit_validation": "Generator8 seed297 character-only regeneration; ten clips after removal of crouch/holding. Base5992 triangles includes112 hidden anchor triangles; eight outfit/accessory counts unchanged. PLAYER_INTEGRATION_OK329 covers gait phases, planted soles, observer floor/landing state, collider equality, recovery and controls. Scratch128 contact samples: max planted drift0.000513m, height error0.000774m at120Hz on level ground. Full regression passed:40 suites, five matrices, managed20 and settings restart. No terrain IK or native hardware claim.",
       "outfit_visual_validation": "Actual Godot front/back eight-outfit silhouettes and in-map near/gameplay standing/walk/run/landing/ragdoll/get-up/overlap snapshots at720p/1080p inspected. Real OS keyboard/pointer recordings show planted locomotion, continuous Shift transitions, jump and ragdoll/recovery, no C/F prompts. Minor decorative curb occlusion remains, not severe asphalt clipping in inspected frame. Captures .amp/in/artifacts/phase8. No concept pixel-equivalence or human aesthetic/GPU acceptance claimed.",
       "outfit_provenance": "Project-authored Godot primitives, palette materials and AnimationPlayer tracks, packed by generator8 seed297. Same bean geometry and outfits; speed-matched stance/swing tracks,0.12s phase-preserving blend, bounded recovery lean and visual-only8% landing squash. Selected B is a concept reference only. No external geometry or textures; no CC0 claim.",
@@ -44,7 +45,7 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/player/toy_character_visual.gd.",
-      "sha256": "415dbf5d819834f50c2ef992f0d6791b87a775874c9e71b0013a15d96b05fdda",
+      "sha256": "db0fd03475b83d1444ac003ef054a49def9c82f65895fa9e5c8a7cdb118e7fcf",
       "validation_status": "phase8_2_controller_render_and_full_regression_passed; human_native_gpu_acceptance_unverified"
     },
     {

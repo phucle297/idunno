@@ -1,5 +1,11 @@
 # Báo lỗi khi gặp thực tế
 
+**Source Phase14 đang kiểm tra (chưa release):** sửa tay khi nhảy, mặt khi dừng và
+menu chuẩn bị chọn solo/phòng, map, chế độ trận, trang phục. Khi có build matching,
+nếu còn lỗi hãy ghi lúc nhảy/rơi/dừng hay ngắt shove/get-up và bộ đồ đang dùng.
+Automation/render Linux không thay cảm nhận animation hoặc Windows/GPU thật.
+Không thêm checklist bắt buộc, không tự áp dụng báo lỗi này thành pass.
+
 **Bản public mới nhất — Phase13 Expanded Toy Town (2026-10-16):**
 [775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50)
 đã deploy và [publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4).
@@ -13,7 +19,8 @@ Smoke là hai client Linux cùng orb/upstream, **không phải** xác nhận Win
 GPU/60FPS/audio/cảm nhận người chơi/hai mạng riêng. Không thêm checklist bắt buộc;
 waiver và mọi báo lỗi cũ giữ nguyên. Nếu gặp lỗi, ghi build, map/vị trí, trạng thái
 cầu/terrain, số người và thao tác tái hiện; ảnh/video nếu thuận tiện, không bắt buộc.
-[Evidence hiện tại](progress.json). Những trạng thái bên dưới là snapshot lịch sử.
+[Evidence Phase13](docs/old-docs/phase-13-map-physical-design-and-detail/progress.json).
+Những trạng thái bên dưới là snapshot lịch sử.
 
 **Phase12 hoàn tất gate kỹ thuật/local, source đã push (2026-10-15):** Speed (+20% chạy12s) và
 Jump (+20% độ cao10s) đã implement, một buff/người, nhặt cùng loại làm mới thời gian,

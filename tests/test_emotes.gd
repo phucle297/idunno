@@ -33,9 +33,8 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	player.reset_for_match(Vector3.ZERO)
 	await _settle(player)
-	# main auto-starts a solo match in _ready; reopen the lobby so the
-	# fixture can register a second player and start a real two-player match.
-	main.match_manager.state = MatchManager.MatchState.LOBBY
+	# Startup remains in preparation so the fixture can register a second player.
+	main.match_manager.prepare_lobby()
 	_expect(main._spawn_server_network_player(2, "Victim", Vector3(1.5, 0.05, 0.0)), "Emote fixture must spawn the second player")
 	victim = main._player_nodes[2] as PartyPlayer
 	victim.set_physics_process(false)
