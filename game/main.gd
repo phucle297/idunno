@@ -93,6 +93,7 @@ var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
 var pause_settings: Control
+var home_screen: Control
 var room_admission: Node
 var room_client: Node
 var _direct_ip_mode := false
@@ -210,6 +211,11 @@ func _ready() -> void:
 	pause_settings.theme = _ui_theme
 	$Interface.add_child(pause_settings)
 	_configure_collection()
+	if _argument_value("--server-port=").is_empty():
+		home_screen = preload("res://game/ui/home_screen.gd").new()
+		home_screen.name = "HomeScreen"
+		home_screen.theme = _ui_theme
+		$Interface.add_child(home_screen)
 	_connect_ui_audio($Interface)
 	var network_error := _start_requested_network_session()
 	if network_error != ERR_SKIP:
@@ -602,6 +608,8 @@ func _on_server_disconnected() -> void:
 	_register_server_gameplay_player(1, $Player, "Local Player")
 	_load_starter_outfit()
 	$Interface/ResultsPanel.visible = false
+	if is_instance_valid(home_screen):
+		home_screen.page = "room" # Preserve direct retry controls after a failed connection.
 	_set_lobby_visible(true)
 	$Interface/LobbyPanel/Status.text = "Room server disconnected. Create or join again." if was_room else "Server disconnected — create or join a lobby"
 
@@ -1530,6 +1538,8 @@ func _on_earthquake_finished() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if pause_settings.visible or collection.visible or (_dedicated_server and multiplayer.is_server()):
 		return
+	if is_instance_valid(home_screen) and home_screen.visible:
+		return # Only focused page controls may begin preparation or play.
 	if event.is_action_pressed("toggle_lobby"):
 		_set_lobby_visible(not $Interface/LobbyPanel.visible)
 	elif event.is_action_pressed("ui_accept"):
@@ -1837,6 +1847,8 @@ func _reward_message(receipt: Dictionary) -> String:
 func _set_lobby_visible(visible: bool) -> void:
 	if _dedicated_server and multiplayer.is_server():
 		return
+	if not visible and is_instance_valid(home_screen) and home_screen.page == "room" and not _network_mode:
+		home_screen.page = "home"
 	if not visible and room_client.busy:
 		room_client.cancel()
 		$Interface/LobbyPanel/Status.text = "Request cancelled. Create or join when ready."
@@ -1869,6 +1881,9 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel") and pause_settings.visible:
 		pause_settings.back()
+		get_viewport().set_input_as_handled()
+	elif is_instance_valid(home_screen) and home_screen.visible and event.is_action_pressed("ui_cancel"):
+		home_screen.show_page("home")
 		get_viewport().set_input_as_handled()
 	elif $Interface/LobbyPanel.visible and event.is_action_pressed("ui_cancel"):
 		_set_lobby_visible(false)
@@ -2061,7 +2076,7 @@ func _update_lobby_ui() -> void:
 	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
 	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
 	panel.get_node("Start").disabled = not _outfit_pending.is_empty() or ((not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false)
-	panel.get_node("Close").visible = not in_lobby or _network_mode or lobby_demo
+	panel.get_node("Close").visible = true
 	var map_select: OptionButton = panel.get_node("MapSelect")
 	map_select.visible = in_lobby
 	panel.get_node("MapLabel").visible = in_lobby
@@ -2090,12 +2105,23 @@ func _update_lobby_ui() -> void:
 		else:
 			panel.get_node("Status").text = ("Ready — waiting for room owner" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the room owner can start") if _dedicated_server else ("Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the host can start")
 	panel.get_node("Status").tooltip_text = panel.get_node("Status").text
+	var on_home: bool = is_instance_valid(home_screen) and in_lobby and not _network_mode and not lobby_demo and home_screen.page != "room"
+	if is_instance_valid(home_screen):
+		home_screen.visible = on_home
+		home_screen.refresh()
+	if on_home:
+		panel.hide()
+	$Interface/LobbyToggle.visible = not on_home and match_manager.state != MatchManager.MatchState.RESULTS
 	$Interface/LobbyBackdrop.visible = panel.visible
 	var local_player := _player_nodes.get(local_peer_id) as PartyPlayer
 	if is_instance_valid(local_player):
-		local_player.local_input_blocked = panel.visible or collection.visible or (is_instance_valid(pause_settings) and pause_settings.visible) or match_manager.state == MatchManager.MatchState.RESULTS
-	gameplay_hud.present_lobby_overlay(panel.visible)
+		local_player.local_input_blocked = on_home or panel.visible or collection.visible or (is_instance_valid(pause_settings) and pause_settings.visible) or match_manager.state == MatchManager.MatchState.RESULTS
+	gameplay_hud.present_lobby_overlay(panel.visible or on_home)
 	_refresh_lobby_focus()
+	if on_home and not collection.visible and not pause_settings.visible:
+		var focus := get_viewport().gui_get_focus_owner()
+		if focus == null or not home_screen.is_ancestor_of(focus):
+			home_screen.focus_default()
 
 
 func restart_local_match() -> bool:

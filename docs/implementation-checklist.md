@@ -4,10 +4,11 @@
 
 ## Active and planned phases
 
-No implementation phase is active. Phase14 character jump/stop stability and
-startup mode/map/outfit preparation passed all source gates and is pushed;
-it is not deployed/released. Public Phase13 remains unchanged.
-Network-timeout investigation remains deferred.
+Phase15 is active: approved A-direction fullscreen Home and separate Choose Map,
+followed by owner-authorized matching deployment/release. Public Phase13 stays
+unchanged until shipment passes. Network-timeout investigation remains deferred.
+
+- [Phase15 — Home and Map Selection](checklists/phase-15-home-and-map-selection.md)
 
 - [Phase14 — Character Stability and Preparation](old-docs/phase-14-character-stability-and-preparation/checklist.md)
   — reported animation defects, pre-match selection, acknowledged equipment and

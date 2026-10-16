@@ -1,5 +1,13 @@
 {
   "schema_version": 1,
+  "homepage_previews": {
+    "provenance": "Project-authored map geometry rendered in Godot4.7.2 Compatibility/llvmpipe. Exact existing audit captures copied unchanged; no generated concept illustration or third-party texture used at runtime. Character preview remains a live CHR_Base_v001 instance with acknowledged outfit. Pedestal is a procedural matte cream cylinder in game/ui/home_screen.gd.",
+    "files": [
+      {"export_path": "assets/ui/home_town.png", "source_capture": ".amp/in/artifacts/phase13/civic.png", "sha256": "9fee2a62b3f6263cd2386a6db0dbdb0904bb6ffe30ef0977b3e9cbfe386a7b73"},
+      {"export_path": "assets/ui/toy_town.png", "source_capture": ".amp/in/artifacts/phase13/overview.png", "sha256": "d7960078d618acc8903414f15fc929009861bef0c5f47eabb30b1df34ddc3031"},
+      {"export_path": "assets/ui/toy_harbor.png", "source_capture": ".amp/in/artifacts/map-design-audit/harbor-overview.png", "sha256": "94e3b72ab692cc2e11545c62797682b2307de8a75d3482493863ed7d3ddbb918"}
+    ]
+  },
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
     "version": "9",

@@ -16,6 +16,7 @@ func _run() -> void:
 	main.disaster_director.cleanup()
 	main.match_manager.prepare_lobby()
 	main.get_node("Player").set_physics_process(false)
+	main.home_screen.page = "room" # Exercise the visible multiplayer roster, not Home.
 	main._set_lobby_visible(true)
 	var roster: ScrollContainer = main.get_node("Interface/LobbyPanel/PlayerList")
 	# Deliberately insert out of order and distinguish host from local client.

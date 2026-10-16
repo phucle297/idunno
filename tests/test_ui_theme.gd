@@ -44,7 +44,7 @@ func _run() -> void:
 	_expect(lobby_button.theme != null, "Top-level controls must receive the shared theme")
 	_expect(lobby_panel.theme == lobby_button.theme, "Panels and buttons must share one theme resource")
 	_expect(address_field.get_theme_stylebox("focus") is StyleBoxFlat, "Nested fields must inherit the shared focus style")
-	main._set_lobby_visible(true)
+	main.home_screen.multiplayer_button.pressed.emit()
 	await process_frame
 	_expect(root.gui_get_focus_owner() == address_field, "Opening the lobby must place keyboard focus in the first field")
 	main.free()

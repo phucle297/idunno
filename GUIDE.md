@@ -1,10 +1,11 @@
 # Disaster Party Play Guide
 
-## Source update — character and startup preparation (not yet released)
+## Source update — dedicated Home and Choose Map (shipment pending)
 
-The source now opens in preparation rather than immediately starting solo. Choose
-**PLAY SOLO**, **CREATE ROOM** or **JOIN ROOM**; select **MATCH MODE** (Normal/Hard)
-and **MAP** before starting. **OUTFITS / COLLECTION** previews and equips owned
+The source opens on fullscreen Home with the equipped character. **PLAY SOLO**
+opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor and
+Normal/Hard, then **START SOLO**. **BACK** preserves choices. **MULTIPLAYER**
+opens the existing Create/Join room flow. **OUTFITS** previews and equips owned
 items before play. Four starter items are available offline; earned costumes still
 require acknowledged ownership in a profile-enabled room. `--solo` explicitly
 starts an offline round for automation. Jump/fall poses are held and stopping no

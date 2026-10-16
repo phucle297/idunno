@@ -52,8 +52,10 @@ func _run() -> void:
 		# Keep deliberate server-loss recovery inside this fixture's deadline.
 		main.multiplayer.multiplayer_peer.get_peer(1).set_timeout(1, 100, 300)
 	if role == "offline":
-		expect(main.get_node("Interface/LobbyPanel").visible, "Offline startup opens preparation")
-		stage("start_solo", main.get_node("Interface/LobbyPanel/Start"))
+		expect(main.home_screen.visible, "Offline startup opens Home")
+		stage("choose_map", main.home_screen.solo)
+		await wait_for(func() -> bool: return main.home_screen.page == "maps", "Actual OS click opens Choose Map")
+		stage("start_solo", main.home_screen.start)
 		await wait_for(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Actual OS click explicitly starts solo")
 	else:
 		stage("close_lobby", main.get_node("Interface/LobbyPanel/Close"))
@@ -83,7 +85,11 @@ func _run() -> void:
 	if role == "client":
 		stage("server_loss")
 		await wait_for(func() -> bool: return main.get_network_role() == "offline", "Server loss must recover client to offline lobby")
-		stage("start_solo", main.get_node("Interface/LobbyPanel/Start"))
+		stage("close_lobby", main.get_node("Interface/LobbyPanel/Close"))
+		await wait_for(func() -> bool: return main.home_screen.visible, "Closing recovery controls returns Home")
+		stage("choose_map", main.home_screen.solo)
+		await wait_for(func() -> bool: return main.home_screen.page == "maps", "Recovery returns to Home then Choose Map")
+		stage("start_solo", main.home_screen.start)
 		await wait_for(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Actual OS click starts solo after server-loss recovery")
 		player = main.get_node("Player")
 		yaw = player.get_camera_yaw()

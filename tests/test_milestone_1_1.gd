@@ -79,6 +79,7 @@ func _run() -> void:
 	main._update_lobby_ui()
 	# Expose the disabled start control only to inspect its shared-theme style offline.
 	var start_button := main.get_node("Interface/LobbyPanel/Start") as Button
+	main.home_screen.page = "room" # This fixture reviews the multiplayer room, not Home.
 	main._set_lobby_visible(true)
 	start_button.show()
 	start_button.disabled = true
@@ -91,8 +92,9 @@ func _run() -> void:
 	_expect(root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/Host"), "Buttons must support visible keyboard focus")
 	await _capture("button-focus")
 	main.get_node("Interface/LobbyToggle").pressed.emit()
-	_expect(main.get_node("Interface/LobbyPanel").visible, "Preparation cannot dismiss into a world with no active round")
-	main.get_node("Interface/LobbyToggle").pressed.emit()
+	_expect(main.home_screen.visible and not main.get_node("Interface/LobbyPanel").visible, "Closing offline room returns to Home, never an idle world")
+	main.home_screen.page = "room"
+	main._set_lobby_visible(true)
 	await process_frame
 	_expect(main.get_node("Interface/LobbyPanel").visible and root.gui_get_focus_owner() == main.get_node("Interface/LobbyPanel/RoomId"), "The persistent lobby button must reopen the lobby and restore field focus")
 	main.gameplay_audio.reset_for_match()
