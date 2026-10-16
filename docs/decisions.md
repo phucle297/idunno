@@ -1,10 +1,10 @@
 # Active phase decisions
 
-Phase13 Toy Town follow-up review is active. Phase12 completed its technical/local-package gates and source
+Phase13 Toy Town follow-up review and shipment are recorded here. Phase12 completed its technical/local-package gates and source
 delivery; [decisions](old-docs/phase-12-match-powerup-drops/decisions.md) and
 [evidence](old-docs/phase-12-match-powerup-drops/progress.json) are archived.
-Public Phase11 remains unchanged. Root `progress.json` owns delivery boundaries
-and the next action; no public deployment is inferred. Dated entries below retain
+Owner-authorized Phase13 is now deployed/published. Root `progress.json` owns delivery boundaries
+and the next action; no further deployment is inferred. Dated entries below retain
 their original planning/execution context.
 
 ## 2026-10-16 — Map audit and proposed Phase13, not implementation

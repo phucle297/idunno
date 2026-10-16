@@ -1,5 +1,20 @@
 # Báo lỗi khi gặp thực tế
 
+**Bản public mới nhất — Phase13 Expanded Toy Town (2026-10-16):**
+[775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50)
+đã deploy và [publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4).
+Tải `DisasterParty-Windows-Internet-775f6c4.zip`, giải nén hết rồi chạy EXE cạnh PCK;
+mọi người dùng cùng bản này với `https://server.permees.com`, client cũ không tương thích.
+Gồm Town144m/19 building+nội thất/court/cầu mới và Speed/Jump của Phase12.
+55 suite/6 matrix/managed20,41 Python, exact deployed-PCK layout6874, standalone
+Linux/profile restart và public2 client HTTPS/ENet/Ready/Start/remote movement pass.
+Hai archive đã tải lại đối chiếu byte/hash; phòng smoke đã được dọn.
+Smoke là hai client Linux cùng orb/upstream, **không phải** xác nhận Windows gốc,
+GPU/60FPS/audio/cảm nhận người chơi/hai mạng riêng. Không thêm checklist bắt buộc;
+waiver và mọi báo lỗi cũ giữ nguyên. Nếu gặp lỗi, ghi build, map/vị trí, trạng thái
+cầu/terrain, số người và thao tác tái hiện; ảnh/video nếu thuận tiện, không bắt buộc.
+[Evidence hiện tại](progress.json). Những trạng thái bên dưới là snapshot lịch sử.
+
 **Phase12 hoàn tất gate kỹ thuật/local, source đã push (2026-10-15):** Speed (+20% chạy12s) và
 Jump (+20% độ cao10s) đã implement, một buff/người, nhặt cùng loại làm mới thời gian,
 khác loại thay thế. Test105/111 và cả hai map2/4/8/20 peer/five rematches đã pass;

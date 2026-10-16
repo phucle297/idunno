@@ -2,13 +2,14 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-15: **Phase11 Meteor District Collapse is deployed and published** at
-`https://server.permees.com` from [6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600).
+2026-10-16: **Phase13 Expanded Toy Town is deployed and published** at
+`https://server.permees.com` from [775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
 Download the matching Windows ZIP from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38741742369), final52-suite/41-Python
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/38873953399), final55-suite/41-Python
 regression and public two-client exact-PCK smoke pass. Old clients are incompatible.
-Package hashes/evidence are in root `progress.json` and the full phase archive.
+Includes Phase12 Speed/Jump drops and the enlarged, furnished Toy Town.
+Package hashes/evidence are in root `progress.json`.
 Earlier delivery statements below describe historical snapshots.
 
 Warned heavy meteors permanently remove bounded,
@@ -20,9 +21,11 @@ Oracle lifecycle/rematch fixes are included. See the completed
 [terrain-collapse rules](GUIDE.md#phase11-meteor-terrain-collapse).
 Native Windows/GPU/audio/human/separate-network acceptance remains unverified.
 
-The current source expands Toy Town to **112×112m**: continuous rounded building
-shells, curved striped shop canopy, shared staggered paving, populated side/civic
-terraces, a garden and connected roof walks. Harbor retains its64m footprint.
+The current source expands Toy Town to **144×144m**:19 enclosed buildings plus
+garage, distinct interiors, four service courts, a connected outer walking circuit,
+solid furniture/curbs, elevated breakable bridges and connected roof walks.
+Harbor retains its64m footprint. Continuous rounded building shells, curved shop
+canopies and shared paving preserve the toy-playset style.
 Stairs have visible treads/rails/supports over smooth walking collision; hazard
 warnings and flood coverage follow each map's actual extent/elevation.
 The [owner's design reference](assets/references/phase7/rounded-town-camera-reference.png)

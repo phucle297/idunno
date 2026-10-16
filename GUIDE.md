@@ -1,17 +1,19 @@
 # Disaster Party Play Guide
 
-2026-10-15: **Phase11 Meteor District Collapse is deployed and published** from
-[6e3adb1](https://github.com/phucle297/idunno/commit/6e3adb19c4b1c66de3b1f07d0f36bb348f0d5600).
-Download `DisasterParty-Windows-Internet-6e3adb1.zip` from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-15-6e3adb1);
+2026-10-16: **Phase13 Expanded Toy Town is deployed and published** from
+[775f6c4](https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50).
+Download `DisasterParty-Windows-Internet-775f6c4.zip` from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4);
 root `progress.json` records hashes and
-[successful deployment](https://github.com/phucle297/idunno/actions/runs/38741742369).
-This bundle uses the byte-exact deployed PCK and includes the uneven volcanic relief.
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/38873953399).
+This bundle uses the byte-exact deployed PCK. It includes144m Toy Town with19 enclosed
+buildings, furnished interiors, solid garage/furniture/curbs, connected service courts
+and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
 
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Current builds default to dedicated-room create/join by ID;
-`https://server.permees.com` is built in. Extract the matching Phase11 bundle and run
+`https://server.permees.com` is built in. Extract the matching Phase13 bundle and run
 `DisasterParty.exe`; older bundles, including the historical
 [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
 are incompatible. Public two-client exact-PCK

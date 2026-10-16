@@ -122,9 +122,9 @@
     "archive": "docs/old-docs/phase-12-match-powerup-drops/progress.json",
     "preserved_keys": ["phase11_release", "phase12_delivery", "historical_delivery_metadata"]
   },
-  "delivery_boundary": "Owner explicitly authorizes deploy and release after this review (2026-10-16). Use existing EC2 deployment and matching Windows/Linux prerelease; preserve capacity/configuration/store and Steam boundaries. Earlier Phase11 live state is superseded only after verification of this shipment.",
+  "delivery_boundary": "Owner-authorized Phase13 deploy/release is complete and verified (2026-10-16), superseding public Phase11. Existing EC2 capacity/configuration/store settings unchanged; no Steam publication or further deployment authorized.",
   "phase13_execution": {
-    "status": "source_delivered_followup_review_verified_not_deployed",
+    "status": "source_delivered_review_verified_deployed_published_prerelease",
     "changes": "144m candidate,13m district pitch, four new courts, solid furniture/garage shelf/pool/canopy, elevated bridge roles, Town-only district geometry clipping, functional interior module with flush floors, House gable contact and garage beam/canopy clearance raised to keep4m arrival usable.",
     "oracle_review": "Executed source review: corrected terrace roof-ramp approach, rail clear width and rockslide/annex overlap. Collapse cuts72/-30/30 and z-37/32 require vertical clipping of crossing geometry.",
     "validation": [
@@ -147,7 +147,7 @@
   },
   "phase13_followup_review": {
     "request": "Owner asks for another Toy Town review and immediate fixes for confirmed defects.",
-    "status": "fix_validated_source_committed_not_deployed",
+    "status": "fix_validated_included_in_phase13_shipment",
     "source_commit": "https://github.com/phucle297/idunno/commit/2eed998",
     "finding": "Both damaged bridges tilt visible deck/rails while physics stays level; rails keep intact color. Original regression reproduced four contact and16 rail-material failures. Keep railed bridges level and darken rails with deck; retain existing tilt for other breakables.",
     "validation": [
@@ -157,8 +157,32 @@
       {"command": "xvfb-run -a godot --path . --audio-driver Dummy --script .scratch/phase13/review_render.gd", "status": "passed", "result": "REVIEW_RENDER_OK states=intact,damaged,broken,reset production_lighting=true. All four1280x720 captures inspected: level joints/rails and shared damage color, full gap when broken, restored intact bridge. .amp/in/artifacts/phase13/review-bridge-*.png. No capture-only lights added. Temporary visibility/render fixtures removed after validation; logs/captures retained."},
       {"command": "git commit via .githooks/pre-commit -> tools/test_changed.py", "status": "passed", "result": "PRE_COMMIT_OK staged_tree=d11bc89c978d1abb41f007861ac1e402c13d9777; source commit2eed998. Exact staged snapshot: UI_REGRESSION_OK suites=55 matrices=6 managed_clients=20 persistence_restart=passed;41 Python tests in267.606s OK. .scratch/phase13/review-commit.log."}
     ],
-    "limits": "Native GPU/performance, real Internet latency and human interior readability remain unverified. No deployment or package changes."
+    "limits": "Native GPU/performance and human interior readability remain unverified. Review-only checks above preceded shipment; public smoke and package/deployment verification are recorded separately below."
   },
-  "phase13_shipment": {"status": "authorized_preparing", "authorization": "Owner: after finish, deploy and release", "scope": "Existing EC2 plus matching Windows/Linux GitHub prerelease; no capacity/store/configuration or Steam changes."},
-  "next_action": "Commit/push reviewed evidence, export matching clients/server, deploy through existing main workflow and publish verified prerelease."
+  "phase13_shipment": {
+    "status": "deployed_published_prerelease_verified",
+    "authorization": "Owner: after finish, deploy and release",
+    "scope": "Existing EC2 plus matching Windows/Linux GitHub prerelease; no capacity/store/configuration or Steam changes.",
+    "revision": "775f6c42a208afcef0ee424a308a5e1841099c50",
+    "commit_url": "https://github.com/phucle297/idunno/commit/775f6c42a208afcef0ee424a308a5e1841099c50",
+    "workflow": "https://github.com/phucle297/idunno/actions/runs/38873953399",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-775f6c4",
+    "endpoint": "https://server.permees.com",
+    "directory": ".amp/in/artifacts/phase13-release",
+    "windows": "DisasterParty-Windows-Internet-775f6c4.zip",
+    "windows_sha256": "24b5c63895e28addf19bdd52619a6c87141479716c6e5d40c742801ab5b20a15",
+    "linux_server": "DisasterParty-Linux-server-775f6c4.tar.gz",
+    "linux_sha256": "e137784fffa22325a1e12673fd7031aaed5c67c262a46b5e3b753365fed54a86",
+    "pck_sha256": "1116146228d319a2e92154ca44e7f2a317b790f6997b3151542c875d8acd0f11",
+    "verification": [
+      "Windows/Linux local exports passed129-entry manifest checks. Local PCKs byte-identical; deployed CI PCK contains the same129 entry hashes but differs in container bytes. Windows release uses byte-exact deployed CI PCK and regenerated SHA256SUMS, not the local container.",
+      "Exact deployed PCK passes TOWN_LAYOUT_OK6874. Exact deployed Linux archive passes standalone checksum/version-rejection/create-join/crash-retry/SIGTERM/port-reclaim/cache-absent and external-profile-store restart/reward-replay/equipment/isolation checks; reward fixture synthetic and local only.",
+      "Workflow head matches revision and EXISTING_EC2_DEPLOY_OK backend=passed. Fresh public HTTPS join returns404 unknown_room for unused ID using matching build.",
+      "PUBLIC_TWO_CLIENT_SMOKE_OK exact_deployed_pck=true: owner and guest create/join over HTTPS, ENet admission, ready/start/ACTIVE, local and observed remote displacement3.600m each. Both disconnect; public test room subsequently404 unknown_room. Linux editor-driven clients share one orb/upstream, not native Windows/separate-network proof.",
+      "Draft upload remote SHA256 digests matched all3 local assets before publication. Published release is non-draft prerelease; tag resolves to exact deployed revision. Both archives downloaded again and compared byte-for-byte; Windows ZIP flat manifest/PCK verified after extraction."
+    ],
+    "logs": [".scratch/phase13/deploy.log", ".scratch/phase13/deployed-pck-layout.log", ".scratch/phase13/deployed-lifecycle-result.log", ".scratch/phase13/public-smoke-result.log"],
+    "qualification": "Native Windows/GPU/60FPS/audio/human feel and separate-network acceptance remain unverified. Earlier intermittent packet-loss timeout remains deferred, not fixed. Temporary public-smoke drivers removed after validation; private profile files are ignored and not published. No production profile-store migration or reward fixture used."
+  },
+  "next_action": "Await owner's feedback on the matching Phase13 release; preserve deferred network investigation and hardware/human acceptance limits."
 }

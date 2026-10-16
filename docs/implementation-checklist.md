@@ -5,8 +5,9 @@
 ## Active and planned phases
 
 Phase13 is active: the owner approved the Toy Town plan and explicitly requested
-its commit followed by implementation through completion. Phase12's packages and
-public Phase11 remain unchanged; network-timeout investigation is deferred.
+its commit followed by implementation through completion. Phase13 is now deployed
+and published with matching packages, including Phase12 power-ups; the previous
+public Phase11 is superseded. Network-timeout investigation remains deferred.
 
 - [Phase 13 — Larger, Connected and Detailed Toy Town](checklists/phase-13-map-physical-design-and-detail.md)
   — both-map runtime inventory, garage walk-through reproduction, the historical16-building
@@ -19,8 +20,8 @@ public Phase11 remain unchanged; network-timeout investigation is deferred.
   Plan committed/pushed;144m Town,13m frontage pitch, four functional courts,
   solid furniture and real elevated bridges are implemented; full normal-clock
   regression and follow-up damaged-bridge review passed. Current action and exact
-  results live only in root `progress.json`. Owner now explicitly authorizes
-  deployment and release after review; hardware/human acceptance is not implied.
+  results live only in root `progress.json`. Owner-authorized deployment and release
+  are verified; hardware/human acceptance is not implied.
 
 Phases 6 and the original 7 are archived below. The Phase7 visual-completion claim
 was overstated and is superseded by the separately archived visual correction.
