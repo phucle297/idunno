@@ -9,8 +9,9 @@ its commit followed by implementation through completion. Phase12's packages and
 public Phase11 remain unchanged; network-timeout investigation is deferred.
 
 - [Phase 13 — Larger, Connected and Detailed Toy Town](checklists/phase-13-map-physical-design-and-detail.md)
-  — both-map runtime inventory, garage walk-through reproduction, all16 building
-  door/roof samples and39 inspected captures recorded. The plan covers collision,
+  — both-map runtime inventory, garage walk-through reproduction, the historical16-building
+  audit samples, the current19-building plus garage door-to-door layout contract, and
+  inspected captures recorded per phase evidence. The plan covers collision,
   area-specific interiors and regression/performance. Latest owner direction narrows
   implementation planning to **Toy Town only**; Harbor content is deferred. Oracle
   review informs the candidate144m footprint, compact13m frontage pitch, four added

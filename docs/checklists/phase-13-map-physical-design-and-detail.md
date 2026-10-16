@@ -267,7 +267,7 @@ prop càng nhiều càng tốt; Town đã có3,006 visible mesh và1,253 enabled
 
 ### 13.1 — Town topology/expansion greybox và vật lý đúng hình (P0/P1)
 
-- [ ] **13.1.0 Greybox:** thực hiện contract§0 trước khi khóa tọa độ/đồ chi tiết;
+- [x] **13.1.0 Greybox:** thực hiện contract§0 trước khi khóa tọa độ/đồ chi tiết;
   footprint144 m candidate, compact frontage, connected neighborhoods, bridge/curb
   topology, collapse cuts, extents/anchors và đo controller route time.
 - [x] **13.1.1 Garage arrival:** dời kệ/toolbox, collision mới, giữ4 m lane và landing.
@@ -275,10 +275,10 @@ prop càng nhiều càng tốt; Town đã có3,006 visible mesh và1,253 enabled
   và toàn bộ8 district; không chỉ thêm một probe ở garage.
 - [x] **13.1.3 Special geometry:** canopy cũ, hồ, rail/stairs và mái House;
   chốt mặt nào được bước lên, mặt nào là cosmetic và đổi hình nếu gây hiểu nhầm.
-- [ ] **Gate:** test controller chứng minh furniture chặn, route thông; cả hai chiều,
+- [x] **Gate:** test controller chứng minh furniture chặn, route thông; cả hai chiều,
   base/sprint/Speed/Jump, đẩy crate và hồi phục ragdoll không kẹt. Test dựa vào physical
   sweep/walk, không dựa vào tên node/count; giữ test hồi quy garage qua public behavior.
-- [ ] **Gate:** map-safety, map-variety, detail-collision, prop-role-feasibility và
+- [x] **Gate:** map-safety, map-variety, detail-collision, prop-role-feasibility và
   terrain-collapse-routes; render Town garage/canopy/pool/bridge/curb trước–sau từ camera gameplay.
 
 ### 13.2 — Nội thất Town có bản sắc, không còn phòng rỗng/template (P2)
@@ -292,7 +292,7 @@ ngôn ngữ đó sang khu khác; không nhân bản cùng phòng với biển t�
 - [x] **13.2.4 North/South:** TownHall, Residence, Studio, GardenCafe.
 - [x] **13.2.5 Added blocks:** bốn candidate service/community/garden/market building
   theo§0, interior riêng và hai kết nối thật; không tăng số lượng nếu chưa qua greybox.
-- [ ] **Gate:** đủ15 building Town được kiểm hai cửa, interior sweep, mặt sàn, góc quay
+- [x] **Gate:** đủ15 building Town được kiểm hai cửa, interior sweep, mặt sàn, góc quay
   third-person và ảnh entrance + interior. Mỗi nơi có bố cục/silhouette riêng, không còn
   phòng được gắn nhãn có chức năng nhưng chỉ có tường trống. Không mở thêm tầng.
 
@@ -303,9 +303,9 @@ Phụ thuộc13.2; thực hiện theo plaza/roads → terrace/roofwalk → civic
 - [x] Sửa grounding/snap và joint của kiến trúc, stairs/rail/roofwalk/paving/curb.
 - [x] Bổ sung cụm chức năng, signage, parking/service pockets theo bảng; phá nhịp lặp
   bằng bố cục và silhouette, không bằng hàng trăm màu/vật liệu mới.
-- [ ] **Gate:** đường chính≥3 m, cửa≥1.8×2.2 m, hai escapes mỗi primary refuge;
+- [x] **Gate:** đường chính≥3 m, cửa≥1.8×2.2 m, hai escapes mỗi primary refuge;
   kiểm tra chéo/đổi hướng tại arrival, sát tường/cột và cạnh biên, không chỉ centerline.
-- [ ] **Gate:** đo open-ground coverage theo footprint chướng ngại, giữ≥40%; render
+- [x] **Gate:** đo open-ground coverage theo footprint chướng ngại, giữ≥40%; render
   ground/interior/roof tại daylight, Flood và meteor/tornado telegraph overlap.
 
 ### 13.4 — Whole-Town route/collapse/crowd acceptance
@@ -314,7 +314,7 @@ Phụ thuộc13.3; **thay thế milestone Harbor đã hoãn**, không đánh d�
 
 - [x] Mọi Town district/roof/stair/bridge có complete-route tests, không chỉ Shop/Hall.
 - [x] Hai phía seam, pending/removed region và bridge broken không mất support ngoài warning.
-- [ ]20-player spawn/turn/merge, refuge phân bố và base-walk route timing đạt§0;
+- [x]20-player spawn/turn/merge, refuge phân bố và base-walk route timing đạt§0;
   pickups không spawn trong đồ, đồ/collision restore sau5 rematch.
 - [x] Ground/interior/roof camera và hazard telegraph overlap của Town được render/inspect.
 
@@ -328,7 +328,7 @@ Phụ thuộc13.3; **thay thế milestone Harbor đã hoãn**, không đánh d�
   client, không duplicate/lost props, power-up spawn không nằm trong đồ mới.
 - [x] Harbor chỉ giữ regression không đổi hành vi nếu dùng helper chung; không thêm
   yêu cầu render/detail/collision fix Harbor vào scope Town.
-- [ ] Lập baseline node/mesh/material/shape/draw-call/physics/frame-time trước–sau,
+- [x] Lập baseline node/mesh/material/shape/draw-call/physics/frame-time trước–sau,
   cùng camera/resolution/renderer/player count. Profile20 peers; không tăng động-body
   cap để trang trí. Dùng batching trước khi cắt chi tiết có giá trị; không hứa60FPS từ
   llvmpipe. Native Windows/GPU/audio/real-player comprehension vẫn chưa xác minh.
