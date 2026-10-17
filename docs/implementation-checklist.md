@@ -4,14 +4,19 @@
 
 ## Active and planned phases
 
-- [Phase16 — Animated Rooftop Home and owner playtest follow-ups](checklists/phase-16-animated-rooftop-home.md)
-  — Home correction remains in progress; height-based fall balance implemented
-  locally with focused checks. Planned Toy Town fixes cover HP0/state consistency,
-  stair/tree clearance, volcanic terrain, irregular puddles and Flood decoration.
-  These changes are not publicly deployed/released. Phase15 remains the public
-  build; network-timeout investigation remains deferred.
+No new phase is agreed. Root `progress.json` awaits owner feedback or next scope;
+the earlier packet-loss timeout investigation remains deferred.
 
 ## Recently completed phases
+
+- [Phase16 — Animated Rooftop Home and Toy Town Fixes](old-docs/phase-16-animated-rooftop-home/checklist.md)
+  — live rooftop Home, height-based fall balance, fractional HP display, full-route
+  tree clearance, shared-rim Volcano, varied puddles and normal/electric Flood cues.
+  58 suites/6 matrices/managed20/41 Python, exact-PCK720p/1080p, standalone lifecycle,
+  public two-client movement and release asset/tag verification passed.
+  Matching [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-17-a2c8ce8)
+  deployed/published; [full evidence](old-docs/phase-16-animated-rooftop-home/progress.json).
+  Native/human/GPU/audio/separate-network acceptance remains unverified.
 
 - [Phase15 — Home and Map Selection](old-docs/phase-15-home-and-map-selection/checklist.md)
   — independent Home/Choose Map, live equipped avatar and explicit start;

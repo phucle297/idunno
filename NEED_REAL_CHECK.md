@@ -1,6 +1,27 @@
 # Báo lỗi khi gặp thực tế
 
-**Bản public hiện tại — Phase15 Home và Choose Map (2026-10-16):**
+**Bản public hiện tại — Phase16 Animated Rooftop và Toy Town Fixes (2026-10-17):**
+[source](https://github.com/phucle297/idunno/commit/a2c8ce87800de80784fa87837889005bd92d6288)
+đã push, [deploy](https://github.com/phucle297/idunno/actions/runs/39059570910) và
+[publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-17-a2c8ce8).
+Tải `DisasterParty-Windows-Internet-a2c8ce8.zip`, giải nén hết rồi chạy EXE cạnh PCK.
+Home rooftop3D có animation; flow Home → Choose Map → Start Solo được giữ nguyên.
+Đã giảm fall damage theo độ cao, sửa HP lẻ hiển thị0, dời cây khỏi lối lên,
+chỉnh Volcano, hình dạng vũng nước và bỏ vòng tròn Flood thường.
+58 suite/6 matrix/managed20/41 Python, ảnh exact-PCK720p/1080p đã inspect,
+standalone Linux và public hai client HTTPS/ENet/Ready/Start/di chuyển đồng bộ pass.
+Windows dùng PCK giống byte server đang deploy; tag/assets tải lại so hash/byte pass.
+[Evidence đầy đủ](docs/old-docs/phase-16-animated-rooftop-home/progress.json).
+Mọi người cần cùng bản mới khi vào `https://server.permees.com`.
+Public profile storage vẫn tắt; test lưu outfit/reward local không chứng minh
+persistence trên public. Windows gốc/GPU/60FPS/audio/cảm nhận animation, thẩm mỹ,
+cân bằng fall và hai mạng riêng vẫn chưa xác minh; waiver cũ giữ nguyên.
+Không thêm checklist bắt buộc. Nếu gặp bug, báo build, map/trang phục, thao tác,
+độ cao/vị trí nếu liên quan, số người/mạng và ảnh/log nếu thuận tiện.
+
+Các bản dưới đây là lịch sử, không phải public hiện tại.
+
+**Bản public trước — Phase15 Home và Choose Map (2026-10-16):**
 [source](https://github.com/phucle297/idunno/commit/3e2d93898aff300f5f86dc41b737473329423876)
 đã commit/push/deploy và [publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938).
 Tải `DisasterParty-Windows-Internet-3e2d938.zip`, giải nén hết rồi chạy EXE cạnh PCK.
