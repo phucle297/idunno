@@ -34,9 +34,13 @@ func _run() -> void:
 	weather.tick(4.0, true, false, -INF)
 	_expect(weather.sample_surface(ground) == Vector2.ZERO, "Rain cannot wet roofed ground")
 	_expect(weather.sample_surface(rooftop) == Vector2(0, 1) and weather.sample_surface(open_ground) == Vector2(0, 1), "Rain wets exposed supports, bounded at one")
+	weather._process(0.0)
+	_expect(weather._patch_visuals[1].mesh is ArrayMesh and weather._patch_visuals[2].mesh is ArrayMesh, "Wet patches render irregular authored meshes instead of cylinders")
+	_expect(weather._outlines[1] != weather._outlines[2], "Different supports deterministically receive different puddle outlines")
+	var edge := weather._outlines[2][0]
+	var inside_edge := open_ground + Vector3(edge.x * 0.999, 0.0, edge.y * 0.999)
+	_expect(weather.sample_surface(open_ground) == Vector2(0, 1) and weather.sample_surface(inside_edge).y == 1.0 and weather.sample_surface(open_ground + Vector3(edge.x * 1.05, 0.0, edge.y * 1.05)) == Vector2.ZERO, "Rendered outline and wet-contact boundary agree")
 	_expect(weather.sample_surface(Vector3(10, 0.301, 0)) == Vector2.ZERO, "Airborne contact must not inherit ground state")
-	_expect(weather.sample_surface(Vector3(12.001, 0, 0)) == Vector2.ZERO, "Outside patch radius stays dry")
-	_expect(weather.sample_surface(Vector3(12, 0, 0)).y == 1.0, "Exact patch edge includes contact")
 	weather.cleanup()
 	weather.tick(20.0, false, true, -INF)
 	_expect(weather.sample_surface(ground) == Vector2.ZERO and weather.sample_surface(rooftop).x == 1.0, "Snow accumulates only outdoors and caps at one")
@@ -87,6 +91,17 @@ func _run() -> void:
 	client_root.add_child(client)
 	_expect(client.apply_presentation_snapshot(before), "Remote presentation accepts authoritative surface snapshot")
 	_expect(client.sample_surface(rooftop) == weather.sample_surface(rooftop), "Remote query matches authority")
+	_expect(client._outlines == weather._outlines, "Snapshot layout deterministically reproduces authoritative puddle geometry")
+	client._process(0.0)
+	var original_mesh: Mesh = client._patch_visuals[0].mesh
+	var moved := before.duplicate(true)
+	var moved_positions: PackedVector3Array = moved.positions.duplicate()
+	moved_positions[0] += Vector3.RIGHT
+	moved.positions = moved_positions
+	_expect(client.apply_presentation_snapshot(moved), "A same-count replacement layout is accepted")
+	client._process(0.0)
+	_expect(client._patch_visuals[0].mesh != original_mesh, "Changed supports rebuild visible outlines even when patch count stays equal")
+	_expect(client.apply_presentation_snapshot(before), "Restore authoritative layout after replacement")
 	client.tick(100.0, true, true, 100.0)
 	_expect(client.create_presentation_snapshot() == before, "Client cannot simulate weather")
 	_expect(not client.configure_surfaces(PackedVector3Array([ground]), 1.0), "Client cannot replace authoritative layout")

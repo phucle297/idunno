@@ -36,6 +36,19 @@ func _run() -> void:
 	_expect(flood.start_warning(), "Authority must start Flood during an active match")
 	_expect(not flood.start_warning(), "A second Flood warning must not replace the active flood")
 	_expect(flood.phase == FloodScript.Phase.WARNING and flood.active_effect_count() == 1, "Flood must create one warning surface")
+	var surface := flood._surface
+	var normal_cues := 0
+	var visible_normal_toruses := 0
+	for child in surface.get_children():
+		if child.name.begins_with("WaterCue") and (child as MeshInstance3D).mesh is PlaneMesh:
+			normal_cues += 1
+		if (child as MeshInstance3D).mesh is TorusMesh and child.visible:
+			visible_normal_toruses += 1
+	_expect(normal_cues == 4 and visible_normal_toruses == 0, "Normal Flood uses subtle water streaks, not target-like circle cues")
+	var cue_before := (surface.get_node("WaterCue0") as MeshInstance3D).position
+	flood._visual_time = 1.0
+	flood._update_water_cues()
+	_expect(not (surface.get_node("WaterCue0") as MeshInstance3D).position.is_equal_approx(cue_before), "Normal Flood water cues move without implying a damage radius")
 	flood.tick(5.99)
 	_expect(flood.phase == FloodScript.Phase.WARNING, "Flood must not rise before the six-second warning completes")
 	flood.tick(0.02)
@@ -103,6 +116,8 @@ func _run() -> void:
 	_expect(is_equal_approx(manager.get_health(1), 88.0), "Peak flood must drown a player on the escape-aid elevation after breathing grace")
 	flood._apply_water_effects(0.5, flood.target_level, 0.5)
 	_expect(is_equal_approx(manager.get_health(1), 69.5), "Electrified water must damage a flooded player even at escape-aid elevation")
+	_expect(flood.electrify_at(Vector3(0.0, flood.water_level, 0.0)), "Flood must activate the distinct electrified-water feedback")
+	_expect((surface.get_node("ElectricStrikeRipple0") as MeshInstance3D).visible and (surface.get_node("WaterCue0") as MeshInstance3D).mesh is PlaneMesh, "Electrified Flood preserves ordinary moving water cues and adds violet strike ripples")
 
 	flood.cleanup()
 	await process_frame

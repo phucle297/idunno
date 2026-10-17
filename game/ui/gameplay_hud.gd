@@ -125,7 +125,9 @@ func _process(delta: float) -> void:
 
 
 func present_vitals(health: float, alive_count: int, player_count: int) -> void:
-	_presented_health = int(health)
+	# Health remains authoritative as a float, but a positive survivor must
+	# never read as 0 HP before the server has eliminated them.
+	_presented_health = ceili(maxf(health, 0.0))
 	_presented_alive_counts = Vector2i(alive_count, player_count)
 	health_label.text = "%d" % _presented_health
 	health_bar.value = clampf(health, health_bar.min_value, health_bar.max_value)

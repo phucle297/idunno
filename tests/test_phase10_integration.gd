@@ -83,14 +83,20 @@ func _run() -> void:
 		volcano.tick(60)
 		_expect(remote_volcano.apply_presentation_snapshot(volcano.create_presentation_snapshot()) and remote_volcano.mutated and not remote_volcano.is_active(), "Cooled terrain reconstructs after hazard ends")
 		remote_volcano.cleanup()
-		# Re-enter both crossing exits without a mandatory jump after mutation.
-		for direction in [-1, 1]:
-			player.reset_for_match(center + Vector3(direction * (volcano.district_size.x / 2 + 1.7), 0.03, 0))
-			player.set_camera_yaw(0)
-			for step in 220:
-				player.apply_movement_input(Vector2(-direction, 0), false, false, 1.0 / 60)
-				await physics_frame
-			_expect(direction * (player.position.x - center.x) < -1, "Cooled crossing traverses center without jumping on %s; feet=%s" % [map_id, player.position])
+		# Re-enter all four crossing exits without a mandatory jump after mutation.
+		for axis in [Vector2.RIGHT, Vector2.DOWN]:
+			var extent: float = volcano.district_size.x / 2 if axis.x != 0 else volcano.district_size.y / 2
+			# North/south follows the clear lane beside the authored loose crate,
+			# rather than testing a straight line through that movable obstacle.
+			var lane := Vector3(-1, 0, 0) if axis.y != 0 else Vector3.ZERO
+			for direction in [-1, 1]:
+				player.reset_for_match(center + lane + Vector3(axis.x * direction * (extent + 1.7), 0.03, axis.y * direction * (extent + 1.7)))
+				player.set_camera_yaw(0)
+				for step in 220:
+					player.apply_movement_input(-axis * direction, false, false, 1.0 / 60)
+					await physics_frame
+				var offset := Vector2(player.position.x - center.x, player.position.z - center.z)
+				_expect(direction * offset.dot(axis) < -1, "Cooled crossing traverses center without jumping on %s axis=%s; feet=%s" % [map_id, axis, player.position])
 		volcano.cleanup()
 		_expect(remote_volcano.apply_presentation_snapshot({}) and not remote_volcano.mutated, "Absent snapshot restores remote original map")
 		player.reset_for_match(main.map_anchors.spawn_origin)
@@ -116,7 +122,7 @@ func _run() -> void:
 		var filename := "bee" if sound == "bees" else sound
 		_expect(main.gameplay_audio._warning_voice.stream.resource_path.ends_with(filename + "_warning.wav"), "Distinct reserved synthesized warning")
 		await create_timer(0.05).timeout
-	# Ordinary jump is safe; a genuine ten-metre fall is lethal, authority-only.
+	# Actual landing height controls damage; routine jumps and low drops are safe.
 	main.match_manager.set_player_ready(1, true)
 	main.match_manager.start_match()
 	var origin: Vector3 = main.map_anchors.spawn_origin
@@ -125,10 +131,26 @@ func _run() -> void:
 		player.apply_movement_input(Vector2.ZERO, false, step == 10, 1.0 / 60)
 		await physics_frame
 	_expect(main.match_manager.get_health(1) == 100, "Normal jump never causes fall damage")
-	player.reset_for_match(origin + Vector3.UP * 10)
-	for step in 120:
-		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
-		await physics_frame
+	var previous_damage := 0.0
+	for height in [2.5, 6.0, 10.0, 16.0]:
+		main.match_manager.prepare_lobby()
+		main.match_manager.set_player_ready(1, true)
+		main.match_manager.start_match()
+		player.reset_for_match(origin + Vector3.UP * height)
+		for step in 180:
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
+			await physics_frame
+		var damage: float = 100.0 - main.match_manager.get_health(1)
+		print("FALL_HEIGHT height=%.1f damage=%.2f" % [height, damage])
+		if height == 2.5:
+			_expect(damage == 0.0, "Low ledge drops are safe")
+		else:
+			_expect(damage > previous_damage, "Higher real drops cause progressively more damage")
+		if height == 6.0:
+			_expect(damage < 12.0, "Typical rooftop descent deals modest damage")
+		if height == 10.0:
+			_expect(damage > 0.0 and damage < 45.0, "Ten-metre drop is survivable from full health")
+		previous_damage = damage
 	_expect(main.match_manager.get_cause_of_death(1) == "Fall", "Real lethal landing reports Fall, not cosmetic or UFO damage")
 	peer.close()
 	remote_root.free()

@@ -61,6 +61,8 @@ var _surface: MeshInstance3D
 var _water_material: StandardMaterial3D
 var _ripple_material: StandardMaterial3D
 var _electric_material: StandardMaterial3D
+var _water_cues: Array[MeshInstance3D] = []
+var _visual_time := 0.0
 var map_half_extent := 32.0
 
 
@@ -195,6 +197,8 @@ func cleanup() -> void:
 	_water_material = null
 	_ripple_material = null
 	_electric_material = null
+	_water_cues.clear()
+	_visual_time = 0.0
 
 
 func active_effect_count() -> int:
@@ -257,7 +261,10 @@ func get_submerged_time(peer_id: int) -> float:
 
 
 func _process(delta: float) -> void:
+	_visual_time += delta
 	tick(delta)
+	_update_water_cues()
+	_update_electric_visual()
 
 
 func _apply_water_effects(delta: float, previous_water_level: float, electrified_delta: float) -> void:
@@ -342,24 +349,26 @@ func _spawn_surface() -> void:
 	_surface.mesh = mesh
 	add_child(_surface)
 	_ripple_material = StandardMaterial3D.new()
-	_ripple_material.albedo_color = Color(0.9569, 0.902, 0.7843, 0.75)
+	_ripple_material.albedo_color = Color(0.82, 0.95, 1.0, 0.24)
 	_ripple_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_ripple_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_electric_material = StandardMaterial3D.new()
 	_electric_material.albedo_color = Color(0.694, 0.235, 1.0, 0.94)
 	_electric_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_electric_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	for ripple_data in [[Vector3(-8.0, 0.08, 4.0), 2.0], [Vector3(10.0, 0.08, -7.0), 3.0], [Vector3(2.0, 0.08, 12.0), 1.5]]:
-		var ripple := MeshInstance3D.new()
-		var ripple_mesh := TorusMesh.new()
-		ripple_mesh.inner_radius = ripple_data[1]
-		ripple_mesh.outer_radius = ripple_data[1] + 0.12
-		ripple_mesh.rings = 32
-		ripple_mesh.ring_segments = 6
-		ripple_mesh.material = _ripple_material
-		ripple.mesh = ripple_mesh
-		ripple.position = ripple_data[0]
-		_surface.add_child(ripple)
+	for cue_data in [[Vector3(-12.0, 0.09, 5.0), 0.25], [Vector3(7.0, 0.09, -10.0), -0.42], [Vector3(15.0, 0.09, 12.0), 0.68], [Vector3(-3.0, 0.09, -16.0), -0.15]]:
+		var cue := MeshInstance3D.new()
+		cue.name = "WaterCue%d" % _water_cues.size()
+		var cue_mesh := PlaneMesh.new()
+		cue_mesh.size = Vector2(2.2, 0.11)
+		cue_mesh.material = _ripple_material
+		cue.mesh = cue_mesh
+		cue.position = cue_data[0]
+		cue.rotation.y = cue_data[1]
+		cue.set_meta("base_position", cue_data[0])
+		cue.set_meta("base_rotation", cue_data[1])
+		_surface.add_child(cue)
+		_water_cues.append(cue)
 	for index in 3:
 		var electric_ripple := MeshInstance3D.new()
 		electric_ripple.name = "ElectricStrikeRipple%d" % index
@@ -379,16 +388,25 @@ func _spawn_surface() -> void:
 func _update_electric_visual() -> void:
 	if not is_instance_valid(_surface):
 		return
-	var active := electrified_remaining > 0.0
-	for ripple in _surface.get_children():
-		var ripple_mesh := ripple as MeshInstance3D
-		ripple_mesh.material_override = _electric_material if active else _ripple_material
 	for index in 3:
 		var strike_ripple := _surface.get_node("ElectricStrikeRipple%d" % index) as MeshInstance3D
-		strike_ripple.visible = active
+		strike_ripple.visible = electrified_remaining > 0.0
 		strike_ripple.position = Vector3(electrified_target.x, 0.1, electrified_target.z)
 		var pulse := 1.0 + sin(electrified_remaining * TAU * 2.0 + index) * 0.08
 		strike_ripple.scale = Vector3(pulse, 1.0, pulse)
+
+
+func _update_water_cues() -> void:
+	for index in _water_cues.size():
+		var cue := _water_cues[index]
+		if not is_instance_valid(cue):
+			continue
+		var base_position: Vector3 = cue.get_meta("base_position", Vector3.ZERO)
+		var base_rotation := float(cue.get_meta("base_rotation", 0.0))
+		cue.position = base_position + Vector3(sin(_visual_time * 0.65 + index * 1.7) * 0.55, 0.0, cos(_visual_time * 0.5 + index) * 0.3)
+		cue.rotation.y = base_rotation + sin(_visual_time * 0.4 + index) * 0.08
+		var pulse := 0.85 + sin(_visual_time * 0.9 + index * 2.0) * 0.12
+		cue.scale = Vector3(pulse, 1.0, 1.0)
 
 
 func _set_water_level(level: float) -> void:

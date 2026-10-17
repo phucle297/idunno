@@ -18,10 +18,16 @@ func _run() -> void:
 	_expect(not hud.has_node("Title") and not hud.has_node("Help"), "The gameplay HUD must not retain permanent prototype title or control copy")
 
 	hud.present_vitals(73.9, 3, 8)
-	_expect(hud.get_presented_health() == 73, "Vitals must retain authoritative health through the HUD boundary")
+	_expect(hud.get_presented_health() == 74, "Vitals must round positive authoritative health up through the HUD boundary")
 	_expect(hud.get_presented_alive_counts() == Vector2i(3, 8), "Vitals must distinguish alive and total player counts")
 	_expect(hud.health_bar.value == 73.9, "The health display must visualize fractional authoritative health")
 	_expect(hud.health_card.anchor_top == 1.0 and hud.health_card.offset_bottom == -24.0, "The health card must remain anchored to the safe bottom edge")
+	hud.present_vitals(0.1, 1, 1)
+	_expect(hud.get_presented_health() == 1 and hud.health_label.text == "1" and hud.health_bar.value == 0.1, "Positive fractional HP must remain visibly alive rather than read as zero")
+	await _capture("health-near-zero")
+	hud.present_vitals(0.0, 0, 1)
+	_expect(hud.get_presented_health() == 0 and hud.health_label.text == "0" and hud.health_bar.value == 0.0, "Actual zero HP must remain visibly zero")
+	await _capture("health-zero")
 
 	hud.present_match_status(125, "SURVIVE", false)
 	_expect(hud.timer_label.text == "02:05", "Match status must format the remaining clock")

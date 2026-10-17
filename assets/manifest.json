@@ -1,9 +1,8 @@
 {
   "schema_version": 1,
   "homepage_previews": {
-    "provenance": "Project-authored map geometry rendered in Godot4.7.2 Compatibility/llvmpipe. Exact existing audit captures copied unchanged; no generated concept illustration or third-party texture used at runtime. Character preview remains a live CHR_Base_v001 instance with acknowledged outfit. Pedestal is a procedural matte cream cylinder in game/ui/home_screen.gd.",
+    "provenance": "Project-authored live rooftop and town geometry in game/ui/home_town_stage.gd rendered in Godot4.7.2 Compatibility. No concept illustration or third-party texture at runtime; Home avatar is live CHR_Base_v001 with acknowledged outfit. Clouds, traffic and occasional wave animate; reduced motion freezes presentation and hidden pages stop processing/rendering. Map cards retain unchanged authored audit captures.",
     "files": [
-      {"export_path": "assets/ui/home_town.png", "source_capture": ".amp/in/artifacts/phase13/civic.png", "sha256": "9fee2a62b3f6263cd2386a6db0dbdb0904bb6ffe30ef0977b3e9cbfe386a7b73"},
       {"export_path": "assets/ui/toy_town.png", "source_capture": ".amp/in/artifacts/phase13/overview.png", "sha256": "d7960078d618acc8903414f15fc929009861bef0c5f47eabb30b1df34ddc3031"},
       {"export_path": "assets/ui/toy_harbor.png", "source_capture": ".amp/in/artifacts/map-design-audit/harbor-overview.png", "sha256": "94e3b72ab692cc2e11545c62797682b2307de8a75d3482493863ed7d3ddbb918"}
     ]
@@ -327,26 +326,40 @@
       "validation_status": "measured896_triangles_per_site; warning_burning_spread_cooled_dry_roof_720p_1080p_renders_inspected; Fire95_quake96_Flood59_five_resets150_and_real_remote_WET_convergence_passed; distant720p_labels_lower_contrast"
     },
     {
+      "asset_id": "VFX_FloodSurface_v002",
+      "category": "runtime_hazard_effect",
+      "source_path": "game/disasters/flood.gd",
+      "export_path": "scenes/main.tscn::Flood",
+      "generator_script": "game/disasters/flood.gd",
+      "generator_version": "2",
+      "maximum_water_cues": 4,
+      "maximum_electric_ripples": 3,
+      "collider_type": "none; server-authoritative water-height contact unchanged",
+      "animation_list": ["bounded_water_streak_drift", "electrified_violet_pulse"],
+      "provenance": "Project-authored water box, four translucent animated plane streaks and three electric-only violet toruses. Ordinary fixed cream target-like rings removed. No external asset or texture.",
+      "validation_status": "Flood63 checks including normal/electric visibility, cue movement and reset pass; integrated normal/electric renders inspected. Combined regression/delivery evidence lives in active progress. No native GPU/human acceptance claim."
+    },
+    {
       "asset_id": "VFX_WeatherSurfaces_v001",
       "category": "runtime_hazard_effect",
       "source_path": "game/disasters/weather_surfaces.gd",
       "export_path": "scenes/main.tscn::WeatherSurfaces",
       "generator_script": "game/disasters/weather_surfaces.gd",
-      "generator_version": "1",
+      "generator_version": "2",
       "seed": 901,
       "intended_dimensions_m": [4.8, 0.025, 4.8],
       "maximum_patches": 64,
       "maximum_cosmetic_flakes": 64,
-      "triangle_count": 288,
-      "triangle_count_scope": "per_patch; cosmetic_flake12; Town19_and_Harbor6_patches",
+      "triangle_count": 120,
+      "triangle_count_scope": "per_patch including feathered shoreline; cosmetic_flake12; maximum64_patches",
       "material_ids": ["PALETTE.water", "PALETTE.cream"],
       "pivot": "authored_support_center",
       "collider_type": "none; bounded support_height/contact queries",
       "skeleton_version": null,
       "animation_list": ["bounded_rain_streak_fall", "bounded_snow_flake_fall", "accumulation_melt_dry", "cosmetic_player_wet_hunch_snow_shiver"],
       "gameplay_tags": ["Wet", "Snow", "FloodWashed"],
-      "provenance": "Project-authored runtime Godot cylinder/box meshes, deterministic sine-positioned cosmetic flakes. No external files or licensing claim. Shared toy palette; per-flake collision absent.",
-      "validation_status": "WeatherSurfaces37/integration471 pass. All dry/wet/snow/melt/warning/overlap states at720p/1080p inspected; melt is Water-blue with restored traction, cream snow and no lingering Snowfall chip. Five600-tick cycles/map have stable node counts; maximum64 cosmetic flakes and3 loose props. Full transport evidence in phase progress. No native GPU/human/audio acceptance claim."
+      "provenance": "Project-authored deterministic40-point rotated/lobed support outlines shared by render and wet/snow contact, with translucent desaturated water and feathered shoreline. Geometry derives from replicated support position/index/radius; unchanged snapshots reuse it. No external assets. Cosmetic flakes remain bounded primitive boxes.",
+      "validation_status": "Phase16 WeatherSurfaces42 pass including contact boundary, snapshot determinism and same-count replacement rebuild; weather integration583 passed before final shoreline refinement. Final rendered and combined regression evidence recorded in active progress. Native GPU/human/audio acceptance unverified."
     },
     {
       "asset_id": "ENV_RockslideLane_v001",
@@ -396,17 +409,17 @@
       "maximum_cosmetic_bees": 12,
       "maximum_volcanic_shelves": 9,
       "maximum_entrance_ramps": 4,
-      "volcanic_mesh_revision": "2_faceted_relief",
-      "volcanic_triangles_per_shelf": 12,
+      "volcanic_mesh_revision": "3_shared_rim_relief",
+      "volcanic_triangles_per_shelf": 4,
       "volcanic_raised_peak_height_m": [1.05, 1.50],
-      "volcanic_shoulder_drop_m": [0.18, 0.50],
+      "volcanic_shared_rim_height_m": [0.08, 0.45],
       "intended_dimensions_m": {"ufo_beam_radius": 3.5, "town_district": [18, 18], "harbor_district": [24, 6]},
       "material_ids": ["PALETTE.amber", "PALETTE.teal", "PALETTE.slate", "PALETTE.sand", "violet_beam", "orange_heat"],
       "pivot": "authoritative_swarm_position; fixed_beam_support; authored_district_center",
-      "collider_type": "bees swept authoritative sphere, no cosmetic bodies; UFO ray/footprint, no beam collision; volcanic12-triangle static shelves with matching visible facets and4 box ramps",
+      "collider_type": "bees swept authoritative sphere, no cosmetic bodies; UFO ray/footprint, no beam collision; volcanic4-triangle top shelves with matching trimesh support and4 box ramps; cosmetic dark perimeter skirt/fissures",
       "animation_list": ["cosmetic_bee_orbit", "bounded_collision_backed_lift", "hot_warm_cooled_materials"],
-      "provenance": "Project-authored Godot primitive meshes plus deterministic SurfaceTool volcanic relief, vector icons and Label3D. No external samples, textures, geometry or CC0 claim.",
-      "validation_status": "Relief revision2 import, Volcano284/Integration47, map routes424/prop routes191 and both-map4-peer/five-rematch transport pass.24 rendered states reviewed at720p/1080p via four contact sheets and selected originals. Map-variety retains shutdown-only ObjectDB/resource diagnostics. Evidence: docs/old-docs/phase-10-volcanic-relief-followup/progress.json. Original Phase10 package/soak evidence is historical; old packages lack revision2. Software rendering only; native GPU/human acceptance unverified."
+      "provenance": "Project-authored deterministic shared-rim profiles replace independently skirted plinths; top facets and trimesh collision share geometry. Dark outer skirt and emissive fissures are cosmetic, not extra hitboxes. No external assets or independently randomized client terrain.",
+      "validation_status": "Phase16 Volcano284 and terrain routes18124 pass; both maps/two variants ground and overhead renders inspected. Combined regression and delivery recorded in active progress. Historical revision2 evidence remains in docs/old-docs/phase-10-volcanic-relief-followup/progress.json; no native GPU/human acceptance claim."
     },
     {
       "asset_id": "AUD_BeeUfoVolcano_v001",

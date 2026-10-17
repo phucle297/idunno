@@ -89,13 +89,25 @@ func _surface_center(index: int) -> Vector3:
 
 func _surface_profile(index: int, height: float) -> PackedVector3Array:
 	var half := district_size / 6
-	var bank := index % 3 != 1 and index / 3 != 1
-	# Unequal shoulders make broad, readable rock facets, not noisy pebbles.
-	# Crossing tiles meet at the same 8cm rim; their small crowns remain walkable.
-	var drops := [0.30, 0.50, 0.18, 0.38]
+	var column := index % 3
+	var row := index / 3
+	# Every neighboring shelf uses the same rim vertex.  The old independent
+	# shoulder drops left visible vertical seams and read as stacked boxes.
+	# These authored values keep the crater asymmetrical without client noise.
+	var rims := [
+		[0.08, 0.16, 0.11, 0.06, 0.14, 0.42, 0.31, 0.12, 0.09, 0.28, 0.35, 0.15, 0.05, 0.10, 0.07, 0.04],
+		[0.07, 0.12, 0.18, 0.09, 0.16, 0.34, 0.45, 0.13, 0.10, 0.39, 0.27, 0.17, 0.04, 0.08, 0.12, 0.05],
+	]
+	var rim: Array = rims[variant]
 	var points := PackedVector3Array([Vector3(0, height, 0)])
 	for corner in 4:
-		var shoulder := height - float(drops[(corner + index + variant) % 4]) if bank else 0.08
+		var grid_x := column + (1 if corner == 1 or corner == 2 else 0)
+		var grid_y := row + (1 if corner >= 2 else 0)
+		var shoulder := float(rim[grid_y * 4 + grid_x])
+		# The perimeter meets all four access ramps at exactly their top height.
+		# Even a small raised lip blocks a capsule without an automatic step-up.
+		if grid_x == 0 or grid_x == 3 or grid_y == 0 or grid_y == 3:
+			shoulder = 0.08
 		points.append(Vector3(-half.x if corner == 0 or corner == 3 else half.x, shoulder, -half.y if corner < 2 else half.y))
 	return points
 
@@ -144,9 +156,10 @@ func _build_terrain() -> void:
 		for side in 4:
 			var a := points[side + 1]
 			var b := points[(side + 1) % 4 + 1]
-			var bottom_a := Vector3(a.x, -0.05, a.z)
-			var bottom_b := Vector3(b.x, -0.05, b.z)
-			for triangle: Array in [[points[0], a, b], [a, bottom_a, bottom_b], [a, bottom_b, b]]:
+			# The shared rim carries the actual support.  Do not give every tile
+			# its own vertical plinth: those repeated side walls created the
+			# stacked rectangular terrain seen from the gameplay camera.
+			for triangle: Array in [[points[0], a, b]]:
 				var normal: Vector3 = (triangle[2] - triangle[0]).cross(triangle[1] - triangle[0]).normalized()
 				for vertex: Vector3 in triangle:
 					surface.set_normal(normal)
@@ -160,11 +173,13 @@ func _build_terrain() -> void:
 		visual.material_override = material
 		body.add_child(visual)
 		var collision := CollisionShape3D.new()
-		# Twelve static triangles per tile, matching the visible faceted support.
+		# Four static triangles per tile, matching the visible faceted support.
 		collision.shape = mesh.create_trimesh_shape()
 		body.add_child(collision)
 		body.position = Vector3(point.x, district_center.y, point.z)
 		_terrain.add_child(body)
+		_add_hot_fissure(body, points, index)
+	_add_outer_bank_skirt()
 	for direction: Vector3 in [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]:
 		var extent := district_size.x / 2 if direction.x != 0 else district_size.y / 2
 		var width := district_size.y / 3 if direction.x != 0 else district_size.x / 3
@@ -183,13 +198,67 @@ func _build_terrain() -> void:
 		var mesh := BoxMesh.new()
 		mesh.size = shape.size
 		var material := StandardMaterial3D.new()
-		material.albedo_color = Color("f4e6c8")
+		material.albedo_color = Color("9d4a35")
 		mesh.material = material
 		visual.mesh = mesh
 		ramp.add_child(visual)
 		ramp.transform = Transform3D(Basis(x, y, z), (low + high) * 0.5 - y * 0.05)
 		_terrain.add_child(ramp)
 	_update_materials()
+
+
+func _add_hot_fissure(body: StaticBody3D, points: PackedVector3Array, index: int) -> void:
+	if index not in [0, 2, 4, 6, 8]:
+		return
+	var edge := (index + variant) % 4 + 1
+	var outer := points[edge].lerp(points[edge % 4 + 1], 0.55)
+	var mid := points[0].lerp(outer, 0.58)
+	var width := Vector3(outer.z - points[0].z, 0, points[0].x - outer.x).normalized() * 0.12
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for vertex in [points[0] + width + Vector3.UP * 0.012, points[0] - width + Vector3.UP * 0.012, mid + Vector3.UP * 0.012, mid + Vector3.UP * 0.012, outer - width + Vector3.UP * 0.012, outer + width + Vector3.UP * 0.012]:
+		surface.set_normal(Vector3.UP)
+		surface.add_vertex(vertex)
+	var visual := MeshInstance3D.new()
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("ff8a32")
+	material.emission_enabled = true
+	material.emission = Color("f06438")
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	visual.mesh = surface.commit()
+	visual.material_override = material
+	body.add_child(visual)
+
+
+func _add_outer_bank_skirt() -> void:
+	var skirt := MeshInstance3D.new()
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for index in SURFACE_COUNT:
+		var column := index % 3
+		var row := index / 3
+		var point := centers[index]
+		var profile := _profiles[index]
+		for side in 4:
+			if (side == 0 and row != 0) or (side == 1 and column != 2) or (side == 2 and row != 2) or (side == 3 and column != 0):
+				continue
+			var a := Vector3(point.x + profile[side + 1].x, district_center.y + profile[side + 1].y, point.z + profile[side + 1].z)
+			var next := (side + 1) % 4 + 1
+			var b := Vector3(point.x + profile[next].x, district_center.y + profile[next].y, point.z + profile[next].z)
+			var bottom_a := Vector3(a.x, district_center.y - 0.05, a.z)
+			var bottom_b := Vector3(b.x, district_center.y - 0.05, b.z)
+			for triangle: Array in [[a, bottom_a, bottom_b], [a, bottom_b, b]]:
+				var normal: Vector3 = (triangle[2] - triangle[0]).cross(triangle[1] - triangle[0]).normalized()
+				for vertex: Vector3 in triangle:
+					surface.set_normal(normal)
+					surface.add_vertex(vertex)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("9d4a35")
+	material.roughness = 0.9
+	skirt.mesh = surface.commit()
+	skirt.material_override = material
+	_terrain.add_child(skirt)
 
 
 func surface_at(feet: Vector3, require_contact := true) -> int:
@@ -264,7 +333,8 @@ func tick(delta: float) -> void:
 
 func _update_materials() -> void:
 	for index in _materials.size():
-		_materials[index].albedo_color = Color("f06438") if heat[index] > 20 else (Color("d9b77e") if heat[index] > 0 else Color("49566a"))
+		var bank := index % 3 != 1 and index / 3 != 1
+		_materials[index].albedo_color = (Color("ad4935") if bank else Color("e35a32")) if heat[index] > 20 else (Color("d9b77e") if heat[index] > 0 else Color("49566a"))
 	if is_instance_valid(_warning):
 		(_warning.get_child(_warning.get_child_count() - 1) as Label3D).text = "VOLCANO — EVACUATE %.0fs" % ceilf(warning_remaining) if phase == Phase.WARNING else ("HOT GROUND — %.0fs" % ceilf(active_remaining) if is_active() else "COOLED CRATER — SAFE TO CROSS")
 

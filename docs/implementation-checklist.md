@@ -4,8 +4,12 @@
 
 ## Active and planned phases
 
-No active phase. Phase15 source, matching public deployment and prerelease are
-complete; await the owner's next scope. Network-timeout investigation remains deferred.
+- [Phase16 — Animated Rooftop Home and owner playtest follow-ups](checklists/phase-16-animated-rooftop-home.md)
+  — Home correction remains in progress; height-based fall balance implemented
+  locally with focused checks. Planned Toy Town fixes cover HP0/state consistency,
+  stair/tree clearance, volcanic terrain, irregular puddles and Flood decoration.
+  These changes are not publicly deployed/released. Phase15 remains the public
+  build; network-timeout investigation remains deferred.
 
 ## Recently completed phases
 

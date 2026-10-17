@@ -5,6 +5,10 @@ GODOT_BIN="${GODOT_BIN:-godot}"
 PORT="${PORT:-29760}"
 LOG_DIR="$ROOT/.scratch/dedicated-network"
 mkdir -p "$LOG_DIR"
+# Clear old readiness markers before asynchronous child redirection can race us.
+for role in server owner guest; do
+  : > "$LOG_DIR/$role.log"
+done
 pids=()
 cleanup() { kill "${pids[@]}" 2>/dev/null || true; }
 trap cleanup EXIT

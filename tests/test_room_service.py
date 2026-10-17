@@ -687,7 +687,9 @@ class ManagedEquipment(unittest.TestCase):
         self.wait(lambda: self.read("client-1").get("owner", 0) > 1, "Rejoin admission")
         ids[1] = self.read("client-1")["local_id"]
         self.wait(lambda: self.read("server-GEAR").get("ids") == sorted(ids), "Rejoin roster")
-        self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Durable equipped restores on rejoin")
+        # Authority admission precedes the new peer's roster at other clients.
+        # Missing appearance is still pending, not a fixture KeyError.
+        self.wait(lambda: all(self.read(label).get("outfits", {}).get(str(ids[1])) == "backpack" for label in self.LABELS), "Durable equipped restores on rejoin")
         self.command("client-0", "spoof_outfit", peer=ids[1], outfit_id="meteor_observer")
         time.sleep(1.0)
         self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Spoofed appearance ignored")

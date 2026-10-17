@@ -1141,12 +1141,12 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 	)
 
 
-func _on_player_landed(impact_speed: float, peer_id: int) -> void:
+func _on_player_landed(fall_height: float, peer_id: int) -> void:
 	if _network_mode and not multiplayer.is_server():
 		return
-	if match_manager.state != MatchManager.MatchState.ACTIVE or impact_speed <= Tuning.FALL_DAMAGE_START_SPEED:
+	if match_manager.state != MatchManager.MatchState.ACTIVE or fall_height <= Tuning.FALL_DAMAGE_SAFE_HEIGHT:
 		return
-	var severity := clampf((impact_speed - Tuning.FALL_DAMAGE_START_SPEED) / (Tuning.FALL_DAMAGE_LETHAL_SPEED - Tuning.FALL_DAMAGE_START_SPEED), 0, 1)
+	var severity := clampf((fall_height - Tuning.FALL_DAMAGE_SAFE_HEIGHT) / (Tuning.FALL_DAMAGE_LETHAL_HEIGHT - Tuning.FALL_DAMAGE_SAFE_HEIGHT), 0, 1)
 	_pending_fall_damage.append({"peer_id": peer_id, "amount": 100.0 * severity * severity, "cause": "Fall"})
 	if _pending_fall_damage.size() == 1:
 		_flush_fall_damage.call_deferred()
@@ -2933,8 +2933,11 @@ func _add_town_districts() -> Dictionary:
 		data.refuges.append({"name": tag + "RoofWalk", "kind": "elevation", "center": Vector3(side * 42, y + 4.155, 4), "exits": [Vector3(side * 42, y + 4.155, -22), Vector3(side * 42, y + 4.155, 17)]})
 		data.spawn_groups.append({"name": tag + "Garden", "spawn": Vector3(side * 42, 0.05, 39), "waypoints": [Vector3(side * 34.5, 0.05, 38), Vector3(side * 34.5, y, 30), Vector3(side * 42, y, 31)], "route": tag + "RoofStairs"})
 		data.tornado_paths.append([Vector3(side * 42, 0, -49), Vector3(side * 42, 0, 49)])
-		for i in 5:
-			var position := Vector3(side * (10 + i * 8), 2, -36.5)
+		# Set planting back from both flights without clustering moved trees
+		# onto their neighbors or putting their crowns through residence walls.
+		var civic_planting := [Vector2(10, -36.5), Vector2(18, -36.5), Vector2(21, -36.5), Vector2(39, -37.5), Vector2(42, -36.5)]
+		for i in civic_planting.size():
+			var position := Vector3(side * civic_planting[i].x, 2, civic_planting[i].y)
 			_add_tree("CivicTree%s%d" % [tag, i], position)
 			_add_toy_lamp($Sandbox, "CivicLamp%s%d" % [tag, i], position + Vector3(2, 0, 0))
 			_add_street_planter("CivicPlanter%s%d" % [tag, i], position + Vector3(0, 0, -1.7))
@@ -3012,7 +3015,9 @@ func _add_town_neighborhoods(data: Dictionary) -> void:
 			data.tornado_paths.append([Vector3(center.x, 0, -64), Vector3(center.x, 0, 64)])
 			data.fire_zones.append(center + Vector3(7, 0.16, 0))
 			for edge in [-1.0, 1.0]:
-				_add_tree(title + "Tree" + str(edge), center + Vector3(edge * 9, 0.08, -8))
+				# Plant toward the outer court edge: the former inner trees crossed
+				# the roof-stair landing corridor at both southern service courts.
+				_add_tree(title + "Tree" + str(edge), center + Vector3(side * (9 + (edge + 1) * 2), 0.08, -8))
 				_add_bench(title + "Bench" + str(edge), center + Vector3(edge * 8, 0.08, 8))
 				_add_toy_lamp($Sandbox, title + "Lamp" + str(edge), center + Vector3(edge * 10, 0.08, 3))
 			# Parking/service bays are paint, never low invisible collision walls.
@@ -3703,7 +3708,9 @@ func _add_park_detail() -> void:
 	# A second bench, a planter and a low rail complete the Pocket Park while
 	# leaving the normal ramp and the crate-boost escape step clear.
 	_add_bench("ParkBenchSouth", Vector3(18.0, 2.2, 17.0))
-	_add_tree("TreeParkNorth", Vector3(12.0, 2.2, 11.2))
+	# Set back from the ParkRamp arrival so the foliage clears the teal edge
+	# trim and the full top landing, while retaining the tree's solid trunk.
+	_add_tree("TreeParkNorth", Vector3(10.0, 2.2, 13.5))
 	var park := $Sandbox.get_node("PocketParkPlatform") as Node3D
 	_add_detail_box(park, "Planter", Vector3(1.6, 0.8, 1.2), Vector3(-4.0, 1.5, -1.0), PALETTE.coral, true)
 	_add_detail_box(park, "PlanterSprout", Vector3(0.5, 0.5, 0.5), Vector3(-4.0, 2.15, -1.0), PALETTE.grass, true)

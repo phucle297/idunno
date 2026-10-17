@@ -24,6 +24,24 @@ func _run() -> void:
 	var original_outfit: String = main.get_outfit_id()
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY, "Normal launch waits in preparation, not solo gameplay")
 	_expect(main.home_screen.is_visible_in_tree() and not panel.visible and player.local_input_blocked, "Dedicated Home replaces the room dialog and blocks movement")
+	var original_reduced: bool = main.pause_settings.values.reduced_motion
+	main.pause_settings.values.reduced_motion = false
+	main._update_lobby_ui()
+	var stage: Node3D = main.home_screen.town_stage
+	var moving_cloud: Vector3 = stage.clouds[1].position
+	var moving_car: Vector3 = stage.cars[1].position
+	await create_timer(0.08).timeout
+	_expect(stage.clouds[1].position != moving_cloud and stage.cars[1].position != moving_car, "Home renders a live town: clouds and traffic actually advance")
+	_expect(stage.find_children("*", "CollisionObject3D", true, false).is_empty(), "Home diorama must not add gameplay collision or authority")
+	await _capture_motion()
+	main.pause_settings.values.reduced_motion = true
+	main._update_lobby_ui()
+	var frozen: float = stage.elapsed
+	var frozen_pose: float = main.home_screen.preview.get_node("AnimationPlayer").current_animation_position
+	await create_timer(0.08).timeout
+	_expect(stage.elapsed == frozen and main.home_screen.preview.get_node("AnimationPlayer").current_animation_position == frozen_pose, "Reduced motion freezes scenery and the avatar, not just the viewport")
+	main.pause_settings.values.reduced_motion = original_reduced
+	main._update_lobby_ui()
 	_expect(not main.disaster_director.running and main.match_manager.elapsed_time == 0, "No timer or disasters run before choosing play")
 	_expect(panel.get_node("Start").text == "PLAY SOLO" and panel.get_node("Host").visible and panel.get_node("Join").visible, "Solo and multiplayer choices are available")
 	_expect(panel.get_node("MapSelect").visible and panel.get_node("PresetSelect").visible, "Map and mode selectors are available before starting")
@@ -42,6 +60,9 @@ func _run() -> void:
 	_expect(main.home_screen.visible and main.home_screen.page == "home", "Closing offline room returns to Home")
 	main.home_screen.solo.pressed.emit()
 	_expect(main.home_screen.page == "maps" and main.home_screen.maps.visible, "Play Solo opens a separate Choose Map page without starting")
+	frozen = stage.elapsed
+	await create_timer(0.08).timeout
+	_expect(stage.elapsed == frozen and main.home_screen.preview_viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED, "Choose Map stops hidden Home animation and rendering")
 	await _capture("choose-map")
 	main.home_screen.show_page("home")
 	main.room_client.service_url = "" # Offline equipment must not require HTTP.
@@ -96,10 +117,27 @@ func _capture(state: String) -> void:
 		await process_frame
 	await RenderingServer.frame_post_draw
 	var directory := "res://.amp/in/artifacts/homepage"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--capture-dir="):
+			directory = argument.trim_prefix("--capture-dir=")
 	if "--1080p" in OS.get_cmdline_user_args():
 		directory = directory.path_join("1080p")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
 	root.get_texture().get_image().save_png(directory.path_join(state + ".png"))
+
+
+func _capture_motion() -> void:
+	if not "--capture-motion" in OS.get_cmdline_user_args():
+		return
+	var directory := "res://.scratch/home-motion-frames"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--motion-dir="):
+			directory = argument.trim_prefix("--motion-dir=")
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	for frame in 60:
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(directory.path_join("frame-%03d.png" % frame))
+		await create_timer(1.0 / 30.0).timeout
 
 
 func _expect(condition: bool, message: String) -> void:

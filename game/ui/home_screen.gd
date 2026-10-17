@@ -3,7 +3,6 @@ extends Control
 
 const UI = preload("res://game/ui/ui_tokens.gd")
 const MAP_TEXTURES := [preload("res://assets/ui/toy_town.png"), preload("res://assets/ui/toy_harbor.png")]
-const HOME_TEXTURE = preload("res://assets/ui/home_town.png")
 var page := "home"
 var _main: Node
 var canvas: Control
@@ -20,6 +19,7 @@ var mode_buttons: Array[Button] = []
 var summary: Label
 var preview: ToyCharacterVisual
 var preview_viewport: SubViewport
+var town_stage: Node3D
 var _outfit := ""
 var _selection := ""
 
@@ -118,77 +118,39 @@ func _picture(parent: Control, texture: Texture2D, rect: Rect2) -> void:
 
 
 func _build_home() -> void:
-	_picture(home, HOME_TEXTURE, Rect2(0, 0, 1280, 720))
-	var wash := TextureRect.new()
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(UI.CREAM, 0.98))
-	gradient.set_color(1, Color(UI.CREAM, 0.0))
-	var texture := GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.fill_from = Vector2(0.2, 0)
-	texture.fill_to = Vector2(0.65, 0)
-	wash.texture = texture
-	wash.size = Vector2(1280, 720)
-	wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	home.add_child(wash)
-	_label(home, "DISASTER\nPARTY", Rect2(48, 66, 450, 180), 66)
-	_label(home, "Tiny town. Big trouble.", Rect2(52, 252, 390, 36), 24, UI.SLATE)
-	solo = _button(home, "PLAY SOLO   →", Rect2(48, 342, 350, 72), func() -> void: show_page("maps"), true)
-	multiplayer_button = _button(home, "MULTIPLAYER", Rect2(48, 430, 350, 60), func() -> void:
+	_build_character_stage()
+	var title := _label(home, "DISASTER\nPARTY", Rect2(40, 40, 580, 210), 84)
+	title.add_theme_color_override("font_outline_color", UI.WHITE)
+	title.add_theme_constant_override("outline_size", 18)
+	title.add_theme_constant_override("line_spacing", -20)
+	var tagline := _label(home, "Tiny town. Big trouble.", Rect2(48, 254, 460, 40), 28)
+	tagline.add_theme_color_override("font_outline_color", UI.WHITE)
+	tagline.add_theme_constant_override("outline_size", 8)
+	solo = _button(home, "▶  PLAY SOLO", Rect2(48, 332, 390, 82), func() -> void: show_page("maps"), true)
+	solo.add_theme_font_size_override("font_size", 32)
+	multiplayer_button = _button(home, "MULTIPLAYER", Rect2(48, 430, 350, 64), func() -> void:
 		page = "room"
 		_main._set_lobby_visible(true))
-	outfits = _button(home, "OUTFITS", Rect2(48, 506, 350, 60), _main._show_collection)
+	outfits = _button(home, "OUTFITS", Rect2(48, 510, 300, 64), _main._show_collection)
 	settings = _button(home, "SETTINGS", Rect2(1050, 24, 200, 48), _main.pause_settings.show_settings)
 	_button(home, "QUIT", Rect2(48, 644, 130, 44), func() -> void: get_tree().quit())
-	_build_character_stage()
-	_label(home, "YOUR CREW", Rect2(760, 604, 280, 36), 20)
-	_label(home, "Ready for a little chaos?", Rect2(696, 642, 390, 32), 22)
 
 
 func _build_character_stage() -> void:
 	var container := SubViewportContainer.new()
-	container.position = Vector2(600, 150)
-	container.size = Vector2(600, 460)
+	container.size = Vector2(1280, 720)
 	container.stretch = true
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	home.add_child(container)
 	preview_viewport = SubViewport.new()
-	preview_viewport.size = Vector2i(600, 460)
+	preview_viewport.size = Vector2i(1280, 720)
 	preview_viewport.own_world_3d = true
-	preview_viewport.transparent_bg = true
+	preview_viewport.msaa_3d = Viewport.MSAA_2X
 	container.add_child(preview_viewport)
-	var world := Node3D.new()
-	preview_viewport.add_child(world)
-	var environment := WorldEnvironment.new()
-	environment.environment = Environment.new()
-	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.environment.ambient_light_color = Color.WHITE
-	environment.environment.ambient_light_energy = 0.7
-	world.add_child(environment)
-	var light := DirectionalLight3D.new()
-	light.rotation_degrees = Vector3(-40, -30, 0)
-	world.add_child(light)
-	var pedestal := MeshInstance3D.new()
-	var cylinder := CylinderMesh.new()
-	cylinder.top_radius = 0.9
-	cylinder.bottom_radius = 0.95
-	cylinder.height = 0.18
-	var material := StandardMaterial3D.new()
-	material.albedo_color = UI.CREAM
-	material.roughness = 0.85
-	cylinder.material = material
-	pedestal.mesh = cylinder
-	pedestal.position.y = -0.09
-	world.add_child(pedestal)
-	preview = preload("res://assets/generated/CHR_Base_v001.tscn").instantiate()
-	world.add_child(preview)
-	preview.set_player_color(0)
-	var camera := Camera3D.new()
-	camera.position = Vector3(1.4, 1.8, -4.0)
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 2.7
-	world.add_child(camera)
-	camera.look_at(Vector3(0, 0.7, 0))
+	town_stage = preload("res://game/ui/home_town_stage.gd").new()
+	preview_viewport.add_child(town_stage)
+	town_stage.build(_main)
+	preview = town_stage.character
 
 
 func _build_maps() -> void:
@@ -231,7 +193,9 @@ func focus_default() -> void:
 func refresh() -> void:
 	home.visible = page == "home"
 	maps.visible = page == "maps"
-	preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if visible and home.visible and not _main.collection.visible and not _main.pause_settings.visible else SubViewport.UPDATE_DISABLED
+	var active: bool = visible and home.visible and not _main.collection.visible and not _main.pause_settings.visible
+	preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if active else SubViewport.UPDATE_DISABLED
+	town_stage.set_motion(active, _main.pause_settings.values.reduced_motion)
 	var outfit: String = _main.get_outfit_id()
 	if outfit != _outfit:
 		_outfit = outfit

@@ -37,6 +37,9 @@ func _run() -> void:
 
 func _server(main: Node) -> void:
 	_expect(main.get_network_role() == "server", "Server CLI must select playerless dedicated mode")
+	# The launcher waits for the owner's roster before it starts the guest.
+	# Give each admission its own readiness phase, not one shared launch budget.
+	await _wait_until(func() -> bool: return main.match_manager.players.size() >= 1, "Owner must register before guest launch")
 	await _wait_until(func() -> bool: return main.match_manager.players.size() == 2, "Both clients must register")
 	var owner_id: int = main.get_room_owner_id()
 	var guest_id := 0

@@ -1,7 +1,7 @@
 class_name PartyPlayer
 extends CharacterBody3D
 
-signal landed(impact_speed: float)
+signal landed(fall_height: float)
 
 const Tuning = preload("res://game/player/player_tuning.gd")
 const RagdollScene = preload("res://game/player/cosmetic_ragdoll.gd")
@@ -27,6 +27,7 @@ var _get_up_remaining := 0.0
 var _landing_remaining := 0.0
 var _presentation_airborne := false
 var _network_grounded := -1
+var _fall_peak := NAN
 var _shove_manager: Node
 var _shove_cue_remaining := 0.0
 var _emote_gateway: Node
@@ -324,6 +325,7 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	_landing_remaining = 0.0
 	_presentation_airborne = false
 	_network_grounded = -1
+	_fall_peak = NAN
 	_shove_cue_remaining = 0.0
 	_is_eliminated = false
 	_coyote_remaining = 0.0
@@ -422,10 +424,17 @@ func _process_knockdown(delta: float) -> void:
 
 func _move_and_report_landing() -> void:
 	var airborne := not is_on_floor()
-	var impact_speed := maxf(-velocity.y, 0)
+	# Measure the actual descent, not velocity (impulses can exaggerate impact).
+	if not airborne or is_nan(_fall_peak):
+		_fall_peak = global_position.y
+	_fall_peak = maxf(_fall_peak, global_position.y)
 	move_and_slide()
-	if airborne and is_on_floor() and impact_speed > 0:
-		landed.emit(impact_speed)
+	_fall_peak = maxf(_fall_peak, global_position.y)
+	if is_on_floor():
+		var fall_height := maxf(_fall_peak - global_position.y, 0.0)
+		_fall_peak = global_position.y
+		if airborne and fall_height > 0.0:
+			landed.emit(fall_height)
 
 
 func _update_capsule() -> void:
