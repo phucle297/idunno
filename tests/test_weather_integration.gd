@@ -28,20 +28,22 @@ func _run() -> void:
 		await physics_frame
 		main._configure_weather_patches()
 		var weather: WeatherSurfaces = main.weather_surfaces
-		var snapshot := weather.create_presentation_snapshot()
-		var positions: PackedVector3Array = snapshot.positions
-		_expect(positions.size() >= 5 and positions.size() <= 64, "%s bounded authored patches" % map_id)
+		_expect(weather.create_presentation_snapshot().puddles.size() == (4 if map_id == "toy_town" else 2), "%s uses production authored puddle layout" % map_id)
 		var exposed := Vector3(INF, 0, 0)
 		var sheltered := Vector3(INF, 0, 0)
-		for point in positions:
-			if weather.is_exposed(point):
-				exposed = point
-			else:
-				sheltered = point
-			for index in 16:
-				var edge := point + Vector3(cos(TAU * index / 16), 0, sin(TAU * index / 16)) * weather.patch_radius
-				_expect(absf(main.get_map_support_height(edge) - point.y) < 0.061 and weather.is_exposed(edge) == weather.is_exposed(point), "Patch perimeter respects support and cover")
+		var outer := Vector3(INF, 0, 0)
+		for x in range(-int(main.get_map_half_extent()) + 2, int(main.get_map_half_extent()) - 1, 4):
+			for z in range(-int(main.get_map_half_extent()) + 2, int(main.get_map_half_extent()) - 1, 4):
+				var point := Vector3(x, 0, z)
+				point.y = main.get_map_support_height(point)
+				if weather.is_exposed(point):
+					exposed = point
+					if absf(point.x) > 30.0 or absf(point.z) > 30.0:
+						outer = point
+				else:
+					sheltered = point
 		_expect(exposed.is_finite() and sheltered.is_finite(), "Both exposed and roofed surfaces on %s" % map_id)
+		_expect(map_id != "toy_town" or (outer.is_finite() and weather.sample_surface(outer) == Vector2.ZERO), "Toy Town continuous query reaches outdoor terrain beyond 30m")
 		main.match_manager.set_player_ready(1, true)
 		main.match_manager.start_match()
 		var rng := RandomNumberGenerator.new()
@@ -51,14 +53,22 @@ func _run() -> void:
 		_expect(weather.sample_surface(exposed) == Vector2.ZERO, "Warning does not invisibly wet ground")
 		main.rain.tick(5.0)
 		main.tick_weather(4.0)
-		_expect(weather.sample_surface(exposed).y == 1.0 and weather.sample_surface(sheltered) == Vector2.ZERO, "Rain wets outdoors, interiors dry")
+		_expect(weather.sample_surface(exposed).y == 1.0 and weather.sample_surface(sheltered) == Vector2.ZERO and (map_id != "toy_town" or weather.sample_surface(outer).y == 1.0), "Rain wets outdoors across full map, interiors dry")
+		if map_id == "toy_town":
+			var puddle := Vector3(-4, 0, 4)
+			puddle.y = main.get_map_support_height(puddle)
+			_expect(weather.is_exposed(puddle) and bool(weather.movement_surface(puddle).puddle), "Production Town puddle occupies exposed actual ground, not beneath bridge cover")
+			main._on_lightning_struck(puddle)
+			_expect(not weather.is_electrified(puddle), "Production puddle starts with a warning, not immediate electric damage")
+			main.tick_weather(1.3)
+			_expect(weather.is_electrified(puddle) and not weather.is_electrified(exposed), "Production Lightning electrifies only warned local water")
 		var wet_zone := -1
 		for index in main.fire.zone_positions.size():
 			var point: Vector3 = main.fire.zone_positions[index]
 			point.y = main.get_map_support_height(point)
 			if weather.sample_surface(point).y >= 0.2:
 				wet_zone = index
-		_expect(wet_zone >= 0 and not main.fire.start_warning(wet_zone), "Real Rain suppresses exposed Fire ignition map=%s wet_zone=%d patches=%s" % [map_id, wet_zone, positions])
+		_expect(wet_zone >= 0 and not main.fire.start_warning(wet_zone), "Real Rain suppresses exposed Fire ignition map=%s wet_zone=%d" % [map_id, wet_zone])
 		main.rain.cleanup()
 		weather.cleanup()
 		_expect(main.snowfall.start_disaster(rng), "Snow starts")

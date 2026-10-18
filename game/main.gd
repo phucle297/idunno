@@ -70,6 +70,10 @@ var spectator_controller: Node
 var terrain_collapse: TerrainCollapse
 var powerups: MatchPowerups
 var powerup_visuals: Node3D
+var town_mechanisms: TownMechanisms
+var _weather_geometry_state := 0
+var _weather_volcano_registered := false
+var _puddle_damage_remaining := 0.0
 var _player_nodes: Dictionary = {}
 var _network_mode := false
 var _network_role := "offline"
@@ -160,6 +164,7 @@ func _ready() -> void:
 	bee_swarm.water_level = func() -> float: return flood.water_level if flood.is_active() else -INF
 	fire.surface_wetness = weather_surfaces.sample_surface
 	weather_surfaces.support_height = get_map_support_height
+	meteor_shower.impacted.connect(_on_meteor_weather_impact)
 	$ShoveManager.configure(match_manager)
 	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
 	lightning.struck.connect(_on_lightning_struck)
@@ -271,6 +276,16 @@ func _ready() -> void:
 		if _has_argument("--meteor-demo"):
 			meteor_shower.set_process(false)
 			meteor_shower.tick(2.3)
+	if _has_argument("--rain-demo") or _has_argument("--snow-demo"):
+		var weather_rng := RandomNumberGenerator.new()
+		weather_rng.seed = 1701
+		var weather_event: Precipitation = rain if _has_argument("--rain-demo") else snowfall
+		weather_event.set_process(false)
+		weather_event.start_disaster(weather_rng)
+		weather_event.tick(weather_event.warning_duration)
+		# Capture startup precedes the normal deferred map hook.
+		_configure_weather_patches()
+		tick_weather(8.0 if _has_argument("--rain-demo") else 16.0)
 	if _has_argument("--flood-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
@@ -683,6 +698,8 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 
 func _physics_process(delta: float) -> void:
+	if is_instance_valid(town_mechanisms) and match_manager.state == MatchManager.MatchState.ACTIVE:
+		town_mechanisms.server_tick(delta, {}, not _network_mode or multiplayer.is_server())
 	tick_weather(delta)
 	_eliminate_out_of_bounds()
 	_despawn_fallen_props()
@@ -1294,6 +1311,8 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	volcano.apply_presentation_snapshot(disasters.get("volcano", {}))
 	terrain_collapse.apply_snapshot(snapshot.terrain)
 	powerups.apply_snapshot(snapshot.powerups)
+	if is_instance_valid(town_mechanisms):
+		town_mechanisms.apply_snapshot(snapshot.get("mechanisms", {}))
 
 
 func _has_nonintact_structures() -> bool:
@@ -1309,6 +1328,8 @@ func _create_playable_snapshot() -> Dictionary:
 	snapshot.match_preset = match_preset
 	snapshot.terrain = terrain_collapse.create_snapshot()
 	snapshot.powerups = powerups.create_snapshot()
+	if is_instance_valid(town_mechanisms):
+		snapshot.mechanisms = town_mechanisms.create_snapshot()
 	if _dedicated_server:
 		snapshot.dedicated_server = true
 		snapshot.room_owner_id = _room_owner_id
@@ -1404,7 +1425,7 @@ func _update_context_prompt(local_peer_id: int) -> void:
 	if context.is_empty() and player.is_on_floor():
 		var surface := weather_surfaces.sample_surface(player.global_position)
 		if surface.x > 0.05:
-			context = "Snowy ground — walk to brake, leave the patch"
+			context = "Snowy ground — slower routes, walk to brake"
 		elif surface.y > 0.05:
 			context = "Wet ground — ground fire suppressed here"
 	gameplay_hud.present_context_action(context)
@@ -1474,6 +1495,7 @@ func _active_disaster_lines() -> Array[String]:
 
 func _on_lightning_struck(target: Vector3) -> void:
 	flood.electrify_at(target)
+	weather_surfaces.electrify_puddle(target)
 
 
 func _on_tornado_activated() -> void:
@@ -1540,7 +1562,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(home_screen) and home_screen.visible:
 		return # Only focused page controls may begin preparation or play.
-	if event.is_action_pressed("toggle_lobby"):
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E and match_manager.state == MatchManager.MatchState.ACTIVE and not spectator_controller.active:
+		request_nearby_mechanism()
+	elif event.is_action_pressed("toggle_lobby"):
 		_set_lobby_visible(not $Interface/LobbyPanel.visible)
 	elif event.is_action_pressed("ui_accept"):
 		if match_manager.state == MatchManager.MatchState.LOBBY and _network_mode and can_control_session():
@@ -1561,6 +1585,51 @@ func _unhandled_input(event: InputEvent) -> void:
 func _cycle_spectator(direction: int) -> void:
 	if spectator_controller.active and match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible and not pause_settings.visible:
 		spectator_controller.cycle(direction)
+
+
+func request_nearby_mechanism() -> bool:
+	var peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	var actor := _player_nodes.get(peer_id) as PartyPlayer
+	if not is_instance_valid(town_mechanisms) or not is_instance_valid(actor):
+		return false
+	for id: String in [TownMechanisms.AWNING_ID, TownMechanisms.BRIDGE_ID]:
+		if actor.global_position.distance_to(town_mechanisms.get_control_position(id)) <= TownMechanisms.ACTIVATION_RANGE:
+			if _network_mode and not multiplayer.is_server():
+				_request_mechanism.rpc_id(1, id)
+				return true
+			return _activate_mechanism(peer_id, id)
+	return false
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _request_mechanism(id: String) -> void:
+	if _network_mode and multiplayer.is_server():
+		_activate_mechanism(multiplayer.get_remote_sender_id(), id)
+
+
+func _activate_mechanism(peer_id: int, id: String) -> bool:
+	var actor := _player_nodes.get(peer_id) as PartyPlayer
+	if not is_instance_valid(town_mechanisms) or not is_instance_valid(actor):
+		return false
+	var accepted := town_mechanisms.request_activation(id, peer_id, actor.global_position,
+		match_manager.is_player_alive(peer_id), actor.is_knocked_down() or not actor.is_on_floor(),
+		match_manager.state == MatchManager.MatchState.ACTIVE, not _network_mode or multiplayer.is_server()) == TownMechanisms.ActivationResult.ACCEPTED
+	if accepted and id == TownMechanisms.AWNING_ID:
+		var pivot := town_mechanisms.get_deck_transform(id).origin
+		pivot.y = 0.0
+		weather_surfaces.preserve_cover_region(pivot, 3)
+	return accepted
+
+
+func _mechanism_line_of_sight(actor: Vector3, control: Vector3, _id: String) -> bool:
+	var query := PhysicsRayQueryParameters3D.create(actor + Vector3.UP, control + Vector3.UP, 1)
+	# The target crank's own post is not a wall between the actor and control.
+	var excluded: Array[RID] = []
+	for child in town_mechanisms.get_children():
+		if child is StaticBody3D and "CrankStationPost" in child.name:
+			excluded.append(child.get_rid())
+	query.exclude = excluded
+	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
 func start_network_match() -> bool:
@@ -2335,6 +2404,8 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 		terrain_collapse.reset()
 		weather_surfaces.cleanup()
 		volcano.cleanup()
+		if is_instance_valid(town_mechanisms):
+			town_mechanisms.reset_for_match()
 	if is_instance_valid(collection) and state == MatchManager.MatchState.ACTIVE:
 		collection.dismiss()
 		_reward_notice.clear()
@@ -2579,6 +2650,12 @@ func _build_sandbox() -> void:
 	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
 	anchors.rockslide_lane = _build_rockslide_lane()
 	if map_id == "toy_town":
+		town_mechanisms = TownMechanisms.new()
+		town_mechanisms.construct_toy_town($Sandbox,
+			func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, 8.0, false),
+			_mechanism_line_of_sight)
+		# Include fixed mechanism approaches before caching collapse ownership.
+		# The south landing spans a district cut; each side must fall separately.
 		preload("res://game/world/town_partitions.gd").partition($Sandbox)
 	_apply_map_anchors(anchors)
 
@@ -2647,29 +2724,29 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 
 
 func _configure_weather_patches() -> void:
-	if _network_mode and not multiplayer.is_server():
-		return
-	# Authored flat-region candidates, not a blanket world traction modifier.
-	var candidates: Array = map_anchors.fire_zones.duplicate()
-	for refuge: Dictionary in map_anchors.refuges:
-		candidates.append(refuge.center)
-	var patches := PackedVector3Array()
-	for candidate: Vector3 in candidates:
-		var point := candidate
+	# Continuous material on actual world geometry, with only authored local
+	# depressions receiving deep puddles. No discs define outdoor coverage.
+	var puddles := PackedVector3Array()
+	var candidates: Array[Vector3] = [Vector3(-8, 0, 8), Vector3(8, 0, -8)]
+	if map_id == "toy_town":
+		candidates.assign([Vector3(-4, 0, 4), Vector3(4, 0, -4)])
+		candidates.append_array([Vector3(-56, 0, 56), Vector3(56, 0, -56)])
+	for point in candidates:
 		point.y = get_map_support_height(point)
-		var fits := true
-		var exposed := weather_surfaces.is_exposed(point)
-		for index in 16:
-			var angle := TAU * index / 16.0
-			var edge := point + Vector3(cos(angle), 0, sin(angle)) * 2.4
-			if absf(get_map_support_height(edge) - point.y) > 0.06 or weather_surfaces.is_exposed(edge) != exposed:
-				fits = false
-		if fits and patches.size() < WeatherSurfaces.MAX_PATCHES:
-			patches.append(point)
-	weather_surfaces.configure_surfaces(patches, 2.4)
+		puddles.append(point)
+	weather_surfaces.configure_world($Sandbox, get_map_half_extent(), puddles)
 
 
 func tick_weather(delta: float) -> void:
+	var geometry_state := hash([terrain_collapse.removed_mask, earthquake.get_structure_states(), volcano.mutated,
+		town_mechanisms.create_snapshot() if is_instance_valid(town_mechanisms) else {}])
+	if geometry_state != _weather_geometry_state:
+		_weather_geometry_state = geometry_state
+		weather_surfaces.invalidate_cover()
+		if volcano.mutated and not _weather_volcano_registered:
+			for mesh: MeshInstance3D in volcano.find_children("*", "MeshInstance3D", true, false):
+				weather_surfaces.register_surface_mesh(mesh)
+		_weather_volcano_registered = volcano.mutated
 	if _network_mode and not multiplayer.is_server():
 		return
 	if match_manager.state != MatchManager.MatchState.ACTIVE:
@@ -2679,6 +2756,24 @@ func tick_weather(delta: float) -> void:
 	var snowing := snowfall.phase == Precipitation.Phase.ACTIVE
 	weather_surfaces.precipitation = "Rain" if raining else ("Snowfall" if snowing else "")
 	weather_surfaces.tick(delta, raining, snowing, flood.water_level if flood.is_active() else -INF)
+	for zone_id: int in fire.get_burning_zone_ids():
+		weather_surfaces.melt_snow_at(fire.zone_positions[zone_id], fire.zone_radius, delta * 0.2)
+	var damage: Array[Dictionary] = []
+	_puddle_damage_remaining -= delta
+	for peer_id: int in _player_nodes:
+		var player := _player_nodes[peer_id] as PartyPlayer
+		if is_instance_valid(player) and match_manager.is_player_alive(peer_id) and player.is_on_floor():
+			weather_surfaces.leave_footprint(peer_id, player.global_position)
+			if _puddle_damage_remaining <= 0.0 and weather_surfaces.is_electrified(player.global_position):
+				damage.append({"peer_id": peer_id, "amount": 6.0, "cause": "Electrified Puddle"})
+	if _puddle_damage_remaining <= 0.0:
+		_puddle_damage_remaining = 0.5
+	if not damage.is_empty():
+		match_manager.apply_damage_batch(damage)
+
+
+func _on_meteor_weather_impact(point: Vector3) -> void:
+	weather_surfaces.melt_snow_at(point, meteor_shower.impact_radius, 1.0)
 
 
 func _meteor_routes_clear(points: Array[Vector3]) -> bool:
@@ -4037,6 +4132,8 @@ func _has_disaster_demo_argument() -> bool:
 		or _has_argument("--results-demo")
 		or _has_argument("--map-demo")
 		or _has_argument("--lobby-demo")
+		or _has_argument("--rain-demo")
+		or _has_argument("--snow-demo")
 	)
 
 

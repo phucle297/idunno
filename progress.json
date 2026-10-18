@@ -1,21 +1,45 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-17",
+  "updated_at": "2026-10-18",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "in_progress",
   "previous_phase_archive": {"path": "docs/old-docs/phase-16-animated-rooftop-home/progress.json", "status": "completed", "source_of_truth": false},
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
   "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
   "development_model": {"hierarchy": ["phase", "milestone", "task"], "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units", "status_values": ["planned", "in_progress", "blocked", "completed", "cancelled"], "gate_status_values": ["not_run", "passed", "failed", "blocked"], "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"},
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_17_continuous_weather", "milestone": "M17.4", "task": null},
+  "phase": {
+    "id": "phase_17_continuous_weather",
+    "title": "Continuous Weather and Roof-Correct Shelter",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-17-continuous-weather.md",
+    "authorization": "Owner approved weather plan plus A rotating awning/B rotating bridge, subagent implementation, commit/push and release/deploy after validation; no infrastructure changes.",
+    "milestones": [
+      {"id": "M17.1", "title": "Precipitation respects actual shelter", "status": "completed", "gate": "passed"},
+      {"id": "M17.2", "title": "Coherent terrain-aware coverage and recovery", "status": "completed", "gate": "passed"},
+      {"id": "M17.3", "title": "Distinct Rain, deep Snow and Ice movement", "status": "completed", "gate": "passed"},
+      {"id": "M17.4", "title": "Bounded weather combinations and full regression", "status": "in_progress", "gate": "failed"},
+      {"id": "M17.5", "title": "Rotating awning and shortcut bridge", "status": "planned", "gate": "not_run"},
+      {"id": "M17.6", "title": "Integrated validation and release", "status": "planned", "gate": "not_run"}
+    ]
+  },
   "completed_phase": {"id": "phase_16_animated_rooftop_home", "title": "Reference-led Animated Rooftop Home and Playtest Follow-ups", "status": "completed", "archive": "docs/old-docs/phase-16-animated-rooftop-home/progress.json", "source_revision_url": "https://github.com/phucle297/idunno/commit/a2c8ce87800de80784fa87837889005bd92d6288", "pushed": true, "deployed": true, "released": true},
   "public_delivery": {"revision_url": "https://github.com/phucle297/idunno/commit/a2c8ce87800de80784fa87837889005bd92d6288", "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-17-a2c8ce8", "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39059570910", "endpoint": "https://server.permees.com", "evidence": "docs/old-docs/phase-16-animated-rooftop-home/progress.json", "pushed": true, "deployed": true, "released": true},
   "user_acceptance_waiver": {"date": "2026-10-09", "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."},
-  "validation": [],
-  "changed_files": [],
+  "validation": [
+    {"date": "2026-10-18", "scope": "planning_only", "status": "passed", "checks": "jq empty progress.json; git diff --check; Python assertions for phase/milestone pointers, all four planned/not_run gates and local plan links", "result": "PLAN_OK: JSON, pointers, 4 planned milestones, local links. No gameplay verification executed."},
+    {"date": "2026-10-18", "scope": "subagent_integration_review", "status": "failed", "result": "Initial subagent grids retained dry gaps and missed complete map/slope coverage; replaced with continuous geometry overlay and direct floor/cover sampling. Initial roof regression failed; fixed testing both actual landing exposure and rendered drop exposure. Initial captures: wet/ice insufficiently distinct, interior camera outside; refinement/recheck required. Old HEAD repro OLD_ROOF_REPRO center_exposed=true flake_visible=true flake_x=1.606."},
+    {"date": "2026-10-18", "scope": "focused_parent_checks", "status": "passed", "checks": "Godot4.7.2 --headless --path . --script tests/test_weather_surfaces.gd; tests/test_town_mechanisms.gd", "result": "Earlier weather30/mechanism16 passed, superseded by final focused checks below."},
+    {"date": "2026-10-18", "scope": "parent_weather_recovery_review", "status": "passed", "result": "WEATHER_SURFACES_OK checks=41 resets=5; WEATHER_INTEGRATION_OK checks=73 maps=2 resets=5. Added Flood drain/resnow/covered-wet recovery, gradual height-bounded melt, lingering puddle reset, read-only query and bounded packed snapshot regressions. Dedicated headless allocates no cosmetic nodes/textures. Initial spectator regression failed because new E handler intercepted spectator cycling; fixed alive-versus-spectator routing, SPECTATOR_PRESENTATION_OK checks=30."},
+    {"date": "2026-10-18", "scope": "mechanism_transport", "status": "passed", "result": "Real production-Main ENet guest bridge accepted with production LOS, off-center server/client carriage and five acknowledged rematches; separate real-ENet module initial mid-transition weather/mechanism snapshot passed. ACTIVE participant admission is intentionally unsupported, not changed by this phase. Real capsule35 checks include four ramps/two orientations/two endpoints/five resets; fixed landing lip low ceiling found by parent."},
+    {"date": "2026-10-18", "scope": "delivery_safety", "status": "blocked", "result": "Subagent prematurely committed/pushed partial weather as b89ede1 using --no-verify despite explicit parent ownership. Parent cancelled workflow39119384412 before deployment (GitHub conclusion cancelled). No Phase17 release created. Integrated changes must pass normal staged gate; do not treat that partial push as completion."},
+    {"date": "2026-10-18", "scope": "render_review", "status": "passed", "result": "15 rendered1280x720 states under .amp/in/artifacts/phase17-final inspected: dry/wet/snow/ice/recovery, intact indoor Rain/Snow, awning A/B, bridge A/moving/B, actual electric puddle and roof destroyed/restored with retained moisture. Improved crank cue contrast/occlusion after inspecting both orientations. llvmpipe is not native GPU performance."},
+    {"date": "2026-10-18", "scope": "surface_route_budget_and_shelter_audit", "status": "passed", "result": "Actual10m capsule trials dry100/wet102/deep-snow140/ice118ticks; braking0.792/1.029/0.874/2.762m.20 grounded peers,120warmup/600samples,128 retained cells: weather tick p95=1409us/max2386us; snapshot2980bytes; headless cosmetic nodes0. PHASE17_SHELTER_AUDIT_OK20 shelters/280 Rain/Snow interior/roof controls. WEATHER_INTEGRATION_OK76 checks across2 maps/5 resets. Initial scratch audit incorrectly disabled physics bodies; corrected fixture processing and floor sampling, no gameplay bypass."},
+    {"date": "2026-10-18", "scope": "normal_staged_gate_first_run", "status": "failed", "result": "Normal hook rejected Town south bridge landing spanning two collapse districts (mask0x90); no commit created. Moved existing build-time partition pass after mechanism construction so fixed approaches get exact separate visual/collider ownership. Focused TOWN_LAYOUT_OK6910, TOWN_MECHANISMS_OK35 and real-ENet guest RPC/carriage/5 resets/initial mid-transition snapshot passed after correction. Full staged gate must rerun on this integrated source."}
+  ],
+  "changed_files": ["game/disasters/weather_surfaces.gd", "game/disasters/weather_surface.gdshader", "game/main.gd", "game/player/player.gd", "game/player/player_tuning.gd", "game/world/town_mechanisms.gd", "assets/manifest.json", "tests/test_weather_surfaces.gd", "tests/test_weather_integration.gd", "tests/test_town_mechanisms.gd", "tests/town_mechanism_network_peer.gd", "tests/town_mechanism_snapshot_peer.gd", "tests/run_town_mechanism_network_test.sh", "tests/run_ui_regression.sh", "tools/test_changed.py", "docs/checklists/phase-17-continuous-weather.md", "docs/implementation-checklist.md", "docs/decisions.md", "progress.json"],
   "blockers": [],
   "limits": ["Native Windows/GPU/audio and human animation/UI feel unverified.", "Earlier intermittent packet-loss timeout remains deferred.", "Software rendering does not establish60FPS.", "Public profile storage remains disabled; isolated local persistence checks do not imply public persistence.", "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.", "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim."],
-  "next_action": "Await the owner's next scope or bug report for the matching published playtest."
+  "next_action": "Rerun the normal staged full regression after the landing ownership fix, then export matching committed Windows/Linux builds and perform authorized release/deployment."
 }

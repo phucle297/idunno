@@ -9,8 +9,6 @@ const DEEP_SNOW_THRESHOLD := 0.55
 const ICE_SNOW_THRESHOLD := 0.08
 const MAX_LOCAL_AREAS := 32
 const MAX_RESIDUALS := 128
-# Compatibility budget for callers that reserve weather sampling capacity.
-const MAX_PATCHES := MAX_RESIDUALS
 const HEIGHT_STEP := 1.0
 const SurfaceShader = preload("res://game/disasters/weather_surface.gdshader")
 
@@ -26,7 +24,9 @@ var _surface := Vector2.ZERO
 var _water_level := -INF
 var _flood_wash_level := -INF
 var _flood_residual_wetness := 0.0
+var _washed_snow := 0.0
 var _melt_areas: Array[Vector4] = []
+var _melt_amounts := PackedFloat32Array()
 var _residuals: Array[Dictionary] = [] # x/z/y support, snow/wetness: bounded actual contacts.
 var _puddle_spots := PackedVector3Array()
 var _puddle_moisture := PackedFloat32Array()
@@ -35,6 +35,8 @@ var _presentation_enabled := false
 var _material: ShaderMaterial
 var _height_image: Image
 var _height_texture: ImageTexture
+var _residual_image: Image
+var _residual_texture: ImageTexture
 var _height_dirty := true
 var _height_cursor := 0
 var _world: Node3D
@@ -72,6 +74,9 @@ func configure_world(world: Node3D, extent: float, puddles: PackedVector3Array) 
 	_height_image.fill(Color(100.0, 0, 0))
 	_height_texture = ImageTexture.create_from_image(_height_image)
 	_material.set_shader_parameter("sky_height", _height_texture)
+	_residual_image = Image.create(size, size, false, Image.FORMAT_RGBAF)
+	_residual_texture = ImageTexture.create_from_image(_residual_image)
+	_material.set_shader_parameter("residual_surface", _residual_texture)
 	for mesh: MeshInstance3D in world.find_children("*", "MeshInstance3D", true, false):
 		register_surface_mesh(mesh)
 	for visual in _puddle_visuals:
@@ -91,20 +96,6 @@ func configure_world(world: Node3D, extent: float, puddles: PackedVector3Array) 
 	cleanup()
 	invalidate_cover()
 	return true
-
-
-func configure_surfaces(positions: PackedVector3Array, radius: float) -> bool:
-	# Transitional public API for callers from the former patch layout. Positions
-	# now establish only the bounded world extent; they never create weather discs.
-	if positions.is_empty() or not is_finite(radius) or radius <= 0.0:
-		return false
-	var extent := radius
-	for point in positions:
-		if not point.is_finite():
-			return false
-		extent = maxf(extent, maxf(absf(point.x), absf(point.z)) + radius)
-	var world := get_parent().get_node_or_null("Sandbox") as Node3D if is_instance_valid(get_parent()) else null
-	return configure_world(world if world != null else get_parent() as Node3D, extent, PackedVector3Array())
 
 
 func register_surface_mesh(mesh: MeshInstance3D) -> bool:
@@ -133,6 +124,7 @@ func tick(delta: float, raining: bool, snowing: bool, water_level: float) -> voi
 	if water_level != -INF:
 		_flood_wash_level = maxf(_flood_wash_level, water_level)
 		_flood_residual_wetness = 1.0
+		_washed_snow = 0.0
 		for index in _puddle_moisture.size():
 			if _puddle_spots[index].y <= water_level:
 				_puddle_moisture[index] = 1.0
@@ -146,17 +138,29 @@ func tick(delta: float, raining: bool, snowing: bool, water_level: float) -> voi
 	_surface.y = maxf(clampf(_surface.y + rain + melted, 0.0, 1.0) - drying, 0.0)
 	if water_level == -INF:
 		_flood_residual_wetness = maxf(0.0, _flood_residual_wetness - maxf(drying_per_second, 0.0) * delta)
-		for index in _puddle_moisture.size():
-			_puddle_moisture[index] = maxf(0.0, _puddle_moisture[index] - maxf(drying_per_second, 0.0) * delta * 0.35)
+		_washed_snow = clampf(_washed_snow + (maxf(accumulation_per_second, 0.0) * delta if receives_snow else -melt_rate * delta), 0.0, 1.0)
+	for index in _puddle_moisture.size():
+		var spot := _puddle_spots[index]
+		var incoming := rain if is_exposed(spot) else 0.0
+		_puddle_moisture[index] = maxf(_puddle_moisture[index] + incoming, _surface.y if is_exposed(spot) else 0.0)
+		_puddle_moisture[index] = clampf(_puddle_moisture[index] - maxf(drying_per_second, 0.0) * delta * 0.35 if incoming == 0.0 and water_level < spot.y else _puddle_moisture[index], 0.0, 1.0)
 	for index in range(_residuals.size() - 1, -1, -1):
 		var residual: Dictionary = _residuals[index]
-		var residual_melt := minf(float(residual.snow), melt_rate * delta) if not receives_snow else 0.0
-		residual.snow = clampf(float(residual.snow) - residual_melt + (maxf(accumulation_per_second, 0.0) * delta if receives_snow else 0.0), 0.0, 1.0)
-		residual.wetness = maxf(0.0, float(residual.wetness) + residual_melt - maxf(drying_per_second, 0.0) * delta)
+		# A tracked footprint is retained when a roof moves over it. Covered snow
+		# never accumulates from outdoor snowfall; it still melts, then dries slowly.
+		var residual_melt_time := minf(delta, float(residual.snow) / melt_rate) if melt_rate > 0.0 else 0.0
+		var residual_melt := melt_rate * residual_melt_time
+		residual.snow = maxf(0.0, float(residual.snow) - residual_melt)
+		residual.wetness = maxf(0.0, minf(1.0, float(residual.wetness) + residual_melt) - maxf(drying_per_second, 0.0) * (delta - residual_melt_time) * 0.6)
 		if residual.snow <= 0.0 and residual.wetness <= 0.0:
 			_residuals.remove_at(index)
 		else:
 			_residuals[index] = residual
+	for index in range(_melt_areas.size() - 1, -1, -1):
+		_melt_amounts[index] = maxf(0.0, _melt_amounts[index] - accumulation_per_second * delta) if receives_snow else minf(_melt_amounts[index], _surface.x)
+		if _melt_amounts[index] <= 0.0:
+			_melt_amounts.remove_at(index)
+			_melt_areas.remove_at(index)
 	for index in _electric.size():
 		var state := _electric[index]
 		var warning_step := minf(delta, state.x)
@@ -186,17 +190,19 @@ func sample_surface(point: Vector3) -> Vector2:
 	if _water_level >= point.y:
 		return Vector2(0, 1)
 	var residual := _residual_at(point)
-	if not is_exposed(point):
-		return residual
-	var result := _surface
+	var result := _surface if is_exposed(point) else residual
 	if point.y <= _flood_wash_level:
-		result = Vector2(0, maxf(result.y, _flood_residual_wetness))
-	for area in _melt_areas:
-		if Vector3(point.x - area.x, point.y - area.y, point.z - area.z).length() < area.w:
-			result = Vector2(0, maxf(result.y, 1.0))
-			break
+		result = Vector2(minf(result.x, _washed_snow), maxf(result.y, _flood_residual_wetness))
+	for index in _melt_areas.size():
+		var area := _melt_areas[index]
+		if absf(point.y - area.y) <= 1.0:
+			var distance := Vector2(point.x - area.x, point.z - area.z).length()
+			var melted := minf(result.x, _melt_amounts[index] * (1.0 - smoothstep(area.w - 0.25, area.w, distance)))
+			result += Vector2(-melted, melted)
+	var puddle := _puddle_at(point)
+	if puddle >= 0:
+		result.y = maxf(result.y, _puddle_moisture[puddle])
 	result.y = minf(result.y, 1.0)
-	_store_residual(point, result)
 	return result
 
 
@@ -216,15 +222,15 @@ func melt_snow_at(point: Vector3, radius: float, amount: float = 1.0) -> void:
 		if Vector3(area.x, area.y, area.z).distance_to(point) < 0.5:
 			area.w = maxf(radius, area.w)
 			_melt_areas[index] = area
+			_melt_amounts[index] = minf(1.0, _melt_amounts[index] + amount)
 			return
 	if _melt_areas.size() < MAX_LOCAL_AREAS:
 		_melt_areas.append(Vector4(point.x, point.y, point.z, radius))
-	var current := sample_surface(point)
-	_store_residual(point, Vector2(maxf(0.0, current.x - minf(amount, 1.0)), minf(1.0, current.y + minf(amount, 1.0))))
+		_melt_amounts.append(minf(amount, 1.0))
 
 
 func electrify_puddle(point: Vector3) -> bool:
-	if not _can_mutate() or _surface.y < 0.35:
+	if not _can_mutate() or sample_surface(point).y < 0.35:
 		return false
 	var start := _puddle_at(point)
 	if start < 0:
@@ -246,14 +252,17 @@ func is_electrified(point: Vector3) -> bool:
 func _puddle_at(point: Vector3) -> int:
 	for index in _puddle_spots.size():
 		var spot := _puddle_spots[index]
-		if absf(point.y - spot.y) <= CONTACT_TOLERANCE and Vector2(point.x - spot.x, point.z - spot.z).length_squared() <= 1.8:
+		var offset := Vector2(point.x - spot.x, point.z - spot.z)
+		var angle := offset.angle()
+		var radius := 1.35 + 0.16 * sin(angle * 3 + index) + 0.09 * cos(angle * 5 - index)
+		if absf(point.y - spot.y) <= CONTACT_TOLERANCE and offset.length() <= radius:
 			return index
 	return -1
 
 
 func _residual_at(point: Vector3) -> Vector2:
 	for entry in _residuals:
-		if Vector3(float(entry.x), float(entry.y), float(entry.z)).distance_to(point) <= CONTACT_TOLERANCE:
+		if absf(float(entry.y) - point.y) <= CONTACT_TOLERANCE and absf(float(entry.x) - point.x) <= 0.5 and absf(float(entry.z) - point.z) <= 0.5:
 			return Vector2(float(entry.snow), float(entry.wetness))
 	return Vector2.ZERO
 
@@ -263,7 +272,7 @@ func _store_residual(point: Vector3, state: Vector2) -> void:
 		return
 	for index in _residuals.size():
 		var entry: Dictionary = _residuals[index]
-		if Vector3(float(entry.x), float(entry.y), float(entry.z)).distance_to(point) <= CONTACT_TOLERANCE:
+		if absf(float(entry.y) - point.y) <= CONTACT_TOLERANCE and absf(float(entry.x) - point.x) <= 0.5 and absf(float(entry.z) - point.z) <= 0.5:
 			entry.snow = state.x
 			entry.wetness = state.y
 			_residuals[index] = entry
@@ -273,13 +282,32 @@ func _store_residual(point: Vector3, state: Vector2) -> void:
 	_residuals.append({"x": point.x, "y": point.y, "z": point.z, "snow": state.x, "wetness": state.y})
 
 
+func preserve_cover_region(center: Vector3, radius: int) -> void:
+	# Called once before a roof moves/rebuilds, not by read-only contact queries.
+	# The small awning's full swept footprint fits the bounded retained field.
+	if not _can_mutate() or not center.is_finite() or radius < 0 or radius > 4:
+		return
+	for x in range(-radius, radius + 1):
+		for z in range(-radius, radius + 1):
+			var point := Vector3(roundf(center.x) + x, center.y, roundf(center.z) + z)
+			if support_height.is_valid():
+				point.y = float(support_height.call(point))
+			if is_exposed(point):
+				var state := sample_surface(point)
+				if state != Vector2.ZERO:
+					_store_residual(point, state)
+
+
 func cleanup() -> void:
 	_surface = Vector2.ZERO
 	_water_level = -INF
 	_flood_wash_level = -INF
 	_flood_residual_wetness = 0.0
+	_washed_snow = 0.0
 	_melt_areas.clear()
+	_melt_amounts.clear()
 	_residuals.clear()
+	_puddle_moisture.fill(0.0)
 	_electric.resize(_puddle_spots.size())
 	_electric.fill(Vector2.ZERO)
 	precipitation = ""
@@ -291,23 +319,35 @@ func cleanup() -> void:
 
 
 func create_presentation_snapshot() -> Dictionary:
+	var positions := PackedVector3Array()
+	var states := PackedVector2Array()
+	for entry in _residuals:
+		positions.append(Vector3(entry.x, entry.y, entry.z))
+		states.append(Vector2(entry.snow, entry.wetness))
 	return {"snow": PackedFloat32Array([_surface.x]), "wetness": PackedFloat32Array([_surface.y]),
 		"water": _water_level, "wash_level": _flood_wash_level, "wash_wetness": _flood_residual_wetness,
-		"melt": _melt_areas.duplicate(), "residuals": _residuals.duplicate(true), "puddles": _puddle_moisture.duplicate(), "electric": _electric.duplicate(), "precipitation": precipitation}
+		"washed_snow": _washed_snow, "melt": _melt_areas.duplicate(), "melt_amounts": _melt_amounts.duplicate(), "residual_positions": positions, "residual_states": states, "puddles": _puddle_moisture.duplicate(), "electric": _electric.duplicate(), "precipitation": precipitation}
 
 
 func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	if not multiplayer.has_multiplayer_peer() or multiplayer.is_server():
 		return false
-	if not snapshot.get("snow") is PackedFloat32Array or not snapshot.get("wetness") is PackedFloat32Array or not snapshot.get("electric") is PackedVector2Array or not snapshot.get("melt") is Array or not snapshot.get("residuals") is Array or not snapshot.get("puddles") is PackedFloat32Array:
+	if not snapshot.get("snow") is PackedFloat32Array or not snapshot.get("wetness") is PackedFloat32Array or not snapshot.get("electric") is PackedVector2Array or not snapshot.get("melt") is Array or not snapshot.get("residual_positions") is PackedVector3Array or not snapshot.get("residual_states") is PackedVector2Array or not snapshot.get("puddles") is PackedFloat32Array or not snapshot.get("melt_amounts") is PackedFloat32Array:
 		return false
 	var snow: PackedFloat32Array = snapshot.snow
 	var wet: PackedFloat32Array = snapshot.wetness
 	var electric: PackedVector2Array = snapshot.electric
 	var melt: Array = snapshot.melt
-	var residuals: Array = snapshot.residuals
+	var positions: PackedVector3Array = snapshot.residual_positions
+	var states: PackedVector2Array = snapshot.residual_states
 	var puddles: PackedFloat32Array = snapshot.puddles
-	if snow.size() != 1 or wet.size() != 1 or not is_finite(snow[0]) or not is_finite(wet[0]) or snow[0] < 0 or snow[0] > 1 or wet[0] < 0 or wet[0] > 1 or electric.size() != _puddle_spots.size() or puddles.size() != _puddle_spots.size() or melt.size() > MAX_LOCAL_AREAS or residuals.size() > MAX_RESIDUALS:
+	var amounts: PackedFloat32Array = snapshot.melt_amounts
+	if amounts.size() != melt.size() or not snapshot.get("washed_snow") is float or not is_finite(float(snapshot.washed_snow)) or snapshot.washed_snow < 0 or snapshot.washed_snow > 1:
+		return false
+	for amount in amounts:
+		if not is_finite(amount) or amount < 0 or amount > 1:
+			return false
+	if snow.size() != 1 or wet.size() != 1 or not is_finite(snow[0]) or not is_finite(wet[0]) or snow[0] < 0 or snow[0] > 1 or wet[0] < 0 or wet[0] > 1 or electric.size() != _puddle_spots.size() or puddles.size() != _puddle_spots.size() or melt.size() > MAX_LOCAL_AREAS or positions.size() > MAX_RESIDUALS or positions.size() != states.size():
 		return false
 	if not snapshot.get("water") is float or not snapshot.get("wash_level") is float or not snapshot.get("wash_wetness") is float or is_nan(float(snapshot.water)) or is_nan(float(snapshot.wash_level)) or not is_finite(float(snapshot.wash_wetness)) or snapshot.wash_wetness < 0 or snapshot.wash_wetness > 1 or String(snapshot.get("precipitation", "invalid")) not in ["", "Rain", "Snowfall"]:
 		return false
@@ -320,28 +360,31 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	for value in puddles:
 		if not is_finite(value) or value < 0 or value > 1:
 			return false
-	for entry in residuals:
-		if not entry is Dictionary or not entry.has_all(["x", "y", "z", "snow", "wetness"]):
-			return false
-		for key in ["x", "y", "z", "snow", "wetness"]:
-			if not is_finite(float(entry[key])):
-				return false
-		if entry.snow < 0 or entry.snow > 1 or entry.wetness < 0 or entry.wetness > 1:
+	for index in positions.size():
+		if not positions[index].is_finite() or not states[index].is_finite() or states[index].x < 0 or states[index].x > 1 or states[index].y < 0 or states[index].y > 1:
 			return false
 	_surface = Vector2(snow[0], wet[0])
 	_water_level = snapshot.water
 	_flood_wash_level = snapshot.wash_level
 	_flood_residual_wetness = snapshot.wash_wetness
+	_washed_snow = snapshot.washed_snow
 	_electric = electric.duplicate()
 	_melt_areas.assign(melt)
-	_residuals.assign(residuals)
+	_melt_amounts = amounts.duplicate()
+	_residuals.clear()
+	for index in positions.size():
+		var point := positions[index]
+		_residuals.append({"x": point.x, "y": point.y, "z": point.z, "snow": states[index].x, "wetness": states[index].y})
 	_puddle_moisture = puddles.duplicate()
 	precipitation = snapshot.precipitation
 	return true
 
 
 func leave_footprint(peer_id: int, point: Vector3) -> void:
-	if sample_surface(point).x < 0.15 or (_last_footprints.has(peer_id) and point.distance_to(_last_footprints[peer_id]) < 0.7):
+	var surface := sample_surface(point)
+	if is_exposed(point) and surface != Vector2.ZERO:
+		_store_residual(point, surface)
+	if not _presentation_enabled or surface.x < 0.15 or (_last_footprints.has(peer_id) and point.distance_to(_last_footprints[peer_id]) < 0.7):
 		return
 	_last_footprints[peer_id] = point
 	if _footprints.size() >= 64:
@@ -368,10 +411,22 @@ func _process(delta: float) -> void:
 		_update_cover_texture()
 		_material.set_shader_parameter("snow", _surface.x)
 		_material.set_shader_parameter("wetness", _surface.y)
+		_material.set_shader_parameter("wash_level", _flood_wash_level if is_finite(_flood_wash_level) else -100.0)
+		_material.set_shader_parameter("wash_wetness", _flood_residual_wetness)
+		_material.set_shader_parameter("washed_snow", _washed_snow)
 		_material.set_shader_parameter("melt_count", _melt_areas.size())
 		var areas := PackedVector4Array(_melt_areas)
 		areas.resize(MAX_LOCAL_AREAS)
 		_material.set_shader_parameter("melt_areas", areas)
+		var amounts := _melt_amounts.duplicate()
+		amounts.resize(MAX_LOCAL_AREAS)
+		_material.set_shader_parameter("melt_amounts", amounts)
+		_residual_image.fill(Color(0, 0, -100, 0))
+		for entry in _residuals:
+			var pixel := Vector2i(roundi(float(entry.x) + _extent), roundi(float(entry.z) + _extent))
+			if pixel.x >= 0 and pixel.y >= 0 and pixel.x < _residual_image.get_width() and pixel.y < _residual_image.get_height():
+				_residual_image.set_pixelv(pixel, Color(entry.snow, entry.wetness, entry.y, 1))
+		_residual_texture.update(_residual_image)
 	for index in _puddle_visuals.size():
 		var spot := _puddle_spots[index]
 		var surface := sample_surface(spot)

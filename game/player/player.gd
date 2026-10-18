@@ -180,8 +180,16 @@ func apply_movement_input(
 	var target_velocity := wish_direction * target_speed
 	var acceleration := Tuning.GROUND_ACCELERATION if grounded else Tuning.AIR_ACCELERATION
 	if grounded and is_instance_valid(weather_surfaces):
-		var snow := weather_surfaces.sample_surface(global_position).x
-		acceleration *= lerpf(1.0, Tuning.SNOW_SPRINT_TRACTION if sprinting else Tuning.SNOW_WALK_TRACTION, snow)
+		var surface := weather_surfaces.movement_surface(global_position)
+		if bool(surface.deep_snow):
+			target_velocity *= Tuning.DEEP_SNOW_SPEED
+			acceleration *= Tuning.DEEP_SNOW_TRACTION if sprinting else Tuning.DEEP_SNOW_WALK_TRACTION
+		elif bool(surface.ice):
+			acceleration *= Tuning.ICE_BRAKING
+		elif float(surface.wet) > 0.05:
+			acceleration *= Tuning.WET_SPRINT_BRAKING if sprinting else Tuning.WET_WALK_BRAKING
+		if bool(surface.puddle):
+			target_velocity *= Tuning.PUDDLE_SPEED
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 
