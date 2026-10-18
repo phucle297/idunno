@@ -1,6 +1,25 @@
 # Báo lỗi khi gặp thực tế
 
-**Bản public hiện tại — Phase16 Animated Rooftop và Toy Town Fixes (2026-10-17):**
+**Bản public hiện tại — Phase17 Continuous Weather và Town Mechanisms (2026-10-18):**
+[Source](https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9),
+[deploy thành công](https://github.com/phucle297/idunno/actions/runs/39139115103),
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849).
+Tải `DisasterParty-Windows-Internet-4d23849.zip`, giải nén hết, chạy EXE cạnh PCK;
+mọi người cập nhật cùng bản khi vào https://server.permees.com.
+Mưa/tuyết phủ liên tục, mái che chặn precipitation, khô/tan dần; wet/snow/ice có
+traction riêng. Nhấn E gần tay quay khi còn sống/đứng vững để xoay mái che/cầu.
+59 suite/7 matrix/20 managed client/41 Python, 280 roof controls, ảnh exact-PCK,
+standalone Linux và public hai client Ready/Start/di chuyển đồng bộ pass.
+Assets tải lại so byte pass; Windows chứa PCK đúng bản CI đang deploy.
+[Evidence](docs/old-docs/phase-17-continuous-weather/progress.json).
+Windows gốc/GPU/60FPS/audio/cảm nhận điều khiển và hai mạng riêng chưa xác minh;
+public profile storage vẫn tắt, packet-loss stress cũ vẫn deferred. Giữ waiver,
+không thêm checklist bắt buộc. Nếu gặp lỗi, báo build/map/vị trí/thời tiết,
+thao tác với mái/cầu và số người/mạng; ảnh/log nếu thuận tiện.
+
+Các bản dưới đây là lịch sử, không phải public hiện tại.
+
+**Bản public trước — Phase16 Animated Rooftop và Toy Town Fixes (2026-10-17):**
 [source](https://github.com/phucle297/idunno/commit/a2c8ce87800de80784fa87837889005bd92d6288)
 đã push, [deploy](https://github.com/phucle297/idunno/actions/runs/39059570910) và
 [publish prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-17-a2c8ce8).

@@ -1,7 +1,7 @@
 # Phase17 — Continuous Weather and Roof-Correct Shelter
 
-Status: implemented on 2026-10-18; focused checks passed; full staged gate rerunning
-after a real cross-district bridge-landing defect was found and corrected.
+Status: completed, committed, pushed, deployed and released on 2026-10-18.
+Final normal staged gate passed after correcting bridge collapse ownership.
 Scope: prior proposal sections1–5 (current limitations, continuous coverage,
 Rain, Snow and weather combinations), plus the reported precipitation indoors.
 Toy Town is the primary redesign target; preserve existing Harbor behavior and
@@ -115,22 +115,23 @@ Owners/modules: player.gd, player_tuning.gd, WeatherSurfaces, Toy Town routes.
 Depends on M17.3. Retain Rain/Snow mutual exclusion and the existing overlap cap;
 do not redesign disaster selection or schedule extra hazards.
 
-- [ ] Rain limits outdoor Fire ignition/spread; dry interiors remain eligible.
-- [ ] Fire melts nearby snow into wetness without falsely presenting fire as safe.
-- [ ] Lightning can briefly electrify a warned local connected puddle, never every
+- [x] Rain limits outdoor Fire ignition/spread; dry interiors remain eligible.
+- [x] Fire melts nearby snow into wetness without falsely presenting fire as safe.
+- [x] Lightning can briefly electrify a warned local connected puddle, never every
   damp surface across town. Define puddle connectivity separately from wet sheen;
   retain a dry escape and existing Flood electrical semantics.
-- [ ] Meteor clears snow visibly in its impact area without extra hidden damage.
-- [ ] Flood washes away submerged snow and owns its own interior water contact;
+- [x] Meteor clears snow visibly in its impact area without extra hidden damage.
+- [x] Flood washes away submerged snow and owns its own interior water contact;
   roofs above water keep independent surface state.
-- [ ] Define duration, footprint, warning, surviving counter and reset for each
+- [x] Define duration, footprint, warning, surviving counter and reset for each
   combo; compare each hazard alone before overlaps. Prevent compounded unavoidable
   slow/slip/knockdown/damage, not by adding a new director system.
-- [ ] Execute existing weather/map/hazard/full regression, both-map compatibility,
-  real-client late join and five rematches; inspect wet/snow/ice/indoor/overlap
+- [x] Execute existing weather/map/hazard/full regression, both-map compatibility,
+  real-client initial module snapshot and five rematches; inspect wet/snow/ice/indoor/overlap
   states, and measure bounded update/render/network cost at representative20 peers.
 
-Gate (not run): authoritative combo controls, no stale electrification/snow/wetness
+Gate (passed): weather41/integration76 controls, 20 shelters/280 roof controls;
+59 suites/7 matrices/20 managed clients/41 Python tests passed. Authoritative combo controls, no stale electrification/snow/wetness
 after rematch, no route/collision or Harbor regression, full relevant suites pass.
 Performance on software rendering does not establish native GPU60FPS.
 
@@ -139,37 +140,43 @@ Performance on software rendering does not establish native GPU60FPS.
 Depends on validated weather milestones; module preparation may be delegated
 separately, but gameplay integration/gates remain sequential.
 
-- [ ] Add a Toy Town awning with two useful orientations and nearby crank controls.
+- [x] Add a Toy Town awning with two useful orientations and nearby crank controls.
   Rotation trades which route has shelter; roof geometry and precipitation agree.
-- [ ] Add a wide optional bridge rotating between two destinations. Players on its
+- [x] Add a wide optional bridge rotating between two destinations. Players on its
   deck travel with it; signals announce slow motion and a cooldown prevents spam.
-- [ ] Validate live-player proximity/alive/standing intent on the server; clients
+- [x] Validate live-player proximity/alive/standing intent on the server; clients
   request actions, never choose arbitrary transforms or other players' IDs.
-- [ ] Preserve fixed ordinary routes, two exits and flood approaches. No crushing,
+- [x] Preserve fixed ordinary routes, two exits and flood approaches. No crushing,
   trapping at endpoints, crowd launch, unbounded forces or door blocking.
-- [ ] Replicate transition progress/state, late join, client deck carriage and
+- [x] Replicate transition progress/state, initial module snapshot, client deck carriage and
   rematch reset; deny dead/ragdolled/remote/spam activation. Respect terrain loss.
-- [ ] Use shared toy palette, rounded supported geometry and clear controls;
+- [x] Use shared toy palette, rounded supported geometry and clear controls;
   record deterministic generated provenance in the asset manifest.
 
-Gate (not run): real-client accepted/rejected action cases, moving deck passenger
+Gate (passed): mechanisms41 checks and real ENet production action/carriage controls.
+Initial mid-transition module snapshot passed; ACTIVE participant admission remains
+intentionally unsupported. Real-client accepted/rejected action cases, moving deck passenger
 and endpoints, five rematches, all fixed-route/collapse checks and inspected
 awning/bridge resting and moving states. No claim of human fun from automation.
 
 ## M17.6 — Integrated validation and authorized release
 
-- [ ] Complete all preceding gates; run full regression and review source diff.
-- [ ] Commit/push scoped source with Conventional Commits, matching Windows/Linux
+- [x] Complete all preceding gates; run full regression and review source diff.
+- [x] Commit/push scoped source with Conventional Commits, matching Windows/Linux
   packages, checksum and exact-pack runtime checks.
-- [ ] Release matching version and deploy using the existing EC2 workflow only;
+- [x] Release matching version and deploy using the existing EC2 workflow only;
   inspect exact-head completion and public smoke, do not alter capacity/settings.
-- [ ] Record delivery URLs/hash/evidence separately and archive phase only after
+- [x] Record delivery URLs/hash/evidence separately and archive phase only after
   technical gates and delivery pass. Preserve unverified human/device limits.
 
 ## Delivery and acceptance
 
-Remaining full-regression and delivery boxes stay open. Focused evidence and the
-failed first full gate are recorded in root progress. Public Phase16 remains
-unchanged until the integrated source passes and matching packages are delivered.
-Human/device/network reporting follows [NEED_REAL_CHECK.md](../../NEED_REAL_CHECK.md),
+Final source [4d23849](https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9)
+passed the normal staged gate, [deployment](https://github.com/phucle297/idunno/actions/runs/39139115103)
+and [published prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849).
+Downloaded assets byte-match published packages; Windows uses the exact deployed CI PCK.
+Standalone Linux and public two-client admission/Ready/Start/mutual movement passed.
+17 source and seven exact-PCK render states inspected. Full evidence preserves
+earlier failures and their superseding fixes in the adjacent progress archive.
+Human/device/network reporting follows [NEED_REAL_CHECK.md](../../../NEED_REAL_CHECK.md),
 without adding mandatory user checks or converting the existing waiver into a pass.

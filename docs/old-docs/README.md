@@ -8,6 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 17 — Continuous Weather and Roof-Correct Shelter (deployed/released) | [Checklist](phase-17-continuous-weather/checklist.md) | [Decisions](phase-17-continuous-weather/decisions.md) | [Progress](phase-17-continuous-weather/progress.json) |
 | 16 — Animated Rooftop Home and Toy Town Fixes (deployed/released) | [Checklist](phase-16-animated-rooftop-home/checklist.md) | [Decisions](phase-16-animated-rooftop-home/decisions.md) | [Progress](phase-16-animated-rooftop-home/progress.json) |
 | 15 — Home and Map Selection (deployed/released) | [Checklist](phase-15-home-and-map-selection/checklist.md) | [Decisions](phase-15-home-and-map-selection/decisions.md) | [Progress](phase-15-home-and-map-selection/progress.json) |
 | 14 — Character Stability and Preparation (source only) | [Checklist](phase-14-character-stability-and-preparation/checklist.md) | [Decisions](phase-14-character-stability-and-preparation/decisions.md) | [Progress](phase-14-character-stability-and-preparation/progress.json) |
@@ -30,6 +31,12 @@ new follow-up evidence belongs in a separately named archive.
 | 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 | 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
+
+Phase17 decisions are preserved byte-for-byte. Their historical
+`checklists/phase-17-continuous-weather.md` link referred to the then-active docs
+directory; the archived equivalent is `phase-17-continuous-weather/checklist.md`.
+Historical root-progress and pending-release statements remain chronological;
+final delivery evidence in the adjacent progress archive supersedes them.
 
 Phase12 completed all four technical/local-package gates and source push with
 skip-CI on2026-10-15:54 suites/6 matrices/managed20/41 Python, both-map2/4/8/20 peers,

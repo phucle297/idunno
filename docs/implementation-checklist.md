@@ -4,14 +4,18 @@
 
 ## Active and planned phases
 
-- [Phase17 — Continuous Weather and Roof-Correct Shelter](checklists/phase-17-continuous-weather.md)
-  — continuous roof-correct Rain/Snow, recovery and distinct wet/snow/ice traction
-  implemented; approved A rotating awning/B shortcut bridge integrated. Focused
-  checks and renders passed; full staged gate rerunning after correcting a bridge
-  landing's collapse ownership. Release remains pending; public Phase16 unchanged.
-  Prior B/C UI/director proposals and packet-loss investigation remain deferred.
+No active implementation phase; awaiting owner feedback or next approved scope.
+Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases
+
+- [Phase17 — Continuous Weather and Roof-Correct Shelter](old-docs/phase-17-continuous-weather/checklist.md)
+  — continuous roof-correct weather, recovery, traction and rotating awning/bridge;
+  59 suites/7 matrices/managed20/41 Python, 280 shelter controls, inspected renders,
+  exact-PCK public two-client movement and downloaded release assets passed.
+  [Prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849)
+  deployed/published; [full evidence](old-docs/phase-17-continuous-weather/progress.json).
+  Native/human/GPU/audio/separate-network acceptance remains unverified.
 
 - [Phase16 — Animated Rooftop Home and Toy Town Fixes](old-docs/phase-16-animated-rooftop-home/checklist.md)
   — live rooftop Home, height-based fall balance, fractional HP display, full-route
