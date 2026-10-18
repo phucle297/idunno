@@ -43,10 +43,11 @@ func _capture_outfits() -> void:
 	(preview.get_node("CameraFill") as OmniLight3D).light_energy = 0.25
 	for part in ["Character", "Wall", "Crate", "Meteor", "CharacterPlinth", "CratePlinth", "Interface"]:
 		preview.get_node(part).queue_free()
-	for outfit in 8:
+	var outfit_count: int = ToyCharacterVisual.catalog().items.size()
+	for outfit in outfit_count:
 		var character := (load("res://assets/generated/CHR_Base_v001.tscn") as PackedScene).instantiate() as ToyCharacterVisual
 		preview.add_child(character)
-		character.position = Vector3((outfit % 4 - 1.5) * 1.6 + (0.8 if outfit >= 4 else 0.0), 0, float(outfit / 4) * 2.0 - 1.0)
+		character.position = Vector3((outfit % 4 - 1.5) * 1.6, 0, float(outfit / 4) * 2.0 - 2.0)
 		character.set_cosmetic_variant(outfit)
 		character.set_player_color(outfit)
 		character._animation_player.pause()
@@ -90,15 +91,17 @@ func _check_assets() -> void:
 	var catalog := ToyCharacterVisual.catalog()
 	_expect(catalog.version == 1, "Catalog must preserve saved receipt version")
 	var ids := ["plain", "cap", "hard_hat", "backpack", "raincoat", "mechanic", "park_ranger", "meteor_observer"]
+	ids.append_array(["chef", "firefighter", "sailor", "pilot"])
+	_expect(catalog.items.size() == ids.size(), "Every catalog costume has geometry and animation coverage")
 	for index in ids.size():
 		_expect(catalog.items[index].id == ids[index], "Ledger IDs and pool ordering must not drift")
-		_expect(catalog.items[index].pool == ("starter" if index < 4 else "earned"), "Starter availability must not drift")
+		_expect(catalog.items[index].pool == ("earned" if index in range(4, 8) else "starter"), "Starter availability must not drift")
 	var skeleton := character.get_node("Skeleton3D") as Skeleton3D
 	for bone in skeleton.get_bone_count():
 		_expect(skeleton.get_bone_rest(bone) == Transform3D.IDENTITY, "Every outfit must share identity bone rests")
 	var base_triangles := _base_triangles(character)
 	_expect(base_triangles <= 6000, "Rounded Soft Creature base must remain inside the 6000 triangle budget excluding accessories")
-	for variant in 8:
+	for variant in ids.size():
 		_expect(character.set_outfit_id(ids[variant]), "Catalog IDs must resolve to visible outfits")
 		_expect((character as ToyCharacterVisual).cosmetic_variant == variant, "Character cosmetic variant %d must be selectable" % variant)
 		_expect(character.get_outfit_id() == ids[variant], "Outfit IDs must round trip")

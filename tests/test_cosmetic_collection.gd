@@ -30,7 +30,8 @@ func _run() -> void:
 		root.size = review_size
 		await process_frame
 		_expect(root.size == review_size, "Actual capture resolution matches requested size")
-	main.room_client.service_url = ""
+	# Offline starters must work with a configured but unreachable service too.
+	main.room_client.service_url = "http://127.0.0.1:1"
 	main.match_manager.prepare_lobby()
 	main._set_lobby_visible(true)
 	await process_frame
@@ -38,13 +39,14 @@ func _run() -> void:
 	main._show_collection()
 	await process_frame
 	_expect(ui.visible and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Collection opens with pointer available")
+	_expect(not main.room_client.profile_client.busy and not ui.busy, "Offline collection never blocks equipment on a profile HTTP request")
 	_expect(root.gui_get_focus_owner() == ui.outfit_buttons[0], "Collection owns keyboard focus")
 	await _key(KEY_TAB)
 	_expect(root.gui_get_focus_owner() == ui.outfit_buttons[1], "Tab reaches the next outfit")
 	ui.close_button.grab_focus()
 	await _key(KEY_TAB)
 	_expect(root.gui_get_focus_owner() == ui.outfit_buttons[0], "Tab wraps within modal, not the background lobby")
-	_expect(ui.outfit_buttons.size() == 8 and ui.preview.get_outfit_id() == "plain", "Eight stable previews available")
+	_expect(ui.outfit_buttons.size() == 12 and ui.preview.get_outfit_id() == "plain", "All twelve stable previews available")
 	_expect(ui.odds.text.contains("1/4") and ui.open_button.disabled, "Default exact odds and empty pending state")
 	await _capture("default")
 	ui.select_outfit("raincoat")
@@ -53,6 +55,15 @@ func _run() -> void:
 	ui.select_outfit("cap")
 	ui.equip_button.pressed.emit()
 	_expect(main.get_outfit_id() == "cap" and ui.profile.equipped == "cap", "Offline starter acknowledgement updates avatar and collection")
+	for outfit: String in ["chef", "firefighter", "sailor", "pilot"]:
+		ui.select_outfit(outfit)
+		_expect(not ui.equip_button.disabled and ui.preview.get_outfit_id() == outfit, "New starter previews and can equip offline: " + outfit)
+		ui.equip_button.pressed.emit()
+		_expect(main.get_outfit_id() == outfit and main.get_node("Player").character.get_outfit_id() == outfit, "Acknowledged starter reaches actual avatar: " + outfit)
+		ui.outfit_buttons[ToyCharacterVisual.catalog().items.find_custom(func(item: Dictionary) -> bool: return item.id == outfit)].grab_focus()
+		await process_frame
+		await process_frame
+		await _capture(outfit)
 	ui.select_outfit("plain")
 	ui.equip_button.pressed.emit() # Leave ordinary tests/users on default starter.
 	ui.dismiss()
@@ -73,19 +84,19 @@ func _run() -> void:
 	var opens: Array[String] = []
 	ui.open_requested.connect(func(box: String) -> void: opens.append(box))
 	ui.open_button.pressed.emit()
-	_expect(opens == ["fixture-box"] and ui.profile.owned.size() == 4 and ui.busy, "Opening intent does not optimistically unlock")
+	_expect(opens == ["fixture-box"] and ui.profile.owned.size() == starter.size() and ui.busy, "Opening intent does not optimistically unlock")
 	ui.present_error("Opening unavailable. Retry the same box; keep your saved identity.")
 	_expect(ui.profile.pending.size() == 1 and not ui.open_button.disabled, "Failure preserves sealed box and retry")
 	await _capture("unavailable")
 	ui.reduced_motion = true
 	ui.present_open({"box_id": "fixture-box", "cosmetic_id": "raincoat"})
-	_expect(ui.profile.owned.size() == 5 and ui.profile.pending.is_empty(), "Only acknowledged receipt unlocks item")
+	_expect(ui.profile.owned.size() == starter.size() + 1 and ui.profile.pending.is_empty(), "Only acknowledged receipt unlocks item")
 	_expect(ui.preview.get_outfit_id() == "raincoat" and ui.reward.text.contains("UNLOCKED"), "Reveal uses receipt item in faithful preview")
 	_expect(not ui.skip_button.visible and ui.reward.modulate.a == 1.0, "Reduced motion has no reveal delay")
 	await _capture("opened")
 	ui.reduced_motion = false
 	ui.present_open({"box_id": "fixture-box", "cosmetic_id": "raincoat"})
-	_expect(ui.profile.owned.size() == 5, "Replaying receipt cannot duplicate ownership")
+	_expect(ui.profile.owned.size() == starter.size() + 1, "Replaying receipt cannot duplicate ownership")
 	ui.skip_button.pressed.emit()
 	_expect(ui.reward.modulate.a == 1.0 and not ui.skip_button.visible, "Skip immediately completes presentation only")
 	var all_owned: Array[String] = []

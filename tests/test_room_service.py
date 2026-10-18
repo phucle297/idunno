@@ -335,6 +335,22 @@ class Rewards(unittest.TestCase):
         self.finish(self.round())
         self.assertEqual(len(self.fetch()["pending"]), 1)
 
+    def test_new_starters_preserve_existing_profile_and_sealed_receipts(self):
+        self.finish(self.round())
+        before = self.fetch()
+        additions = ("chef", "firefighter", "sailor", "pilot")
+        with sqlite3.connect(self.path) as db:
+            db.executemany("DELETE FROM owned WHERE cosmetic_id=?", [(item,) for item in additions])
+            db.execute("UPDATE profiles SET equipped='cap' WHERE id=?", (self.identities[0]["profile_id"],))
+        for _ in range(2):
+            self.service.profiles = ProfileStore(self.path)
+            after = self.fetch()
+            self.assertEqual(set(after["owned"]), set(before["owned"]))
+            self.assertEqual(after["pending"], before["pending"])
+            self.assertEqual(after["equipped"], "cap")
+        for outfit in additions:
+            self.assertEqual(self.service.profiles.equipment(self.identities[0]["profile_id"], outfit), outfit)
+
     def test_open_is_authenticated_atomic_and_replay_stable(self):
         self.finish(self.round())
         box = self.fetch()["pending"][0]["box_id"]
@@ -348,7 +364,7 @@ class Rewards(unittest.TestCase):
             db.execute("CREATE TRIGGER fail_open BEFORE UPDATE OF state ON receipts BEGIN SELECT RAISE(ABORT,'fixture'); END")
         with self.assertRaises(sqlite3.IntegrityError):
             opening()
-        self.assertEqual(len(self.fetch()["owned"]), 4)
+        self.assertEqual(len(self.fetch()["owned"]), len(ProfileStore.STARTERS))
         self.assertEqual(len(self.fetch()["pending"]), 1)
         with sqlite3.connect(self.path) as db:
             db.execute("DROP TRIGGER fail_open")
@@ -357,7 +373,7 @@ class Rewards(unittest.TestCase):
         self.assertTrue(all(receipt == opened[0] for receipt in opened))
         self.assertEqual(opened[0]["state"], "opened")
         self.assertIn(opened[0]["cosmetic_id"], self.fetch()["owned"])
-        self.assertEqual(len(self.fetch()["owned"]), 5)
+        self.assertEqual(len(self.fetch()["owned"]), len(ProfileStore.STARTERS) + 1)
         self.assertEqual(self.fetch()["pending"], [])
         self.assertEqual(len(self.fetch(1)["pending"]), 1)
         self.service.profiles = ProfileStore(self.path)
@@ -653,7 +669,7 @@ class ManagedEquipment(unittest.TestCase):
             self.command(label, "collection", service_url=f"http://127.0.0.1:{self.port}", profile_file=str(private))
             self.wait(lambda: len(self.read(label)["collection_profile"]["pending"]) == 1, "Pending box recovered")
             self.command(label, "open_box")
-            self.wait(lambda: len(self.read(label)["collection_profile"]["owned"]) == 5
+            self.wait(lambda: len(self.read(label)["collection_profile"]["owned"]) == len(ProfileStore.STARTERS) + 1
                       and not self.read(label)["collection_profile"]["pending"], "Acknowledged reveal")
             self.assertNotIn(self.read(label)["selected_outfit"], ProfileStore.STARTERS)
             self.command(label, "close_collection")
@@ -693,6 +709,9 @@ class ManagedEquipment(unittest.TestCase):
         self.command("client-0", "spoof_outfit", peer=ids[1], outfit_id="meteor_observer")
         time.sleep(1.0)
         self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == "backpack" for label in self.LABELS), "Spoofed appearance ignored")
+        for outfit in ("chef", "firefighter", "sailor", "pilot"):
+            self.command("client-1", "equip", outfit_id=outfit)
+            self.wait(lambda: all(self.read(label)["outfits"][str(ids[1])] == outfit for label in self.LABELS), "New starter replicated: " + outfit)
         rejected = self.strict_errors("server-GEAR", allow_authority=True)
         self.assertTrue(rejected, "Authority must reject the non-authority appearance RPC")
         for label in ("client-0", "client-1"):
@@ -761,7 +780,7 @@ class Profiles(unittest.TestCase):
         self.assertRegex(first["credential"], r"^[A-Za-z0-9_-]{43}$")
         self.assertNotEqual(first["profile_id"], second["profile_id"])
         self.assertNotEqual(first["credential"], second["credential"])
-        self.assertEqual(set(first["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+        self.assertEqual(set(first["owned"]), set(ProfileStore.STARTERS))
         self.assertEqual((first["equipped"], first["pending"]), ("plain", []))
         query = dict(self.data, profile_id=first["profile_id"])
         for bad in (None, "x" * 43, second["credential"]):
@@ -826,7 +845,7 @@ class Profiles(unittest.TestCase):
         self.stop()
         self.start(port=port)
         self.assertEqual(self.post("open", box_query, first["credential"]), opened)
-        restarted_client = subprocess.run(command + ["--owned-count=5"], capture_output=True, text=True, timeout=15)
+        restarted_client = subprocess.run(command + [f"--owned-count={len(ProfileStore.STARTERS) + 1}"], capture_output=True, text=True, timeout=15)
         self.assertEqual(restarted_client.returncode, 0, restarted_client.stdout + restarted_client.stderr)
         self.assertEqual(path.read_bytes(), saved)
         self.assertEqual(self.post("fetch", query, first["credential"])["pending"], [])
@@ -913,7 +932,7 @@ class Profiles(unittest.TestCase):
             saved = path.read_bytes()
             identity = json.loads(saved)
             self.assertEqual(initial["profile"]["profile_id"], identity["profile_id"])
-            self.assertEqual(set(initial["profile"]["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+            self.assertEqual(set(initial["profile"]["owned"]), set(ProfileStore.STARTERS))
             self.assertEqual((initial["profile"]["equipped"], initial["profile"]["pending"]), ("plain", []))
             self.assertEqual(report.stat().st_mode & 0o777, 0o600)
             second = self.post("create")
@@ -940,7 +959,7 @@ class Profiles(unittest.TestCase):
         checked(restored.stdout + restored.stderr, restored.returncode, "ROOM_PROFILE_CONNECTED_OK")
         current = json.loads(report.read_text())
         self.assertEqual(current["profile"], dict(profile_id=identity["profile_id"],
-                         owned=["backpack", "cap", "hard_hat", "plain"], equipped="cap", pending=[]))
+                         owned=sorted(ProfileStore.STARTERS), equipped="cap", pending=[]))
         self.assertTrue(path.read_bytes() == saved, "Client restart must preserve credentials exactly")
         self.assertEqual(current["ticket"]["port"], initial["ticket"]["port"], "Recreate on the same UDP port")
         self.assertFalse(current["ticket"]["token"] == initial["ticket"]["token"], "Replacement must have a fresh ticket")
@@ -961,7 +980,7 @@ class Profiles(unittest.TestCase):
         other = subprocess.run(command(other_path, "--join-room"), capture_output=True, text=True, timeout=20)
         checked(other.stdout + other.stderr, other.returncode, "ROOM_PROFILE_CONNECTED_OK")
         self.assertEqual(json.loads(report.read_text())["profile"], dict(profile_id=second["profile_id"],
-                         owned=["backpack", "cap", "hard_hat", "plain"], equipped="plain", pending=[]))
+                         owned=sorted(ProfileStore.STARTERS), equipped="plain", pending=[]))
         all_output += other.stdout + other.stderr
         # Cross-profile impersonation and corrupt storage must fail through real UI,
         # preserve the saved evidence, and never auto-create a replacement identity.
@@ -993,14 +1012,14 @@ class Profiles(unittest.TestCase):
         self.assertEqual(len({p["profile_id"] for p in profiles}), 8)
         for profile in profiles:
             fetched = self.post("fetch", dict(self.data, profile_id=profile["profile_id"]), profile["credential"])
-            self.assertEqual(set(fetched["owned"]), {"plain", "cap", "hard_hat", "backpack"})
+            self.assertEqual(set(fetched["owned"]), set(ProfileStore.STARTERS))
         # 6 valid JSON invalid requests + 8 creates + 8 fetches = 22 counted.
         for _ in range(8):
             self.post("create")
         self.assertEqual(self.post("create", status=429)["error"], "rate_limited")
         with sqlite3.connect(self.store) as db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 16)
-            self.assertEqual(db.execute("SELECT COUNT(*) FROM owned").fetchone()[0], 64)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM owned").fetchone()[0], 16 * len(ProfileStore.STARTERS))
 
     def test_store_failure_does_not_reset_and_opt_in_is_required(self):
         profile = self.post("create")

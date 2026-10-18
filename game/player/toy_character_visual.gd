@@ -22,6 +22,14 @@ static func catalog() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string("res://assets/cosmetic_catalog.json")) as Dictionary
 
 
+static func starter_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for item: Dictionary in catalog().items:
+		if item.pool == "starter":
+			ids.append(item.id)
+	return ids
+
+
 func _ready() -> void:
 	ensure_runtime_setup()
 	play_clip("idle")
@@ -185,6 +193,30 @@ func _build_accessories() -> void:
 	_costume_ring(accessories, "ObserverHelmet", 7, 0.24, 0.31, Vector3(0, 1.21, 0.08), _material(Color("f4e6c8")), true)
 	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.26), slate)
 	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.24, 0.04), Vector3(0.13, 1.34, 0.26), amber)
+	var cream := _material(Color("f4e6c8"))
+	var teal := _material(Color("73b7ad"))
+	var sand := _material(Color("d9b77e"))
+	_costume_ring(accessories, "ChefBand", 8, 0.17, 0.25, Vector3(0, 1.73, 0), cream)
+	_costume_box(accessories, "ChefToque", 8, Vector3(0.31, 0.24, 0.28), Vector3(0, 1.84, 0), cream)
+	for side in [-1, 0, 1]:
+		_costume_sphere(accessories, "ChefPuff%d" % side, 8, 0.13, 0.19, Vector3(side * 0.10, 1.96, 0), cream)
+	_costume_box(accessories, "ChefApron", 8, Vector3(0.37, 0.32, 0.05), Vector3(0, 0.85, -0.245), cream)
+	_costume_box(accessories, "ChefPocket", 8, Vector3(0.18, 0.09, 0.025), Vector3(0, 0.83, -0.28), coral)
+	_costume_ring(accessories, "RescueBrim", 9, 0.17, 0.32, Vector3(0, 1.69, 0.025), coral)
+	_costume_sphere(accessories, "RescueHelmet", 9, 0.25, 0.25, Vector3(0, 1.76, 0), coral)
+	_costume_box(accessories, "RescueBadge", 9, Vector3(0.09, 0.10, 0.04), Vector3(0, 1.74, -0.24), amber)
+	_costume_box(accessories, "RescuePack", 9, Vector3(0.32, 0.37, 0.13), Vector3(0, 1.02, 0.25), slate)
+	for side in [-1, 1]:
+		_costume_sphere(accessories, "AirTank%d" % side, 9, 0.075, 0.30, Vector3(side * 0.085, 1.02, 0.33), amber)
+	_costume_ring(accessories, "SailorBand", 10, 0.17, 0.26, Vector3(0, 1.72, 0), slate)
+	_costume_sphere(accessories, "SailorCap", 10, 0.25, 0.16, Vector3(0, 1.80, 0), cream)
+	_costume_box(accessories, "SailorCollar", 10, Vector3(0.40, 0.09, 0.26), Vector3(0, 1.04, 0.06), teal)
+	_costume_box(accessories, "SailorKnot", 10, Vector3(0.09, 0.14, 0.06), Vector3(0, 0.87, -0.25), teal)
+	_costume_sphere(accessories, "FlightCap", 11, 0.25, 0.24, Vector3(0, 1.74, 0.015), sand)
+	for side in [-1, 1]:
+		_costume_sphere(accessories, "FlightEar%d" % side, 11, 0.085, 0.22, Vector3(side * 0.23, 1.47, 0.015), slate)
+	_costume_ring(accessories, "FlightScarf", 11, 0.21, 0.29, Vector3(0, 0.92, 0), amber)
+	_costume_box(accessories, "ScarfTail", 11, Vector3(0.10, 0.24, 0.04), Vector3(0.16, 0.79, -0.25), amber)
 	for accessory in accessories.get_children():
 		# Fit the broader continuous creature without changing outfit IDs or
 		# attachment ownership. Face equipment stays in front of the oval inset.
@@ -198,11 +230,28 @@ func _build_accessories() -> void:
 			accessory.scale.x = 1.8
 			accessory.scale.z = 2.05
 		accessory.set_meta("body", "Head" if accessory.position.y > 1.45 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
+		if accessory.name == "ScarfTail":
+			accessory.set_meta("body", "Chest") # One attachment for the whole scarf.
 
 
 func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = size
+	mesh.material = material
+	var instance := MeshInstance3D.new()
+	instance.name = part
+	instance.mesh = mesh
+	instance.position = at
+	instance.set_meta("outfit", outfit)
+	parent.add_child(instance)
+
+
+func _costume_sphere(parent: Node3D, part: String, outfit: int, radius: float, height: float, at: Vector3, material: Material) -> void:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = height
+	mesh.radial_segments = 12
+	mesh.rings = 4
 	mesh.material = material
 	var instance := MeshInstance3D.new()
 	instance.name = part

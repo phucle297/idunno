@@ -6,7 +6,7 @@ signal equip_requested(outfit_id: String)
 signal open_requested(box_id: String)
 signal refresh_requested
 
-var profile: Dictionary = {"owned": ["plain", "cap", "hard_hat", "backpack"], "pending": [], "equipped": "plain"}
+var profile: Dictionary = {"owned": ToyCharacterVisual.starter_ids(), "pending": [], "equipped": "plain"}
 var managed := false
 var lobby := true
 var reduced_motion := false
@@ -60,11 +60,17 @@ func _ready() -> void:
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 20)
 	content.add_child(columns)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(510, 344)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	columns.add_child(scroll)
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
-	columns.add_child(grid)
+	scroll.add_child(grid)
 	for item: Dictionary in ToyCharacterVisual.catalog().items:
 		var button := Button.new()
 		button.theme_type_variation = "OutfitTile"
@@ -107,9 +113,9 @@ func _ready() -> void:
 	var camera := Camera3D.new()
 	camera.position = Vector3(1.6, 1.4, -4.0)
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 1.95
+	camera.size = 2.25
 	world.add_child(camera)
-	camera.look_at(Vector3(0, 0.85, 0))
+	camera.look_at(Vector3(0, 0.95, 0))
 	var rotation_row := HBoxContainer.new()
 	right.add_child(rotation_row)
 	for direction: int in [-1, 1]:
@@ -175,6 +181,9 @@ func _ready() -> void:
 
 func show_collection() -> void:
 	_return_focus = get_viewport().gui_get_focus_owner()
+	# z_index only controls drawing. GUI hit testing uses sibling order, so a
+	# later full-screen Home would otherwise intercept the visible outfit cards.
+	move_to_front()
 	visible = true
 	for thumbnail: SubViewport in _thumbnail_viewports:
 		thumbnail.render_target_update_mode = SubViewport.UPDATE_ONCE
@@ -272,7 +281,7 @@ func _render() -> void:
 	if profile.pending.is_empty() and pool_count > 0:
 		odds.text += " Pool: " + ", ".join(remaining)
 	reward.text = reward_text
-	var can_equip: bool = selected in profile.owned and (managed or selected in ["plain", "cap", "hard_hat", "backpack"])
+	var can_equip: bool = selected in profile.owned and (managed or selected in ToyCharacterVisual.starter_ids())
 	equip_button.text = "EQUIPPED" if selected == profile.equipped else ("EQUIP IN LOBBY" if not lobby else ("EQUIP" if can_equip else "LOCKED"))
 	equip_button.disabled = busy or not lobby or not can_equip or selected == profile.equipped
 	var previous := box_select.selected
@@ -318,7 +327,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _outfit_thumbnail(outfit_id: String) -> Texture2D:
-	# Real catalog meshes, rendered once on opening rather than eight live previews.
+	# Real catalog meshes, rendered once on opening rather than live thumbnails.
 	var thumbnail := SubViewport.new()
 	thumbnail.size = Vector2i(96, 112)
 	thumbnail.transparent_bg = true
@@ -342,8 +351,8 @@ func _outfit_thumbnail(outfit_id: String) -> Texture2D:
 	thumbnail.add_child(fill)
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 1.95
+	camera.size = 2.25
 	camera.position = Vector3(0.8, 1.2, -4)
 	thumbnail.add_child(camera)
-	camera.look_at(Vector3(0, 0.85, 0))
+	camera.look_at(Vector3(0, 0.95, 0))
 	return thumbnail.get_texture()

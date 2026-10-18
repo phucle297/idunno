@@ -12,7 +12,7 @@ func _run() -> void:
 	var client = (load("res://game/session/profile_client.gd") as GDScript).new()
 	var expected_failure := false
 	var opening := "--open-pending" in OS.get_cmdline_user_args()
-	var owned_count := 4
+	var owned_count := ToyCharacterVisual.starter_ids().size()
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--profile-service-url="):
 			client.service_url = argument.trim_prefix("--profile-service-url=")

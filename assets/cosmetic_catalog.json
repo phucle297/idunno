@@ -8,6 +8,10 @@
     {"id": "raincoat", "name": "Raincoat", "pool": "earned", "description": "An amber hood rim and rain cape."},
     {"id": "mechanic", "name": "Mechanic", "pool": "earned", "description": "Slate goggles and a tool belt."},
     {"id": "park_ranger", "name": "Park Ranger", "pool": "earned", "description": "A broad sand ranger hat and field pack."},
-    {"id": "meteor_observer", "name": "Meteor Observer", "pool": "earned", "description": "An open cream helmet and compact observation pack."}
+    {"id": "meteor_observer", "name": "Meteor Observer", "pool": "earned", "description": "An open cream helmet and compact observation pack."},
+    {"id": "chef", "name": "Chef", "pool": "starter", "description": "A tall cream toque and coral-trimmed apron. Free starter; cosmetic only."},
+    {"id": "firefighter", "name": "Firefighter", "pool": "starter", "description": "A coral rescue helmet and compact air pack. Cosmetic only; no fire protection."},
+    {"id": "sailor", "name": "Sailor", "pool": "starter", "description": "A cream sailor cap and teal neckerchief. Free starter; cosmetic only."},
+    {"id": "pilot", "name": "Pilot", "pool": "starter", "description": "A sand flight cap with slate ear pads and an amber scarf. Free starter; cosmetic only."}
   ]
 }

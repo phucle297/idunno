@@ -9,7 +9,7 @@
   },
   "generator": {
     "script": "tools/asset_generation/generate_assets.gd",
-    "version": "9",
+    "version": "10",
     "seed": 297,
     "command": "godot --headless --path . --script res://tools/asset_generation/generate_assets.gd -- --seed=297"
   },
@@ -21,14 +21,15 @@
       "export_path": "assets/generated/CHR_Base_v001.tscn",
       "generator_script": "tools/asset_generation/generate_assets.gd",
       "seed": 297,
-      "generator_version": "9",
+      "generator_version": "10",
       "intended_dimensions_m": [1.08, 1.6, 0.656],
       "triangle_count": 5992,
       "cosmetic_catalog": "assets/cosmetic_catalog.json",
       "cosmetic_catalog_version": 1,
       "outfit_source": "game/player/toy_character_visual.gd",
-      "outfit_triangle_counts_including_base": {"plain": 5992, "cap": 6136, "hard_hat": 6112, "backpack": 6004, "raincoat": 6172, "mechanic": 6052, "park_ranger": 6160, "meteor_observer": 6160},
-      "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168},
+      "outfit_triangle_counts_including_base": {"plain": 5992, "cap": 6136, "hard_hat": 6112, "backpack": 6004, "raincoat": 6172, "mechanic": 6052, "park_ranger": 6160, "meteor_observer": 6160, "chef": 6532, "firefighter": 6520, "sailor": 6280, "pilot": 6508},
+      "outfit_accessory_triangle_counts": {"plain": 0, "cap": 144, "hard_hat": 120, "backpack": 12, "raincoat": 180, "mechanic": 60, "park_ranger": 168, "meteor_observer": 168, "chef": 540, "firefighter": 528, "sailor": 288, "pilot": 516},
+      "phase18_outfits": "Generator10 seed297 character-only regeneration appends Chef/Firefighter/Sailor/Pilot free starters to the eight stable catalog IDs. Original project-authored matte primitives; no external geometry/textures or CC0 claim. Open faces; scarf parts share Chest attachment. Base5992 triangles unchanged, each accessory below800; same18 bones,10 clips and11-body ragdoll. PHASE1_TESTS_OK1338, PLAYER_INTEGRATION_OK466; collection actual X11 pointer/scroll/equip/Home/start24 controls. Front/back and720p/1080p collection renders inspected; final camera framing enlarged to fit Chef toque. Native GPU/human aesthetic acceptance unverified.",
       "outfit_physics": "Same player capsule/controller; visible accessories copied onto existing 11 ragdoll bodies/10 joints/55kg. No accessory colliders or authoritative bodies.",
       "animation_stability_validation": "Generator9 seed297 character-only regeneration: stable symmetric takeoff/falling, completed one-shot held, face/accessory Transform3D tracks split into position/rotation/scale with orthonormal rotation. CHARACTER_ANIMATION_OK67 covers walk/run stop, interrupted shove/get-up and idempotent setup. Geometry/materials/capsule unchanged. Rendered held-pose and stop sequence in Linux Compatibility/llvmpipe; human/native-GPU feel not established.",
       "outfit_validation": "Generator8 seed297 character-only regeneration; ten clips after removal of crouch/holding. Base5992 triangles includes112 hidden anchor triangles; eight outfit/accessory counts unchanged. PLAYER_INTEGRATION_OK329 covers gait phases, planted soles, observer floor/landing state, collider equality, recovery and controls. Scratch128 contact samples: max planted drift0.000513m, height error0.000774m at120Hz on level ground. Full regression passed:40 suites, five matrices, managed20 and settings restart. No terrain IK or native hardware claim.",
@@ -52,7 +53,7 @@
       ],
       "gameplay_tags": [],
       "provenance": "Deterministically generated in Godot; no third-party geometry. Runtime clips are project-authored by game/player/toy_character_visual.gd.",
-      "sha256": "db0fd03475b83d1444ac003ef054a49def9c82f65895fa9e5c8a7cdb118e7fcf",
+      "sha256": "a98eb26722520081b98d8931ac710493938bfbba6b17f577fb1fe4928acb5432",
       "validation_status": "phase8_2_controller_render_and_full_regression_passed; human_native_gpu_acceptance_unverified"
     },
     {
@@ -131,6 +132,27 @@
       "provenance": "Deterministically synthesized PCM in Godot; no third-party audio",
       "sha256_manifest": "4406ef7d5bc7dd742d1a7a70a612fa0defa75b5edc958c574573d979fdfc01bc",
       "validation_status": "all_eight_wav_files_imported; duration_and_reserved_warning_voice_overlap_checks_passed"
+    },
+    {
+      "asset_id": "MUS_ToyTownThemes_v001",
+      "category": "audio_bundle",
+      "source_path": "tools/audio_generation/generate_music.py",
+      "export_path": "assets/audio/music/",
+      "generator_script": "tools/audio_generation/generate_music.py",
+      "generator_version": "1",
+      "seed": 297,
+      "sample_rate_hz": 32000,
+      "channels": 1,
+      "bit_depth": 16,
+      "duration_seconds_each": 32,
+      "triangle_count": null,
+      "collider_type": "none_audio_only",
+      "files": [
+        {"name": "toy_town_menu.wav", "sha256": "d14fdf4cf56438aa3e79042a6ad8f8f33c5be08dd8452b4ee3c3d6d6fe5b519f", "rms_linear": 0.156242},
+        {"name": "survival_gameplay.wav", "sha256": "c2e8cdec98cec6c65b5d309b6eb000da9f18e6c29a83ce35aee76e7cede8db88", "rms_linear": 0.227692}
+      ],
+      "provenance": "Project-authored original16-bar instrumental arrangements and deterministic Python standard-library PCM synthesis. Menu: single mallet lead, sparse plucks/bass; gameplay: rhythmic plucks, bass, mallet lead and light synthesized percussion. No external samples, downloads, vocals or copied reference song; no third-party license claim.",
+      "validation_status": "Both PCM16 mono32k files32s, peak0.747681/no clipped samples, first/last PCM0. Godot import edit/loop_mode2 explicit Forward; rendered MUSIC_OK22 checks real loop wrap, two bounded voices, interrupted crossfades and warning ducking. MP3 audio analysis inspected; not physical hearing/device acceptance. Independent persisted Music bus; no headless/dedicated music players. Full integrated gate tracked in progress.json."
     },
     {
       "asset_id": "UI_DisasterIcons_v001",

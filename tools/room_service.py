@@ -100,6 +100,10 @@ class ProfileStore:
                     db.execute("PRAGMA user_version = 2")
                 db.execute("SELECT id, instance, sequence, roster, match_duration, completion, response FROM rounds LIMIT 0")
                 db.execute("SELECT round_id, profile_id, box_id, cosmetic_id, pool, catalog_version, state, reason FROM receipts LIMIT 0")
+                # New free starters also belong to existing profiles. Preserve
+                # equipped items, earned ownership and sealed grant-time receipts.
+                db.executemany("INSERT OR IGNORE INTO owned (profile_id, cosmetic_id) "
+                               "SELECT id, ? FROM profiles", [(item,) for item in self.STARTERS])
 
     def connect(self):
         db = sqlite3.connect(self.path.as_uri() + "?mode=rw", uri=True, timeout=2)

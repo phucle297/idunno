@@ -3,12 +3,13 @@ extends Node3D
 signal outfit_acknowledged(outfit_id: String, request_sequence: int)
 signal outfit_failed(message: String, request_sequence: int)
 
-const STARTER_OUTFITS := ["plain", "cap", "hard_hat", "backpack"]
+static var STARTER_OUTFITS: Array[String] = ToyCharacterVisual.starter_ids()
 var _outfits: Dictionary = {}
 var _outfit_requests: Dictionary = {}
 var _outfit_pending: Dictionary = {}
 var _outfit_sequence := 0
 var collection: Control
+var music: PartyMusicController
 var _profile_state: Dictionary = {}
 var _profiles_enabled := false
 var _reward_sequence := 0
@@ -116,6 +117,9 @@ func _ready() -> void:
 		ProjectSettings.get_setting("rendering/renderer/rendering_method"),
 	])
 	_configure_ui_theme()
+	music = preload("res://game/music_controller.gd").new()
+	music.name = "Music"
+	add_child(music)
 	_build_lighting()
 	terrain_collapse = TerrainCollapseScript.new()
 	terrain_collapse.name = "TerrainCollapse"
@@ -1184,6 +1188,7 @@ func _network_spawn_position(index: int) -> Vector3:
 
 
 func _process(delta: float) -> void:
+	music.set_warning_active(gameplay_audio.is_warning_playing())
 	if _connection_remaining > 0.0:
 		if match_manager.players.has(multiplayer.get_unique_id()):
 			_connection_remaining = 0.0
@@ -1876,6 +1881,10 @@ func _present_collection_profile() -> void:
 
 
 func _refresh_profile() -> void:
+	# Home/direct sessions equip local starters. Do not disable those controls
+	# behind an unrelated public profile request (the service may be offline).
+	if not _profiles_enabled:
+		return
 	if room_client.busy or room_client.profile_client.busy or _equip_ui_sequence > 0:
 		collection.status.text = "Request pending. Refresh when it completes."
 		return
@@ -2390,6 +2399,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	music.set_context(state == MatchManager.MatchState.ACTIVE)
 	_pending_local_movement_snapshot.clear()
 	_pending_fall_damage.clear()
 	gameplay_audio.reset_collapse_notices()

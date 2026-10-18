@@ -4,7 +4,8 @@
 
 ## Active and planned phases
 
-No active implementation phase; awaiting owner feedback or next approved scope.
+- [Phase18 — Selectable Outfits and More Costumes](checklists/phase-18-outfit-selection-and-costumes.md)
+  — fix actual mouse selection/equipment and add four free starter silhouettes.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases

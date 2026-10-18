@@ -160,6 +160,10 @@ func warning_voice_is_reserved() -> bool:
 	return _warning_voice.stream != null and not active_warning_name.is_empty()
 
 
+func is_warning_playing() -> bool:
+	return _warning_voice.playing
+
+
 func reset_for_match() -> void:
 	reset_collapse_notices()
 	active_warning_name = ""

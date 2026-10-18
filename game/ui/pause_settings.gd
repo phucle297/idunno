@@ -2,7 +2,7 @@ extends Control
 
 # Local presentation only: never pauses the tree or sends session RPCs.
 const DEFAULTS := {
-	"master_volume": 1.0, "effects_volume": 1.0, "warning_volume": 1.0,
+	"master_volume": 1.0, "effects_volume": 1.0, "warning_volume": 1.0, "music_volume": 0.7,
 	"mouse_sensitivity": 1.0, "invert_y": false, "camera_shake": 1.0,
 	"fullscreen": false, "reduced_motion": false,
 	"windowed_resolution": Vector2i(1280, 720),
@@ -13,6 +13,7 @@ var config_path := "user://settings.cfg"
 var controls: Dictionary = {}
 var panel: PanelContainer
 var settings_page: VBoxContainer
+var settings_scroll: ScrollContainer
 var pause_page: VBoxContainer
 var resume: Button
 var status: Label
@@ -59,7 +60,14 @@ func _ready() -> void:
 	settings.pressed.connect(show_settings)
 	settings_page = VBoxContainer.new()
 	settings_page.add_theme_constant_override("separation", 4)
-	content.add_child(settings_page)
+	settings_scroll = ScrollContainer.new()
+	settings_scroll.custom_minimum_size.y = 460
+	settings_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	settings_scroll.follow_focus = true
+	content.add_child(settings_scroll)
+	settings_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	settings_scroll.add_child(settings_page)
 	for key: String in DEFAULTS:
 		if key in ["master_volume", "mouse_sensitivity", "fullscreen"]:
 			var section := Label.new()
@@ -139,6 +147,7 @@ func _ready() -> void:
 	get_window().size_changed.connect(_on_window_size_changed)
 	hide()
 	settings_page.hide()
+	settings_scroll.hide()
 
 func load_preferences(path: String) -> void:
 	var config := ConfigFile.new()
@@ -182,8 +191,8 @@ func _save() -> void:
 		_main.gameplay_audio.play_ui("error")
 
 func apply_preferences(resize_window: bool = false) -> void:
-	for bus: String in ["Master", "Effects", "Warnings"]:
-		var key := "master_volume" if bus == "Master" else ("effects_volume" if bus == "Effects" else "warning_volume")
+	for bus: String in ["Master", "Effects", "Warnings", "Music"]:
+		var key: String = {"Master": "master_volume", "Effects": "effects_volume", "Warnings": "warning_volume", "Music": "music_volume"}[bus]
 		AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(bus), values[key])
 	_main.gameplay_hud.reduced_motion = values.reduced_motion
 	for player: PartyPlayer in _main._player_nodes.values():
@@ -285,11 +294,13 @@ func open_pause() -> void:
 	_from_pause = true
 	pause_page.show()
 	settings_page.hide()
+	settings_scroll.hide()
 	resume.text = "RESUME"
 	status.hide()
 	panel.offset_top = -110
 	panel.offset_bottom = 110
 	panel.size.y = 220
+	move_to_front()
 	show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_focus()
@@ -301,10 +312,12 @@ func show_settings() -> void:
 		_from_pause = false
 	pause_page.hide()
 	settings_page.show()
+	settings_scroll.show()
 	resume.text = "BACK"
 	status.show()
 	panel.offset_top = -330
 	panel.offset_bottom = 330
+	move_to_front()
 	show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_focus()
@@ -314,6 +327,7 @@ func back() -> void:
 	_main.gameplay_audio.play_ui("back")
 	if settings_page.visible and _from_pause:
 		settings_page.hide()
+		settings_scroll.hide()
 		pause_page.show()
 		resume.text = "RESUME"
 		status.hide()

@@ -21,7 +21,7 @@ func _run() -> void:
 	if menu.config_path == "user://settings.cfg":
 		menu.config_path = "user://test-milestone-1-5.cfg"
 	if "--verify-restart" in OS.get_cmdline_user_args():
-		_expect(is_equal_approx(menu.values.master_volume, 0.31) and is_equal_approx(menu.values.mouse_sensitivity, 1.7) and menu.values.invert_y and menu.values.reduced_motion, "New process must restore persisted settings at startup")
+		_expect(is_equal_approx(menu.values.master_volume, 0.31) and is_equal_approx(menu.values.music_volume, 0.42) and is_equal_approx(menu.values.mouse_sensitivity, 1.7) and menu.values.invert_y and menu.values.reduced_motion, "New process must restore persisted settings including Music at startup")
 		_expect(menu.values.windowed_resolution == Vector2i(1111, 666) and (DisplayServer.get_name() == "headless" or DisplayServer.window_get_size() == Vector2i(1111, 666)), "New process must restore custom windowed dimensions to the actual window")
 		DirAccess.remove_absolute(menu.config_path)
 		main.free()
@@ -39,7 +39,7 @@ func _run() -> void:
 	await _capture("pause")
 	menu.show_settings()
 	await process_frame
-	_expect(menu.controls.size() == 10, "All preferences including windowed resolution must be editable")
+	_expect(menu.controls.size() == 11, "All preferences including independent music volume must be editable")
 	_expect(menu.controls.master_volume.has_focus(), "Settings starts on master-volume focus")
 	var tab := InputEventKey.new()
 	tab.keycode = KEY_TAB
@@ -56,6 +56,9 @@ func _run() -> void:
 	menu.controls.master_volume.value = 0.31
 	menu.controls.effects_volume.value = 0.67
 	menu.controls.warning_volume.value = 0.83
+	menu.controls.music_volume.value = 0.0
+	_expect(is_zero_approx(AudioServer.get_bus_volume_linear(AudioServer.get_bus_index("Music"))) and is_equal_approx(AudioServer.get_bus_volume_linear(AudioServer.get_bus_index("Warnings")), 0.83), "Music can mute without muting hazard warnings")
+	menu.controls.music_volume.value = 0.42
 	menu.controls.mouse_sensitivity.value = 1.7
 	menu.controls.invert_y.button_pressed = true
 	menu.controls.camera_shake.value = 0.0
@@ -75,7 +78,7 @@ func _run() -> void:
 	var script = load("res://game/ui/pause_settings.gd")
 	var reloaded = script.new()
 	reloaded.load_preferences(menu.config_path)
-	_expect(is_equal_approx(reloaded.values.master_volume, 0.31) and is_equal_approx(reloaded.values.warning_volume, 0.83) and reloaded.values.invert_y and reloaded.values.reduced_motion, "Fresh instance must load saved asymmetric preferences")
+	_expect(is_equal_approx(reloaded.values.master_volume, 0.31) and is_equal_approx(reloaded.values.music_volume, 0.42) and is_equal_approx(reloaded.values.warning_volume, 0.83) and reloaded.values.invert_y and reloaded.values.reduced_motion, "Fresh instance must load saved asymmetric preferences including Music")
 	reloaded.free()
 	root.push_input(cancel)
 	await process_frame

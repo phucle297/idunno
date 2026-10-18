@@ -39,6 +39,8 @@ def main():
             shutil.copy2(args.package / name, stage / name)
         revision = (stage / "BUILD.txt").read_text().split("Source revision: ")[1].splitlines()[0]
         assert len(revision) == 40
+        catalog = json.loads((stage / "cosmetic_catalog.json").read_text())
+        starters = {item["id"] for item in catalog["items"] if item["pool"] == "starter"}
 
         identity = {}
 
@@ -87,7 +89,7 @@ def main():
                     data["profile_id"] = identity["profile_id"]
                     query = dict(base, profile_id=identity["profile_id"])
                     initial = post("/v1/profiles/fetch", query)
-                    assert initial["equipped"] == "plain" and len(initial["owned"]) == 4 and initial["pending"] == []
+                    assert initial["equipped"] == "plain" and set(initial["owned"]) == starters and initial["pending"] == []
                 assert post("/v1/rooms/create", dict(data, build="development"), 409)["error"] == "incompatible_version"
                 ticket = post("/v1/rooms/create", data)
                 assert (ticket["build"], ticket["port"], ticket["room_id"]) == (revision, args.port + 1, "RELEASE-42")

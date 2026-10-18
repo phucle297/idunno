@@ -28,7 +28,7 @@ func _run() -> void:
 	var baseline_shape := collider.shape.duplicate() as CapsuleShape3D
 	var baseline_layer := player.collision_layer
 	var baseline_mask := player.collision_mask
-	for outfit in 8:
+	for outfit in ToyCharacterVisual.catalog().items.size():
 		player.character.set_cosmetic_variant(outfit)
 		player.character.set_player_color(outfit)
 		player.reset_for_match(Vector3.ZERO)
@@ -158,7 +158,7 @@ func _test_visual_facing() -> void:
 
 func _test_gait_continuity() -> void:
 	var animation := player.character.get_node("AnimationPlayer") as AnimationPlayer
-	for outfit in 8:
+	for outfit in ToyCharacterVisual.catalog().items.size():
 		player.character.set_cosmetic_variant(outfit)
 		for phase in [0.15, 0.4, 0.75]:
 			player.character.play_clip("walk")

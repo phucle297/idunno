@@ -56,7 +56,7 @@ def main():
                         raise RuntimeError('Dedicated pointer server not ready; see server.log')
                     time.sleep(.05)
                 network_args = ['--join-address=127.0.0.1', f'--join-port={args.port}']
-            process = subprocess.Popen([engine, '--path', str(ROOT), '--resolution', args.resolution, '--script', 'res://tests/pointer_input_peer.gd', '--', *network_args, f'--pointer-role={args.role}', '--settings-path=user://pointer-os-test.cfg'], stdout=log, stderr=subprocess.STDOUT)
+            process = subprocess.Popen([engine, '--audio-driver', 'Dummy', '--path', str(ROOT), '--resolution', args.resolution, '--script', 'res://tests/pointer_input_peer.gd', '--', *network_args, f'--pointer-role={args.role}', '--settings-path=user://pointer-os-test.cfg'], stdout=log, stderr=subprocess.STDOUT)
             seen = 0
             deadline = time.monotonic() + 65
             while process.poll() is None and time.monotonic() < deadline:
@@ -80,15 +80,18 @@ def main():
                     x.XSetInputFocus(display, window, 1, 0)
                     x.XFlush(display)
                     time.sleep(.15)
-                    if stage in ('close_lobby', 'settings', 'back', 'choose_map', 'start_solo'):
+                    if stage in ('close_lobby', 'settings', 'back', 'choose_map', 'start_solo',
+                                 'outfits', 'outfit_card', 'equip', 'close_outfits', 'scroll_outfits'):
                         px, py, child = c.c_int(), c.c_int(), c.c_ulong()
                         x.XTranslateCoordinates(display, window, root, int(record['position'][0]), int(record['position'][1]), c.byref(px), c.byref(py), c.byref(child))
                         print(f"POINTER_INJECT stage={stage} client={record['position']} root={[px.value, py.value]}", flush=True)
                         xt.XTestFakeMotionEvent(display, -1, px.value, py.value, 0)
                         x.XFlush(display)
                         time.sleep(.15)
-                        xt.XTestFakeButtonEvent(display, 1, 1, 0)
-                        xt.XTestFakeButtonEvent(display, 1, 0, 40)
+                        button = 5 if stage == 'scroll_outfits' else 1
+                        for _ in range(8 if stage == 'scroll_outfits' else 1):
+                            xt.XTestFakeButtonEvent(display, button, 1, 0)
+                            xt.XTestFakeButtonEvent(display, button, 0, 40)
                     elif stage in ('camera', 'camera_after_focus', 'camera_after_recovery'):
                         xt.XTestFakeRelativeMotionEvent(display, 24, -7, 0)
                     elif stage in ('pause', 'resume', 'open_lobby'):
