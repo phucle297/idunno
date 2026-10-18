@@ -10,50 +10,60 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 
+func _body(world: Node3D, position: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.collision_layer = 1
+	body.position = position
+	var collider := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collider.shape = shape
+	body.add_child(collider)
+	world.add_child(body)
+	return body
+
+
+func _support_height(point: Vector3) -> float:
+	return 5.1 if absf(point.x) < 2.9 and absf(point.z) < 2.9 and point.y > 2.5 else 0.0
+
+
 func _run() -> void:
 	var world := Node3D.new()
 	root.add_child(world)
+	_body(world, Vector3(0, -0.25, 0), Vector3(40, 0.5, 40))
+	var roof := _body(world, Vector3(0, 4.5, 0), Vector3(6, 1, 6))
 	var weather := WeatherScript.new()
+	weather.support_height = _support_height
 	world.add_child(weather)
-	var roof := StaticBody3D.new()
-	roof.collision_layer = 1
-	roof.position = Vector3(0, 4.5, 0)
-	var collider := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(6, 1, 6)
-	collider.shape = box
-	roof.add_child(collider)
-	world.add_child(roof)
-	await physics_frame
-	await physics_frame
 	var ground := Vector3.ZERO
-	var rooftop := Vector3(0, 5, 0)
+	var rooftop := Vector3(0, 5.1, 0)
 	var open_ground := Vector3(10, 0, 0)
-	_expect(weather.configure_surfaces(PackedVector3Array([ground, rooftop, open_ground]), 2.0), "Authored stacked supports must configure")
-	_expect(not weather.is_exposed(ground) and weather.is_exposed(rooftop) and weather.is_exposed(open_ground), "Actual static roof shelters only the lower floor")
+	var puddle := Vector3(10, 0, 2)
+	_expect(weather.configure_world(world, 20.0, PackedVector3Array([puddle])), "Continuous field configures real world geometry and local puddles")
+	await physics_frame
+	await physics_frame
+	_expect(not weather.is_exposed(ground) and weather.is_exposed(rooftop) and weather.is_exposed(open_ground), "Stacked floors query their own actual cover")
+	_expect(not weather.is_precipitation_visible(Vector3(1.8, 0, 0), 5.0), "Roof below a falling drop blocks indoor Rain/Snow")
+	_expect(weather.is_precipitation_visible(Vector3(3.2, 0, 0), 5.0), "Outdoor precipitation control remains visible")
 	weather.tick(4.0, true, false, -INF)
-	_expect(weather.sample_surface(ground) == Vector2.ZERO, "Rain cannot wet roofed ground")
-	_expect(weather.sample_surface(rooftop) == Vector2(0, 1) and weather.sample_surface(open_ground) == Vector2(0, 1), "Rain wets exposed supports, bounded at one")
-	weather._process(0.0)
-	_expect(weather._patch_visuals[1].mesh is ArrayMesh and weather._patch_visuals[2].mesh is ArrayMesh, "Wet patches render irregular authored meshes instead of cylinders")
-	_expect(weather._outlines[1] != weather._outlines[2], "Different supports deterministically receive different puddle outlines")
-	var edge := weather._outlines[2][0]
-	var inside_edge := open_ground + Vector3(edge.x * 0.999, 0.0, edge.y * 0.999)
-	_expect(weather.sample_surface(open_ground) == Vector2(0, 1) and weather.sample_surface(inside_edge).y == 1.0 and weather.sample_surface(open_ground + Vector3(edge.x * 1.05, 0.0, edge.y * 1.05)) == Vector2.ZERO, "Rendered outline and wet-contact boundary agree")
-	_expect(weather.sample_surface(Vector3(10, 0.301, 0)) == Vector2.ZERO, "Airborne contact must not inherit ground state")
+	_expect(weather.sample_surface(ground) == Vector2.ZERO and weather.sample_surface(rooftop) == Vector2(0, 1) and weather.sample_surface(open_ground) == Vector2(0, 1), "Rain wets continuous outdoor geometry but not intact interiors")
+	_expect(weather.sample_surface(Vector3(10, 0.301, 0)) == Vector2.ZERO, "Airborne contact does not inherit surface traction")
 	weather.cleanup()
 	weather.tick(20.0, false, true, -INF)
-	_expect(weather.sample_surface(ground) == Vector2.ZERO and weather.sample_surface(rooftop).x == 1.0, "Snow accumulates only outdoors and caps at one")
+	_expect(weather.sample_surface(ground) == Vector2.ZERO and weather.sample_surface(rooftop).x == 1.0, "Snow accumulates outdoors only")
 	weather.tick(4.0, false, false, -INF)
-	_expect(weather.sample_surface(rooftop).is_equal_approx(Vector2(0.9, 0.1)), "Snow melts into persistent wetness after weather ends")
+	_expect(weather.sample_surface(rooftop).is_equal_approx(Vector2(0.9, 0.1)), "Snow melts into persistent wetness")
+	weather._surface = Vector2(0.25, 0.25)
+	var thawing: Dictionary = weather.movement_surface(rooftop)
+	_expect(bool(thawing.ice) and not bool(thawing.deep_snow), "Ice traction is distinct from deep snow")
+	weather.tick(20.0, false, true, -INF)
+	_expect(bool(weather.movement_surface(rooftop).deep_snow), "Deep snow traversal is reported")
 	weather.tick(1.0, false, true, 0.0)
-	_expect(weather.sample_surface(open_ground) == Vector2(0, 1), "Flood at support washes snow away and wets ground")
-	_expect(weather.sample_surface(ground) == Vector2(0, 1), "Flood contact ignores overhead shelter")
-	_expect(weather.sample_surface(rooftop).x > 0.9, "Flood below roof leaves rooftop snow intact")
-	weather.tick(1.0, false, true, 5.0)
-	_expect(weather.sample_surface(rooftop) == Vector2(0, 1), "Exact roof immersion washes rooftop snow away")
-	weather.tick(50.0, false, false, -INF)
-	_expect(weather.sample_surface(rooftop) == Vector2.ZERO, "Drained surfaces dry without active weather")
+	_expect(weather.sample_surface(open_ground) == Vector2(0, 1) and weather.sample_surface(ground) == Vector2(0, 1) and weather.sample_surface(rooftop).x > 0.9, "Flood wets covered low floor but leaves roof above water snowy")
+	weather.tick(1.0, false, true, 5.1)
+	_expect(weather.sample_surface(rooftop) == Vector2(0, 1), "Flood at roof height washes snow away")
+	weather.tick(1.0, false, false, -INF)
+	_expect(weather.sample_surface(rooftop).x == 0.0 and weather.sample_surface(rooftop).y > 0.0, "Drained flood retains bounded height-aware wet residual instead of reviving snow")
 	weather.cleanup()
 	weather.tick(2.0, false, true, -INF)
 	weather.tick(10.0, false, false, -INF)
@@ -62,61 +72,67 @@ func _run() -> void:
 	weather.tick(2.0, false, true, -INF)
 	for step in 100:
 		weather.tick(0.1, false, false, -INF)
-	_expect(weather.sample_surface(rooftop).is_equal_approx(single_step), "Melting-to-drying transition must not depend on tick size")
+	_expect(weather.sample_surface(rooftop).is_equal_approx(single_step), "Recovery is timestep invariant")
 	weather.cleanup()
 	weather.tick(1.0, true, true, -INF)
-	_expect(weather.sample_surface(rooftop) == Vector2(0, 0.25), "Rain wins simultaneous precipitation; no invisible snow growth")
+	_expect(weather.sample_surface(rooftop) == Vector2(0, 0.25), "Rain wins simultaneous precipitation")
+	weather.sample_surface(open_ground)
 	roof.free()
 	await physics_frame
-	await physics_frame
 	weather.tick(1.0, true, false, -INF)
-	_expect(weather.sample_surface(ground).y == 0.25, "Destroyed shelter exposes its actual floor on the next update")
+	_expect(weather.sample_surface(ground).y > 0.0, "Destroyed roof exposes its actual floor to new precipitation")
+	_body(world, Vector3(0, 4.5, 0), Vector3(6, 1, 6))
+	await physics_frame
+	var rebuilt_moisture := weather.sample_surface(ground).y
+	weather.tick(1.0, false, false, -INF)
+	_expect(rebuilt_moisture > 0.0 and weather.sample_surface(ground).y < rebuilt_moisture, "Rebuilt roof stops new rain while legitimate moisture dries")
+	weather.tick(3.0, true, false, -INF)
+	_expect(weather.electrify_puddle(puddle), "Lightning can warn a wet local puddle")
+	weather.tick(1.3, true, false, -INF)
+	_expect(weather.is_electrified(puddle) and not weather.is_electrified(open_ground), "Electricity warns only local puddles, not all wet ground")
+	weather.cleanup()
+	weather.tick(20.0, false, true, -INF)
+	weather.melt_snow_at(rooftop, 2.0, 1.0)
+	_expect(weather.sample_surface(rooftop).x == 0.0 and weather.sample_surface(rooftop).y > 0.0, "Meteor/Fire melt creates local wet recovery")
+	weather.cleanup()
+	weather.tick(20.0, false, true, -INF)
+	weather.melt_snow_at(ground, 2.0, 1.0)
+	_expect(weather.sample_surface(rooftop).x > 0.9, "Ground Fire cannot melt snow on an upper roof at matching X/Z")
+	var volcano := MeshInstance3D.new()
+	volcano.mesh = BoxMesh.new()
+	world.add_child(volcano)
+	_expect(weather.register_surface_mesh(volcano), "New volcano surface can register without rebuilding weather state")
 	var before := weather.create_presentation_snapshot()
 	weather.tick(-1.0, true, true, 10.0)
 	weather.tick(NAN, true, true, 10.0)
-	_expect(weather.create_presentation_snapshot() == before, "Invalid deltas cannot mutate surface state")
-	_expect(not weather.configure_surfaces(PackedVector3Array([ground]), 0.0), "Invalid layout radius rejected without clearing state")
-	var oversized := PackedVector3Array()
-	oversized.resize(WeatherScript.MAX_PATCHES + 1)
-	_expect(not weather.configure_surfaces(oversized, 2.0), "Patch budget is enforced")
-	_expect(not weather.apply_presentation_snapshot(before), "Authority cannot accept presentation state")
+	_expect(weather.create_presentation_snapshot() == before, "Invalid deltas cannot mutate weather")
+	_expect(not weather.configure_world(world, 81.0, PackedVector3Array()) and weather.create_presentation_snapshot() == before, "Invalid extent is rejected without clearing state")
+	_expect(not weather.apply_presentation_snapshot(before), "Authority cannot accept presentation snapshot")
 	var client_root := Node3D.new()
 	root.add_child(client_root)
+	var client := WeatherScript.new()
+	client.support_height = _support_height
+	client_root.add_child(client)
+	_expect(client.configure_world(world, 20.0, PackedVector3Array([puddle])), "Late join configures matching world geometry")
 	var api := SceneMultiplayer.new()
 	var peer := ENetMultiplayerPeer.new()
 	peer.create_client("127.0.0.1", 39996)
 	api.multiplayer_peer = peer
 	set_multiplayer(api, client_root.get_path())
-	var client := WeatherScript.new()
-	client_root.add_child(client)
-	_expect(client.apply_presentation_snapshot(before), "Remote presentation accepts authoritative surface snapshot")
-	_expect(client.sample_surface(rooftop) == weather.sample_surface(rooftop), "Remote query matches authority")
-	_expect(client._outlines == weather._outlines, "Snapshot layout deterministically reproduces authoritative puddle geometry")
-	client._process(0.0)
-	var original_mesh: Mesh = client._patch_visuals[0].mesh
-	var moved := before.duplicate(true)
-	var moved_positions: PackedVector3Array = moved.positions.duplicate()
-	moved_positions[0] += Vector3.RIGHT
-	moved.positions = moved_positions
-	_expect(client.apply_presentation_snapshot(moved), "A same-count replacement layout is accepted")
-	client._process(0.0)
-	_expect(client._patch_visuals[0].mesh != original_mesh, "Changed supports rebuild visible outlines even when patch count stays equal")
-	_expect(client.apply_presentation_snapshot(before), "Restore authoritative layout after replacement")
+	_expect(client.apply_presentation_snapshot(before) and client.sample_surface(rooftop) == weather.sample_surface(rooftop), "Late join snapshot matches authority")
 	client.tick(100.0, true, true, 100.0)
-	_expect(client.create_presentation_snapshot() == before, "Client cannot simulate weather")
-	_expect(not client.configure_surfaces(PackedVector3Array([ground]), 1.0), "Client cannot replace authoritative layout")
+	_expect(client.create_presentation_snapshot() == before, "Client cannot simulate authority weather")
 	var malformed := before.duplicate(true)
-	malformed["snow"] = PackedFloat32Array([1.0])
-	_expect(not client.apply_presentation_snapshot(malformed) and client.create_presentation_snapshot() == before, "Malformed snapshot rejected atomically")
-	malformed["snow"] = "invalid"
-	_expect(not client.apply_presentation_snapshot(malformed), "Wrong snapshot array type rejected without runtime errors")
+	malformed["snow"] = PackedFloat32Array([NAN])
+	_expect(not client.apply_presentation_snapshot(malformed) and client.create_presentation_snapshot() == before, "NaN snapshot is rejected atomically")
+	malformed = before.duplicate(true)
+	malformed["electric"] = PackedVector2Array()
+	_expect(not client.apply_presentation_snapshot(malformed), "Malformed snapshot arrays are rejected")
 	for cycle in 5:
 		weather.tick(20.0, false, true, -INF)
 		weather.cleanup()
-		_expect(weather.sample_surface(rooftop) == Vector2.ZERO, "Rematch clears snow and wetness")
-		_expect(client.apply_presentation_snapshot(weather.create_presentation_snapshot()) and client.sample_surface(rooftop) == Vector2.ZERO, "Rematch snapshot clears stale remote state")
+		_expect(weather.sample_surface(rooftop) == Vector2.ZERO and client.apply_presentation_snapshot(weather.create_presentation_snapshot()) and client.sample_surface(rooftop) == Vector2.ZERO, "Reset clears authority and late-join state")
 	peer.close()
-	client_root.free()
 	world.free()
 	if failures.is_empty():
 		print("WEATHER_SURFACES_OK checks=%d resets=5" % checks)
