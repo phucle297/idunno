@@ -31,6 +31,7 @@ func _run() -> void:
 	await _check_activation_and_denials(main, player, mechanisms)
 	await _check_awning_weather(main, mechanisms)
 	await _check_stationary_rider(main, player, mechanisms)
+	await _check_district_support(main, mechanisms)
 	for cycle in 5:
 		mechanisms.reset_for_match()
 		var snapshot := mechanisms.create_snapshot()
@@ -152,6 +153,31 @@ func _check_stationary_rider(main: Node, player: PartyPlayer, mechanisms: TownMe
 	var end := player.global_position
 	_expect(end.distance_to(start) > 1.0 and end.distance_to(mechanisms.get_deck_transform(Mechanisms.BRIDGE_ID).origin) < 5.9, "Grounded stationary rider is carried once through 90-degree turn")
 	_expect(max_speed < 20.0 and player.velocity.is_finite(), "Bridge carriage has no velocity explosion")
+
+
+func _check_district_support(main: Node, mechanisms: TownMechanisms) -> void:
+	main.terrain_collapse.apply_snapshot(PackedFloat32Array([128, -1, 0, 1]))
+	mechanisms.server_tick(TICK, {}, true)
+	await physics_frame
+	var entries: Array = mechanisms.create_snapshot().mechanisms
+	_expect(bool(entries[1].enabled), "South district loss must not remove the bridge's still-supported central deck")
+	_expect(bool(entries[0].enabled), "South district loss preserves the central awning")
+	_expect(mechanisms.apply_snapshot(mechanisms.create_snapshot()), "Mechanism replica accepts current state after terrain removal")
+	await physics_frame
+	for point in [Vector3(2, 2.5, 31.5), Vector3(2, 2.5, 32.1)]:
+		var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP, point - Vector3.UP, 1)
+		var supported: bool = not main.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
+		_expect(supported == (point.z < 32), "Replica preserves only the landing piece inside surviving terrain at %s" % point)
+	main.terrain_collapse.reset()
+	mechanisms.reset_for_match()
+	main.terrain_collapse.apply_snapshot(PackedFloat32Array([16, -1, 0, 1]))
+	mechanisms.server_tick(TICK, {}, true)
+	await physics_frame
+	entries = mechanisms.create_snapshot().mechanisms
+	_expect(not bool(entries[1].enabled) and not bool(entries[0].enabled), "Loss of actual pivot support disables both mechanisms")
+	main.terrain_collapse.reset()
+	mechanisms.reset_for_match()
+	await physics_frame
 
 
 func _state(snapshot: Dictionary, id: String) -> int:

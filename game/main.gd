@@ -2652,7 +2652,9 @@ func _build_sandbox() -> void:
 	if map_id == "toy_town":
 		town_mechanisms = TownMechanisms.new()
 		town_mechanisms.construct_toy_town($Sandbox,
-			func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, 8.0, false),
+			# The central pier carries the deck. Losing a remote ramp district
+			# must not delete a still-supported bridge outside that warning.
+			func(point: Vector3) -> bool: return terrain_collapse.supports_point(point, 0.5, false),
 			_mechanism_line_of_sight)
 		# Include fixed mechanism approaches before caching collapse ownership.
 		# The south landing spans a district cut; each side must fall separately.

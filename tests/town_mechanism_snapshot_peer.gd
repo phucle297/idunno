@@ -23,6 +23,7 @@ class SnapshotTransport extends Node:
 	var mechanisms: TownMechanisms
 	var weather: WeatherSurfaces
 	var received := false
+	var confirmed := false
 	var passed := false
 
 	@rpc("authority", "call_remote", "reliable")
@@ -34,17 +35,39 @@ class SnapshotTransport extends Node:
 		var weather_ok := weather.apply_presentation_snapshot(weather_snapshot)
 		var observed_weather := weather.create_presentation_snapshot()
 		var weather_matches: bool = weather_ok and observed_weather.wetness == weather_snapshot.wetness and observed_weather.snow == weather_snapshot.snow and observed_weather.precipitation == weather_snapshot.precipitation
-		passed = mechanism_matches and weather_matches
+		# Headless clients normally allocate zero cosmetics. Enable only the
+		# footprint path to exercise the real remote-player presentation callback.
+		weather.set_process(false)
+		weather._presentation_enabled = true
+		var player := load("res://scenes/player.tscn").instantiate() as PartyPlayer
+		weather.get_parent().add_child(player)
+		player.set_process(false)
+		player.set_physics_process(false)
+		player.weather_surfaces = weather
+		player.global_position = Vector3(10, 0, 10)
+		player.set_network_grounded(true)
+		player._process(0.016)
+		var footprint_ok := weather._footprints.size() == 1 and weather.create_presentation_snapshot() == observed_weather
+		player.free()
+		passed = mechanism_matches and weather_matches and footprint_ok
 		received = true
 		acknowledge_initial_snapshot.rpc_id(1, passed)
 		if passed:
 			print("TOWN_MECHANISM_SNAPSHOT_CLIENT_OK initial_mid_transition=passed weather_state=passed")
+		else:
+			push_error("Initial snapshot mismatch mechanism=%s weather=%s cosmetic_footprint=%s" % [mechanism_matches, weather_matches, footprint_ok])
 
 	@rpc("any_peer", "call_remote", "reliable")
 	func acknowledge_initial_snapshot(good: bool) -> void:
 		if multiplayer.is_server():
 			passed = good
 			received = true
+			confirm_initial_snapshot.rpc_id(multiplayer.get_remote_sender_id())
+			(multiplayer.multiplayer_peer as ENetMultiplayerPeer).host.flush()
+
+	@rpc("authority", "call_remote", "reliable")
+	func confirm_initial_snapshot() -> void:
+		confirmed = true
 
 	func _bridge_entry(snapshot: Dictionary) -> Dictionary:
 		for entry: Dictionary in snapshot.mechanisms:
@@ -101,6 +124,7 @@ func _run_server() -> void:
 	var accepted := mechanisms.request_activation(Mechanisms.BRIDGE_ID, 1, control, true, false, true, true) == Mechanisms.ActivationResult.ACCEPTED
 	mechanisms.server_tick(0.85, {}, true)
 	weather.tick(2.0, true, false, -INF)
+	weather.tick(4.0, false, true, -INF)
 	var mechanism_snapshot := mechanisms.create_snapshot()
 	var weather_snapshot := weather.create_presentation_snapshot()
 	var moving: bool = _bridge_entry(mechanism_snapshot).state == Mechanisms.STATE_MOVING and float(_bridge_entry(mechanism_snapshot).progress) > 0.0
@@ -130,11 +154,13 @@ func _run_client() -> void:
 		return
 	root.multiplayer.multiplayer_peer = peer
 	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
-	while not transport.received and Time.get_ticks_msec() < deadline:
+	# Continue polling until the server confirms the assertion acknowledgement;
+	# quitting at receive time can discard the outgoing RPC before delivery.
+	while not transport.confirmed and Time.get_ticks_msec() < deadline:
 		await process_frame
-	if not transport.received:
-		push_error("Snapshot client timed out")
-	quit(0 if transport.passed else 1)
+	if not transport.confirmed:
+		push_error("Snapshot client timed out awaiting server confirmation")
+	quit(0 if transport.received and transport.confirmed and transport.passed else 1)
 
 
 func _bridge_entry(snapshot: Dictionary) -> Dictionary:

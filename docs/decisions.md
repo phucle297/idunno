@@ -68,3 +68,12 @@ Move Town's two central puddles to exposed plaza(-4,4)/(4,-4), not beneath the
 old bridge. Production Lightning now exercises the authored warning/electric path.
 Crank prompts render through their own moving canopy so rotation cannot hide E;
 raise/outline state cues without changing physical clearance or interaction range.
+
+Follow-up collapse controls reproduced an over-broad8m support margin disabling
+the central bridge when only the south ramp district fell. Use the actual0.5m
+pivot support; fixed approaches remain solely owned by TerrainCollapse. Mechanism
+snapshots may update the moving deck, never re-enable removed fixed landing pieces.
+Observer PartyPlayer presentation also emits bounded cosmetic snow tracks: a
+headless server alone cannot draw them. Real-ENet snapshot controls assert this
+does not mutate authoritative weather state and await a server-confirmed result
+before fixture exit, rather than dropping the acknowledgement or extending timeouts.

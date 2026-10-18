@@ -62,6 +62,9 @@ func _process(_delta: float) -> void:
 	# from the authoritative replay state, not their local collision cache.
 	var grounded := is_on_floor() if _network_grounded < 0 else _network_grounded != 0
 	var surface := weather_surfaces.sample_surface(global_position) if grounded and is_instance_valid(weather_surfaces) else Vector2.ZERO
+	if grounded and is_instance_valid(weather_surfaces):
+		# Render on observers too; a headless authority cannot draw their tracks.
+		weather_surfaces.leave_footprint(_peer_id, global_position)
 	# Small cosmetic hunch/shiver; capsule, aiming and gait timing are unchanged.
 	visual.rotation.x = surface.y * 0.06
 	visual.rotation.z = sin(Time.get_ticks_msec() * 0.018) * surface.x * 0.025

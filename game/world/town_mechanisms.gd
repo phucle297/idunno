@@ -123,7 +123,6 @@ func apply_snapshot(snapshot: Dictionary) -> bool:
 		mechanism.enabled = bool(entry.enabled)
 		_apply_transform(mechanism)
 		_set_enabled(mechanism, bool(mechanism.enabled))
-		_set_mechanism_nodes_enabled(String(entry.id), bool(mechanism.enabled))
 		_set_cue(mechanism, "TURNING — STAND CLEAR" if int(entry.state) == STATE_MOVING else ("COOLING DOWN" if float(entry.cooldown) > 0 else "READY — TURN CRANK"), TOY_AMBER if int(entry.state) == STATE_MOVING else TOY_TEAL)
 		_mechanisms[String(entry.id)] = mechanism
 	_remote_revision = int(snapshot.revision)
@@ -140,7 +139,6 @@ func reset_for_match() -> void:
 		mechanism.enabled = _has_support(mechanism)
 		_apply_transform(mechanism)
 		_set_enabled(mechanism, bool(mechanism.enabled))
-		_set_mechanism_nodes_enabled(mechanism_id, bool(mechanism.enabled))
 		_set_cue(mechanism, "READY — TURN CRANK", TOY_TEAL)
 		_mechanisms[mechanism_id] = mechanism
 	_revision += 1
@@ -352,24 +350,16 @@ func _disable(mechanism_id: String, mechanism: Dictionary) -> void:
 	mechanism.target = STATE_REST_A
 	mechanism.progress = 0.0
 	_set_enabled(mechanism, false)
-	_set_mechanism_nodes_enabled(mechanism_id, false)
 	_mechanisms[mechanism_id] = mechanism
 	_revision += 1
 
 
 func _set_enabled(mechanism: Dictionary, enabled: bool) -> void:
+	# TerrainCollapse owns fixed posts/ramps/partitioned landings. A mechanism
+	# snapshot must not resurrect those after a district has disappeared.
 	for node: Node in (mechanism.body as Node).find_children("*", "CollisionShape3D", true, false):
 		(node as CollisionShape3D).set_deferred("disabled", not enabled)
 	(mechanism.body as Node3D).visible = enabled
-
-
-func _set_mechanism_nodes_enabled(mechanism_id: String, enabled: bool) -> void:
-	var token := "Awning" if mechanism_id == AWNING_ID else "Bridge"
-	for node: Node in get_children():
-		if node.name.contains(token):
-			node.visible = enabled
-			for collision: Node in node.find_children("*", "CollisionShape3D", true, false):
-				(collision as CollisionShape3D).set_deferred("disabled", not enabled)
 
 
 func _valid_snapshot(snapshot: Dictionary) -> bool:
