@@ -1,6 +1,31 @@
 # Active phase decisions
 
-No new implementation phase is active. Root `progress.json` owns the next action.
+## 2026-10-19 — Performance first, then toy sabotage (planning only)
+
+Owner reports solo smooth but two apps on the same machine in one room heat up and
+drop frames. Build/device/FPS/temperature are not supplied. Treat that as real user
+feedback with unclassified cause, not proof of networking or thermal throttling.
+Existing overlap profiler adds avatars to one process; headless20-client and public
+two-client correctness checks do not establish two rendered clients performance.
+No explicit application FPS/background policy found; hidden Home preview is already
+disabled. Measure before changing caps, rendering or snapshot work.
+
+[Phase19](checklists/phase-19-multiplayer-frame-budget.md) plans matched solo/
+network/two-renderer controls, focus/minimize/resolution/pacing and sustained traces.
+Keep physics/ENet cadence correct under background rendering changes. Reference
+hardware unknown; llvmpipe cannot establish GPU temperature/native60FPS.
+
+[Phase20](checklists/phase-20-toybox-sabotage.md) plans the newly requested guns,
+rockets and wider toy arsenal after measured headroom. First vertical slice: foam
+blaster, plunger rocket, squeaky hammer; later batches add traps, displacement,
+deflection and bounded environment combos. Proposed limits/timings are hypotheses,
+not accepted balance. Default first slice uses position/impulse, not direct gun HP
+damage, preserving survival rather than realistic deathmatch. Shared cross-item
+protection, server hits/ammo and limited concurrency keep chaos reactive and bounded.
+No DESIGN rewrite, gameplay code changes, new infra or deployment in this task.
+Root `progress.json` owns the operational next action.
+
+## Previous completed delivery
 
 Phase18 outfit selection, four additional starter costumes and original menu/game
 music passed the technical gates and source push. Owner-authorized follow-up on

@@ -4,7 +4,13 @@
 
 ## Active and planned phases
 
-No active implementation phase; awaiting the owner's next scope.
+Owner requested plans, not implementation:
+- [Phase19 — Multiplayer frame budget](checklists/phase-19-multiplayer-frame-budget.md)
+  — reproduce two-app heat/frame drops, attribute cost, fix measured hotspots,
+  validate hardware/focus behavior and freeze headroom before adding combat effects.
+- [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
+  — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
+  depends on Phase19, server-authoritative and bounded against chain-lock/spam.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases
@@ -138,9 +144,9 @@ persistent non-cosmetic progression, currencies, shops, non-cosmetic inventories
 ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production
 bots, advanced destruction and a large cosmetic catalog. Crouch is removed by the
 Phase8 plan, not repurposed as a survival counter. Grabbing/holding is temporarily
-removed; later held hammer/wood objects for character-to-character interactions are
-an explicit owner-requested backlog only, with no scheduled phase or current combat
-implementation. Define effects, fairness, physics/network budgets and abuse controls
-when that work is opened; phases8–11 require none of it. Volcanic terrain uses predefined states,
+removed. The previously deferred held hammer/wood interaction backlog is now opened
+as planned Phase20 toy sabotage after Phase19; no combat implementation is claimed.
+Its checklist defines effects, counters, physics/network budgets and abuse controls;
+phases8–11 did not require it. Volcanic terrain uses predefined states,
 not arbitrary terraforming. A second map and disaster compositions landed in Phase4;
 free cosmetic drops/equipment landed in Phase6. Completed archives are not new scope.

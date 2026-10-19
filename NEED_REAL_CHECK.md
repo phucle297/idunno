@@ -1,5 +1,14 @@
 # Báo lỗi khi gặp thực tế
 
+**Báo cáo mới của owner — hiệu năng multiplayer (2026-10-19, chưa phân loại):**
+Solo khá mượt; mở2 app trên cùng máy, vào cùng room gây nóng máy và drop khung hình.
+Chưa có build/OS/CPU/GPU/độ phân giải/FPS/thời lượng/map/hazard; không tự gán báo cáo
+cho build public hay kết luận thermal throttle/network bug. [Plan Phase19](docs/checklists/phase-19-multiplayer-frame-budget.md).
+Chưa tái hiện trên máy owner; orb không thay đo GPU/nhiệt độ thật. Nếu có thêm dữ
+liệu, ghi build/cấu hình/độ phân giải, cả2 cửa sổ mở hay1 minimize, chơi bao lâu và
+FPS solo/2 app; ảnh/log không bắt buộc. Đây không phải checklist chặn tiếp tục và
+không đóng các giới hạn/waiver cũ.
+
 **Bản public hiện tại — Phase18 Outfits và Original Music (2026-10-19):**
 [Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39184818543),

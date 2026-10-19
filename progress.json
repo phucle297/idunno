@@ -3,7 +3,7 @@
   "updated_at": "2026-10-19",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "planned",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
     "status": "completed",
@@ -40,11 +40,36 @@
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
-    "phase": null,
-    "milestone": null,
+    "phase": "phase_19_multiplayer_frame_budget",
+    "milestone": "M19.1",
     "task": null
   },
-  "phase": null,
+  "phase": {
+    "id": "phase_19_multiplayer_frame_budget",
+    "title": "Multiplayer frame budget investigation",
+    "status": "planned",
+    "checklist": "docs/checklists/phase-19-multiplayer-frame-budget.md",
+    "milestones": [
+      {
+        "id": "M19.1",
+        "title": "Reproduce and attribute two-client cost",
+        "status": "planned",
+        "gate": "not_run"
+      },
+      {
+        "id": "M19.2",
+        "title": "Fix measured hotspots",
+        "status": "planned",
+        "gate": "not_run"
+      },
+      {
+        "id": "M19.3",
+        "title": "Validate baseline and sabotage budgets",
+        "status": "planned",
+        "gate": "not_run"
+      }
+    ]
+  },
   "completed_phase": {
     "id": "phase_18_outfit_selection_and_costumes",
     "title": "Selectable Outfits and More Costumes",
@@ -72,8 +97,22 @@
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "validation": [],
-  "changed_files": [],
+  "validation": [
+    {
+      "date": "2026-10-19",
+      "scope": "planning_source_inspection",
+      "status": "passed",
+      "result": "Inspected existing overlap profiler, main physics/snapshot/prop lookup paths, project/settings pacing config, Home preview disabling and bounded shove protection. Existing profiler is synthetic single-process4 avatars; headless20/public correctness cannot prove two graphical clients60FPS. No explicit project FPS/background policy found; engine/driver behavior and thermal cause unknown. No runtime benchmark executed for this planning-only request."
+    }
+  ],
+  "changed_files": [
+    "docs/checklists/phase-19-multiplayer-frame-budget.md",
+    "docs/checklists/phase-20-toybox-sabotage.md",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "NEED_REAL_CHECK.md",
+    "progress.json"
+  ],
   "blockers": [],
   "limits": [
     "Native Windows/GPU/audio and human animation/UI feel unverified.",
@@ -83,7 +122,7 @@
     "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
     "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim."
   ],
-  "next_action": "Await the owner’s next scope; report any playtest issues against public build741ae34.",
+  "next_action": "When implementation is authorized, execute M19.1 matched solo/one-network-client/two-graphical-client baseline with per-process frame traces before selecting fixes.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",
@@ -127,5 +166,40 @@
     ],
     "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
     "ci_subscription": "cdd6cdc3-6965-4d45-b876-b669906ec9e2"
-  }
+  },
+  "planned_phases": [
+    {
+      "id": "phase_20_toybox_sabotage",
+      "title": "Toybox sabotage and chain-reaction chaos",
+      "status": "planned",
+      "depends_on": "phase_19_multiplayer_frame_budget",
+      "checklist": "docs/checklists/phase-20-toybox-sabotage.md",
+      "milestones": [
+        {
+          "id": "M20.1",
+          "title": "Action framework and three-item vertical slice",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.2",
+          "title": "Staged toy arsenal",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.3",
+          "title": "Bounded world chain reactions",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.4",
+          "title": "Chaos budget and regression",
+          "status": "planned",
+          "gate": "not_run"
+        }
+      ]
+    }
+  ]
 }
