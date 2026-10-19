@@ -163,6 +163,18 @@
       "scope": "final_tracer_gate_and_serial_control",
       "status": "passed",
       "result": "Final current-driver exact-PCK no3D/cap60 serial rerun passed9 traces/5400 records,120 warmup/600 samples/3 repeats, physics59.910–60.102Hz, client caps60/authority0. Headless shadows-off control verified sun_shadows=false and emitted12 records. tools/test_changed.py passed normal staged affected gate (one suite/two real-client+summary tests), not full gameplay regression. TRACER_PLAN_INTEGRITY_OK links=true active_milestone=M19.1 csv_sidecars=0; game/scenes/assets/project/export settings diff empty. Raw trace/log review bundle .amp/in/artifacts/phase19-tracer-validation.tar.gz. No performance fix, native/GPU/thermal pass, release or deployment claimed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "controlled_moving_client",
+      "status": "passed",
+      "result": "Owner authorized remaining implementation, per-unit commit/push and final release. Added opt-in real alternating strafe input; default stationary unchanged, no production hooks/teleports. Source headless --fps60 --moving-client,120 warmup/600 samples/3 repeats passed5400 records: authoritative travel11.64–11.90m/window, max displacement1.00–1.34m, all-peer physics59.90–60.12Hz. Four unittest profiler contracts passed. Pending-input count/ack lag explicitly not packet loss or reconciliation timing; actual snapshot receipt age/correction distance unavailable. Outputs .scratch/phase19-moving-full. Not a rendered/native performance fix."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "moving_tracer_fresh_checkout_gate",
+      "status": "failed",
+      "result": "First normal staged gate exposed missing global class cache: alphabetically earlier moving integration ran before the old stationary test's import setup. Fixed test setup ownership by importing once in setUpClass before either integration; did not change runtime or suppress error. Requires normal staged rerun."
     }
   ],
   "changed_files": [
@@ -190,7 +202,7 @@
     "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open.",
     "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
   ],
-  "next_action": "Extend the reusable tracer with a controlled moving-client scenario and observed reconciliation/snapshot timing to separate render stalls from network judder before closing M19.1 and selecting the first selective-shadow optimization trial.",
+  "next_action": "Run a matched selective-detail-shadow trial with the real two-client renderer and inspect quality/collision invariants before implementing the first measured runtime optimization; retain native GPU/thermal and reconciliation-timing limitations.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",

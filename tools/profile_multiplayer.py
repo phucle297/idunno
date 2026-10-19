@@ -36,6 +36,22 @@ def summarize(trace):
             "observed_ack_sequence_delta": samples[-1]["ack_sequence"] - samples[0]["ack_sequence"]}
 
 
+def authoritative_movement_summary(server_trace, moving_peer_id):
+    """Summarize server-observed travel; this deliberately does not infer packet loss."""
+    positions = []
+    for row in server_trace["samples"]:
+        position = row["authoritative_player_positions"].get(str(moving_peer_id))
+        if position is not None:
+            positions.append(position)
+    if len(positions) < 2:
+        raise RuntimeError("Missing authoritative positions for the moving client")
+    origin = positions[0]
+    distances = [math.dist(origin, position) for position in positions]
+    travel = sum(math.dist(previous, current) for previous, current in zip(positions, positions[1:]))
+    return {"peer_id": moving_peer_id, "authoritative_travel_m": travel,
+            "authoritative_max_displacement_m": max(distances), "samples": len(positions)}
+
+
 def parser():
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("--engine", default=os.environ.get("GODOT_BIN", shutil.which("godot")))
@@ -52,6 +68,7 @@ def parser():
     result.add_argument("--fps", type=int, default=0)
     result.add_argument("--vsync", choices=("default", "off", "on"), default="off")
     result.add_argument("--ablation", choices=("none", "shadows-off", "no-3d"), default="none")
+    result.add_argument("--moving-client", action="store_true", help="Opt in to bounded real strafe input for client-0; default is stationary")
     result.add_argument("--timeout", type=float, default=1800, help="Sampling deadline; setup stages are limited to at most60s, never retries")
     result.add_argument("--xvfb", action="store_true", help="Separate Linux virtual displays; NOT same-desktop focus validation")
     return result
@@ -64,6 +81,8 @@ def run(options):
         raise ValueError("Positive resolution/samples/repeats/timeout and nonnegative warmup/FPS required")
     if options.scenario == "solo" and options.renderers > 1:
         raise ValueError("Solo has one client; use --renderers 0 or 1")
+    if options.moving_client and options.scenario != "network":
+        raise ValueError("--moving-client requires --scenario network")
     if options.xvfb and not shutil.which("Xvfb"):
         raise ValueError("--xvfb requires installed Xvfb")
     engine = str(Path(shutil.which(options.engine) or options.engine).resolve())
@@ -84,7 +103,9 @@ def run(options):
                     logical_cpus_reported=os.cpu_count(), monitor_refresh_hz="not collected",
                     render_scale="project default", LP_NUM_THREADS=os.environ.get("LP_NUM_THREADS", "unset"),
                     transport="local direct-IP dedicated ENet; no HTTP allocator",
-                    admission_rendering="disabled until sampling", audio="Dummy", moving_players=False,
+                    admission_rendering="disabled until sampling", audio="Dummy", moving_players=options.moving_client,
+                    movement_scenario="stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
+                    reconciliation_measurement="No profiler hook observes snapshot receipt/reconcile boundaries; pending snapshot age and correction distance are intentionally not inferred.",
                     thermal_sensors="not collected", gpu_power="not collected",
                     sample_start="per-process warmup; not a synchronized barrier")
     if pack:
@@ -186,7 +207,8 @@ def run(options):
         for repeat in range(options.repeats):
             for label in all_labels:
                 command(label, "sample", warmup=options.warmup, samples=options.samples,
-                        fps=options.fps, vsync=options.vsync, ablation=options.ablation)
+                        fps=options.fps, vsync=options.vsync, ablation=options.ablation,
+                        moving_client=options.moving_client)
             wait(lambda: all(read(label).get("complete") for label in all_labels), "frame samples", options.timeout)
             for label in all_labels:
                 trace = json.loads((control / (label + ".trace.json")).read_text())
@@ -196,6 +218,13 @@ def run(options):
                     raise RuntimeError("Match/roster changed during trace")
                 (output / f"{repeat}-{label}.json").write_text(json.dumps(trace))
                 summaries.append(dict(repeat=repeat, peer=label, **summarize(trace)))
+            if options.moving_client:
+                client_trace = json.loads((control / "client-0.trace.json").read_text())
+                server_trace = json.loads((control / "server.trace.json").read_text())
+                movement = authoritative_movement_summary(server_trace, client_trace["local_peer_id"])
+                if movement["authoritative_max_displacement_m"] <= 0.5:
+                    raise RuntimeError("Controlled input did not move the authoritative client position")
+                summaries[-1]["moving_client_authoritative"] = movement
             (output / "summary.json").write_text(json.dumps(summaries, indent=2))
         # Close clients first so authority can process departures before its own shutdown.
         for label in all_labels:

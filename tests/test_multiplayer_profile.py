@@ -8,13 +8,26 @@ import sys
 import tempfile
 import unittest
 
-from tools.profile_multiplayer import summarize
+from tools.profile_multiplayer import authoritative_movement_summary, summarize
 
 ROOT = Path(__file__).resolve().parents[1]
 # Driver dependency for the staged test selector: tools/profile_multiplayer_peer.gd
 
 
 class MultiplayerProfileContract(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.engine = os.environ.get("GODOT_BIN") or shutil.which("godot")
+        if not cls.engine:
+            raise RuntimeError("Godot4.7.2 is required for the real-client contract")
+        # Either integration test may run first in a fresh staged checkout.
+        if not (ROOT / ".godot/global_script_class_cache.cfg").exists():
+            imported = subprocess.run([cls.engine, "--headless", "--editor", "--path", str(ROOT), "--quit"],
+                                      capture_output=True, text=True, timeout=120)
+            output = imported.stdout + imported.stderr
+            if imported.returncode or any(line.startswith(("SCRIPT ERROR:", "ERROR:")) for line in output.splitlines()):
+                raise RuntimeError(output)
+
     def test_summary_keeps_temporal_order_and_uses_elapsed_time(self):
         rows = [dict(frame_ms=value, physics_ticks=1, match_sequence=index,
                      ack_sequence=index * 2) for index, value in enumerate([10, 50, 20, 100])]
@@ -25,15 +38,19 @@ class MultiplayerProfileContract(unittest.TestCase):
         self.assertEqual(summary["observed_ack_sequence_delta"], 6)
         self.assertEqual(summary["hitches_over_50ms"], 1)
 
+    def test_authoritative_movement_summary_uses_server_positions(self):
+        trace = {"samples": [
+            {"authoritative_player_positions": {"2": [0, 0, 0]}},
+            {"authoritative_player_positions": {"2": [1, 0, 0]}},
+            {"authoritative_player_positions": {"2": [1, 0, 2]}},
+        ]}
+        movement = authoritative_movement_summary(trace, 2)
+        self.assertEqual(movement["peer_id"], 2)
+        self.assertEqual(movement["authoritative_travel_m"], 3)
+        self.assertEqual(movement["authoritative_max_displacement_m"], 5 ** .5)
+
     def test_two_real_clients_repeat_without_stale_results(self):
-        engine = os.environ.get("GODOT_BIN") or shutil.which("godot")
-        self.assertIsNotNone(engine, "Godot4.7.2 is required for the real-client contract")
-        # A disposable staged checkout may not have its global class/import cache.
-        if not (ROOT / ".godot/global_script_class_cache.cfg").exists():
-            imported = subprocess.run([engine, "--headless", "--editor", "--path", str(ROOT), "--quit"],
-                                      capture_output=True, text=True, timeout=120)
-            self.assertEqual(imported.returncode, 0, imported.stdout + imported.stderr)
-            self.assertNotRegex(imported.stdout + imported.stderr, r"(?m)^(SCRIPT ERROR|ERROR):")
+        engine = self.engine
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "results"
             completed = subprocess.run([sys.executable, "tools/profile_multiplayer.py", "--engine", engine,
@@ -52,11 +69,31 @@ class MultiplayerProfileContract(unittest.TestCase):
                     rows = trace["samples"]
                     self.assertEqual(len(rows), 24)
                     self.assertEqual(trace["fps_cap"], 0 if peer == "server" else 60)
+                    self.assertFalse(trace["moving_client_input"])
                     self.assertTrue(all(row["state"] == 1 and row["players"] == 2 for row in rows))
                     self.assertTrue(all(a["time_usec"] < b["time_usec"] for a, b in zip(rows, rows[1:])))
                     self.assertGreater(rows[-1]["match_sequence"], rows[0]["match_sequence"])
                     if peer != "server":
                         self.assertGreater(rows[-1]["ack_sequence"], rows[0]["ack_sequence"])
+
+    def test_two_real_clients_moving_client_changes_authoritative_position(self):
+        engine = self.engine
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "results"
+            completed = subprocess.run([sys.executable, "tools/profile_multiplayer.py", "--engine", engine,
+                "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "90",
+                "--repeats", "1", "--fps", "60", "--timeout", "30", "--moving-client"],
+                cwd=ROOT, capture_output=True, text=True, timeout=120)
+            diagnostics = completed.stdout + completed.stderr
+            for log in output.glob("*.log"):
+                diagnostics += log.read_text()
+            self.assertEqual(completed.returncode, 0, diagnostics)
+            summaries = json.loads((output / "summary.json").read_text())
+            movement = summaries[-1]["moving_client_authoritative"]
+            self.assertGreater(movement["authoritative_max_displacement_m"], .5)
+            client = json.loads((output / "0-client-0.json").read_text())
+            self.assertTrue(client["moving_client_input"])
+            self.assertTrue(all(row["observed_pending_input_count"] >= 0 for row in client["samples"]))
 
 
 if __name__ == "__main__":

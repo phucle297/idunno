@@ -12,6 +12,8 @@ var physics_ticks := 0
 var samples: Array[Dictionary] = []
 var result: Dictionary = {}
 var camera: Camera3D
+var moving_client := false
+var movement_ticks := 0
 
 
 func _initialize() -> void:
@@ -78,6 +80,9 @@ func _act(command: Dictionary) -> void:
 			main.disaster_director.cleanup()
 			warmup = int(command.warmup)
 			wanted = int(command.samples)
+			moving_client = bool(command.get("moving_client", false)) and label == "client-0"
+			movement_ticks = 0
+			_release_profile_movement()
 			last_frame = 0
 			physics_ticks = 0
 			samples.clear()
@@ -101,6 +106,15 @@ func _process(_delta: float) -> bool:
 	var rtt := -1
 	if main.is_network_session() and not main.multiplayer.is_server() and main.multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		rtt = main.multiplayer.multiplayer_peer.get_peer(1).get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
+	var authoritative_positions := {}
+	if main.multiplayer.is_server():
+		for peer_id: int in main._player_nodes:
+			var authoritative_player := main._player_nodes[peer_id] as PartyPlayer
+			if is_instance_valid(authoritative_player):
+				authoritative_positions[str(peer_id)] = [authoritative_player.global_position.x, authoritative_player.global_position.y, authoritative_player.global_position.z]
+	var pending_inputs: int = player._prediction_inputs.size() if is_instance_valid(player) and not main.multiplayer.is_server() else -1
+	var acknowledged_sequence: int = player._last_movement_ack if is_instance_valid(player) else -1
+	var local_position := [player.global_position.x, player.global_position.y, player.global_position.z] if is_instance_valid(player) else []
 	samples.append({"time_usec": now, "frame_ms": (now - last_frame) / 1000.0,
 		"process_ms": Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		"physics_ms": Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
@@ -110,19 +124,25 @@ func _process(_delta: float) -> bool:
 		"static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
 		"state": main.match_manager.state, "players": main.match_manager.players.size(),
 		"match_sequence": main._match_snapshot_sequence if main.multiplayer.is_server() else main._last_match_snapshot_sequence,
-		"input_sequence": main._local_movement_sequence,
-		"ack_sequence": player._last_movement_ack if is_instance_valid(player) else -1,
+		"input_sequence": main._local_movement_sequence, "ack_sequence": acknowledged_sequence,
+		"observed_pending_input_count": pending_inputs,
+		"observed_ack_lag_sequences": maxi(main._local_movement_sequence - acknowledged_sequence, 0) if acknowledged_sequence >= 0 else -1,
+		"local_player_position": local_position,
+		"authoritative_player_positions": authoritative_positions,
 		"rtt_ms": rtt, "window_focused": root.has_focus() if DisplayServer.get_name() != "headless" else false})
 	last_frame = now
 	physics_ticks = 0
 	if samples.size() == wanted:
+		_release_profile_movement()
 		result = {"sequence": sequence, "samples": samples.duplicate(), "map_id": main.map_id,
 			"build": ProjectSettings.get_setting("build/revision", "development"),
 			"engine": Engine.get_version_info().string, "display": DisplayServer.get_name(),
 			"renderer_setting": ProjectSettings.get_setting("rendering/renderer/rendering_method", "unknown"),
 			"adapter": RenderingServer.get_video_adapter_name(), "resolution": [root.size.x, root.size.y],
 			"root_3d_disabled": root.disable_3d, "sun_shadows": main.get_node("Sun").shadow_enabled,
-			"fps_cap": Engine.max_fps, "physics_hz": Engine.physics_ticks_per_second}
+			"fps_cap": Engine.max_fps, "physics_hz": Engine.physics_ticks_per_second,
+			"local_peer_id": local_id, "moving_client_input": moving_client,
+			"reconciliation_measurement": "Pending snapshot age and correction distance unavailable without a receive/reconcile hook; observed pending-input count and ack lag are not time or packet-loss metrics."}
 		var file := FileAccess.open(control.path_join(label + ".trace.json"), FileAccess.WRITE)
 		file.store_string(JSON.stringify(result))
 		file.close()
@@ -132,7 +152,17 @@ func _process(_delta: float) -> bool:
 
 func _physics_process(_delta: float) -> bool:
 	physics_ticks += 1
+	if moving_client and wanted > 0:
+		movement_ticks += 1
+		var right := (movement_ticks / 30) % 2 == 0
+		Input.action_press("move_right" if right else "move_left")
+		Input.action_release("move_left" if right else "move_right")
 	return false
+
+
+func _release_profile_movement() -> void:
+	Input.action_release("move_left")
+	Input.action_release("move_right")
 
 
 func _write_status() -> void:
@@ -149,7 +179,7 @@ func _write_status() -> void:
 
 func _shutdown() -> void:
 	wanted = 0
-	Input.action_release("move_right")
+	_release_profile_movement()
 	main.process_mode = Node.PROCESS_MODE_DISABLED
 	main.gameplay_audio.reset_for_match()
 	main.multiplayer.multiplayer_peer.close()

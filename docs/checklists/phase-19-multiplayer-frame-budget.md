@@ -1,6 +1,7 @@
 # Phase19 — Multiplayer frame budget investigation
 
-Status: M19.1 in progress; owner authorized autonomous debugging and plan refinement.
+Status: M19.1 in progress; owner authorized completing the remaining plan,
+committing/pushing each verified unit and releasing after integration.
 Runtime optimization, sabotage implementation and redeployment have not started.
 Performance work precedes the Phase20 sabotage expansion.
 
@@ -179,6 +180,24 @@ Editor+exact PCK is supported and labeled explicitly. True release-template prof
 still needs a separately scoped in-build diagnostic entry or external measurement;
 do not modify the release PCK/custom-build the engine and call it unchanged evidence.
 M19.1 remains open for the unmeasured controls above and hardware acceptance.
+
+### Controlled movement follow-up
+
+`--moving-client` opts client-0 into alternating real left/right input every30
+physics ticks; stationary remains the default. No teleport or gameplay RPC is
+added. Server traces retain authoritative positions; the runner rejects a moving
+run that does not exceed0.5m authoritative displacement. Pending predicted-input
+count and ack sequence lag are observations, not milliseconds or packet loss.
+Snapshot receipt age and reconciliation correction magnitude are explicitly
+unavailable without an actual receive/reconcile hook; do not infer them from
+independently sampled client/server clocks.
+
+Executed source headless, client cap60/authority0,120 warmup/600 intervals×3:
+`MULTIPLAYER_PROFILE_OK`;5400 records. Authoritative travel11.64–11.90m/window,
+max displacement1.00–1.34m, physics59.90–60.12Hz across peers. Four profiler
+contract tests pass, including stationary-default and actual authoritative motion.
+This verifies the controlled scenario, not rendered movement smoothness or a fix
+for the owner's frame drops. Raw outputs: `.scratch/phase19-moving-full`.
 
 ## M19.1 — Reproduce and attribute the cost
 
