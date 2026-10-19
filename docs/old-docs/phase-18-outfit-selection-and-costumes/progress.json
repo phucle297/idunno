@@ -1,0 +1,215 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-18",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "completed",
+  "previous_phase_archive": {
+    "path": "docs/old-docs/phase-17-continuous-weather/progress.json",
+    "status": "completed",
+    "source_of_truth": false
+  },
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_18_outfit_selection_and_costumes",
+    "milestone": "M18.3",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_18_outfit_selection_and_costumes",
+    "title": "Selectable Outfits and More Costumes",
+    "status": "completed",
+    "checklist": "checklist.md",
+    "milestones": [
+      {
+        "id": "M18.1",
+        "title": "Pointer-selectable collection",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M18.2",
+        "title": "Four additional starter costumes",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M18.4",
+        "title": "Original menu and gameplay music",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M18.3",
+        "title": "Regression and source delivery",
+        "status": "completed",
+        "gate": "passed"
+      }
+    ]
+  },
+  "completed_phase": {
+    "id": "phase_18_outfit_selection_and_costumes",
+    "title": "Selectable Outfits and More Costumes",
+    "status": "completed",
+    "archive": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
+    "pushed": true,
+    "deployed": false,
+    "released": false
+  },
+  "public_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39139115103",
+    "endpoint": "https://server.permees.com",
+    "evidence": "docs/old-docs/phase-17-continuous-weather/progress.json",
+    "pushed": true,
+    "deployed": true,
+    "released": true,
+    "windows_sha256": "c186d9b90f1d1435d3f8a079e08b08025815b835fbe40bc14671847ef7f9dec1",
+    "linux_sha256": "2df48e06eff940f1fb4b77a53b4ab5bbcfe32f81684cf9a6e1f095133dc964be"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
+  },
+  "validation": [
+    {
+      "date": "2026-10-18",
+      "scope": "outfit_pointer_reproduction_and_fix",
+      "status": "passed",
+      "result": "Actual rendered GUI and X11 baseline reproduced Home intercepting visible Collection cards (selected remained plain), native cap/equip/close failed. move_to_front fixes GUI sibling-order ownership. Next native control caught offline Equip blocked behind public HTTP refresh; skip refresh unless profiles enabled. Final POINTER_INPUT_OK24 actual_os_events=true includes scroll to Pilot, equip, close/Home, Choose Map, start with Pilot, camera/pause/focus. Logs .scratch/phase18-before,phase18-after,phase18-after-final. Headless pointer injection was not usable; real rendered/OS input used."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "costume_contract_and_visual_review",
+      "status": "passed",
+      "result": "Generator10 seed297 character-only generation. PHASE1_TESTS_OK1338 across12 costumes,18 bones,10clips,11-body ragdoll and unchanged base5992 triangles; new accessories540/528/288/516 triangles. PLAYER_INTEGRATION_OK466, collection rendered52 checks.720p/1080p default/locked/new starters/receipt/error states inspected. Review found Chef toque crop and Sailor knot over mouth/Pilot scarf separation; enlarged preview framing and adjusted accessory placement/Chest attachment, regenerated and recaptured. Full gate must cover final source."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "original_music_and_settings",
+      "status": "passed",
+      "result": "Two original deterministic32s PCM16 mono32k tracks total4096088 bytes. Revised stacked menu melody into single chord-following lead and sparser accompaniment. MP3 analysis inspected, peak0.747681/no clipping, zero PCM seams; final hashes in manifest. Initial rendered test caught importer mode1 actually Disabled; official Godot source confirms explicit Forward is2, corrected imports. MUSIC_OK22 graphical=true exercises true loop wrap, five interrupted crossfades, duck/release, bounded2 voices; headless zero music players. PAUSE_SETTINGS_OK24 headless/42 rendered with independent Music mute/volume. Added persisted Music setting and scrolled settings layout;720p render inspected. No physical audio/device claim."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "owner_terrain_screenshot_investigation",
+      "status": "passed",
+      "result": "Bounded subagent verification: TERRAIN_COLLAPSE_OK5040 maps2; static center-district geometry removed. Weather does not hide terrain. Frozen client crate without subsequent stream updates stays suspended but no real live-network defect established from this isolated control. Owner image tree anomaly remains unconfirmed, no speculative prop/terrain changes."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "final_integrated_native_and_asset_checks",
+      "status": "passed",
+      "result": "Final source: native X11 1920x1080 POINTER_INPUT_OK checks=24 actual_os_events=true; Collection720p/1080p checks52; MUSIC_OK22 graphical=true; STARTUP_MENU_OK31. Inspected final Chef/Firefighter/Sailor/Pilot previews, default/locked and Settings720p: controls fit, faces open, full Chef toque, connected Pilot scarf. Back showcase amber band contacts the torso; no geometry change based on ambiguous image-analysis wording. Deterministic music regeneration reproduced both manifest hashes exactly; character hash also matches. Full normal staged-tree pre-commit gate is running; no final regression or source-delivery pass claimed yet."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "first_full_staged_gate",
+      "status": "failed",
+      "result": "UI_REGRESSION_OK suites=60 matrices=7 managed_clients=20 persistence_restart=passed; MANAGED_EQUIPMENT_OK with all four new starters. Python ran42 tests,5 failed: old profile/restart fixtures still hardcoded four starters/five after reward/64 ownership rows. No commit created. Corrected expectations to catalog starters (and +1 acknowledged reward), including standalone bundle checker using its packaged catalog; credential, receipt, admission, exact-ownership and isolation assertions remain strict. Logs .scratch/phase18-commit-gate.log. Rerun affected Profiles controls before the full normal commit gate."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "profile_fixture_recovery",
+      "status": "passed",
+      "result": "Corrected real-service Profiles controls:7 tests passed in41.540s, including all five previous failures, restart identity/credentials, reward replay and admission isolation. Updated standalone checker passed against existing Phase17 Linux bundle with packaged four-starter catalog: RELEASE_MANAGED_LINUX_OK including external-store restart/reward replay/equipment/isolation. This is a checker control, not a Phase18 export/release claim. Logs .scratch/phase18-profile-corrected.log and .scratch/phase18-bundle-checker-control-result.log. Full normal staged gate restarted with only fixture expectations corrected; runtime source and inspected assets unchanged."
+    },
+    {
+      "date": "2026-10-18",
+      "scope": "final_normal_staged_gate_and_source_delivery",
+      "status": "passed",
+      "result": "Second normal pre-commit: UI_REGRESSION_OK suites=60 matrices=7 managed_clients=20 persistence_restart=passed;42 Python tests in254.998s OK; MANAGED_EQUIPMENT_OK includes all new starters and spoof rejection. PRE_COMMIT_OK staged_tree=4957dd3c9a3b5548e9b94b0f94d32dfd83461314. Scoped feature commit created and pushed main normally. Native pointer24, graphical music22, final720p/1080p collection52 and deterministic asset hashes remain valid: only stale fixture expectations changed after their executions. Full log .scratch/phase18-commit-gate-r2.log. No new package, release, deployment, public smoke or physical audio/Windows/GPU claim."
+    }
+  ],
+  "changed_files": [
+    "assets/cosmetic_catalog.json",
+    "assets/generated/CHR_Base_v001.tscn",
+    "assets/manifest.json",
+    "assets/audio/music/toy_town_menu.wav",
+    "assets/audio/music/toy_town_menu.wav.import",
+    "assets/audio/music/survival_gameplay.wav",
+    "assets/audio/music/survival_gameplay.wav.import",
+    "game/main.gd",
+    "game/gameplay_audio_controller.gd",
+    "game/music_controller.gd",
+    "game/music_controller.gd.uid",
+    "game/player/toy_character_visual.gd",
+    "game/ui/cosmetic_collection.gd",
+    "game/ui/pause_settings.gd",
+    "tools/asset_generation/generate_assets.gd",
+    "tools/audio_generation/generate_music.py",
+    "tools/room_service.py",
+    "tests/pointer_input_peer.gd",
+    "tests/profile_client_peer.gd",
+    "tests/run_pointer_input_test.py",
+    "tests/run_release_linux_test.py",
+    "tests/test_cosmetic_collection.gd",
+    "tests/test_music.gd",
+    "tests/test_music.gd.uid",
+    "tests/test_pause_settings.gd",
+    "tests/test_phase1.gd",
+    "tests/test_player_integration.gd",
+    "tests/test_room_service.py",
+    "tests/test_startup_menu.gd",
+    "docs/checklists/phase-18-outfit-selection-and-costumes.md",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "progress.json"
+  ],
+  "blockers": [],
+  "limits": [
+    "Native Windows/GPU/audio and human animation/UI feel unverified.",
+    "Earlier intermittent packet-loss timeout remains deferred.",
+    "Software rendering does not establish60FPS.",
+    "Public profile storage remains disabled; isolated local persistence checks do not imply public persistence.",
+    "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
+    "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim."
+  ],
+  "next_action": "Historical phase; root progress.json owns the next action.",
+  "archive_metadata": {
+    "phase_id": "phase_18_outfit_selection_and_costumes",
+    "title": "Selectable Outfits and More Costumes",
+    "status": "completed",
+    "archived_at": "2026-10-18T18:16:35Z",
+    "superseded_by": "../../../progress.json"
+  },
+  "source_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
+    "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",
+    "pushed": true,
+    "deployed": false,
+    "released": false,
+    "commit_policy": "normal staged-tree gate; skip CI prevents an unrequested shared deployment"
+  }
+}

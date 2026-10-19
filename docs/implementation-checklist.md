@@ -4,11 +4,18 @@
 
 ## Active and planned phases
 
-- [Phase18 — Selectable Outfits and More Costumes](checklists/phase-18-outfit-selection-and-costumes.md)
-  — fix actual mouse selection/equipment and add four free starter silhouettes.
+No active implementation phase; awaiting the owner's next scope.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases
+
+- [Phase18 — Outfits, Starter Costumes and Original Music](old-docs/phase-18-outfit-selection-and-costumes/checklist.md)
+  — real pointer/equip fix, four free starters and two original menu/game loops;
+  60 suites/7 matrices/managed20/42 Python, settings restart, X11 pointer24,
+  graphical music22 and inspected720p/1080p renders passed.
+  [Source](https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2)
+  pushed; no new release/deployment. [Evidence](old-docs/phase-18-outfit-selection-and-costumes/progress.json).
+  Native/human/GPU/audio/separate-network acceptance remains unverified.
 
 - [Phase17 — Continuous Weather and Roof-Correct Shelter](old-docs/phase-17-continuous-weather/checklist.md)
   — continuous roof-correct weather, recovery, traction and rotating awning/bridge;

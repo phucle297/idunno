@@ -1,5 +1,15 @@
 # Báo lỗi khi gặp thực tế
 
+**Source Phase18 đã push, chưa release/deploy:**
+[Source](https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2)
+sửa click/Equip Outfit offline, thêm Chef/Firefighter/Sailor/Pilot miễn phí và hai
+loop nhạc menu/gameplay, âm lượng Music riêng. 60 suite/7 matrix/managed20/42 Python,
+settings restart, chuột X11 thật24 và nhạc rendered22 pass; ảnh720p/1080p đã inspect.
+[Evidence](docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json).
+Đây là xác minh source trong orb Linux, không phải bản tải/public mới hay xác nhận
+Windows/GPU/loa thật. Giữ waiver và mọi giới hạn cũ, không thêm checklist bắt buộc.
+Bản public vẫn là Phase17 bên dưới; không suy persistence local thành public.
+
 **Bản public hiện tại — Phase17 Continuous Weather và Town Mechanisms (2026-10-18):**
 [Source](https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39139115103),

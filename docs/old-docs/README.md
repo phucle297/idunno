@@ -8,6 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 18 — Outfits, Starter Costumes and Original Music (source only) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) |
 | 17 — Continuous Weather and Roof-Correct Shelter (deployed/released) | [Checklist](phase-17-continuous-weather/checklist.md) | [Decisions](phase-17-continuous-weather/decisions.md) | [Progress](phase-17-continuous-weather/progress.json) |
 | 16 — Animated Rooftop Home and Toy Town Fixes (deployed/released) | [Checklist](phase-16-animated-rooftop-home/checklist.md) | [Decisions](phase-16-animated-rooftop-home/decisions.md) | [Progress](phase-16-animated-rooftop-home/progress.json) |
 | 15 — Home and Map Selection (deployed/released) | [Checklist](phase-15-home-and-map-selection/checklist.md) | [Decisions](phase-15-home-and-map-selection/decisions.md) | [Progress](phase-15-home-and-map-selection/progress.json) |
@@ -31,6 +32,12 @@ new follow-up evidence belongs in a separately named archive.
 | 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 | 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
+
+Phase18 decisions are preserved byte-for-byte. Their historical `checklists/`
+and `old-docs/` links refer to the then-active `docs` directory; use the phase
+table above for archived equivalents. The adjacent progress archive records the
+resolved first-gate fixture failures and final source-only delivery; none of its
+local tests establish a new public build or physical-device acceptance.
 
 Phase17 decisions are preserved byte-for-byte. Their historical
 `checklists/phase-17-continuous-weather.md` link referred to the then-active docs
