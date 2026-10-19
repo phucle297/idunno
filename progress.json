@@ -133,6 +133,36 @@
       "scope": "diagnostic_plan_integrity",
       "status": "passed",
       "result": "jq empty progress.json; PLAN_EVIDENCE_OK rows=57 windows=21 local_links=true active_state=true. First staged check/commit rejected generated CSV default CRLF as whitespace; regenerated same data with LF, git diff --cached --check and tools/test_changed.py passed PRE_COMMIT_OK affected tests=0 staged_files=7 (docs/data only, not gameplay regression). Runtime/assets/project diff741ae34..HEAD empty. Inspected plan/diff, kept M19.1 open and Phase20 planned. Temporary fixture source archived with successful logs for reproduction, removed from checkout; no permanent runtime/test/asset changes or release/deploy."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "reusable_profiler_initial_validation",
+      "status": "passed",
+      "result": "Added local-only tools/profile_multiplayer.py and external SceneTree driver (not exported/no new RPCs). Godot check-only passed; Python preflight caught/fixed extra parenthesis before execution. Source headless actual2-client/authority run passed3 repeats120 warmup/600 samples,5400 chronological records; observed physics59.90–60.15Hz. Two durable CLI/summary contract tests passed twice, including real roster/Ready/Start, sequence progress and repeat isolation. Not graphical FPS evidence."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "official_release_template_probe",
+      "status": "failed",
+      "result": "Official release binary741ae34 rejects --main-pack because path overrides are disabled; direct --script probe with --quit runs normal main rather than external driver. Verified Godot upstream main.cpp compile guard clears script in release templates. Runner now checks --help capability and rejects unsupported binary before launching peers; use editor engine+exact exported PCK, explicitly not standalone-template performance. No release binary/PCK modification or custom engine build."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "exact_pack_profiler_validation",
+      "status": "passed",
+      "result": "Editor engine4.7.2 with exact741ae34 CI PCK passed headless3x600 samples and graphical2-client no3D/cap60 control3x600, both120-frame warmup. Each emitted5400 records with build identity/PCK hash. No3D actual1280x720 clients cap60; authority cap0; observed physics59.83–60.10Hz. Headless actual root64x64 is recorded, not a720p render claim. No3D run is instrumentation/cadence validation, not an isolated rendering benchmark (contract tests overlapped part of that run). Logs rejected SCRIPT ERROR/ERROR, all peers exited successfully."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "profiler_render_controls_and_import_hygiene",
+      "status": "passed",
+      "result": "Exact-PCK actual2-renderer smoke passed3 warmup/12 intervals,1 repeat (not tail statistics); solo Harbor48 samples/2 repeats passed. Unsupported-release fail-fast passed RELEASE_TEMPLATE_REJECTED_OK before creating result directory. Final import/check-only/Python compile and two CLI/summary tests passed; integration now asserts client cap60 vs authority cap0. Editor import exposed evidence CSV being treated as localization and generating17 untracked sidecars; added docs/.gdignore, removed only generated sidecars, re-import passed DOCS_IMPORT_IGNORED_OK without recreating them. No game assets/runtime changed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "final_tracer_gate_and_serial_control",
+      "status": "passed",
+      "result": "Final current-driver exact-PCK no3D/cap60 serial rerun passed9 traces/5400 records,120 warmup/600 samples/3 repeats, physics59.910–60.102Hz, client caps60/authority0. Headless shadows-off control verified sun_shadows=false and emitted12 records. tools/test_changed.py passed normal staged affected gate (one suite/two real-client+summary tests), not full gameplay regression. TRACER_PLAN_INTEGRITY_OK links=true active_milestone=M19.1 csv_sidecars=0; game/scenes/assets/project/export settings diff empty. Raw trace/log review bundle .amp/in/artifacts/phase19-tracer-validation.tar.gz. No performance fix, native/GPU/thermal pass, release or deployment claimed."
     }
   ],
   "changed_files": [
@@ -141,8 +171,13 @@
     "docs/checklists/phase-20-toybox-sabotage.md",
     "docs/decisions.md",
     "docs/implementation-checklist.md",
+    "docs/.gdignore",
     "NEED_REAL_CHECK.md",
-    "progress.json"
+    "progress.json",
+    "tools/profile_multiplayer.py",
+    "tools/profile_multiplayer_peer.gd",
+    "tools/profile_multiplayer_peer.gd.uid",
+    "tests/test_multiplayer_profile.py"
   ],
   "blockers": [],
   "limits": [
@@ -152,9 +187,10 @@
     "Public profile storage remains disabled; isolated local persistence checks do not imply public persistence.",
     "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
     "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim.",
-    "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open."
+    "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open.",
+    "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
   ],
-  "next_action": "Extend the existing real-client profiler into a reproducible standalone/PCK frame-trace runner with matched camera,120-frame warmup/600 samples and network cadence instrumentation before the first selective-shadow optimization trial.",
+  "next_action": "Extend the reusable tracer with a controlled moving-client scenario and observed reconciliation/snapshot timing to separate render stalls from network judder before closing M19.1 and selecting the first selective-shadow optimization trial.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",

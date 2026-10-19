@@ -1,5 +1,20 @@
 # Active phase decisions
 
+## 2026-10-19 — Reusable frame traces without production hooks
+
+Add local-only source/exact-PCK profiler and a real two-client repeated-run CLI
+contract. Sample chronological frame/physics/sequence data with120 warmup/600
+interval defaults. Apply FPS/shadow ablations only to clients; never accidentally
+throttle dedicated authority in the same experiment. Preserve the dry stationary
+scope and distinguish observed sequence progress from packet loss/RPC counts.
+
+Official release templates disable path/script overrides: verified rejection of
+`--main-pack` and ignored `--script`, then checked upstream compile guards. Fail
+fast rather than pretend normal main is instrumented. Editor+byte-exact deployed
+PCK is supported/labeled; unchanged standalone-template throughput remains open.
+No custom engine build, PCK modification, production diagnostic RPC or deployment.
+See [usage and limits](checklists/phase-19-multiplayer-frame-budget.md#reusable-tracer-follow-up--2026-10-19).
+
 ## 2026-10-19 — Dry two-client diagnostic and optimization priorities
 
 Owner authorized autonomous debugging and continued planning. Executed7 scenarios

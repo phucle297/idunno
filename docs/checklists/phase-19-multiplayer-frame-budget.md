@@ -113,10 +113,79 @@ same-desktop focus/minimize,1080p/Harbor/hazard/movement cases, remote authority
 network bytes/apply profiling and15-minute trends are not executed by this run.
 No native smooth-solo/slow-multiplayer reproduction or final performance fix claimed.
 
+## Reusable tracer follow-up — 2026-10-19
+
+`tools/profile_multiplayer.py` now launches solo or two real direct-IP ENet clients
+and playerless dedicated authority, using the same production movement/session RPCs.
+This is a local render/simulation control, NOT the earlier HTTP room allocator,
+profile persistence, public admission, or separate-network test. No new gameplay
+RPCs or exported profiler entry point. The external SceneTree is excluded by the
+existing tools export filter; Python orchestrates only local subprocesses/files.
+
+Defaults:120 rendered/process warmup frames,600 chronological intervals,3 repeats,
+720p requested window, fixed review camera, dry stationary match. Renderer count0/1/2
+selects headless/one/two graphical clients; solo accepts0/1. Headless root actually
+reports64×64, recorded per trace: never count it as a720p rendered benchmark.
+Controls: Toy Town/Harbor, dimensions, explicit client FPS cap, requested V-Sync mode,
+shadows-off/no-3D ablation. Pacing/quality changes never apply to dedicated authority.
+Do not interpret no-3D as gameplay quality or proof of GPU throughput.
+
+Outputs: fresh-directory metadata, PCK SHA256/build identity, per-process per-repeat
+raw JSON, summaries, logs. Samples retain frame/process/physics time, physics callback
+count, draw/primitive counts, nodes/static allocator bytes, state/roster, observed
+match/input/ack sequences, RTT and focus. Process timestamps are relative to each
+process, NOT synchronized clocks; windows start independently after warmup. Sequence
+deltas are observed progress, not RPC counts, packet loss or correction magnitude.
+Profiler allocations/polling also cost work. No snapshot-byte/apply-cost, GPU power,
+temperature, physical refresh-rate or sustained-throttle measurement is claimed.
+
+Usage (installed pinned editor engine; no remote server touched):
+
+```sh
+# Full two-renderer dry trace on a native desktop; vary one setting per fresh run.
+python3 tools/profile_multiplayer.py --engine godot --output .scratch/profile-two
+# Solo / one-render-two-player controls use the same camera and defaults.
+python3 tools/profile_multiplayer.py --engine godot --scenario solo --renderers 1 --output .scratch/profile-solo
+python3 tools/profile_multiplayer.py --engine godot --renderers 1 --output .scratch/profile-one
+# Exact exported PCK with editor engine, NOT the release binary's performance.
+python3 tools/profile_multiplayer.py --engine godot --pack /absolute/release/DisasterParty.pck --output .scratch/profile-pack
+```
+
+Orb: add `--xvfb` for independent virtual displays and use the same
+`LP_NUM_THREADS=2` policy across matched controls. This does not validate same-desktop
+focus/minimize. Short `--warmup 3 --samples 12 --repeats 1` runs validate plumbing
+only; use full samples for actual tail statistics. Every stage has a bounded deadline,
+errors/stale samples/changed match roster fail, and child processes are cleaned up.
+
+Executed: source and exact741ae34 PCK headless3×600 per process (5400 records per
+run); exact-PCK two-graphical no-3D cap60 control3×600, authority cap0; short actual
+two-renderer PCK trace; solo Harbor smoke; two durable CLI/summary tests. Full source
+headless observed physics59.90–60.15Hz. First no-3D cap test overlapped contract
+tests; final serialized rerun with current driver retained5400 records and
+physics59.910–60.102Hz, clients cap60/authority cap0. This is cadence/instrumentation
+validation, not normal3D render performance. Actual3D trace uses only12 samples/peer and
+confirms the driver sees the same severe llvmpipe stalls, not a native FPS verdict.
+
+Editor import also exposed profiling CSV being treated as localization, generating
+17 untracked sidecars. `docs/.gdignore` now excludes documentation from Godot's
+asset scanner; only generated sidecars were removed, re-import created none.
+
+**Standalone limitation verified, not worked around:** official4.7.2 release
+templates reject `--main-pack` and silently ignore external `--script`. The runner
+checks capability before peer launch and refuses such binaries instead of timing
+normal main as if it were instrumented. Godot's compile guard clears `script` without
+`OVERRIDE_PATH_ENABLED` ([upstream code](https://github.com/godotengine/godot/blob/4.7/main/main.cpp#L4322-L4333)).
+Editor+exact PCK is supported and labeled explicitly. True release-template profiling
+still needs a separately scoped in-build diagnostic entry or external measurement;
+do not modify the release PCK/custom-build the engine and call it unchanged evidence.
+M19.1 remains open for the unmeasured controls above and hardware acceptance.
+
 ## M19.1 — Reproduce and attribute the cost
 
 - [x] Complete bounded orb real-process dry diagnostic and single-change ablations;
   retain failed attempts, raw numbers and explicit hardware/sample limitations above.
+- [x] Add reusable source/exact-PCK editor-engine tracer, chronological samples,
+  independent client cap/authority cadence and real-client repeated-run contract.
 - [ ] Extend the existing profiler/real-client driver to produce per-process JSON
   results and timestamped frame traces for actual standalone/PCK clients. Record
   CPU/GPU/driver, OS, release/editor, map/seed, resolution/render scale, monitor Hz,

@@ -11,6 +11,9 @@ and new delivery have not started:
   validate hardware/focus behavior and freeze headroom before adding combat effects.
   M19.1 in progress:7×3 real-process orb dry diagnostics and shadow/UI/3D/cap ablations
   executed; rendering first, no native GPU/thermal verdict or final fix claimed.
+  Reusable source/exact-PCK editor-engine tracer now records120/600 chronological
+  samples and client/authority cadence; official release-template probing is unsupported
+  and rejected explicitly. Motion/hazard/network-cost/hardware controls remain open.
 - [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
   — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
   depends on Phase19, server-authoritative and bounded against chain-lock/spam.
