@@ -8,7 +8,7 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
-| 18 — Outfits, Starter Costumes and Original Music (source only) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) |
+| 18 — Outfits, Starter Costumes and Original Music (source checkpoint; later deployed/released) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) · [Delivery follow-up](../../progress.json) |
 | 17 — Continuous Weather and Roof-Correct Shelter (deployed/released) | [Checklist](phase-17-continuous-weather/checklist.md) | [Decisions](phase-17-continuous-weather/decisions.md) | [Progress](phase-17-continuous-weather/progress.json) |
 | 16 — Animated Rooftop Home and Toy Town Fixes (deployed/released) | [Checklist](phase-16-animated-rooftop-home/checklist.md) | [Decisions](phase-16-animated-rooftop-home/decisions.md) | [Progress](phase-16-animated-rooftop-home/progress.json) |
 | 15 — Home and Map Selection (deployed/released) | [Checklist](phase-15-home-and-map-selection/checklist.md) | [Decisions](phase-15-home-and-map-selection/decisions.md) | [Progress](phase-15-home-and-map-selection/progress.json) |
@@ -38,6 +38,9 @@ and `old-docs/` links refer to the then-active `docs` directory; use the phase
 table above for archived equivalents. The adjacent progress archive records the
 resolved first-gate fixture failures and final source-only delivery; none of its
 local tests establish a new public build or physical-device acceptance.
+Subsequent owner-authorized741ae34 deployment, matching prerelease and exact-PCK/
+public-session/asset-download evidence live in root progress; archive payloads
+remain unchanged rather than rewriting the earlier checkpoint.
 
 Phase17 decisions are preserved byte-for-byte. Their historical
 `checklists/phase-17-continuous-weather.md` link referred to the then-active docs

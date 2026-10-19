@@ -14,7 +14,11 @@ Prior B/C UI/director proposals and packet-loss investigation remain deferred.
   60 suites/7 matrices/managed20/42 Python, settings restart, X11 pointer24,
   graphical music22 and inspected720p/1080p renders passed.
   [Source](https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2)
-  pushed; no new release/deployment. [Evidence](old-docs/phase-18-outfit-selection-and-costumes/progress.json).
+  pushed; [source checkpoint](old-docs/phase-18-outfit-selection-and-costumes/progress.json).
+  Follow-up741ae34 deployed/published as matching
+  [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34):
+  exact-PCK render/music, public two-client equipment/movement, standalone server and
+  asset re-download byte checks passed. [Delivery evidence](../progress.json).
   Native/human/GPU/audio/separate-network acceptance remains unverified.
 
 - [Phase17 — Continuous Weather and Roof-Correct Shelter](old-docs/phase-17-continuous-weather/checklist.md)

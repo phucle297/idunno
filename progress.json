@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-18",
+  "updated_at": "2026-10-19",
   "project": "Disaster Party",
   "source_of_truth": true,
   "workflow_state": "awaiting_next_scope",
@@ -52,20 +52,21 @@
     "archive": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
     "source_revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "pushed": true,
-    "deployed": false,
-    "released": false
+    "deployed": true,
+    "released": true,
+    "delivery_revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341"
   },
   "public_delivery": {
-    "revision_url": "https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849",
-    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39139115103",
+    "revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39184818543",
     "endpoint": "https://server.permees.com",
-    "evidence": "docs/old-docs/phase-17-continuous-weather/progress.json",
+    "evidence": "progress.json#delivery_followup",
     "pushed": true,
     "deployed": true,
     "released": true,
-    "windows_sha256": "c186d9b90f1d1435d3f8a079e08b08025815b835fbe40bc14671847ef7f9dec1",
-    "linux_sha256": "2df48e06eff940f1fb4b77a53b4ab5bbcfe32f81684cf9a6e1f095133dc964be"
+    "windows_sha256": "1b6b8c5904f29392dddfe8e3879e69335ba399532b53baa017cb112d0973363d",
+    "linux_sha256": "d7fe18b8cf0d766863ccfe12031eb1f1b1e6110dc09e59cb162095e194314bea"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -82,13 +83,49 @@
     "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
     "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim."
   ],
-  "next_action": "Await the owner’s next scope or explicit request to release and deploy matching Phase18 builds.",
+  "next_action": "Await the owner’s next scope; report any playtest issues against public build741ae34.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",
     "pushed": true,
-    "deployed": false,
-    "released": false,
-    "commit_policy": "normal staged-tree gate; skip CI prevents an unrequested shared deployment"
+    "deployed": true,
+    "released": true,
+    "commit_policy": "Original source passed normal staged gate; later owner-authorized workflow_dispatch deployed741ae34 with identical runtime/assets. Tracking commits use skip-CI.",
+    "delivery_revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341"
+  },
+  "delivery_followup": {
+    "status": "completed",
+    "revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39184818543",
+    "authorization": "Owner explicitly requested release and deploy on2026-10-19",
+    "validation": [
+      {
+        "scope": "windows_export_and_ci_artifact",
+        "status": "passed",
+        "result": "Pinned Godot4.7.2 Windows export verified146 entries; Linux CI artifact downloaded, extracted and hashes verified. Package source741ae34; use exact CI PCK in Windows for matching deployment."
+      },
+      {
+        "scope": "deployment_and_package_identity",
+        "status": "passed",
+        "result": "Workflow39184818543 succeeded for741ae3420da5b4c98c6d24b19344ffd5fbe6c341. CI Linux tar is published unchanged; local Windows export PCK differed, replaced with exact deployed CI PCK and regenerated checksums. ZIP extracted/reverified146 entries, both music imports, no development paths. Runtime/assets/tools diff1243259..741ae34 empty."
+      },
+      {
+        "scope": "public_and_standalone_sessions",
+        "status": "passed",
+        "result": "Public HTTPS/ENet two real Linux editor-engine clients loaded exact deployed PCK: version rejection409, admission, Chef/Pilot equipment replicated to both peers, Ready/Start and mutual authoritative movement >0.5m passed. Explicit disconnect cleanup; same orb/upstream, not separate networks. Standalone exported Linux without editor passed allocator crash/retry/shutdown/port reclamation and durable-store restart/reward replay/equipment/isolation (synthetic completion). Logs .scratch/phase18-public-r2.log,phase18-standalone-result.log. First disposable public fixture incorrectly expected enum2 (RESULTS) rather than actual ACTIVE1; corrected only fixture, no product change, rerun passed. Unsupported /health GET404 was not a deployment-health verdict; actual API and sessions passed."
+      },
+      {
+        "scope": "exact_deployed_pack_render_and_music",
+        "status": "passed",
+        "result": "Graphical actual CI PCK: COSMETIC_COLLECTION_OK52 and MUSIC_OK22; inspected final Chef/Pilot720p release captures with clear faces/full hats/connected scarf, grid and controls fit. First capture invocation omitted output subdirectory and failed saves; created directory and reran same fixture successfully. No runtime/PCK changes. Physical Windows/GPU/audio/human acceptance remains unverified."
+      },
+      {
+        "scope": "published_assets_redownload",
+        "status": "passed",
+        "result": "Published prerelease playtest-2026-10-19-741ae34; tag resolves exact741ae3420da5b4c98c6d24b19344ffd5fbe6c341. Both GitHub assets downloaded again and byte-identical to originals; Windows SHA2561b6b8c5904f29392dddfe8e3879e69335ba399532b53baa017cb112d0973363d, Linux d7fe18b8cf0d766863ccfe12031eb1f1b1e6110dc09e59cb162095e194314bea. No capacity/infrastructure/profile-store changes. Archived Phase18 source-only checkpoint remains immutable; this follow-up supersedes its delivery status."
+      }
+    ],
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
+    "ci_subscription": "cdd6cdc3-6965-4d45-b876-b669906ec9e2"
   }
 }

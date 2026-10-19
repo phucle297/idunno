@@ -1,16 +1,27 @@
 # Báo lỗi khi gặp thực tế
 
-**Source Phase18 đã push, chưa release/deploy:**
-[Source](https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2)
-sửa click/Equip Outfit offline, thêm Chef/Firefighter/Sailor/Pilot miễn phí và hai
+**Bản public hiện tại — Phase18 Outfits và Original Music (2026-10-19):**
+[Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
+[deploy thành công](https://github.com/phucle297/idunno/actions/runs/39184818543),
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34).
+Tải `DisasterParty-Windows-Internet-741ae34.zip`, giải nén hết rồi chạy EXE cạnh PCK;
+mọi người cập nhật cùng bản khi vào https://server.permees.com.
+Sửa click/Equip Outfit offline, thêm Chef/Firefighter/Sailor/Pilot miễn phí và hai
 loop nhạc menu/gameplay, âm lượng Music riêng. 60 suite/7 matrix/managed20/42 Python,
-settings restart, chuột X11 thật24 và nhạc rendered22 pass; ảnh720p/1080p đã inspect.
-[Evidence](docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json).
-Đây là xác minh source trong orb Linux, không phải bản tải/public mới hay xác nhận
-Windows/GPU/loa thật. Giữ waiver và mọi giới hạn cũ, không thêm checklist bắt buộc.
-Bản public vẫn là Phase17 bên dưới; không suy persistence local thành public.
+settings restart và chuột X11 thật24 pass. Exact deployed-PCK Collection52/Music22,
+ảnh Chef/Pilot720p, standalone Linux và public2 client Ready/Start/trang phục/
+di chuyển đồng bộ pass. Windows chứa PCK đúng byte CI đã deploy; cả hai asset đã
+tải lại đối chiếu byte/hash, tag trỏ đúng source. [Delivery evidence](progress.json)
+và [source checkpoint](docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json).
+Archive ghi source-only tại thời điểm đóng phase; delivery mới ở root supersede.
+Windows/GPU/loa thật, cảm nhận điều khiển và hai mạng riêng chưa xác minh; public
+profile storage vẫn tắt. Giữ waiver và mọi giới hạn cũ, không thêm checklist bắt buộc.
+Nếu gặp lỗi, báo build/trang phục/màn hình, thao tác và số người/mạng; với nhạc ghi
+lúc menu/vào trận/cảnh báo và giá trị Music Volume. Ảnh/log nếu thuận tiện.
 
-**Bản public hiện tại — Phase17 Continuous Weather và Town Mechanisms (2026-10-18):**
+Các bản dưới đây là lịch sử, không phải public hiện tại.
+
+**Bản public trước — Phase17 Continuous Weather và Town Mechanisms (2026-10-18):**
 [Source](https://github.com/phucle297/idunno/commit/4d23849908f6486aa6133a1d641a3d783d25f8b9),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39139115103),
 [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-18-4d23849).
