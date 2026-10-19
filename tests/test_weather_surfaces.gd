@@ -146,6 +146,8 @@ func _run() -> void:
 		weather.cleanup()
 		_expect(weather.sample_surface(rooftop) == Vector2.ZERO and client.apply_presentation_snapshot(weather.create_presentation_snapshot()) and client.sample_surface(rooftop) == Vector2.ZERO, "Reset clears authority and late-join state")
 	peer.close()
+	if DisplayServer.get_name() != "headless":
+		await _check_overlay_lifecycle()
 	world.free()
 	if failures.is_empty():
 		print("WEATHER_SURFACES_OK checks=%d resets=5" % checks)
@@ -154,6 +156,47 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _check_overlay_lifecycle() -> void:
+	var world := Node3D.new()
+	world.position = Vector3(30, 0, 30)
+	root.add_child(world)
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	world.add_child(mesh)
+	var weather := WeatherScript.new()
+	world.add_child(weather)
+	_expect(weather.configure_world(world, 40.0, PackedVector3Array()), "Overlay fixture configures")
+	await process_frame
+	_expect(mesh.material_overlay == null, "A fully dry world does not submit a transparent weather pass")
+	weather.tick(4.0, true, false, -INF)
+	await process_frame
+	await process_frame
+	_expect(mesh.material_overlay != null, "Rain restores the weather overlay")
+	weather.preserve_cover_region(Vector3(30, 0, 30), 0)
+	_body(world, Vector3(0, 4.5, 0), Vector3(4, 1, 4))
+	await physics_frame
+	weather.tick(60.0, false, false, -INF)
+	await process_frame
+	await process_frame
+	_expect(weather.sample_surface(Vector3(30, 0, 30)).y > 0.0 and mesh.material_overlay != null, "Covered residual stays visible after outdoor ground dries")
+	weather.cleanup()
+	_expect(mesh.material_overlay == null, "Rematch removes the old weather pass immediately")
+	weather.tick(20.0, false, true, -INF)
+	await process_frame
+	await process_frame
+	_expect(mesh.material_overlay != null, "Snow re-enables registered geometry after cleanup")
+	var late_mesh := MeshInstance3D.new()
+	late_mesh.mesh = BoxMesh.new()
+	world.add_child(late_mesh)
+	_expect(weather.register_surface_mesh(late_mesh) and late_mesh.material_overlay != null, "New terrain joins an already active weather overlay")
+	late_mesh.free()
+	weather.tick(100.0, false, false, -INF)
+	await process_frame
+	await process_frame
+	_expect(mesh.material_overlay == null, "Full melt/dry removes passes and tolerates departed terrain")
+	world.free()
 
 
 func _expect(condition: bool, message: String) -> void:

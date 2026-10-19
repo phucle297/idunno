@@ -294,7 +294,67 @@ contracts pass (4 tests total). It remains an editor-engine diagnostic.
 
 Previous candidate's normal staged gate passed60 suites,7 network matrices,
 managed20 clients/five rematches and46 Python tests, then committed/pushed.
-The current follow-up still needs its own normal staged gate before commit.
+Guard/roster follow-up also passed the same broad gate (46 Python tests) and
+was committed/pushed as `b021446`; neither unit was deployed or released.
+
+### Network CPU hooks and stable Rain/Snow controls
+
+Private profiler Main subclass calls production methods unchanged and times
+snapshot assembly, match/movement apply and whole Main physics callbacks. Raw
+per-interval counts/times are summed into summaries; movement receipt age uses
+the same process clock. It is not pending reconciliation age/correction distance,
+end-to-end latency or packet loss. Variant-encoding the decoded match Dictionary
+measures payload representation size, NOT on-wire bandwidth; this extra encoding
+is outside the apply timer but remains profiler CPU/frame cost. Older uninstrumented
+timing traces are not interchangeable with these new traces.
+
+`--weather dry|rain|snow` defaults dry. The external fixture starts normal
+precipitation, holds its lifetime, saturates the starting field and requires
+replicated agreement plus unchanged precipitation/district state for every sample.
+No production RPC, scheduler, warning or match-duration behavior changes.
+
+Executed4-client moving Rain:120 warmup/600 samples×3,15 traces/9000 records,
+headless source, client cap60/authority0; physics59.915–60.147Hz. Per-receipt mean
+match apply3.078–3.208ms, movement apply30.76–34.93µs, authority build146–161µs;
+mean decoded match representation2040–2140 bytes/receipt. This identifies CPU cost
+without pretending a render/thermal verdict. Exact public-PCK/editor-engine
+Snowfall90-sample smoke passed. Four contracts cover default dry repeats,
+four actual moving Snowfall clients and raw-to-summary counters.
+
+### Eliminate alpha-zero dry weather passes
+
+Confirmed a second rendering hotspot: every world mesh retained its weather
+material overlay even when the shader's output alpha was zero. Removing only
+fully dry overlays in an independent scratch ablation reduced work and time
+beyond these runs' variation. Same source/instrumentation,2 actual renderers,
+720p/llvmpipe/LP_NUM_THREADS2, serial12 warmup/60 intervals×3 per configuration:
+
+| Metric | Existing dry overlay | Scratch ablation | State-aware production candidate |
+| --- | ---: | ---: | ---: |
+| Median draws/window | 5998–6004 | 4089–4104 | 4089–4098 |
+| Median six-window p50 | 1024.320ms | 650.993ms | 659.972ms |
+| Median six-window p95 | 1104.888ms | 719.916ms | 732.521ms |
+| Individual-window p50 range | 1017–1032ms | 630–662ms | 641–667ms |
+
+About32% fewer draws and36% lower median frame interval relative to the already
+shadow-optimized dry control, on this software renderer only. No native GPU60FPS,
+temperature or owner-bug-resolution claim. All windows retain the intact map.
+
+The candidate weakly tracks registered meshes, switches only at dry/wet boundaries,
+keeps overlays through snow/melt/flood/covered residual moisture, enrolls newly
+created terrain, clears on rematch and does not retain freed map geometry. Geometry,
+colliders, gameplay weather state, shader, particle count and warnings are unchanged.
+Existing graphical weather lifecycle test fails3 dry/reset assertions on the prior
+source and passes49 checks now; headless weather41 and4 profiler contracts pass.
+Town/Harbor geometry/collision hashes remain unchanged.
+
+Actual dry/rain/snow/melt/recovered renders inspected: overlay counts
+0/4709/4709/4709/0, versus4709 in every baseline state. The upper1280×470 static
+architecture/weather region is pixel-identical before/after in all five states;
+full-image differences are confined to the naturally animated avatar. Existing
+bright snow and subtle wet sheen are retained, not redesigned by this optimization.
+Final captures: `.amp/in/artifacts/phase19-weather-overlay/`. Current candidate
+needs its own normal staged gate before commit; source remains unreleased.
 
 ## M19.1 — Reproduce and attribute the cost
 

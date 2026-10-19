@@ -33,6 +33,8 @@ var _puddle_moisture := PackedFloat32Array()
 var _electric := PackedVector2Array() # warning seconds, active seconds per puddle
 var _presentation_enabled := false
 var _material: ShaderMaterial
+var _surface_meshes: Dictionary = {} # Instance ID -> WeakRef; map switches do not retain geometry.
+var _overlays_enabled := false
 var _height_image: Image
 var _height_texture: ImageTexture
 var _residual_image: Image
@@ -56,6 +58,8 @@ func configure_world(world: Node3D, extent: float, puddles: PackedVector3Array) 
 	for point in puddles:
 		if not point.is_finite():
 			return false
+	_set_surface_overlays(false)
+	_surface_meshes.clear()
 	_world = world
 	_extent = extent
 	_puddle_spots = puddles.duplicate()
@@ -104,8 +108,24 @@ func register_surface_mesh(mesh: MeshInstance3D) -> bool:
 	if not is_instance_valid(mesh) or mesh.mesh == null or mesh.get_parent() is RigidBody3D:
 		return false
 	if _presentation_enabled and _material != null:
-		mesh.material_overlay = _material
+		_surface_meshes[mesh.get_instance_id()] = weakref(mesh)
+		mesh.material_overlay = _material if _overlays_enabled else null
 	return true
+
+
+func _set_surface_overlays(enabled: bool) -> void:
+	if enabled == _overlays_enabled:
+		return
+	_overlays_enabled = enabled
+	for instance_id: int in _surface_meshes.keys():
+		var reference: WeakRef = _surface_meshes[instance_id]
+		var mesh := reference.get_ref() as MeshInstance3D
+		if mesh == null:
+			_surface_meshes.erase(instance_id)
+		elif enabled:
+			mesh.material_overlay = _material
+		elif mesh.material_overlay == _material:
+			mesh.material_overlay = null
 
 
 func invalidate_cover() -> void:
@@ -316,6 +336,7 @@ func cleanup() -> void:
 		visual.free()
 	_footprints.clear()
 	_footprint_ages.clear()
+	_set_surface_overlays(false)
 
 
 func create_presentation_snapshot() -> Dictionary:
@@ -427,6 +448,9 @@ func _process(delta: float) -> void:
 			if pixel.x >= 0 and pixel.y >= 0 and pixel.x < _residual_image.get_width() and pixel.y < _residual_image.get_height():
 				_residual_image.set_pixelv(pixel, Color(entry.snow, entry.wetness, entry.y, 1))
 		_residual_texture.update(_residual_image)
+		# An alpha-zero overlay still submits another draw for every world mesh.
+		# Keep it through melt/flood/covered residuals; remove only fully dry passes.
+		_set_surface_overlays(_surface != Vector2.ZERO or _flood_residual_wetness > 0.0 or not _residuals.is_empty())
 	for index in _puddle_visuals.size():
 		var spot := _puddle_spots[index]
 		var surface := sample_surface(spot)

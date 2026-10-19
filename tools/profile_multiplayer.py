@@ -25,7 +25,7 @@ def summarize(trace):
     def percentile(fraction):
         return frames[max(0, math.ceil(len(frames) * fraction) - 1)]
     duration = sum(frames) / 1000
-    return {"frames": len(frames), "duration_s": duration,
+    summary = {"frames": len(frames), "duration_s": duration,
             "p50_ms": percentile(.50), "p95_ms": percentile(.95), "p99_ms": percentile(.99),
             "hitches_over_33ms": sum(value > 1000 / 30 for value in frames),
             "hitches_over_50ms": sum(value > 50 for value in frames),
@@ -34,6 +34,16 @@ def summarize(trace):
             # Sequence deltas are observed progress, NOT packet loss or RPC counts.
             "observed_match_sequence_delta": samples[-1]["match_sequence"] - samples[0]["match_sequence"],
             "observed_ack_sequence_delta": samples[-1]["ack_sequence"] - samples[0]["ack_sequence"]}
+    if any("instrumented_interval" in row for row in samples):
+        intervals = [row.get("instrumented_interval", {}) for row in samples]
+        totals = {key: sum(row.get(key, 0) for row in intervals) for key in (
+            "snapshot_builds", "snapshot_build_usec", "match_receipts", "match_accepted",
+            "match_apply_usec", "match_variant_bytes", "movement_receipts",
+            "movement_apply_usec", "main_physics_calls", "main_physics_usec")}
+        ages = sorted(row["movement_receipt_age_ms"] for row in intervals if row.get("movement_receipt_age_ms", -1) >= 0)
+        totals["movement_receipt_age_p95_ms"] = ages[max(0, math.ceil(len(ages) * .95) - 1)] if ages else None
+        summary["instrumented_totals"] = totals
+    return summary
 
 
 def authoritative_movement_summary(server_trace, moving_peer_id):
@@ -61,6 +71,7 @@ def parser():
     result.add_argument("--clients", type=int, choices=(2, 4, 8, 20), default=2, help="Real network clients; solo always has one")
     result.add_argument("--renderers", type=int, choices=(0, 1, 2, 3, 4), default=2)
     result.add_argument("--map", choices=("toy_town", "toy_harbor"), default="toy_town")
+    result.add_argument("--weather", choices=("dry", "rain", "snow"), default="dry", help="Controlled persistent precipitation workload, not random director scheduling")
     result.add_argument("--width", type=int, default=1280)
     result.add_argument("--height", type=int, default=720)
     result.add_argument("--warmup", type=int, default=120)
@@ -111,7 +122,8 @@ def run(options):
                     actual_player_count=player_count,
                     admission_rendering="disabled until sampling", audio="Dummy", moving_players=options.moving_client,
                     movement_scenario="stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
-                    reconciliation_measurement="No profiler hook observes snapshot receipt/reconcile boundaries; pending snapshot age and correction distance are intentionally not inferred.",
+                    instrumentation="Private Main subclass observes build/apply/physics CPU and movement RPC receipt age. Variant-encoded decoded match payload size is NOT ENet/on-wire bandwidth. Additional encoding/timing cost remains in frame measurements.",
+                    reconciliation_measurement="Movement receipt age is same-process hook time, NOT pending reconciliation age, correction distance, latency or packet loss; those are not inferred.",
                     thermal_sensors="not collected", gpu_power="not collected",
                     sample_start="per-process warmup; not a synchronized barrier")
     if pack:
@@ -208,6 +220,9 @@ def run(options):
             command(labels[0], "solo")
         wait(lambda: all(read(label).get("state") == 1 for label in all_labels), "ACTIVE")
         command("server" if network else labels[0], "cleanup")
+        command("server" if network else labels[0], "weather", weather=options.weather)
+        expected_precipitation = {"dry": "", "rain": "Rain", "snow": "Snowfall"}[options.weather]
+        wait(lambda: all(read(label).get("precipitation") == expected_precipitation for label in all_labels), "weather agreement")
         summaries = []
         for repeat in range(options.repeats):
             for label in all_labels:
@@ -222,7 +237,9 @@ def run(options):
                 if any(row["state"] != 1 or row["players"] != len(labels) for row in trace["samples"]):
                     raise RuntimeError("Match/roster changed during trace")
                 if any(row["removed_district_mask"] != 0 or row["pending_district"] != -1 for row in trace["samples"]):
-                    raise RuntimeError("Dry world changed during trace; cannot compare rendering cost")
+                    raise RuntimeError("World districts changed during trace; cannot compare rendering cost")
+                if any(row["precipitation"] != expected_precipitation for row in trace["samples"]):
+                    raise RuntimeError("Precipitation workload changed during trace")
                 (output / f"{repeat}-{label}.json").write_text(json.dumps(trace))
                 summaries.append(dict(repeat=repeat, peer=label, **summarize(trace)))
             if options.moving_client:

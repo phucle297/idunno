@@ -1,5 +1,21 @@
 # Active phase decisions
 
+## 2026-10-19 — Do not draw a fully transparent dry-weather overlay
+
+Independent dry-only ablation measured redundant weather surface passes:5998–6004
+draws→4089–4104; six-window p50 median1024.320→650.993ms in matched software-render
+conditions. Keep the shader/shelter/gameplay field unchanged; detach the overlay
+only when global snow/wetness, flood and covered residuals are all dry. Weak
+mesh references survive world/volcano churn without retaining freed geometry.
+Production candidate reproduces the work reduction; graphical public lifecycle
+regression fails3 assertions before/passes49 after. Static weather/architecture
+pixels match in dry/rain/snow/melt/recovered captures. No native/thermal claim.
+
+Keep network-cost hooks in the excluded external profiler subclass, not production.
+Time build/apply/whole-physics boundaries and label decoded Variant representation
+size separately from actual network bytes. Stable Rain/Snow controls use normal
+replication with externally held duration, not random hazards expiring mid-window.
+
 ## 2026-10-19 — Preserve moving-prop grounding and skip unchanged roster writes
 
 Shared detail builders also construct moving crates: size-only shadow selection

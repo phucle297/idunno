@@ -79,13 +79,23 @@ class MultiplayerProfileContract(unittest.TestCase):
                         # 24 frames can finish before its next100ms send interval.
                         self.assertGreater(rows[-1]["match_sequence"], rows[0]["match_sequence"])
                         self.assertGreater(rows[-1]["ack_sequence"], rows[0]["ack_sequence"])
+                    summary = next(row for row in summaries if row["repeat"] == repeat and row["peer"] == peer)
+                    totals = summary["instrumented_totals"]
+                    for field in ("main_physics_calls", "match_receipts", "match_variant_bytes", "movement_receipts"):
+                        self.assertEqual(totals[field], sum(row["instrumented_interval"].get(field, 0) for row in rows))
+                    self.assertGreater(totals["main_physics_calls"], 0)
+                    if peer != "server":
+                        self.assertGreater(totals["match_accepted"], 0)
+                        self.assertGreater(totals["match_variant_bytes"], 0)
+                        self.assertGreater(totals["movement_receipts"], 0)
+                        self.assertGreaterEqual(totals["movement_receipt_age_p95_ms"], 0)
 
     def test_four_real_clients_moving_client_changes_authoritative_position(self):
         engine = self.engine
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "results"
             completed = subprocess.run([sys.executable, "tools/profile_multiplayer.py", "--engine", engine,
-                "--clients", "4", "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "90",
+                "--clients", "4", "--weather", "snow", "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "90",
                 "--repeats", "1", "--fps", "60", "--timeout", "30", "--moving-client"],
                 cwd=ROOT, capture_output=True, text=True, timeout=120)
             diagnostics = completed.stdout + completed.stderr
@@ -98,6 +108,7 @@ class MultiplayerProfileContract(unittest.TestCase):
             for peer in ["client-0", "client-1", "client-2", "client-3", "server"]:
                 trace = json.loads((output / f"0-{peer}.json").read_text())
                 self.assertTrue(all(row["state"] == 1 and row["players"] == 4 for row in trace["samples"]))
+                self.assertTrue(all(row["precipitation"] == "Snowfall" and row["weather_surface"][0] > .9 for row in trace["samples"]))
             movement = summaries[-1]["moving_client_authoritative"]
             self.assertGreater(movement["authoritative_max_displacement_m"], .5)
             client = json.loads((output / "0-client-0.json").read_text())

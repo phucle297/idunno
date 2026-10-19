@@ -229,6 +229,30 @@
       "scope": "guarded_render_rerun",
       "status": "passed",
       "result": "Serial actual2-renderer720p llvmpipe12 warmup/60 samples x3 guarded source passed strict logs/intact world:5999–6004 draws vs old8618–8627 (~30% lower),5.5461–5.5463m shadow-inclusive primitives. Six-window median p50=1000.493ms/p95=1079.257ms; source includes roster cache too, not isolated shadow timing or native/thermal verdict. All five final street/facade/overview720p and street/Harbor1080p captures rerendered/inspected. No production geometry/physics changes; tiny UP labels and subtle central pickup shadow noted, not new missing geometry. Outputs .scratch/phase19-shadow-guarded-after and .amp/in/artifacts/phase19-shadows. No release/deployment."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "guarded_presentation_staged_delivery",
+      "status": "passed",
+      "result": "Current follow-up passed normal staged60 suites/7 matrices/managed20/five rematches and46 Python tests; PRE_COMMIT_OK tree6dcc0bc243da83ec53c31e0b1cd82c28e16c18ea. Committed/pushed https://github.com/phucle297/idunno/commit/b021446 with skip-CI. Review bundle .amp/in/artifacts/phase19-guarded-presentation-validation.tar.gz. No release/deployment; no uncommitted changes from this unit remain."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "private_network_cpu_and_precipitation_instrumentation",
+      "status": "passed",
+      "result": "External-only Main subclass times actual snapshot build/apply, full Main physics callback and movement RPC receipt age. Raw interval counters aggregate to summary; decoded Variant byte size explicitly NOT on-wire traffic; extra encoding/timing overhead retained. Public CLI now holds dry/rain/snow workload through normal snapshots, with state agreement and every-frame precipitation checks. Check-only/compile and4 real-client contracts pass; four-client moving Snowfall and default dry repeats both exercised. Serial headless4-client moving Rain120 warmup/600 samples x3 passed15 traces/9000 records, physics59.915–60.147Hz. Mean match apply3.078–3.208ms/receipt, movement apply30.76–34.93us, authority build146–161us; decoded match payload2040–2140 mean bytes/receipt. Exact deployed PCK/editor-engine Snowfall90-sample smoke passed. No production RPC/tick change; receipt age is not correction distance/latency/loss."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "transparent_dry_weather_pass_attribution",
+      "status": "passed",
+      "result": "Independent single-change scratch ablation removes only alpha-zero world weather overlays while fully dry. Same current source/instrumentation, actual2 renderers/720p/llvmpipe/LP_NUM_THREADS2, serial12 warmup/60 frames x3: control5998–6004 draws, six-window median p50=1024.320ms/p95=1104.888ms; ablation4089–4104 draws, p50=650.993ms/p95=719.916ms. p50 window ranges1017–1032 vs630–662ms do not overlap. This confirms redundant dry render work in this orb, not native FPS/thermal proof. New production candidate weakly tracks surface meshes, removes overlays only when global/flood/covered residuals are dry, restores on weather/new terrain and clears on rematch. Headless weather41 and graphical lifecycle49 checks pass; actual map dry/rain/snow/melt/recovered captures inspected, overlay counts0/4709/4709/4709/0. Original snow brightness and subtle wet sheen retained; no shader/art redesign. Candidate full matched rerun and staged gate pending."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "dry_overlay_production_candidate_validation",
+      "status": "passed",
+      "result": "Same-driver production candidate2 renderers/720p12 warmup/60 frames x3 passed: draws4089–4098; six-window p50=659.972ms/p95=732.521ms, individual p50 range641–667ms vs control1017–1032ms (~36% lower median interval on llvmpipe only). Actual prior-source graphical public regression fails3 dry/reset assertions; current49 checks pass. Both-map geometry/collision hashes and caster counts unchanged. Baseline vs current dry/rain/snow/melt/recovered static upper1280x470 pixels exactly equal (ImageMagick mean difference0); amplified full-image diff inspected and confined to animated avatar. Missing optional Python PIL prevented first pixel script; used installed ImageMagick, no dependency added. Four updated profiler contracts rerun pass. Normal staged gate still required; no source delivery/release claimed for this candidate."
     }
   ],
   "changed_files": [
@@ -248,7 +272,9 @@
     "assets/manifest.json",
     "game/ui/lobby_roster.gd",
     "tests/test_lobby_roster.gd",
-    "tests/test_map_detail_collision.gd"
+    "tests/test_map_detail_collision.gd",
+    "game/disasters/weather_surfaces.gd",
+    "tests/test_weather_surfaces.gd"
   ],
   "blockers": [],
   "limits": [
@@ -261,7 +287,7 @@
     "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open.",
     "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
   ],
-  "next_action": "Run the normal staged gate and commit/push the verified dynamic-shadow/roster/multiclient follow-up, then continue remaining Phase19 controls before Phase20 sabotage and final release; do not release unfinished scope.",
+  "next_action": "Finish the dry-weather-overlay candidate's matched rerun, baseline regression proof, full staged gate and commit/push; continue remaining Phase19 controls before Phase20 and final release without treating the native/human waiver as measured hardware acceptance.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",
