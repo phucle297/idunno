@@ -187,6 +187,18 @@
       "scope": "shadow_trial_world_control",
       "status": "failed",
       "result": "Initial source before/after selective-shadow trials completed3x60 but later windows reached natural district-collapse timing: baseline draws8618→7272 as geometry vanished. Rejected whole run as a matched performance verdict. Added fixture-only extended round duration, terrain reset and recorded/validated intact removed/pending masks. Initial attempt to set stage4 with mask0 was invalid and caused clients to reject snapshots; contract caught stalled client sequences twice. Removed stage mutation after reading snapshot validator; kept valid terrain state and extended timer only. Also made movement evidence horizontal so gravity cannot satisfy input proof. Four contracts pass after correction. Corrected comparison rerunning serially, no production clock/validation changes."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "corrected_selective_shadow_trial",
+      "status": "passed",
+      "result": "Same4.7.2 editor engine/llvmpipe/LP_NUM_THREADS2/720p, actual2 ENet renderers+authority, same camera,12 warmup/60 intervals x3 per side, serial old exact741ae34 PCK vs source candidate. Intact masks0/pending-1 throughout, strict logs clean. Draw medians8618–8627→5964–5973 (~31% less), shadow-inclusive primitives10.15m→5.48m (~46%). Median of six client-window p50s1115.356→1052.643ms and p95s1221.997→1170.258ms overlap variation: no reliable FPS/thermal/resolved-owner-bug claim. Candidate only disables casting for tiny authored detail boxes/ellipsoids; visible geometry, collisions and large-cover/player/warning shadows unchanged. Normal staged4-test profiler gate passed on fresh checkout, committed/pushed5778d65; no deployment."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "shadow_geometry_and_render_review",
+      "status": "passed",
+      "result": "SHADOW_INVARIANTS_OK both source and old exact PCK: Town4709 meshes/2173 shapes, Harbor361/142, geometry/transform/collision-array SHA256 identical per map. Casters4709→2218 Town,361→206 Harbor. Actual street/facade/overview720p and street/Harbor1080p before/after captures inspected; large shadows/details/routes retained, sidewalk streaks pre-exist baseline. Capture map-switch shutdown retains2–4 ObjectDB/1–2 resources on both builds, not runtime correctness proof/clean teardown. Review archive .amp/in/artifacts/phase19-shadow-validation.tar.gz. Candidate requires broad normal staged regression before runtime commit."
     }
   ],
   "changed_files": [
@@ -201,7 +213,9 @@
     "tools/profile_multiplayer.py",
     "tools/profile_multiplayer_peer.gd",
     "tools/profile_multiplayer_peer.gd.uid",
-    "tests/test_multiplayer_profile.py"
+    "tests/test_multiplayer_profile.py",
+    "game/main.gd",
+    "assets/manifest.json"
   ],
   "blockers": [],
   "limits": [
@@ -214,7 +228,7 @@
     "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open.",
     "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
   ],
-  "next_action": "Run a matched selective-detail-shadow trial with the real two-client renderer and inspect quality/collision invariants before implementing the first measured runtime optimization; retain native GPU/thermal and reconciliation-timing limitations.",
+  "next_action": "Run the normal staged regression on the selective-small-detail-shadow candidate, fix any failures, then commit/push this verified unit before continuing remaining Phase19 controls and Phase20 sabotage; do not release unfinished scope.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",

@@ -1,5 +1,16 @@
 # Active phase decisions
 
+## 2026-10-19 — Remove redundant tiny-detail shadow passes, not map detail
+
+Trial only small authored box/ellipsoid detail casting: longest dimension≤1.25m
+or middle dimension≤0.22m. Keep receiving light/weather and all geometry, materials,
+collisions and large-cover shadows. Do not disable Sun shadows globally or modify
+players, warnings, server tick or collapse ownership. Exact old-PCK/source geometry
+and collider hashes match on both maps. Corrected serial2-renderer720p trials show
+~31% fewer draws/~46% fewer shadow-inclusive primitives. Timing overlaps variation,
+so accept work reduction, not a universal FPS/thermal fix. Broad staged regression
+must pass before committing this candidate; retain native hardware limits.
+
 ## 2026-10-19 — Keep long dry profiles geometrically comparable
 
 Owner now authorizes finishing remaining implementation, per-unit commit/push and

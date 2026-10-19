@@ -2,7 +2,8 @@
 
 Status: M19.1 in progress; owner authorized completing the remaining plan,
 committing/pushing each verified unit and releasing after integration.
-Runtime optimization, sabotage implementation and redeployment have not started.
+First selective-shadow candidate reduces draw work; staged regression pending.
+Sabotage implementation and redeployment have not started.
 Performance work precedes the Phase20 sabotage expansion.
 
 ## Report and evidence boundary
@@ -215,6 +216,51 @@ snapshot-progress assertions and removed after reading the validator. Four
 contracts pass again. Movement summaries now use horizontal displacement so
 gravity alone cannot falsely prove controlled input. Matched corrected reruns use
 the same external driver and engine against the old exact PCK and candidate source.
+
+### Selective small-detail shadow trial — corrected comparison
+
+Same pinned editor engine/llvmpipe/LP_NUM_THREADS=2/720p, two real graphical ENet
+clients and local dedicated authority. Baseline is exact public741ae34 PCK;
+candidate source differs in runtime only by detail shadow selection. Source and
+PCK geometry/collision hashes match on both maps. The external driver's extended
+round timer keeps all measured district masks0 and pending=-1; all snapshots still
+pass production validation. Normal powerup spawns continue, causing small draw-count
+variation; they are not hidden or called identical frozen-effect state.
+
+Each side:12 warmup/60 chronological frames×3,180 intervals per graphical client,
+not the default120/600 or a native GPU/hardware acceptance run. Serial runs, same
+camera/quality/V-Sync request, client and authority uncapped; independent X displays.
+
+| Metric | Before | Candidate |
+| --- | ---: | ---: |
+| Per-client median draws/window | 8618–8627 | 5964–5973 |
+| Rendered primitives/window median (includes shadow passes) | ~10.15million | ~5.48million |
+| Median of six client-window p50s | 1115.356ms | 1052.643ms |
+| Median of six client-window p95s | 1221.997ms | 1170.258ms |
+| Full-Town shadow casters | 4709 | 2218 |
+| Full-Harbor shadow casters | 361 | 206 |
+
+Draw work drops about31% and shadow-inclusive primitives about46%; this is a
+repeatable work reduction. Timing improves modestly and overlaps run variation:
+do **not** claim a reliable5.6% FPS gain,60FPS, heat reduction or resolved owner bug.
+Large buildings, trees, roofs and cover still cast. Only authored detail boxes/
+ellipsoids with longest dimension≤1.25m or middle dimension≤0.22m stop casting;
+they remain visible, lit, weathered and physically unchanged. No dynamic object,
+player, warning, collapse ownership, material or server cadence change.
+
+Full geometry/transform/collision-array hashes match baseline:
+- Toy Town4709 meshes/2173 collision shapes:
+  `0bbc33e00ac80ac227cb4df6d16d10cbf70e245b9134d8d4aded4176ae3cb044`.
+- Harbor361 meshes/142 shapes:
+  `af7e23600494b6a3da7c5350fe8802eb35d5dc9ab18a1a5115f226b2f11afca3`.
+
+Street/facade/overview720p plus street/Harbor1080p rendered and inspected; broad
+shadows and geometry remain. Sidewalk streaks appear in both baseline/candidate,
+not a new policy artifact. Temporary capture map-switch teardown retained2–4
+ObjectDB instances/1–2 resources on both builds; no clean-shutdown claim. Strict
+profiler logs have no SCRIPT ERROR/ERROR. Map/weather/collapse/network staged
+regression is required before this candidate is committed as a runtime fix.
+Raw traces/fixtures/logs: `.amp/in/artifacts/phase19-shadow-validation.tar.gz`.
 
 ## M19.1 — Reproduce and attribute the cost
 

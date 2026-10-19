@@ -3570,6 +3570,7 @@ func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = _toy_box_mesh(size, color)
+	instance.cast_shadow = _detail_shadow_mode(size)
 	instance.position = position
 	parent.add_child(instance)
 	if solid:
@@ -3577,6 +3578,15 @@ func _add_detail_box(parent: Node3D, node_name: String, size: Vector3, position:
 		shape.size = size
 		_add_detail_collision(instance, Vector3.ZERO, shape)
 	return instance
+
+
+func _detail_shadow_mode(size: Vector3) -> GeometryInstance3D.ShadowCastingSetting:
+	# Keep silhouettes/cover casting; tiny ornaments and thin rods still receive
+	# light and weather, but need not be redrawn into every Sun shadow cascade.
+	# This changes presentation only, never the detail's collision or visibility.
+	var dimensions: Array[float] = [absf(size.x), absf(size.y), absf(size.z)]
+	dimensions.sort()
+	return GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if dimensions[2] <= 1.25 or dimensions[1] <= 0.22 else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 func _add_detail_collision(parent: Node3D, position: Vector3, shape: Shape3D) -> void:
@@ -3695,6 +3705,7 @@ func _add_round_detail(parent: Node3D, node_name: String, position: Vector3, sca
 	sphere.rings = 12
 	sphere.material = _material(color)
 	visual.mesh = sphere
+	visual.cast_shadow = _detail_shadow_mode(scale_size * 2.0)
 	visual.position = position
 	visual.scale = scale_size
 	parent.add_child(visual)
