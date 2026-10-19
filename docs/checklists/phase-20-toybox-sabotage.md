@@ -98,6 +98,13 @@ cause and bounded cost. Toy Town and Harbor controls, real clients and rematch r
 
 ## M20.4 — Chaos density, readability and release readiness
 
+- [ ] Use the measured Phase19 render baseline before increasing density: the dry
+  Toy Town orb sample already shows8618 draws/client and shadow-sensitive stalls.
+  These software-render numbers do not define native capacity. First slice should
+  share meshes/materials, bound/expire warnings and avoid individual shadow-casting
+  rigidbody confetti. Report incremental render/physics/network cost per active toy
+  and combined with weather; retain visible projectiles/counters, not just headless
+  pass results. No arsenal batch starts on an assumed final12-projectile budget.
 - [ ] Proposed initial caps for M20.1 profiling:1 held item/player,≤2 active
   projectiles/player with≤12 total,≤6 placed effects,≤3s cosmetic fragments,
   ≤1s ordinary weapon-induced control interruption then≥1.5s cross-item protection.

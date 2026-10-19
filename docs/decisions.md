@@ -1,5 +1,29 @@
 # Active phase decisions
 
+## 2026-10-19 — Dry two-client diagnostic and optimization priorities
+
+Owner authorized autonomous debugging and continued planning. Executed7 scenarios
+×3 repeats using real room authority/ENet clients on llvmpipe720p; no runtime/assets
+changed. [Method, numbers and limits](checklists/phase-19-multiplayer-frame-budget.md#executed-diagnostic--2026-10-19)
+and [raw samples](checklists/phase-19-render-samples.csv) preserve the evidence.
+
+Shadow ablation reduces draws8618→3881; root3D-off restores client physics cadence
+from72–80 to599–601 ticks/10s. This attributes the orb's extreme stalls primarily
+to rendering, not a proven multiplayer/thermal fault on the owner's machine.
+Prioritize selective shadow budgeting, then collapse-district-local static batching
+without deleting map detail or changing collision/shelter. Keep dynamic mechanisms,
+breakables, props, players and warning geometry independently owned.
+
+Hidden preview disabling and cap60 did not materially improve this overloaded
+renderer; Home preview was already off in ACTIVE. Roster writes are measurable but
+secondary (synthetic2-row CPU call~0.064ms, deferred layout excluded). Do not remove
+UI, force a low background cap or change server simulation rates on this evidence.
+Require native/exported, focus/minimize, network-cost, hazard and sustained cases
+before closing M19.1/M19.3 or fixing final quality/concurrency budgets for sabotage.
+Earlier fixture failures remain recorded; successful run uses independent Xvfb
+displays to avoid pointer-grab competition, not same-desktop focus validation.
+No release, deployment, infrastructure changes or Phase20 implementation here.
+
 ## 2026-10-19 — Performance first, then toy sabotage (planning only)
 
 Owner reports solo smooth but two apps on the same machine in one room heat up and

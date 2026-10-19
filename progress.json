@@ -3,7 +3,7 @@
   "updated_at": "2026-10-19",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "planned",
+  "workflow_state": "in_progress",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
     "status": "completed",
@@ -47,13 +47,13 @@
   "phase": {
     "id": "phase_19_multiplayer_frame_budget",
     "title": "Multiplayer frame budget investigation",
-    "status": "planned",
+    "status": "in_progress",
     "checklist": "docs/checklists/phase-19-multiplayer-frame-budget.md",
     "milestones": [
       {
         "id": "M19.1",
         "title": "Reproduce and attribute two-client cost",
-        "status": "planned",
+        "status": "in_progress",
         "gate": "not_run"
       },
       {
@@ -103,10 +103,41 @@
       "scope": "planning_source_inspection",
       "status": "passed",
       "result": "Inspected existing overlap profiler, main physics/snapshot/prop lookup paths, project/settings pacing config, Home preview disabling and bounded shove protection. Existing profiler is synthetic single-process4 avatars; headless20/public correctness cannot prove two graphical clients60FPS. No explicit project FPS/background policy found; engine/driver behavior and thermal cause unknown. No runtime benchmark executed for this planning-only request."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_fixture_initial_control",
+      "status": "failed",
+      "result": "Scratch actual-process profiler attempted3x10s720p dry solo: llvmpipe only9–10frames/window,p95~1s,7555 draws. Not native performance evidence. First networking attempt failed admission under inherited test-only1500ms ENet recovery timeout with software render stalls. Corrected fixture to retain production timeouts, disable root3D only during admission and use identical standalone review camera across roles; no product code or timeout policy changed. Retained initial logs .scratch/phase19-debug.log. Scratch parse signature/name conflicts corrected before executing benchmark."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_fixture_recovery",
+      "status": "failed",
+      "result": "r2 admitted real peers but fixture summary accessed dedicated server's absent Home; fixed fixture null guard. r3 completed solo/one-render/two-render samples, then strict log gate rejected X11 NO GRAB from two unattended clients competing for one Xvfb pointer. These runs are not clean passes. Re-derived display ownership; r4 gives each graphical peer its own Xvfb while retaining two real clients and one local dedicated process. This isolates render contention, not same-desktop focus/minimize behavior. No product changes."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "orb_real_process_dry_diagnostic",
+      "status": "passed",
+      "result": "LP_NUM_THREADS=2 python3 .scratch/phase19_profile.py: FRAME_INVESTIGATION_OK scenarios=7 repeats=3 duration=10s warmup=2s hardware=orb-llvmpipe. Real RoomService/dedicated/2 ENet clients; solo,1 renderer+headless peer,2 renderers,hiddenUI-off,root3D-off,cap60,Sun-shadow-off. All21 windows/57 process records ACTIVE, network roster2. Strict client/server SCRIPT ERROR/ERROR scan empty. Independent Xvfb per graphical peer; not focus/minimize/native GPU proof. CSV docs/checklists/phase-19-render-samples.csv; driver/log archive .amp/in/artifacts/phase19-diagnostics/reproduction.tar.gz."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "render_attribution_and_inventory",
+      "status": "passed",
+      "result": "Two-render median-of-window-p50 1173.726ms, hiddenUI-off1187.272,cap60 1178.801,Sun-shadow-off474.841 with draws8618→3881,root3D-off9.588. Baseline only7–8 frame intervals/window: no reliable native p95/99/60FPS conclusion. Graphical physics72–80ticks/10s vs599–601 no3D; local authority599–601. Headless TOWN_INVENTORY_OK:4709 mesh instances/all shadow casters,4741 surfaces,3659980 full-scene triangle primitives,2092 static bodies/2173 colliders. Synthetic roster5x500 median CPU/call1/2/4/20 rows=0.032818/0.064338/0.127626/0.641060ms, excludes deferred layout/network. Prioritize selective shadows/district-local batching then measured UI/pacing; no product fix or thermal diagnosis claimed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_plan_integrity",
+      "status": "passed",
+      "result": "jq empty progress.json; PLAN_EVIDENCE_OK rows=57 windows=21 local_links=true active_state=true. First staged check/commit rejected generated CSV default CRLF as whitespace; regenerated same data with LF, git diff --cached --check and tools/test_changed.py passed PRE_COMMIT_OK affected tests=0 staged_files=7 (docs/data only, not gameplay regression). Runtime/assets/project diff741ae34..HEAD empty. Inspected plan/diff, kept M19.1 open and Phase20 planned. Temporary fixture source archived with successful logs for reproduction, removed from checkout; no permanent runtime/test/asset changes or release/deploy."
     }
   ],
   "changed_files": [
     "docs/checklists/phase-19-multiplayer-frame-budget.md",
+    "docs/checklists/phase-19-render-samples.csv",
     "docs/checklists/phase-20-toybox-sabotage.md",
     "docs/decisions.md",
     "docs/implementation-checklist.md",
@@ -120,9 +151,10 @@
     "Software rendering does not establish60FPS.",
     "Public profile storage remains disabled; isolated local persistence checks do not imply public persistence.",
     "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
-    "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim."
+    "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim.",
+    "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open."
   ],
-  "next_action": "When implementation is authorized, execute M19.1 matched solo/one-network-client/two-graphical-client baseline with per-process frame traces before selecting fixes.",
+  "next_action": "Extend the existing real-client profiler into a reproducible standalone/PCK frame-trace runner with matched camera,120-frame warmup/600 samples and network cadence instrumentation before the first selective-shadow optimization trial.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",

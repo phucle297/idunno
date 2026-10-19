@@ -1,7 +1,8 @@
 # Phase19 — Multiplayer frame budget investigation
 
-Status: planned; owner requested investigation and a plan, not implementation or
-redeployment. Performance work precedes the Phase20 sabotage expansion.
+Status: M19.1 in progress; owner authorized autonomous debugging and plan refinement.
+Runtime optimization, sabotage implementation and redeployment have not started.
+Performance work precedes the Phase20 sabotage expansion.
 
 ## Report and evidence boundary
 
@@ -24,8 +25,98 @@ Code inspected:
 - `game/ui/home_screen.gd` already disables its preview viewport when hidden;
   do not assume hidden Home always renders. Inspect actual active viewports first.
 
+## Executed diagnostic — 2026-10-19
+
+Runtime/assets unchanged from public741ae34; source checkout e884258 adds planning
+only. Godot4.7.2 editor engine, Compatibility, Linux orb, Xeon2.60GHz/4vCPU/7.8GiB,
+Mesa22.3.6 llvmpipe LLVM15 software renderer, `LP_NUM_THREADS=2` per graphical client.
+Not the exported Windows/PCK build and not the owner's hardware.
+
+Scratch driver extends `tests/managed_container_peer.gd`, uses real RoomService,
+dedicated authority and two real ENet clients. One-render network control has an
+actual headless second client. All network processes share this orb. Each graphical
+client has its own1920×1200 Xvfb display,1280×720 game window, Dummy audio, identical
+review camera at(0,5,12) looking at(0,1,0), default Toy Town, dry stationary ACTIVE.
+No gameplay/hazard movement profile or same-desktop focus/minimize test is implied.
+Director cleanup removes hazards; sampled results require ACTIVE and2 players.
+Root3D is disabled during admission only, then restored except the no-3D ablation.
+V-Sync disable requested, but driver warns mode changes unsupported; Xvfb provides
+no physical vblank. Caps apply to every measured process, including the authority
+in the60-cap experiment; this is NOT a production client-only pacing proposal.
+
+Each scenario has3 repeats of2s settling +10s sampling, not120 warmup/600 frames.
+Heavy cases yield only7–20 frame intervals per window: tail percentiles are retained
+in the [57-row raw sample table](phase-19-render-samples.csv), **not reliable p95/p99
+estimates or a60FPS verdict**. Table below is median of each graphical client's
+per-window p50, not pooled frame time or FPS. Process time includes renderer waiting;
+it is not isolated script CPU time. Static RAM is Godot's allocator, not RSS/VRAM.
+
+| Control / one change only | Median p50, ms | Frame intervals/window | Median draw calls/frame |
+| --- | ---: | ---: | ---: |
+| Solo, one renderer | 1071.897 | 9 | 8563 |
+| Two network players, one renderer | 1093.822 | 8 | 8618 |
+| Two network players, two renderers | 1173.726 | 7–8 | 8618–8622 |
+| Two renderers, hidden Home/Collection processing+previews disabled | 1187.272 | 7–8 | 8618 |
+| Two renderers, root3D disabled (diagnostic only) | 9.588 | 992–1013 | 21 |
+| Two renderers, cap60 | 1178.801 | 7–8 | 8618 |
+| Two renderers, Sun shadows disabled (diagnostic only) | 474.841 | 19–20 | 3881 |
+
+All21 windows completed: `FRAME_INVESTIGATION_OK scenarios=7 repeats=3 duration=10s
+warmup=2s hardware=orb-llvmpipe`; client/server logs contain no SCRIPT ERROR/ERROR.
+The successful fixture runs with independent X displays. Earlier runs failed on
+test-only1500ms admission timeout, absent dedicated Home in the fixture summary,
+then competing X11 pointer grabs on one display; they are not clean passes and
+were fixed in the diagnostic fixture only, never by relaxing product policy.
+
+Separate headless inventory: Sandbox contains4709 non-null mesh instances,
+4741 surfaces,3,659,980 mesh triangle primitives across all instances before
+camera culling,4709 shadow-casting instances,2092 static bodies/2173 colliders.
+These are full-scene counts, NOT visible triangles, unique meshes, GPU memory or
+active physics work. Paving already uses one ArrayMesh; materials/rounded meshes
+are cached. Most other parts remain individual instances; no MultiMesh/LOD policy.
+
+Synthetic unchanged-roster microbench,5×500 calls, no network or deferred layout:
+`present_players` median0.032818/0.064338/0.127626/0.641060ms for1/2/4/20 rows.
+It proves avoidable per-frame work exists, not that lobby UI causes this2-app issue.
+Home preview is hidden and UPDATE_DISABLED throughout ordinary ACTIVE samples.
+
+### Ranked attribution and next experiments
+
+1. **3D rendering dominates this software-render scene.** Shadow ablation removes
+   about55% of draw calls; remaining non-shadow rendering is still costly. Trial
+   selective shadow casters/distance first, then district-local batching of repeated
+   static trim/foliage and distance-aware presentation. Keep rounded silhouettes,
+   close detail, real collision, roof shelter and warnings; do not ship all-shadows
+   off or delete map content based on this experiment.
+2. **Client main-loop cadence collapses when rendering stalls.** Baseline graphical
+   clients execute72–80 physics ticks/10s versus599–601 with3D disabled; local
+   authority remains599–601 ticks across controls. This can compound input/network
+   judder, but does not prove packet loss, authority bugs or the owner's cause.
+   Instrument input-to-snapshot/reconciliation and client-only focus/pacing next;
+   do not lower server tick/send rates or increase max catch-up steps blindly.
+3. **Hidden UI is a secondary CPU candidate, not measured dominant.** Disabling
+   hidden previews/process alone does not materially beat baseline. Measure full
+   lobby/HUD/catalog call costs; trial change-driven roster/style updates separately
+   after rendering. A60FPS cap cannot help a renderer already below1FPS; its power
+   benefit on a fast GPU remains unknown, not disproved.
+
+Reproduction recipe: real-client fixture controlled through its existing JSON
+commands; start solo or create/join→both Ready→owner Start→authority cleanup;
+then send `render_profile` to clients/authority3 times, wait for each result and
+capture JSON. Options are cap60, hidden_ui_off, no_3d, shadows_off independently.
+Temporary driver/log bundle is retained for review in
+`.amp/in/artifacts/phase19-diagnostics/reproduction.tar.gz`; portable numeric
+evidence is versioned beside this checklist. No credentials/config tickets bundled.
+
+M19.1 remains open: exported/native builds,600-frame traces, GPU/power/temperature,
+same-desktop focus/minimize,1080p/Harbor/hazard/movement cases, remote authority,
+network bytes/apply profiling and15-minute trends are not executed by this run.
+No native smooth-solo/slow-multiplayer reproduction or final performance fix claimed.
+
 ## M19.1 — Reproduce and attribute the cost
 
+- [x] Complete bounded orb real-process dry diagnostic and single-change ablations;
+  retain failed attempts, raw numbers and explicit hardware/sample limitations above.
 - [ ] Extend the existing profiler/real-client driver to produce per-process JSON
   results and timestamped frame traces for actual standalone/PCK clients. Record
   CPU/GPU/driver, OS, release/editor, map/seed, resolution/render scale, monitor Hz,
@@ -66,6 +157,13 @@ Orb llvmpipe evidence cannot close native GPU/temperature acceptance.
 - [ ] If rendering dominates, budget shadows/lights, distant animation/cosmetic
   effects and inactive viewports; try resolution/quality controls with honest visual
   tradeoffs. Never hide warning hit footprints, real cover, route geometry or peers.
+  Scope candidates to `_add_detail_box`, `_add_round_detail` and repeated trees/trim;
+  keep batch ownership within collapse districts after `town_partitions.partition`.
+  Exclude breakables, moving mechanisms, props and players from static batching.
+  Preserve material/transform/visibility and district removal; mesh caching alone
+  does not batch draws. Compare the same camera and inspect close/distant renders.
+  Run map-detail collision, town-layout, route-clearance, weather-cover and collapse/
+  mechanism regression: shadow/visual optimization must not change physics or roofs.
 - [ ] If CPU/network dominates, instrument then reduce repeated lookup/sort,
   allocations, redundant HUD/layout or unchanged state work. Preserve snapshot
   sequencing, authoritative hit/collision/HP, terrain/mechanism reset and admission.

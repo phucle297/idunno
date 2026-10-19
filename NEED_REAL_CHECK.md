@@ -9,6 +9,15 @@ liệu, ghi build/cấu hình/độ phân giải, cả2 cửa sổ mở hay1 min
 FPS solo/2 app; ảnh/log không bắt buộc. Đây không phải checklist chặn tiếp tục và
 không đóng các giới hạn/waiver cũ.
 
+**Debug agent tiếp theo (2026-10-19):** đã chạy7 kịch bản ×3 lần với room/server và
+hai client thật trên orb llvmpipe720p. Tắt bóng đổ để đối chứng giảm draw calls
+8618→3881; tắt3D phục hồi nhịp physics client. UI preview ẩn vốn đã tắt; cap60
+không giải quyết software renderer đang quá tải. Ưu tiên plan bóng đổ/batching,
+không xóa chi tiết map hay giảm tick server. Đây không phải FPS Windows/GPU hoặc
+đo nhiệt trên máy bạn; chưa kiểm focus/minimize chung desktop,1080p, hazard và
+15 phút tải liên tục. [Số đo/giới hạn](docs/checklists/phase-19-multiplayer-frame-budget.md#executed-diagnostic--2026-10-19).
+Không có bản fix hiệu năng/release/deploy mới trong đợt chẩn đoán này.
+
 **Bản public hiện tại — Phase18 Outfits và Original Music (2026-10-19):**
 [Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39184818543),

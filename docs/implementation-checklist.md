@@ -4,10 +4,13 @@
 
 ## Active and planned phases
 
-Owner requested plans, not implementation:
+Owner authorized autonomous debugging and plan refinement; runtime implementation
+and new delivery have not started:
 - [Phase19 — Multiplayer frame budget](checklists/phase-19-multiplayer-frame-budget.md)
   — reproduce two-app heat/frame drops, attribute cost, fix measured hotspots,
   validate hardware/focus behavior and freeze headroom before adding combat effects.
+  M19.1 in progress:7×3 real-process orb dry diagnostics and shadow/UI/3D/cap ablations
+  executed; rendering first, no native GPU/thermal verdict or final fix claimed.
 - [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
   — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
   depends on Phase19, server-authoritative and bounded against chain-lock/spam.
