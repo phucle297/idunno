@@ -199,6 +199,23 @@ contract tests pass, including stationary-default and actual authoritative motio
 This verifies the controlled scenario, not rendered movement smoothness or a fix
 for the owner's frame drops. Raw outputs: `.scratch/phase19-moving-full`.
 
+### Long-window world-control correction
+
+The first selective-shadow comparison (`.scratch/phase19-shadow-before` and
+`-after`) is **rejected as a matched verdict**: later60-frame windows lasted
+long enough for automatic terrain collapse. Baseline draws fell8618→7272 as map
+geometry disappeared, independently of the intervention. Short instrumentation
+passes never justified ignoring this control.
+
+The external driver now extends round duration and resets intact terrain before
+sampling; every trace records removed/pending district state and the runner fails
+if any warning/removal occurs. Production clocks, collapse and snapshot validation
+are unchanged. An attempted invalid fixture stage4/mask0 was caught by client
+snapshot-progress assertions and removed after reading the validator. Four
+contracts pass again. Movement summaries now use horizontal displacement so
+gravity alone cannot falsely prove controlled input. Matched corrected reruns use
+the same external driver and engine against the old exact PCK and candidate source.
+
 ## M19.1 — Reproduce and attribute the cost
 
 - [x] Complete bounded orb real-process dry diagnostic and single-change ablations;

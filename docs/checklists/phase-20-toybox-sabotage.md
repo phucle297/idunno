@@ -1,9 +1,10 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
 Status: planned after Phase19 performance baseline/headroom. Owner explicitly wants
-more player sabotage, including guns/rockets and many chaotic interactions. This
-opens the earlier hammer/wood backlog as a future toy arsenal; it does NOT restore
-grabbing/crouching or authorize implementation/release now. DESIGN stays unchanged.
+more player sabotage, including guns/rockets and many chaotic interactions, and
+now authorizes implementation followed by release after integrated checks. This
+opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
+grabbing/crouching. DESIGN stays unchanged; Phase19 remains the prerequisite.
 
 ## Direction and game loop
 

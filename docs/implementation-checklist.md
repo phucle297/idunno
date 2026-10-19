@@ -4,8 +4,8 @@
 
 ## Active and planned phases
 
-Owner authorized autonomous debugging and plan refinement; runtime implementation
-and new delivery have not started:
+Owner authorized completing the remaining plan, committing/pushing each verified
+unit and releasing after final integration. Performance work precedes sabotage:
 - [Phase19 — Multiplayer frame budget](checklists/phase-19-multiplayer-frame-budget.md)
   — reproduce two-app heat/frame drops, attribute cost, fix measured hotspots,
   validate hardware/focus behavior and freeze headroom before adding combat effects.
@@ -13,7 +13,8 @@ and new delivery have not started:
   executed; rendering first, no native GPU/thermal verdict or final fix claimed.
   Reusable source/exact-PCK editor-engine tracer now records120/600 chronological
   samples and client/authority cadence; official release-template probing is unsupported
-  and rejected explicitly. Motion/hazard/network-cost/hardware controls remain open.
+  and rejected explicitly. Controlled headless motion now passes with authoritative
+  position evidence; rendered motion/hazard/network-cost/hardware controls remain open.
 - [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
   — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
   depends on Phase19, server-authoritative and bounded against chain-lock/spam.

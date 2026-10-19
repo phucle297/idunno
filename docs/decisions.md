@@ -1,5 +1,23 @@
 # Active phase decisions
 
+## 2026-10-19 — Keep long dry profiles geometrically comparable
+
+Owner now authorizes finishing remaining implementation, per-unit commit/push and
+final release. Continue performance first; do not infer separate hardware acceptance
+or deploy merely from a passing profiler.
+
+Controlled moving-client traces use real input and authoritative horizontal
+positions, not teleports or gravity-only displacement. Keep reconciliation timing
+explicitly unavailable without receive hooks. The normal fresh-checkout gate caught
+test-order dependence; class import now belongs to class setup, not one test.
+
+Reject the first long selective-shadow comparison because natural collapse removed
+geometry in later windows. Extend the diagnostic round timer/reset terrain and
+validate intact masks; never mutate production timing or bypass snapshot validation.
+The latter correctly caught an invalid stage4/mask0 fixture attempt. Sampling windows
+remain independent per process, and short uncapped authority windows need not span
+a100ms state snapshot; actual capped clients must still receive sequence progress.
+
 ## 2026-10-19 — Reusable frame traces without production hooks
 
 Add local-only source/exact-PCK profiler and a real two-client repeated-run CLI

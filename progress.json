@@ -175,6 +175,18 @@
       "scope": "moving_tracer_fresh_checkout_gate",
       "status": "failed",
       "result": "First normal staged gate exposed missing global class cache: alphabetically earlier moving integration ran before the old stationary test's import setup. Fixed test setup ownership by importing once in setUpClass before either integration; did not change runtime or suppress error. Requires normal staged rerun."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "moving_tracer_gate_recovery",
+      "status": "passed",
+      "result": "Normal staged gate rerun passed all4 profiler tests in a fresh checkout and PRE_COMMIT_OK tree0bbb0a3f6026205479e1d6a626519ed7eded56f5. Committed/pushed https://github.com/phucle297/idunno/commit/e55b2ac with skip-CI. No runtime change or deployment in that unit."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "shadow_trial_world_control",
+      "status": "failed",
+      "result": "Initial source before/after selective-shadow trials completed3x60 but later windows reached natural district-collapse timing: baseline draws8618→7272 as geometry vanished. Rejected whole run as a matched performance verdict. Added fixture-only extended round duration, terrain reset and recorded/validated intact removed/pending masks. Initial attempt to set stage4 with mask0 was invalid and caused clients to reject snapshots; contract caught stalled client sequences twice. Removed stage mutation after reading snapshot validator; kept valid terrain state and extended timer only. Also made movement evidence horizontal so gravity cannot satisfy input proof. Four contracts pass after correction. Corrected comparison rerunning serially, no production clock/validation changes."
     }
   ],
   "changed_files": [

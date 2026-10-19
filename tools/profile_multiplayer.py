@@ -37,12 +37,12 @@ def summarize(trace):
 
 
 def authoritative_movement_summary(server_trace, moving_peer_id):
-    """Summarize server-observed travel; this deliberately does not infer packet loss."""
+    """Summarize server-observed horizontal travel, not gravity or packet loss."""
     positions = []
     for row in server_trace["samples"]:
         position = row["authoritative_player_positions"].get(str(moving_peer_id))
         if position is not None:
-            positions.append(position)
+            positions.append([position[0], position[2]])
     if len(positions) < 2:
         raise RuntimeError("Missing authoritative positions for the moving client")
     origin = positions[0]
@@ -216,6 +216,8 @@ def run(options):
                     raise RuntimeError("Stale or incomplete trace")
                 if any(row["state"] != 1 or row["players"] != len(labels) for row in trace["samples"]):
                     raise RuntimeError("Match/roster changed during trace")
+                if any(row["removed_district_mask"] != 0 or row["pending_district"] != -1 for row in trace["samples"]):
+                    raise RuntimeError("Dry world changed during trace; cannot compare rendering cost")
                 (output / f"{repeat}-{label}.json").write_text(json.dumps(trace))
                 summaries.append(dict(repeat=repeat, peer=label, **summarize(trace)))
             if options.moving_client:

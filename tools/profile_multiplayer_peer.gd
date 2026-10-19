@@ -78,6 +78,10 @@ func _act(command: Dictionary) -> void:
 					main.get_node("Sun").shadow_enabled = false
 			root.disable_3d = command.ablation == "no-3d" or not graphical
 			main.disaster_director.cleanup()
+			# A dry throughput control must not remove a district halfway through
+			# a slow software-render window. Fixture-only; production time is intact.
+			main.match_manager.match_duration = 1_000_000.0
+			main.terrain_collapse.reset()
 			warmup = int(command.warmup)
 			wanted = int(command.samples)
 			moving_client = bool(command.get("moving_client", false)) and label == "client-0"
@@ -123,6 +127,8 @@ func _process(_delta: float) -> bool:
 		"nodes": Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
 		"static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
 		"state": main.match_manager.state, "players": main.match_manager.players.size(),
+		"removed_district_mask": main.terrain_collapse.removed_mask,
+		"pending_district": main.terrain_collapse.pending,
 		"match_sequence": main._match_snapshot_sequence if main.multiplayer.is_server() else main._last_match_snapshot_sequence,
 		"input_sequence": main._local_movement_sequence, "ack_sequence": acknowledged_sequence,
 		"observed_pending_input_count": pending_inputs,
@@ -142,6 +148,7 @@ func _process(_delta: float) -> bool:
 			"root_3d_disabled": root.disable_3d, "sun_shadows": main.get_node("Sun").shadow_enabled,
 			"fps_cap": Engine.max_fps, "physics_hz": Engine.physics_ticks_per_second,
 			"local_peer_id": local_id, "moving_client_input": moving_client,
+			"world_control": "Dry intact map; automatic collapse disabled and match timeout extended by external fixture only.",
 			"reconciliation_measurement": "Pending snapshot age and correction distance unavailable without a receive/reconcile hook; observed pending-input count and ack lag are not time or packet-loss metrics."}
 		var file := FileAccess.open(control.path_join(label + ".trace.json"), FileAccess.WRITE)
 		file.store_string(JSON.stringify(result))

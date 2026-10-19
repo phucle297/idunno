@@ -41,8 +41,8 @@ class MultiplayerProfileContract(unittest.TestCase):
     def test_authoritative_movement_summary_uses_server_positions(self):
         trace = {"samples": [
             {"authoritative_player_positions": {"2": [0, 0, 0]}},
-            {"authoritative_player_positions": {"2": [1, 0, 0]}},
-            {"authoritative_player_positions": {"2": [1, 0, 2]}},
+            {"authoritative_player_positions": {"2": [1, 3, 0]}},
+            {"authoritative_player_positions": {"2": [1, -2, 2]}},
         ]}
         movement = authoritative_movement_summary(trace, 2)
         self.assertEqual(movement["peer_id"], 2)
@@ -71,9 +71,13 @@ class MultiplayerProfileContract(unittest.TestCase):
                     self.assertEqual(trace["fps_cap"], 0 if peer == "server" else 60)
                     self.assertFalse(trace["moving_client_input"])
                     self.assertTrue(all(row["state"] == 1 and row["players"] == 2 for row in rows))
+                    self.assertTrue(all(row["removed_district_mask"] == 0 and row["pending_district"] == -1 for row in rows))
                     self.assertTrue(all(a["time_usec"] < b["time_usec"] for a, b in zip(rows, rows[1:])))
-                    self.assertGreater(rows[-1]["match_sequence"], rows[0]["match_sequence"])
+                    self.assertTrue(all(a["match_sequence"] <= b["match_sequence"] for a, b in zip(rows, rows[1:])))
                     if peer != "server":
+                        # Capped client windows span snapshots. An uncapped server's
+                        # 24 frames can finish before its next100ms send interval.
+                        self.assertGreater(rows[-1]["match_sequence"], rows[0]["match_sequence"])
                         self.assertGreater(rows[-1]["ack_sequence"], rows[0]["ack_sequence"])
 
     def test_two_real_clients_moving_client_changes_authoritative_position(self):
