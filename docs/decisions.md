@@ -1,5 +1,19 @@
 # Active phase decisions
 
+## 2026-10-19 — Preserve moving-prop grounding and skip unchanged roster writes
+
+Shared detail builders also construct moving crates: size-only shadow selection
+silenced all their parts. Preserve casting below moving/character bodies and
+breakable structures through ancestry, not a crate-name exception. Public map
+regression fails for six props before the guard and passes89 checks afterward.
+Updated caster counts2233/221 supersede2218/206; geometry/physics hashes unchanged.
+
+Cache roster-visible copied scalars, including roles/owner label/order, rather
+than incoming mutable Dictionaries. Departure invalidates the cache. Existing
+row identity and in-place update tests plus owner transfer/rejoin checks pass132.
+Serial synchronous-call reduction is a microbenchmark, not in-match FPS proof.
+Four-real-client tracer extension preserves the default two-client contract.
+
 ## 2026-10-19 — Remove redundant tiny-detail shadow passes, not map detail
 
 Trial only small authored box/ellipsoid detail casting: longest dimension≤1.25m

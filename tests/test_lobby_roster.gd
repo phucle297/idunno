@@ -51,6 +51,11 @@ func _run() -> void:
 	_expect(_label(roster, 3, "Ready").text == "READY" and _label(roster, 3, "Identity/Name").text == "Renamed Player", "Existing rows must update names and readiness")
 	_expect(_label(roster, 1, "Identity/Markers").text == "HOST · YOU", "The local host must have both markers")
 	_expect(not _label(roster, 3, "Identity/Markers").visible, "A changed local identity must clear stale YOU markers")
+	roster.present_players(players, 8, 8, "OWNER")
+	_expect(_label(roster, 8, "Identity/Markers").text == "OWNER · YOU" and not _label(roster, 1, "Identity/Markers").visible, "Owner transfer and owner label must invalidate unchanged player rows")
+	roster.present_players({}, 8)
+	roster.present_players(players, 8, 8, "OWNER")
+	_expect(roster.rows.size() == players.size() and _label(roster, 3, "Identity/Name").text == "Renamed Player", "Rejoining peers must be presented even with identical values")
 	for peer_id: int in range(2, 21):
 		players[peer_id] = {"name": "Player %02d" % peer_id, "ready": peer_id % 3 == 0}
 	roster.present_players(players, 20)

@@ -199,6 +199,36 @@
       "scope": "shadow_geometry_and_render_review",
       "status": "passed",
       "result": "SHADOW_INVARIANTS_OK both source and old exact PCK: Town4709 meshes/2173 shapes, Harbor361/142, geometry/transform/collision-array SHA256 identical per map. Casters4709→2218 Town,361→206 Harbor. Actual street/facade/overview720p and street/Harbor1080p before/after captures inspected; large shadows/details/routes retained, sidewalk streaks pre-exist baseline. Capture map-switch shutdown retains2–4 ObjectDB/1–2 resources on both builds, not runtime correctness proof/clean teardown. Review archive .amp/in/artifacts/phase19-shadow-validation.tar.gz. Candidate requires broad normal staged regression before runtime commit."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "additional_local_roster_candidate",
+      "status": "passed",
+      "result": "Separate unstaged candidate caches roster-visible scalar values, not mutable input Dictionary, and skips redundant theme/text/reorder writes. Existing LOBBY_ROSTER_OK130 passed; check-only and scratch in-place name/ready edits, owner/local marker migration, remove/rejoin passed. Lightweight5x500 synchronous-call microbench ~0.054798→0.002186ms for2 rows and0.500952→0.016892ms for20; deferred layout excluded, overlapped correctness regression and is not a frame-time benchmark. Needs normal staged gate and serial microbench before separate commit. Existing shutdown-only3 ObjectDB/1 resource diagnostics retained, not hidden. This candidate is NOT part of the currently staged shadow-only commit/gate."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "additional_local_multiclient_tracer",
+      "status": "not_run",
+      "result": "Separate unstaged diagnostic extension accepts2/4/8/20 actual network clients and up to4 renderers, preserving default2, plus real roster/Ready/Start checks. Moving integration contract expanded to4 clients; Python compilation passed, execution pending behind serialized broad shadow gate. No production protocol change. Confirmed no connected native runners via list_runners; GPU/thermal acceptance still unavailable in this orb."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "initial_shadow_candidate_staged_delivery",
+      "status": "passed",
+      "result": "Normal staged gate passed UI_REGRESSION_OK60 suites/7 matrices/managed20 clients with5 rematches, then46 Python tests; PRE_COMMIT_OK treea81d82e21d97c7a9e55de5f2ab74b9262de253c2. Committed/pushed https://github.com/phucle297/idunno/commit/0d6720b32d6a30bc3d95a4ceebe2237442103d6f with skip-CI; not deployed/released. Follow-up review found shared helper also suppresses crate shadows; corrected separately below rather than claiming first candidate final."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "dynamic_shadow_guard_and_roster_followup",
+      "status": "passed",
+      "result": "Ancestor guard preserves rigid/animatable/character/breakable shadows, no crate-name exception. Public map regression against disposable previous source fails six prop grounding checks (exit1); current MAP_DETAIL_COLLISION_OK89 including5 rematches/map. Both geometry/collision hashes unchanged; current casters2233 Town/221 Harbor supersede2218/206. Godot import, LOBBY_ROSTER_OK132 including mutable edits/owner migration/identical rejoin and4 profiler tests including4 real moving clients pass. Serial5x500 roster-call medians2 rows0.049962→0.002036ms and20 rows0.519114→0.015434ms exclude deferred layout, not frame-rate proof. Requires current combined normal staged gate."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "guarded_render_rerun",
+      "status": "passed",
+      "result": "Serial actual2-renderer720p llvmpipe12 warmup/60 samples x3 guarded source passed strict logs/intact world:5999–6004 draws vs old8618–8627 (~30% lower),5.5461–5.5463m shadow-inclusive primitives. Six-window median p50=1000.493ms/p95=1079.257ms; source includes roster cache too, not isolated shadow timing or native/thermal verdict. All five final street/facade/overview720p and street/Harbor1080p captures rerendered/inspected. No production geometry/physics changes; tiny UP labels and subtle central pickup shadow noted, not new missing geometry. Outputs .scratch/phase19-shadow-guarded-after and .amp/in/artifacts/phase19-shadows. No release/deployment."
     }
   ],
   "changed_files": [
@@ -215,7 +245,10 @@
     "tools/profile_multiplayer_peer.gd.uid",
     "tests/test_multiplayer_profile.py",
     "game/main.gd",
-    "assets/manifest.json"
+    "assets/manifest.json",
+    "game/ui/lobby_roster.gd",
+    "tests/test_lobby_roster.gd",
+    "tests/test_map_detail_collision.gd"
   ],
   "blockers": [],
   "limits": [
@@ -228,7 +261,7 @@
     "Phase19 orb dry diagnostic uses editor engine/software renderer, short low-sample windows and independent X displays; exported/native GPU, same-desktop focus/minimize,1080p/hazard/movement/network-cost/15-minute controls remain open.",
     "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
   ],
-  "next_action": "Run the normal staged regression on the selective-small-detail-shadow candidate, fix any failures, then commit/push this verified unit before continuing remaining Phase19 controls and Phase20 sabotage; do not release unfinished scope.",
+  "next_action": "Run the normal staged gate and commit/push the verified dynamic-shadow/roster/multiclient follow-up, then continue remaining Phase19 controls before Phase20 sabotage and final release; do not release unfinished scope.",
   "source_delivery": {
     "revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
     "gated_tree": "4957dd3c9a3b5548e9b94b0f94d32dfd83461314",

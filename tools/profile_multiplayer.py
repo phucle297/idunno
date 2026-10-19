@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded local solo/two-client profiler; no public service or deployment access."""
+"""Bounded local solo/multiclient profiler; no public service or deployment access."""
 import argparse
 from contextlib import ExitStack
 import hashlib
@@ -58,7 +58,8 @@ def parser():
     result.add_argument("--pack", type=Path, help="Exported PCK measured with editor engine, NOT a release-template benchmark")
     result.add_argument("--output", required=True, type=Path, help="Fresh result directory")
     result.add_argument("--scenario", choices=("solo", "network"), default="network")
-    result.add_argument("--renderers", type=int, choices=(0, 1, 2), default=2)
+    result.add_argument("--clients", type=int, choices=(2, 4, 8, 20), default=2, help="Real network clients; solo always has one")
+    result.add_argument("--renderers", type=int, choices=(0, 1, 2, 3, 4), default=2)
     result.add_argument("--map", choices=("toy_town", "toy_harbor"), default="toy_town")
     result.add_argument("--width", type=int, default=1280)
     result.add_argument("--height", type=int, default=720)
@@ -79,8 +80,12 @@ def run(options):
         raise ValueError("Set --engine or GODOT_BIN to the Godot4.7.2 editor executable")
     if min(options.width, options.height, options.samples, options.repeats) <= 0 or min(options.warmup, options.fps) < 0 or options.timeout <= 0:
         raise ValueError("Positive resolution/samples/repeats/timeout and nonnegative warmup/FPS required")
-    if options.scenario == "solo" and options.renderers > 1:
-        raise ValueError("Solo has one client; use --renderers 0 or 1")
+    network = options.scenario == "network"
+    player_count = options.clients if network else 1
+    if options.renderers > player_count:
+        raise ValueError("Renderer count cannot exceed the real client count; solo needs --renderers 0 or 1")
+    if not network and options.clients != 2:
+        raise ValueError("--clients applies only to --scenario network")
     if options.moving_client and options.scenario != "network":
         raise ValueError("--moving-client requires --scenario network")
     if options.xvfb and not shutil.which("Xvfb"):
@@ -102,7 +107,8 @@ def run(options):
                     output=str(output), os=platform.platform(), cpu=platform.processor() or "unknown",
                     logical_cpus_reported=os.cpu_count(), monitor_refresh_hz="not collected",
                     render_scale="project default", LP_NUM_THREADS=os.environ.get("LP_NUM_THREADS", "unset"),
-                    transport="local direct-IP dedicated ENet; no HTTP allocator",
+                    transport="local direct-IP dedicated ENet; no HTTP allocator" if network else "offline solo",
+                    actual_player_count=player_count,
                     admission_rendering="disabled until sampling", audio="Dummy", moving_players=options.moving_client,
                     movement_scenario="stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
                     reconciliation_measurement="No profiler hook observes snapshot receipt/reconcile boundaries; pending snapshot age and correction distance are intentionally not inferred.",
@@ -181,8 +187,7 @@ def run(options):
             stack.callback(stop, peer)
             wait(lambda: bool(read(label)), "startup:" + label)
 
-        network = options.scenario == "network"
-        labels = ["client-0", "client-1"] if network else ["client-0"]
+        labels = [f"client-{index}" for index in range(player_count)]
         if network:
             launch("server", extra=(f"--server-port={port}",))
         for index, label in enumerate(labels):
@@ -194,7 +199,7 @@ def run(options):
         command(labels[0], "map", map_id=options.map)
         wait(lambda: all(read(label).get("map_id") == options.map for label in all_labels), "map agreement")
         if network:
-            wait(lambda: all(read(label).get("players") == 2 for label in all_labels), "roster agreement")
+            wait(lambda: all(read(label).get("players") == player_count for label in all_labels), "roster agreement")
             for label in labels:
                 command(label, "ready")
             wait(lambda: all(read(label).get("can_start") for label in all_labels), "Ready at every peer")
@@ -239,7 +244,7 @@ def run(options):
         errors = [line for line in lines if line.startswith(("SCRIPT ERROR:", "ERROR:"))]
         if errors or f"MULTIPLAYER_PROFILE_PEER_OK label={label}" not in lines:
             raise RuntimeError(f"Runtime/log gate failed for {label}; inspect {output}")
-    print(f"MULTIPLAYER_PROFILE_OK scenario={options.scenario} renderers={options.renderers} repeats={options.repeats} samples={options.samples} output={output}")
+    print(f"MULTIPLAYER_PROFILE_OK scenario={options.scenario} clients={player_count} renderers={options.renderers} repeats={options.repeats} samples={options.samples} output={output}")
 
 
 if __name__ == "__main__":

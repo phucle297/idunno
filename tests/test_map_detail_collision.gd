@@ -25,6 +25,12 @@ func _run() -> void:
 		await physics_frame
 		var count := get_nodes_in_group("solid_map_detail").size()
 		_expect(count > 0, "%s has solid environmental detail" % map_id)
+		for prop: Node in get_nodes_in_group("network_prop"):
+			var has_grounding_shadow := false
+			for visual: MeshInstance3D in prop.find_children("*", "MeshInstance3D", true, false):
+				if visual.mesh != null and visual.cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF:
+					has_grounding_shadow = true
+			_expect(has_grounding_shadow, "%s movable props retain a grounding shadow" % map_id)
 		for round_index in 5:
 			await _check_obstacles(main, player, map_id)
 			main.match_manager.apply_damage(1, 1000, "Fixture")

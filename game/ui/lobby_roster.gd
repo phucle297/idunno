@@ -4,6 +4,7 @@ const UITokens = preload("res://game/ui/ui_tokens.gd")
 
 var rows: Dictionary = {}
 var list: VBoxContainer
+var _presented: Dictionary = {}
 
 
 func _ready() -> void:
@@ -26,15 +27,22 @@ func present_players(players: Dictionary, local_peer_id: int, owner_peer_id: int
 		if not players.has(peer_id):
 			rows[peer_id].free()
 			rows.erase(peer_id)
+			_presented.erase(peer_id)
 	var peer_ids: Array = players.keys()
 	peer_ids.sort()
 	for index: int in peer_ids.size():
 		var peer_id: int = peer_ids[index]
+		# Live snapshots also change health/timers. Only roster-visible values
+		# invalidate a row; retaining the input Dictionary would miss in-place edits.
+		var presentation: Array = [String(players[peer_id].name), bool(players[peer_id].ready), peer_id == owner_peer_id, peer_id == local_peer_id, owner_label, index]
+		if _presented.get(peer_id, []) == presentation:
+			continue
 		if not rows.has(peer_id):
 			rows[peer_id] = _create_row()
 			list.add_child(rows[peer_id])
 		var row: PanelContainer = rows[peer_id]
-		list.move_child(row, index)
+		if row.get_index() != index:
+			list.move_child(row, index)
 		row.get_node("Content/Number").text = "%02d" % (index + 1)
 		var identity: VBoxContainer = row.get_node("Content/Identity")
 		identity.get_node("Name").text = String(players[peer_id].name)
@@ -50,6 +58,7 @@ func present_players(players: Dictionary, local_peer_id: int, owner_peer_id: int
 		badge.text = "READY" if ready else "WAITING"
 		badge.add_theme_color_override("font_color", UITokens.INK if ready else UITokens.SLATE)
 		badge.add_theme_stylebox_override("normal", badge.get_meta("ready_style" if ready else "waiting_style"))
+		_presented[peer_id] = presentation
 
 
 func _create_row() -> PanelContainer:

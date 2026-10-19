@@ -80,12 +80,12 @@ class MultiplayerProfileContract(unittest.TestCase):
                         self.assertGreater(rows[-1]["match_sequence"], rows[0]["match_sequence"])
                         self.assertGreater(rows[-1]["ack_sequence"], rows[0]["ack_sequence"])
 
-    def test_two_real_clients_moving_client_changes_authoritative_position(self):
+    def test_four_real_clients_moving_client_changes_authoritative_position(self):
         engine = self.engine
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "results"
             completed = subprocess.run([sys.executable, "tools/profile_multiplayer.py", "--engine", engine,
-                "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "90",
+                "--clients", "4", "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "90",
                 "--repeats", "1", "--fps", "60", "--timeout", "30", "--moving-client"],
                 cwd=ROOT, capture_output=True, text=True, timeout=120)
             diagnostics = completed.stdout + completed.stderr
@@ -93,6 +93,11 @@ class MultiplayerProfileContract(unittest.TestCase):
                 diagnostics += log.read_text()
             self.assertEqual(completed.returncode, 0, diagnostics)
             summaries = json.loads((output / "summary.json").read_text())
+            self.assertEqual(len(summaries), 5)
+            self.assertEqual(json.loads((output / "metadata.json").read_text())["actual_player_count"], 4)
+            for peer in ["client-0", "client-1", "client-2", "client-3", "server"]:
+                trace = json.loads((output / f"0-{peer}.json").read_text())
+                self.assertTrue(all(row["state"] == 1 and row["players"] == 4 for row in trace["samples"]))
             movement = summaries[-1]["moving_client_authoritative"]
             self.assertGreater(movement["authoritative_max_displacement_m"], .5)
             client = json.loads((output / "0-client-0.json").read_text())

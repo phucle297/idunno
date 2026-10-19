@@ -2,7 +2,8 @@
 
 Status: M19.1 in progress; owner authorized completing the remaining plan,
 committing/pushing each verified unit and releasing after integration.
-First selective-shadow candidate reduces draw work; staged regression pending.
+First selective-shadow candidate passed the broad staged gate and was pushed.
+Follow-up preserves dynamic-prop shadows and avoids unchanged roster writes.
 Sabotage implementation and redeployment have not started.
 Performance work precedes the Phase20 sabotage expansion.
 
@@ -261,6 +262,39 @@ ObjectDB instances/1–2 resources on both builds; no clean-shutdown claim. Stri
 profiler logs have no SCRIPT ERROR/ERROR. Map/weather/collapse/network staged
 regression is required before this candidate is committed as a runtime fix.
 Raw traces/fixtures/logs: `.amp/in/artifacts/phase19-shadow-validation.tar.gz`.
+
+### Shared-helper review and current follow-up
+
+The first candidate above also suppressed crate shadows because moving crates use
+the same detail builders. Its statement that dynamic presentation was unchanged
+was too broad. The follow-up walks ancestry and retains casting below rigid,
+animatable and character bodies and breakable structures. The public map regression
+fails on the previous candidate for all three crates on each map, then passes89
+checks with the guard. No gameplay physics changes. Both geometry/collision hashes
+above still match; current casters are2233 Town and221 Harbor.
+
+Serial guarded rerun: same12/60×3 two-renderer720p software-render conditions,
+draws5999–6004 and shadow-inclusive primitives5.5461–5.5463million. Median of six
+client-window p50s1000.493ms/p95s1079.257ms. This source also contains the roster
+cache below, so this is not an isolated shadow CPU/FPS attribution; draw work is
+still about30% below baseline, not a hardware smoothness or temperature verdict.
+All five final render views inspected again. Raw traces:
+`.scratch/phase19-shadow-guarded-after`.
+
+Roster presentation caches copied visible scalar values, not the mutable input
+Dictionary. Name/readiness edits, owner/local identity, owner label, sorted index,
+departure and identical-value rejoin invalidate correctly. Existing integration
+now passes132 checks. Serial5×500 synchronous-call medians (deferred layout
+excluded) for2 rows:0.049962→0.002036ms;20 rows:0.519114→0.015434ms. This is
+avoidable UI work, not proof that the roster caused in-match frame drops.
+
+Tracer now accepts2/4/8/20 real clients and up to4 renderers; default remains2.
+Four-client real input/authoritative movement and default two-client repeat
+contracts pass (4 tests total). It remains an editor-engine diagnostic.
+
+Previous candidate's normal staged gate passed60 suites,7 network matrices,
+managed20 clients/five rematches and46 Python tests, then committed/pushed.
+The current follow-up still needs its own normal staged gate before commit.
 
 ## M19.1 — Reproduce and attribute the cost
 
