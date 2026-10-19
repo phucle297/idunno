@@ -1,22 +1,26 @@
 # Disaster Party Play Guide
 
-## Current release — dedicated Home and Choose Map
+## Current release — Outfits, Original Music, Home and Choose Map
 
 The game opens on fullscreen Home with the equipped character. **PLAY SOLO**
 opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor and
 Normal/Hard, then **START SOLO**. **BACK** preserves choices. **MULTIPLAYER**
 opens the existing Create/Join room flow. **OUTFITS** previews and equips owned
-items before play. Four starter items are available offline; earned costumes still
+items before play. Eight starter items are available offline; earned costumes still
 require acknowledged ownership in a profile-enabled room. `--solo` explicitly
 starts an offline round for automation. Jump/fall poses are held and stopping no
 longer blends the face as an affine transform. These Phase14 fixes are included.
 
-2026-10-16: **Phase15 Home and Choose Map is deployed and published** from
-[3e2d938](https://github.com/phucle297/idunno/commit/3e2d93898aff300f5f86dc41b737473329423876).
-Download `DisasterParty-Windows-Internet-3e2d938.zip` from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-16-3e2d938);
-the [Phase15 archive](docs/old-docs/phase-15-home-and-map-selection/progress.json) records hashes and
-[successful deployment](https://github.com/phucle297/idunno/actions/runs/38910303214).
+2026-10-19: **Phase18 Outfits and Original Music is deployed and published** from
+[741ae34](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341).
+Download `DisasterParty-Windows-Internet-741ae34.zip` from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34);
+root [progress.json](progress.json) records current hashes, public smoke and
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/39184818543).
+Outfit cards now receive clicks correctly; offline Equip does not wait on profile
+HTTP. Chef, Firefighter, Sailor and Pilot are free starters. Original menu/gameplay
+music loops crossfade, duck under warnings and have persisted **Music Volume** in
+Settings (0% mutes music only). Twelve total outfits; cosmetics give no stat bonuses.
 This bundle uses the byte-exact deployed PCK. It includes144m Toy Town with19 enclosed
 buildings, furnished interiors, solid garage/furniture/curbs, connected service courts
 and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
@@ -24,7 +28,7 @@ and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Home offers solo preparation or dedicated-room create/join by ID;
-`https://server.permees.com` is built in. Extract the matching Phase15 bundle and run
+`https://server.permees.com` is built in. Extract the matching Phase18 bundle and run
 `DisasterParty.exe`; older bundles, including the historical
 [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
 are incompatible. Public two-client exact-PCK
@@ -940,10 +944,11 @@ Clients use Linux editor/source and share a host/upstream NAT: this does not
 pass Windows release, physically separate networks, all hazards/props,
 server-loss retry or physical audio/settings gates. No redeploy was needed.
 
-### Remaining release acceptance
+### Historical Phase8 release acceptance (not the current download)
 
-Current package is the [Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912)
+The historical package is the [Phase 8 + Solid Environment Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-e68a912)
 Windows ZIP at revision `e68a912a91c6dce339ddb254a559e68be26c53ce`.
+Use the current release at the top of this guide, not this old bundle.
 Run the EXE directly; no launcher is required. CI deployment and post-deploy
 public tickets/ENet/Ready/Start passed with
 two Linux Godot exact-PCK clients on one orb/upstream. EC2 room-count and
