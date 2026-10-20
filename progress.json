@@ -27,7 +27,7 @@
   },
   "current": {
     "phase": "phase_20_toybox_sabotage",
-    "milestone": "M20.1",
+    "milestone": "M20.2",
     "task": null
   },
   "phase": {
@@ -36,8 +36,8 @@
     "status": "in_progress",
     "checklist": "docs/checklists/phase-20-toybox-sabotage.md",
     "milestones": [
-      {"id": "M20.1", "title": "Action framework and three-item vertical slice", "status": "in_progress", "gate": "not_run"},
-      {"id": "M20.2", "title": "Staged toy arsenal", "status": "planned", "gate": "not_run"},
+      {"id": "M20.1", "title": "Action framework and three-item vertical slice", "status": "completed", "gate": "passed"},
+      {"id": "M20.2", "title": "Staged toy arsenal", "status": "in_progress", "gate": "not_run"},
       {"id": "M20.3", "title": "Bounded world chain reactions", "status": "planned", "gate": "not_run"},
       {"id": "M20.4", "title": "Chaos budget and regression", "status": "planned", "gate": "not_run"}
     ]
@@ -104,6 +104,15 @@
     {"date": "2026-10-20", "scope": "controlled_delayed_lossy_enet", "status": "passed", "result": "Disposable transparent UDP proxy, real Toy Town2-peer production ENet fixture:100ms each-way delay plus0..12ms jitter and deterministic1/97 datagram loss;2021 received,20 dropped,2001 forwarded. Both processes exit0, positive server/client markers and TOY_DELAYED_LOSSY_ENET_OK; pickup/finite charges/replicated impulse/5rematches/stale-round rejection/disconnect pass with no runtime errors. Initial proxy fixture wrongly supplied host-port to client, causing no transport; corrected command roles before successful run. This controlled case is not Internet/native feel acceptance."},
     {"date": "2026-10-20", "scope": "second_staged_gate", "status": "failed", "result": "Normal staged gate passed Room UI85 and earlier map/gameplay suites, then Session Lifecycle rejected its synthetic roster snapshot because it also omitted mandatory toys. Added real create_wire_snapshot data to tests/test_session_lifecycle.gd; focused SESSION_LIFECYCLE_OK51 passes. Audited every test _apply_match_snapshot caller: remaining fixtures use production _create_playable_snapshot or updated Room UI payloads. No production fallback or relaxed assertion. Commit remains absent; restage and rerun normal hook."}
   ],
+  "m20_1_delivery": {
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/86bdd771ae48b949bc376a84eeed6872ded2da96",
+    "pushed": true,
+    "released": false,
+    "deployed": false,
+    "gate": "Normal staged hook PRE_COMMIT_OK:63 Godot suites,8 network matrices (toy4/8/20 both maps),managed20 with5rematches and46 Python tests. Additional current-source2/4-peer delayed/lossy controls on both maps pass; four runs drop20/66/18/64datagrams with100ms each-way plus0..12ms jitter. SESSION_LIFECYCLE_OK51 after correcting mandatory synthetic payload. No hook bypass.",
+    "scope": "Automated first-slice exit only. Existing MatchManager prohibits admission during ACTIVE; late-state recovery covers already admitted clients and fresh replica wire apply, not new mid-round players. Native held-animation/audio/human feel remain unverified under continuation waiver. Intermediate skip-ci push intentionally does not deploy.",
+    "prevention": "Recorded repeated mandatory-snapshot fixture failure and real serializer fix in advancing-disaster-party skill."
+  },
   "blockers": [],
   "limits": [
     "Native Windows/GPU/audio/human feel and physical focus/minimize/vblank unverified; no owner-specific heat/FPS-resolution claim.",
@@ -113,7 +122,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Run the restaged normal full commit hook with both Room UI and Session Lifecycle synthetic toy wire fixed, then push verified M20.1 before advancing to M20.2.",
+  "next_action": "Implement and verify M20.2 batch2 charged boxing glove, returning frisbee and bounded water soaker before expanding the arsenal.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

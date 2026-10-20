@@ -1,6 +1,6 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1 in progress after the Phase19 automated baseline checkpoint. Owner explicitly wants
+Status: M20.1 automated checkpoint pushed; M20.2 batch2 next. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
@@ -47,9 +47,12 @@ Proposed first rules (tuning hypotheses, not tested balance):
   sabotage controller owns slot/use and effects rather than expanding main.gd into
   all weapon behaviors. Reuse powerup placement/eligibility patterns, not its buff
   semantics. Do not revive removed grabbing code as an implicit dependency.
-- [ ] Validate real2/4-player pickup races, use/cover/vertical boundary, latency,
-  disconnect, late join/state recovery, cross-weapon protection and5 rematches.
-  Held visuals must follow existing animation/ragdoll ownership with no hand jitter.
+- [x] Validate real2/4-player pickup races, use/cover/vertical boundary, controlled
+  latency/loss, disconnect, admitted-client state recovery, cross-weapon protection
+  and5 rematches. Existing ACTIVE admission remains prohibited by MatchManager;
+  fresh replica snapshot recovery does not claim mid-round player admission.
+  Held visuals follow stable body ownership, not jittering hands; native animation
+  feel remains unverified under the existing continuation waiver.
 
 Exit: three distinct working tools, readable miss/block/hit, no repeated control
 lock, network regressions absent and measured Phase19 headroom respected.
@@ -67,9 +70,15 @@ semantics are in [decisions](../decisions.md). No gamepad/touch claim.
 Maximum16-effect Rain/4client follow-up adds0.184ms authority, at most0.243ms paired
 apply and15.784% actual IPv4, within ceilings. Real capsule walking escapes the
 blast/windup and strafes pellets; no weapon HP damage. Normal staged-tree regression
-is being rerun after fixing synthetic Room UI snapshots to include mandatory toy
-wire state (focused85 passes). Controlled latency/loss/native animation feel are not
-inferred from localhost correctness or static captures.
+passed63 Godot suites/8 network matrices/managed20/46 Python tests after fixing
+mandatory synthetic toy payloads in Room UI85 and Session Lifecycle51. Current
+4/8/20 both-map toy matrix includes round-epoch hardening. Additional2/4 peers on
+both maps pass100ms each-way delay,0..12ms jitter and1/97datagram loss through a
+transparent UDP proxy, including5rematches. Pushed
+[first slice](https://github.com/phucle297/idunno/commit/86bdd771ae48b949bc376a84eeed6872ded2da96),
+not released/deployed. Internet/native animation feel are not inferred from these
+controlled checks or static captures. Audit every synthetic snapshot caller when
+adding a mandatory subsystem; use its real serializer, never weaken game validation.
 
 ## M20.2 — More toys through a few reusable interaction families
 

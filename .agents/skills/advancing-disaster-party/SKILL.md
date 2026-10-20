@@ -56,6 +56,20 @@ After every required milestone and gate passes:
 - For tween-duration assertions, pause the tween and use `custom_step` just before and after its specified duration. Wall-clock SceneTreeTimer waits intermittently disagree with rendered tween progress; do not lengthen waits or relax the duration to hide failures. Rerun headless and both rendered resolutions. Use a standalone review camera when SpringArm3D would overwrite its child's transform.
 - For native Windows throughput profiles, explicitly disable V-Sync in the profiler. Omitted `--max-fps` is not sufficient: refresh scheduling can produce false budget failures. Record resolution, renderer/GPU, player count, 120 warmup/600 samples, p95 and stable UI node identity; distinguish uncapped throughput from default-V-Sync frame pacing.
 
+## Mandatory Snapshot Fixture Recovery
+
+When adding a required match-snapshot subsystem, audit every test call to
+`_apply_match_snapshot` before the full staged gate. Prefer the production
+`_create_playable_snapshot`; synthetic roster/UI payloads must include the new
+subsystem's real serializer, not an empty placeholder. Missing toy wire data
+caused both Room UI admission and Session Lifecycle roster-pruning failures;
+adding `toy_sabotage.create_wire_snapshot()` restored focused85/51 checks.
+Keep production rejection strict. Check snapshot acceptance before advancing a
+join deadline: rejection can restore offline transport, making later ENet-only
+calls raise a script error and leave the test coroutine hung. Inspect the first
+runtime error, fix the fixture contract, run all affected callers, then rerun the
+normal staged gate without bypassing it or extending timeouts.
+
 ## Managed Ready/Start Fixture Recovery
 
 If a managed fixture stays in LOBBY after Start, inspect both authority and owner's `can_start` snapshots. `start_network_match` rejects locally until its snapshot says all peers are ready; an authority-only wait can race reliable snapshot delivery after lobby return. Proven in both profile-scale and equipment rematches: wait for `can_start` at authority and all real clients before invoking the owner's Start, then require ACTIVE at every peer. Keep real RPCs and strict runtime checks; do not force server Start, add sleeps, retry blindly or lengthen state timeouts. Cover five rematches and changed-peer-ID recovery.
