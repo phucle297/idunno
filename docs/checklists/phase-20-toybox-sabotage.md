@@ -85,7 +85,8 @@ adding a mandatory subsystem; use its real serializer, never weaken game validat
 Each later batch contains2–3 items, reviewed/profiled before the next; this roster
 is a prioritized design proposal, not a promise to ship everything simultaneously.
 
-Batch2 implemented; normal staged gate pending. Public-intent authority68,
+Batch2 [committed/pushed](https://github.com/phucle297/idunno/commit/ad70964f1a4627b0e7d518a911baf2151f683177);
+normal staged gate passes63Godot/8matrices/managed20/46Python. Public-intent authority68,
 presentation15/audio11/weather41 and final both-map2/4real-peer six-toy matrix
 pass. Eight gameplay states inspected at720p/1080p, charge text elevated above
 avatar and successful splash no longer mislabeled blocked. [Measured budgets](phase-20-batch2-metrics.json):
@@ -93,6 +94,14 @@ dry draws4204→4247 (+43),Rain4client authority+0.298ms,paired apply≤+0.287ms
 IPv4+17.466%. Initial water/footstep ownership error caused6156draws; root fix
 isolates temporary traction from retained weather, with a regression. All values
 remain orb incremental controls, not native capacity or human fun acceptance.
+
+Batch3 implemented locally: supported soap/spring/confetti placements, no added
+bodies or slots. Authority98/presentation15/audio11/weather41 pass; both-map2/4real-peer
+nine-toy finite-charge/replicated-lift matrix and5rematches pass. Eight720p/1080p
+gameplay states inspected, spring real-capsule rise0.684/0.774m and floor return.
+Same2/4both-map controlled delayed/lossy cases pass. [Stable max-slot metrics](phase-20-batch3-metrics.json):
+authority+0.268ms,paired apply≤+0.243ms,IPv4+20.71%,draws+43,within trial ceilings.
+Normal staged gate still pending; do not start batch4 yet.
 
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |

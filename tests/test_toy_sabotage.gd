@@ -25,6 +25,7 @@ func _run() -> void:
 	_test_sweep_and_effect_caps()
 	await _test_public_hits_and_cover()
 	await _test_second_batch()
+	await _test_placed_toys()
 	_test_round_dedupe()
 	world.free()
 	if failures.is_empty():
@@ -252,6 +253,93 @@ func _test_second_batch() -> void:
 	floor_body.free()
 	toys.reset()
 	toys._seen_sequences.clear()
+
+
+func _test_placed_toys() -> void:
+	var floor_body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20, 0.4, 20)
+	shape.shape = box
+	floor_body.add_child(shape)
+	floor_body.position.y = -0.2
+	world.add_child(floor_body)
+	await physics_frame
+	await physics_frame
+	var sequence := 0
+	for kind: String in ToySabotage.PLACEABLES:
+		toys.reset()
+		shoves.reset_state()
+		manager.elapsed_time = 20.0
+		players[1].reset_for_match(Vector3(0, 0.02, 0))
+		players[2].reset_for_match(Vector3(4, 0.02, 0))
+		toys.pickups.append({"id": 400, "kind": kind, "position": Vector3.ZERO, "expires": 99.0})
+		sequence += 1
+		_expect(toys.request_pickup(1, 1, sequence), "placed toy uses ordinary pickup: " + kind)
+		var wall := StaticBody3D.new()
+		var wall_shape := CollisionShape3D.new()
+		var wall_box := BoxShape3D.new()
+		wall_box.size = Vector3(3, 2.5, 0.1)
+		wall_shape.shape = wall_box
+		wall.add_child(wall_shape)
+		wall.position = Vector3(0, 1.0, -0.7)
+		world.add_child(wall)
+		await physics_frame
+		await physics_frame
+		sequence += 1
+		_expect(not toys.request_use(1, 1, sequence, Vector3.FORWARD) and int(toys.slots[1].ammo) == int(ToySabotage.KINDS[kind]), "cover prevents planting through an indoor wall without spending ammo: " + kind)
+		wall.free()
+		await physics_frame
+		players[1].global_position.y = 5.0
+		sequence += 1
+		_expect(not toys.request_use(1, 1, sequence, Vector3.FORWARD) and int(toys.slots[1].ammo) == int(ToySabotage.KINDS[kind]), "unsupported placement cannot consume charge: " + kind)
+		players[1].global_position.y = 0.02
+		sequence += 1
+		_expect(toys.request_use(1, 1, sequence, Vector3.FORWARD), "supported visible placement accepted: " + kind)
+		var effect: Dictionary = toys.effects[0]
+		var point: Vector3 = effect.position
+		_expect(ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot()).effects[0].kind == effect.kind, "placed state survives bounded wire: " + kind)
+		if kind == "soap_slick":
+			var weather := WeatherSurfaces.new()
+			world.add_child(weather)
+			weather.local_slickness = toys.sample_soap
+			_expect(bool(weather.movement_surface(point).ice) and not bool(weather.movement_surface(point + Vector3.RIGHT).ice), "soap is a local steering trap with a walk-around route")
+			_expect(not bool(weather.movement_surface(point + Vector3.UP).ice) and weather.sample_surface(point) == Vector2.ZERO, "jump clears soap and soap cannot create weather")
+			toys.tick(11.0, 1)
+			_expect(not bool(weather.movement_surface(point).ice), "soap expires without persistent traction")
+			weather.free()
+		elif kind == "spring_pad":
+			players[2].global_position = point + Vector3.UP * 0.02
+			toys.tick(0.4, 1)
+			_expect(players[2].velocity.y == 0.0, "spring cannot trigger before visible arming delay")
+			toys.tick(0.41, 1)
+			_expect(is_equal_approx(players[2].velocity.y, 5.4) and shoves.is_protected(2), "armed spring supplies capped lift and cross-toy recovery")
+			_expect(not toys.effects.any(func(value: Dictionary) -> bool: return value.kind == "spring_armed"), "spring is single-use, not a permanent launch loop")
+			var before: Vector3 = players[2].velocity
+			_expect(not shoves.apply_replicated_item_impulse(1, 2, int(shoves._last_item_sequence[2]), Vector3.FORWARD, 0.0, 8.0, 99.0) and players[2].velocity == before, "duplicate lift is rejected before moving the avatar")
+		else:
+			players[2].global_position = point + Vector3.RIGHT
+			toys.tick(0.7, 1)
+			_expect(players[2].velocity == Vector3.ZERO, "confetti respects full countdown")
+			toys.tick(0.71, 1)
+			_expect(players[2].velocity.x > 0.0, "warned confetti pushes a nearby exposed capsule")
+		toys.remove_player(1)
+		_expect(toys.effects.is_empty(), "departure clears placed effects and outcomes: " + kind)
+	players[1].reset_for_match(Vector3(0, 0.02, 0))
+	toys.pickups.append({"id": 500, "kind": "confetti_bomb", "position": Vector3.ZERO, "expires": 99.0})
+	sequence += 1
+	_expect(toys.request_pickup(1, 1, sequence), "collapse control acquires bomb through normal pickup")
+	sequence += 1
+	_expect(toys.request_use(1, 1, sequence, Vector3.FORWARD), "collapse control places bomb before removing ground")
+	floor_body.collision_layer = 0
+	await physics_frame
+	await physics_frame
+	toys.tick(0.1, 1)
+	_expect(toys.effects.is_empty(), "destroyed floor removes placed bomb before its countdown can shove across the void")
+	floor_body.free()
+	toys.reset()
+	toys._seen_sequences.clear()
+	shoves.reset_state()
 
 
 func _test_round_dedupe() -> void:

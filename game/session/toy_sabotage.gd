@@ -20,9 +20,10 @@ const HAMMER_RANGE := 2.2
 const PLAYER_RADIUS := 0.28
 const PLAYER_HEIGHT := 1.5
 const FEEDBACK_MAX_CHARS := 24
-const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6}
+const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1}
+const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb"]
 const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet"]
-const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip"]
+const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning"]
 const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
@@ -176,17 +177,25 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	if kind in ["squeaky_hammer", "boxing_glove"]:
 		# Melee telegraphs are planar; camera pitch must not silently narrow them.
 		direction = Vector3(direction.x, 0.0, direction.z).normalized()
-	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker"] and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
 		return _feedback(peer_id, "capacity")
-	if kind not in ["squeaky_hammer", "boxing_glove"] and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
+	if kind not in ["squeaky_hammer", "boxing_glove"] + PLACEABLES and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
+	var placement := {}
+	if kind in PLACEABLES:
+		placement = _placement(peer_id, direction)
+		if placement.is_empty():
+			return _feedback(peer_id, "aim")
 	slot.ammo -= 1
 	slot.cooldown_until = _manager.elapsed_time + (0.22 if kind == "foam_blaster" else 0.55)
 	slot.feedback = "used"
 	slots[peer_id] = slot
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
-	if kind in ["squeaky_hammer", "boxing_glove"]:
+	if kind in PLACEABLES:
+		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning"}[kind]
+		effects.append({"id": _next_id, "kind": placed_kind, "position": placement.position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": 1.4 if kind == "confetti_bomb" else 10.0, "owner": peer_id})
+	elif kind in ["squeaky_hammer", "boxing_glove"]:
 		effects.append({"id": _next_id, "kind": "glove_warning" if kind == "boxing_glove" else "hammer_warning", "position": origin, "direction": direction, "remaining": 0.65 if kind == "boxing_glove" else 0.35, "owner": peer_id})
 	else:
 		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet"}[kind]
@@ -200,6 +209,17 @@ func _tick_effects(delta: float) -> void:
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
 		var kind := String(effect.kind)
+		if kind in ["soap_patch", "spring_armed", "confetti_warning"]:
+			if not _supported(effect):
+				effects.remove_at(index)
+				_revision += 1
+				continue
+			if kind == "spring_armed" and float(effect.remaining) > 0.0 and float(effect.remaining) <= 9.2 and _spring_hit(effect):
+				effects.remove_at(index)
+				_revision += 1
+				continue
+			if kind == "confetti_warning" and float(effect.remaining) <= 0.0:
+				_blast(effect)
 		if kind in ["hammer_warning", "glove_warning"] and float(effect.remaining) <= 0.0:
 			_hammer_hit(effect)
 			effects.remove_at(index)
@@ -298,6 +318,54 @@ func _make_wet_strip(effect: Dictionary, point: Vector3) -> bool:
 	effect.direction = Vector3(effect.direction.x, 0, effect.direction.z).normalized()
 	effect.remaining = 6.0
 	return true
+
+
+func _placement(peer_id: int, direction: Vector3) -> Dictionary:
+	var actor := _players.get(peer_id) as PartyPlayer
+	var flat := Vector3(direction.x, 0, direction.z).normalized()
+	var from := actor.global_position + Vector3.UP * 1.05
+	var to := from + flat * 1.4
+	if not _world_clear(from, to, peer_id):
+		return {}
+	var hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(to, to + Vector3.DOWN * 2.0, 1, [actor.get_rid()]))
+	if hit.is_empty() or (hit.normal as Vector3).y < 0.7 or absf(float(hit.position.y) - actor.global_position.y) > 0.4:
+		return {}
+	return hit
+
+
+func _supported(effect: Dictionary) -> bool:
+	var actor := _players.get(int(effect.owner)) as PartyPlayer
+	if not is_instance_valid(actor) or not is_instance_valid(_manager) or not _manager.is_player_alive(int(effect.owner)):
+		return false
+	var point: Vector3 = effect.position
+	var hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.1, point + Vector3.DOWN * 0.15, 1, [actor.get_rid()]))
+	return not hit.is_empty() and (hit.normal as Vector3).y >= 0.7
+
+
+func _spring_hit(effect: Dictionary) -> bool:
+	for peer_id: int in _players:
+		if not _eligible(peer_id) or _shoves.is_protected(peer_id):
+			continue
+		var actor := _players[peer_id] as PartyPlayer
+		var offset: Vector3 = actor.global_position - effect.position
+		if absf(offset.y) <= 0.25 and Vector2(offset.x, offset.z).length() <= 0.65 and _world_clear(effect.position + Vector3.UP * 0.1, actor.global_position + Vector3.UP * 0.1, int(effect.owner)):
+			_item_sequences[peer_id] = int(_item_sequences.get(peer_id, 0)) + 1
+			if _shoves.apply_authoritative_item_impulse(int(effect.owner), peer_id, _item_sequences[peer_id], Vector3.FORWARD, 0.0, 8.0, 5.4):
+				_outcome("hit", effect.position, Vector3.FORWARD, int(effect.owner))
+				return true
+	return false
+
+
+func sample_soap(point: Vector3) -> float:
+	if not point.is_finite():
+		return 0.0
+	for effect in effects:
+		if effect.kind != "soap_patch" or absf(point.y - float(effect.position.y)) > 0.25:
+			continue
+		var offset: Vector3 = point - effect.position
+		if Vector2(offset.x, offset.z).length() <= 0.7 and _world_clear(effect.position + Vector3.UP * 0.08, point + Vector3.UP * 0.08, int(effect.owner)):
+			return clampf(float(effect.remaining), 0.0, 1.0)
+	return 0.0
 
 
 func sample_wet_strip(point: Vector3) -> float:
@@ -544,7 +612,7 @@ func _warning_reservations() -> int:
 
 # Fixed-width wire state avoids repeating dictionary keys on every match update.
 # Full dictionaries remain the local presentation/testing contract.
-const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip"]
+const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning"]
 const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity"]
 
 

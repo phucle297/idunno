@@ -143,6 +143,7 @@ func _ready() -> void:
 	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
 	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
 	weather_surfaces.local_wetness = toy_sabotage.sample_wet_strip
+	weather_surfaces.local_slickness = toy_sabotage.sample_soap
 	_build_sandbox()
 	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()

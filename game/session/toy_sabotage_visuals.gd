@@ -31,6 +31,8 @@ func _ready() -> void:
 		"hammer_arc": _hammer_arc_mesh(), "glove_arc": _hammer_arc_mesh(3.0, 0.94),
 		"glove": _glove_mesh(), "frisbee": _frisbee_mesh(), "frisbee_trail": _frisbee_trail_mesh(), "soaker": _soaker_mesh(),
 		"wet_strip": _wet_strip_mesh(),
+		"soap": _combined_mesh([_box_part(Vector3(0.5, 0.18, 0.32), Vector3.ZERO), _box_part(Vector3(0.27, 0.03, 0.16), Vector3(0, 0.1, 0))]),
+		"soap_patch": _trap_mesh(false), "spring": _trap_mesh(true), "confetti": _confetti_mesh(),
 	}
 	for index in MAX_PICKUPS:
 		_pickup_slots.append(_make_pickup("Pickup%d" % index))
@@ -145,6 +147,8 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 	var label := slot.get_node("Label") as Label3D
 	# Put the swing countdown ahead of its owner rather than inside the avatar.
 	label.position = Vector3(0, 1.4, -1.8) if kind in ["hammer_warning", "glove_warning"] else Vector3(0, 0.65, 0)
+	if kind in ["soap_patch", "spring_armed", "confetti_warning"]:
+		label.position = Vector3(0, 1.5, -0.7)
 	var remaining := maxf(0.0, float(effect.get("remaining", 0.0)))
 	mesh.material_override = _materials["amber"] if kind in ToySabotage.WARNINGS else _materials["impact"]
 	if kind == "blast_warning":
@@ -162,6 +166,17 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 		wet_material.albedo_color.a = 0.8 * clampf(remaining / 6.0, 0.0, 1.0)
 		mesh.material_override = wet_material
 		label.text = "WET  %.1fs" % remaining
+	elif kind == "soap_patch":
+		mesh.mesh = _meshes["soap_patch"]
+		mesh.material_override = _materials["hammer"]
+		label.text = "SOAP — SLIPPERY  %.1fs" % remaining
+	elif kind == "spring_armed":
+		mesh.mesh = _meshes["spring"]
+		mesh.material_override = _materials["plunger"]
+		label.text = "SPRING — ARMING %.1fs" % (remaining - 9.2) if remaining > 9.2 else "SPRING — READY"
+	elif kind == "confetti_warning":
+		mesh.mesh = _meshes["blast_ring"]
+		label.text = "CONFETTI — RUN  %.1fs" % remaining
 	else:
 		mesh.mesh = _meshes["small_ring"]
 		label.text = _name_for(kind)
@@ -245,6 +260,9 @@ func _mesh_for(kind: String) -> Mesh:
 		"boxing_glove": return _meshes["glove"]
 		"boomerang": return _meshes["frisbee"]
 		"water_soaker": return _meshes["soaker"]
+		"soap_slick": return _meshes["soap"]
+		"spring_pad": return _meshes["spring"]
+		"confetti_bomb": return _meshes["confetti"]
 		_: return _meshes["pellet"]
 
 
@@ -256,11 +274,13 @@ func _material_for(kind: String) -> Material:
 		"boxing_glove": return _materials["plunger"]
 		"boomerang": return _materials["hammer"]
 		"water_soaker": return _materials["foam"]
+		"soap_slick": return _materials["hammer"]
+		"spring_pad", "confetti_bomb": return _materials["plunger"]
 		_: return _materials["ink"]
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
 
 
 func _material(color: Color, transparent := false) -> StandardMaterial3D:
@@ -390,6 +410,26 @@ func _wet_strip_mesh() -> PlaneMesh:
 	var mesh := PlaneMesh.new()
 	mesh.size = Vector2(0.9, 1.8)
 	return mesh
+
+
+func _trap_mesh(spring: bool) -> ArrayMesh:
+	var parts: Array[Dictionary] = [_box_part(Vector3(1.3, 0.035, 1.3), Vector3(0, 0.02, 0))]
+	if spring:
+		# Raised chevrons remain visible without shadows or cosmetic rigidbodies.
+		for x in [-0.18, 0.18]:
+			parts.append(_box_part(Vector3(0.12, 0.08, 0.6), Vector3(x, 0.08, 0)))
+	else:
+		for x in [-0.35, 0.0, 0.35]:
+			parts.append(_box_part(Vector3(0.13, 0.04, 0.8), Vector3(x, 0.06, 0)))
+	return _combined_mesh(parts)
+
+
+func _confetti_mesh() -> ArrayMesh:
+	return _combined_mesh([
+		_box_part(Vector3(0.42, 0.42, 0.42), Vector3.ZERO),
+		_box_part(Vector3(0.12, 0.15, 0.12), Vector3(0, 0.27, 0)),
+		_box_part(Vector3(0.3, 0.06, 0.08), Vector3(0.12, 0.38, 0)),
+	])
 
 
 func _hammer_arc_mesh(radius := 2.2, cosine := 0.55) -> ArrayMesh:

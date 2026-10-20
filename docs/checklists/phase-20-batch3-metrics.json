@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-20",
+  "scope": "Batch3 soap/spring/confetti incremental orb trials, not native thermal/GPU/audio-device/Internet acceptance",
+  "load": "Four real ENet clients,six pickups/four held/four disc-water projectiles/six supported soap patches/six outcomes. Six persistent soap contacts exercise support and movement queries each frame. Same fixed wire/pools, no added rigidbodies; fixture reseeds outside Main timer. This is a stable maximum-slot control, not every transient spring/bomb combination.",
+  "cpu": {
+    "scenario": "Rain,moving input,4headless clients,120warmup/2x600frames. Alternate same received payload with empty/full toy subsection, restore actual state after paired replay.",
+    "baseline_authority_mean_ms": 0.502076458752515,
+    "load_authority_mean_ms": 0.7697681451612903,
+    "additional_authority_mean_ms": 0.2676916864087753,
+    "authority_calls_base_load": [497, 496],
+    "paired_client_counts": [193, 194, 193, 194],
+    "paired_client_additional_mean_ms": [0.24297927461139898, 0.21647938144329895, 0.1896321243523316, 0.21344845360824743],
+    "additional_ceiling_ms": 0.5,
+    "raw_reports": [".scratch/phase20-batch3-base", ".scratch/phase20-batch3-cpu"],
+    "qualification": "Paired replay measures incremental apply cost, not unchanged production throughput. No native FPS/headroom claim."
+  },
+  "render": {
+    "scenario": "Dry Toy Town,same gameplay camera,4real clients/1Compatibility llvmpipe renderer,5warmup/40samples",
+    "baseline_load_draws_median": [4204, 4247],
+    "additional_draws": 43,
+    "additional_draw_ceiling": 64,
+    "baseline_load_frame_interval_p50_ms": [499.0025, 524.1185],
+    "raw_reports": [".scratch/phase20-batch3-render-base", ".scratch/phase20-batch3-render-load"],
+    "qualification": "Software renderer far below native60FPS target. Incremental draw gate only, not native frame-rate or heat proof. Eight separate actual-public-placement states at720p/1080p inspected, including spring arming/ready."
+  },
+  "transport": {
+    "scenario": "Matched4real-client Rain/movement loopback IPv4 header lengths only; authority measurement gate about8.31s",
+    "baseline_load_authority_ipv4_Bps": [179138.33535417492, 216237.7133381139],
+    "additional_authority_percent": 20.70990439348992,
+    "additional_ceiling_percent": 25,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "raw_report": ".scratch/phase20-wire-batch3.json",
+    "qualification": "Not per-RPC attribution, Internet packet-loss measurement, Ethernet traffic or native throughput."
+  }
+}

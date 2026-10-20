@@ -230,6 +230,13 @@ a0.65s charge; step sideways. Boomerang Disc has2 throws on an outward/return
 lane: dodge twice, use cover; it never homes on its owner. Water Soaker has6
 short squirts with a light push and a small supported wet strip drying over6s;
 walk carefully or go around it. It does not create an electric hazard.
+Soap Slick has2 placements: a striped10s steering trap; jump or walk around it.
+Spring Pad has2 placements, arms for0.8s then pops one player upward and expires;
+it can also launch its owner, but never stacks lift. Confetti Bomb has1 placement
+and a1.4s countdown before its marked2.4m shove; run or use cover.
+Place these toys on level supported ground in front of you, not through walls
+or over gaps. They are non-solid, cannot seal doors, and disappear if their
+floor is destroyed or their owner is eliminated/leaves.
 Strafe, backstep, leave the marked area or use solid cover. Hits displace rather than directly remove health; falls and
 disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
 chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy

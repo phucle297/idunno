@@ -78,3 +78,28 @@ toy contribution into movement_surface fixes ownership; same40sample real-client
 render control returns4247draws (+43≤64). Keep the failed sample, regression for
 empty weather residuals after a toy-wet footstep, and measured limits. Temporary
 water beyond solid indoor dividers is rejected by an actual cover ray.
+
+### M20.2 batch3 — Supported, temporary traps
+
+Soap(2charges) changes local steering using the existing ice-braking path, not
+weather accumulation or random ragdoll; jump or walk around its0.7m radius.
+Spring(2charges) arms visibly for0.8s, launches one touching capsule at5.4m/s,
+then disappears. Lift sets velocity, never stacks, and shares1.5s cross-toy
+protection. Confetti(1charge) warns for1.4s before the existing2.4m covered
+radial shove, no direct HP damage. All placed effects share the six reservations
+and fixed record widths. Placement checks a clear forward line and nearby level
+floor before spending ammo; unsupported/dead-owner traps clear instead of floating
+after collapse. No solid obstruction can seal a door or refuge exit.
+
+Short labels above/ahead of the avatar replace long body-occluded instructions;
+striped soap, raised spring rails and confetti ring differ without relying only
+on color. Eight actual public-use720p/1080p states inspected; authority98,
+presentation15/audio11 pass. Real spring capsule rises0.684/0.774m then returns
+to ground. Final real2/4-peer both-map nine-toy matrix passes finite charges,
+production replicated lift and5rematches. Observe lift at production acceptance
+in a test-only subclass, not later velocity after independent-channel movement;
+wait on actual hammer protection expiry before the lift control. All four
+both-map2/4-peer controlled delay/loss cases pass. Stable maximum-slot trial
+passes+43draws,+0.268ms authority,+0.243ms paired apply,+20.71%IPv4; detailed
+phase-20-batch3-metrics.json qualifies these as incremental orb controls, not
+native thermal/FPS or human fun acceptance. Full staged gate remains pending.

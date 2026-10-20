@@ -114,11 +114,21 @@
     "prevention": "Recorded repeated mandatory-snapshot fixture failure and real serializer fix in advancing-disaster-party skill."
   },
   "m20_2_batch2": {
-    "status": "in_progress",
+    "status": "completed",
     "implementation": "Glove2 charges:0.65s visible narrow3m charge,5.5 horizontal impulse; disc2 charges:straight6m out/return,one victim per leg,cover/shared protection; soaker6 charges:short jet,1.8 impulse and supported0.9x1.8m wet strip fading/drying over6s. No extra bodies/pool slots. Replicated strip supplies actual WeatherSurfaces traction; no automatic electricity or roof rain.",
     "validation": "Current focused authority68/visual15/audio11/weather41 pass; final both-map real2/4-peer six-toy matrix/5rematches pass. Eight720p/1080p states inspected and recaptured:charge text now fully above avatar, successful wet ground splash no false BLOCKED label. Current Rain4client max16-effect authority0.5201to0.8181ms (+0.2979),paired apply at most+0.2863ms;IPv4+17.466%,0kernel drops/fragments. No native headroom inference.",
     "render_gate": {"status": "failed", "result": "Actual4clients/1llvmpipe renderer,dry40samples:4204to6156median draws (+1952 exceeds64),596.646to913.967ms p50. Trace: sample_surface merged toy strips, leave_footprint then persisted that temporary wetness into weather residuals, enabling overlay on whole town. Fix root ownership: temporary toy wetness belongs in movement_surface only, not precip accumulation/residuals. Preserve this failure and rerun same render control; no native FPS inference."},
     "render_recovery": {"status": "passed", "result": "Same actual4client/1renderer/dry40sample scenario after isolating toy traction:4247median draws (+43 below64);585.278ms p50 compared with596.646baseline. Regression68 checks toy-wet footprint cannot enter weather residual snapshot and indoor divider blocks traction. Full metrics docs/checklists/phase-20-batch2-metrics.json preserves failed/control/current evidence."},
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/ad70964f1a4627b0e7d518a911baf2151f683177",
+    "staged_gate": "PRE_COMMIT_OK:63 Godot suites,8 network matrices,managed20/5rematches,46Python tests. No bypass. Intermediate skip-ci push; not released/deployed.",
+    "pushed": true
+  },
+  "m20_2_batch3": {
+    "status": "in_progress",
+    "implementation": "Soap2charges: supported10s local0.7m-radius steering slick, jump/walk-around counter and no weather residual. Spring2charges: visible0.8s arming, single-use5.4m/s lift capped/set not stacked, same cross-item protection. Confetti1charge:1.4s radial2.4m warning with cover and no direct HP damage. All share six warning reservations, fixed wire sizes, no added bodies. Unsupported/through-cover placement rejects before ammo spend; lost floor/owner clears traps.",
+    "validation": "Authority98/presentation15/audio11/weather41 pass, including through-wall placement and destroyed-floor cancellation. Eight actual-public-placement captures720p/1080p inspected after elevating/shortening labels; source confetti card retains24px margin. Capsule spring rises0.684/0.774m and returns to floor0.120m. Final both-map2/4real-peer matrix passes nine finite-charge toys, production replicated lift, stale-round rejection/5rematches/disconnect. Same four cases through100ms each-way+0..12ms jitter/1-in97datagram loss pass,42/137/37/125datagrams dropped. No Internet/human acceptance inferred.",
+    "performance": "Stable max16effects/4clients control: authority0.5021to0.7698ms (+0.2677),paired client apply at most+0.2430ms; IPv4+20.7099%,0kernel drops/fragments; dry draws4204to4247 (+43). All within0.5ms/25%/64draw trials. Detailed docs/checklists/phase-20-batch3-metrics.json. Normal staged gate pending; no native capacity claim.",
+    "fixture_recovery": "Initial lift assertion sampled velocity after independently ordered movement snapshots; observe production acceptance via test-only ShoveManager subclass and same-channel barrier instead. Four-peer control also ran before earlier hammer's real-wall-time protection expired; wait on actual protection state, not accelerated match time. Positive server5.400m/s and every replica acceptance now pass. Initial failed fixture cascaded into absent slot; abort failed catalog control before rematches, no runtime contract relaxation.",
     "pushed": false
   },
   "blockers": [],
@@ -130,7 +140,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Run normal staged commit gate for reviewed/profiled M20.2 batch2, push on pass, then implement batch3 traps within unchanged caps.",
+  "next_action": "Complete current batch3 matched performance measurements and normal staged gate; commit/push on pass before batch4.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

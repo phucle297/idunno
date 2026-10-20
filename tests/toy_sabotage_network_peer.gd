@@ -9,6 +9,16 @@ var player_count := 2
 var map_id := "toy_town"
 
 
+class ObservedShoves extends ShoveManager:
+	var applied_lifts := {}
+
+	func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0, lift: float = 0.0) -> bool:
+		var accepted := super.apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap, lift)
+		if accepted and lift > 0.0 and is_equal_approx((_players[victim_id] as PartyPlayer).velocity.y, 5.4):
+			applied_lifts[victim_id] = sequence
+		return accepted
+
+
 class FixtureMain extends "res://game/main.gd":
 	var fixture_acks: Dictionary = {}
 	var departure_allowed := false
@@ -50,6 +60,14 @@ class FixtureMain extends "res://game/main.gd":
 		fixture_ack.rpc_id(1, "hammer_impulse", int(shoves._last_item_sequence.get(victim_id, 0)) > 0)
 
 	@rpc("authority", "call_remote", "reliable")
+	func fixture_observe_lift(victim_id: int, sequence: int) -> void:
+		var shoves := get_node("ShoveManager") as ObservedShoves
+		# This barrier follows the production lift on the same ordered channel.
+		# Record at acceptance: independent movement snapshots can replace velocity
+		# before this barrier, so querying the later velocity tests a channel race.
+		fixture_ack.rpc_id(1, "spring_lift", sequence > 0 and int(shoves.applied_lifts.get(victim_id, 0)) == sequence)
+
+	@rpc("authority", "call_remote", "reliable")
 	func fixture_verify_old_round(victim_id: int) -> void:
 		# Same ordered channel as the preceding production impulse, not a timer
 		# or a different-channel acknowledgement that could race its delivery.
@@ -84,6 +102,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	main.set_script(FixtureMain)
+	main.get_node("ShoveManager").set_script(ObservedShoves)
 	main.name = "Main"
 	root.add_child(main)
 	if role == "server":
@@ -209,15 +228,35 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and int(shoves._last_item_sequence.get(host_id, 0)) > 0
 	main.fixture_observe_impulse.rpc(host_id)
 	passed = passed and await main.wait_acks("hammer_impulse", player_count - 1, deadline)
-	for kind: String in ["boxing_glove", "boomerang", "water_soaker"]:
+	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb"]:
 		main.toy_sabotage.effects.clear()
 		passed = passed and await _give_remote(main, remote_id, kind, 710 + ToySabotage.KINDS.keys().find(kind), pad, deadline, kind + "_pickup")
 		for ammo in range(int(ToySabotage.KINDS[kind]) - 1, -1, -1):
 			passed = passed and await _use_remote(main, remote_id, kind, ammo, deadline, "%s_%d" % [kind, ammo])
+			if kind == "spring_pad" and ammo == 1:
+				var springs: Array = main.toy_sabotage.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "spring_armed")
+				if springs.is_empty():
+					passed = false
+				else:
+					# Earlier hammer protection uses wall time, not the fixture's
+					# accelerated match clock; observe expiry before the lift control.
+					while shoves.is_protected(host_id) and Time.get_ticks_msec() < deadline:
+						await process_frame
+					_place(main, host_id, springs[0].position)
+					main.toy_sabotage.tick(0.81, 1)
+					var sequence := int(shoves._last_item_sequence.get(host_id, 0))
+					print("TOY_ENET_LIFT_CONTROL sequence=%d velocity_y=%.3f" % [sequence, (main._player_nodes[host_id] as PartyPlayer).velocity.y])
+					main.fixture_observe_lift.rpc(host_id, sequence)
+					passed = passed and await main.wait_acks("spring_lift", player_count - 1, deadline)
+					_place(main, host_id, pad + Vector3(8, 0, 0))
 			main.toy_sabotage.tick(4.0, 1)
 			main.toy_sabotage.tick(4.0, 1)
 	# Five production rematches require ordinary ready snapshots, then prove the
 	# client-local request sequence is reset by acquiring and firing every round.
+	if not passed:
+		push_error("Toy catalog or replicated spring acceptance failed before rematch")
+		quit(1)
+		return
 	for cycle in 5:
 		for peer_id in main.get_network_player_ids():
 			main.match_manager.apply_damage(peer_id, 1000.0, "toy fixture")
@@ -253,7 +292,7 @@ func _server(main: FixtureMain) -> void:
 				await process_frame
 	passed = passed and not main.get_network_player_ids().has(remote_id) and not main.toy_sabotage.slots.has(remote_id)
 	if passed:
-		print("TOY_SABOTAGE_ENET_SERVER_OK map=%s players=%d competition=single_winner charges=3,1,2 snapshot_observer=passed malformed_duplicate_stale=passed rematches=5 disconnect_cleanup=passed" % [map_id, player_count])
+		print("TOY_SABOTAGE_ENET_SERVER_OK map=%s players=%d competition=single_winner finite_charge_catalog=9 spring_lift=replicated snapshot_observer=passed malformed_duplicate_stale=passed rematches=5 disconnect_cleanup=passed" % [map_id, player_count])
 	else:
 		push_error("Toy sabotage ENet server failed map=%s players=%d round=%d slots=%s" % [map_id, player_count, main.toy_sabotage.round_sequence, main.toy_sabotage.slots])
 	quit(0 if passed else 1)

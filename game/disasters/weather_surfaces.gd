@@ -19,6 +19,7 @@ const SurfaceShader = preload("res://game/disasters/weather_surface.gdshader")
 
 var support_height: Callable
 var local_wetness: Callable # Replicated toy traction only; never retained weather.
+var local_slickness: Callable # Soap affects steering, not snow or electrical state.
 var precipitation := ""
 var _extent := 72.0
 var _surface := Vector2.ZERO
@@ -233,9 +234,10 @@ func movement_surface(point: Vector3) -> Dictionary:
 	# leave_footprint/preserve_cover_region and enable overlays on the whole map.
 	if point.is_finite() and local_wetness.is_valid():
 		surface.y = maxf(surface.y, clampf(float(local_wetness.call(point)), 0.0, 1.0))
+	var slick := point.is_finite() and local_slickness.is_valid() and float(local_slickness.call(point)) > 0.3
 	return {"wet": surface.y, "snow": surface.x,
 		"deep_snow": surface.x >= DEEP_SNOW_THRESHOLD,
-		"ice": surface.x >= ICE_SNOW_THRESHOLD and surface.x < DEEP_SNOW_THRESHOLD and surface.y >= 0.15,
+		"ice": slick or (surface.x >= ICE_SNOW_THRESHOLD and surface.x < DEEP_SNOW_THRESHOLD and surface.y >= 0.15),
 		"puddle": _puddle_at(point) >= 0 and surface.y >= 0.35 and surface.x < ICE_SNOW_THRESHOLD}
 
 

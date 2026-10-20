@@ -198,9 +198,9 @@ func get_last_shove_sequence(peer_id: int) -> int:
 
 # Toy effects use their own monotonically increasing channel so they cannot
 # collide with shove sequencing, while sharing this manager's protection window
-# and bounded horizontal impulse policy.
-func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0) -> bool:
-	if sequence <= int(_last_item_sequence.get(victim_id, 0)):
+# and bounded impulse policy. Springs set, rather than stack, upward velocity.
+func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0, lift: float = 0.0) -> bool:
+	if sequence <= int(_last_item_sequence.get(victim_id, 0)) or not direction.is_finite() or not is_finite(strength) or not is_finite(speed_cap) or not is_finite(lift):
 		return false
 	var victim := _valid_player(victim_id)
 	if not is_instance_valid(victim) or direction.length_squared() < 0.0001:
@@ -212,6 +212,8 @@ func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int,
 	horizontal = (horizontal + direction.normalized() * clampf(strength, 0.0, 6.0)).limit_length(clampf(speed_cap, 0.0, 8.0))
 	victim.velocity.x = horizontal.x
 	victim.velocity.z = horizontal.z
+	if lift > 0.0:
+		victim.velocity.y = clampf(lift, 0.0, 5.4)
 	_last_item_sequence[victim_id] = sequence
 	_protection_until[victim_id] = maxf(float(_protection_until.get(victim_id, 0.0)), _now() + 1.5)
 	return true
@@ -219,22 +221,22 @@ func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int,
 
 # Only server-owned gameplay modules may call this acceptance path. Remote
 # clients receive the same victim sequence reliably and still dedupe locally.
-func apply_authoritative_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0) -> bool:
+func apply_authoritative_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0, lift: float = 0.0) -> bool:
 	if not _can_mutate():
 		return false
-	var applied := apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap)
+	var applied := apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap, lift)
 	if applied and multiplayer.has_multiplayer_peer():
-		_replicate_item_impulse.rpc(owner_id, victim_id, sequence, direction, strength, speed_cap, _item_round_sequence)
+		_replicate_item_impulse.rpc(owner_id, victim_id, sequence, direction, strength, speed_cap, _item_round_sequence, lift)
 	return applied
 
 
 @rpc("authority", "call_remote", "reliable")
-func _replicate_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float, round_sequence: int) -> void:
+func _replicate_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float, round_sequence: int, lift: float = 0.0) -> void:
 	# Match snapshots and reliable item events use different ENet channels.
 	# Monotonic IDs alone cannot reject a previously unseen late old-round hit.
 	if round_sequence != _item_round_sequence:
 		return
-	apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap)
+	apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap, lift)
 
 
 func get_last_shove_origin(peer_id: int) -> Vector3:
