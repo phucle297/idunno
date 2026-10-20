@@ -1,6 +1,6 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1 automated checkpoint pushed; M20.2 batch2 next. Owner explicitly wants
+Status: M20.1 and M20.2 batches2/3 pushed; batch4 validation in progress. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
@@ -95,13 +95,22 @@ IPv4+17.466%. Initial water/footstep ownership error caused6156draws; root fix
 isolates temporary traction from retained weather, with a regression. All values
 remain orb incremental controls, not native capacity or human fun acceptance.
 
-Batch3 implemented locally: supported soap/spring/confetti placements, no added
+Batch3 [committed/pushed](https://github.com/phucle297/idunno/commit/2f0059d2807e87f748f317ee0c02433f385b02b9): supported soap/spring/confetti placements, no added
 bodies or slots. Authority98/presentation15/audio11/weather41 pass; both-map2/4real-peer
 nine-toy finite-charge/replicated-lift matrix and5rematches pass. Eight720p/1080p
 gameplay states inspected, spring real-capsule rise0.684/0.774m and floor return.
 Same2/4both-map controlled delayed/lossy cases pass. [Stable max-slot metrics](phase-20-batch3-metrics.json):
 authority+0.268ms,paired apply≤+0.243ms,IPv4+20.71%,draws+43,within trial ceilings.
-Normal staged gate still pending; do not start batch4 yet.
+Normal full staged gate PRE_COMMIT_OK, including46Python tests; not deployed.
+
+Batch4 foam/fan/decoy implemented locally, same pools and no added bodies.
+Authority144/presentation15/audio11 pass. Real2/4both-map twelve-toy finite-charge,
+replicated effects, recovery after70knocked-down requests and5rematches pass.
+Twelve public-use720p/1080p captures inspected; foam preview/active/pop, fan arm/active
+and moving mechanical decoy. Larger/elevated labels and coral arming cone improve
+readability. [Matched trial budgets](phase-20-batch4-metrics.json): authority+0.408ms,
+paired apply≤+0.317ms,draws+43,IPv4+17.50%; not native capacity. Normal staged gate
+pending; do not start batch5 until it passes and batch4 is committed/pushed.
 
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |
@@ -111,7 +120,7 @@ Normal staged gate still pending; do not start batch4 yet.
 | 3 | Banana peel / soap slick: short traction trap | Large readable patch; walk/jump around; no random full ragdoll lottery |
 | 3 | Spring pad: pop self or opponent upward | Marked plate and armed delay; avoid/jump, capped safe launch apex |
 | 3 | Wind-up confetti bomb: timed radial shove | Loud countdown + marker; run/cover, bounded blast and no through-wall impulse |
-| 4 | Sticky foam launcher: temporary lane obstruction | Expanding preview; break/expire/go around; never seal sole refuge exit |
+| 4 | Sticky foam launcher: temporary firing-lane screen | Explicit safety revision: blocks toy shots, players walk through unchanged; preview/pop/expire, no physical route denial or slowing |
 | 4 | Toy fan: short directional gust | Blade/corridor cue; cross behind/cover, one bounded impulse per pulse |
 | 4 | Decoy toy runner: distraction, not fake lethal HUD | Distinct toy silhouette; short life, does not forge global disaster warnings |
 | 5 | Magnet gadget: attracts loose props, not players | Visible tether/radius; break LOS, capped speed/mass and no physics pile explosion |

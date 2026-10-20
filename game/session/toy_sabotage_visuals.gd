@@ -33,6 +33,9 @@ func _ready() -> void:
 		"wet_strip": _wet_strip_mesh(),
 		"soap": _combined_mesh([_box_part(Vector3(0.5, 0.18, 0.32), Vector3.ZERO), _box_part(Vector3(0.27, 0.03, 0.16), Vector3(0, 0.1, 0))]),
 		"soap_patch": _trap_mesh(false), "spring": _trap_mesh(true), "confetti": _confetti_mesh(),
+		"foam_launcher": _foam_launcher_mesh(), "toy_fan": _toy_fan_mesh(), "decoy_runner": _decoy_runner_mesh(),
+		"foam_seed": _foam_seed_mesh(), "foam_preview": _foam_preview_mesh(), "foam_screen": _foam_screen_mesh(),
+		"fan_cone": _fan_cone_mesh(),
 	}
 	for index in MAX_PICKUPS:
 		_pickup_slots.append(_make_pickup("Pickup%d" % index))
@@ -103,7 +106,7 @@ func _present_projectiles(projectiles: Array[Dictionary]) -> void:
 		slot.global_position = effect.get("position", Vector3.ZERO)
 		slot.basis = _basis_for_direction(effect.get("direction", Vector3.FORWARD))
 		var mesh := slot.get_node("Mesh") as MeshInstance3D
-		mesh.mesh = _meshes["frisbee_trail"] if kind in ["frisbee_out", "frisbee_back"] else (_meshes["rocket"] if kind == "rocket" else _meshes["pellet"])
+		mesh.mesh = _meshes["frisbee_trail"] if kind in ["frisbee_out", "frisbee_back"] else (_meshes["rocket"] if kind == "rocket" else (_meshes["foam_seed"] if kind == "foam_seed" else _meshes["pellet"]))
 		mesh.material_override = _materials["hammer"] if kind in ["frisbee_out", "frisbee_back"] else (_materials["plunger"] if kind == "rocket" else _materials["foam"])
 
 
@@ -145,6 +148,8 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 		slot.position.y -= 1.05
 	var mesh := slot.get_node("Mesh") as MeshInstance3D
 	var label := slot.get_node("Label") as Label3D
+	mesh.position = Vector3.ZERO
+	label.font_size = 28 if kind in ["foam_screen", "fan_gust", "decoy_running"] else 24
 	# Put the swing countdown ahead of its owner rather than inside the avatar.
 	label.position = Vector3(0, 1.4, -1.8) if kind in ["hammer_warning", "glove_warning"] else Vector3(0, 0.65, 0)
 	if kind in ["soap_patch", "spring_armed", "confetti_warning"]:
@@ -177,6 +182,24 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 	elif kind == "confetti_warning":
 		mesh.mesh = _meshes["blast_ring"]
 		label.text = "CONFETTI — RUN  %.1fs" % remaining
+	elif kind == "foam_screen":
+		var preview := remaining > 6.0
+		mesh.mesh = _meshes["foam_preview"] if preview else _meshes["foam_screen"]
+		mesh.material_override = _materials["amber"] if preview else _materials["foam"]
+		mesh.position.y = 0.65
+		label.position = Vector3(0, 1.85, -0.4)
+		label.text = "FOAM — ARMING %.1fs" % (remaining - 6.0) if preview else "FOAM %.1fs\nWALK THROUGH / SHOOT TO POP" % remaining
+	elif kind == "fan_gust":
+		var arming := remaining > 4.0
+		mesh.mesh = _meshes["fan_cone"]
+		mesh.material_override = _materials["plunger"] if arming else _materials["foam"]
+		label.position = Vector3(0, 1.3, -1.1)
+		label.text = "FAN — ARMING %.1fs" % (remaining - 4.0) if arming else "FAN %.1fs — COVER / GO BEHIND" % remaining
+	elif kind == "decoy_running":
+		mesh.mesh = _meshes["decoy_runner"]
+		mesh.material_override = _materials["plunger"]
+		label.position = Vector3(0, 1.62, 0)
+		label.text = "TOY DECOY  %.1fs" % remaining
 	else:
 		mesh.mesh = _meshes["small_ring"]
 		label.text = _name_for(kind)
@@ -263,6 +286,9 @@ func _mesh_for(kind: String) -> Mesh:
 		"soap_slick": return _meshes["soap"]
 		"spring_pad": return _meshes["spring"]
 		"confetti_bomb": return _meshes["confetti"]
+		"foam_launcher": return _meshes["foam_launcher"]
+		"toy_fan": return _meshes["toy_fan"]
+		"decoy_runner": return _meshes["decoy_runner"]
 		_: return _meshes["pellet"]
 
 
@@ -276,11 +302,14 @@ func _material_for(kind: String) -> Material:
 		"water_soaker": return _materials["foam"]
 		"soap_slick": return _materials["hammer"]
 		"spring_pad", "confetti_bomb": return _materials["plunger"]
+		"foam_launcher": return _materials["foam"]
+		"toy_fan": return _materials["hammer"]
+		"decoy_runner": return _materials["plunger"]
 		_: return _materials["ink"]
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "foam_seed": "FOAM SEED", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
 
 
 func _material(color: Color, transparent := false) -> StandardMaterial3D:
@@ -429,6 +458,66 @@ func _confetti_mesh() -> ArrayMesh:
 		_box_part(Vector3(0.42, 0.42, 0.42), Vector3.ZERO),
 		_box_part(Vector3(0.12, 0.15, 0.12), Vector3(0, 0.27, 0)),
 		_box_part(Vector3(0.3, 0.06, 0.08), Vector3(0.12, 0.38, 0)),
+	])
+
+
+func _foam_launcher_mesh() -> ArrayMesh:
+	return _combined_mesh([
+		_box_part(Vector3(0.34, 0.28, 0.62), Vector3.ZERO),
+		_box_part(Vector3(0.42, 0.2, 0.22), Vector3(0, 0.02, -0.35)),
+		_box_part(Vector3(0.14, 0.34, 0.17), Vector3(0, -0.24, 0.12)),
+	])
+
+
+func _toy_fan_mesh() -> ArrayMesh:
+	return _combined_mesh([
+		_box_part(Vector3(0.42, 0.12, 0.18), Vector3(0, -0.22, 0.08)),
+		_box_part(Vector3(0.14, 0.48, 0.14), Vector3(0, 0.05, 0)),
+		_box_part(Vector3(0.62, 0.62, 0.1), Vector3(0, 0.26, -0.08)),
+	])
+
+
+func _decoy_runner_mesh() -> ArrayMesh:
+	var head := SphereMesh.new()
+	head.radius = 0.22
+	head.height = 0.42
+	head.radial_segments = 8
+	head.rings = 4
+	return _combined_mesh([
+		{"mesh": head, "transform": Transform3D(Basis.IDENTITY, Vector3(0, 0.98, 0))},
+		_box_part(Vector3(0.42, 0.52, 0.24), Vector3(0, 0.62, 0)),
+		_box_part(Vector3(0.13, 0.48, 0.13), Vector3(-0.14, 0.22, 0.05)),
+		_box_part(Vector3(0.13, 0.48, 0.13), Vector3(0.14, 0.22, -0.05)),
+	])
+
+
+func _foam_seed_mesh() -> ArrayMesh:
+	return _combined_mesh([
+		{"mesh": _pellet_mesh(), "transform": Transform3D.IDENTITY},
+		_box_part(Vector3(0.28, 0.05, 0.28), Vector3(0, 0, 0.06)),
+	])
+
+
+func _foam_preview_mesh() -> ArrayMesh:
+	var parts: Array[Dictionary] = []
+	for x in [-0.48, 0.0, 0.48]:
+		parts.append(_box_part(Vector3(0.22, 1.3, 0.06), Vector3(x, 0, 0)))
+	return _combined_mesh(parts)
+
+
+func _foam_screen_mesh() -> BoxMesh:
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(1.2, 1.3, 0.18)
+	mesh.material = _materials["foam"]
+	return mesh
+
+
+func _fan_cone_mesh() -> ArrayMesh:
+	# Floor arrows preserve visibility of avatars/other warnings in the lane.
+	# The merged fan and arc still take a single pooled mesh/draw.
+	return _combined_mesh([
+		{"mesh": _hammer_arc_mesh(3.5, 0.9), "transform": Transform3D.IDENTITY},
+		{"mesh": _toy_fan_mesh(), "transform": Transform3D(Basis.IDENTITY, Vector3(0, 0.25, 0))},
 	])
 
 

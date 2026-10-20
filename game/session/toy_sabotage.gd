@@ -20,10 +20,10 @@ const HAMMER_RANGE := 2.2
 const PLAYER_RADIUS := 0.28
 const PLAYER_HEIGHT := 1.5
 const FEEDBACK_MAX_CHARS := 24
-const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1}
-const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb"]
-const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet"]
-const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning"]
+const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1, "foam_launcher": 2, "toy_fan": 1, "decoy_runner": 1}
+const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb", "toy_fan", "decoy_runner"]
+const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet", "foam_seed"]
+const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running"]
 const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
@@ -177,7 +177,7 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	if kind in ["squeaky_hammer", "boxing_glove"]:
 		# Melee telegraphs are planar; camera pitch must not silently narrow them.
 		direction = Vector3(direction.x, 0.0, direction.z).normalized()
-	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
 		return _feedback(peer_id, "capacity")
 	if kind not in ["squeaky_hammer", "boxing_glove"] + PLACEABLES and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
@@ -193,13 +193,15 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
 	if kind in PLACEABLES:
-		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning"}[kind]
-		effects.append({"id": _next_id, "kind": placed_kind, "position": placement.position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": 1.4 if kind == "confetti_bomb" else 10.0, "owner": peer_id})
+		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning", "toy_fan": "fan_gust", "decoy_runner": "decoy_running"}[kind]
+		var lifetime: float = {"confetti_bomb": 1.4, "toy_fan": 4.8, "decoy_runner": 6.0}.get(kind, 10.0)
+		effects.append({"id": _next_id, "kind": placed_kind, "position": placement.position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": lifetime, "owner": peer_id})
 	elif kind in ["squeaky_hammer", "boxing_glove"]:
 		effects.append({"id": _next_id, "kind": "glove_warning" if kind == "boxing_glove" else "hammer_warning", "position": origin, "direction": direction, "remaining": 0.65 if kind == "boxing_glove" else 0.35, "owner": peer_id})
 	else:
-		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet"}[kind]
-		effects.append({"id": _next_id, "kind": effect_kind, "position": origin, "direction": direction, "remaining": 1.0 if kind == "boomerang" else (0.65 if kind == "water_soaker" else 3.0), "owner": peer_id})
+		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet", "foam_launcher": "foam_seed"}[kind]
+		var lifetime: float = {"boomerang": 1.0, "water_soaker": 0.65, "foam_launcher": 1.2}.get(kind, 3.0)
+		effects.append({"id": _next_id, "kind": effect_kind, "position": origin, "direction": direction, "remaining": lifetime, "owner": peer_id})
 	_revision += 1
 	return true
 
@@ -209,7 +211,7 @@ func _tick_effects(delta: float) -> void:
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
 		var kind := String(effect.kind)
-		if kind in ["soap_patch", "spring_armed", "confetti_warning"]:
+		if kind in ["soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running"]:
 			if not _supported(effect):
 				effects.remove_at(index)
 				_revision += 1
@@ -220,6 +222,13 @@ func _tick_effects(delta: float) -> void:
 				continue
 			if kind == "confetti_warning" and float(effect.remaining) <= 0.0:
 				_blast(effect)
+			if kind == "fan_gust" and float(effect.remaining) > 0.0 and float(effect.remaining) <= 4.0:
+				var pulse := floori((4.0 - float(effect.remaining)) / 0.8)
+				var previous_pulse := floori((4.0 - float(effect.remaining) - delta) / 0.8)
+				if pulse > previous_pulse:
+					_fan_pulse(effect)
+			if kind == "decoy_running" and float(effect.remaining) > 0.0:
+				_move_decoy(effect, delta)
 		if kind in ["hammer_warning", "glove_warning"] and float(effect.remaining) <= 0.0:
 			_hammer_hit(effect)
 			effects.remove_at(index)
@@ -233,24 +242,26 @@ func _tick_effects(delta: float) -> void:
 		if kind in ["frisbee_out", "frisbee_back"]:
 			_tick_frisbee(index, effect, delta)
 			continue
-		if kind in ["pellet", "rocket", "water_jet"]:
+		if kind in ["pellet", "rocket", "water_jet", "foam_seed"]:
 			var from: Vector3 = effect.position
-			var speed := 8.0 if kind != "rocket" else 6.0
+			var speed := 5.0 if kind == "foam_seed" else (6.0 if kind == "rocket" else 8.0)
 			var hit := _sweep(effect, from, from + effect.direction * speed * delta, 0.18)
 			if not hit.is_empty():
+				var popped := _pop_foam(hit)
 				if kind == "rocket":
 					effect.kind = "blast_warning"
 					effect.position = hit.position
 					effect.remaining = 0.8
 					effects[index] = effect
 				else:
-					var made_strip: bool = kind == "water_jet" and _make_wet_strip(effect, hit.position)
+					var made_screen: bool = not popped and kind == "foam_seed" and _make_ground_effect(effect, hit.position, "foam_screen")
+					var made_strip: bool = not popped and kind == "water_jet" and _make_ground_effect(effect, hit.position, "wet_strip")
 					if int(hit.peer_id) > 0:
-						var applied := _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 1.8 if kind == "water_jet" else 2.4)
+						var applied := kind != "foam_seed" and _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 1.8 if kind == "water_jet" else 2.4)
 						_outcome("hit" if applied else "blocked", hit.position, effect.direction, int(effect.owner))
-					elif not made_strip:
+					elif not made_strip and not made_screen:
 						_outcome("blocked", hit.position, effect.direction, int(effect.owner))
-					if made_strip:
+					if made_strip or made_screen:
 						effects[index] = effect
 					else:
 						effects.remove_at(index)
@@ -258,7 +269,11 @@ func _tick_effects(delta: float) -> void:
 				continue
 			effect.position = from + effect.direction * speed * delta
 		if float(effect.remaining) <= 0.0:
-			if kind == "water_jet" and _make_wet_strip(effect, effect.position):
+			if kind == "foam_seed" and _make_ground_effect(effect, effect.position, "foam_screen"):
+				effects[index] = effect
+				_revision += 1
+				continue
+			if kind == "water_jet" and _make_ground_effect(effect, effect.position, "wet_strip"):
 				effects[index] = effect
 				_revision += 1
 				continue
@@ -276,6 +291,7 @@ func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
 	var from: Vector3 = effect.position
 	var hit := _sweep(effect, from, from + effect.direction * 6.0 * delta, 0.22)
 	if not hit.is_empty():
+		_pop_foam(hit)
 		var applied := false
 		if int(hit.peer_id) > 0:
 			applied = _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 2.6)
@@ -305,7 +321,7 @@ func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
 	_revision += 1
 
 
-func _make_wet_strip(effect: Dictionary, point: Vector3) -> bool:
+func _make_ground_effect(effect: Dictionary, point: Vector3, kind: String) -> bool:
 	var actor := _players.get(int(effect.owner)) as PartyPlayer
 	if not is_instance_valid(actor):
 		return false
@@ -313,11 +329,81 @@ func _make_wet_strip(effect: Dictionary, point: Vector3) -> bool:
 	var floor_hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
 	if floor_hit.is_empty() or (floor_hit.normal as Vector3).y < 0.7:
 		return false
-	effect.kind = "wet_strip"
+	effect.kind = kind
 	effect.position = floor_hit.position
 	effect.direction = Vector3(effect.direction.x, 0, effect.direction.z).normalized()
-	effect.remaining = 6.0
+	effect.remaining = 6.7 if kind == "foam_screen" else 6.0
 	return true
+
+
+func _fan_pulse(effect: Dictionary) -> void:
+	var origin: Vector3 = effect.position + Vector3.UP * 0.75
+	for peer_id: int in _players:
+		if not _eligible(peer_id):
+			continue
+		var actor := _players[peer_id] as PartyPlayer
+		var offset := actor.global_position + Vector3.UP * 0.75 - origin
+		var flat := Vector3(offset.x, 0, offset.z)
+		if flat.length_squared() > 0.01 and flat.length() <= 3.5 and absf(offset.y) <= 1.0 and effect.direction.dot(flat.normalized()) >= 0.9 and _world_clear(origin, actor.global_position + Vector3.UP * 0.75, int(effect.owner)):
+			if _impulse(int(effect.owner), peer_id, effect.direction, 2.0):
+				_outcome("hit", actor.global_position, effect.direction, int(effect.owner))
+
+
+func _move_decoy(effect: Dictionary, delta: float) -> void:
+	var actor := _players.get(int(effect.owner)) as PartyPlayer
+	var from: Vector3 = effect.position
+	# Cosmetic toy never jumps a corridor-sized void during a delayed frame.
+	var to: Vector3 = from + effect.direction * minf(2.0 * delta, 0.25)
+	if not _world_clear(from + Vector3.UP * 0.6, to + Vector3.UP * 0.6, int(effect.owner)):
+		return
+	var floor_hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(to + Vector3.UP * 0.2, to + Vector3.DOWN * 0.2, 1, [actor.get_rid()]))
+	if not floor_hit.is_empty() and (floor_hit.normal as Vector3).y >= 0.7:
+		effect.position = floor_hit.position
+
+
+# Query-only cover: no physics body, player slowing, weather shelter or hazard
+# immunity. The mirrored state also lets the local reticle target the screen.
+func foam_contact(from: Vector3, to: Vector3, radius: float = 0.0) -> Dictionary:
+	var result := {}
+	var nearest := INF
+	for effect in effects:
+		if effect.kind != "foam_screen" or float(effect.remaining) <= 0.0 or float(effect.remaining) > 6.0:
+			continue
+		var direction := Vector3(effect.direction.x, 0, effect.direction.z)
+		var basis := Basis.looking_at(direction.normalized() if direction.length_squared() > 0.001 else Vector3.FORWARD, Vector3.UP)
+		var center: Vector3 = effect.position + Vector3.UP * 0.65
+		var start := basis.inverse() * (from - center)
+		var motion := basis.inverse() * (to - from)
+		var half_size := Vector3(0.6, 0.65, 0.09) + Vector3.ONE * radius
+		var enter := 0.0
+		var leave := 1.0
+		for axis in 3:
+			if absf(motion[axis]) < 0.000001:
+				if absf(start[axis]) > half_size[axis]:
+					enter = INF
+					break
+			else:
+				var a: float = (-half_size[axis] - start[axis]) / motion[axis]
+				var b: float = (half_size[axis] - start[axis]) / motion[axis]
+				enter = maxf(enter, minf(a, b))
+				leave = minf(leave, maxf(a, b))
+		if enter <= leave and enter < nearest:
+			nearest = enter
+			result = {"position": from.lerp(to, enter), "peer_id": 0, "foam_id": int(effect.id), "t": enter}
+	return result
+
+
+func _pop_foam(hit: Dictionary) -> bool:
+	var id := int(hit.get("foam_id", 0))
+	if id <= 0:
+		return false
+	for effect in effects:
+		if int(effect.id) == id:
+			# Do not remove another index while the effect loop is in progress.
+			effect.remaining = 0.0
+			_revision += 1
+			return true
+	return false
 
 
 func _placement(peer_id: int, direction: Vector3) -> Dictionary:
@@ -402,6 +488,11 @@ func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Di
 	var best_t := 0.0 if overlap else fractions[0]
 	var world_blocked := overlap or best_t < 1.0
 	var result := {"position": from.lerp(to, best_t), "peer_id": 0}
+	var foam := foam_contact(from, to, radius)
+	if not foam.is_empty() and (float(foam.t) < best_t or not world_blocked and float(foam.t) <= best_t):
+		best_t = float(foam.t)
+		result = foam
+		world_blocked = true
 	for peer_id: int in _players:
 		if peer_id == int(effect.owner) or not _eligible(peer_id):
 			continue
@@ -517,7 +608,10 @@ func _accept_sequence(peer_id: int, round: int, sequence: int) -> bool:
 	if peer_id <= 0 or round != round_sequence or sequence <= 0:
 		return false
 	var seen := int(_seen_sequences.get(peer_id, 0))
-	if sequence <= seen or sequence > seen + 64:
+	# Ineligible intents (e.g. while knocked down) still advance the sender's
+	# local counter. Bounding the gap can permanently lock that player's toys
+	# after recovery. The authenticated sender owns only its monotonic stream.
+	if sequence <= seen:
 		return false
 	_seen_sequences[peer_id] = sequence
 	return true
@@ -605,14 +699,14 @@ func _owner_projectiles(owner: int) -> int:
 func _warning_reservations() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in WARNINGS or String(effect.kind) in ["rocket", "water_jet"]:
+		if String(effect.kind) in WARNINGS or String(effect.kind) in ["rocket", "water_jet", "foam_seed"]:
 			count += 1
 	return count
 
 
 # Fixed-width wire state avoids repeating dictionary keys on every match update.
 # Full dictionaries remain the local presentation/testing contract.
-const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning"]
+const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning", "foam_launcher", "toy_fan", "decoy_runner", "foam_seed", "foam_screen", "fan_gust", "decoy_running"]
 const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity"]
 
 

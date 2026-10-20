@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-20",
+  "scope": "Batch4 incremental orb controls, not native GPU/thermal/Internet/human acceptance",
+  "load": "4real ENet clients,6pickups/4held/4disc-water projectiles,6mixed supported foam/fan/decoy warnings,6outcomes. Stable maximum-slot workload; does not exhaust every transient combination. Same pools/wire widths and zero additional physics bodies.",
+  "cpu": {
+    "scenario": "Rain,moving client,120warmup/2x600frames,4headless clients. Same-payload empty/full toy paired replay alternates order and restores production state.",
+    "baseline_load_authority_mean_ms": [0.574461693548387, 0.9821448692152918],
+    "additional_authority_mean_ms": 0.4076831756669048,
+    "authority_calls": [496,497],
+    "paired_client_counts": [192,194,193,192],
+    "paired_client_additional_mean_ms": [0.2711458333333333,0.2557061855670103,0.2776683937823834,0.3161041666666667],
+    "additional_ceiling_ms": 0.5,
+    "raw_reports": [".scratch/phase20-batch4-base", ".scratch/phase20-batch4-cpu"],
+    "qualification": "Paired callbacks isolate incremental apply work, not unchanged production throughput."
+  },
+  "render": {
+    "scenario": "Dry ToyTown,4real clients/1Compatibility llvmpipe renderer,5warmup/40samples,same gameplay camera",
+    "baseline_load_draws_median": [4204,4247],
+    "additional_draws": 43,
+    "additional_draw_ceiling": 64,
+    "baseline_load_frame_interval_p50_ms": [601.275,634.604],
+    "raw_reports": [".scratch/phase20-batch4-render-base", ".scratch/phase20-batch4-render-load"],
+    "qualification": "Software rendering far below60FPS; passes incremental draw ceiling only. Separate12 actual-public-use captures720p/1080p inspected, with larger/elevated labels and coral arming cone."
+  },
+  "transport": {
+    "scenario": "Matched4client Rain/movement loopback IPv4-header lengths,authority measurement gate about8.3s",
+    "baseline_load_authority_ipv4_Bps": [179069.9545449746,210403.5841311155],
+    "additional_authority_percent": 17.497982654745826,
+    "additional_ceiling_percent": 25,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "raw_report": ".scratch/phase20-wire-batch4.json",
+    "qualification": "Not Internet loss,per-RPC attribution,Ethernet bandwidth or native throughput."
+  }
+}

@@ -102,4 +102,50 @@ wait on actual hammer protection expiry before the lift control. All four
 both-map2/4-peer controlled delay/loss cases pass. Stable maximum-slot trial
 passes+43draws,+0.268ms authority,+0.243ms paired apply,+20.71%IPv4; detailed
 phase-20-batch3-metrics.json qualifies these as incremental orb controls, not
-native thermal/FPS or human fun acceptance. Full staged gate remains pending.
+native thermal/FPS or human fun acceptance. Full staged gate passed and batch3
+was committed/pushed as2f0059d, not released/deployed.
+
+### M20.2 batch4 preparation — Foam blocks shots, not escape
+
+Direct map inspection and focused Oracle consultation reject an endpoint-only
+solid foam wall: Harbor gangway is1.5m wide, a transverse1.2m wall leaves0.3m
+total versus the player's0.56m capsule diameter. Existing pickup validation
+excludes route endpoints/exits, not full mutated-terrain corridor connectivity.
+Jumping, ammunition or waiting cannot be prerequisites for disaster escape.
+
+Revise proposed movement-lane obstruction to **firing-lane cover**: query-only
+foam volumes intercept toy projectiles, never player/prop movement, camera,
+support, weather or environmental cover rays. No slowing/steering penalty.
+Communicate “Blocks toy shots. Walk through; shoot to pop.” This is an explicit
+design revision, not a claim that a physical wall is safe. No additional bodies
+or effect pools. Reserve a warning slot before firing,0.7s preview then at most6s
+active; one projectile impact pops the screen. Owner shots also pop it. Compare
+nearest radius-aware foam/world/player contacts and include mirrored foam in
+reticle targeting, with no change to shared _world_clear behavior.
+
+Pellets/water/foam seeds stop and pop it; water does not leave a strip on that
+impact. Outbound frisbee returns/return leg ends. Rocket still warns0.8s at
+impact and its later blast is not blocked by foam. Cancel on lost support or
+owner death/departure/reset. Test no-jump/no-ammo walk-through on narrow routes,
+interception ordering/edges/initial overlap, lifecycle, latency and budgets.
+Batch4 now implements this query-only contract. Fan has one placement,0.8s
+arming/4s active,3.5m narrow cone and2m/s bounded impulses on0.8s pulse boundaries,
+with solid cover and shared recovery protection. Decoy is a harmless labelled
+mechanical runner,6s/2m/s on supported ground; it cannot collide with players,
+impersonate disaster warnings or leap a gap during a delayed frame.
+
+Authority144/presentation15/audio11 and real2/4both-map twelve-toy matrix pass,
+including observer replication and5rematches. Twelve actual-public-use captures
+at720p/1080p inspected after raising/enlarging labels and coral fan arming cue.
+The existing world props/paving remain outside this presentation change.
+Maximum-slot mixed foam/fan/decoy trial passes+43draws,+0.408ms authority,
+≤+0.317ms paired apply,+17.50%IPv4; details in phase-20-batch4-metrics.json.
+Normal staged gate remains pending. No native GPU/audio/human acceptance inferred.
+
+Review also reproduced a permanent intent lock:70valid local requests during
+knockdown are correctly rejected by server eligibility, but advance the local
+counter beyond the old arbitrary64-gap ceiling. Remove that ceiling, preserving
+authenticated per-player monotonic sequence and round rejection. Same scratch
+before/after changes held=false to held=true on sequence71; durable public-use
+regression and real-client reliable same-channel barrier prove post-recovery
+pickup works. This does not authorize another peer's stream or bypass cooldowns.

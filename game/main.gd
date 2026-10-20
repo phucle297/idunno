@@ -1632,6 +1632,9 @@ func _toy_aim_direction(actor: PartyPlayer) -> Vector3:
 	var query := PhysicsRayQueryParameters3D.create(from, to, 7, [actor.get_rid()])
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	var target: Vector3 = hit.get("position", to)
+	var foam := toy_sabotage.foam_contact(from, target)
+	if not foam.is_empty():
+		target = foam.position
 	# Foreground between the follow camera and avatar must not turn a shot
 	# backwards/upwards into the camera. The authoritative muzzle sweep still
 	# blocks cover in front of the body; this is only reticle parallax.

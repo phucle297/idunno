@@ -26,7 +26,9 @@ func _run() -> void:
 	await _test_public_hits_and_cover()
 	await _test_second_batch()
 	await _test_placed_toys()
+	await _test_foam_launcher()
 	_test_round_dedupe()
+	_test_knockdown_intent_recovery()
 	world.free()
 	if failures.is_empty():
 		print("TOY_SABOTAGE_OK checks=%d" % checks)
@@ -317,12 +319,21 @@ func _test_placed_toys() -> void:
 			_expect(not toys.effects.any(func(value: Dictionary) -> bool: return value.kind == "spring_armed"), "spring is single-use, not a permanent launch loop")
 			var before: Vector3 = players[2].velocity
 			_expect(not shoves.apply_replicated_item_impulse(1, 2, int(shoves._last_item_sequence[2]), Vector3.FORWARD, 0.0, 8.0, 99.0) and players[2].velocity == before, "duplicate lift is rejected before moving the avatar")
-		else:
+		elif kind == "confetti_bomb":
 			players[2].global_position = point + Vector3.RIGHT
 			toys.tick(0.7, 1)
 			_expect(players[2].velocity == Vector3.ZERO, "confetti respects full countdown")
 			toys.tick(0.71, 1)
 			_expect(players[2].velocity.x > 0.0, "warned confetti pushes a nearby exposed capsule")
+		elif kind == "toy_fan":
+			players[2].global_position = point + Vector3.FORWARD * 2.0
+			toys.tick(0.4, 1)
+			_expect(players[2].velocity == Vector3.ZERO, "fan respects arming delay")
+			toys.tick(0.41, 1)
+			_expect(players[2].velocity.z < 0.0 and shoves.is_protected(2), "fan gust uses shared bounded impulse and recovery")
+		else:
+			toys.tick(0.1, 1)
+			_expect((toys.effects[0].position as Vector3).z < point.z and players[2].velocity == Vector3.ZERO, "decoy advances on support without pushing players")
 		toys.remove_player(1)
 		_expect(toys.effects.is_empty(), "departure clears placed effects and outcomes: " + kind)
 	players[1].reset_for_match(Vector3(0, 0.02, 0))
@@ -340,6 +351,125 @@ func _test_placed_toys() -> void:
 	toys.reset()
 	toys._seen_sequences.clear()
 	shoves.reset_state()
+
+
+func _test_foam_launcher() -> void:
+	var floor_body := StaticBody3D.new()
+	var floor_shape := CollisionShape3D.new()
+	var floor_box := BoxShape3D.new()
+	floor_box.size = Vector3(20, 0.2, 20)
+	floor_shape.shape = floor_box
+	floor_body.add_child(floor_shape)
+	floor_body.position.y = -0.1
+	world.add_child(floor_body)
+	await physics_frame
+	await physics_frame
+	toys.reset()
+	toys._seen_sequences.clear()
+	shoves.reset_state()
+	manager.elapsed_time = 80.0
+	players[1].reset_for_match(Vector3.ZERO)
+	players[2].reset_for_match(Vector3(3, 0, 0))
+	toys.pickups.append({"id": 700, "kind": "foam_launcher", "position": Vector3.ZERO, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 700) and toys.slots[1].ammo == 2, "foam launcher pickup exposes exactly two charges")
+	_expect(toys.request_use(1, 1, 701, Vector3(0, -0.6, -1)), "foam seed uses the ordinary pickup/use path")
+	var seed: Dictionary = toys.effects[0]
+	var seed_origin: Vector3 = seed.position
+	_expect(is_equal_approx(float(seed.remaining), 1.2), "foam seed starts with its finite 1.2-second travel lifetime")
+	toys.tick(0.1, 1)
+	_expect(is_equal_approx(seed_origin.distance_to(toys.effects[0].position), 0.5), "foam seed travels at five metres per second")
+	toys.tick(0.32, 1)
+	var screens: Array = toys.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "foam_screen")
+	_expect(screens.size() == 1 and toys.slots[1].ammo == 1, "foam seed at 5m/s converts on supported ground after one charge")
+	if screens.is_empty():
+		floor_body.free()
+		return
+	var screen: Dictionary = screens[0]
+	var point: Vector3 = screen.position
+	_expect(is_equal_approx(float(screen.remaining), 6.7) and is_equal_approx(point.y, 0.0), "screen keeps the 0.7s preview plus six-second active lifetime at floor level")
+	var center := point + Vector3.UP * 0.65
+	_expect(toys.foam_contact(center, center + Vector3.FORWARD, 0.0).is_empty(), "screen remains query-inactive during its 0.7-second preview")
+	players[2].global_position = point + Vector3(0, 0.02, 0.55)
+	var walked: KinematicCollision3D = players[2].move_and_collide(Vector3(0, 0, -1.1))
+	_expect(walked == null and players[2].global_position.z < point.z - 0.5, "foam remains query-only so a player walks through unchanged")
+	toys.tick(0.69, 1)
+	_expect(toys.foam_contact(center + Vector3.FORWARD, center - Vector3.FORWARD).is_empty(), "screen is only preview cover for its first 0.7 seconds")
+	toys.tick(0.02, 1)
+	_expect(not toys.foam_contact(center, center + Vector3.FORWARD, 0.0).is_empty(), "foam query detects an active initial overlap")
+	_expect(not toys.foam_contact(Vector3(point.x + 0.78, center.y, point.z + 1), Vector3(point.x + 0.78, center.y, point.z - 1), 0.18).is_empty() and toys.foam_contact(Vector3(point.x + 0.781, center.y, point.z + 1), Vector3(point.x + 0.781, center.y, point.z - 1), 0.18).is_empty(), "foam query uses the 1.2m by 1.3m by 0.18m screen edge")
+
+	# Projectiles must choose the nearest foam/world/player contact, while players
+	# themselves never collide with this query-only cover.
+	players[1].reset_for_match(Vector3(3, 0.02, 0))
+	players[2].reset_for_match(point + Vector3(0, 0.02, 1.0))
+	toys.pickups.append({"id": 701, "kind": "foam_blaster", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 702) and toys.request_use(2, 1, 703, Vector3.FORWARD), "pellet setup uses a real pickup and shot")
+	toys.tick(0.4, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "foam_screen") and toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "blocked"), "nearest foam stops and pops a pellet before world or player")
+	# A water jet and a second foam seed also pop cover rather than producing wet strips or another screen.
+	toys.effects.append({"id": 702, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	toys.pickups.append({"id": 703, "kind": "water_soaker", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 704) and toys.request_use(2, 1, 705, Vector3.FORWARD), "water setup uses a real pickup and shot")
+	toys.tick(0.4, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "foam_screen" or effect.kind == "wet_strip"), "water stops at foam, pops it, and creates no wet strip")
+	toys.effects.append({"id": 704, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	toys.pickups.append({"id": 705, "kind": "foam_launcher", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 706) and toys.request_use(2, 1, 707, Vector3.FORWARD), "foam seed setup uses a real pickup and shot")
+	toys.tick(0.4, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "foam_screen"), "foam seed stops at and pops an existing screen")
+
+	toys.effects.append({"id": 706, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	toys.pickups.append({"id": 706, "kind": "plunger_rocket", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 708) and toys.request_use(2, 1, 709, Vector3.FORWARD), "rocket setup uses a real pickup and shot")
+	toys.tick(0.4, 1)
+	var warnings: Array = toys.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "blast_warning")
+	_expect(warnings.size() == 1 and is_equal_approx(float(warnings[0].remaining), 0.8), "rocket pops foam but still reserves its full 0.8-second blast warning")
+	players[1].reset_for_match(point + Vector3(0.4, 0.02, 0))
+	toys.tick(0.81, 1)
+	_expect(players[1].velocity.length() > 0.0, "rocket blast ignores foam after its warning rather than treating cover as hazard shelter")
+	# Owner-fired projectile is also intercepted: cover has no owner exemption.
+	toys.effects.append({"id": 707, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	players[2].reset_for_match(Vector3(3, 0.02, 0))
+	players[1].reset_for_match(point + Vector3(0, 0.02, 1.0))
+	toys.pickups.append({"id": 707, "kind": "foam_blaster", "position": players[1].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 710) and toys.request_use(1, 1, 711, Vector3.FORWARD), "owner interception setup uses ordinary pickup/use")
+	toys.tick(0.4, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "foam_screen"), "foam intercepts every owner's projectile, including its creator")
+	toys.effects.append({"id": 708, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	players[1].reset_for_match(Vector3(3, 0.02, 0))
+	players[2].reset_for_match(point + Vector3(0, 0.02, 1.0))
+	toys.pickups.append({"id": 708, "kind": "boomerang", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 712) and toys.request_use(2, 1, 713, Vector3.FORWARD), "frisbee setup uses a real pickup and shot")
+	toys.tick(0.4, 1)
+	var returning: Array = toys.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "frisbee_back")
+	_expect(returning.size() == 1 and returning[0].direction.z > 0.0, "foam pops the outgoing frisbee and sends its fixed return leg back")
+	toys.tick(1.01, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind in ["frisbee_out", "frisbee_back"]), "frisbee return remains bounded after foam interception")
+	toys.reset()
+	toys.effects.append({"id": 709, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	toys.slots[1] = {"kind": "foam_launcher", "ammo": 1, "cooldown_until": 0.0, "feedback": ""}
+	for index in ToySabotage.MAX_WARNINGS - 1:
+		toys.effects.append({"id": 800 + index, "kind": "blast_warning", "position": point, "direction": Vector3.FORWARD, "remaining": 1.0, "owner": 2})
+	_expect(not toys.request_use(1, 1, 714, Vector3.FORWARD) and toys.slots[1].ammo == 1, "foam warning reservation rejects before spending ammo")
+	toys.effects.clear()
+	toys.effects.append({"id": 900, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 0.01, "owner": 1})
+	toys.tick(0.02, 1)
+	_expect(toys.effects.is_empty(), "foam screen has a finite active lifetime")
+	toys.effects.append({"id": 901, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 1})
+	toys.remove_player(1)
+	_expect(toys.effects.is_empty(), "dead or departed foam owner clears the screen")
+	toys.effects.append({"id": 902, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 2})
+	toys.reset()
+	_expect(toys.effects.is_empty(), "round reset clears foam screens")
+	toys.effects.append({"id": 903, "kind": "foam_screen", "position": point, "direction": Vector3.FORWARD, "remaining": 6.0, "owner": 2})
+	floor_body.collision_layer = 0
+	await physics_frame
+	await physics_frame
+	toys.tick(0.01, 1)
+	_expect(toys.effects.is_empty(), "lost support clears foam rather than leaving a floating screen after collapse")
+	toys._seen_sequences.clear()
+	toys._local_sequence = 0
+	floor_body.free()
 
 
 func _test_round_dedupe() -> void:
@@ -362,6 +492,19 @@ func _test_round_dedupe() -> void:
 	_expect(players[2].velocity.z < 0.0, "current-round impulse still applies after rejecting stale event")
 	toys.reset_session()
 	_expect(shoves.apply_replicated_item_impulse(1, 2, 1, Vector3.FORWARD, 1.0), "fresh transport session resets receiver dedupe along with authority item sequences")
+
+
+func _test_knockdown_intent_recovery() -> void:
+	toys.begin_round()
+	manager.elapsed_time = 20.0
+	var actor := players[1] as PartyPlayer
+	actor.set_network_knockdown(true)
+	for request in 70:
+		toys.local_request_use(1, Vector3.FORWARD)
+	actor.set_network_knockdown(false)
+	toys.pickups.append({"id": 600, "kind": "foam_blaster", "position": actor.global_position, "expires": 99.0})
+	toys.local_request_pickup(1)
+	_expect(toys.slots.has(1) and toys.slots[1].kind == "foam_blaster", "recovered player can pick up after many correctly rejected knocked-down intents")
 
 
 func _build() -> void:

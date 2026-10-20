@@ -124,12 +124,26 @@
     "pushed": true
   },
   "m20_2_batch3": {
-    "status": "in_progress",
+    "status": "completed",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/2f0059d",
+    "staged_gate": "Normal staged gate PRE_COMMIT_OK tree45d95050b27c997f800166d6e6b639b7fa104f04,46Python tests and full UI/network regression passed. Committed and pushed main; skip-ci intermediate only, not released/deployed.",
     "implementation": "Soap2charges: supported10s local0.7m-radius steering slick, jump/walk-around counter and no weather residual. Spring2charges: visible0.8s arming, single-use5.4m/s lift capped/set not stacked, same cross-item protection. Confetti1charge:1.4s radial2.4m warning with cover and no direct HP damage. All share six warning reservations, fixed wire sizes, no added bodies. Unsupported/through-cover placement rejects before ammo spend; lost floor/owner clears traps.",
     "validation": "Authority98/presentation15/audio11/weather41 pass, including through-wall placement and destroyed-floor cancellation. Eight actual-public-placement captures720p/1080p inspected after elevating/shortening labels; source confetti card retains24px margin. Capsule spring rises0.684/0.774m and returns to floor0.120m. Final both-map2/4real-peer matrix passes nine finite-charge toys, production replicated lift, stale-round rejection/5rematches/disconnect. Same four cases through100ms each-way+0..12ms jitter/1-in97datagram loss pass,42/137/37/125datagrams dropped. No Internet/human acceptance inferred.",
     "performance": "Stable max16effects/4clients control: authority0.5021to0.7698ms (+0.2677),paired client apply at most+0.2430ms; IPv4+20.7099%,0kernel drops/fragments; dry draws4204to4247 (+43). All within0.5ms/25%/64draw trials. Detailed docs/checklists/phase-20-batch3-metrics.json. Normal staged gate pending; no native capacity claim.",
     "fixture_recovery": "Initial lift assertion sampled velocity after independently ordered movement snapshots; observe production acceptance via test-only ShoveManager subclass and same-channel barrier instead. Four-peer control also ran before earlier hammer's real-wall-time protection expired; wait on actual protection state, not accelerated match time. Positive server5.400m/s and every replica acceptance now pass. Initial failed fixture cascaded into absent slot; abort failed catalog control before rematches, no runtime contract relaxation.",
-    "pushed": false
+    "pushed": true
+  },
+  "m20_2_batch4_preparation": {
+    "status": "planned",
+    "decision": "Focused Oracle consultation plus direct map/capsule inspection:1.5m Harbor gangway minus1.2m solid wall leaves0.3m vs0.56m player width; endpoint validator cannot prove escape. Explicitly revise foam to query-only firing-lane cover: blocks toy projectiles, players walk through at unchanged speed, no bodies/camera/weather/support interference. One impact pops it; preview0.7s/active6s; rocket retains warned blast. Detailed contract in docs/decisions.md; not implemented or tested. Fan/decoy remain next batch."
+  },
+  "m20_2_batch4_local": {
+    "status": "in_progress",
+    "implementation": "Uncommitted foam launcher/query-only screen, armed fan pulses and supported cosmetic decoy controller/presentation/audio/card; reticle queries foam. Fixed arbitrary intent-gap ceiling:70ineligible requests no longer permanently lock later pickup. Recovery before/after scratch and real2peer ToyTown ENet pass before batch4 integration.",
+    "validation": "Current authority144/presentation15/audio11 pass. Foam public-use boundary/pop/walk-through and finite lifecycle/lost-support checks pass;12actual-public-use720p/1080p captures inspected with final label/contrast fixes. Real2/4both-map twelve-toy catalog/observer replication/recovery after70knocked-down requests/5rematches pass. Final observer-enhanced same four controlled100ms each-way+0..12ms jitter+1/97loss cases pass,52/173/50/162datagrams dropped. Earlier unit failure was stale fixture treating new placements as confetti, corrected without production relaxation.",
+    "performance": "Mixed max-slot4client Rain authority0.57446to0.98214ms (+0.40768);same-payload paired apply at most+0.31611ms. Dry4clients/1llvmpipe renderer4204to4247draws (+43),601.275to634.604ms p50. IPv4+17.49798%,0kernel drops/fragments. Within0.5ms/64draw/25%trials,not native60FPS/heat proof;docs/checklists/phase-20-batch4-metrics.json.",
+    "gate": "Normal staged gate pending; not committed/pushed/released.",
+    "recovered_blocker": "Subscription allowance available on continuation; bounded test/render workers completed."
   },
   "blockers": [],
   "limits": [
@@ -140,7 +154,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Complete current batch3 matched performance measurements and normal staged gate; commit/push on pass before batch4.",
+  "next_action": "Rerun final batch4 observer-enhanced delayed network matrix and normal staged gate; commit/push on pass before batch5 gadgets.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

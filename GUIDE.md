@@ -234,6 +234,12 @@ Soap Slick has2 placements: a striped10s steering trap; jump or walk around it.
 Spring Pad has2 placements, arms for0.8s then pops one player upward and expires;
 it can also launch its owner, but never stacks lift. Confetti Bomb has1 placement
 and a1.4s countdown before its marked2.4m shove; run or use cover.
+Foam Launcher has2 shots: a supported screen arms for0.7s and lasts at most6s.
+It blocks toy projectiles only: walk through freely, or shoot once to pop it.
+It cannot shelter you from disasters; rockets still warn before their blast.
+Toy Fan has1 placement:0.8s arming then4s of narrow3.5m gusts; use solid cover
+or go behind it. Decoy Runner has1 harmless mechanical distraction, running
+on supported ground for6s; its label always identifies it as a toy.
 Place these toys on level supported ground in front of you, not through walls
 or over gaps. They are non-solid, cannot seal doors, and disappear if their
 floor is destroyed or their owner is eliminated/leaves.

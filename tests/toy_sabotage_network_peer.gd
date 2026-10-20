@@ -30,6 +30,17 @@ class FixtureMain extends "res://game/main.gd":
 			"pickup": toy_sabotage.local_request_pickup(peer_id)
 			"use": toy_sabotage.local_request_use(peer_id, direction)
 			"raw_use": toy_sabotage._request_use.rpc_id(1, round, sequence, direction)
+			"disabled_spam":
+				for index in 70:
+					toy_sabotage.local_request_use(peer_id, Vector3.FORWARD)
+				fixture_disabled_barrier.rpc_id(1)
+
+	@rpc("any_peer", "call_remote", "reliable")
+	func fixture_disabled_barrier() -> void:
+		# Same ordered channel as the seventy production use requests. Do not
+		# recover the server actor on an independent-channel acknowledgement.
+		if multiplayer.is_server():
+			fixture_acks["disabled_spam"] = {multiplayer.get_remote_sender_id(): true}
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_expect(stage: String, expected_round: int, expected_peer: int, expected_kind: String, expected_ammo: int, expected_pickups: int) -> void:
@@ -46,6 +57,17 @@ class FixtureMain extends "res://game/main.gd":
 				break
 			await get_tree().process_frame
 		fixture_ack.rpc_id(1, stage, ok)
+
+	@rpc("authority", "call_remote", "reliable", 2)
+	func fixture_observe_effect(stage: String, effect_kind: String) -> void:
+		var deadline := Time.get_ticks_msec() + 6000
+		var found := false
+		while Time.get_ticks_msec() < deadline:
+			found = toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == effect_kind and float(effect.remaining) > 0.0)
+			if found:
+				break
+			await get_tree().process_frame
+		fixture_ack.rpc_id(1, stage, found)
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_allow_departure() -> void:
@@ -195,6 +217,14 @@ func _server(main: FixtureMain) -> void:
 	# controller test and must not add a fourth pickup during charge assertions.
 	main.toy_sabotage.anchors.clear()
 	main.match_manager.elapsed_time = 3.1
+	await _publish(main)
+	passed = passed and await _expect(main, "initial_round", main.toy_sabotage.round_sequence, remote_id, "", 0, 0, deadline)
+	var recovering := main._player_nodes[remote_id] as PartyPlayer
+	recovering.set_network_knockdown(true)
+	_remote_intent(main, remote_id, "disabled_spam")
+	passed = passed and await main.wait_acks("disabled_spam", 1, deadline)
+	passed = passed and not main.toy_sabotage._seen_sequences.has(remote_id)
+	recovering.set_network_knockdown(false)
 	# Two real controllers contend for one seed; the client must observe the
 	# single winner rather than receiving a fixture-granted slot.
 	_place(main, host_id, pad)
@@ -228,11 +258,19 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and int(shoves._last_item_sequence.get(host_id, 0)) > 0
 	main.fixture_observe_impulse.rpc(host_id)
 	passed = passed and await main.wait_acks("hammer_impulse", player_count - 1, deadline)
-	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb"]:
+	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb", "foam_launcher", "toy_fan", "decoy_runner"]:
 		main.toy_sabotage.effects.clear()
 		passed = passed and await _give_remote(main, remote_id, kind, 710 + ToySabotage.KINDS.keys().find(kind), pad, deadline, kind + "_pickup")
 		for ammo in range(int(ToySabotage.KINDS[kind]) - 1, -1, -1):
 			passed = passed and await _use_remote(main, remote_id, kind, ammo, deadline, "%s_%d" % [kind, ammo])
+			if kind in ["foam_launcher", "toy_fan", "decoy_runner"]:
+				if kind == "foam_launcher":
+					main.toy_sabotage.tick(1.21, 1)
+				var effect_kind: String = {"foam_launcher": "foam_screen", "toy_fan": "fan_gust", "decoy_runner": "decoy_running"}[kind]
+				var effect_stage := "%s_effect_%d" % [kind, ammo]
+				await _publish(main)
+				main.fixture_observe_effect.rpc(effect_stage, effect_kind)
+				passed = passed and await main.wait_acks(effect_stage, player_count - 1, deadline)
 			if kind == "spring_pad" and ammo == 1:
 				var springs: Array = main.toy_sabotage.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "spring_armed")
 				if springs.is_empty():
@@ -292,7 +330,7 @@ func _server(main: FixtureMain) -> void:
 				await process_frame
 	passed = passed and not main.get_network_player_ids().has(remote_id) and not main.toy_sabotage.slots.has(remote_id)
 	if passed:
-		print("TOY_SABOTAGE_ENET_SERVER_OK map=%s players=%d competition=single_winner finite_charge_catalog=9 spring_lift=replicated snapshot_observer=passed malformed_duplicate_stale=passed rematches=5 disconnect_cleanup=passed" % [map_id, player_count])
+		print("TOY_SABOTAGE_ENET_SERVER_OK map=%s players=%d competition=single_winner finite_charge_catalog=%d spring_lift=replicated snapshot_observer=passed malformed_duplicate_stale=passed rematches=5 disconnect_cleanup=passed" % [map_id, player_count, ToySabotage.KINDS.size()])
 	else:
 		push_error("Toy sabotage ENet server failed map=%s players=%d round=%d slots=%s" % [map_id, player_count, main.toy_sabotage.round_sequence, main.toy_sabotage.slots])
 	quit(0 if passed else 1)
