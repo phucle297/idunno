@@ -38,8 +38,8 @@ done
 "$GODOT_BIN" --headless --path "$ROOT" --script res://tests/test_pause_settings.gd \
   -- --settings-path=user://ui-regression-settings.cfg --verify-restart
 
-for script in run_network_authority_test run_four_client_match_test run_playable_scene_network_test run_playable_scale_test run_dedicated_network_test run_powerup_network_test run_town_mechanism_network_test; do
+for script in run_network_authority_test run_four_client_match_test run_playable_scene_network_test run_playable_scale_test run_dedicated_network_test run_powerup_network_test run_town_mechanism_network_test run_toy_sabotage_network_test; do
   GODOT_BIN="$GODOT_BIN" "$ROOT/tests/$script.sh"
 done
 GODOT_BIN="$GODOT_BIN" PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT/tests/run_managed_scale_test.py"
-printf 'UI_REGRESSION_OK suites=%d matrices=7 managed_clients=20 persistence_restart=passed\n' "$count"
+printf 'UI_REGRESSION_OK suites=%d matrices=8 managed_clients=20 persistence_restart=passed\n' "$count"

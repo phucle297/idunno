@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-20",
+  "scope": "M20.1 local diagnostic evidence, not native Windows, thermal, Internet or human acceptance",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "source": "First three-toy integration on top of Phase19 checkpoint; source worktree under normal staged-tree verification",
+  "limits": {
+    "projectiles_global": 4,
+    "projectiles_per_owner": 2,
+    "warning_reservations": 6,
+    "outcomes": 6,
+    "pickups": 6,
+    "held_slots": 20,
+    "new_rigidbodies": 0
+  },
+  "render": {
+    "command": "LP_NUM_THREADS=2 python3 .scratch/phase20-budget-driver.py --clients 4 --renderers 1 --xvfb --weather dry --fps 0 --warmup 10 --samples 40 --repeats 1 --timeout 180 --output .scratch/phase20-render-{base,load}; load additionally TOY_PROFILE_LOAD=1",
+    "adapter": "llvmpipe LLVM15.0.6, Godot Compatibility,1280x720",
+    "scenario": "Toy Town intact, same review camera;6 pickups,4 held,4 pellets,6 warnings; pooled single-surface geometry and no toy shadows",
+    "median_draws_baseline": 4204,
+    "median_draws_toys": 4246,
+    "additional_draws": 42,
+    "additional_draw_ceiling": 64,
+    "frame_interval_p50_ms_baseline": 573.357,
+    "frame_interval_p50_ms_toys": 580.0835,
+    "qualification": "Software renderer far below native target; draw count is useful incremental evidence, these intervals do not establish native FPS or headroom. Six outcomes cannot add draws while all six prioritized warnings occupy the shared pool."
+  },
+  "authority_cpu": {
+    "scenario": "Four real headless ENet clients, Rain and alternating real movement,120warmup/2x600sampleframes per peer, baseline versus same bounded toy load; fixture reseeding outside authority Main timer",
+    "main_physics_mean_ms_baseline": 0.5023380281690141,
+    "main_physics_mean_ms_toys": 0.7667016129032258,
+    "additional_ms": 0.2643635847342117,
+    "additional_ceiling_ms": 0.5
+  },
+  "apply_cpu": {
+    "initial_separate_run_additional_ms": 0.5973207792207797,
+    "initial_status": "failed",
+    "investigation": "Whole-weather apply cost varies between separate processes. Same received full payload was replayed with and without the toy subsection, alternating order and restoring the actual state after each probe. Normal production authority, snapshot validation and apply code retained. Instrumentation repeats work, so this is incremental apply CPU isolation, not a throughput test.",
+    "paired_client_counts": [193, 194, 192, 193],
+    "paired_additional_ms_by_client": [0.17465284974093265, 0.10832474226804123, 0.19849479166666667, 0.1139740932642487],
+    "maximum_additional_mean_ms": 0.19849479166666667,
+    "additional_ceiling_ms": 0.5,
+    "raw_results": ".scratch/phase20-paired-alternating/*-client-*.json"
+  },
+  "wire_encoding": {
+    "scenario": "6 pickups,4 held slots,4projectiles,6warnings",
+    "dictionary_variant_bytes": 3120,
+    "fixed_width_payload_bytes": 543,
+    "sample_roundtrip": true,
+    "qualification": "Encoding size only; not ENet transport bytes. Exact lengths/counts/catalog/finite fields checked before match mutation."
+  },
+  "actual_transport": {
+    "scenario": "Four real local dedicated ENet clients, Rain, real alternating movement, authority sampling window gate observed at100ms cadence; incoming loopback copy only; IPv4/UDP header lengths, no payload retained",
+    "authority_ipv4_Bps_baseline": 178801.44971789935,
+    "authority_ipv4_Bps_toys": 199517.21241618568,
+    "additional_authority_percent": 11.585903095847506,
+    "additional_ceiling_percent": 25,
+    "reverse_ipv4_Bps_baseline": 18439.77088317104,
+    "reverse_ipv4_Bps_toys": 18420.24645291019,
+    "gate_seconds_baseline": 8.341643774998374,
+    "gate_seconds_toys": 8.310420839989092,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "raw_report": ".scratch/phase20-wire-pair.json",
+    "qualification": "Not per-RPC attribution, loss measurement, Ethernet bandwidth or separate-device/Internet acceptance. This original sample excludes six simultaneous cosmetic outcomes; maximum16-effect follow-up below."
+  },
+  "maximum_effect_followup": {
+    "scenario": "Four real ENet clients, Rain and moving input;6pickups,4held,4pellets,6blast warnings,6outcomes. Fixture reseeds bounded live state before real authority tick; zero added bodies. Current code includes round-tagged item RPC and normalized-pitch validation.",
+    "authority_main_physics_mean_ms_baseline": 0.55241046277666,
+    "authority_main_physics_mean_ms_toys": 0.7364466800804829,
+    "additional_authority_ms": 0.1840362173038229,
+    "paired_apply_counts": [192, 194, 193, 193],
+    "paired_apply_additional_mean_ms": [0.23728125, 0.18552061855670104, 0.2052383419689119, 0.24276165803108807],
+    "paired_apply_max_additional_mean_ms": 0.24276165803108807,
+    "authority_ipv4_Bps_baseline": 179082.6099445824,
+    "authority_ipv4_Bps_toys": 207349.7258780579,
+    "additional_authority_ipv4_percent": 15.78440025093606,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "capture_gate_seconds": [8.316117351991124, 8.316538604995003],
+    "raw_reports": [".scratch/phase20-wire-max.json", ".scratch/phase20-max-paired/*-client-*.json"],
+    "commands": ["sudo -n python3 .scratch/phase20-wire-pair.py max", "TOY_PAIRED_APPLY=1 TOY_PROFILE_LOAD=1 LP_NUM_THREADS=2 python3 .scratch/phase20-budget-driver.py --clients 4 --renderers 0 --weather rain --moving-client --fps 60 --warmup 120 --samples 600 --repeats 2 --timeout 180 --output .scratch/phase20-max-paired"],
+    "qualification": "Below0.5ms additional CPU and25% IPv4 trial ceilings. Same limitations as initial samples apply. Outcomes share the six warning/result visuals and cannot displace six active warnings; max-state extra render calls are bounded by the previously measured pool, not a new native GPU measurement."
+  }
+}

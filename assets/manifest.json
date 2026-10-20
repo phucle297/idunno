@@ -1,5 +1,12 @@
 {
   "schema_version": 1,
+  "toy_sabotage_presentation": {
+    "sources": ["game/session/toy_sabotage_visuals.gd", "game/session/toy_sabotage_audio.gd", "game/ui/toy_sabotage_card.gd"],
+    "provenance": "Project-authored deterministic Godot primitives and PCM formulas; no third-party geometry, textures or audio, no external license/CC0 claim. Shared matte palette materials, no toy shadows/colliders or rigidbody fragments. Capsule player unchanged.",
+    "visual_contract": "Six pickup silhouettes (no extra pad meshes), four swept-projectile presentations, six prioritized telegraph/outcome slots and twenty held single-surface mesh slots;36 mesh instances maximum before text draws. Blast radius2.4m; hammer2.2m forward arc. Coral high-opacity warnings contrast against cream paving. Warning presentation uses authority positions and countdowns; hidden/dead/knocked-down held visuals removed, reduced-motion stops pickup bob.",
+    "audio_contract": "Three Effects-bus voices,12m hearing range,60ms debounce,96 stage-aware dedup keys, global disaster warning suppression. Deterministic22,050Hz16-bit mono sine/noise PCM, durations0.07–0.35s; nominal sine peaks0.12–0.25 plus bounded noise. No physical audio acceptance claim.",
+    "validation_status": "Focused authority50/presentation15/audio11 checks passed. Both-map2/4 ENet5rematches with replicated hit and delayed old-round rejection pass; earlier8/20 correctness passed before epoch hardening, normal full rerun pending. Actual F and pointer capture/use pass. Four-client dry same-camera Compatibility/llvmpipe1renderer40sample paired render4204 to4246 median draws (+42 below64); no native FPS inference. Six final720p/1080p held/warning/empty captures inspected, including refined coral warning contrast/countdown positions. Maximum16-effect Rain/4client trial adds0.184ms authority, at most0.243ms paired apply and15.784% IPv4, below trial ceilings. Normal staged gate still required; not release-ready."
+  },
   "homepage_previews": {
     "provenance": "Project-authored live rooftop and town geometry in game/ui/home_town_stage.gd rendered in Godot4.7.2 Compatibility. No concept illustration or third-party texture at runtime; Home avatar is live CHR_Base_v001 with acknowledged outfit. Clouds, traffic and occasional wave animate; reduced motion freezes presentation and hidden pages stop processing/rendering. Map cards retain unchanged authored audit captures.",
     "files": [

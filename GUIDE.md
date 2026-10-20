@@ -212,15 +212,24 @@ localhost transport only, even when using Windows executables.
 | Mouse | Orbit camera |
 | Shift | Sprint |
 | Space | Jump |
-| C | Crouch |
-| F | Grab or release a nearby physics crate |
+| F | Take or swap a nearby toy; one slot, finite charges |
+| G | Shove a nearby player |
+| E | Operate a nearby town mechanism while alive |
 | L | Toggle the direct-IP lobby panel |
 | R | Trigger the current knockdown test |
 | Escape / controller B | Open local pause; Back from settings; Resume from pause (match keeps running) |
-| Left click | Recapture the cursor |
+| Left click | Recapture a released cursor without firing; use the held toy on subsequent captured clicks |
 | Q / E | Previous/next spectator target after death |
 
 The HUD shows health at bottom-left, match time at top-center, and alive players at top-right. Large centered text names active disaster warnings.
+
+Toy pickups appear after the opening protection window. Foam Blaster has3 slow
+pellets; Plunger Rocket has1 slow shot followed by a0.8s blast warning; Squeaky
+Hammer has2 swings with a0.35s windup. Strafe, backstep, leave the marked area or
+use solid cover. Hits displace rather than directly remove health; falls and
+disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
+chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy
+controls require keyboard/mouse; no new gamepad/touch mapping is claimed.
 
 When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
 

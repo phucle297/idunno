@@ -71,6 +71,10 @@ var spectator_controller: Node
 var terrain_collapse: TerrainCollapse
 var powerups: MatchPowerups
 var powerup_visuals: Node3D
+var toy_sabotage: ToySabotage
+var toy_visuals: Node3D
+var toy_card: PanelContainer
+var toy_audio: ToySabotageAudio
 var town_mechanisms: TownMechanisms
 var _weather_geometry_state := 0
 var _weather_volcano_registered := false
@@ -132,6 +136,12 @@ func _ready() -> void:
 	add_child(powerups)
 	powerups.anchor_is_valid = _powerup_anchor_is_valid
 	powerups.collection_is_clear = _powerup_collection_is_clear
+	toy_sabotage = ToySabotage.new()
+	toy_sabotage.name = "ToySabotage"
+	add_child(toy_sabotage)
+	toy_sabotage.configure(match_manager, _player_nodes, $ShoveManager)
+	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
+	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
 	_build_sandbox()
 	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()
@@ -408,6 +418,7 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 	if dedicated:
 		_prepare_offline_player_for_join()
 	powerups.reset_session()
+	toy_sabotage.reset_session()
 	# Dedicated clients communicate only with authority. Relay DEL_PEER fan-out
 	# can target another departing ENet peer after its native channels are gone.
 	(multiplayer as SceneMultiplayer).server_relay = not dedicated
@@ -444,6 +455,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	if error != OK:
 		return error
 	powerups.reset_session()
+	toy_sabotage.reset_session()
 	if not admission_token.is_empty():
 		room_admission = preload("res://game/session/room_admission.gd").new()
 		add_child(room_admission)
@@ -673,6 +685,7 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	powerups.remove_player(peer_id)
+	toy_sabotage.remove_player(peer_id)
 	_player_nodes.erase(peer_id)
 	_outfits.erase(peer_id)
 	_outfit_requests.erase(peer_id)
@@ -709,6 +722,7 @@ func _physics_process(delta: float) -> void:
 	_despawn_fallen_props()
 	_tick_server_emotes()
 	powerups.tick(match_manager, _player_nodes, disaster_director.last_seed)
+	toy_sabotage.tick(delta, disaster_director.last_seed)
 	if not _network_mode or multiplayer.is_server():
 		for peer_id: int in _player_nodes:
 			var avatar := _player_nodes[peer_id] as PartyPlayer
@@ -1240,6 +1254,7 @@ func _process(delta: float) -> void:
 		powerup_visuals.name = "PowerupVisuals"
 		add_child(powerup_visuals)
 	powerup_visuals.present(powerups.pickups, gameplay_hud.reduced_motion, delta)
+	_present_toys(local_peer_id, personal and not $Interface/LobbyPanel.visible and not pause_settings.visible, delta)
 	gameplay_hud.present_collapse(terrain_collapse.describe(match_manager.elapsed_time), active, local_player.global_position if personal else Vector3.ZERO, personal)
 	terrain_collapse.present(match_manager.elapsed_time, match_manager.match_duration, active)
 	gameplay_hud.present_hazards(_active_disaster_lines())
@@ -1275,6 +1290,9 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	if not TerrainCollapse.snapshot_is_valid(incoming_map, snapshot.get("terrain"), float(snapshot.elapsed_time), float(snapshot.match_duration)):
 		return
 	if not MatchPowerups.snapshot_is_valid(snapshot.get("powerups")):
+		return
+	var toy_state := ToySabotage.decode_wire_snapshot(snapshot.get("toys"))
+	if toy_state.is_empty():
 		return
 	if snapshot.has("match_sequence"):
 		_last_match_snapshot_sequence = int(snapshot.match_sequence)
@@ -1316,6 +1334,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	volcano.apply_presentation_snapshot(disasters.get("volcano", {}))
 	terrain_collapse.apply_snapshot(snapshot.terrain)
 	powerups.apply_snapshot(snapshot.powerups)
+	toy_sabotage.apply_snapshot(toy_state)
 	if is_instance_valid(town_mechanisms):
 		town_mechanisms.apply_snapshot(snapshot.get("mechanisms", {}))
 
@@ -1333,6 +1352,7 @@ func _create_playable_snapshot() -> Dictionary:
 	snapshot.match_preset = match_preset
 	snapshot.terrain = terrain_collapse.create_snapshot()
 	snapshot.powerups = powerups.create_snapshot()
+	snapshot.toys = toy_sabotage.create_wire_snapshot()
 	if is_instance_valid(town_mechanisms):
 		snapshot.mechanisms = town_mechanisms.create_snapshot()
 	if _dedicated_server:
@@ -1567,6 +1587,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(home_screen) and home_screen.visible:
 		return # Only focused page controls may begin preparation or play.
+	var peer_id := multiplayer.get_unique_id() if _network_mode else 1
+	var actor := _player_nodes.get(peer_id) as PartyPlayer
+	var can_use_toy: bool = match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible and not spectator_controller.active and is_instance_valid(actor) and not actor.local_input_blocked and match_manager.is_player_alive(peer_id)
+	if can_use_toy and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F:
+		toy_sabotage.local_request_pickup(peer_id)
+		get_viewport().set_input_as_handled()
+		return
+	if can_use_toy and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		# Pointer reacquisition belongs to the player, never to a weapon shot.
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			toy_sabotage.local_request_use(peer_id, _toy_aim_direction(actor))
+			get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E and match_manager.state == MatchManager.MatchState.ACTIVE and not spectator_controller.active:
 		request_nearby_mechanism()
 	elif event.is_action_pressed("toggle_lobby"):
@@ -1585,6 +1618,49 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cycle_spectator(-1)
 	elif event.is_action_pressed("spectate_next"):
 		_cycle_spectator(1)
+
+
+func _toy_aim_direction(actor: PartyPlayer) -> Vector3:
+	var camera := actor.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D
+	var center := get_viewport().get_visible_rect().size * 0.5
+	var from := camera.project_ray_origin(center)
+	var forward := camera.project_ray_normal(center)
+	var muzzle := actor.global_position + Vector3.UP * 1.05
+	var to := from + forward * 50.0
+	var query := PhysicsRayQueryParameters3D.create(from, to, 7, [actor.get_rid()])
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	var target: Vector3 = hit.get("position", to)
+	# Foreground between the follow camera and avatar must not turn a shot
+	# backwards/upwards into the camera. The authoritative muzzle sweep still
+	# blocks cover in front of the body; this is only reticle parallax.
+	if (target - muzzle).dot(forward) < 0.3:
+		target = muzzle + forward * 50.0
+	return (target - muzzle).normalized()
+
+
+func _present_toys(peer_id: int, personal: bool, delta: float) -> void:
+	if not is_instance_valid(toy_visuals):
+		toy_visuals = preload("res://game/session/toy_sabotage_visuals.gd").new()
+		toy_visuals.name = "ToyVisuals"
+		add_child(toy_visuals)
+		toy_card = preload("res://game/ui/toy_sabotage_card.gd").new()
+		toy_card.theme = _ui_theme
+		$Interface.add_child(toy_card)
+		toy_audio = ToySabotageAudio.new()
+		add_child(toy_audio)
+	var snapshot := toy_sabotage.create_snapshot()
+	toy_visuals.present(snapshot, _player_nodes, gameplay_hud.reduced_motion, delta)
+	var nearest := {}
+	var actor := _player_nodes.get(peer_id) as PartyPlayer
+	var distance := ToySabotage.PICKUP_RANGE
+	if personal and is_instance_valid(actor):
+		for pickup: Dictionary in toy_sabotage.pickups:
+			var candidate := actor.global_position.distance_to(pickup.position)
+			if candidate <= distance and _powerup_collection_is_clear(actor, pickup.position):
+				nearest = pickup
+				distance = candidate
+	toy_card.present(snapshot.slots.get(peer_id, {}), nearest, personal)
+	toy_audio.present(snapshot, actor.global_position if is_instance_valid(actor) else Vector3.ZERO, gameplay_audio.is_warning_playing(), personal)
 
 
 func _cycle_spectator(direction: int) -> void:
@@ -2403,10 +2479,14 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	_pending_local_movement_snapshot.clear()
 	_pending_fall_damage.clear()
 	gameplay_audio.reset_collapse_notices()
+	if is_instance_valid(toy_audio):
+		toy_audio.reset_for_match()
 	if state == MatchManager.MatchState.ACTIVE and (not _network_mode or multiplayer.is_server()):
 		powerups.begin_round()
+		toy_sabotage.begin_round()
 	else:
 		powerups.reset()
+		toy_sabotage.reset()
 	for candidate in _player_nodes.values():
 		if candidate is PartyPlayer:
 			candidate.movement_buff = Vector2.ZERO
@@ -2440,6 +2520,7 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 
 func _on_player_eliminated(peer_id: int, cause: String) -> void:
 	powerups.remove_player(peer_id)
+	toy_sabotage.remove_player(peer_id)
 	var last_input: Dictionary = _movement_inputs.get(peer_id, {})
 	_movement_inputs[peer_id] = _empty_movement_input()
 	# Keep event deduplication across death/rematch, without retaining movement.
@@ -2715,6 +2796,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 		Vector3(-8, 0.05, 0), Vector3(8, 0.05, 0),
 		Vector3(0, 4.855, -18), Vector3(-18, 3.75, 9), Vector3(18, 3.75, 9),
 	])
+	toy_sabotage.anchors.assign(powerups.anchors)
 	$Sandbox.set_meta("map_anchors", anchors)
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
@@ -3237,6 +3319,7 @@ func _reset_sandbox() -> void:
 	# Rematches restore mutable world state without rebuilding thousands of
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
 	powerups.reset()
+	toy_sabotage.reset()
 	terrain_collapse.reset()
 	volcano.cleanup()
 	if map_anchors.get("map_id", "") == map_id:

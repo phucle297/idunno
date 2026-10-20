@@ -21,6 +21,8 @@ var _cooldown_until: Dictionary = {}
 var _protection_until: Dictionary = {}
 var _was_knocked_down: Dictionary = {}
 var _last_shove_sequence: Dictionary = {}
+var _last_item_sequence: Dictionary = {}
+var _item_round_sequence := 0
 var _shove_origin_position: Dictionary = {}
 var _shove_impulse_speed: Dictionary = {}
 var _match_manager: MatchManager = null
@@ -53,12 +55,16 @@ func unregister_player(peer_id: int) -> bool:
 	_protection_until.erase(peer_id)
 	_was_knocked_down.erase(peer_id)
 	_last_shove_sequence.erase(peer_id)
+	_last_item_sequence.erase(peer_id)
 	return true
 
 
 func reset_state() -> void:
 	_cooldown_until.clear()
 	_protection_until.clear()
+	# Item packets use a session-monotonic channel. Do not clear it between
+	# rounds: a delayed first packet from a previous round must not become a
+	# valid sequence after the controller starts its next round at one.
 	for peer_id: int in _players:
 		var player := _valid_player(peer_id)
 		_was_knocked_down[peer_id] = is_instance_valid(player) and player.is_knocked_down()
@@ -171,12 +177,64 @@ func apply_replicated_shove(shover_id: int, victim_id: int, sequence: int, direc
 	return true
 
 
+func reset_item_session() -> void:
+	# A new transport session cannot deliver packets from the old peer. Match
+	# resets deliberately retain this channel; a new session must not retain it.
+	_last_item_sequence.clear()
+	_item_round_sequence = 0
+
+
+func set_item_round(round_sequence: int) -> void:
+	_item_round_sequence = round_sequence
+
+
 func get_cooldown_remaining(peer_id: int) -> float:
 	return maxf(0.0, float(_cooldown_until.get(peer_id, 0.0)) - _now())
 
 
 func get_last_shove_sequence(peer_id: int) -> int:
 	return int(_last_shove_sequence.get(peer_id, 0))
+
+
+# Toy effects use their own monotonically increasing channel so they cannot
+# collide with shove sequencing, while sharing this manager's protection window
+# and bounded horizontal impulse policy.
+func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0) -> bool:
+	if sequence <= int(_last_item_sequence.get(victim_id, 0)):
+		return false
+	var victim := _valid_player(victim_id)
+	if not is_instance_valid(victim) or direction.length_squared() < 0.0001:
+		return false
+	direction.y = 0.0
+	if direction.length_squared() < 0.0001:
+		return false
+	var horizontal := Vector3(victim.velocity.x, 0.0, victim.velocity.z)
+	horizontal = (horizontal + direction.normalized() * clampf(strength, 0.0, 6.0)).limit_length(clampf(speed_cap, 0.0, 8.0))
+	victim.velocity.x = horizontal.x
+	victim.velocity.z = horizontal.z
+	_last_item_sequence[victim_id] = sequence
+	_protection_until[victim_id] = maxf(float(_protection_until.get(victim_id, 0.0)), _now() + 1.5)
+	return true
+
+
+# Only server-owned gameplay modules may call this acceptance path. Remote
+# clients receive the same victim sequence reliably and still dedupe locally.
+func apply_authoritative_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0) -> bool:
+	if not _can_mutate():
+		return false
+	var applied := apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap)
+	if applied and multiplayer.has_multiplayer_peer():
+		_replicate_item_impulse.rpc(owner_id, victim_id, sequence, direction, strength, speed_cap, _item_round_sequence)
+	return applied
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float, round_sequence: int) -> void:
+	# Match snapshots and reliable item events use different ENet channels.
+	# Monotonic IDs alone cannot reject a previously unseen late old-round hit.
+	if round_sequence != _item_round_sequence:
+		return
+	apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap)
 
 
 func get_last_shove_origin(peer_id: int) -> Vector3:

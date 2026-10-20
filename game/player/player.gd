@@ -113,6 +113,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
 	):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_camera_yaw -= event.relative.x * 0.0025 * mouse_sensitivity

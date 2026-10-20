@@ -32,18 +32,18 @@ Proposed first rules (tuning hypotheses, not tested balance):
 
 ## M20.1 — Action framework and complete first vertical slice
 
-- [ ] Specify pickup/slot/aim/use/cancel and HUD controls, including gamepad/touch
+- [x] Specify pickup/slot/aim/use/cancel and HUD controls, including gamepad/touch
   only if actually supported; preserve movement, E mechanisms and existing shove.
   Rejected intents explain empty ammo/cooldown/protection/range rather than fake hits.
-- [ ] First three items: **foam blaster** (3 visible slow pellets; jump/strafe/cover),
+- [x] First three items: **foam blaster** (3 visible slow pellets; jump/strafe/cover),
   **plunger rocket** (1 slow whistling rocket; impact marker0.8s before one blast,
   no homing/through-wall force; leave marker/solid cover), **squeaky hammer**
   (2 swings,0.35s windup, short forward cone; backstep/side-step/cover).
   Windup/blast numbers are starting trials; measure escape using real capsule speed.
-- [ ] Add server-validated aim origin/direction, line of sight and swept projectile
+- [x] Add server-validated aim origin/direction, line of sight and swept projectile
   collision; reject forged targets/transforms/ammo, duplicate/stale/rapid RPCs and
   dead/stunned/out-of-range users. No wall penetration or client-reported kills.
-- [ ] Use existing item/action modules only where contracts fit; proposed separate
+- [x] Use existing item/action modules only where contracts fit; proposed separate
   sabotage controller owns slot/use and effects rather than expanding main.gd into
   all weapon behaviors. Reuse powerup placement/eligibility patterns, not its buff
   semantics. Do not revive removed grabbing code as an implicit dependency.
@@ -53,6 +53,23 @@ Proposed first rules (tuning hypotheses, not tested balance):
 
 Exit: three distinct working tools, readable miss/block/hit, no repeated control
 lock, network regressions absent and measured Phase19 headroom respected.
+
+Evidence so far: focused authority50/presentation15/audio11 and existing powerup105
+checks; real2/4-player ENet both maps with5rematches, replicated hammer hit and
+delayed old-round rejection. Earlier8/20 correctness predates epoch hardening;
+full staged regression will rerun it. F take/swap, pointer
+recapture without firing and subsequent captured use exercised through viewport
+input. Six rendered held/warning/empty captures at720p/1080p inspected; fixture
+camera and foot height corrected, coral warnings/text refined. Controls/cancel
+semantics are in [decisions](../decisions.md). No gamepad/touch claim.
+[Measured incremental budgets](phase-20-first-slice-metrics.json) include+42draws,
++0.264ms authority physics,≤+0.199ms paired apply and+11.586% actual IPv4.
+Maximum16-effect Rain/4client follow-up adds0.184ms authority, at most0.243ms paired
+apply and15.784% actual IPv4, within ceilings. Real capsule walking escapes the
+blast/windup and strafes pellets; no weapon HP damage. Normal staged-tree regression
+is being rerun after fixing synthetic Room UI snapshots to include mandatory toy
+wire state (focused85 passes). Controlled latency/loss/native animation feel are not
+inferred from localhost correctness or static captures.
 
 ## M20.2 — More toys through a few reusable interaction families
 
