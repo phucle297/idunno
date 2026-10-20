@@ -38,6 +38,8 @@ func _ready() -> void:
 		"fan_cone": _fan_cone_mesh(),
 		"popper": _popper_mesh(), "umbrella": _umbrella_mesh(),
 		"popper_blast": _combined_mesh([{"mesh": _popper_mesh(), "transform": Transform3D.IDENTITY}, {"mesh": _ring_mesh(2.4), "transform": Transform3D.IDENTITY}]),
+		"rocket_cart": _rocket_cart_mesh(), "cart_windup": _cart_windup_mesh(),
+		"balloon": _balloon_mesh(), "balloon_dart": _balloon_dart_mesh(),
 	}
 	for index in MAX_PICKUPS:
 		_pickup_slots.append(_make_pickup("Pickup%d" % index))
@@ -108,8 +110,19 @@ func _present_projectiles(projectiles: Array[Dictionary]) -> void:
 		slot.global_position = effect.get("position", Vector3.ZERO)
 		slot.basis = _basis_for_direction(effect.get("direction", Vector3.FORWARD))
 		var mesh := slot.get_node("Mesh") as MeshInstance3D
-		mesh.mesh = _meshes["frisbee_trail"] if kind in ["frisbee_out", "frisbee_back"] else (_meshes["rocket"] if kind == "rocket" else (_meshes["foam_seed"] if kind == "foam_seed" else _meshes["pellet"]))
-		mesh.material_override = _materials["hammer"] if kind in ["frisbee_out", "frisbee_back"] else (_materials["plunger"] if kind == "rocket" else _materials["foam"])
+		var mesh_key := "pellet"
+		var material_key := "foam"
+		match kind:
+			"frisbee_out", "frisbee_back":
+				mesh_key = "frisbee_trail"
+				material_key = "hammer"
+			"rocket", "cart_running", "balloon_dart":
+				mesh_key = "rocket_cart" if kind == "cart_running" else kind
+				material_key = "plunger"
+			"foam_seed":
+				mesh_key = "foam_seed"
+		mesh.mesh = _meshes[mesh_key]
+		mesh.material_override = _materials[material_key]
 
 
 func _present_held(slots: Dictionary, players: Dictionary) -> void:
@@ -217,6 +230,18 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 		mesh.material_override = _materials["plunger"] if remaining > 0.9 else _materials["hammer"]
 		label.position = Vector3(0, 1.9, -0.8)
 		label.text = "UMBRELLA — OPENING %.1fs" % (remaining - 0.9) if remaining > 0.9 else "REFLECT %.1fs\nFRONT ONLY — FLANK / WAIT" % remaining
+	elif kind == "cart_windup":
+		# The lane is fixed to authoritative facing during the full windup; it never
+		# suggests a late steering choice for this non-solid cart.
+		mesh.mesh = _meshes["cart_windup"]
+		mesh.material_override = _materials["plunger"]
+		label.position = Vector3(0, 1.25, -2.2)
+		label.text = "ROCKET CART — MOVE CLEAR  %.1fs" % remaining
+	elif kind in ["balloon_attached", "balloon_float"]:
+		mesh.mesh = _meshes["balloon"]
+		mesh.material_override = _materials["plunger"] if kind == "balloon_attached" else _materials["foam"]
+		label.position = Vector3(0, 0.48, 0)
+		label.text = "BALLOON — JUMP / MOVE / SHOOT TO POP  %.1fs" % remaining if kind == "balloon_attached" else "BALLOON — FLOATING"
 	else:
 		mesh.mesh = _meshes["small_ring"]
 		label.text = _name_for(kind)
@@ -308,6 +333,8 @@ func _mesh_for(kind: String) -> Mesh:
 		"decoy_runner": return _meshes["decoy_runner"]
 		"remote_popper": return _meshes["popper"]
 		"reflector_umbrella": return _meshes["umbrella"]
+		"rocket_cart": return _meshes["rocket_cart"]
+		"party_balloon": return _meshes["balloon"]
 		_: return _meshes["pellet"]
 
 
@@ -326,11 +353,12 @@ func _material_for(kind: String) -> Material:
 		"decoy_runner": return _materials["plunger"]
 		"remote_popper": return _materials["plunger"]
 		"reflector_umbrella": return _materials["hammer"]
+		"rocket_cart", "party_balloon": return _materials["plunger"]
 		_: return _materials["ink"]
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA", "foam_seed": "FOAM SEED", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA", "rocket_cart": "ROCKET CART", "party_balloon": "PARTY BALLOON", "foam_seed": "FOAM SEED", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
 
 
 func _material(color: Color, transparent := false) -> StandardMaterial3D:
@@ -556,6 +584,63 @@ func _umbrella_mesh() -> ArrayMesh:
 		{"mesh": canopy, "transform": Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3.ZERO)},
 		_box_part(Vector3(0.07, 0.07, 0.5), Vector3(0, 0, 0.25)),
 		_box_part(Vector3(0.07, 0.28, 0.07), Vector3(0, -0.1, 0.5)),
+	])
+
+
+func _rocket_cart_mesh() -> ArrayMesh:
+	# One merged, deliberately oversized wheeled silhouette; wheel bottoms meet y=0
+	# because authoritative cart positions are supported floor positions.
+	var wheel := CylinderMesh.new()
+	wheel.top_radius = 0.18
+	wheel.bottom_radius = 0.18
+	wheel.height = 0.12
+	wheel.radial_segments = 10
+	var axle := Basis(Vector3.FORWARD, PI * 0.5)
+	return _combined_mesh([
+		_box_part(Vector3(0.72, 0.27, 0.92), Vector3(0, 0.39, 0)),
+		_box_part(Vector3(0.44, 0.18, 0.36), Vector3(0, 0.61, -0.12)),
+		_box_part(Vector3(0.18, 0.16, 0.34), Vector3(0, 0.56, -0.56)),
+		{"mesh": wheel, "transform": Transform3D(axle, Vector3(-0.41, 0.18, -0.28))},
+		{"mesh": wheel, "transform": Transform3D(axle, Vector3(0.41, 0.18, -0.28))},
+		{"mesh": wheel, "transform": Transform3D(axle, Vector3(-0.41, 0.18, 0.28))},
+		{"mesh": wheel, "transform": Transform3D(axle, Vector3(0.41, 0.18, 0.28))},
+	])
+
+
+func _cart_windup_mesh() -> ArrayMesh:
+	# Mark the full maximum eight-metre run, not just its first half.
+	var parts: Array[Dictionary] = [{"mesh": _rocket_cart_mesh(), "transform": Transform3D.IDENTITY}]
+	for z in [-1.0, -2.2, -3.4, -4.6, -5.8, -7.0, -7.8]:
+		parts.append(_box_part(Vector3(0.72, 0.018, 0.10), Vector3(0, 0.02, z)))
+		parts.append(_box_part(Vector3(0.10, 0.018, 0.28), Vector3(-0.31, 0.02, z + 0.08)))
+		parts.append(_box_part(Vector3(0.10, 0.018, 0.28), Vector3(0.31, 0.02, z + 0.08)))
+	return _combined_mesh(parts)
+
+
+func _balloon_mesh() -> ArrayMesh:
+	var balloon := SphereMesh.new()
+	balloon.radius = 0.34
+	balloon.height = 0.58
+	balloon.radial_segments = 12
+	balloon.rings = 6
+	return _combined_mesh([
+		{"mesh": balloon, "transform": Transform3D(Basis.IDENTITY, Vector3(0, 0.1, 0))},
+		_box_part(Vector3(0.022, 1.82, 0.022), Vector3(0, -0.92, 0)),
+		_box_part(Vector3(0.11, 0.07, 0.11), Vector3(0, -0.25, 0)),
+	])
+
+
+func _balloon_dart_mesh() -> ArrayMesh:
+	# The flying seed has a short ribbon; the long attached string would extend
+	# below ground from its chest-height launch origin.
+	var seed := SphereMesh.new()
+	seed.radius = 0.2
+	seed.height = 0.36
+	seed.radial_segments = 12
+	seed.rings = 6
+	return _combined_mesh([
+		{"mesh": seed, "transform": Transform3D.IDENTITY},
+		_box_part(Vector3(0.07, 0.07, 0.5), Vector3(0, 0, 0.28)),
 	])
 
 

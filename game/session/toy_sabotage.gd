@@ -20,10 +20,10 @@ const HAMMER_RANGE := 2.2
 const PLAYER_RADIUS := 0.28
 const PLAYER_HEIGHT := 1.5
 const FEEDBACK_MAX_CHARS := 24
-const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1, "foam_launcher": 2, "toy_fan": 1, "decoy_runner": 1, "remote_popper": 1, "reflector_umbrella": 1}
-const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb", "toy_fan", "decoy_runner", "remote_popper"]
-const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet", "foam_seed", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected"]
-const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning", "umbrella_open"]
+const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1, "foam_launcher": 2, "toy_fan": 1, "decoy_runner": 1, "remote_popper": 1, "reflector_umbrella": 1, "rocket_cart": 1, "party_balloon": 1}
+const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb", "toy_fan", "decoy_runner", "remote_popper", "rocket_cart"]
+const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet", "foam_seed", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected", "cart_running", "balloon_dart"]
+const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning", "umbrella_open", "cart_windup", "balloon_attached", "balloon_float"]
 const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
@@ -42,6 +42,7 @@ var _spawn_slot := -1
 var _seen_sequences: Dictionary = {}
 var _item_sequences: Dictionary = {}
 var _local_sequence := 0
+var _balloons: Dictionary = {} # At most MAX_WARNINGS; authority-only victim/anchor.
 
 
 func configure(manager: MatchManager, players: Dictionary, shoves: ShoveManager) -> void:
@@ -77,6 +78,7 @@ func reset() -> void:
 	pickups.clear()
 	slots.clear()
 	effects.clear()
+	_balloons.clear()
 	_next_id = 0
 	_spawn_slot = -1
 
@@ -86,7 +88,8 @@ func remove_player(peer_id: int) -> void:
 		return
 	var changed := slots.erase(peer_id)
 	for index in range(effects.size() - 1, -1, -1):
-		if int(effects[index].owner) == peer_id:
+		if int(effects[index].owner) == peer_id or int(_balloons.get(int(effects[index].id), {}).get("victim", 0)) == peer_id:
+			_balloons.erase(int(effects[index].id))
 			effects.remove_at(index)
 			changed = true
 	if changed:
@@ -194,9 +197,9 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	if kind in ["squeaky_hammer", "boxing_glove"]:
 		# Melee telegraphs are planar; camera pitch must not silently narrow them.
 		direction = Vector3(direction.x, 0.0, direction.z).normalized()
-	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher", "reflector_umbrella"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher", "reflector_umbrella", "party_balloon"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
 		return _feedback(peer_id, "capacity")
-	if kind not in ["squeaky_hammer", "boxing_glove", "reflector_umbrella"] + PLACEABLES and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
+	if (kind == "rocket_cart" or kind not in ["squeaky_hammer", "boxing_glove", "reflector_umbrella"] + PLACEABLES) and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
 	var placement := {}
 	if kind in PLACEABLES:
@@ -212,16 +215,16 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
 	if kind in PLACEABLES:
-		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning", "toy_fan": "fan_gust", "decoy_runner": "decoy_running", "remote_popper": "popper_armed"}[kind]
-		var lifetime: float = {"confetti_bomb": 1.4, "toy_fan": 4.8, "decoy_runner": 6.0, "remote_popper": 8.7}.get(kind, 10.0)
+		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning", "toy_fan": "fan_gust", "decoy_runner": "decoy_running", "remote_popper": "popper_armed", "rocket_cart": "cart_windup"}[kind]
+		var lifetime: float = {"confetti_bomb": 1.4, "toy_fan": 4.8, "decoy_runner": 6.0, "remote_popper": 8.7, "rocket_cart": 1.0}.get(kind, 10.0)
 		effects.append({"id": _next_id, "kind": placed_kind, "position": placement.position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": lifetime, "owner": peer_id})
 	elif kind == "reflector_umbrella":
 		effects.append({"id": _next_id, "kind": "umbrella_open", "position": (_players[peer_id] as PartyPlayer).global_position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": 1.15, "owner": peer_id})
 	elif kind in ["squeaky_hammer", "boxing_glove"]:
 		effects.append({"id": _next_id, "kind": "glove_warning" if kind == "boxing_glove" else "hammer_warning", "position": origin, "direction": direction, "remaining": 0.65 if kind == "boxing_glove" else 0.35, "owner": peer_id})
 	else:
-		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet", "foam_launcher": "foam_seed"}[kind]
-		var lifetime: float = {"boomerang": 1.0, "water_soaker": 0.65, "foam_launcher": 1.2}.get(kind, 3.0)
+		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet", "foam_launcher": "foam_seed", "party_balloon": "balloon_dart"}[kind]
+		var lifetime: float = {"boomerang": 1.0, "water_soaker": 0.65, "foam_launcher": 1.2, "party_balloon": 1.5}.get(kind, 3.0)
 		effects.append({"id": _next_id, "kind": effect_kind, "position": origin, "direction": direction, "remaining": lifetime, "owner": peer_id})
 	_revision += 1
 	return true
@@ -232,6 +235,12 @@ func _tick_effects(delta: float) -> void:
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
 		var kind := String(effect.kind).trim_suffix("_reflected")
+		if kind in ["cart_windup", "cart_running"]:
+			_tick_cart(index, effect, delta)
+			continue
+		if kind in ["balloon_attached", "balloon_float"]:
+			_tick_balloon(index, effect)
+			continue
 		if kind == "umbrella_open":
 			if not _eligible(int(effect.owner)):
 				_clear_effect_controller(effect)
@@ -279,19 +288,30 @@ func _tick_effects(delta: float) -> void:
 		if kind in ["frisbee_out", "frisbee_back"]:
 			_tick_frisbee(index, effect, delta)
 			continue
-		if kind in ["pellet", "rocket", "water_jet", "foam_seed"]:
+		if kind in ["pellet", "rocket", "water_jet", "foam_seed", "balloon_dart"]:
 			var from: Vector3 = effect.position
-			var speed := 5.0 if kind == "foam_seed" else (6.0 if kind == "rocket" else 8.0)
-			var hit := _sweep(effect, from, from + effect.direction * speed * delta, 0.18)
+			var speed := 5.0 if kind in ["foam_seed", "balloon_dart"] else (6.0 if kind == "rocket" else 8.0)
+			# A delayed tick cannot extend a finite projectile's range past expiry.
+			var travel_time := minf(delta, maxf(0.0, float(effect.remaining) + delta))
+			var destination: Vector3 = from + effect.direction * speed * travel_time
+			var hit := _sweep(effect, from, destination, 0.18)
 			if not hit.is_empty():
 				if int(hit.get("umbrella_owner", 0)) > 0:
-					if _reflect(effect, hit):
+					if kind != "balloon_dart" and _reflect(effect, hit):
 						effects[index] = effect
 					else:
 						effects.remove_at(index)
 					_revision += 1
 					continue
-				var popped := _pop_foam(hit) or _defuse_popper(hit)
+				var popped := _pop_foam(hit) or _defuse_popper(hit) or _pop_balloon(hit)
+				if kind == "balloon_dart":
+					if not popped and int(hit.peer_id) > 0 and _attach_balloon(effect, int(hit.peer_id)):
+						effects[index] = effect
+					else:
+						_outcome("blocked", hit.position, effect.direction, int(effect.owner))
+						effects.remove_at(index)
+					_revision += 1
+					continue
 				if kind == "rocket":
 					effect.kind = "blast_warning"
 					effect.position = hit.position
@@ -311,7 +331,7 @@ func _tick_effects(delta: float) -> void:
 						effects.remove_at(index)
 				_revision += 1
 				continue
-			effect.position = from + effect.direction * speed * delta
+			effect.position = destination
 		if float(effect.remaining) <= 0.0:
 			if kind == "foam_seed" and _make_ground_effect(effect, effect.position, "foam_screen"):
 				effects[index] = effect
@@ -338,6 +358,7 @@ func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
 	if not hit.is_empty():
 		_pop_foam(hit)
 		_defuse_popper(hit)
+		_pop_balloon(hit)
 		if int(hit.get("umbrella_owner", 0)) > 0:
 			_outcome("blocked", hit.position, effect.direction, int(effect.owner))
 			effects.remove_at(index)
@@ -370,6 +391,92 @@ func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
 		effect.position = from + effect.direction * 6.0 * delta
 	effects[index] = effect
 	_revision += 1
+
+
+func _tick_cart(index: int, effect: Dictionary, delta: float) -> void:
+	var alive := _supported(effect)
+	if alive and effect.kind == "cart_windup":
+		if float(effect.remaining) <= 0.0:
+			effect.kind = "cart_running"
+			effect.remaining = 2.0
+	elif alive and float(effect.remaining) > 0.0:
+		var from: Vector3 = effect.position + Vector3.UP * 0.35
+		var to: Vector3 = from + effect.direction * minf(4.0 * delta, 0.25)
+		var hit := _sweep(effect, from, to, 0.25, false)
+		if not hit.is_empty():
+			var applied := int(hit.peer_id) > 0 and _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 3.0)
+			_outcome("hit" if applied else "blocked", hit.position, effect.direction, int(effect.owner))
+			alive = false
+		else:
+			var actor := _players[int(effect.owner)] as PartyPlayer
+			var floor_hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(to - Vector3.UP * 0.15, to - Vector3.UP * 0.55, 1, [actor.get_rid()]))
+			alive = not floor_hit.is_empty() and (floor_hit.normal as Vector3).y >= 0.7
+			if alive:
+				effect.position = floor_hit.position
+	if not alive or float(effect.remaining) <= 0.0:
+		effects.remove_at(index)
+	else:
+		effects[index] = effect
+	_revision += 1
+
+
+func _attach_balloon(effect: Dictionary, victim: int) -> bool:
+	if not _eligible(victim) or _shoves.is_protected(victim) or _balloons.values().any(func(value: Dictionary) -> bool: return int(value.victim) == victim):
+		return false
+	var actor := _players[victim] as PartyPlayer
+	_balloons[int(effect.id)] = {"victim": victim, "anchor": actor.global_position}
+	effect.kind = "balloon_attached"
+	effect.remaining = 0.6
+	effect.position = actor.global_position + Vector3.UP * 1.9
+	return true
+
+
+func _tick_balloon(index: int, effect: Dictionary) -> void:
+	var id := int(effect.id)
+	var state: Dictionary = _balloons.get(id, {})
+	var victim := int(state.get("victim", 0))
+	var valid := not state.is_empty() and _eligible(victim) and _eligible(int(effect.owner))
+	var actor := _players.get(victim) as PartyPlayer
+	if valid:
+		effect.position = actor.global_position + Vector3.UP * 1.9
+		if effect.kind == "balloon_attached":
+			var offset: Vector3 = actor.global_position - state.anchor
+			valid = Vector2(offset.x, offset.z).length() < 1.0 and absf(offset.y) < 0.2 and actor.velocity.y <= 1.0 and not _shoves.is_protected(victim)
+			if valid and float(effect.remaining) <= 0.0:
+				var ceiling := PhysicsShapeQueryParameters3D.new()
+				var head := SphereShape3D.new()
+				head.radius = PLAYER_RADIUS
+				ceiling.shape = head
+				ceiling.transform.origin = actor.global_position + Vector3.UP * (PLAYER_HEIGHT - PLAYER_RADIUS)
+				ceiling.motion = Vector3.UP * 0.3
+				ceiling.collision_mask = 1 | 4
+				ceiling.exclude = [actor.get_rid()]
+				var space := actor.get_world_3d().direct_space_state
+				var clear := space.intersect_shape(ceiling, 1).is_empty() and space.cast_motion(ceiling)[0] >= 1.0
+				if actor.is_on_floor() and clear:
+					_item_sequences[victim] = int(_item_sequences.get(victim, 0)) + 1
+					_shoves.apply_authoritative_item_impulse(int(effect.owner), victim, _item_sequences[victim], Vector3.FORWARD, 0.0, 8.0, 3.0)
+				effect.kind = "balloon_float"
+				effect.remaining = 0.5
+	if not valid or float(effect.remaining) <= 0.0:
+		_balloons.erase(id)
+		effects.remove_at(index)
+	else:
+		effects[index] = effect
+	_revision += 1
+
+
+func _pop_balloon(hit: Dictionary) -> bool:
+	var id := int(hit.get("balloon_id", 0))
+	if not _balloons.erase(id):
+		return false
+	for effect in effects:
+		if int(effect.id) == id:
+			effect.remaining = 0.0
+			_outcome("blocked", effect.position, effect.direction, int(effect.owner))
+			_revision += 1
+			return true
+	return false
 
 
 func _make_ground_effect(effect: Dictionary, point: Vector3, kind: String) -> bool:
@@ -584,7 +691,7 @@ func sample_wet_strip(point: Vector3) -> float:
 	return wet
 
 
-func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Dictionary:
+func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float, shot := true) -> Dictionary:
 	var owner := _players.get(int(effect.owner)) as PartyPlayer
 	if not is_instance_valid(owner):
 		return {"position": from, "peer_id": 0}
@@ -602,24 +709,25 @@ func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Di
 	var best_t := 0.0 if overlap else fractions[0]
 	var world_blocked := overlap or best_t < 1.0
 	var result := {"position": from.lerp(to, best_t), "peer_id": 0}
-	var foam := foam_contact(from, to, radius)
+	var foam := foam_contact(from, to, radius) if shot else {}
 	if not foam.is_empty() and (float(foam.t) < best_t or not world_blocked and float(foam.t) <= best_t):
 		best_t = float(foam.t)
 		result = foam
 		world_blocked = true
-	var umbrella := _umbrella_contact(effect, from, to, radius)
+	var umbrella := _umbrella_contact(effect, from, to, radius) if shot else {}
 	if not umbrella.is_empty() and (float(umbrella.t) < best_t or not world_blocked and float(umbrella.t) <= best_t):
 		best_t = float(umbrella.t)
 		result = umbrella
 		world_blocked = true
 	for charge in effects:
-		if String(charge.kind) not in ["popper_armed", "popper_warning"] or float(charge.remaining) <= 0.0:
+		var balloon: bool = charge.kind == "balloon_attached" and _balloons.has(int(charge.id))
+		if not shot or (not balloon and String(charge.kind) not in ["popper_armed", "popper_warning"]) or float(charge.remaining) <= 0.0:
 			continue
-		var center: Vector3 = charge.position + Vector3.UP * 0.25
+		var center: Vector3 = charge.position if balloon else charge.position + Vector3.UP * 0.25
 		var hit_t := 0.0 if from.distance_to(center) <= radius + 0.3 else _sphere_sweep_t(from, to - from, center, radius + 0.3)
 		if hit_t < best_t or not world_blocked and hit_t <= best_t:
 			best_t = hit_t
-			result = {"position": from.lerp(to, hit_t), "peer_id": 0, "popper_id": int(charge.id)}
+			result = {"position": from.lerp(to, hit_t), "peer_id": 0, "balloon_id" if balloon else "popper_id": int(charge.id)}
 			world_blocked = true
 	for peer_id: int in _players:
 		if peer_id == int(effect.owner) or not _eligible(peer_id):
@@ -811,7 +919,7 @@ func _kind_for_spawn(spawn_slot: int) -> String:
 func _projectile_count() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in PROJECTILES:
+		if String(effect.kind) in PROJECTILES or effect.kind == "cart_windup":
 			count += 1
 	return count
 
@@ -819,7 +927,7 @@ func _projectile_count() -> int:
 func _owner_projectiles(owner: int) -> int:
 	var count := 0
 	for effect in effects:
-		if int(effect.owner) == owner and String(effect.kind) in PROJECTILES:
+		if int(effect.owner) == owner and (String(effect.kind) in PROJECTILES or effect.kind == "cart_windup"):
 			count += 1
 	return count
 
@@ -827,14 +935,14 @@ func _owner_projectiles(owner: int) -> int:
 func _warning_reservations() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in WARNINGS or String(effect.kind).trim_suffix("_reflected") in ["rocket", "water_jet", "foam_seed"]:
+		if String(effect.kind) in WARNINGS or String(effect.kind).trim_suffix("_reflected") in ["rocket", "water_jet", "foam_seed", "balloon_dart"]:
 			count += 1
 	return count
 
 
 # Fixed-width wire state avoids repeating dictionary keys on every match update.
 # Full dictionaries remain the local presentation/testing contract.
-const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning", "foam_launcher", "toy_fan", "decoy_runner", "foam_seed", "foam_screen", "fan_gust", "decoy_running", "remote_popper", "reflector_umbrella", "popper_armed", "popper_warning", "umbrella_open", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected"]
+const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning", "foam_launcher", "toy_fan", "decoy_runner", "foam_seed", "foam_screen", "fan_gust", "decoy_running", "remote_popper", "reflector_umbrella", "popper_armed", "popper_warning", "umbrella_open", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected", "rocket_cart", "party_balloon", "cart_windup", "cart_running", "balloon_dart", "balloon_attached", "balloon_float"]
 const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity", "arming", "remote_ready", "detonated", "umbrella_opening", "reflecting"]
 
 

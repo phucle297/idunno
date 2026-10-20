@@ -248,6 +248,13 @@ Reflector Umbrella has1 use:0.25s opening then0.9s front-only reflection.
 Flank, wait, use a melee toy or escape the blast; it is not general immunity.
 Linear shots bounce at most once and credit the reflector; a disc or a shot
 that would exceed the reflector's two-projectile limit is absorbed instead.
+Rocket Cart has1 placement:1s fixed-lane engine warning then at most2s straight
+running. Step aside; it is a non-solid bumper, not a vehicle or door blocker.
+Solid walls/crates and missing ground stop it; one contact gives a light push.
+Party Balloon has1 slow dart: solid cover blocks attachment. A hit gives0.6s
+to jump,move1m or have someone shoot the balloon before one mild grounded lift.
+Low ceilings cancel lift; no indefinite floating or stacked balloon chains.
+Umbrellas absorb balloon darts rather than reflecting them.
 Place floor toys on level supported ground in front of you, not through walls
 or over gaps. They are non-solid, cannot seal doors, and disappear if their
 floor is destroyed or their owner is eliminated/leaves.

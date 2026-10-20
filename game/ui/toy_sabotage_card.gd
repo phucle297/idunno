@@ -70,4 +70,4 @@ func present(slot: Dictionary, nearest: Dictionary, active: bool) -> void:
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA", "rocket_cart": "ROCKET CART", "party_balloon": "PARTY BALLOON"}.get(kind, "TOY")

@@ -208,3 +208,63 @@ Stable max-slot active-window trial passes+43draws,+0.257ms authority,
 ≤+0.292ms paired apply,+17.674%IPv4; phase-20-batch5-metrics.json. Preliminary
 load used umbrella preparation; final active-window measurements supersede it.
 Normal staged gate pending; no native/human acceptance or release claimed.
+
+### Batch6 preparation — Reversible cart and delayed balloon lift
+
+Implementation waits for batch5's normal staged gate and push. These are next
+contracts, not executed results or a reason to release the partial arsenal.
+
+Revise rocket cart from physical obstruction to a **non-solid toy bumper**.
+Persistent movement barriers share the rejected foam/magnet escape problem.
+One charge places on supported ground;1s visible fixed-lane engine windup then
+at most2s at4m/s. Reserve both projectile and warning capacity before accepting;
+moving phase consumes the same projectile slot, no new body or vehicle owner.
+Support-constrained steps cap at0.25m to avoid jumping a corridor-sized void on a
+delayed frame. Solid walls/crates stop it without moving props. First swept
+capsule contact gets at most3m/s horizontal impulse/shared protection and ends
+the cart. Players can walk through; foam/umbrella are shot counters, not physical
+cart barriers. No owner steering, recursive impacts or shield-like route denial.
+
+Balloon: one slow visible dart, capped projectile and reserved warning slot.
+A hit starts0.6s attaching/inflating warning; no immediate forced motion. Jump,
+move1m from the attachment origin, shoot/pop it, or use solid cover before hit.
+Jump/meaningful vertical separation or a new protected/knocked-down state cancels
+pending lift. Lift requires actual grounded capsule contact at trigger time and
+clear overhead; set3m/s upward once through the existing reliable item impulse,
+not continuous per-frame velocity overrides or a new movement-prediction state.
+Current gravity20m/s² gives a nominal0.225m rise, below the3m fall-safe threshold;
+this arithmetic is a tuning bound, not an executed capsule/ceiling result.
+Short cosmetic float/fade afterwards, no indefinite suspension or extra force.
+Only one pending balloon per victim; cross-item1.5s protection prevents chains.
+Target identity/original anchor stay in bounded server-only metadata; snapshots
+carry the authoritative balloon position in existing37byte effect records.
+Reset/death/departure/pop/expiry remove metadata. Umbrella absorbs balloon darts
+instead of adding another reflection family; no new bounce/pool/audio voices.
+
+Require public pickup/use, physical floor/ceiling/escape/apex checks, both-map
+real-client lift acceptance, rematches/delayed peers, inspected720p/1080p cues and
+matched incremental budgets before accepting either item. Do not infer native
+feel from arithmetic, a frozen fixture, loopback or llvmpipe throughput.
+
+### Batch6 executed validation
+
+Batch5 normal staged gate completed and sourcecd681508 committed/pushed with
+skip-ci; it is not deployed. This supersedes the pending batch5 gate above.
+Cart/balloon now implement the preparation contract. Public-intent authority283,
+presentation15/audio11 pass. Capsule walk/jump escape,low-ceiling rejection,
+ordinary-shot pop,departure/duplicate/lifetime controls and mild physical apex/
+same-floor return pass. Cart warning/reservation,first bounded bumper hit,wall
+and destroyed-floor cancellation pass. Delayed4s dart originally attached a9m
+target past its7.5m lifetime; same regression passes after bounding shared linear
+projectile travel to its remaining lifetime,not adding a balloon-only exception.
+
+Real2/4both-map16toy catalog,cart windup/running snapshots and reliably accepted
+3m/s balloon lifts pass with5rematches. Same four cases pass100ms each-way,
+0..12ms jitter and1/97loss,70/63/233/215datagrams dropped. Short state barriers
+hold authority physics while real packets travel; not latency-feel proof.
+Ten public-use720p/1080p frames inspected. Refined compact airborne seed so its
+ribbon cannot extend below floor,and mark full8m maximum cart lane. Attached
+balloon retains long string and explicit jump/move/pop counter;float cyan.
+Stable max-slot trial:+42draws,+0.433ms authority,≤+0.364ms paired apply,
++15.872%IPv4,zero kernel drops/fragments;phase-20-batch6-metrics.json.
+Normal staged gate pending; native/human acceptance and release remain pending.

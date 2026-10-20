@@ -28,6 +28,7 @@ func _run() -> void:
 	await _test_placed_toys()
 	await _test_foam_launcher()
 	await _test_remote_and_reflector()
+	await _test_cart_and_balloon()
 	_test_round_dedupe()
 	_test_knockdown_intent_recovery()
 	world.free()
@@ -588,6 +589,149 @@ func _test_remote_and_reflector() -> void:
 	toys._seen_sequences.clear()
 	toys._local_sequence = 0
 	floor_body.free()
+
+
+func _test_cart_and_balloon() -> void:
+	var floor_body := StaticBody3D.new()
+	var floor_shape := CollisionShape3D.new()
+	var floor_box := BoxShape3D.new()
+	floor_box.size = Vector3(20, 0.4, 20)
+	floor_shape.shape = floor_box
+	floor_body.add_child(floor_shape)
+	floor_body.position.y = -0.2
+	world.add_child(floor_body)
+	await physics_frame
+	await physics_frame
+	var sequence := 10000
+	for scenario in ["cart_hit", "cart_wall", "cart_void", "cart_capacity", "balloon_lift", "balloon_walk", "balloon_jump", "balloon_ceiling", "balloon_pop", "balloon_departure", "balloon_duplicate", "balloon_range"]:
+		toys.reset()
+		shoves.reset_state()
+		manager.elapsed_time = 30.0
+		var prior_impulse := int(shoves._last_item_sequence.get(2, 0))
+		players[1].reset_for_match(Vector3(0, 0.02, 0))
+		players[2].reset_for_match(Vector3(0, 0.02, -3 if scenario.begins_with("cart") else -2))
+		for frame in 5:
+			await physics_frame
+			for actor: PartyPlayer in players.values():
+				actor.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
+		var kind := "rocket_cart" if scenario.begins_with("cart") else "party_balloon"
+		toys.pickups.append({"id": 15000, "kind": kind, "position": players[1].global_position, "expires": 99.0})
+		sequence += 1
+		_expect(toys.request_pickup(1, 1, sequence), "ordinary pickup for " + scenario)
+		if scenario == "cart_capacity":
+			for index in ToySabotage.MAX_PROJECTILES:
+				toys.effects.append({"id": 20000 + index, "kind": "pellet", "position": Vector3(5, 1, 0), "direction": Vector3.FORWARD, "remaining": 1.0, "owner": 2})
+			sequence += 1
+			_expect(not toys.request_use(1, 1, sequence, Vector3.FORWARD) and toys.slots[1].ammo == 1, "cart reserves a projectile slot before charging")
+			continue
+		if scenario == "balloon_range":
+			players[2].global_position.z = -9
+		sequence += 1
+		_expect(toys.request_use(1, 1, sequence, Vector3.FORWARD), "public use for " + scenario)
+		var effect_id := int(toys.effects[0].id)
+		if scenario.begins_with("cart"):
+			toys.tick(0.99, 1)
+			_expect(toys.effects[0].kind == "cart_windup" and players[2].velocity == Vector3.ZERO, "cart cannot move or push before its engine warning")
+			_expect(toys._projectile_count() == 1, "stationary windup retains projectile reservation")
+			toys.tick(0.02, 1)
+			var start: Vector3 = toys.effects[0].position
+			_expect(toys.effects[0].kind == "cart_running" and toys.effects[0].id == effect_id, "cart starts under the same reserved ID")
+			var wall: StaticBody3D
+			if scenario == "cart_wall":
+				wall = StaticBody3D.new()
+				var collider := CollisionShape3D.new()
+				var box := BoxShape3D.new()
+				box.size = Vector3(2, 2, 0.1)
+				collider.shape = box
+				wall.add_child(collider)
+				wall.position = Vector3(0, 1, -2)
+				world.add_child(wall)
+				await physics_frame
+				await physics_frame
+			if scenario == "cart_void":
+				floor_body.collision_layer = 0
+				await physics_frame
+				await physics_frame
+			toys.tick(0.5, 1)
+			if scenario == "cart_hit":
+				_expect((toys.effects[0].position as Vector3).distance_to(start) <= 0.251, "delayed cart tick never leaps more than0.25m")
+				for frame in 40:
+					toys.tick(1.0 / 60.0, 1)
+				_expect(is_equal_approx(players[2].velocity.z, -3.0) and shoves.is_protected(2), "first swept cart contact supplies one bounded protected bumper hit")
+			else:
+				for frame in 20:
+					toys.tick(1.0 / 60.0, 1)
+				_expect(players[2].velocity == Vector3.ZERO and not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "cart_running"), "wall or missing floor cancels cart without force: " + scenario)
+			if is_instance_valid(wall):
+				wall.free()
+			floor_body.collision_layer = 1
+			await physics_frame
+			continue
+		toys.tick(4.0 if scenario == "balloon_range" else 0.4, 1)
+		if scenario == "balloon_range":
+			_expect(toys._balloons.is_empty() and players[2].velocity == Vector3.ZERO, "expired balloon dart cannot reach beyond its7.5m lifetime on a delayed tick")
+			continue
+		_expect(toys.effects[0].kind == "balloon_attached" and players[2].velocity == Vector3.ZERO, "balloon attaches with a full escape warning and no immediate force: " + scenario)
+		_expect(ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot()).effects[0].kind == "balloon_attached", "balloon attachment replicates without victim metadata")
+		var ceiling: StaticBody3D
+		if scenario == "balloon_ceiling":
+			ceiling = StaticBody3D.new()
+			var collider := CollisionShape3D.new()
+			var box := BoxShape3D.new()
+			box.size = Vector3(3, 0.1, 3)
+			collider.shape = box
+			ceiling.add_child(collider)
+			ceiling.position = players[2].global_position + Vector3.UP * 1.7
+			world.add_child(ceiling)
+			await physics_frame
+			await physics_frame
+		elif scenario == "balloon_departure":
+			toys.remove_player(2)
+		elif scenario == "balloon_pop":
+			toys.pickups.append({"id": 15001, "kind": "foam_blaster", "position": players[2].global_position, "expires": 99.0})
+			_expect(toys.request_pickup(2, 1, sequence), "target can swap to its ordinary pop counter")
+			_expect(toys.request_use(2, 1, sequence + 1, Vector3(0, 0.4, -0.9165)), "target shoots upward through normal pitch limits")
+			# Shoot from an ally beside the target when the target's own muzzle
+			# cannot intersect the overhead balloon within the legal camera pitch.
+			players[1].global_position = players[2].global_position + Vector3(0, 0, 2)
+			toys.pickups.append({"id": 15002, "kind": "foam_blaster", "position": players[1].global_position, "expires": 99.0})
+			sequence += 2
+			_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3(0, 0.4, -0.9165)), "ally can aim at visible balloon using public input")
+			toys.tick(0.25, 1)
+		elif scenario == "balloon_duplicate":
+			manager.elapsed_time += 1.0
+			toys.pickups.append({"id": 15003, "kind": kind, "position": players[1].global_position, "expires": 99.0})
+			sequence += 2
+			_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3.FORWARD), "second balloon uses a new finite charge")
+			toys.tick(0.4, 1)
+			_expect(toys._balloons.size() == 1, "multiple attackers cannot stack pending balloon lifts")
+		elif scenario in ["balloon_walk", "balloon_jump"]:
+			for frame in 20:
+				await physics_frame
+				players[2].apply_movement_input(Vector2.RIGHT if scenario == "balloon_walk" else Vector2.ZERO, false, scenario == "balloon_jump" and frame == 0, 1.0 / 60.0)
+				toys.tick(1.0 / 60.0, 1)
+		toys.tick(0.61, 1)
+		if scenario in ["balloon_lift", "balloon_duplicate"]:
+			_expect(is_equal_approx(players[2].velocity.y, 3.0) and shoves.is_protected(2), "grounded balloon supplies one mild lift through shared protection: " + scenario)
+			if scenario == "balloon_lift":
+				var base: float = players[2].global_position.y
+				var apex := base
+				for frame in 60:
+					await physics_frame
+					players[2].apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
+					apex = maxf(apex, players[2].global_position.y)
+				_expect(apex - base > 0.1 and apex - base < 0.4 and players[2].is_on_floor(), "physical balloon apex is mild and returns to the same floor")
+		else:
+			_expect(int(shoves._last_item_sequence.get(2, 0)) == prior_impulse, "counter cancels lift without an impulse: " + scenario)
+		if is_instance_valid(ceiling):
+			ceiling.free()
+		toys.tick(1.0, 1)
+		_expect(toys._balloons.is_empty(), "balloon target metadata expires: " + scenario)
+		sequence += 10
+	floor_body.free()
+	toys.reset()
+	toys._seen_sequences.clear()
+	shoves.reset_state()
 
 
 func _test_round_dedupe() -> void:

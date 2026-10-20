@@ -1,6 +1,6 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1 and M20.2 batches2/3 pushed; batch4 validation in progress. Owner explicitly wants
+Status: M20.1 and M20.2 batches2–5 pushed; batch6 staged gate next. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
@@ -112,7 +112,7 @@ readability. [Matched trial budgets](phase-20-batch4-metrics.json): authority+0.
 paired apply≤+0.317ms,draws+43,IPv4+17.50%; not native capacity. Normal staged gate
 passes63Godot/8network matrices/managed20/46Python. Not released/deployed.
 
-Batch5 remote popper/reflector implemented locally. Public-intent authority205,
+Batch5 remote popper/reflector committed/pushed with skip-ci. Public-intent authority205,
 presentation15/audio11 and real2/4both-map fourteen-toy matrix pass, including
 remote countdown, observer owner transfer and credited replicated return hit.
 Prep/expiry/flank, same-ID max1bounce and recipient quota controls pass.
@@ -120,9 +120,21 @@ Twelve actual-public-use720p/1080p states inspected, including opponent-facing
 canopy. [Active-window max-slot budgets](phase-20-batch5-metrics.json):+43draws,
 +0.257ms authority,≤+0.292ms paired apply,+17.674%IPv4. Same four controlled
 100ms-each-way/jitter/loss matrices pass,61/202/57/188datagrams dropped.
-Normal staged gate pending; no native/human acceptance inferred.
+Normal staged gate passed63Godot/8matrices/managed20/46Python;
+[source](https://github.com/phucle297/idunno/commit/cd681508dcf74e281efa715f022f23d345709660).
+No native/human acceptance or deployment inferred.
 Magnet is explicitly deferred, not completed: stopping pose and later hazard forces
 cannot guarantee persistent crate escape routes. See active decisions.
+
+Batch6 cart/balloon focused authority283/presentation15/audio11 pass. Real capsule
+walk/jump/ceiling/pop/departure/duplicate/apex and cart warning/wall/void/capacity
+controls pass. Delayed linear-projectile travel is bounded to lifetime after a
+reproduced9m balloon hit exceeded its7.5m range. Real2/4both-map16toy catalog,
+cart phases/accepted3m/s balloon lift and5rematches pass. Same four100ms-each-way/
+jitter/loss cases pass70/63/233/215drops. Ten final public-use720p/1080p states
+inspected; compact flying seed/full8m cart lane refined. [Stable max-slot budgets](phase-20-batch6-metrics.json):
++42draws,+0.433ms authority,≤+0.364ms paired apply,+15.872%IPv4.
+Normal staged gate pending; not committed/deployed or native-capacity proof.
 
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |
@@ -138,7 +150,7 @@ cannot guarantee persistent crate escape routes. See active decisions.
 | 5 — deferred | Magnet gadget: attracts loose props, not players | Local3m clearance cannot bound persistent stopping poses or later Tornado/Earthquake relocation; no generic crate-push escape. Requires a proven persistent-route invariant before implementation |
 | 5 | Remote popper: one visible placeable charge | Arming delay/beep; destroy/avoid; owner death/disconnect clears it |
 | 5 | Reflector umbrella: timed directional projectile deflect | Readable open window; flank/wait, server transfer credit, max1 reflection |
-| 6 | Rocket cart: short straight moving obstruction | Engine windup, fixed lane; step aside, swept collision, no new vehicle ownership |
+| 6 | Rocket cart: short straight non-solid bumper | Engine windup, fixed lane; step aside, swept collision, no new vehicle ownership or physical route obstruction |
 | 6 | Party balloon: attach after visible hit, mild lift | Break LOS before attach; pop/free window, safe lift ceiling, no indefinite suspension |
 
 Exit per batch: unique tactical choice rather than reskinned damage, implemented

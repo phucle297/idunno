@@ -11,6 +11,7 @@ var map_id := "toy_town"
 
 class ObservedShoves extends ShoveManager:
 	var applied_lifts := {}
+	var balloon_lifts := {}
 	var applied_owners := {}
 
 	func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0, lift: float = 0.0) -> bool:
@@ -19,6 +20,8 @@ class ObservedShoves extends ShoveManager:
 			applied_owners[victim_id] = owner_id
 		if accepted and lift > 0.0 and is_equal_approx((_players[victim_id] as PartyPlayer).velocity.y, 5.4):
 			applied_lifts[victim_id] = sequence
+		if accepted and is_equal_approx(lift, 3.0) and is_equal_approx((_players[victim_id] as PartyPlayer).velocity.y, 3.0):
+			balloon_lifts[victim_id] = sequence
 		return accepted
 
 
@@ -91,12 +94,13 @@ class FixtureMain extends "res://game/main.gd":
 		fixture_ack.rpc_id(1, "hammer_impulse", int(shoves._last_item_sequence.get(victim_id, 0)) > 0)
 
 	@rpc("authority", "call_remote", "reliable")
-	func fixture_observe_lift(victim_id: int, sequence: int) -> void:
+	func fixture_observe_lift(victim_id: int, sequence: int, balloon := false) -> void:
 		var shoves := get_node("ShoveManager") as ObservedShoves
 		# This barrier follows the production lift on the same ordered channel.
 		# Record at acceptance: independent movement snapshots can replace velocity
 		# before this barrier, so querying the later velocity tests a channel race.
-		fixture_ack.rpc_id(1, "spring_lift", sequence > 0 and int(shoves.applied_lifts.get(victim_id, 0)) == sequence)
+		var observations: Dictionary = shoves.balloon_lifts if balloon else shoves.applied_lifts
+		fixture_ack.rpc_id(1, "balloon_lift" if balloon else "spring_lift", sequence > 0 and int(observations.get(victim_id, 0)) == sequence)
 
 	@rpc("authority", "call_remote", "reliable")
 	func fixture_verify_old_round(victim_id: int) -> void:
@@ -267,7 +271,7 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and int(shoves._last_item_sequence.get(host_id, 0)) > 0
 	main.fixture_observe_impulse.rpc(host_id)
 	passed = passed and await main.wait_acks("hammer_impulse", player_count - 1, deadline)
-	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb", "foam_launcher", "toy_fan", "decoy_runner", "remote_popper", "reflector_umbrella"]:
+	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb", "foam_launcher", "toy_fan", "decoy_runner", "remote_popper", "reflector_umbrella", "rocket_cart", "party_balloon"]:
 		main.toy_sabotage.effects.clear()
 		passed = passed and await _give_remote(main, remote_id, kind, 710 + ToySabotage.KINDS.keys().find(kind), pad, deadline, kind + "_pickup")
 		for ammo in range(int(ToySabotage.KINDS[kind]) - 1, -1, -1):
@@ -327,6 +331,35 @@ func _server(main: FixtureMain) -> void:
 	main.toy_sabotage.tick(0.4, 1)
 	main.fixture_observe_reflection.rpc(remote_id, host_id)
 	passed = passed and await main.wait_acks("reflection_hit", player_count - 1, deadline)
+	main.toy_sabotage.reset()
+	shoves.reset_state()
+	passed = passed and await _give_remote(main, remote_id, "rocket_cart", 790, pad, deadline, "cart_pickup")
+	passed = passed and await _use_remote(main, remote_id, "rocket_cart", 0, deadline, "cart_windup")
+	await _publish(main)
+	main.fixture_observe_effect.rpc("cart_warning", "cart_windup", remote_id)
+	passed = passed and await main.wait_acks("cart_warning", player_count - 1, deadline)
+	main.toy_sabotage.tick(1.01, 1)
+	await _publish(main)
+	main.fixture_observe_effect.rpc("cart_running", "cart_running", remote_id)
+	passed = passed and await main.wait_acks("cart_running", player_count - 1, deadline)
+	main.toy_sabotage.reset()
+	shoves.reset_state()
+	passed = passed and await _give_remote(main, remote_id, "party_balloon", 791, pad, deadline, "balloon_pickup")
+	_place(main, host_id, pad + Vector3.RIGHT * 2.0)
+	var target := main._player_nodes[host_id] as PartyPlayer
+	for frame in 10:
+		await physics_frame
+		target.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60.0)
+	passed = passed and await _use_remote(main, remote_id, "party_balloon", 0, deadline, "balloon_dart")
+	main.toy_sabotage.tick(0.4, 1)
+	await _publish(main)
+	main.fixture_observe_effect.rpc("balloon_attached", "balloon_attached", remote_id)
+	passed = passed and await main.wait_acks("balloon_attached", player_count - 1, deadline)
+	main.toy_sabotage.tick(0.61, 1)
+	var balloon_sequence := int(shoves._last_item_sequence.get(host_id, 0))
+	passed = passed and is_equal_approx(target.velocity.y, 3.0)
+	main.fixture_observe_lift.rpc(host_id, balloon_sequence, true)
+	passed = passed and await main.wait_acks("balloon_lift", player_count - 1, deadline)
 	main.set_physics_process(true)
 	# Five production rematches require ordinary ready snapshots, then prove the
 	# client-local request sequence is reset by acquiring and firing every round.
