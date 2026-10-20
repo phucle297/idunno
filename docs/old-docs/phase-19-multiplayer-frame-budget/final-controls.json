@@ -1,0 +1,830 @@
+{
+  "source_revision_url": "https://github.com/phucle297/idunno/commit/4b95c1d9843a6bf193a3112e26e7489c542b4e3f",
+  "limits": "Linux orb,4vCPU,llvmpipe,LP_NUM_THREADS2,editor engine4.7.2. No native GPU/FPS/temperature, physical vblank/focus/minimize, separate-device/network or Ethernet verdict. UDP lengths are not decoded Variants or per-RPC attribution. Local ack backlog/RTT are not loss/reconciliation-distance evidence.",
+  "soak": {
+    "wall_duration_s": 967.4951058670122,
+    "repeats": 90,
+    "intervals_per_repeat": 600,
+    "scope": "Four real headless ENet clients, Rain, real alternating movement, client cap60; source editor engine.90 consecutive600-frame windows in one room, bounded profiler buffers; first60s excluded from trends. Per-window fixture resets intact terrain and input phase, not whole scene/weather. No graphics/thermal/native verdict.",
+    "capture": "One incoming lo copy per IPv4 UDP datagram matching authority port. IP total length and UDP payload length only. No payload retained; not per-RPC attribution or Ethernet bandwidth.",
+    "kernel_capture_drops": 0,
+    "wire": {
+      "authority_to_clients": {
+        "datagrams": 280367,
+        "ipv4_bytes": 148555244,
+        "udp_payload_bytes": 140704968,
+        "interior_s": 780,
+        "ipv4_bytes_per_s": 190455.44102564102,
+        "udp_payload_bytes_per_s": 180390.9846153846,
+        "peak_one_second_ipv4_bytes": 205336
+      },
+      "clients_to_authority": {
+        "datagrams": 218980,
+        "ipv4_bytes": 14524295,
+        "udp_payload_bytes": 8392855,
+        "interior_s": 780,
+        "ipv4_bytes_per_s": 18620.891025641027,
+        "udp_payload_bytes_per_s": 10760.070512820514,
+        "peak_one_second_ipv4_bytes": 19202
+      }
+    },
+    "peers": {
+      "client-0": {
+        "physics_hz_min_max": [
+          59.99818205508374,
+          60.106719931288424
+        ],
+        "nodes_min_max_after60s": [
+          11646.0,
+          11646.0
+        ],
+        "window_start_static_mib_min_max": [
+          173.16593647003174,
+          174.18019580841064
+        ],
+        "window_end_static_mib_min_max": [
+          175.18261051177979,
+          176.19624042510986
+        ],
+        "rss_first_last_minute_median_mib": [
+          269.26953125,
+          270.30078125
+        ],
+        "instrumented_totals": {
+          "snapshot_builds": 0,
+          "snapshot_build_usec": 0,
+          "match_receipts": 8701,
+          "match_accepted": 8701,
+          "match_apply_usec": 28304217,
+          "match_variant_bytes": 20256032,
+          "movement_receipts": 53982,
+          "movement_apply_usec": 1861872,
+          "main_physics_calls": 53996,
+          "main_physics_usec": 17800569
+        },
+        "rtt_ms_p95": 13,
+        "max_observed_pending_inputs": 5,
+        "main_physics_mean_usec": 329.6645862656493,
+        "match_apply_mean_usec": 3252.984369612688
+      },
+      "client-1": {
+        "physics_hz_min_max": [
+          59.99590227987421,
+          60.154831128573704
+        ],
+        "nodes_min_max_after60s": [
+          11646.0,
+          11646.0
+        ],
+        "window_start_static_mib_min_max": [
+          173.165020942688,
+          174.17715549468994
+        ],
+        "window_end_static_mib_min_max": [
+          175.17472171783447,
+          176.1956262588501
+        ],
+        "rss_first_last_minute_median_mib": [
+          269.23046875,
+          270.26171875
+        ],
+        "instrumented_totals": {
+          "snapshot_builds": 0,
+          "snapshot_build_usec": 0,
+          "match_receipts": 8697,
+          "match_accepted": 8697,
+          "match_apply_usec": 28597903,
+          "match_variant_bytes": 20247208,
+          "movement_receipts": 53989,
+          "movement_apply_usec": 1877852,
+          "main_physics_calls": 53997,
+          "main_physics_usec": 18014859
+        },
+        "rtt_ms_p95": 13,
+        "max_observed_pending_inputs": 4,
+        "main_physics_mean_usec": 333.6270348352686,
+        "match_apply_mean_usec": 3288.249166379211
+      },
+      "client-2": {
+        "physics_hz_min_max": [
+          60.000330001815016,
+          60.10698443159101
+        ],
+        "nodes_min_max_after60s": [
+          11646.0,
+          11646.0
+        ],
+        "window_start_static_mib_min_max": [
+          173.16508960723877,
+          174.17797565460205
+        ],
+        "window_end_static_mib_min_max": [
+          175.17175006866455,
+          176.19628620147705
+        ],
+        "rss_first_last_minute_median_mib": [
+          269.24609375,
+          270.27734375
+        ],
+        "instrumented_totals": {
+          "snapshot_builds": 0,
+          "snapshot_build_usec": 0,
+          "match_receipts": 8695,
+          "match_accepted": 8695,
+          "match_apply_usec": 28488407,
+          "match_variant_bytes": 20243716,
+          "movement_receipts": 53995,
+          "movement_apply_usec": 1845758,
+          "main_physics_calls": 53998,
+          "main_physics_usec": 18228923
+        },
+        "rtt_ms_p95": 13,
+        "max_observed_pending_inputs": 4,
+        "main_physics_mean_usec": 337.58515130190005,
+        "match_apply_mean_usec": 3276.4125359401955
+      },
+      "client-3": {
+        "physics_hz_min_max": [
+          60.00073200893047,
+          60.10829494470239
+        ],
+        "nodes_min_max_after60s": [
+          11646.0,
+          11646.0
+        ],
+        "window_start_static_mib_min_max": [
+          173.16481113433838,
+          174.17826557159424
+        ],
+        "window_end_static_mib_min_max": [
+          175.17232990264893,
+          176.19479846954346
+        ],
+        "rss_first_last_minute_median_mib": [
+          269.22265625,
+          270.25390625
+        ],
+        "instrumented_totals": {
+          "snapshot_builds": 0,
+          "snapshot_build_usec": 0,
+          "match_receipts": 8699,
+          "match_accepted": 8699,
+          "match_apply_usec": 28280902,
+          "match_variant_bytes": 20252888,
+          "movement_receipts": 53984,
+          "movement_apply_usec": 1854781,
+          "main_physics_calls": 53998,
+          "main_physics_usec": 18295876
+        },
+        "rtt_ms_p95": 13,
+        "max_observed_pending_inputs": 5,
+        "main_physics_mean_usec": 338.82506759509613,
+        "match_apply_mean_usec": 3251.052074951144
+      },
+      "server": {
+        "physics_hz_min_max": [
+          59.90264371139387,
+          60.242800259552126
+        ],
+        "nodes_min_max_after60s": [
+          11014.0,
+          11014.0
+        ],
+        "window_start_static_mib_min_max": [
+          151.96056938171387,
+          151.97066593170166
+        ],
+        "window_end_static_mib_min_max": [
+          154.63975715637207,
+          154.6505479812622
+        ],
+        "rss_first_last_minute_median_mib": [
+          247.77734375,
+          247.77734375
+        ],
+        "instrumented_totals": {
+          "snapshot_builds": 3600,
+          "snapshot_build_usec": 603530,
+          "match_receipts": 0,
+          "match_accepted": 0,
+          "match_apply_usec": 0,
+          "match_variant_bytes": 0,
+          "movement_receipts": 0,
+          "movement_apply_usec": 0,
+          "main_physics_calls": 22352,
+          "main_physics_usec": 14369706
+        },
+        "rtt_ms_p95": null,
+        "max_observed_pending_inputs": -1,
+        "main_physics_mean_usec": 642.882337151038,
+        "match_apply_mean_usec": 0.0
+      }
+    }
+  },
+  "graphical_controls": {
+    "phase19-final-harbor-snow-1080": {
+      "metadata": {
+        "engine": "/home/user/workspace/repo/.tools/godot/Godot_v4.7.2-stable_linux.x86_64",
+        "pack": null,
+        "output": "/home/user/workspace/repo/.scratch/phase19-final-harbor-snow-1080",
+        "scenario": "network",
+        "clients": 2,
+        "renderers": 2,
+        "map": "toy_harbor",
+        "weather": "snow",
+        "width": 1920,
+        "height": 1080,
+        "warmup": 120,
+        "samples": 600,
+        "repeats": 3,
+        "fps": 60,
+        "vsync": "off",
+        "ablation": "none",
+        "moving_client": false,
+        "timeout": 1800,
+        "xvfb": true,
+        "engine_version": "4.7.2.stable.official.ed1daf0bf",
+        "mode": "source_editor_engine",
+        "os": "Linux-6.1.158+-x86_64-with-glibc2.36",
+        "cpu": "unknown",
+        "logical_cpus_reported": 4,
+        "monitor_refresh_hz": "not collected",
+        "render_scale": "project default",
+        "LP_NUM_THREADS": "2",
+        "transport": "local direct-IP dedicated ENet; no HTTP allocator",
+        "actual_player_count": 2,
+        "admission_rendering": "disabled until sampling",
+        "audio": "Dummy",
+        "moving_players": false,
+        "movement_scenario": "stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
+        "instrumentation": "Private Main subclass observes build/apply/physics CPU and movement RPC receipt age. Variant-encoded decoded match payload size is NOT ENet/on-wire bandwidth. Additional encoding/timing cost remains in frame measurements.",
+        "reconciliation_measurement": "Movement receipt age is same-process hook time, NOT pending reconciliation age, correction distance, latency or packet loss; those are not inferred.",
+        "thermal_sensors": "not collected",
+        "gpu_power": "not collected",
+        "sample_start": "per-process warmup; not a synchronized barrier"
+      },
+      "summary": [
+        {
+          "repeat": 0,
+          "peer": "client-0",
+          "frames": 600,
+          "duration_s": 301.467574,
+          "p50_ms": 501.751,
+          "p95_ms": 551.254,
+          "p99_ms": 567.972,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 15.922110415762326,
+          "observed_match_sequence_delta": 2910,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2914,
+            "match_accepted": 2914,
+            "match_apply_usec": 1070000,
+            "match_variant_bytes": 4961676,
+            "movement_receipts": 18086,
+            "movement_apply_usec": 165317,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 698657,
+            "movement_receipt_age_p95_ms": 548.242
+          }
+        },
+        {
+          "repeat": 0,
+          "peer": "client-1",
+          "frames": 600,
+          "duration_s": 301.48533299999974,
+          "p50_ms": 503.472,
+          "p95_ms": 556.54,
+          "p99_ms": 575.06,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 15.921172523507153,
+          "observed_match_sequence_delta": 2910,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2914,
+            "match_accepted": 2914,
+            "match_apply_usec": 1071824,
+            "match_variant_bytes": 4962000,
+            "movement_receipts": 18086,
+            "movement_apply_usec": 165764,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 723955,
+            "movement_receipt_age_p95_ms": 554.425
+          }
+        },
+        {
+          "repeat": 0,
+          "peer": "server",
+          "frames": 600,
+          "duration_s": 4.140058000000001,
+          "p50_ms": 6.887,
+          "p95_ms": 7.781,
+          "p99_ms": 8.271,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 248,
+          "physics_ticks_per_s": 59.902542428149545,
+          "observed_match_sequence_delta": 40,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 40,
+            "snapshot_build_usec": 3813,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 248,
+            "main_physics_usec": 72815,
+            "movement_receipt_age_p95_ms": null
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "client-0",
+          "frames": 600,
+          "duration_s": 291.3454929999998,
+          "p50_ms": 485.066,
+          "p95_ms": 529.934,
+          "p99_ms": 550.432,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 16.47528489483104,
+          "observed_match_sequence_delta": 2810,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2815,
+            "match_accepted": 2815,
+            "match_apply_usec": 1005001,
+            "match_variant_bytes": 4796868,
+            "movement_receipts": 17480,
+            "movement_apply_usec": 157003,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 682068,
+            "movement_receipt_age_p95_ms": 527.488
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "client-1",
+          "frames": 600,
+          "duration_s": 291.359814,
+          "p50_ms": 484.47,
+          "p95_ms": 528.181,
+          "p99_ms": 547.444,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 16.47447509696722,
+          "observed_match_sequence_delta": 2810,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2815,
+            "match_accepted": 2815,
+            "match_apply_usec": 1004612,
+            "match_variant_bytes": 4796868,
+            "movement_receipts": 17479,
+            "movement_apply_usec": 158194,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 698893,
+            "movement_receipt_age_p95_ms": 525.678
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "server",
+          "frames": 600,
+          "duration_s": 4.159885999999996,
+          "p50_ms": 6.882,
+          "p95_ms": 7.634,
+          "p99_ms": 13.722,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 249,
+          "physics_ticks_per_s": 59.85740955401188,
+          "observed_match_sequence_delta": 40,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 41,
+            "snapshot_build_usec": 4053,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 249,
+            "main_physics_usec": 83229,
+            "movement_receipt_age_p95_ms": null
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "client-0",
+          "frames": 600,
+          "duration_s": 299.2620060000001,
+          "p50_ms": 494.716,
+          "p95_ms": 548.539,
+          "p99_ms": 586.433,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 16.039456742798144,
+          "observed_match_sequence_delta": 2889,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2894,
+            "match_accepted": 2894,
+            "match_apply_usec": 1077492,
+            "match_variant_bytes": 4931376,
+            "movement_receipts": 17956,
+            "movement_apply_usec": 166370,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 702159,
+            "movement_receipt_age_p95_ms": 545.31
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "client-1",
+          "frames": 600,
+          "duration_s": 299.3028019999998,
+          "p50_ms": 496.615,
+          "p95_ms": 547.894,
+          "p99_ms": 571.996,
+          "hitches_over_33ms": 600,
+          "hitches_over_50ms": 600,
+          "physics_ticks": 4800,
+          "physics_ticks_per_s": 16.037270509749533,
+          "observed_match_sequence_delta": 2889,
+          "observed_ack_sequence_delta": 4792,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 2894,
+            "match_accepted": 2894,
+            "match_apply_usec": 1071047,
+            "match_variant_bytes": 4931376,
+            "movement_receipts": 17959,
+            "movement_apply_usec": 165598,
+            "main_physics_calls": 4800,
+            "main_physics_usec": 708138,
+            "movement_receipt_age_p95_ms": 545.362
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "server",
+          "frames": 600,
+          "duration_s": 4.154319000000002,
+          "p50_ms": 6.901,
+          "p95_ms": 8.032,
+          "p99_ms": 11.399,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 249,
+          "physics_ticks_per_s": 59.93762154519186,
+          "observed_match_sequence_delta": 39,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 40,
+            "snapshot_build_usec": 4341,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 249,
+            "main_physics_usec": 99342,
+            "movement_receipt_age_p95_ms": null
+          }
+        }
+      ],
+      "median_six_window_p50_ms": 495.6655,
+      "median_six_window_p95_ms": 548.2165,
+      "client_draw_medians_min_max": [
+        892.0,
+        896.0
+      ]
+    },
+    "phase19-final-town-rain-720": {
+      "metadata": {
+        "engine": "/home/user/workspace/repo/.tools/godot/Godot_v4.7.2-stable_linux.x86_64",
+        "pack": null,
+        "output": "/home/user/workspace/repo/.scratch/phase19-final-town-rain-720",
+        "scenario": "network",
+        "clients": 2,
+        "renderers": 2,
+        "map": "toy_town",
+        "weather": "rain",
+        "width": 1280,
+        "height": 720,
+        "warmup": 12,
+        "samples": 60,
+        "repeats": 3,
+        "fps": 60,
+        "vsync": "off",
+        "ablation": "none",
+        "moving_client": false,
+        "timeout": 1800,
+        "xvfb": true,
+        "engine_version": "4.7.2.stable.official.ed1daf0bf",
+        "mode": "source_editor_engine",
+        "os": "Linux-6.1.158+-x86_64-with-glibc2.36",
+        "cpu": "unknown",
+        "logical_cpus_reported": 4,
+        "monitor_refresh_hz": "not collected",
+        "render_scale": "project default",
+        "LP_NUM_THREADS": "2",
+        "transport": "local direct-IP dedicated ENet; no HTTP allocator",
+        "actual_player_count": 2,
+        "admission_rendering": "disabled until sampling",
+        "audio": "Dummy",
+        "moving_players": false,
+        "movement_scenario": "stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
+        "instrumentation": "Private Main subclass observes build/apply/physics CPU and movement RPC receipt age. Variant-encoded decoded match payload size is NOT ENet/on-wire bandwidth. Additional encoding/timing cost remains in frame measurements.",
+        "reconciliation_measurement": "Movement receipt age is same-process hook time, NOT pending reconciliation age, correction distance, latency or packet loss; those are not inferred.",
+        "thermal_sensors": "not collected",
+        "gpu_power": "not collected",
+        "sample_start": "per-process warmup; not a synchronized barrier"
+      },
+      "summary": [
+        {
+          "repeat": 0,
+          "peer": "client-0",
+          "frames": 60,
+          "duration_s": 62.755188,
+          "p50_ms": 1044.106,
+          "p95_ms": 1119.975,
+          "p99_ms": 1160.562,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.648770010855517,
+          "observed_match_sequence_delta": 595,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 606,
+            "match_accepted": 606,
+            "match_apply_usec": 1240209,
+            "match_variant_bytes": 1216356,
+            "movement_receipts": 3768,
+            "movement_apply_usec": 38424,
+            "main_physics_calls": 480,
+            "main_physics_usec": 96929,
+            "movement_receipt_age_p95_ms": 1095.65
+          }
+        },
+        {
+          "repeat": 0,
+          "peer": "client-1",
+          "frames": 60,
+          "duration_s": 62.03086800000002,
+          "p50_ms": 1036.872,
+          "p95_ms": 1082.691,
+          "p99_ms": 1172.084,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.738082917040591,
+          "observed_match_sequence_delta": 588,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 599,
+            "match_accepted": 599,
+            "match_apply_usec": 1278321,
+            "match_variant_bytes": 1201300,
+            "movement_receipts": 3728,
+            "movement_apply_usec": 38665,
+            "main_physics_calls": 480,
+            "main_physics_usec": 97064,
+            "movement_receipt_age_p95_ms": 1060.585
+          }
+        },
+        {
+          "repeat": 0,
+          "peer": "server",
+          "frames": 60,
+          "duration_s": 0.417031,
+          "p50_ms": 7.002,
+          "p95_ms": 10.67,
+          "p99_ms": 17.032,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 25,
+          "physics_ticks_per_s": 59.947581834443966,
+          "observed_match_sequence_delta": 4,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 4,
+            "snapshot_build_usec": 539,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 25,
+            "main_physics_usec": 9275,
+            "movement_receipt_age_p95_ms": null
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "client-0",
+          "frames": 60,
+          "duration_s": 62.314068999999975,
+          "p50_ms": 1032.893,
+          "p95_ms": 1117.056,
+          "p99_ms": 1162.778,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.702915372128888,
+          "observed_match_sequence_delta": 592,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 602,
+            "match_accepted": 602,
+            "match_apply_usec": 1264100,
+            "match_variant_bytes": 1276240,
+            "movement_receipts": 3739,
+            "movement_apply_usec": 40671,
+            "main_physics_calls": 480,
+            "main_physics_usec": 93944,
+            "movement_receipt_age_p95_ms": 1088.62
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "client-1",
+          "frames": 60,
+          "duration_s": 62.387693000000006,
+          "p50_ms": 1040.402,
+          "p95_ms": 1102.471,
+          "p99_ms": 1143.866,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.693825126696061,
+          "observed_match_sequence_delta": 592,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 602,
+            "match_accepted": 602,
+            "match_apply_usec": 1232234,
+            "match_variant_bytes": 1276240,
+            "movement_receipts": 3744,
+            "movement_apply_usec": 38041,
+            "main_physics_calls": 480,
+            "main_physics_usec": 98354,
+            "movement_receipt_age_p95_ms": 1079.329
+          }
+        },
+        {
+          "repeat": 1,
+          "peer": "server",
+          "frames": 60,
+          "duration_s": 0.41409000000000007,
+          "p50_ms": 6.905,
+          "p95_ms": 8.9,
+          "p99_ms": 14.659,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 26,
+          "physics_ticks_per_s": 62.78828274046704,
+          "observed_match_sequence_delta": 4,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 4,
+            "snapshot_build_usec": 487,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 26,
+            "main_physics_usec": 10806,
+            "movement_receipt_age_p95_ms": null
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "client-0",
+          "frames": 60,
+          "duration_s": 62.767372,
+          "p50_ms": 1039.799,
+          "p95_ms": 1113.728,
+          "p99_ms": 1196.109,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.647285280639119,
+          "observed_match_sequence_delta": 598,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 608,
+            "match_accepted": 608,
+            "match_apply_usec": 1302155,
+            "match_variant_bytes": 1288960,
+            "movement_receipts": 3771,
+            "movement_apply_usec": 40650,
+            "main_physics_calls": 480,
+            "main_physics_usec": 100957,
+            "movement_receipt_age_p95_ms": 1088.592
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "client-1",
+          "frames": 60,
+          "duration_s": 62.91871200000001,
+          "p50_ms": 1043.84,
+          "p95_ms": 1116.098,
+          "p99_ms": 1182.749,
+          "hitches_over_33ms": 60,
+          "hitches_over_50ms": 60,
+          "physics_ticks": 480,
+          "physics_ticks_per_s": 7.628891068208769,
+          "observed_match_sequence_delta": 598,
+          "observed_ack_sequence_delta": 472,
+          "instrumented_totals": {
+            "snapshot_builds": 0,
+            "snapshot_build_usec": 0,
+            "match_receipts": 608,
+            "match_accepted": 608,
+            "match_apply_usec": 1276396,
+            "match_variant_bytes": 1288960,
+            "movement_receipts": 3774,
+            "movement_apply_usec": 38845,
+            "main_physics_calls": 480,
+            "main_physics_usec": 97505,
+            "movement_receipt_age_p95_ms": 1092.541
+          }
+        },
+        {
+          "repeat": 2,
+          "peer": "server",
+          "frames": 60,
+          "duration_s": 0.41364200000000007,
+          "p50_ms": 6.881,
+          "p95_ms": 8.244,
+          "p99_ms": 13.491,
+          "hitches_over_33ms": 0,
+          "hitches_over_50ms": 0,
+          "physics_ticks": 25,
+          "physics_ticks_per_s": 60.43873687875021,
+          "observed_match_sequence_delta": 4,
+          "observed_ack_sequence_delta": 0,
+          "instrumented_totals": {
+            "snapshot_builds": 4,
+            "snapshot_build_usec": 603,
+            "match_receipts": 0,
+            "match_accepted": 0,
+            "match_apply_usec": 0,
+            "match_variant_bytes": 0,
+            "movement_receipts": 0,
+            "movement_apply_usec": 0,
+            "main_physics_calls": 25,
+            "main_physics_usec": 11060,
+            "movement_receipt_age_p95_ms": null
+          }
+        }
+      ],
+      "median_six_window_p50_ms": 1040.1005,
+      "median_six_window_p95_ms": 1114.913,
+      "client_draw_medians_min_max": [
+        6045.5,
+        6050.0
+      ]
+    }
+  }
+}

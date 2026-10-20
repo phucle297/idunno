@@ -1,11 +1,14 @@
 # Phase19 — Multiplayer frame budget investigation
 
-Status: M19.1 in progress; owner authorized completing the remaining plan,
-committing/pushing each verified unit and releasing after integration.
-First selective-shadow candidate passed the broad staged gate and was pushed.
-Follow-up preserves dynamic-prop shadows and avoids unchanged roster writes.
-Sabotage implementation and redeployment have not started.
-Performance work precedes the Phase20 sabotage expansion.
+Status: automated investigation/optimization checkpoint completed; native owner
+symptom is NOT confirmed fixed. Source units passed and were pushed, not deployed
+or released. Existing hardware/human waiver permits bounded Phase20 continuation;
+it does not establish native FPS, thermal headroom or physical focus acceptance.
+The original expanded diagnostic matrix is retained below with unexecuted controls
+unchecked, not silently converted to passes. Confirmed rendering attribution and
+measured fixes satisfy this investigation's explicit-repro/attribution exit;
+extended controls remain follow-up rather than a reason to block all new content
+on unavailable hardware. Sabotage must pass incremental budgets, not assume room.
 
 ## Report and evidence boundary
 
@@ -353,8 +356,80 @@ Actual dry/rain/snow/melt/recovered renders inspected: overlay counts
 architecture/weather region is pixel-identical before/after in all five states;
 full-image differences are confined to the naturally animated avatar. Existing
 bright snow and subtle wet sheen are retained, not redesigned by this optimization.
-Final captures: `.amp/in/artifacts/phase19-weather-overlay/`. Current candidate
-needs its own normal staged gate before commit; source remains unreleased.
+Final captures: `.amp/in/artifacts/phase19-weather-overlay/`. Normal staged gate
+passed60 suites/7 matrices/managed20/five rematches and46 Python tests; committed
+and pushed [dry-overlay optimization](https://github.com/phucle297/idunno/commit/4b95c1d9843a6bf193a3112e26e7489c542b4e3f).
+Source remains unreleased and undeployed. Earlier pending statements are
+chronological checkpoints superseded by this delivery, not current gate failures.
+
+Four actual headless clients passed90 consecutive600-frame Rain/moving
+windows in one room, client cap60/authority0. Buffers clear between windows, not
+the scene/weather. The fixture restores intact terrain/input phase per window;
+this is sustained room operation, not an uncontrolled16-minute match.967.495s wall
+time,450 traces/270000 intervals, all rosters/ACTIVE/weather intact, clean logs and
+normal shutdown. An external scratch sampler collected only UDP/IP lengths
+(no payload retained),5s process RSS, and kernel capture-drop counters; exclude
+the first60s from trends. Its separate
+known-size loopback control passed2 datagrams/216 IPv4 bytes/160 UDP payload bytes,
+without counting the outgoing duplicate. Capture reported0 kernel drops and0 IPv4
+fragments, not proof of network transport loss/reconciliation correctness.
+
+Interior60..840s aggregate authority→4 clients:148555244 IPv4 bytes/140704968 UDP
+payload bytes; reverse14524295/8392855. These include all ENet traffic and are not
+per-RPC attribution or Ethernet bandwidth. Client physics59.996–60.155Hz; sampled
+authority windows59.903–60.243Hz. Uncapped authority600-frame windows span less wall
+time than the capped clients; do not label its CPU trace as continuous16-minute.
+RSS first/last-minute medians269.22–269.27→270.25–270.30MiB per client and
+247.78→247.78MiB for authority. Full reduction passed: all4 client node counts
+remain11646; authority11014. After the first6 windows, client window-start/end
+allocator ranges173.16–174.18/175.17–176.20MiB, authority151.96–151.97/154.64–154.65.
+This is a bounded profiler-buffer/cache plateau, not a zero-allocation claim.
+Local RTT p95=13ms, pending input count≤5; not Internet/loss/reconciliation proof.
+Mean Main physics callback330–339µs/client,643µs/authority; full match apply
+3251–3288µs/receipt. Instrumentation costs remain included.
+
+Final graphical controls also passed strict logs/intact-world/weather checks:
+
+| Actual2 renderers | Warmup / intervals × repeats | Six-window median p50 / p95 | Draw medians |
+| --- | --- | --- | --- |
+| Harbor Snow1080p | 120 /600 ×3 | 495.666 /548.217ms | 892–896 |
+| Town Rain720p | 12 /60 ×3 | 1040.101 /1114.913ms | 6045.5–6050 |
+
+These are workload controls, not matched quality settings between maps or native
+performance passes. Town's60-interval windows are bounded software-render smokes,
+not reliable tail-statistic estimates. Full raw traces stay in ignored scratch;
+compact [final evidence](final-controls.json) records source identity and results.
+All run on this software-render orb; none establish native temperature/60FPS.
+
+### Exit disposition and Phase20 trial ceilings
+
+- M19.1: confirmed orb render bottleneck and ranked attribution; the owner's
+  machine-specific thermal/FPS cause remains unclassified. No invented native repro.
+- M19.2: isolated tiny-detail shadow and dry-overlay work reduction; roster cache;
+  same geometry/collision hashes, inspected renders, old-source regression failures,
+  normal staged60 suites/7 matrices/managed20/five rematches/46 Python tests passed.
+- M19.3: real2/4-peer weather controls,16-minute4-client room/resource/wire baseline,
+  broad rematch regression and the following conservative incremental ceilings.
+  Native p95≤16.67ms remains unverified, not passed or erased by phase closure.
+
+First-slice trial:1 held slot/player;≤2 projectiles/player and≤4 globally (NOT12);
+≤6 placed/warning effects with rocket warnings reserved before firing; no new
+loose rigidbodies; all future dynamic props share the existing32-body ceiling.
+No cosmetic physical fragments or new shadow-casting light. Target≤64 additional
+draws/client,≤0.5ms incremental mean authority-physics and match-apply CPU,
+≤25% additional aggregate IPv4 traffic versus a matched4-peer workload and bounded
+resource plateaus after cleanup. These are **acceptance ceilings to test**, not
+measured toy capacity or native headroom; later batches cannot raise concurrency
+until their own matched controls pass. Reduce effects/concurrency on failure.
+Keep ordinary weapon control loss≤1s and shared post-hit/recovery protection≥1.5s;
+prefer displacement with no routine stun or direct weapon HP damage in first slice.
+
+Hardware/physical focus/minimize, separate-device/server/network, unchanged release
+template profiling, native60FPS/VRAM/temperature and precise loss/reconciliation
+acceptance remain open under the existing waiver. Expanded Home/Outfits, mixed
+hazard/collapse/ragdoll performance attribution below is unexecuted follow-up,
+not evidence of a remaining diagnosed hotspot; functional coverage is in regression.
+No server tick/send reduction, forced cap, quality downgrade or map-detail deletion.
 
 ## M19.1 — Reproduce and attribute the cost
 
@@ -392,7 +467,7 @@ Orb llvmpipe evidence cannot close native GPU/temperature acceptance.
 
 ## M19.2 — Fix only proven hotspots
 
-- [ ] Select interventions from M19.1 measurements, not all candidates at once.
+- [x] Select interventions from M19.1 measurements, not all candidates at once.
   Measure each independently before combining; retain before/after traces.
 - [ ] If pacing is the cause, trial configurable60FPS default and optional lower
   background presentation rate. A simple Engine.max_fps cap can also delay the
@@ -427,14 +502,15 @@ changes that only move the cost to the server or lower visible fidelity silently
   quality/resolution; quantify p99/hitches and two-visible-client throughput too.
   Two apps on one GPU are a contention stress test, not a universal60FPS promise.
   No chosen reference GPU yet: do not declare that target passed in the orb.
-- [ ] Run normal staged regression and inspect representative render/quality states
+- [x] Run normal staged regression and inspect representative render/quality states
   for visual changes. Record evidence and physical-device limits separately.
-- [ ] Establish measured CPU/network/visual headroom and concurrency budgets for
-  Phase20; no budget increases solely because a synthetic headless run passed.
+- [x] Establish recorded CPU/network/visual baselines and conservative incremental
+  trial budgets for Phase20 as qualified above. Native headroom is unknown; no
+  budget increases solely because a synthetic headless run passed.
 
 Exit: recorded baseline, verified improvements or explicit blockers, regression
 results and budgets. Package/release/deploy requires separate delivery authorization.
 
 No new hardware/infra provisioning, no blanket map-detail removal, no claim that
 heat proves a networking bug. Human feedback remains under the existing waiver;
-see [NEED_REAL_CHECK](../../NEED_REAL_CHECK.md).
+see [NEED_REAL_CHECK](../../../NEED_REAL_CHECK.md).

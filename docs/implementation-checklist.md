@@ -5,22 +5,22 @@
 ## Active and planned phases
 
 Owner authorized completing the remaining plan, committing/pushing each verified
-unit and releasing after final integration. Performance work precedes sabotage:
-- [Phase19 — Multiplayer frame budget](checklists/phase-19-multiplayer-frame-budget.md)
-  — reproduce two-app heat/frame drops, attribute cost, fix measured hotspots,
-  validate hardware/focus behavior and freeze headroom before adding combat effects.
-  M19.1 in progress:7×3 real-process orb dry diagnostics and shadow/UI/3D/cap ablations
-  executed; rendering first, no native GPU/thermal verdict or final fix claimed.
-  Reusable source/exact-PCK editor-engine tracer now records120/600 chronological
-  samples and client/authority cadence; official release-template probing is unsupported
-  and rejected explicitly. Controlled headless motion now passes with authoritative
-  position evidence; rendered motion/hazard/network-cost/hardware controls remain open.
+unit and releasing after final integration. Performance checkpoint precedes sabotage:
 - [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
   — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
-  depends on Phase19, server-authoritative and bounded against chain-lock/spam.
+  M20.1 active, server-authoritative and bounded against chain-lock/spam.
+  Trial ceilings follow Phase19 controls, not assumed native performance headroom.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases
+
+- [Phase19 — Multiplayer frame budget checkpoint](old-docs/phase-19-multiplayer-frame-budget/checklist.md)
+  — selective detail shadows, dynamic grounding guard, unchanged-roster cache and
+  fully dry overlay removal; measured dry draws8618–8627→4089–4098 on llvmpipe.
+  60 suites/7 matrices/managed20/46 Python, sustained four-client Rain/movement
+  controls, on-wire baseline and inspected renders passed; [full evidence](old-docs/phase-19-multiplayer-frame-budget/progress.json).
+  Source pushed, not released/deployed. Native thermal/FPS/focus and expanded matrix
+  remain unverified/partial, not waived into passes or owner-bug-resolution claims.
 
 - [Phase18 — Outfits, Starter Costumes and Original Music](old-docs/phase-18-outfit-selection-and-costumes/checklist.md)
   — real pointer/equip fix, four free starters and two original menu/game loops;
@@ -31,7 +31,7 @@ Prior B/C UI/director proposals and packet-loss investigation remain deferred.
   Follow-up741ae34 deployed/published as matching
   [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34):
   exact-PCK render/music, public two-client equipment/movement, standalone server and
-  asset re-download byte checks passed. [Delivery evidence](../progress.json).
+  asset re-download byte checks passed. [Delivery evidence](old-docs/phase-19-multiplayer-frame-budget/progress.json#delivery_followup).
   Native/human/GPU/audio/separate-network acceptance remains unverified.
 
 - [Phase17 — Continuous Weather and Roof-Correct Shelter](old-docs/phase-17-continuous-weather/checklist.md)

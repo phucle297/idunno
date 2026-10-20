@@ -3,20 +3,22 @@
 **Báo cáo mới của owner — hiệu năng multiplayer (2026-10-19, chưa phân loại):**
 Solo khá mượt; mở2 app trên cùng máy, vào cùng room gây nóng máy và drop khung hình.
 Chưa có build/OS/CPU/GPU/độ phân giải/FPS/thời lượng/map/hazard; không tự gán báo cáo
-cho build public hay kết luận thermal throttle/network bug. [Plan Phase19](docs/checklists/phase-19-multiplayer-frame-budget.md).
+cho build public hay kết luận thermal throttle/network bug. [Phase19 checkpoint](docs/old-docs/phase-19-multiplayer-frame-budget/checklist.md).
 Chưa tái hiện trên máy owner; orb không thay đo GPU/nhiệt độ thật. Nếu có thêm dữ
 liệu, ghi build/cấu hình/độ phân giải, cả2 cửa sổ mở hay1 minimize, chơi bao lâu và
 FPS solo/2 app; ảnh/log không bắt buộc. Đây không phải checklist chặn tiếp tục và
 không đóng các giới hạn/waiver cũ.
 
-**Debug agent tiếp theo (2026-10-19):** đã chạy7 kịch bản ×3 lần với room/server và
-hai client thật trên orb llvmpipe720p. Tắt bóng đổ để đối chứng giảm draw calls
-8618→3881; tắt3D phục hồi nhịp physics client. UI preview ẩn vốn đã tắt; cap60
-không giải quyết software renderer đang quá tải. Ưu tiên plan bóng đổ/batching,
-không xóa chi tiết map hay giảm tick server. Đây không phải FPS Windows/GPU hoặc
-đo nhiệt trên máy bạn; chưa kiểm focus/minimize chung desktop,1080p, hazard và
-15 phút tải liên tục. [Số đo/giới hạn](docs/checklists/phase-19-multiplayer-frame-budget.md#executed-diagnostic--2026-10-19).
-Không có bản fix hiệu năng/release/deploy mới trong đợt chẩn đoán này.
+**Checkpoint tối ưu agent (2026-10-19):** selective shadows giữ bóng props động,
+cache roster không đổi, bỏ weather overlay khi hoàn toàn khô đã commit/push.
+Dry draw calls8618–8627→4089–4098; đối chứng riêng overlay giảm median frame
+interval khoảng36% trên llvmpipe, không suy thành FPS/nhiệt máy thật. Đã chạy
+room4 client Rain/di chuyển liên tục hơn16 phút, đo node/RSS/UDP, hai renderer
+Harbor Snow1080p và Town Rain720p; regression60 suite/7 matrix/managed20/46 Python.
+Không xóa hình học/collision hoặc giảm tick server. Focus/minimize chung desktop,
+GPU/Windows/nhiệt thật và diagnostic matrix mở rộng vẫn chưa hoàn tất.
+[Số đo/giới hạn](docs/old-docs/phase-19-multiplayer-frame-budget/progress.json).
+Source đã push, chưa release/deploy; không tuyên bố đã sửa hết triệu chứng máy owner.
 
 **Bản public hiện tại — Phase18 Outfits và Original Music (2026-10-19):**
 [Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
@@ -29,9 +31,9 @@ loop nhạc menu/gameplay, âm lượng Music riêng. 60 suite/7 matrix/managed2
 settings restart và chuột X11 thật24 pass. Exact deployed-PCK Collection52/Music22,
 ảnh Chef/Pilot720p, standalone Linux và public2 client Ready/Start/trang phục/
 di chuyển đồng bộ pass. Windows chứa PCK đúng byte CI đã deploy; cả hai asset đã
-tải lại đối chiếu byte/hash, tag trỏ đúng source. [Delivery evidence](progress.json)
+tải lại đối chiếu byte/hash, tag trỏ đúng source. [Delivery evidence](docs/old-docs/phase-19-multiplayer-frame-budget/progress.json#delivery_followup)
 và [source checkpoint](docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json).
-Archive ghi source-only tại thời điểm đóng phase; delivery mới ở root supersede.
+Archive Phase18 ghi source-only lúc đóng; delivery follow-up trong Phase19 supersede.
 Windows/GPU/loa thật, cảm nhận điều khiển và hai mạng riêng chưa xác minh; public
 profile storage vẫn tắt. Giữ waiver và mọi giới hạn cũ, không thêm checklist bắt buộc.
 Nếu gặp lỗi, báo build/trang phục/màn hình, thao tác và số người/mạng; với nhạc ghi

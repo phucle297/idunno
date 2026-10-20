@@ -1,10 +1,13 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: planned after Phase19 performance baseline/headroom. Owner explicitly wants
+Status: M20.1 in progress after the Phase19 automated baseline checkpoint. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
-grabbing/crouching. DESIGN stays unchanged; Phase19 remains the prerequisite.
+grabbing/crouching. DESIGN stays unchanged. The [Phase19 archive](../old-docs/phase-19-multiplayer-frame-budget/checklist.md)
+records measured optimizations, sustained controls and trial ceilings, not native
+headroom or resolution of the owner's thermal/FPS symptom. Expanded diagnostics
+remain partial; existing hardware acceptance waiver permits bounded continuation.
 
 ## Direction and game loop
 
@@ -99,19 +102,23 @@ cause and bounded cost. Toy Town and Harbor controls, real clients and rematch r
 
 ## M20.4 — Chaos density, readability and release readiness
 
-- [ ] Use the measured Phase19 render baseline before increasing density: the dry
-  Toy Town orb sample already shows8618 draws/client and shadow-sensitive stalls.
+- [ ] Use the measured Phase19 render baseline before increasing density: optimized dry
+  Toy Town orb samples show4089–4098 draws/client, down from8618–8627.
   These software-render numbers do not define native capacity. First slice should
   share meshes/materials, bound/expire warnings and avoid individual shadow-casting
   rigidbody confetti. Report incremental render/physics/network cost per active toy
   and combined with weather; retain visible projectiles/counters, not just headless
   pass results. No arsenal batch starts on an assumed final12-projectile budget.
 - [ ] Proposed initial caps for M20.1 profiling:1 held item/player,≤2 active
-  projectiles/player with≤12 total,≤6 placed effects,≤3s cosmetic fragments,
+  projectiles/player with≤4 total,≤6 placed/warning effects (reserve rocket warning
+  capacity before firing), no new loose rigidbodies,≤3s cosmetic fragments,
   ≤1s ordinary weapon-induced control interruption then≥1.5s cross-item protection.
   These are candidate ceilings, not measured capacity. All dynamic props/traps
   share the existing32-authoritative-loose-body limit; measure rather than add32
   on top. Prefer analytical/swept projectiles, not a rigidbody per pellet.
+  Initial incremental ceilings:≤64 draws/client,≤0.5ms mean authority physics and
+  snapshot apply,≤25% matched4-peer IPv4 traffic. Measure against archived controls;
+  these are acceptance ceilings, not measured toy capacity or native headroom.
 - [ ] Register/expire pooled effects, serialize bounded state and clean up ammo,
   ownership, projectiles, reflect credit, traps and action sequences on round reset.
   No stale hit from previous match, invisible persistent trap or disconnect exploit.

@@ -8,7 +8,8 @@ new follow-up evidence belongs in a separately named archive.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
-| 18 — Outfits, Starter Costumes and Original Music (source checkpoint; later deployed/released) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) · [Delivery follow-up](../../progress.json) |
+| 19 — Multiplayer frame budget (automated checkpoint; native acceptance and expanded matrix partial) | [Checklist](phase-19-multiplayer-frame-budget/checklist.md) | [Decisions](phase-19-multiplayer-frame-budget/decisions.md) | [Progress](phase-19-multiplayer-frame-budget/progress.json) · [Final controls](phase-19-multiplayer-frame-budget/final-controls.json) |
+| 18 — Outfits, Starter Costumes and Original Music (source checkpoint; later deployed/released) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) · [Delivery follow-up](phase-19-multiplayer-frame-budget/progress.json#delivery_followup) |
 | 17 — Continuous Weather and Roof-Correct Shelter (deployed/released) | [Checklist](phase-17-continuous-weather/checklist.md) | [Decisions](phase-17-continuous-weather/decisions.md) | [Progress](phase-17-continuous-weather/progress.json) |
 | 16 — Animated Rooftop Home and Toy Town Fixes (deployed/released) | [Checklist](phase-16-animated-rooftop-home/checklist.md) | [Decisions](phase-16-animated-rooftop-home/decisions.md) | [Progress](phase-16-animated-rooftop-home/progress.json) |
 | 15 — Home and Map Selection (deployed/released) | [Checklist](phase-15-home-and-map-selection/checklist.md) | [Decisions](phase-15-home-and-map-selection/decisions.md) | [Progress](phase-15-home-and-map-selection/progress.json) |
@@ -33,13 +34,20 @@ new follow-up evidence belongs in a separately named archive.
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 | 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
 
+Phase19 decisions are preserved byte-for-byte from the final active checkpoint.
+Their historical links refer to the then-active docs directory; use this table.
+Its checklist retains the original expanded diagnostic matrix as partial, not
+silently completed. Sustained orb controls do not prove native thermal/FPS/focus
+acceptance. Source optimization commits are pushed, not deployed/released.
+
 Phase18 decisions are preserved byte-for-byte. Their historical `checklists/`
 and `old-docs/` links refer to the then-active `docs` directory; use the phase
 table above for archived equivalents. The adjacent progress archive records the
 resolved first-gate fixture failures and final source-only delivery; none of its
 local tests establish a new public build or physical-device acceptance.
 Subsequent owner-authorized741ae34 deployment, matching prerelease and exact-PCK/
-public-session/asset-download evidence live in root progress; archive payloads
+public-session/asset-download evidence live in Phase19 progress under
+`delivery_followup`; archive payloads
 remain unchanged rather than rewriting the earlier checkpoint.
 
 Phase17 decisions are preserved byte-for-byte. Their historical

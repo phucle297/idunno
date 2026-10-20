@@ -1,0 +1,166 @@
+# Active phase decisions
+
+## 2026-10-19 — Close the measured optimization checkpoint, not native acceptance
+
+Final-source normal staged60 suites/7 matrices/managed20/five rematches/46 Python
+tests passed and source4b95c1d was pushed. Real4-peer Rain/moving room operation
+passed967.495s/90 windows/270000 intervals, stable node counts and bounded resource
+plateaus; header-only UDP capture had0 kernel drops. Two-renderer Harbor Snow1080p
+120/600×3 and Town Rain720p12/60×3 passed. Native temperature/60FPS, physical focus,
+separate-device networking and exact reconciliation/loss acceptance remain unknown.
+The original broader matrix remains visibly partial, not retrospectively passed.
+
+The existing waiver permits continued bounded implementation; do not turn missing
+native hardware into a new manual prerequisite or claim the owner's bug resolved.
+Close the agent-owned attribution/fix/baseline exit, preserve extended diagnostics
+and require incremental measurement for each toy batch. Start with≤4 global/≤2
+per-player analytical projectiles,≤6 placed/warning effects,1 slot/player and no
+new loose rigidbodies; reserve rocket warning capacity before accepting its shot.
+Trial acceptance ceilings:≤64 incremental draws/client,≤0.5ms additional mean
+authority-physics/match-apply CPU,≤25% extra matched4-peer IPv4 traffic and bounded
+resource plateaus. These are constraints to test, not measured arsenal capacity or
+native headroom. No source release/deployment until the remaining plan is integrated.
+
+## 2026-10-19 — Do not draw a fully transparent dry-weather overlay
+
+Independent dry-only ablation measured redundant weather surface passes:5998–6004
+draws→4089–4104; six-window p50 median1024.320→650.993ms in matched software-render
+conditions. Keep the shader/shelter/gameplay field unchanged; detach the overlay
+only when global snow/wetness, flood and covered residuals are all dry. Weak
+mesh references survive world/volcano churn without retaining freed geometry.
+Production candidate reproduces the work reduction; graphical public lifecycle
+regression fails3 assertions before/passes49 after. Static weather/architecture
+pixels match in dry/rain/snow/melt/recovered captures. No native/thermal claim.
+
+Keep network-cost hooks in the excluded external profiler subclass, not production.
+Time build/apply/whole-physics boundaries and label decoded Variant representation
+size separately from actual network bytes. Stable Rain/Snow controls use normal
+replication with externally held duration, not random hazards expiring mid-window.
+
+## 2026-10-19 — Preserve moving-prop grounding and skip unchanged roster writes
+
+Shared detail builders also construct moving crates: size-only shadow selection
+silenced all their parts. Preserve casting below moving/character bodies and
+breakable structures through ancestry, not a crate-name exception. Public map
+regression fails for six props before the guard and passes89 checks afterward.
+Updated caster counts2233/221 supersede2218/206; geometry/physics hashes unchanged.
+
+Cache roster-visible copied scalars, including roles/owner label/order, rather
+than incoming mutable Dictionaries. Departure invalidates the cache. Existing
+row identity and in-place update tests plus owner transfer/rejoin checks pass132.
+Serial synchronous-call reduction is a microbenchmark, not in-match FPS proof.
+Four-real-client tracer extension preserves the default two-client contract.
+
+## 2026-10-19 — Remove redundant tiny-detail shadow passes, not map detail
+
+Trial only small authored box/ellipsoid detail casting: longest dimension≤1.25m
+or middle dimension≤0.22m. Keep receiving light/weather and all geometry, materials,
+collisions and large-cover shadows. Do not disable Sun shadows globally or modify
+players, warnings, server tick or collapse ownership. Exact old-PCK/source geometry
+and collider hashes match on both maps. Corrected serial2-renderer720p trials show
+~31% fewer draws/~46% fewer shadow-inclusive primitives. Timing overlaps variation,
+so accept work reduction, not a universal FPS/thermal fix. Broad staged regression
+must pass before committing this candidate; retain native hardware limits.
+
+## 2026-10-19 — Keep long dry profiles geometrically comparable
+
+Owner now authorizes finishing remaining implementation, per-unit commit/push and
+final release. Continue performance first; do not infer separate hardware acceptance
+or deploy merely from a passing profiler.
+
+Controlled moving-client traces use real input and authoritative horizontal
+positions, not teleports or gravity-only displacement. Keep reconciliation timing
+explicitly unavailable without receive hooks. The normal fresh-checkout gate caught
+test-order dependence; class import now belongs to class setup, not one test.
+
+Reject the first long selective-shadow comparison because natural collapse removed
+geometry in later windows. Extend the diagnostic round timer/reset terrain and
+validate intact masks; never mutate production timing or bypass snapshot validation.
+The latter correctly caught an invalid stage4/mask0 fixture attempt. Sampling windows
+remain independent per process, and short uncapped authority windows need not span
+a100ms state snapshot; actual capped clients must still receive sequence progress.
+
+## 2026-10-19 — Reusable frame traces without production hooks
+
+Add local-only source/exact-PCK profiler and a real two-client repeated-run CLI
+contract. Sample chronological frame/physics/sequence data with120 warmup/600
+interval defaults. Apply FPS/shadow ablations only to clients; never accidentally
+throttle dedicated authority in the same experiment. Preserve the dry stationary
+scope and distinguish observed sequence progress from packet loss/RPC counts.
+
+Official release templates disable path/script overrides: verified rejection of
+`--main-pack` and ignored `--script`, then checked upstream compile guards. Fail
+fast rather than pretend normal main is instrumented. Editor+byte-exact deployed
+PCK is supported/labeled; unchanged standalone-template throughput remains open.
+No custom engine build, PCK modification, production diagnostic RPC or deployment.
+See [usage and limits](checklists/phase-19-multiplayer-frame-budget.md#reusable-tracer-follow-up--2026-10-19).
+
+## 2026-10-19 — Dry two-client diagnostic and optimization priorities
+
+Owner authorized autonomous debugging and continued planning. Executed7 scenarios
+×3 repeats using real room authority/ENet clients on llvmpipe720p; no runtime/assets
+changed. [Method, numbers and limits](checklists/phase-19-multiplayer-frame-budget.md#executed-diagnostic--2026-10-19)
+and [raw samples](checklists/phase-19-render-samples.csv) preserve the evidence.
+
+Shadow ablation reduces draws8618→3881; root3D-off restores client physics cadence
+from72–80 to599–601 ticks/10s. This attributes the orb's extreme stalls primarily
+to rendering, not a proven multiplayer/thermal fault on the owner's machine.
+Prioritize selective shadow budgeting, then collapse-district-local static batching
+without deleting map detail or changing collision/shelter. Keep dynamic mechanisms,
+breakables, props, players and warning geometry independently owned.
+
+Hidden preview disabling and cap60 did not materially improve this overloaded
+renderer; Home preview was already off in ACTIVE. Roster writes are measurable but
+secondary (synthetic2-row CPU call~0.064ms, deferred layout excluded). Do not remove
+UI, force a low background cap or change server simulation rates on this evidence.
+Require native/exported, focus/minimize, network-cost, hazard and sustained cases
+before closing M19.1/M19.3 or fixing final quality/concurrency budgets for sabotage.
+Earlier fixture failures remain recorded; successful run uses independent Xvfb
+displays to avoid pointer-grab competition, not same-desktop focus validation.
+No release, deployment, infrastructure changes or Phase20 implementation here.
+
+## 2026-10-19 — Performance first, then toy sabotage (planning only)
+
+Owner reports solo smooth but two apps on the same machine in one room heat up and
+drop frames. Build/device/FPS/temperature are not supplied. Treat that as real user
+feedback with unclassified cause, not proof of networking or thermal throttling.
+Existing overlap profiler adds avatars to one process; headless20-client and public
+two-client correctness checks do not establish two rendered clients performance.
+No explicit application FPS/background policy found; hidden Home preview is already
+disabled. Measure before changing caps, rendering or snapshot work.
+
+[Phase19](checklists/phase-19-multiplayer-frame-budget.md) plans matched solo/
+network/two-renderer controls, focus/minimize/resolution/pacing and sustained traces.
+Keep physics/ENet cadence correct under background rendering changes. Reference
+hardware unknown; llvmpipe cannot establish GPU temperature/native60FPS.
+
+[Phase20](checklists/phase-20-toybox-sabotage.md) plans the newly requested guns,
+rockets and wider toy arsenal after measured headroom. First vertical slice: foam
+blaster, plunger rocket, squeaky hammer; later batches add traps, displacement,
+deflection and bounded environment combos. Proposed limits/timings are hypotheses,
+not accepted balance. Default first slice uses position/impulse, not direct gun HP
+damage, preserving survival rather than realistic deathmatch. Shared cross-item
+protection, server hits/ammo and limited concurrency keep chaos reactive and bounded.
+No DESIGN rewrite, gameplay code changes, new infra or deployment in this task.
+Root `progress.json` owns the operational next action.
+
+## Previous completed delivery
+
+Phase18 outfit selection, four additional starter costumes and original menu/game
+music passed the technical gates and source push. Owner-authorized follow-up on
+2026-10-19 deployed revision741ae34 and published its matching
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34).
+Windows uses the byte-exact deployed CI PCK; both downloaded assets match originals.
+Public two-client equipment/Ready/Start/mutual movement, standalone server and exact
+PCK rendered collection/music checks passed. This does not establish native Windows,
+physical GPU/audio, human feel or separate-network acceptance.
+
+- [Phase18 decisions](old-docs/phase-18-outfit-selection-and-costumes/decisions.md)
+- [Full evidence](old-docs/phase-18-outfit-selection-and-costumes/progress.json)
+- [Completed checklist](old-docs/phase-18-outfit-selection-and-costumes/checklist.md)
+- [Current delivery evidence](../progress.json) supersedes the immutable source-only
+  archive checkpoint; no historical archive was overwritten.
+
+Existing human acceptance waiver, native Windows/GPU/audio limitations and deferred
+packet-loss investigation remain unchanged. Source checks are not public deployment
+or physical-device acceptance.

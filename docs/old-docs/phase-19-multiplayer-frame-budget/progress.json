@@ -1,0 +1,401 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-19",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "completed",
+  "archive_metadata": {
+    "phase_id": "phase_19_multiplayer_frame_budget",
+    "title": "Multiplayer frame budget investigation",
+    "status": "completed",
+    "archived_at": "2026-10-19T12:56:01Z",
+    "superseded_by": "../../../progress.json",
+    "checklist": "checklist.md",
+    "decisions": "decisions.md",
+    "final_control_evidence": "final-controls.json",
+    "scope": "Automated attribution/optimization checkpoint only; original expanded diagnostics remain visibly partial and native/hardware acceptance is not claimed. Historical diary paths refer to the then-active checkout."
+  },
+  "previous_phase_archive": {
+    "path": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
+    "status": "completed",
+    "source_of_truth": false
+  },
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_19_multiplayer_frame_budget",
+    "milestone": "M19.3",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_19_multiplayer_frame_budget",
+    "title": "Multiplayer frame budget investigation",
+    "status": "completed",
+    "completion_scope": "Agent-owned attribution, measured optimization and orb baseline/trial ceilings. Native symptom resolution/FPS/thermal/focus and broader unexecuted matrix remain unverified under existing waiver, explicitly retained in the checklist; no native headroom or arsenal-capacity pass.",
+    "checklist": "docs/checklists/phase-19-multiplayer-frame-budget.md",
+    "milestones": [
+      {
+        "id": "M19.1",
+        "title": "Reproduce and attribute two-client cost",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M19.2",
+        "title": "Fix measured hotspots",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M19.3",
+        "title": "Validate baseline and sabotage budgets",
+        "status": "completed",
+        "gate": "passed"
+      }
+    ]
+  },
+  "completed_phase": {
+    "id": "phase_18_outfit_selection_and_costumes",
+    "title": "Selectable Outfits and More Costumes",
+    "status": "completed",
+    "archive": "docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/1243259a22bc5faf4ac609e05772ae7faab73ef2",
+    "pushed": true,
+    "deployed": true,
+    "released": true,
+    "delivery_revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341"
+  },
+  "public_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39184818543",
+    "endpoint": "https://server.permees.com",
+    "evidence": "progress.json#delivery_followup",
+    "pushed": true,
+    "deployed": true,
+    "released": true,
+    "windows_sha256": "1b6b8c5904f29392dddfe8e3879e69335ba399532b53baa017cb112d0973363d",
+    "linux_sha256": "d7fe18b8cf0d766863ccfe12031eb1f1b1e6110dc09e59cb162095e194314bea"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
+  },
+  "validation": [
+    {
+      "date": "2026-10-19",
+      "scope": "planning_source_inspection",
+      "status": "passed",
+      "result": "Inspected existing overlap profiler, main physics/snapshot/prop lookup paths, project/settings pacing config, Home preview disabling and bounded shove protection. Existing profiler is synthetic single-process4 avatars; headless20/public correctness cannot prove two graphical clients60FPS. No explicit project FPS/background policy found; engine/driver behavior and thermal cause unknown. No runtime benchmark executed for this planning-only request."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_fixture_initial_control",
+      "status": "failed",
+      "result": "Scratch actual-process profiler attempted3x10s720p dry solo: llvmpipe only9–10frames/window,p95~1s,7555 draws. Not native performance evidence. First networking attempt failed admission under inherited test-only1500ms ENet recovery timeout with software render stalls. Corrected fixture to retain production timeouts, disable root3D only during admission and use identical standalone review camera across roles; no product code or timeout policy changed. Retained initial logs .scratch/phase19-debug.log. Scratch parse signature/name conflicts corrected before executing benchmark."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_fixture_recovery",
+      "status": "failed",
+      "result": "r2 admitted real peers but fixture summary accessed dedicated server's absent Home; fixed fixture null guard. r3 completed solo/one-render/two-render samples, then strict log gate rejected X11 NO GRAB from two unattended clients competing for one Xvfb pointer. These runs are not clean passes. Re-derived display ownership; r4 gives each graphical peer its own Xvfb while retaining two real clients and one local dedicated process. This isolates render contention, not same-desktop focus/minimize behavior. No product changes."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "orb_real_process_dry_diagnostic",
+      "status": "passed",
+      "result": "LP_NUM_THREADS=2 python3 .scratch/phase19_profile.py: FRAME_INVESTIGATION_OK scenarios=7 repeats=3 duration=10s warmup=2s hardware=orb-llvmpipe. Real RoomService/dedicated/2 ENet clients; solo,1 renderer+headless peer,2 renderers,hiddenUI-off,root3D-off,cap60,Sun-shadow-off. All21 windows/57 process records ACTIVE, network roster2. Strict client/server SCRIPT ERROR/ERROR scan empty. Independent Xvfb per graphical peer; not focus/minimize/native GPU proof. CSV docs/checklists/phase-19-render-samples.csv; driver/log archive .amp/in/artifacts/phase19-diagnostics/reproduction.tar.gz."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "render_attribution_and_inventory",
+      "status": "passed",
+      "result": "Two-render median-of-window-p50 1173.726ms, hiddenUI-off1187.272,cap60 1178.801,Sun-shadow-off474.841 with draws8618→3881,root3D-off9.588. Baseline only7–8 frame intervals/window: no reliable native p95/99/60FPS conclusion. Graphical physics72–80ticks/10s vs599–601 no3D; local authority599–601. Headless TOWN_INVENTORY_OK:4709 mesh instances/all shadow casters,4741 surfaces,3659980 full-scene triangle primitives,2092 static bodies/2173 colliders. Synthetic roster5x500 median CPU/call1/2/4/20 rows=0.032818/0.064338/0.127626/0.641060ms, excludes deferred layout/network. Prioritize selective shadows/district-local batching then measured UI/pacing; no product fix or thermal diagnosis claimed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "diagnostic_plan_integrity",
+      "status": "passed",
+      "result": "jq empty progress.json; PLAN_EVIDENCE_OK rows=57 windows=21 local_links=true active_state=true. First staged check/commit rejected generated CSV default CRLF as whitespace; regenerated same data with LF, git diff --cached --check and tools/test_changed.py passed PRE_COMMIT_OK affected tests=0 staged_files=7 (docs/data only, not gameplay regression). Runtime/assets/project diff741ae34..HEAD empty. Inspected plan/diff, kept M19.1 open and Phase20 planned. Temporary fixture source archived with successful logs for reproduction, removed from checkout; no permanent runtime/test/asset changes or release/deploy."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "reusable_profiler_initial_validation",
+      "status": "passed",
+      "result": "Added local-only tools/profile_multiplayer.py and external SceneTree driver (not exported/no new RPCs). Godot check-only passed; Python preflight caught/fixed extra parenthesis before execution. Source headless actual2-client/authority run passed3 repeats120 warmup/600 samples,5400 chronological records; observed physics59.90–60.15Hz. Two durable CLI/summary contract tests passed twice, including real roster/Ready/Start, sequence progress and repeat isolation. Not graphical FPS evidence."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "official_release_template_probe",
+      "status": "failed",
+      "result": "Official release binary741ae34 rejects --main-pack because path overrides are disabled; direct --script probe with --quit runs normal main rather than external driver. Verified Godot upstream main.cpp compile guard clears script in release templates. Runner now checks --help capability and rejects unsupported binary before launching peers; use editor engine+exact exported PCK, explicitly not standalone-template performance. No release binary/PCK modification or custom engine build."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "exact_pack_profiler_validation",
+      "status": "passed",
+      "result": "Editor engine4.7.2 with exact741ae34 CI PCK passed headless3x600 samples and graphical2-client no3D/cap60 control3x600, both120-frame warmup. Each emitted5400 records with build identity/PCK hash. No3D actual1280x720 clients cap60; authority cap0; observed physics59.83–60.10Hz. Headless actual root64x64 is recorded, not a720p render claim. No3D run is instrumentation/cadence validation, not an isolated rendering benchmark (contract tests overlapped part of that run). Logs rejected SCRIPT ERROR/ERROR, all peers exited successfully."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "profiler_render_controls_and_import_hygiene",
+      "status": "passed",
+      "result": "Exact-PCK actual2-renderer smoke passed3 warmup/12 intervals,1 repeat (not tail statistics); solo Harbor48 samples/2 repeats passed. Unsupported-release fail-fast passed RELEASE_TEMPLATE_REJECTED_OK before creating result directory. Final import/check-only/Python compile and two CLI/summary tests passed; integration now asserts client cap60 vs authority cap0. Editor import exposed evidence CSV being treated as localization and generating17 untracked sidecars; added docs/.gdignore, removed only generated sidecars, re-import passed DOCS_IMPORT_IGNORED_OK without recreating them. No game assets/runtime changed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "final_tracer_gate_and_serial_control",
+      "status": "passed",
+      "result": "Final current-driver exact-PCK no3D/cap60 serial rerun passed9 traces/5400 records,120 warmup/600 samples/3 repeats, physics59.910–60.102Hz, client caps60/authority0. Headless shadows-off control verified sun_shadows=false and emitted12 records. tools/test_changed.py passed normal staged affected gate (one suite/two real-client+summary tests), not full gameplay regression. TRACER_PLAN_INTEGRITY_OK links=true active_milestone=M19.1 csv_sidecars=0; game/scenes/assets/project/export settings diff empty. Raw trace/log review bundle .amp/in/artifacts/phase19-tracer-validation.tar.gz. No performance fix, native/GPU/thermal pass, release or deployment claimed."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "controlled_moving_client",
+      "status": "passed",
+      "result": "Owner authorized remaining implementation, per-unit commit/push and final release. Added opt-in real alternating strafe input; default stationary unchanged, no production hooks/teleports. Source headless --fps60 --moving-client,120 warmup/600 samples/3 repeats passed5400 records: authoritative travel11.64–11.90m/window, max displacement1.00–1.34m, all-peer physics59.90–60.12Hz. Four unittest profiler contracts passed. Pending-input count/ack lag explicitly not packet loss or reconciliation timing; actual snapshot receipt age/correction distance unavailable. Outputs .scratch/phase19-moving-full. Not a rendered/native performance fix."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "moving_tracer_fresh_checkout_gate",
+      "status": "failed",
+      "result": "First normal staged gate exposed missing global class cache: alphabetically earlier moving integration ran before the old stationary test's import setup. Fixed test setup ownership by importing once in setUpClass before either integration; did not change runtime or suppress error. Requires normal staged rerun."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "moving_tracer_gate_recovery",
+      "status": "passed",
+      "result": "Normal staged gate rerun passed all4 profiler tests in a fresh checkout and PRE_COMMIT_OK tree0bbb0a3f6026205479e1d6a626519ed7eded56f5. Committed/pushed https://github.com/phucle297/idunno/commit/e55b2ac with skip-CI. No runtime change or deployment in that unit."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "shadow_trial_world_control",
+      "status": "failed",
+      "result": "Initial source before/after selective-shadow trials completed3x60 but later windows reached natural district-collapse timing: baseline draws8618→7272 as geometry vanished. Rejected whole run as a matched performance verdict. Added fixture-only extended round duration, terrain reset and recorded/validated intact removed/pending masks. Initial attempt to set stage4 with mask0 was invalid and caused clients to reject snapshots; contract caught stalled client sequences twice. Removed stage mutation after reading snapshot validator; kept valid terrain state and extended timer only. Also made movement evidence horizontal so gravity cannot satisfy input proof. Four contracts pass after correction. Corrected comparison rerunning serially, no production clock/validation changes."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "corrected_selective_shadow_trial",
+      "status": "passed",
+      "result": "Same4.7.2 editor engine/llvmpipe/LP_NUM_THREADS2/720p, actual2 ENet renderers+authority, same camera,12 warmup/60 intervals x3 per side, serial old exact741ae34 PCK vs source candidate. Intact masks0/pending-1 throughout, strict logs clean. Draw medians8618–8627→5964–5973 (~31% less), shadow-inclusive primitives10.15m→5.48m (~46%). Median of six client-window p50s1115.356→1052.643ms and p95s1221.997→1170.258ms overlap variation: no reliable FPS/thermal/resolved-owner-bug claim. Candidate only disables casting for tiny authored detail boxes/ellipsoids; visible geometry, collisions and large-cover/player/warning shadows unchanged. Normal staged4-test profiler gate passed on fresh checkout, committed/pushed5778d65; no deployment."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "shadow_geometry_and_render_review",
+      "status": "passed",
+      "result": "SHADOW_INVARIANTS_OK both source and old exact PCK: Town4709 meshes/2173 shapes, Harbor361/142, geometry/transform/collision-array SHA256 identical per map. Casters4709→2218 Town,361→206 Harbor. Actual street/facade/overview720p and street/Harbor1080p before/after captures inspected; large shadows/details/routes retained, sidewalk streaks pre-exist baseline. Capture map-switch shutdown retains2–4 ObjectDB/1–2 resources on both builds, not runtime correctness proof/clean teardown. Review archive .amp/in/artifacts/phase19-shadow-validation.tar.gz. Candidate requires broad normal staged regression before runtime commit."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "additional_local_roster_candidate",
+      "status": "passed",
+      "result": "Separate unstaged candidate caches roster-visible scalar values, not mutable input Dictionary, and skips redundant theme/text/reorder writes. Existing LOBBY_ROSTER_OK130 passed; check-only and scratch in-place name/ready edits, owner/local marker migration, remove/rejoin passed. Lightweight5x500 synchronous-call microbench ~0.054798→0.002186ms for2 rows and0.500952→0.016892ms for20; deferred layout excluded, overlapped correctness regression and is not a frame-time benchmark. Needs normal staged gate and serial microbench before separate commit. Existing shutdown-only3 ObjectDB/1 resource diagnostics retained, not hidden. This candidate is NOT part of the currently staged shadow-only commit/gate."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "additional_local_multiclient_tracer",
+      "status": "not_run",
+      "result": "Separate unstaged diagnostic extension accepts2/4/8/20 actual network clients and up to4 renderers, preserving default2, plus real roster/Ready/Start checks. Moving integration contract expanded to4 clients; Python compilation passed, execution pending behind serialized broad shadow gate. No production protocol change. Confirmed no connected native runners via list_runners; GPU/thermal acceptance still unavailable in this orb."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "initial_shadow_candidate_staged_delivery",
+      "status": "passed",
+      "result": "Normal staged gate passed UI_REGRESSION_OK60 suites/7 matrices/managed20 clients with5 rematches, then46 Python tests; PRE_COMMIT_OK treea81d82e21d97c7a9e55de5f2ab74b9262de253c2. Committed/pushed https://github.com/phucle297/idunno/commit/0d6720b32d6a30bc3d95a4ceebe2237442103d6f with skip-CI; not deployed/released. Follow-up review found shared helper also suppresses crate shadows; corrected separately below rather than claiming first candidate final."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "dynamic_shadow_guard_and_roster_followup",
+      "status": "passed",
+      "result": "Ancestor guard preserves rigid/animatable/character/breakable shadows, no crate-name exception. Public map regression against disposable previous source fails six prop grounding checks (exit1); current MAP_DETAIL_COLLISION_OK89 including5 rematches/map. Both geometry/collision hashes unchanged; current casters2233 Town/221 Harbor supersede2218/206. Godot import, LOBBY_ROSTER_OK132 including mutable edits/owner migration/identical rejoin and4 profiler tests including4 real moving clients pass. Serial5x500 roster-call medians2 rows0.049962→0.002036ms and20 rows0.519114→0.015434ms exclude deferred layout, not frame-rate proof. Requires current combined normal staged gate."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "guarded_render_rerun",
+      "status": "passed",
+      "result": "Serial actual2-renderer720p llvmpipe12 warmup/60 samples x3 guarded source passed strict logs/intact world:5999–6004 draws vs old8618–8627 (~30% lower),5.5461–5.5463m shadow-inclusive primitives. Six-window median p50=1000.493ms/p95=1079.257ms; source includes roster cache too, not isolated shadow timing or native/thermal verdict. All five final street/facade/overview720p and street/Harbor1080p captures rerendered/inspected. No production geometry/physics changes; tiny UP labels and subtle central pickup shadow noted, not new missing geometry. Outputs .scratch/phase19-shadow-guarded-after and .amp/in/artifacts/phase19-shadows. No release/deployment."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "guarded_presentation_staged_delivery",
+      "status": "passed",
+      "result": "Current follow-up passed normal staged60 suites/7 matrices/managed20/five rematches and46 Python tests; PRE_COMMIT_OK tree6dcc0bc243da83ec53c31e0b1cd82c28e16c18ea. Committed/pushed https://github.com/phucle297/idunno/commit/b021446 with skip-CI. Review bundle .amp/in/artifacts/phase19-guarded-presentation-validation.tar.gz. No release/deployment; no uncommitted changes from this unit remain."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "private_network_cpu_and_precipitation_instrumentation",
+      "status": "passed",
+      "result": "External-only Main subclass times actual snapshot build/apply, full Main physics callback and movement RPC receipt age. Raw interval counters aggregate to summary; decoded Variant byte size explicitly NOT on-wire traffic; extra encoding/timing overhead retained. Public CLI now holds dry/rain/snow workload through normal snapshots, with state agreement and every-frame precipitation checks. Check-only/compile and4 real-client contracts pass; four-client moving Snowfall and default dry repeats both exercised. Serial headless4-client moving Rain120 warmup/600 samples x3 passed15 traces/9000 records, physics59.915–60.147Hz. Mean match apply3.078–3.208ms/receipt, movement apply30.76–34.93us, authority build146–161us; decoded match payload2040–2140 mean bytes/receipt. Exact deployed PCK/editor-engine Snowfall90-sample smoke passed. No production RPC/tick change; receipt age is not correction distance/latency/loss."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "transparent_dry_weather_pass_attribution",
+      "status": "passed",
+      "result": "Independent single-change scratch ablation removes only alpha-zero world weather overlays while fully dry. Same current source/instrumentation, actual2 renderers/720p/llvmpipe/LP_NUM_THREADS2, serial12 warmup/60 frames x3: control5998–6004 draws, six-window median p50=1024.320ms/p95=1104.888ms; ablation4089–4104 draws, p50=650.993ms/p95=719.916ms. p50 window ranges1017–1032 vs630–662ms do not overlap. This confirms redundant dry render work in this orb, not native FPS/thermal proof. New production candidate weakly tracks surface meshes, removes overlays only when global/flood/covered residuals are dry, restores on weather/new terrain and clears on rematch. Headless weather41 and graphical lifecycle49 checks pass; actual map dry/rain/snow/melt/recovered captures inspected, overlay counts0/4709/4709/4709/0. Original snow brightness and subtle wet sheen retained; no shader/art redesign. Candidate full matched rerun and staged gate pending."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "dry_overlay_production_candidate_validation",
+      "status": "passed",
+      "result": "Same-driver production candidate2 renderers/720p12 warmup/60 frames x3 passed: draws4089–4098; six-window p50=659.972ms/p95=732.521ms, individual p50 range641–667ms vs control1017–1032ms (~36% lower median interval on llvmpipe only). Actual prior-source graphical public regression fails3 dry/reset assertions; current49 checks pass. Both-map geometry/collision hashes and caster counts unchanged. Baseline vs current dry/rain/snow/melt/recovered static upper1280x470 pixels exactly equal (ImageMagick mean difference0); amplified full-image diff inspected and confined to animated avatar. Missing optional Python PIL prevented first pixel script; used installed ImageMagick, no dependency added. Four updated profiler contracts rerun pass. Normal staged gate still required; no source delivery/release claimed for this candidate."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "dry_overlay_staged_delivery_and_sustained_followup",
+      "status": "passed",
+      "result": "Normal staged gate passed60 Godot suites/7 network matrices/managed20/five rematches/settings restart and46 Python tests; PRE_COMMIT_OK tree835a0ae91692729625455cd33175ec33f9a90cc7. Committed/pushed https://github.com/phucle297/idunno/commit/4b95c1d9843a6bf193a3112e26e7489c542b4e3f with skip-CI. Source was clean and matched origin/main afterward. No release/deployment. Scratch loopback header control passed2 datagrams/216 IPv4 bytes/160 UDP payload bytes, excluding duplicated outgoing copies. Four-client moving Rain90x600-window soak and header-only UDP/RSS observation have started after the gate, not yet passed; graphical Harbor1080p Snow and Town720p Rain controls are queued serially. No packet payload stored and no new runtime hooks."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "sustained_four_client_rain_wire_and_resources",
+      "status": "passed",
+      "result": "Final-source real4-client Rain/movement run passed90 consecutive600-frame windows in one room,450 traces/270000 intervals,967.495s wall time. Buffers/input phase/intact terrain reset per window, scene/weather/room stay live; authority windows are uncapped and shorter than clients. Client physics59.996–60.155Hz, observed authority-window physics59.903–60.243Hz. Strict logs clean and all peers shut down normally. Header-only loopback capture recorded1219836 incoming/outgoing packets with0 kernel capture drops/0 IPv4 fragments; count each UDP datagram once. Interior60..840s, aggregate4-client authority→clients148555244 IPv4 bytes/140704968 UDP payload bytes; reverse14524295/8392855. These include ENet protocol traffic, not per-RPC attribution or transport-loss proof. First/last-minute RSS medians269.22–269.27→270.25–270.30MiB per client; authority247.78→247.78MiB. Full raw node/resource reduction and graphical controls pending; no GPU/VRAM/temperature/native verdict. Scratch source .scratch/phase19_wire_soak.py and output .scratch/phase19-wire-soak-report.json; no payload saved."
+    },
+    {
+      "date": "2026-10-19",
+      "scope": "final_controls_and_automated_checkpoint_closure",
+      "status": "passed",
+      "result": "FINAL_CONTROL_EVIDENCE_OK:450 soak traces/270000 intervals reduced; all4 client node counts11646, authority11014, bounded allocation plateaus. Local RTT p95=13ms/pending inputs<=5 are not loss/reconciliation acceptance. Actual2 renderers: Harbor Snow1080p120/600x3 passed5400 records, six-window p50/p95 medians495.666/548.217ms,892–896 draws; Town Rain720p12/60x3 passed540 records,1040.101/1114.913ms,6045.5–6050 draws. Short Town tails are descriptive, not reliable native statistics. Strict logs clean; runtime/assets/tools/tests remain byte-identical to pushed4b95c1d. Compact final-controls.json retained beside archive plus review artifact .amp/in/artifacts/phase19-final-controls/evidence.json. Existing hardware/human waiver permits bounded Phase20 continuation, not native60FPS/thermal/focus or owner-bug-resolution claims. Original expanded diagnostic matrix remains visibly partial. Trial ceilings4 global/2-per-player projectiles,6 placed/warning effects,1 held slot,no new loose bodies; incremental64 draws,0.5ms mean authority/match-apply CPU and25% aggregate4-peer IPv4 traffic must be tested per batch, not assumed measured capacity. Source gates already passed60 suites/7 matrices/managed20/five rematches/46 Python. No release/deployment."
+    }
+  ],
+  "changed_files": [
+    "docs/checklists/phase-19-multiplayer-frame-budget.md",
+    "docs/checklists/phase-19-render-samples.csv",
+    "docs/checklists/phase-20-toybox-sabotage.md",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "docs/.gdignore",
+    "NEED_REAL_CHECK.md",
+    "progress.json",
+    "tools/profile_multiplayer.py",
+    "tools/profile_multiplayer_peer.gd",
+    "tools/profile_multiplayer_peer.gd.uid",
+    "tests/test_multiplayer_profile.py",
+    "game/main.gd",
+    "assets/manifest.json",
+    "game/ui/lobby_roster.gd",
+    "tests/test_lobby_roster.gd",
+    "tests/test_map_detail_collision.gd",
+    "game/disasters/weather_surfaces.gd",
+    "tests/test_weather_surfaces.gd"
+  ],
+  "blockers": [],
+  "limits": [
+    "Native Windows/GPU/audio and human animation/UI feel unverified.",
+    "Earlier intermittent packet-loss timeout remains deferred.",
+    "Software rendering does not establish60FPS.",
+    "Public profile storage remains disabled; isolated local persistence checks do not imply public persistence.",
+    "Public smoke used two Linux editor-engine clients with the exact deployed PCK in one orb/upstream, not separate-network acceptance.",
+    "Existing headless fixtures retain shutdown-only ObjectDB/resources; no clean-shutdown claim.",
+    "Phase19 graphical diagnostics use editor engine/software renderer and independent X displays; native GPU/thermal, physical vblank, same-desktop focus/minimize, separate-device/network and reconciliation-distance/loss acceptance remain unverified. A16-minute four-client headless Rain/moving room soak and final graphical weather controls passed. Expanded matrix follow-up is partial, not claimed complete; no native performance/owner-bug-resolution verdict.",
+    "Reusable tracer supports source/exact-PCK editor-engine execution only. Official release templates disable external script/path overrides; unchanged standalone profiling needs in-build instrumentation or external measurement, not a mislabeled editor result."
+  ],
+  "next_action": "Archive the completed automated Phase19 checkpoint without converting unexecuted native/expanded diagnostics into passes, initialize approved Phase20 and implement its three-item slice within the recorded trial ceilings.",
+  "source_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/4b95c1d9843a6bf193a3112e26e7489c542b4e3f",
+    "gated_tree": "835a0ae91692729625455cd33175ec33f9a90cc7",
+    "pushed": true,
+    "deployed": false,
+    "released": false,
+    "commit_policy": "Phase19 performance units passed normal staged regression and were pushed with skip-CI. Owner requests final release after the remaining plan; no intermediate deployment.",
+    "previous_public_delivery_revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341"
+  },
+  "delivery_followup": {
+    "phase_id": "phase_18_outfit_selection_and_costumes",
+    "status": "completed",
+    "revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39184818543",
+    "authorization": "Owner explicitly requested release and deploy on2026-10-19",
+    "validation": [
+      {
+        "scope": "windows_export_and_ci_artifact",
+        "status": "passed",
+        "result": "Pinned Godot4.7.2 Windows export verified146 entries; Linux CI artifact downloaded, extracted and hashes verified. Package source741ae34; use exact CI PCK in Windows for matching deployment."
+      },
+      {
+        "scope": "deployment_and_package_identity",
+        "status": "passed",
+        "result": "Workflow39184818543 succeeded for741ae3420da5b4c98c6d24b19344ffd5fbe6c341. CI Linux tar is published unchanged; local Windows export PCK differed, replaced with exact deployed CI PCK and regenerated checksums. ZIP extracted/reverified146 entries, both music imports, no development paths. Runtime/assets/tools diff1243259..741ae34 empty."
+      },
+      {
+        "scope": "public_and_standalone_sessions",
+        "status": "passed",
+        "result": "Public HTTPS/ENet two real Linux editor-engine clients loaded exact deployed PCK: version rejection409, admission, Chef/Pilot equipment replicated to both peers, Ready/Start and mutual authoritative movement >0.5m passed. Explicit disconnect cleanup; same orb/upstream, not separate networks. Standalone exported Linux without editor passed allocator crash/retry/shutdown/port reclamation and durable-store restart/reward replay/equipment/isolation (synthetic completion). Logs .scratch/phase18-public-r2.log,phase18-standalone-result.log. First disposable public fixture incorrectly expected enum2 (RESULTS) rather than actual ACTIVE1; corrected only fixture, no product change, rerun passed. Unsupported /health GET404 was not a deployment-health verdict; actual API and sessions passed."
+      },
+      {
+        "scope": "exact_deployed_pack_render_and_music",
+        "status": "passed",
+        "result": "Graphical actual CI PCK: COSMETIC_COLLECTION_OK52 and MUSIC_OK22; inspected final Chef/Pilot720p release captures with clear faces/full hats/connected scarf, grid and controls fit. First capture invocation omitted output subdirectory and failed saves; created directory and reran same fixture successfully. No runtime/PCK changes. Physical Windows/GPU/audio/human acceptance remains unverified."
+      },
+      {
+        "scope": "published_assets_redownload",
+        "status": "passed",
+        "result": "Published prerelease playtest-2026-10-19-741ae34; tag resolves exact741ae3420da5b4c98c6d24b19344ffd5fbe6c341. Both GitHub assets downloaded again and byte-identical to originals; Windows SHA2561b6b8c5904f29392dddfe8e3879e69335ba399532b53baa017cb112d0973363d, Linux d7fe18b8cf0d766863ccfe12031eb1f1b1e6110dc09e59cb162095e194314bea. No capacity/infrastructure/profile-store changes. Archived Phase18 source-only checkpoint remains immutable; this follow-up supersedes its delivery status."
+      }
+    ],
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
+    "ci_subscription": "cdd6cdc3-6965-4d45-b876-b669906ec9e2"
+  },
+  "planned_phases": [
+    {
+      "id": "phase_20_toybox_sabotage",
+      "title": "Toybox sabotage and chain-reaction chaos",
+      "status": "planned",
+      "depends_on": "phase_19_multiplayer_frame_budget",
+      "checklist": "docs/checklists/phase-20-toybox-sabotage.md",
+      "milestones": [
+        {
+          "id": "M20.1",
+          "title": "Action framework and three-item vertical slice",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.2",
+          "title": "Staged toy arsenal",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.3",
+          "title": "Bounded world chain reactions",
+          "status": "planned",
+          "gate": "not_run"
+        },
+        {
+          "id": "M20.4",
+          "title": "Chaos budget and regression",
+          "status": "planned",
+          "gate": "not_run"
+        }
+      ]
+    }
+  ]
+}
