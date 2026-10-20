@@ -67,7 +67,7 @@ func present(snapshot: Dictionary, local_position: Vector3, global_warning_activ
 		if local_position.distance_squared_to(position) > HEARING_RANGE_SQUARED:
 			skipped_distance_count += 1
 			continue
-		var stream: AudioStreamWAV = _streams.get(str(effect.get("kind", "")))
+		var stream: AudioStreamWAV = _streams.get(str(effect.get("kind", "")).trim_suffix("_reflected"))
 		if stream == null:
 			continue
 		var now := Time.get_ticks_msec() * 0.001
@@ -141,6 +141,9 @@ func _make_streams() -> Dictionary:
 		"foam_screen": _tone(0.16, 380.0, 610.0, 0.18, 0.012),
 		"fan_gust": _tone(0.22, 180.0, 320.0, 0.16, 0.028),
 		"decoy_running": _tone(0.14, 510.0, 420.0, 0.14, 0.008),
+		"popper_armed": _tone(0.7, 320.0, 700.0, 0.16, 0.008),
+		"popper_warning": _tone(1.0, 470.0, 1300.0, 0.20, 0.012),
+		"umbrella_open": _tone(0.25, 520.0, 220.0, 0.16, 0.018),
 		"blast_warning": _tone(0.12, 210.0, 280.0, 0.24, 0.010),
 		"hit": _tone(0.11, 170.0, 95.0, 0.25, 0.030),
 		"blocked": _tone(0.08, 260.0, 180.0, 0.18, 0.010),

@@ -103,14 +103,26 @@ Same2/4both-map controlled delayed/lossy cases pass. [Stable max-slot metrics](p
 authority+0.268ms,paired apply≤+0.243ms,IPv4+20.71%,draws+43,within trial ceilings.
 Normal full staged gate PRE_COMMIT_OK, including46Python tests; not deployed.
 
-Batch4 foam/fan/decoy implemented locally, same pools and no added bodies.
+Batch4 foam/fan/decoy [committed/pushed](https://github.com/phucle297/idunno/commit/226901b03b9aa8e70b2796ba463c7592d194d396), same pools and no added bodies.
 Authority144/presentation15/audio11 pass. Real2/4both-map twelve-toy finite-charge,
 replicated effects, recovery after70knocked-down requests and5rematches pass.
 Twelve public-use720p/1080p captures inspected; foam preview/active/pop, fan arm/active
 and moving mechanical decoy. Larger/elevated labels and coral arming cone improve
 readability. [Matched trial budgets](phase-20-batch4-metrics.json): authority+0.408ms,
 paired apply≤+0.317ms,draws+43,IPv4+17.50%; not native capacity. Normal staged gate
-pending; do not start batch5 until it passes and batch4 is committed/pushed.
+passes63Godot/8network matrices/managed20/46Python. Not released/deployed.
+
+Batch5 remote popper/reflector implemented locally. Public-intent authority205,
+presentation15/audio11 and real2/4both-map fourteen-toy matrix pass, including
+remote countdown, observer owner transfer and credited replicated return hit.
+Prep/expiry/flank, same-ID max1bounce and recipient quota controls pass.
+Twelve actual-public-use720p/1080p states inspected, including opponent-facing
+canopy. [Active-window max-slot budgets](phase-20-batch5-metrics.json):+43draws,
++0.257ms authority,≤+0.292ms paired apply,+17.674%IPv4. Same four controlled
+100ms-each-way/jitter/loss matrices pass,61/202/57/188datagrams dropped.
+Normal staged gate pending; no native/human acceptance inferred.
+Magnet is explicitly deferred, not completed: stopping pose and later hazard forces
+cannot guarantee persistent crate escape routes. See active decisions.
 
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |
@@ -123,7 +135,7 @@ pending; do not start batch5 until it passes and batch4 is committed/pushed.
 | 4 | Sticky foam launcher: temporary firing-lane screen | Explicit safety revision: blocks toy shots, players walk through unchanged; preview/pop/expire, no physical route denial or slowing |
 | 4 | Toy fan: short directional gust | Blade/corridor cue; cross behind/cover, one bounded impulse per pulse |
 | 4 | Decoy toy runner: distraction, not fake lethal HUD | Distinct toy silhouette; short life, does not forge global disaster warnings |
-| 5 | Magnet gadget: attracts loose props, not players | Visible tether/radius; break LOS, capped speed/mass and no physics pile explosion |
+| 5 — deferred | Magnet gadget: attracts loose props, not players | Local3m clearance cannot bound persistent stopping poses or later Tornado/Earthquake relocation; no generic crate-push escape. Requires a proven persistent-route invariant before implementation |
 | 5 | Remote popper: one visible placeable charge | Arming delay/beep; destroy/avoid; owner death/disconnect clears it |
 | 5 | Reflector umbrella: timed directional projectile deflect | Readable open window; flank/wait, server transfer credit, max1 reflection |
 | 6 | Rocket cart: short straight moving obstruction | Engine windup, fixed lane; step aside, swept collision, no new vehicle ownership |

@@ -138,12 +138,22 @@
     "decision": "Focused Oracle consultation plus direct map/capsule inspection:1.5m Harbor gangway minus1.2m solid wall leaves0.3m vs0.56m player width; endpoint validator cannot prove escape. Explicitly revise foam to query-only firing-lane cover: blocks toy projectiles, players walk through at unchanged speed, no bodies/camera/weather/support interference. One impact pops it; preview0.7s/active6s; rocket retains warned blast. Detailed contract in docs/decisions.md; not implemented or tested. Fan/decoy remain next batch."
   },
   "m20_2_batch4_local": {
-    "status": "in_progress",
-    "implementation": "Uncommitted foam launcher/query-only screen, armed fan pulses and supported cosmetic decoy controller/presentation/audio/card; reticle queries foam. Fixed arbitrary intent-gap ceiling:70ineligible requests no longer permanently lock later pickup. Recovery before/after scratch and real2peer ToyTown ENet pass before batch4 integration.",
+    "status": "completed",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/226901b03b9aa8e70b2796ba463c7592d194d396",
+    "pushed": true,
+    "implementation": "Foam launcher/query-only screen, armed fan pulses and supported cosmetic decoy controller/presentation/audio/card; reticle queries foam. Fixed arbitrary intent-gap ceiling:70ineligible requests no longer permanently lock later pickup. Recovery before/after scratch and real2peer ToyTown ENet pass before batch4 integration.",
     "validation": "Current authority144/presentation15/audio11 pass. Foam public-use boundary/pop/walk-through and finite lifecycle/lost-support checks pass;12actual-public-use720p/1080p captures inspected with final label/contrast fixes. Real2/4both-map twelve-toy catalog/observer replication/recovery after70knocked-down requests/5rematches pass. Final observer-enhanced same four controlled100ms each-way+0..12ms jitter+1/97loss cases pass,52/173/50/162datagrams dropped. Earlier unit failure was stale fixture treating new placements as confetti, corrected without production relaxation.",
     "performance": "Mixed max-slot4client Rain authority0.57446to0.98214ms (+0.40768);same-payload paired apply at most+0.31611ms. Dry4clients/1llvmpipe renderer4204to4247draws (+43),601.275to634.604ms p50. IPv4+17.49798%,0kernel drops/fragments. Within0.5ms/64draw/25%trials,not native60FPS/heat proof;docs/checklists/phase-20-batch4-metrics.json.",
-    "gate": "Normal staged gate pending; not committed/pushed/released.",
+    "gate": "Normal staged PRE_COMMIT_OK treeaca8beb292154939dfd05b69d78d9fa64036fc7c:63Godot suites/8network matrices/managed20/46Python tests. Committed/pushed with skip-ci; not released/deployed.",
     "recovered_blocker": "Subscription allowance available on continuation; bounded test/render workers completed."
+  },
+  "m20_2_batch5_local": {
+    "status": "in_progress",
+    "implementation": "Remote popper single supported charge:0.7s arm/8s life,second click1s covered blast warning,shots defuse; same reservation. Umbrella0.25s prep/0.9s directional window,one per owner,at most one reflection; same ID/lifetime/wire record,credit transfers and full recipient quota absorbs. No melee/blast immunity or added bodies/pools.",
+    "design_deferral": "Magnet and rigid-crate spring/rocket relocation remain explicitly deferred after focused Oracle safety consultation: local clearance cannot bound persistent crate stopping poses or later hazard relocation; no generic player crate-push escape. Not an executed magnet bug or completed feature.",
+    "validation": "Public-intent authority205/presentation15/audio11 pass. Defuse during countdown has no delayed blast; four linear kinds reflect,frisbee absorbs; prep/expiry/rear controls and quota/second-bounce limits pass. Real2/4both-map fourteen-toy finite-charge matrix/remote countdown/replicated reflected-owner hit/5rematches pass. Same four delayed/lossy cases100ms each-way+0..12ms jitter+1/97loss pass,61/202/57/188datagrams dropped. Twelve actual-public-use720p/1080p captures inspected including opponent-facing canopy; initial cyan blending fixed with coral opening/violet active and explicit HUD controller/reflect state. Normal staged gate pending.",
+    "performance": "Active-window stable maximum-slot4client Rain authority0.594639to0.851491ms (+0.256852),paired apply at most+0.291856ms;dry draws4204to4247 (+43),607.907to561.845ms p50;IPv4+17.673602%,0kernel drops/fragments. Within trial0.5ms/64draw/25%ceilings;not native capacity or exhaustive impact/pulse spikes. Preliminary preparation-window load superseded;docs/checklists/phase-20-batch5-metrics.json.",
+    "delivery": "Uncommitted/unpushed; not released/deployed."
   },
   "blockers": [],
   "limits": [
@@ -154,7 +164,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Rerun final batch4 observer-enhanced delayed network matrix and normal staged gate; commit/push on pass before batch5 gadgets.",
+  "next_action": "Pass batch5 normal staged regression gate and commit/push this verified gadget batch before batch6.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

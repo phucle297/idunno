@@ -27,6 +27,7 @@ func _run() -> void:
 	await _test_second_batch()
 	await _test_placed_toys()
 	await _test_foam_launcher()
+	await _test_remote_and_reflector()
 	_test_round_dedupe()
 	_test_knockdown_intent_recovery()
 	world.free()
@@ -331,7 +332,7 @@ func _test_placed_toys() -> void:
 			_expect(players[2].velocity == Vector3.ZERO, "fan respects arming delay")
 			toys.tick(0.41, 1)
 			_expect(players[2].velocity.z < 0.0 and shoves.is_protected(2), "fan gust uses shared bounded impulse and recovery")
-		else:
+		elif kind == "decoy_runner":
 			toys.tick(0.1, 1)
 			_expect((toys.effects[0].position as Vector3).z < point.z and players[2].velocity == Vector3.ZERO, "decoy advances on support without pushing players")
 		toys.remove_player(1)
@@ -467,6 +468,123 @@ func _test_foam_launcher() -> void:
 	await physics_frame
 	toys.tick(0.01, 1)
 	_expect(toys.effects.is_empty(), "lost support clears foam rather than leaving a floating screen after collapse")
+	toys._seen_sequences.clear()
+	toys._local_sequence = 0
+	floor_body.free()
+
+
+func _test_remote_and_reflector() -> void:
+	var floor_body := StaticBody3D.new()
+	var collider := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20, 0.2, 20)
+	collider.shape = box
+	floor_body.position.y = -0.1
+	floor_body.add_child(collider)
+	world.add_child(floor_body)
+	await physics_frame
+	await physics_frame
+	toys.reset()
+	shoves.reset_state()
+	manager.elapsed_time = 20.0
+	players[1].reset_for_match(Vector3(0, 0.02, 0))
+	players[2].reset_for_match(Vector3(1.2, 0.02, -1.4))
+	toys.pickups.append({"id": 1000, "kind": "remote_popper", "position": players[1].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 1000) and toys.request_use(1, 1, 1001, Vector3.FORWARD), "popper is acquired and placed through public intents")
+	_expect(not toys.request_use(1, 1, 1002, Vector3.FORWARD), "remote cannot skip visible arming")
+	toys.tick(0.71, 1)
+	_expect(toys.slots[1].feedback == "remote_ready", "armed controller visibly offers a second click at zero ammo")
+	_expect(toys.request_use(1, 1, 1003, Vector3.FORWARD) and toys.slots[1].ammo == 0 and toys.effects[0].kind == "popper_warning", "second click reuses the single reservation without spending again")
+	toys.tick(0.5, 1)
+	_expect(players[2].velocity == Vector3.ZERO, "remote detonation preserves a full one-second escape warning")
+	toys.tick(0.51, 1)
+	_expect(players[2].velocity.x > 0.0, "exposed victim receives the bounded covered popper blast")
+	# A low shot can defuse even an already-triggered charge, not detonate it.
+	toys.reset()
+	shoves.reset_state()
+	players[1].reset_for_match(Vector3(0, 0.02, 0))
+	players[2].reset_for_match(Vector3(0, 0.02, -4))
+	toys.pickups.append({"id": 1001, "kind": "remote_popper", "position": players[1].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 1004) and toys.request_use(1, 1, 1005, Vector3.FORWARD), "defuse control places a real charge")
+	toys.tick(0.71, 1)
+	_expect(toys.request_use(1, 1, 1006, Vector3.FORWARD), "defuse control starts normal countdown")
+	toys.pickups.append({"id": 1002, "kind": "foam_blaster", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, 1000) and toys.request_use(2, 1, 1001, Vector3(0, -0.3, 1)), "opponent fires a legal low shot at the charge")
+	toys.tick(0.35, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return String(effect.kind) in ["popper_armed", "popper_warning"]), "shot defuses the charge rather than shortening its timer")
+	toys.tick(1.0, 1)
+	_expect(players[1].velocity == Vector3.ZERO and players[2].velocity == Vector3.ZERO, "defused charge cannot produce a delayed blast")
+	var sequence := 1100
+	for weapon: String in ["foam_blaster", "plunger_rocket", "water_soaker", "foam_launcher", "boomerang"]:
+		toys.reset()
+		shoves.reset_state()
+		manager.elapsed_time += 1.0
+		players[1].reset_for_match(Vector3(0, 0.02, 0))
+		players[2].reset_for_match(Vector3(0, 0.02, -3))
+		toys.pickups.append({"id": 1000, "kind": "reflector_umbrella", "position": players[2].global_position, "expires": 99.0})
+		_expect(toys.request_pickup(2, 1, sequence) and toys.request_use(2, 1, sequence + 1, Vector3.BACK), "umbrella uses ordinary pickup and direction: " + weapon)
+		toys.tick(0.26, 1)
+		toys.pickups.append({"id": 1001, "kind": weapon, "position": players[1].global_position, "expires": 99.0})
+		_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3.FORWARD), "incoming projectile uses public shot: " + weapon)
+		var incoming_id := int(toys.effects[-1].id)
+		toys.tick(0.45, 1)
+		var bounced := toys.effects.filter(func(effect: Dictionary) -> bool: return int(effect.id) == incoming_id)
+		if weapon == "boomerang":
+			_expect(bounced.is_empty(), "umbrella absorbs a fixed-return frisbee instead of inventing a homing path")
+		else:
+			_expect(bounced.size() == 1 and int(bounced[0].owner) == 2 and String(bounced[0].kind).ends_with("_reflected") and bounced[0].direction.z > 0.0, "reflection retains ID and transfers ownership once: " + weapon)
+			var wire := ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot())
+			_expect(not wire.is_empty() and wire.effects.any(func(effect: Dictionary) -> bool: return int(effect.id) == incoming_id and int(effect.owner) == 2), "reflection credit survives fixed-width wire: " + weapon)
+		_expect(players[2].velocity == Vector3.ZERO, "front shield prevents direct impact: " + weapon)
+		sequence += 10
+	for mode: String in ["preparation", "expired", "twice", "quota"]:
+		toys.reset()
+		shoves.reset_state()
+		manager.elapsed_time += 1.0
+		players[1].reset_for_match(Vector3(0, 0.02, 0))
+		players[2].reset_for_match(Vector3(0, 0.02, -3))
+		if mode == "preparation":
+			players[1].global_position.z = -1.5
+		if mode == "quota":
+			toys.pickups.append({"id": 1000, "kind": "foam_blaster", "position": players[2].global_position, "expires": 99.0})
+			_expect(toys.request_pickup(2, 1, sequence), "quota control acquires two real owned shots")
+			_expect(toys.request_use(2, 1, sequence + 1, Vector3.RIGHT), "quota control fires first shot")
+			manager.elapsed_time += 0.3
+			_expect(toys.request_use(2, 1, sequence + 2, Vector3.RIGHT), "quota control fires second shot")
+		toys.pickups.append({"id": 1001, "kind": "reflector_umbrella", "position": players[2].global_position, "expires": 99.0})
+		_expect(toys.request_pickup(2, 1, sequence + 3) and toys.request_use(2, 1, sequence + 4, Vector3.BACK), "window control opens shield: " + mode)
+		if mode != "preparation":
+			toys.tick(1.2 if mode == "expired" else 0.26, 1)
+		toys.pickups.append({"id": 1002, "kind": "foam_blaster", "position": players[1].global_position, "expires": 99.0})
+		_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3.FORWARD), "window control fires incoming shot: " + mode)
+		if mode == "twice":
+			toys.pickups.append({"id": 1003, "kind": "reflector_umbrella", "position": players[1].global_position, "expires": 99.0})
+			_expect(toys.request_pickup(1, 1, sequence + 2) and toys.request_use(1, 1, sequence + 3, Vector3.FORWARD), "original shooter opens an opposing shield")
+			toys.tick(0.26, 1)
+			toys.tick(0.03, 1)
+			_expect(toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "pellet_reflected"), "first bounce occurs with both shields open")
+			toys.tick(0.3, 1)
+			_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return String(effect.kind) in ToySabotage.PROJECTILES) and players[1].velocity == Vector3.ZERO, "second shield absorbs instead of creating a ping-pong reflection loop")
+		else:
+			toys.tick(0.2 if mode == "preparation" else 0.4, 1)
+			if mode == "quota":
+				_expect(toys._owner_projectiles(2) == 2 and not toys.effects.any(func(effect: Dictionary) -> bool: return String(effect.kind).ends_with("_reflected")) and players[2].velocity == Vector3.ZERO, "full recipient quota absorbs the incoming shot without exceeding two owned projectiles")
+			else:
+				_expect(players[2].velocity.z < 0.0, "preparation/expired shield cannot protect its user: " + mode)
+		sequence += 10
+	toys.reset()
+	shoves.reset_state()
+	manager.elapsed_time += 1.0
+	players[1].reset_for_match(Vector3(0, 0.02, -6))
+	players[2].reset_for_match(Vector3(0, 0.02, -3))
+	toys.pickups.append({"id": 1000, "kind": "reflector_umbrella", "position": players[2].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(2, 1, sequence) and toys.request_use(2, 1, sequence + 1, Vector3.BACK), "flank control opens the same directional shield")
+	toys.tick(0.26, 1)
+	toys.pickups.append({"id": 1001, "kind": "foam_blaster", "position": players[1].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3.BACK), "flank control shoots from behind")
+	toys.tick(0.4, 1)
+	_expect(players[2].velocity.z > 0.0, "umbrella is not all-direction immunity; rear shot still hits")
+	toys.reset()
 	toys._seen_sequences.clear()
 	toys._local_sequence = 0
 	floor_body.free()

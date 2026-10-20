@@ -240,7 +240,15 @@ It cannot shelter you from disasters; rockets still warn before their blast.
 Toy Fan has1 placement:0.8s arming then4s of narrow3.5m gusts; use solid cover
 or go behind it. Decoy Runner has1 harmless mechanical distraction, running
 on supported ground for6s; its label always identifies it as a toy.
-Place these toys on level supported ground in front of you, not through walls
+Remote Popper has1 charge: place, wait0.7s for arming, then click again to
+start a1s marked blast countdown. The controller works at zero ammo for that
+charge only. Shoot the visible charge to defuse it, or run/use solid cover.
+It expires harmlessly after8s armed; swapping away does not auto-detonate it.
+Reflector Umbrella has1 use:0.25s opening then0.9s front-only reflection.
+Flank, wait, use a melee toy or escape the blast; it is not general immunity.
+Linear shots bounce at most once and credit the reflector; a disc or a shot
+that would exceed the reflector's two-projectile limit is absorbed instead.
+Place floor toys on level supported ground in front of you, not through walls
 or over gaps. They are non-solid, cannot seal doors, and disappear if their
 floor is destroyed or their owner is eliminated/leaves.
 Strafe, backstep, leave the marked area or use solid cover. Hits displace rather than directly remove health; falls and

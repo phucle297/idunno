@@ -20,10 +20,10 @@ const HAMMER_RANGE := 2.2
 const PLAYER_RADIUS := 0.28
 const PLAYER_HEIGHT := 1.5
 const FEEDBACK_MAX_CHARS := 24
-const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1, "foam_launcher": 2, "toy_fan": 1, "decoy_runner": 1}
-const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb", "toy_fan", "decoy_runner"]
-const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet", "foam_seed"]
-const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running"]
+const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6, "soap_slick": 2, "spring_pad": 2, "confetti_bomb": 1, "foam_launcher": 2, "toy_fan": 1, "decoy_runner": 1, "remote_popper": 1, "reflector_umbrella": 1}
+const PLACEABLES := ["soap_slick", "spring_pad", "confetti_bomb", "toy_fan", "decoy_runner", "remote_popper"]
+const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet", "foam_seed", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected"]
+const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning", "umbrella_open"]
 const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
@@ -169,17 +169,34 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 		return _feedback(peer_id, "aim")
 	direction = direction.normalized()
 	var slot: Dictionary = slots.get(peer_id, {})
+	# The controller remains usable at zero ammo, but only for its own charge.
+	if String(slot.get("kind", "")) == "remote_popper":
+		for effect in effects:
+			if int(effect.owner) == peer_id and String(effect.kind) in ["popper_armed", "popper_warning"] and float(effect.remaining) > 0.0:
+				if effect.kind == "popper_warning":
+					return _feedback(peer_id, "detonated")
+				if float(effect.remaining) > 8.0:
+					return _feedback(peer_id, "arming")
+				if not _supported(effect):
+					effect.remaining = 0.0
+					return _feedback(peer_id, "empty")
+				effect.kind = "popper_warning"
+				effect.remaining = 1.0
+				_feedback(peer_id, "detonated")
+				return true
 	if slot.is_empty() or String(slot.get("kind", "")) not in KINDS or int(slot.get("ammo", 0)) <= 0:
 		return _feedback(peer_id, "empty")
 	if float(slot.get("cooldown_until", 0.0)) > _manager.elapsed_time:
 		return _feedback(peer_id, "cooldown")
 	var kind := String(slot.kind)
+	if kind == "reflector_umbrella" and effects.any(func(effect: Dictionary) -> bool: return effect.kind == "umbrella_open" and int(effect.owner) == peer_id and float(effect.remaining) > 0.0):
+		return _feedback(peer_id, "capacity")
 	if kind in ["squeaky_hammer", "boxing_glove"]:
 		# Melee telegraphs are planar; camera pitch must not silently narrow them.
 		direction = Vector3(direction.x, 0.0, direction.z).normalized()
-	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher", "reflector_umbrella"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
 		return _feedback(peer_id, "capacity")
-	if kind not in ["squeaky_hammer", "boxing_glove"] + PLACEABLES and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
+	if kind not in ["squeaky_hammer", "boxing_glove", "reflector_umbrella"] + PLACEABLES and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
 	var placement := {}
 	if kind in PLACEABLES:
@@ -188,14 +205,18 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 			return _feedback(peer_id, "aim")
 	slot.ammo -= 1
 	slot.cooldown_until = _manager.elapsed_time + (0.22 if kind == "foam_blaster" else 0.55)
-	slot.feedback = "used"
+	slot.feedback = "arming" if kind == "remote_popper" else "used"
+	if kind == "reflector_umbrella":
+		slot.feedback = "umbrella_opening"
 	slots[peer_id] = slot
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
 	if kind in PLACEABLES:
-		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning", "toy_fan": "fan_gust", "decoy_runner": "decoy_running"}[kind]
-		var lifetime: float = {"confetti_bomb": 1.4, "toy_fan": 4.8, "decoy_runner": 6.0}.get(kind, 10.0)
+		var placed_kind: String = {"soap_slick": "soap_patch", "spring_pad": "spring_armed", "confetti_bomb": "confetti_warning", "toy_fan": "fan_gust", "decoy_runner": "decoy_running", "remote_popper": "popper_armed"}[kind]
+		var lifetime: float = {"confetti_bomb": 1.4, "toy_fan": 4.8, "decoy_runner": 6.0, "remote_popper": 8.7}.get(kind, 10.0)
 		effects.append({"id": _next_id, "kind": placed_kind, "position": placement.position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": lifetime, "owner": peer_id})
+	elif kind == "reflector_umbrella":
+		effects.append({"id": _next_id, "kind": "umbrella_open", "position": (_players[peer_id] as PartyPlayer).global_position, "direction": Vector3(direction.x, 0, direction.z).normalized(), "remaining": 1.15, "owner": peer_id})
 	elif kind in ["squeaky_hammer", "boxing_glove"]:
 		effects.append({"id": _next_id, "kind": "glove_warning" if kind == "boxing_glove" else "hammer_warning", "position": origin, "direction": direction, "remaining": 0.65 if kind == "boxing_glove" else 0.35, "owner": peer_id})
 	else:
@@ -210,9 +231,20 @@ func _tick_effects(delta: float) -> void:
 	for index in range(effects.size() - 1, -1, -1):
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
-		var kind := String(effect.kind)
-		if kind in ["soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running"]:
+		var kind := String(effect.kind).trim_suffix("_reflected")
+		if kind == "umbrella_open":
+			if not _eligible(int(effect.owner)):
+				_clear_effect_controller(effect)
+				effects.remove_at(index)
+				_revision += 1
+				continue
+			effect.position = (_players[int(effect.owner)] as PartyPlayer).global_position
+			if float(effect.remaining) > 0.0 and float(effect.remaining) <= 0.9 and float(effect.remaining) + delta > 0.9:
+				if String(slots.get(int(effect.owner), {}).get("kind", "")) == "reflector_umbrella":
+					_feedback(int(effect.owner), "reflecting")
+		if kind in ["soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning"]:
 			if not _supported(effect):
+				_clear_effect_controller(effect)
 				effects.remove_at(index)
 				_revision += 1
 				continue
@@ -222,6 +254,11 @@ func _tick_effects(delta: float) -> void:
 				continue
 			if kind == "confetti_warning" and float(effect.remaining) <= 0.0:
 				_blast(effect)
+			if kind == "popper_warning" and float(effect.remaining) <= 0.0:
+				_blast(effect)
+			if kind == "popper_armed" and float(effect.remaining) <= 8.0 and float(effect.remaining) + delta > 8.0:
+				if String(slots.get(int(effect.owner), {}).get("kind", "")) == "remote_popper":
+					_feedback(int(effect.owner), "remote_ready")
 			if kind == "fan_gust" and float(effect.remaining) > 0.0 and float(effect.remaining) <= 4.0:
 				var pulse := floori((4.0 - float(effect.remaining)) / 0.8)
 				var previous_pulse := floori((4.0 - float(effect.remaining) - delta) / 0.8)
@@ -247,7 +284,14 @@ func _tick_effects(delta: float) -> void:
 			var speed := 5.0 if kind == "foam_seed" else (6.0 if kind == "rocket" else 8.0)
 			var hit := _sweep(effect, from, from + effect.direction * speed * delta, 0.18)
 			if not hit.is_empty():
-				var popped := _pop_foam(hit)
+				if int(hit.get("umbrella_owner", 0)) > 0:
+					if _reflect(effect, hit):
+						effects[index] = effect
+					else:
+						effects.remove_at(index)
+					_revision += 1
+					continue
+				var popped := _pop_foam(hit) or _defuse_popper(hit)
 				if kind == "rocket":
 					effect.kind = "blast_warning"
 					effect.position = hit.position
@@ -277,8 +321,9 @@ func _tick_effects(delta: float) -> void:
 				effects[index] = effect
 				_revision += 1
 				continue
-			if kind in PROJECTILES:
+			if String(effect.kind) in PROJECTILES:
 				_outcome("miss", effect.position, effect.direction, int(effect.owner))
+			_clear_effect_controller(effect)
 			effects.remove_at(index)
 			_revision += 1
 		else:
@@ -292,6 +337,12 @@ func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
 	var hit := _sweep(effect, from, from + effect.direction * 6.0 * delta, 0.22)
 	if not hit.is_empty():
 		_pop_foam(hit)
+		_defuse_popper(hit)
+		if int(hit.get("umbrella_owner", 0)) > 0:
+			_outcome("blocked", hit.position, effect.direction, int(effect.owner))
+			effects.remove_at(index)
+			_revision += 1
+			return
 		var applied := false
 		if int(hit.peer_id) > 0:
 			applied = _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 2.6)
@@ -406,6 +457,69 @@ func _pop_foam(hit: Dictionary) -> bool:
 	return false
 
 
+func _defuse_popper(hit: Dictionary) -> bool:
+	var id := int(hit.get("popper_id", 0))
+	if id <= 0:
+		return false
+	for effect in effects:
+		if int(effect.id) == id:
+			# Return to harmless armed state before expiry; keep cosmetic outcomes
+			# in their own bounded pool instead of converting a seventh outcome.
+			_clear_effect_controller(effect)
+			effect.kind = "popper_armed"
+			effect.remaining = 0.0
+			_outcome("blocked", effect.position, effect.direction, int(effect.owner))
+			_revision += 1
+			return true
+	return false
+
+
+func _clear_effect_controller(effect: Dictionary) -> void:
+	var slot: Dictionary = slots.get(int(effect.owner), {})
+	var held := String(slot.get("kind", ""))
+	if (String(effect.kind) in ["popper_armed", "popper_warning"] and held == "remote_popper") or (effect.kind == "umbrella_open" and held == "reflector_umbrella"):
+		_feedback(int(effect.owner), "picked" if int(slot.get("ammo", 0)) > 0 else "empty")
+
+
+func _umbrella_contact(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Dictionary:
+	var result := {}
+	var nearest := INF
+	for shield in effects:
+		var peer_id := int(shield.owner)
+		if shield.kind != "umbrella_open" or float(shield.remaining) <= 0.0 or float(shield.remaining) > 0.9 or peer_id == int(effect.owner) or not _eligible(peer_id):
+			continue
+		var normal: Vector3 = shield.direction
+		var motion := to - from
+		if motion.dot(normal) >= -0.000001 or (effect.direction as Vector3).dot(normal) > -0.25:
+			continue
+		var center := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 0.85 + normal * 0.7
+		var distance := (from - center).dot(normal)
+		if distance < -radius:
+			continue
+		var time := maxf(0.0, (radius - distance) / motion.dot(normal))
+		var offset := from.lerp(to, time) - center
+		var radial := offset - normal * offset.dot(normal)
+		if time <= 1.0 and time < nearest and radial.length() <= 0.65 + radius:
+			nearest = time
+			result = {"position": from.lerp(to, time), "peer_id": 0, "umbrella_owner": peer_id, "normal": normal, "t": time}
+	return result
+
+
+func _reflect(effect: Dictionary, hit: Dictionary) -> bool:
+	var owner := int(hit.umbrella_owner)
+	if float(effect.remaining) <= 0.0 or String(effect.kind).ends_with("_reflected") or _owner_projectiles(owner) >= MAX_OWNER_PROJECTILES:
+		_outcome("blocked", hit.position, effect.direction, owner)
+		return false
+	var normal: Vector3 = hit.normal
+	var incoming: Vector3 = effect.direction
+	effect.direction = (incoming - 2.0 * incoming.dot(normal) * normal).normalized()
+	effect.position = hit.position + effect.direction * 0.03
+	effect.owner = owner
+	effect.kind = String(effect.kind) + "_reflected"
+	# Same ID, remaining lifetime and reservation; reflection never duplicates.
+	return true
+
+
 func _placement(peer_id: int, direction: Vector3) -> Dictionary:
 	var actor := _players.get(peer_id) as PartyPlayer
 	var flat := Vector3(direction.x, 0, direction.z).normalized()
@@ -493,6 +607,20 @@ func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Di
 		best_t = float(foam.t)
 		result = foam
 		world_blocked = true
+	var umbrella := _umbrella_contact(effect, from, to, radius)
+	if not umbrella.is_empty() and (float(umbrella.t) < best_t or not world_blocked and float(umbrella.t) <= best_t):
+		best_t = float(umbrella.t)
+		result = umbrella
+		world_blocked = true
+	for charge in effects:
+		if String(charge.kind) not in ["popper_armed", "popper_warning"] or float(charge.remaining) <= 0.0:
+			continue
+		var center: Vector3 = charge.position + Vector3.UP * 0.25
+		var hit_t := 0.0 if from.distance_to(center) <= radius + 0.3 else _sphere_sweep_t(from, to - from, center, radius + 0.3)
+		if hit_t < best_t or not world_blocked and hit_t <= best_t:
+			best_t = hit_t
+			result = {"position": from.lerp(to, hit_t), "peer_id": 0, "popper_id": int(charge.id)}
+			world_blocked = true
 	for peer_id: int in _players:
 		if peer_id == int(effect.owner) or not _eligible(peer_id):
 			continue
@@ -699,15 +827,15 @@ func _owner_projectiles(owner: int) -> int:
 func _warning_reservations() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in WARNINGS or String(effect.kind) in ["rocket", "water_jet", "foam_seed"]:
+		if String(effect.kind) in WARNINGS or String(effect.kind).trim_suffix("_reflected") in ["rocket", "water_jet", "foam_seed"]:
 			count += 1
 	return count
 
 
 # Fixed-width wire state avoids repeating dictionary keys on every match update.
 # Full dictionaries remain the local presentation/testing contract.
-const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning", "foam_launcher", "toy_fan", "decoy_runner", "foam_seed", "foam_screen", "fan_gust", "decoy_running"]
-const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity"]
+const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip", "soap_slick", "spring_pad", "confetti_bomb", "soap_patch", "spring_armed", "confetti_warning", "foam_launcher", "toy_fan", "decoy_runner", "foam_seed", "foam_screen", "fan_gust", "decoy_running", "remote_popper", "reflector_umbrella", "popper_armed", "popper_warning", "umbrella_open", "pellet_reflected", "rocket_reflected", "water_jet_reflected", "foam_seed_reflected"]
+const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity", "arming", "remote_ready", "detonated", "umbrella_opening", "reflecting"]
 
 
 func create_wire_snapshot() -> PackedByteArray:

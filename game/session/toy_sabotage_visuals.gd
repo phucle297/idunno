@@ -36,6 +36,8 @@ func _ready() -> void:
 		"foam_launcher": _foam_launcher_mesh(), "toy_fan": _toy_fan_mesh(), "decoy_runner": _decoy_runner_mesh(),
 		"foam_seed": _foam_seed_mesh(), "foam_preview": _foam_preview_mesh(), "foam_screen": _foam_screen_mesh(),
 		"fan_cone": _fan_cone_mesh(),
+		"popper": _popper_mesh(), "umbrella": _umbrella_mesh(),
+		"popper_blast": _combined_mesh([{"mesh": _popper_mesh(), "transform": Transform3D.IDENTITY}, {"mesh": _ring_mesh(2.4), "transform": Transform3D.IDENTITY}]),
 	}
 	for index in MAX_PICKUPS:
 		_pickup_slots.append(_make_pickup("Pickup%d" % index))
@@ -102,7 +104,7 @@ func _present_projectiles(projectiles: Array[Dictionary]) -> void:
 		if not slot.visible:
 			continue
 		var effect := projectiles[index]
-		var kind := str(effect.get("kind", "pellet"))
+		var kind := str(effect.get("kind", "pellet")).trim_suffix("_reflected")
 		slot.global_position = effect.get("position", Vector3.ZERO)
 		slot.basis = _basis_for_direction(effect.get("direction", Vector3.FORWARD))
 		var mesh := slot.get_node("Mesh") as MeshInstance3D
@@ -200,6 +202,21 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 		mesh.material_override = _materials["plunger"]
 		label.position = Vector3(0, 1.62, 0)
 		label.text = "TOY DECOY  %.1fs" % remaining
+	elif kind == "popper_armed":
+		mesh.mesh = _meshes["popper"]
+		mesh.material_override = _materials["plunger"]
+		label.position = Vector3(0, 1.8, -0.2)
+		label.text = "POPPER — ARMING %.1fs" % (remaining - 8.0) if remaining > 8.0 else "POPPER %.1fs\nSHOOT TO DEFUSE / KEEP CLEAR" % remaining
+	elif kind == "popper_warning":
+		mesh.mesh = _meshes["popper_blast"]
+		label.position = Vector3(0, 1.8, -0.2)
+		label.text = "POPPER — RUN / COVER  %.1fs" % remaining
+	elif kind == "umbrella_open":
+		mesh.mesh = _meshes["umbrella"]
+		mesh.position = Vector3(0, 0.85, -0.7)
+		mesh.material_override = _materials["plunger"] if remaining > 0.9 else _materials["hammer"]
+		label.position = Vector3(0, 1.9, -0.8)
+		label.text = "UMBRELLA — OPENING %.1fs" % (remaining - 0.9) if remaining > 0.9 else "REFLECT %.1fs\nFRONT ONLY — FLANK / WAIT" % remaining
 	else:
 		mesh.mesh = _meshes["small_ring"]
 		label.text = _name_for(kind)
@@ -289,6 +306,8 @@ func _mesh_for(kind: String) -> Mesh:
 		"foam_launcher": return _meshes["foam_launcher"]
 		"toy_fan": return _meshes["toy_fan"]
 		"decoy_runner": return _meshes["decoy_runner"]
+		"remote_popper": return _meshes["popper"]
+		"reflector_umbrella": return _meshes["umbrella"]
 		_: return _meshes["pellet"]
 
 
@@ -305,11 +324,13 @@ func _material_for(kind: String) -> Material:
 		"foam_launcher": return _materials["foam"]
 		"toy_fan": return _materials["hammer"]
 		"decoy_runner": return _materials["plunger"]
+		"remote_popper": return _materials["plunger"]
+		"reflector_umbrella": return _materials["hammer"]
 		_: return _materials["ink"]
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "foam_seed": "FOAM SEED", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA", "foam_seed": "FOAM SEED", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
 
 
 func _material(color: Color, transparent := false) -> StandardMaterial3D:
@@ -510,6 +531,32 @@ func _foam_screen_mesh() -> BoxMesh:
 	mesh.size = Vector3(1.2, 1.3, 0.18)
 	mesh.material = _materials["foam"]
 	return mesh
+
+
+func _popper_mesh() -> ArrayMesh:
+	var body := CylinderMesh.new()
+	body.top_radius = 0.22
+	body.bottom_radius = 0.3
+	body.height = 0.42
+	body.radial_segments = 12
+	return _combined_mesh([
+		{"mesh": body, "transform": Transform3D(Basis.IDENTITY, Vector3(0, 0.25, 0))},
+		_box_part(Vector3(0.06, 0.34, 0.06), Vector3(0, 0.62, 0)),
+		_box_part(Vector3(0.32, 0.07, 0.07), Vector3(0, 0.76, 0)),
+	])
+
+
+func _umbrella_mesh() -> ArrayMesh:
+	var canopy := CylinderMesh.new()
+	canopy.top_radius = 0.12
+	canopy.bottom_radius = 0.65
+	canopy.height = 0.16
+	canopy.radial_segments = 8
+	return _combined_mesh([
+		{"mesh": canopy, "transform": Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3.ZERO)},
+		_box_part(Vector3(0.07, 0.07, 0.5), Vector3(0, 0, 0.25)),
+		_box_part(Vector3(0.07, 0.28, 0.07), Vector3(0, -0.1, 0.5)),
+	])
 
 
 func _fan_cone_mesh() -> ArrayMesh:

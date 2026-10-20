@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-20",
+  "scope": "Batch5 incremental orb controls; not native GPU, thermal, Internet or human acceptance",
+  "load": "4real ENet clients,6pickups/4held/4disc-water projectiles,6mixed foam/fan/decoy/popper/umbrella warnings,6outcomes; same bounded pools and37byte effect records,zero added bodies. Umbrella remaining0.8 exercises active query. Stable max-slot workload,not every impact/pulse combination.",
+  "cpu": {
+    "scenario": "Rain,moving client,120warmup/2x600frames,4headless clients. Same-payload empty/full toy paired replay alternates order and restores production state.",
+    "baseline_load_authority_mean_ms": [0.5946391129032258,0.8514909456740443],
+    "additional_authority_mean_ms": 0.2568518327708185,
+    "authority_calls": [496,497],
+    "paired_client_counts": [193,194,194,193],
+    "paired_client_additional_mean_ms": [0.2612279792746114,0.25978350515463916,0.29185567010309277,0.24556476683937825],
+    "additional_ceiling_ms": 0.5,
+    "raw_reports": [".scratch/phase20-batch5-base",".scratch/phase20-batch5-active-cpu"],
+    "qualification": "Paired callbacks isolate incremental apply work,not unchanged production throughput. Earlier preliminary load used umbrella preparation; active-window trial supersedes it. Fan pulse/impact spike cadence belongs to final mixed stress gate."
+  },
+  "render": {
+    "scenario": "Dry ToyTown,4real clients/1Compatibility llvmpipe renderer,5warmup/40samples,same gameplay camera",
+    "baseline_load_draws_median": [4204,4247],
+    "additional_draws": 43,
+    "additional_draw_ceiling": 64,
+    "baseline_load_frame_interval_p50_ms": [607.907,561.845],
+    "raw_reports": [".scratch/phase20-batch5-render-base",".scratch/phase20-batch5-active-render"],
+    "qualification": "Software renderer far below60FPS; only incremental draw ceiling passes. Twelve actual-public-use captures at720p/1080p inspect popper arming/ready/countdown,umbrella opening/active and opponent-facing canopy."
+  },
+  "transport": {
+    "scenario": "Matched4client Rain/movement loopback IPv4-header lengths;authority measurement gate about8.3s",
+    "baseline_load_authority_ipv4_Bps": [179990.52266832846,211801.33158460035],
+    "additional_authority_percent": 17.67360216787093,
+    "additional_ceiling_percent": 25,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "raw_report": ".scratch/phase20-wire-batch5-active.json",
+    "qualification": "Not Internet loss,per-RPC attribution,Ethernet bandwidth or native throughput."
+  }
+}

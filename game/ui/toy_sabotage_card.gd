@@ -63,11 +63,11 @@ func present(slot: Dictionary, nearest: Dictionary, active: bool) -> void:
 	var cooldown := maxf(0.0, float(slot.get("cooldown", 0.0)))
 	var feedback := str(slot.get("feedback", ""))
 	title.text = "%s  %d" % [_name_for(kind), ammo] if not kind.is_empty() else "NO TOY HELD"
-	var messages := {"empty": "No charges — find another toy", "range": "Move closer to a toy", "protected": "Opening protection", "aim": "Aim along a clear firing line", "capacity": "Too many toys active — wait", "blocked": "Blocked / protected", "hit": "Hit!", "miss": "Miss"}
+	var messages := {"empty": "No charges — find another toy", "range": "Move closer to a toy", "protected": "Opening protection", "aim": "Aim along a clear firing line", "capacity": "Too many toys active — wait", "blocked": "Blocked / protected", "hit": "Hit!", "miss": "Miss", "arming": "Popper arming — wait", "remote_ready": "LEFT MOUSE  DETONATE", "detonated": "Popper triggered — RUN / COVER", "umbrella_opening": "Umbrella opening — front only", "reflecting": "REFLECT WINDOW — FRONT ONLY"}
 	status.text = messages.get(feedback, "COOLDOWN %.1fs" % cooldown if cooldown > 0.0 else "LEFT MOUSE  USE  •  G  SHOVE")
 	var nearby_kind := str(nearest.get("kind", ""))
 	prompt.text = "[F] %s %s" % ["TAKE" if kind.is_empty() else "SWAP", _name_for(nearby_kind)] if not nearby_kind.is_empty() else "F  TAKE / SWAP WHEN NEAR A TOY"
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "soap_slick": "SOAP SLICK", "spring_pad": "SPRING PAD", "confetti_bomb": "CONFETTI BOMB", "foam_launcher": "FOAM LAUNCHER", "toy_fan": "TOY FAN", "decoy_runner": "DECOY RUNNER", "remote_popper": "REMOTE POPPER", "reflector_umbrella": "REFLECTOR UMBRELLA"}.get(kind, "TOY")

@@ -149,3 +149,62 @@ authenticated per-player monotonic sequence and round rejection. Same scratch
 before/after changes held=false to held=true on sequence71; durable public-use
 regression and real-client reliable same-channel barrier prove post-recovery
 pickup works. This does not authorize another peer's stream or bypass cooldowns.
+
+### Batch5 preparation — Reject persistent crate relocation, keep reversible toys
+
+Focused Oracle safety consultation rejects the proposed magnet for this phase.
+This is the checklist's explicit unsafe-design deferral, not an implemented toy.
+A local3m clear patch can establish an immediate walk-around route for a0.6m
+crate and0.56m capsule, but does not bound the crate's stopping pose or later
+route changes. Existing Tornado/Earthquake forces, collapse and sequential crate
+relocations invalidate a one-second attraction validator after it ends. Player
+movement has no generic crate-push escape helper. No teleportation/collision-off
+fallback or general navigation system is authorized to hide that problem.
+Keep magnet and rigid-crate spring/rocket combo ideas deferred until a bounded
+persistent-placement escape contract exists. Do not claim an executed magnet bug;
+the failure here is inability to establish its required invariant before coding.
+
+After batch4's staged gate and push, batch5 remains remote popper and reflector.
+Popper:1charge,0.7s arming,8s supported lifetime,second click starts1s existing
+2.4m covered blast warning without spending again or adding a reservation. Shots
+defuse it; death/departure/lost support/reset cancel. Swapping stays allowed:
+without its matching held controller the charge simply expires harmlessly.
+Umbrella:1charge,0.25s visible preparation then0.9s directional window; flank/wait,
+no melee/blast immunity. Server mutates the same projectile ID, direction and
+owner credit; new reflected-kind tags encode at most one bounce in the existing
+fixed-width wire. Only linear pellet/rocket/water/foam reflect; fixed-return
+frisbees are absorbed, not retargeted. If recipient's2projectile quota is full,
+absorb rather than exceed it. World/foam/umbrella/player sweeps select nearest
+contact, not remote-reported hits; original lifetimes and rocket warning stay.
+These are implementation contracts, not tested claims or permission to skip gates.
+
+### Batch5 implementation and executed checks
+
+Batch4's normal staged gate passed63Godot suites/8network matrices/managed20/
+46Python; source226901b committed/pushed with skip-ci, not deployed. This
+supersedes its earlier pending gate entry above.
+
+Remote/umbrella contracts above now implemented. Controller remains meaningful
+at0ammo; expiry/defuse/support loss clear its feedback without discarding a fresh
+replacement's charge. Defuse returns a detonating charge to harmless armed/expired
+state; its cosmetic feedback uses the capped outcome pool, not an extra outcome.
+One umbrella window per owner prevents rapid pickups forming a shield circle.
+Reflection reuses ID/lifetime/reservation, transfers credit and uses fixed-width
+kind tags; max1 bounce or full recipient quota absorbs instead. No crate forces,
+melee immunity, physics bodies, weather shelter or movement obstruction added.
+
+Authority205/presentation15/audio11 pass. Real2/4both-map fourteen-toy catalog,
+replicated remote countdown, reflected-owner state and credited return impulse,
+5rematches and departure cleanup pass. Same four cases pass100ms each-way,
+0..12ms jitter and1/97loss,61/202/57/188datagrams dropped. Short-window scenario
+holds fixture physics time while real intents/snapshots cross ENet; this proves
+protocol/credit, not native latency feel or general timing equivalence.
+
+Twelve public-use720p/1080p renders inspected, including opponent-facing canopy.
+Initial cyan canopy blended with avatar; use coral opening/violet active and
+explicit HUD phase/controller feedback. Retain visible popper while countdown
+ring is active so the defuse target does not disappear. HUD stays within margins.
+Stable max-slot active-window trial passes+43draws,+0.257ms authority,
+≤+0.292ms paired apply,+17.674%IPv4; phase-20-batch5-metrics.json. Preliminary
+load used umbrella preparation; final active-window measurements supersede it.
+Normal staged gate pending; no native/human acceptance or release claimed.

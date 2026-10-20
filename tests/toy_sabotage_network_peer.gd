@@ -11,9 +11,12 @@ var map_id := "toy_town"
 
 class ObservedShoves extends ShoveManager:
 	var applied_lifts := {}
+	var applied_owners := {}
 
 	func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int, direction: Vector3, strength: float, speed_cap: float = 8.0, lift: float = 0.0) -> bool:
 		var accepted := super.apply_replicated_item_impulse(owner_id, victim_id, sequence, direction, strength, speed_cap, lift)
+		if accepted:
+			applied_owners[victim_id] = owner_id
 		if accepted and lift > 0.0 and is_equal_approx((_players[victim_id] as PartyPlayer).velocity.y, 5.4):
 			applied_lifts[victim_id] = sequence
 		return accepted
@@ -59,15 +62,21 @@ class FixtureMain extends "res://game/main.gd":
 		fixture_ack.rpc_id(1, stage, ok)
 
 	@rpc("authority", "call_remote", "reliable", 2)
-	func fixture_observe_effect(stage: String, effect_kind: String) -> void:
+	func fixture_observe_effect(stage: String, effect_kind: String, expected_owner := 0) -> void:
 		var deadline := Time.get_ticks_msec() + 6000
 		var found := false
 		while Time.get_ticks_msec() < deadline:
-			found = toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == effect_kind and float(effect.remaining) > 0.0)
+			found = toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == effect_kind and float(effect.remaining) > 0.0 and (expected_owner == 0 or int(effect.owner) == expected_owner))
 			if found:
 				break
 			await get_tree().process_frame
 		fixture_ack.rpc_id(1, stage, found)
+
+
+	@rpc("authority", "call_remote", "reliable")
+	func fixture_observe_reflection(owner: int, victim: int) -> void:
+		var shoves := get_node("ShoveManager") as ObservedShoves
+		fixture_ack.rpc_id(1, "reflection_hit", int(shoves.applied_owners.get(victim, 0)) == owner)
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_allow_departure() -> void:
@@ -258,15 +267,15 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and int(shoves._last_item_sequence.get(host_id, 0)) > 0
 	main.fixture_observe_impulse.rpc(host_id)
 	passed = passed and await main.wait_acks("hammer_impulse", player_count - 1, deadline)
-	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb", "foam_launcher", "toy_fan", "decoy_runner"]:
+	for kind: String in ["boxing_glove", "boomerang", "water_soaker", "soap_slick", "spring_pad", "confetti_bomb", "foam_launcher", "toy_fan", "decoy_runner", "remote_popper", "reflector_umbrella"]:
 		main.toy_sabotage.effects.clear()
 		passed = passed and await _give_remote(main, remote_id, kind, 710 + ToySabotage.KINDS.keys().find(kind), pad, deadline, kind + "_pickup")
 		for ammo in range(int(ToySabotage.KINDS[kind]) - 1, -1, -1):
 			passed = passed and await _use_remote(main, remote_id, kind, ammo, deadline, "%s_%d" % [kind, ammo])
-			if kind in ["foam_launcher", "toy_fan", "decoy_runner"]:
+			if kind in ["foam_launcher", "toy_fan", "decoy_runner", "remote_popper", "reflector_umbrella"]:
 				if kind == "foam_launcher":
 					main.toy_sabotage.tick(1.21, 1)
-				var effect_kind: String = {"foam_launcher": "foam_screen", "toy_fan": "fan_gust", "decoy_runner": "decoy_running"}[kind]
+				var effect_kind: String = {"foam_launcher": "foam_screen", "toy_fan": "fan_gust", "decoy_runner": "decoy_running", "remote_popper": "popper_armed", "reflector_umbrella": "umbrella_open"}[kind]
 				var effect_stage := "%s_effect_%d" % [kind, ammo]
 				await _publish(main)
 				main.fixture_observe_effect.rpc(effect_stage, effect_kind)
@@ -289,6 +298,36 @@ func _server(main: FixtureMain) -> void:
 					_place(main, host_id, pad + Vector3(8, 0, 0))
 			main.toy_sabotage.tick(4.0, 1)
 			main.toy_sabotage.tick(4.0, 1)
+	# Keep physics time fixed while real requests/snapshots cross the network;
+	# the short reflection window must not expire while observer barriers arrive.
+	main.set_physics_process(false)
+	main.toy_sabotage.effects.clear()
+	shoves.reset_state()
+	passed = passed and await _give_remote(main, remote_id, "remote_popper", 780, pad, deadline, "remote_control_pickup")
+	passed = passed and await _use_remote(main, remote_id, "remote_popper", 0, deadline, "remote_control_place")
+	main.toy_sabotage.tick(0.71, 1)
+	_remote_intent(main, remote_id, "use", Vector3.RIGHT)
+	while not main.toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "popper_warning") and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await _publish(main)
+	main.fixture_observe_effect.rpc("remote_countdown", "popper_warning", remote_id)
+	passed = passed and await main.wait_acks("remote_countdown", player_count - 1, deadline)
+	main.toy_sabotage.effects.clear()
+	passed = passed and await _give_remote(main, remote_id, "reflector_umbrella", 781, pad, deadline, "reflection_pickup")
+	passed = passed and await _use_remote(main, remote_id, "reflector_umbrella", 0, deadline, "reflection_open")
+	main.toy_sabotage.tick(0.26, 1)
+	_place(main, host_id, pad + Vector3.RIGHT * 3.0)
+	main.toy_sabotage.pickups.append({"id": 782, "kind": "foam_blaster", "position": (main._player_nodes[host_id] as PartyPlayer).global_position, "expires": main.match_manager.elapsed_time + 20.0})
+	main.toy_sabotage.local_request_pickup(host_id)
+	main.toy_sabotage.local_request_use(host_id, Vector3.LEFT)
+	main.toy_sabotage.tick(0.4, 1)
+	await _publish(main)
+	main.fixture_observe_effect.rpc("reflection_credit", "pellet_reflected", remote_id)
+	passed = passed and await main.wait_acks("reflection_credit", player_count - 1, deadline)
+	main.toy_sabotage.tick(0.4, 1)
+	main.fixture_observe_reflection.rpc(remote_id, host_id)
+	passed = passed and await main.wait_acks("reflection_hit", player_count - 1, deadline)
+	main.set_physics_process(true)
 	# Five production rematches require ordinary ready snapshots, then prove the
 	# client-local request sequence is reset by acquiring and firing every round.
 	if not passed:
