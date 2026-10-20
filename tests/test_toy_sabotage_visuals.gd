@@ -62,7 +62,7 @@ func _run() -> void:
 		var image = root.get_texture().get_image() if DisplayServer.get_name() != "headless" else null
 		_expect(image == null or image.save_png("%s/toys-first-three-%dp.png" % [output, size.y]) == OK, "Review capture saves when a renderer is available")
 	visuals.present({"pickups": [], "slots": {}, "effects": [{"kind": "unknown_later", "remaining": 1.0, "position": Vector3.ZERO}]}, {}, true, 0.0)
-	_expect(not visuals._pickup_slots[0].visible and visuals._warning_slots[0].visible, "Unknown future effect degrades to a neutral visual without a hit claim")
+	_expect(not visuals._pickup_slots[0].visible and not visuals._warning_slots[0].visible, "Unknown effects cannot occupy the bounded warning pool")
 	world.free()
 	card.free()
 	if failures.is_empty():

@@ -21,13 +21,16 @@ func _ready() -> void:
 		"plunger": _material(DisasterPartyUI.CORAL),
 		"hammer": _material(DisasterPartyUI.LIGHTNING),
 		"amber": _material(DisasterPartyUI.DANGER, true),
+		"wet": _material(DisasterPartyUI.WATER, true),
 		"impact": _material(DisasterPartyUI.DANGER, true),
 		"ink": _material(DisasterPartyUI.INK),
 	}
 	_meshes = {
 		"pellet": _pellet_mesh(), "rocket": _rocket_mesh(), "blaster": _blaster_mesh(),
 		"hammer": _hammer_mesh(), "blast_ring": _ring_mesh(2.4), "small_ring": _ring_mesh(0.5),
-		"hammer_arc": _hammer_arc_mesh(),
+		"hammer_arc": _hammer_arc_mesh(), "glove_arc": _hammer_arc_mesh(3.0, 0.94),
+		"glove": _glove_mesh(), "frisbee": _frisbee_mesh(), "frisbee_trail": _frisbee_trail_mesh(), "soaker": _soaker_mesh(),
+		"wet_strip": _wet_strip_mesh(),
 	}
 	for index in MAX_PICKUPS:
 		_pickup_slots.append(_make_pickup("Pickup%d" % index))
@@ -71,13 +74,13 @@ func _present_effects(effects: Array) -> void:
 		if not effect is Dictionary or float(effect.get("remaining", 0.0)) <= 0.0:
 			continue
 		var kind := str(effect.get("kind", "unknown"))
-		if kind in ["pellet", "rocket"] and projectiles.size() < MAX_PROJECTILES:
+		if kind in ToySabotage.PROJECTILES and projectiles.size() < MAX_PROJECTILES:
 			projectiles.append(effect)
-		elif kind in ["blast_warning", "hammer_warning"] and warnings.size() < MAX_WARNINGS:
+		elif kind in ToySabotage.WARNINGS and warnings.size() < MAX_WARNINGS:
 			warnings.append(effect)
 	# A cosmetic result must never displace an active danger telegraph.
 	for effect in effects:
-		if effect is Dictionary and str(effect.get("kind", "")) not in ["pellet", "rocket", "blast_warning", "hammer_warning"] and warnings.size() < MAX_WARNINGS:
+		if effect is Dictionary and str(effect.get("kind", "")) in ToySabotage.OUTCOMES and warnings.size() < MAX_WARNINGS:
 			warnings.append(effect)
 	_present_projectiles(projectiles)
 	for index in _warning_slots.size():
@@ -98,8 +101,8 @@ func _present_projectiles(projectiles: Array[Dictionary]) -> void:
 		slot.global_position = effect.get("position", Vector3.ZERO)
 		slot.basis = _basis_for_direction(effect.get("direction", Vector3.FORWARD))
 		var mesh := slot.get_node("Mesh") as MeshInstance3D
-		mesh.mesh = _meshes["rocket"] if kind == "rocket" else _meshes["pellet"]
-		mesh.material_override = _materials["plunger"] if kind == "rocket" else _materials["foam"]
+		mesh.mesh = _meshes["frisbee_trail"] if kind in ["frisbee_out", "frisbee_back"] else (_meshes["rocket"] if kind == "rocket" else _meshes["pellet"])
+		mesh.material_override = _materials["hammer"] if kind in ["frisbee_out", "frisbee_back"] else (_materials["plunger"] if kind == "rocket" else _materials["foam"])
 
 
 func _present_held(slots: Dictionary, players: Dictionary) -> void:
@@ -136,20 +139,29 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 	var direction: Vector3 = effect.get("direction", Vector3.FORWARD)
 	direction.y = 0.0
 	slot.basis = _basis_for_direction(direction)
-	if kind == "hammer_warning":
+	if kind in ["hammer_warning", "glove_warning"]:
 		slot.position.y -= 1.05
 	var mesh := slot.get_node("Mesh") as MeshInstance3D
 	var label := slot.get_node("Label") as Label3D
 	# Put the swing countdown ahead of its owner rather than inside the avatar.
-	label.position = Vector3(0, 0.55, -1.4) if kind == "hammer_warning" else Vector3(0, 0.65, 0)
+	label.position = Vector3(0, 1.4, -1.8) if kind in ["hammer_warning", "glove_warning"] else Vector3(0, 0.65, 0)
 	var remaining := maxf(0.0, float(effect.get("remaining", 0.0)))
-	mesh.material_override = _materials["amber"] if kind in ["blast_warning", "hammer_warning"] else _materials["impact"]
+	mesh.material_override = _materials["amber"] if kind in ToySabotage.WARNINGS else _materials["impact"]
 	if kind == "blast_warning":
 		mesh.mesh = _meshes["blast_ring"]
 		label.text = "ROCKET  %.1fs" % remaining
 	elif kind == "hammer_warning":
 		mesh.mesh = _meshes["hammer_arc"]
 		label.text = "HAMMER  %.1fs" % remaining
+	elif kind == "glove_warning":
+		mesh.mesh = _meshes["glove_arc"]
+		label.text = "PUNCH  %.1fs" % remaining
+	elif kind == "wet_strip":
+		mesh.mesh = _meshes["wet_strip"]
+		var wet_material := mesh.get_meta("wet_material") as StandardMaterial3D
+		wet_material.albedo_color.a = 0.8 * clampf(remaining / 6.0, 0.0, 1.0)
+		mesh.material_override = wet_material
+		label.text = "WET  %.1fs" % remaining
 	else:
 		mesh.mesh = _meshes["small_ring"]
 		label.text = _name_for(kind)
@@ -183,14 +195,15 @@ func _make_warning(slot_name: String) -> Node3D:
 	add_child(slot)
 	var mesh := MeshInstance3D.new()
 	mesh.name = "Mesh"
+	mesh.set_meta("wet_material", _materials["wet"].duplicate())
 	_disable_shadows(mesh)
 	slot.add_child(mesh)
 	var label := Label3D.new()
 	label.name = "Label"
 	label.position.y = 0.22
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.font_size = 20
-	label.pixel_size = 0.008
+	label.font_size = 24
+	label.pixel_size = 0.014
 	label.outline_size = 7
 	label.modulate = DisasterPartyUI.WHITE
 	label.outline_modulate = DisasterPartyUI.INK
@@ -229,6 +242,9 @@ func _mesh_for(kind: String) -> Mesh:
 		"foam_blaster": return _meshes["blaster"]
 		"plunger_rocket": return _meshes["rocket"]
 		"squeaky_hammer": return _meshes["hammer"]
+		"boxing_glove": return _meshes["glove"]
+		"boomerang": return _meshes["frisbee"]
+		"water_soaker": return _meshes["soaker"]
 		_: return _meshes["pellet"]
 
 
@@ -237,11 +253,14 @@ func _material_for(kind: String) -> Material:
 		"foam_blaster": return _materials["foam"]
 		"plunger_rocket": return _materials["plunger"]
 		"squeaky_hammer": return _materials["hammer"]
+		"boxing_glove": return _materials["plunger"]
+		"boomerang": return _materials["hammer"]
+		"water_soaker": return _materials["foam"]
 		_: return _materials["ink"]
 
 
 func _name_for(kind: String) -> String:
-	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
+	return {"foam_blaster": "FOAM BLASTER", "plunger_rocket": "PLUNGER ROCKET", "squeaky_hammer": "SQUEAKY HAMMER", "boxing_glove": "SPRING GLOVE", "boomerang": "BOOMERANG DISC", "water_soaker": "WATER SOAKER", "pellet": "FOAM PELLET", "rocket": "PLUNGER ROCKET", "hit": "IMPACT", "blocked": "BLOCKED", "miss": "MISS"}.get(kind, "TOY")
 
 
 func _material(color: Color, transparent := false) -> StandardMaterial3D:
@@ -329,11 +348,55 @@ func _ring_mesh(radius: float) -> TorusMesh:
 	return mesh
 
 
-func _hammer_arc_mesh() -> ArrayMesh:
+func _glove_mesh() -> ArrayMesh:
+	var fist := SphereMesh.new()
+	fist.radius = 0.28
+	fist.height = 0.5
+	fist.radial_segments = 12
+	fist.rings = 6
+	return _combined_mesh([
+		{"mesh": fist, "transform": Transform3D(Basis.IDENTITY, Vector3(0, 0, -0.25))},
+		_box_part(Vector3(0.3, 0.3, 0.32), Vector3(0, 0, 0.1)),
+		_box_part(Vector3(0.18, 0.18, 0.3), Vector3(0.26, -0.12, -0.1)),
+	])
+
+
+func _frisbee_mesh() -> CylinderMesh:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.32
+	mesh.bottom_radius = 0.27
+	mesh.height = 0.09
+	mesh.radial_segments = 16
+	return mesh
+
+
+func _frisbee_trail_mesh() -> ArrayMesh:
+	# Fixed short tail reads the travel direction without another particle draw.
+	return _combined_mesh([
+		{"mesh": _frisbee_mesh(), "transform": Transform3D.IDENTITY},
+		_box_part(Vector3(0.08, 0.04, 0.7), Vector3(0, 0, 0.6)),
+	])
+
+
+func _soaker_mesh() -> ArrayMesh:
+	return _combined_mesh([
+		_box_part(Vector3(0.24, 0.25, 0.65), Vector3.ZERO),
+		_box_part(Vector3(0.18, 0.35, 0.18), Vector3(0, -0.22, 0.12)),
+		_box_part(Vector3(0.42, 0.25, 0.3), Vector3(0, 0.23, 0.08)),
+	])
+
+
+func _wet_strip_mesh() -> PlaneMesh:
+	var mesh := PlaneMesh.new()
+	mesh.size = Vector2(0.9, 1.8)
+	return mesh
+
+
+func _hammer_arc_mesh(radius := 2.2, cosine := 0.55) -> ArrayMesh:
 	var vertices := PackedVector3Array([Vector3.ZERO])
 	for index in 9:
-		var angle := lerpf(-acos(0.55), acos(0.55), float(index) / 8.0)
-		vertices.append(Vector3(sin(angle) * 2.2, 0.0, -cos(angle) * 2.2))
+		var angle := lerpf(-acos(cosine), acos(cosine), float(index) / 8.0)
+		vertices.append(Vector3(sin(angle) * radius, 0.0, -cos(angle) * radius))
 	var indices := PackedInt32Array()
 	for index in range(1, 9):
 		indices.append_array([0, index, index + 1])

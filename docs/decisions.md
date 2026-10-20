@@ -56,3 +56,25 @@ the initial failed separate-run apply sample as well as the alternating paired
 replay investigation. Pairing the same full payload isolates toy apply work from
 weather/scheduling variation; it is not native throughput or thermal evidence.
 No native/Internet/human acceptance or final release is inferred from these tests.
+
+## 2026-10-20 — Charged lane, return lane and temporary water
+
+Batch2 reuses the same bounded authority/presentation/wire pools: glove2charges,
+0.65s narrow3m warning and5.5 horizontal push; disc2throws,6m straight outward
+then return lane, at most one victim per leg and no homing; soaker6short pulses,
+1.8 push and a supported0.9x1.8m strip fading/drying over6s. All share existing
+recovery, world cover, finite lifetimes and zero direct HP damage. Planar melee
+normalizes horizontal aim after validating camera direction so pitch cannot
+silently disagree with the rendered ground cone. Disc direction gets a merged
+short tail, not another particle/body draw. Enlarged warning text follows render
+review. Successful water ground contact is a splash, not a misleading blocked hit.
+
+Water affects movement traction through replicated toy state only. It cannot
+invent global precipitation, electrify disconnected water or persist through
+WeatherSurfaces footsteps/covered residuals. The initial merged sample_surface
+implementation failed the real dry render budget:4204→6156draws because footsteps
+retained temporary toy water and enabled town-wide weather overlays. Moving the
+toy contribution into movement_surface fixes ownership; same40sample real-client
+render control returns4247draws (+43≤64). Keep the failed sample, regression for
+empty weather residuals after a toy-wet footstep, and measured limits. Temporary
+water beyond solid indoor dividers is rejected by an actual cover ray.

@@ -18,6 +18,7 @@ const SurfaceShader = preload("res://game/disasters/weather_surface.gdshader")
 @export var drying_per_second := 0.02
 
 var support_height: Callable
+var local_wetness: Callable # Replicated toy traction only; never retained weather.
 var precipitation := ""
 var _extent := 72.0
 var _surface := Vector2.ZERO
@@ -228,6 +229,10 @@ func sample_surface(point: Vector3) -> Vector2:
 
 func movement_surface(point: Vector3) -> Dictionary:
 	var surface := sample_surface(point)
+	# Temporary toy water must not enter precipitation residuals through
+	# leave_footprint/preserve_cover_region and enable overlays on the whole map.
+	if point.is_finite() and local_wetness.is_valid():
+		surface.y = maxf(surface.y, clampf(float(local_wetness.call(point)), 0.0, 1.0))
 	return {"wet": surface.y, "snow": surface.x,
 		"deep_snow": surface.x >= DEEP_SNOW_THRESHOLD,
 		"ice": surface.x >= ICE_SNOW_THRESHOLD and surface.x < DEEP_SNOW_THRESHOLD and surface.y >= 0.15,

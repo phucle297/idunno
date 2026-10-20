@@ -20,7 +20,10 @@ const HAMMER_RANGE := 2.2
 const PLAYER_RADIUS := 0.28
 const PLAYER_HEIGHT := 1.5
 const FEEDBACK_MAX_CHARS := 24
-const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2}
+const KINDS := {"foam_blaster": 3, "plunger_rocket": 1, "squeaky_hammer": 2, "boxing_glove": 2, "boomerang": 2, "water_soaker": 6}
+const PROJECTILES := ["pellet", "rocket", "frisbee_out", "frisbee_back", "water_jet"]
+const WARNINGS := ["blast_warning", "hammer_warning", "glove_warning", "wet_strip"]
+const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
@@ -170,9 +173,12 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	if float(slot.get("cooldown_until", 0.0)) > _manager.elapsed_time:
 		return _feedback(peer_id, "cooldown")
 	var kind := String(slot.kind)
-	if kind in ["plunger_rocket", "squeaky_hammer"] and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["squeaky_hammer", "boxing_glove"]:
+		# Melee telegraphs are planar; camera pitch must not silently narrow them.
+		direction = Vector3(direction.x, 0.0, direction.z).normalized()
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker"] and _warning_reservations() >= MAX_WARNINGS:
 		return _feedback(peer_id, "capacity")
-	if kind != "squeaky_hammer" and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
+	if kind not in ["squeaky_hammer", "boxing_glove"] and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
 	slot.ammo -= 1
 	slot.cooldown_until = _manager.elapsed_time + (0.22 if kind == "foam_blaster" else 0.55)
@@ -180,11 +186,11 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	slots[peer_id] = slot
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
-	if kind == "squeaky_hammer":
-		effects.append({"id": _next_id, "kind": "hammer_warning", "position": origin, "direction": direction, "remaining": 0.35, "owner": peer_id})
+	if kind in ["squeaky_hammer", "boxing_glove"]:
+		effects.append({"id": _next_id, "kind": "glove_warning" if kind == "boxing_glove" else "hammer_warning", "position": origin, "direction": direction, "remaining": 0.65 if kind == "boxing_glove" else 0.35, "owner": peer_id})
 	else:
-		var effect_kind := "pellet" if kind == "foam_blaster" else "rocket"
-		effects.append({"id": _next_id, "kind": effect_kind, "position": origin, "direction": direction, "remaining": 3.0, "owner": peer_id})
+		var effect_kind: String = {"foam_blaster": "pellet", "plunger_rocket": "rocket", "boomerang": "frisbee_out", "water_soaker": "water_jet"}[kind]
+		effects.append({"id": _next_id, "kind": effect_kind, "position": origin, "direction": direction, "remaining": 1.0 if kind == "boomerang" else (0.65 if kind == "water_soaker" else 3.0), "owner": peer_id})
 	_revision += 1
 	return true
 
@@ -194,7 +200,7 @@ func _tick_effects(delta: float) -> void:
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
 		var kind := String(effect.kind)
-		if kind == "hammer_warning" and float(effect.remaining) <= 0.0:
+		if kind in ["hammer_warning", "glove_warning"] and float(effect.remaining) <= 0.0:
 			_hammer_hit(effect)
 			effects.remove_at(index)
 			_revision += 1
@@ -204,9 +210,12 @@ func _tick_effects(delta: float) -> void:
 			effects.remove_at(index)
 			_revision += 1
 			continue
-		if kind in ["pellet", "rocket"]:
+		if kind in ["frisbee_out", "frisbee_back"]:
+			_tick_frisbee(index, effect, delta)
+			continue
+		if kind in ["pellet", "rocket", "water_jet"]:
 			var from: Vector3 = effect.position
-			var speed := 8.0 if kind == "pellet" else 6.0
+			var speed := 8.0 if kind != "rocket" else 6.0
 			var hit := _sweep(effect, from, from + effect.direction * speed * delta, 0.18)
 			if not hit.is_empty():
 				if kind == "rocket":
@@ -215,22 +224,96 @@ func _tick_effects(delta: float) -> void:
 					effect.remaining = 0.8
 					effects[index] = effect
 				else:
+					var made_strip: bool = kind == "water_jet" and _make_wet_strip(effect, hit.position)
 					if int(hit.peer_id) > 0:
-						var applied := _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 2.4)
+						var applied := _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 1.8 if kind == "water_jet" else 2.4)
 						_outcome("hit" if applied else "blocked", hit.position, effect.direction, int(effect.owner))
-					else:
+					elif not made_strip:
 						_outcome("blocked", hit.position, effect.direction, int(effect.owner))
-					effects.remove_at(index)
+					if made_strip:
+						effects[index] = effect
+					else:
+						effects.remove_at(index)
 				_revision += 1
 				continue
 			effect.position = from + effect.direction * speed * delta
 		if float(effect.remaining) <= 0.0:
-			if kind in ["pellet", "rocket"]:
+			if kind == "water_jet" and _make_wet_strip(effect, effect.position):
+				effects[index] = effect
+				_revision += 1
+				continue
+			if kind in PROJECTILES:
 				_outcome("miss", effect.position, effect.direction, int(effect.owner))
 			effects.remove_at(index)
 			_revision += 1
 		else:
 			effects[index] = effect
+
+
+func _tick_frisbee(index: int, effect: Dictionary, delta: float) -> void:
+	# A fixed straight return lane is readable and never homes on a moving owner.
+	# Each leg hits at most one victim; protection still applies across all toys.
+	var from: Vector3 = effect.position
+	var hit := _sweep(effect, from, from + effect.direction * 6.0 * delta, 0.22)
+	if not hit.is_empty():
+		var applied := false
+		if int(hit.peer_id) > 0:
+			applied = _impulse(int(effect.owner), int(hit.peer_id), effect.direction, 2.6)
+		_outcome("hit" if applied else "blocked", hit.position, effect.direction, int(effect.owner))
+		# Return from the last clear point, not the victim's capsule surface:
+		# an initial overlap there would immediately consume the return leg.
+		effect.position = from
+		if effect.kind == "frisbee_back":
+			effects.remove_at(index)
+			_revision += 1
+			return
+		effect.kind = "frisbee_back"
+		effect.direction = -effect.direction
+		effect.remaining = 1.0
+	elif float(effect.remaining) <= 0.0:
+		if effect.kind == "frisbee_back":
+			_outcome("miss", from, effect.direction, int(effect.owner))
+			effects.remove_at(index)
+			_revision += 1
+			return
+		effect.kind = "frisbee_back"
+		effect.direction = -effect.direction
+		effect.remaining = 1.0
+	else:
+		effect.position = from + effect.direction * 6.0 * delta
+	effects[index] = effect
+	_revision += 1
+
+
+func _make_wet_strip(effect: Dictionary, point: Vector3) -> bool:
+	var actor := _players.get(int(effect.owner)) as PartyPlayer
+	if not is_instance_valid(actor):
+		return false
+	var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.1, point + Vector3.DOWN * 2.0, 1, [actor.get_rid()])
+	var floor_hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
+	if floor_hit.is_empty() or (floor_hit.normal as Vector3).y < 0.7:
+		return false
+	effect.kind = "wet_strip"
+	effect.position = floor_hit.position
+	effect.direction = Vector3(effect.direction.x, 0, effect.direction.z).normalized()
+	effect.remaining = 6.0
+	return true
+
+
+func sample_wet_strip(point: Vector3) -> float:
+	if not point.is_finite():
+		return 0.0
+	var wet := 0.0
+	for effect in effects:
+		if effect.kind != "wet_strip" or absf(point.y - float(effect.position.y)) > 0.3:
+			continue
+		var offset: Vector3 = point - effect.position
+		var forward: Vector3 = effect.direction
+		if forward.length_squared() < 0.1:
+			forward = Vector3.FORWARD
+		if absf(offset.dot(forward)) <= 0.9 and absf(offset.dot(forward.cross(Vector3.UP))) <= 0.45 and _world_clear(effect.position + Vector3.UP * 0.08, point + Vector3.UP * 0.08, int(effect.owner)):
+			wet = maxf(wet, 0.8 * clampf(float(effect.remaining) / 6.0, 0.0, 1.0))
+	return wet
 
 
 func _sweep(effect: Dictionary, from: Vector3, to: Vector3, radius: float) -> Dictionary:
@@ -321,8 +404,9 @@ func _hammer_hit(effect: Dictionary) -> void:
 		var victim := _players[peer_id] as PartyPlayer
 		var offset: Vector3 = victim.global_position + Vector3.UP * 0.75 - origin
 		var flat := Vector3(offset.x, 0.0, offset.z)
-		if flat.length() <= HAMMER_RANGE and absf(offset.y) <= 1.2 and flat.length_squared() > 0.001 and effect.direction.dot(flat.normalized()) >= 0.55 and _world_clear(origin, victim.global_position + Vector3.UP * 0.75, int(effect.owner)):
-			var applied := _impulse(int(effect.owner), peer_id, effect.direction, 3.2)
+		var glove: bool = effect.kind == "glove_warning"
+		if flat.length() <= (3.0 if glove else HAMMER_RANGE) and absf(offset.y) <= 1.2 and flat.length_squared() > 0.001 and effect.direction.dot(flat.normalized()) >= (0.94 if glove else 0.55) and _world_clear(origin, victim.global_position + Vector3.UP * 0.75, int(effect.owner)):
+			var applied := _impulse(int(effect.owner), peer_id, effect.direction, 5.5 if glove else 3.2)
 			_outcome("hit" if applied else "blocked", victim.global_position, effect.direction, int(effect.owner))
 			hit_any = hit_any or applied
 	if not hit_any:
@@ -430,14 +514,14 @@ func _spawn(now: float, seed: int, spawn_slot: int) -> void:
 
 
 func _kind_for_spawn(spawn_slot: int) -> String:
-	var ordered := ["foam_blaster", "plunger_rocket", "squeaky_hammer"]
+	var ordered := KINDS.keys()
 	return ordered[posmod(spawn_slot, ordered.size())]
 
 
 func _projectile_count() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in ["pellet", "rocket"]:
+		if String(effect.kind) in PROJECTILES:
 			count += 1
 	return count
 
@@ -445,7 +529,7 @@ func _projectile_count() -> int:
 func _owner_projectiles(owner: int) -> int:
 	var count := 0
 	for effect in effects:
-		if int(effect.owner) == owner and String(effect.kind) in ["pellet", "rocket"]:
+		if int(effect.owner) == owner and String(effect.kind) in PROJECTILES:
 			count += 1
 	return count
 
@@ -453,14 +537,14 @@ func _owner_projectiles(owner: int) -> int:
 func _warning_reservations() -> int:
 	var count := 0
 	for effect in effects:
-		if String(effect.kind) in ["rocket", "blast_warning", "hammer_warning"]:
+		if String(effect.kind) in WARNINGS or String(effect.kind) in ["rocket", "water_jet"]:
 			count += 1
 	return count
 
 
 # Fixed-width wire state avoids repeating dictionary keys on every match update.
 # Full dictionaries remain the local presentation/testing contract.
-const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss"]
+const WIRE_KINDS := ["", "foam_blaster", "plunger_rocket", "squeaky_hammer", "boxing_glove", "boomerang", "water_soaker", "pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss", "glove_warning", "frisbee_out", "frisbee_back", "water_jet", "wet_strip"]
 const WIRE_FEEDBACK := ["", "picked", "used", "range", "protected", "aim", "empty", "cooldown", "capacity"]
 
 
@@ -508,7 +592,7 @@ static func decode_wire_snapshot(value: Variant) -> Dictionary:
 	for index in pickup_count:
 		var id := stream.get_u32()
 		var kind := stream.get_u8()
-		if kind < 1 or kind > 3:
+		if kind >= WIRE_KINDS.size() or WIRE_KINDS[kind] not in KINDS:
 			return {}
 		state.pickups.append({"id": id, "kind": WIRE_KINDS[kind], "position": _wire_get_vector(stream), "expires": stream.get_float()})
 	for index in slot_count:
@@ -517,13 +601,13 @@ static func decode_wire_snapshot(value: Variant) -> Dictionary:
 		var ammo := stream.get_u8()
 		var cooldown := stream.get_u16() / 100.0
 		var feedback := stream.get_u8()
-		if kind > 3 or feedback >= WIRE_FEEDBACK.size() or state.slots.has(peer_id):
+		if kind >= WIRE_KINDS.size() or (kind != 0 and WIRE_KINDS[kind] not in KINDS) or feedback >= WIRE_FEEDBACK.size() or state.slots.has(peer_id):
 			return {}
 		state.slots[peer_id] = {"kind": WIRE_KINDS[kind], "ammo": ammo, "cooldown": cooldown, "feedback": WIRE_FEEDBACK[feedback]}
 	for index in effect_count:
 		var id := stream.get_u32()
 		var kind := stream.get_u8()
-		if kind < 4 or kind >= WIRE_KINDS.size():
+		if kind >= WIRE_KINDS.size() or WIRE_KINDS[kind] not in PROJECTILES + WARNINGS + OUTCOMES:
 			return {}
 		state.effects.append({"id": id, "kind": WIRE_KINDS[kind], "position": _wire_get_vector(stream), "direction": _wire_get_vector(stream), "remaining": stream.get_float(), "owner": stream.get_u32()})
 	return state if snapshot_is_valid(state) else {}
@@ -581,7 +665,7 @@ static func _slot_valid(slot: Variant) -> bool:
 
 
 static func _effect_valid(effect: Variant) -> bool:
-	return effect is Dictionary and effect.get("id") is int and effect.id > 0 and String(effect.get("kind", "")) in ["pellet", "rocket", "blast_warning", "hammer_warning", "hit", "blocked", "miss"] and effect.get("position") is Vector3 and effect.position.is_finite() and effect.get("direction") is Vector3 and effect.direction.is_finite() and _finite_number(effect.get("remaining")) and float(effect.remaining) >= 0.0 and effect.get("owner") is int and effect.owner > 0
+	return effect is Dictionary and effect.get("id") is int and effect.id > 0 and String(effect.get("kind", "")) in PROJECTILES + WARNINGS + OUTCOMES and effect.get("position") is Vector3 and effect.position.is_finite() and effect.get("direction") is Vector3 and effect.direction.is_finite() and _finite_number(effect.get("remaining")) and float(effect.remaining) >= 0.0 and effect.get("owner") is int and effect.owner > 0
 
 
 static func _finite_number(value: Variant) -> bool:

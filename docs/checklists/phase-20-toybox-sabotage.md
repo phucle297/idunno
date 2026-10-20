@@ -85,6 +85,15 @@ adding a mandatory subsystem; use its real serializer, never weaken game validat
 Each later batch contains2–3 items, reviewed/profiled before the next; this roster
 is a prioritized design proposal, not a promise to ship everything simultaneously.
 
+Batch2 implemented; normal staged gate pending. Public-intent authority68,
+presentation15/audio11/weather41 and final both-map2/4real-peer six-toy matrix
+pass. Eight gameplay states inspected at720p/1080p, charge text elevated above
+avatar and successful splash no longer mislabeled blocked. [Measured budgets](phase-20-batch2-metrics.json):
+dry draws4204→4247 (+43),Rain4client authority+0.298ms,paired apply≤+0.287ms,
+IPv4+17.466%. Initial water/footstep ownership error caused6156draws; root fix
+isolates temporary traction from retained weather, with a regression. All values
+remain orb incremental controls, not native capacity or human fun acceptance.
+
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |
 | 2 | Spring boxing glove: charged directional shove | Visible charge, narrow lane; dodge/cover, shared protection |

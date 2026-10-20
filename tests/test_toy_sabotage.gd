@@ -24,6 +24,7 @@ func _run() -> void:
 	_test_snapshots()
 	_test_sweep_and_effect_caps()
 	await _test_public_hits_and_cover()
+	await _test_second_batch()
 	_test_round_dedupe()
 	world.free()
 	if failures.is_empty():
@@ -164,6 +165,92 @@ func _test_public_hits_and_cover() -> void:
 	_expect(ToySabotage.snapshot_is_valid(toys.create_snapshot()), "physical outcomes remain valid bounded snapshots")
 	toys.reset()
 	# Leave local sequence tests independent of the explicit server sequences above.
+	toys._seen_sequences.clear()
+
+
+func _test_second_batch() -> void:
+	toys.reset()
+	shoves.reset_state()
+	manager.elapsed_time = 60.0
+	players[1].global_position = Vector3.ZERO
+	players[2].global_position = Vector3(0, 0, -2.7)
+	players[2].velocity = Vector3.ZERO
+	toys.pickups.append({"id": 300, "kind": "boxing_glove", "position": Vector3.ZERO, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 20) and toys.request_use(1, 1, 21, Vector3(0, -0.6, -1)), "glove public use keeps its planar lane under ordinary downward camera aim")
+	toys.tick(0.64, 1)
+	_expect(players[2].velocity == Vector3.ZERO and toys.effects[0].kind == "glove_warning", "charged glove gives full0.65s escape warning")
+	toys.tick(0.02, 1)
+	_expect(players[2].velocity.z < -5.0, "charged glove reaches farther than hammer with bounded impulse")
+	manager.elapsed_time = 62.0
+	players[2].velocity = Vector3.ZERO
+	players[2].global_position = Vector3(1.2, 0, -2)
+	_expect(toys.request_use(1, 1, 22, Vector3.FORWARD), "second glove charge accepted")
+	toys.tick(0.66, 1)
+	_expect(players[2].velocity == Vector3.ZERO, "sidestep escapes narrow glove lane")
+	toys.reset()
+	toys.pickups.append({"id": 301, "kind": "boomerang", "position": Vector3.ZERO, "expires": 99.0})
+	players[2].global_position = Vector3(8, 0, 0)
+	_expect(toys.request_pickup(1, 1, 23) and toys.request_use(1, 1, 24, Vector3.FORWARD), "disc uses ordinary finite pickup slot")
+	for tick in 61:
+		toys.tick(1.0 / 60.0, 1)
+	var returning: Array = toys.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "frisbee_back")
+	_expect(returning.size() == 1 and returning[0].direction.z > 0.0 and absf(float(returning[0].position.z) + 5.9) < 0.11, "disc reverses at six-metre lane after one second, within one tick: %s" % [returning])
+	for tick in 62:
+		toys.tick(1.0 / 60.0, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind in ["frisbee_out", "frisbee_back"]), "returning disc expires after bounded second leg")
+	var floor_body := StaticBody3D.new()
+	var floor_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20, 0.2, 20)
+	floor_shape.shape = box
+	floor_body.add_child(floor_shape)
+	floor_body.position.y = -0.1
+	world.add_child(floor_body)
+	await physics_frame
+	await physics_frame
+	toys.reset()
+	toys.pickups.append({"id": 302, "kind": "water_soaker", "position": Vector3.ZERO, "expires": 99.0})
+	_expect(toys.request_pickup(1, 1, 25) and toys.request_use(1, 1, 26, Vector3(0, -0.4, -1)), "finite soaker can aim at real supported ground")
+	for tick in 42:
+		toys.tick(1.0 / 60.0, 1)
+	var strips: Array = toys.effects.filter(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip")
+	_expect(strips.size() == 1 and toys.slots[1].ammo == 5, "soaker leaves one supported strip and consumes one tank charge")
+	if not strips.is_empty():
+		var point: Vector3 = strips[0].position
+		var wet := toys.sample_wet_strip(point)
+		_expect(wet > 0.5 and toys.sample_wet_strip(point + Vector3.UP) == 0.0 and toys.sample_wet_strip(point + Vector3.RIGHT) == 0.0, "wet strip stays local to its floor and readable footprint")
+		var weather := WeatherSurfaces.new()
+		world.add_child(weather)
+		weather.local_wetness = toys.sample_wet_strip
+		_expect(float(weather.movement_surface(point).wet) > 0.5 and not weather.is_electrified(point), "soaker changes actual traction without inventing electricity")
+		weather.leave_footprint(1, point)
+		_expect(weather.create_presentation_snapshot().residual_positions.is_empty() and weather.sample_surface(point) == Vector2.ZERO, "toy traction cannot persist as global precipitation through footsteps")
+		var replica := ToysScript.new()
+		world.add_child(replica)
+		replica.configure(manager, players, shoves)
+		_expect(replica.apply_snapshot(ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot())) and absf(replica.sample_wet_strip(point) - wet) < 0.001, "new toy and drying strip roundtrip through real wire serializer")
+		var across := point + Vector3(0, 0, 0.6)
+		_expect(toys.sample_wet_strip(across) > 0.5, "strip reaches nearby supported ground before cover control")
+		var divider := StaticBody3D.new()
+		var divider_shape := CollisionShape3D.new()
+		var divider_box := BoxShape3D.new()
+		divider_box.size = Vector3(2, 1, 0.05)
+		divider_shape.shape = divider_box
+		divider.add_child(divider_shape)
+		divider.position = point + Vector3(0, 0.5, 0.3)
+		world.add_child(divider)
+		await physics_frame
+		await physics_frame
+		_expect(toys.sample_wet_strip(across) == 0.0, "solid divider prevents wet traction leaking across an indoor wall")
+		divider.free()
+		toys.tick(3.0, 1)
+		_expect(toys.sample_wet_strip(point) < wet, "strip dries continuously rather than keeping full traction until removal")
+		toys.tick(4.0, 1)
+		_expect(toys.sample_wet_strip(point) == 0.0, "dry strip expires completely")
+		weather.free()
+		replica.free()
+	floor_body.free()
+	toys.reset()
 	toys._seen_sequences.clear()
 
 

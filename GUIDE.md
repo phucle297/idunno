@@ -225,8 +225,12 @@ The HUD shows health at bottom-left, match time at top-center, and alive players
 
 Toy pickups appear after the opening protection window. Foam Blaster has3 slow
 pellets; Plunger Rocket has1 slow shot followed by a0.8s blast warning; Squeaky
-Hammer has2 swings with a0.35s windup. Strafe, backstep, leave the marked area or
-use solid cover. Hits displace rather than directly remove health; falls and
+Hammer has2 swings with a0.35s windup. Spring Glove has2 narrow,3m punches after
+a0.65s charge; step sideways. Boomerang Disc has2 throws on an outward/return
+lane: dodge twice, use cover; it never homes on its owner. Water Soaker has6
+short squirts with a light push and a small supported wet strip drying over6s;
+walk carefully or go around it. It does not create an electric hazard.
+Strafe, backstep, leave the marked area or use solid cover. Hits displace rather than directly remove health; falls and
 disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
 chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy
 controls require keyboard/mouse; no new gamepad/touch mapping is claimed.

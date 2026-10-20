@@ -209,6 +209,13 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and int(shoves._last_item_sequence.get(host_id, 0)) > 0
 	main.fixture_observe_impulse.rpc(host_id)
 	passed = passed and await main.wait_acks("hammer_impulse", player_count - 1, deadline)
+	for kind: String in ["boxing_glove", "boomerang", "water_soaker"]:
+		main.toy_sabotage.effects.clear()
+		passed = passed and await _give_remote(main, remote_id, kind, 710 + ToySabotage.KINDS.keys().find(kind), pad, deadline, kind + "_pickup")
+		for ammo in range(int(ToySabotage.KINDS[kind]) - 1, -1, -1):
+			passed = passed and await _use_remote(main, remote_id, kind, ammo, deadline, "%s_%d" % [kind, ammo])
+			main.toy_sabotage.tick(4.0, 1)
+			main.toy_sabotage.tick(4.0, 1)
 	# Five production rematches require ordinary ready snapshots, then prove the
 	# client-local request sequence is reset by acquiring and firing every round.
 	for cycle in 5:

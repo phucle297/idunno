@@ -113,6 +113,14 @@
     "scope": "Automated first-slice exit only. Existing MatchManager prohibits admission during ACTIVE; late-state recovery covers already admitted clients and fresh replica wire apply, not new mid-round players. Native held-animation/audio/human feel remain unverified under continuation waiver. Intermediate skip-ci push intentionally does not deploy.",
     "prevention": "Recorded repeated mandatory-snapshot fixture failure and real serializer fix in advancing-disaster-party skill."
   },
+  "m20_2_batch2": {
+    "status": "in_progress",
+    "implementation": "Glove2 charges:0.65s visible narrow3m charge,5.5 horizontal impulse; disc2 charges:straight6m out/return,one victim per leg,cover/shared protection; soaker6 charges:short jet,1.8 impulse and supported0.9x1.8m wet strip fading/drying over6s. No extra bodies/pool slots. Replicated strip supplies actual WeatherSurfaces traction; no automatic electricity or roof rain.",
+    "validation": "Current focused authority68/visual15/audio11/weather41 pass; final both-map real2/4-peer six-toy matrix/5rematches pass. Eight720p/1080p states inspected and recaptured:charge text now fully above avatar, successful wet ground splash no false BLOCKED label. Current Rain4client max16-effect authority0.5201to0.8181ms (+0.2979),paired apply at most+0.2863ms;IPv4+17.466%,0kernel drops/fragments. No native headroom inference.",
+    "render_gate": {"status": "failed", "result": "Actual4clients/1llvmpipe renderer,dry40samples:4204to6156median draws (+1952 exceeds64),596.646to913.967ms p50. Trace: sample_surface merged toy strips, leave_footprint then persisted that temporary wetness into weather residuals, enabling overlay on whole town. Fix root ownership: temporary toy wetness belongs in movement_surface only, not precip accumulation/residuals. Preserve this failure and rerun same render control; no native FPS inference."},
+    "render_recovery": {"status": "passed", "result": "Same actual4client/1renderer/dry40sample scenario after isolating toy traction:4247median draws (+43 below64);585.278ms p50 compared with596.646baseline. Regression68 checks toy-wet footprint cannot enter weather residual snapshot and indoor divider blocks traction. Full metrics docs/checklists/phase-20-batch2-metrics.json preserves failed/control/current evidence."},
+    "pushed": false
+  },
   "blockers": [],
   "limits": [
     "Native Windows/GPU/audio/human feel and physical focus/minimize/vblank unverified; no owner-specific heat/FPS-resolution claim.",
@@ -122,7 +130,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Implement and verify M20.2 batch2 charged boxing glove, returning frisbee and bounded water soaker before expanding the arsenal.",
+  "next_action": "Run normal staged commit gate for reviewed/profiled M20.2 batch2, push on pass, then implement batch3 traps within unchanged caps.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

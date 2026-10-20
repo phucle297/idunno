@@ -142,6 +142,7 @@ func _ready() -> void:
 	toy_sabotage.configure(match_manager, _player_nodes, $ShoveManager)
 	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
 	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
+	weather_surfaces.local_wetness = toy_sabotage.sample_wet_strip
 	_build_sandbox()
 	$Player.position = map_anchors.spawn_origin
 	spectator_controller = SpectatorControllerScript.new()

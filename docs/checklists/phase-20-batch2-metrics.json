@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-20",
+  "scope": "Batch2 glove/disc/soaker incremental orb trial; not native GPU, thermal, audio-device or Internet acceptance",
+  "load": "Six pickups/four held/four analytical projectiles (disc/water),six supported wet strips,six outcomes,four real ENet clients. Shared existing pools, no added rigidbodies. Fixture reseeds outside Main timer; strips follow real contact positions to exercise traction queries.",
+  "render": {
+    "scenario": "Dry Toy Town,same camera,4clients/1Compatibility llvmpipe renderer,40samples",
+    "baseline_draws_median": 4204,
+    "initial_failed_draws_median": 6156,
+    "failure_cause": "Temporary toy wetness was merged into precipitation sample_surface. Footsteps retained it as weather residuals, enabling town-wide overlay draws.",
+    "fix": "Merge temporary wetness only into movement_surface; retain pure weather accumulation/residual ownership. Regression verifies toy-wet footstep leaves weather residual snapshot empty.",
+    "fixed_draws_median": 4247,
+    "fixed_additional_draws": 43,
+    "additional_draw_ceiling": 64,
+    "frame_interval_p50_ms_baseline_failed_fixed": [596.646, 913.9665, 585.278],
+    "raw_reports": [".scratch/phase20-batch2-render-base", ".scratch/phase20-batch2-render-load", ".scratch/phase20-batch2-render-fixed"],
+    "qualification": "Software frame intervals are far below native target; use incremental draw evidence, not native FPS/thermal conclusions. Warning labels enlarged and disc tail merged into one projectile surface."
+  },
+  "cpu": {
+    "scenario": "Rain/moving input/4real headless clients,120warmup/2x600sampleframes,normal authority tick; paired replay alternates identical payload with empty/full toy subsection and restores actual state",
+    "baseline_authority_mean_ms": 0.5201385542168674,
+    "fixed_authority_mean_ms": 0.8180583501006037,
+    "additional_authority_ms": 0.2979197958837363,
+    "fixed_authority_calls": 497,
+    "paired_client_counts": [193, 193, 192, 193],
+    "paired_client_additional_mean_ms": [0.23458549222797928, 0.228, 0.2862083333333333, 0.25082901554404147],
+    "additional_ceiling_ms": 0.5,
+    "raw_reports": [".scratch/phase20-batch2-base", ".scratch/phase20-batch2-fixed-cpu"],
+    "qualification": "Paired replay isolates incremental apply CPU; repeated fixture work is not production throughput. No native headroom claim."
+  },
+  "transport": {
+    "scenario": "Matched4real-client Rain/movement incoming loopback IPv4 header lengths; no payload retained; authority sample gate approximately8.315s",
+    "baseline_authority_ipv4_Bps": 179079.4665799326,
+    "fixed_authority_ipv4_Bps": 210357.24517054032,
+    "additional_authority_percent": 17.465865399284517,
+    "additional_ceiling_percent": 25,
+    "kernel_drops": 0,
+    "fragments": 0,
+    "raw_report": ".scratch/phase20-wire-batch2fixed.json",
+    "qualification": "Not per-RPC attribution, Ethernet bandwidth, packet-loss measurement or Internet acceptance."
+  }
+}
