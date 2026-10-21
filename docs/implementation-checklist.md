@@ -4,11 +4,16 @@
 
 ## Active and planned phases
 
-No active or next phase is agreed. Owner-authorized Phase20 implementation,
+No implementation phase is active. Owner-authorized Phase20 implementation,
 per-unit commits/pushes and final matching release/deployment are complete.
-Root progress is idle,not a new phase. Native thermal/FPS/human acceptance remains
-unverified;magnet and rigid-crate relocation remain deferred for route safety.
-Prior B/C UI/director proposals and packet-loss investigation remain deferred.
+The owner requested next-game ideas and agent cross-discussion; the resulting
+[Phase21 Social Chaos proposal](checklists/phase-21-social-chaos-proposal.md)
+contains three candidates, disagreements, keep/drop criteria and milestone gates.
+Planning is complete; mechanic selection/implementation are not approved or tested.
+Root progress remains idle with one proposed phase, not a new active phase.
+Native thermal/FPS/human acceptance remains unverified; magnet and rigid-crate
+relocation remain deferred for route safety. Earlier B/C UI/director proposals
+(distinct from the new candidate letters) and packet-loss investigation remain deferred.
 
 ## Recently completed phases
 

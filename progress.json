@@ -56,6 +56,17 @@
   ],
   "deferred_scope": ["Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established", "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"],
   "delivery_authorization": {"scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized", "release_pending": false},
-  "planned_phases": [],
-  "next_action": "Await the owner's next scope or bug report against the matching public build; do not invent a next phase or treat native performance as resolved."
+  "planned_phases": [
+    {
+      "id": "phase_21_social_chaos",
+      "status": "planned",
+      "approval": "awaiting_owner_selection; planning_only_authorized",
+      "checklist": "docs/checklists/phase-21-social-chaos-proposal.md",
+      "candidates": ["A: Brace / Bluff", "B: optional Hot Potato variant", "C: conditional Buddy Bunker"],
+      "planning_evidence": "Three independent source audits and three cross-review assignments; parent verified shove, mechanism, cover, weather and route integration seams. No runtime or fun claims.",
+      "implementation_status": "not_started",
+      "validation_status": "not_run"
+    }
+  ],
+  "next_action": "Obtain owner selection of the Phase21 Social Chaos proposal (recommend a bounded A prototype first); do not implement or release unapproved candidates or treat native performance as resolved."
 }
