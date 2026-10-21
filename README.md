@@ -2,19 +2,23 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-19: **Phase18 Outfits and Original Music is deployed and published** at
-`https://server.permees.com` from [741ae34](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341).
+2026-10-21: **Phase20 Toybox Chaos is deployed and published** at
+`https://server.permees.com` from [4279650](https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad).
 Download the matching Windows ZIP from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39184818543), final60-suite/42-Python
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39626771256), final63-suite/46-Python
 regression and public two-client exact-PCK smoke pass. Old clients are incompatible.
-Includes fixed Outfit selection/equipment, four new free costumes and two original
-menu/gameplay music loops with persisted Music volume. Continuous roof-correct
+Includes16 server-authoritative sabotage toys,water/rain soap washing,fan shot drift,
+Flood/support cleanup and shrink-aware admission. F takes/swaps;left click uses.
+Bounded effects and shared recovery protection preserve survival/counterplay.
+Phase19 selective-shadow/dry-overlay/roster optimizations are included;native
+two-app heat/FPS symptoms are not confirmed resolved. Fixed Outfit equipment,
+four free costumes and two original menu/gameplay loops remain. Continuous roof-correct
 weather and rotating Town mechanisms, independent Home/Choose Map, Speed/Jump drops
 and the enlarged furnished Toy Town remain included.
 Package hashes/delivery evidence are in root [progress.json](progress.json);
-the [Phase18 source checkpoint](docs/old-docs/phase-18-outfit-selection-and-costumes/progress.json)
-is historical. Public profile storage remains disabled; local
+the [Phase20 archive](docs/old-docs/phase-20-toybox-sabotage/progress.json)
+preserves full validation and limits. Public profile storage remains disabled; local
 profile-enabled package validation is not a public persistence claim.
 Earlier delivery statements below describe historical snapshots.
 

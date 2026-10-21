@@ -1,10 +1,12 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1–M20.3 verified/pushed; M20.4 local budgets/packages pass, final delivery pending. Owner explicitly wants
+Status: M20.1–M20.4 complete; source pushed,matching prerelease published/deployed2026-10-21.
+Earlier pending statements below are historical checkpoints superseded by final delivery.
+Native/human/thermal acceptance remains unverified under the existing waiver. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
-grabbing/crouching. DESIGN stays unchanged. The [Phase19 archive](../old-docs/phase-19-multiplayer-frame-budget/checklist.md)
+grabbing/crouching. DESIGN stays unchanged. The [Phase19 archive](../phase-19-multiplayer-frame-budget/checklist.md)
 records measured optimizations, sustained controls and trial ceilings, not native
 headroom or resolution of the owner's thermal/FPS symptom. Expanded diagnostics
 remain partial; existing hardware acceptance waiver permits bounded continuation.
@@ -64,7 +66,7 @@ full staged regression will rerun it. F take/swap, pointer
 recapture without firing and subsequent captured use exercised through viewport
 input. Six rendered held/warning/empty captures at720p/1080p inspected; fixture
 camera and foot height corrected, coral warnings/text refined. Controls/cancel
-semantics are in [decisions](../decisions.md). No gamepad/touch claim.
+semantics are in [decisions](decisions.md). No gamepad/touch claim.
 [Measured incremental budgets](phase-20-first-slice-metrics.json) include+42draws,
 +0.264ms authority physics,≤+0.199ms paired apply and+11.586% actual IPv4.
 Maximum16-effect Rain/4client follow-up adds0.184ms authority, at most0.243ms paired
@@ -231,7 +233,7 @@ cause and bounded cost. Toy Town and Harbor controls, real clients and rematch r
 - [x] Inspect world pickups/held/aim/warning/hit/miss/blocked/empty/protected states
   at720p/1080p, color-independent symbols, audio warning priority and reduced motion.
   Human fun/readability and hardware feel remain unverified without actual feedback.
-- [ ] Run staged regression, provenance checks for generated assets, matching build
+- [x] Run staged regression, provenance checks for generated assets, matching build
   package checks; release/deployment requires owner authorization at delivery time.
 
 Final local evidence: [chaos metrics](phase-20-final-chaos-metrics.json),
@@ -245,8 +247,18 @@ fixed outline render order after Snow transparency. No exhaustive all-toys ×
 all-hazards runtime cross-product or human fun acceptance is inferred from the
 bounded-interaction audit and selected map/cover/Flood/collapse controls.
 Local Windows/Linux154-entry exports and exact local-PCK345/96 controls pass;
-standalone Linux allocator/crash/retry/store checks pass. Final CI artifact,
-public matching-PCK smoke and published asset re-download are still required.
+standalone Linux allocator/crash/retry/store checks pass.
+
+Final delivery: [4279650](https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad),
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/39626771256),
+[published prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650).
+Windows contains byte-exact deployed CI PCK;unchanged Linux CI archive published.
+Exact CI-PCK345authority/96weather/11audio,six inspected720p/1080p renders,
+standalone allocator/lifecycle/store,and public two-client Chef/Pilot/Ready/Start/
+mutual movement/disconnect checks pass. Published assets re-downloaded and
+byte/hash/tag verified. [Full evidence](progress.json#delivery_followup).
+Minor lower-right dry pavement seam artifacts remain observed,not diagnosed.
+No native Windows/GPU/thermal/human/separate-network acceptance is inferred.
 
 No realistic warfare, gore, permanent progression, PvP grabbing, unlimited stun,
 unbounded terrain destruction or new hosting infrastructure. Maximize combinations

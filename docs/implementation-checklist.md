@@ -4,17 +4,23 @@
 
 ## Active and planned phases
 
-Owner authorized completing the remaining plan, committing/pushing each verified
-unit and releasing after final integration. Performance checkpoint precedes sabotage:
-- [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
-  — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
-  M20.1–M20.3 verified/pushed; M20.4 local stress/package checks pass, final delivery pending.
-  Sixteen toys are server-authoritative and bounded against chain-lock/spam;
-  magnet and rigid-crate relocation remain explicitly deferred for route safety.
-  Trial ceilings follow Phase19 controls, not assumed native performance headroom.
+No active or next phase is agreed. Owner-authorized Phase20 implementation,
+per-unit commits/pushes and final matching release/deployment are complete.
+Root progress is idle,not a new phase. Native thermal/FPS/human acceptance remains
+unverified;magnet and rigid-crate relocation remain deferred for route safety.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 
 ## Recently completed phases
+
+- [Phase20 — Toybox sabotage](old-docs/phase-20-toybox-sabotage/checklist.md)
+  —16 bounded server-authoritative toys,water/rain soap wash,fan drift,Flood/support
+  cleanup and shrinking admission. Normal63Godot/8matrices/managed20/46Python,
+  both-map4/8/20 toy matrix/5rematches and delayed/lossy2/4 controls pass.
+  Exact CI-PCK345/96/11 controls,six inspected720p/1080p captures,standalone Linux,
+  public2client equipment/Ready/Start/movement and released-asset byte/hash/tag pass.
+  [Matching prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650)
+  deployed/published;[full evidence](old-docs/phase-20-toybox-sabotage/progress.json).
+  Orb incremental budgets do not prove native heat/FPS resolution or human fun.
 
 - [Phase19 — Multiplayer frame budget checkpoint](old-docs/phase-19-multiplayer-frame-budget/checklist.md)
   — selective detail shadows, dynamic grounding guard, unchanged-roster cache and

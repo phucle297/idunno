@@ -3,21 +3,14 @@
   "updated_at": "2026-10-21",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "in_progress",
+  "workflow_state": "awaiting_next_scope",
   "previous_phase_archive": {
-    "path": "docs/old-docs/phase-19-multiplayer-frame-budget/progress.json",
+    "path": "docs/old-docs/phase-20-toybox-sabotage/progress.json",
     "status": "completed",
-    "source_of_truth": false,
-    "scope": "Automated optimization checkpoint; native FPS/thermal/focus and expanded diagnostic follow-up remain unverified under existing waiver."
+    "source_of_truth": false
   },
   "human_acceptance_checklist": "NEED_REAL_CHECK.md",
-  "engine": {
-    "name": "Godot",
-    "version": "4.7.2-stable",
-    "language": "GDScript",
-    "renderer": "Compatibility",
-    "target": "Windows PC"
-  },
+  "engine": {"name": "Godot", "version": "4.7.2-stable", "language": "GDScript", "renderer": "Compatibility", "target": "Windows PC"},
   "development_model": {
     "hierarchy": ["phase", "milestone", "task"],
     "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
@@ -25,176 +18,44 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {
-    "phase": "phase_20_toybox_sabotage",
-    "milestone": "M20.4",
-    "task": null
-  },
-  "phase": {
+  "current": {"phase": null, "milestone": null, "task": null},
+  "phase": null,
+  "completed_phase": {
     "id": "phase_20_toybox_sabotage",
     "title": "Toybox sabotage and chain-reaction chaos",
-    "status": "in_progress",
-    "checklist": "docs/checklists/phase-20-toybox-sabotage.md",
-    "milestones": [
-      {"id": "M20.1", "title": "Action framework and three-item vertical slice", "status": "completed", "gate": "passed"},
-      {"id": "M20.2", "title": "Staged toy arsenal", "status": "completed", "gate": "passed"},
-      {"id": "M20.3", "title": "Bounded world chain reactions", "status": "completed", "gate": "passed"},
-      {"id": "M20.4", "title": "Chaos budget and regression", "status": "in_progress", "gate": "not_run"}
-    ]
-  },
-  "completed_phase": {
-    "id": "phase_19_multiplayer_frame_budget",
-    "title": "Multiplayer frame budget investigation",
     "status": "completed",
-    "archive": "docs/old-docs/phase-19-multiplayer-frame-budget/progress.json",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/4b95c1d9843a6bf193a3112e26e7489c542b4e3f",
-    "pushed": true,
-    "deployed": false,
-    "released": false,
-    "acceptance_scope": "Measured orb optimizations, real-client correctness and baseline/trial ceilings only; owner-specific heat/FPS cause, native acceptance and original broader matrix remain explicitly unverified/partial."
+    "archive": "docs/old-docs/phase-20-toybox-sabotage/progress.json",
+    "acceptance_scope": "All four agent-owned milestones and authorized public delivery complete. Sixteen bounded toys and approved weather chains shipped; native thermal/FPS/human acceptance remains unverified,not waived into passes."
   },
   "public_delivery": {
-    "revision_url": "https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34",
-    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39184818543",
+    "revision_url": "https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39626771256",
     "endpoint": "https://server.permees.com",
-    "evidence": "docs/old-docs/phase-19-multiplayer-frame-budget/progress.json#delivery_followup",
+    "evidence": "docs/old-docs/phase-20-toybox-sabotage/progress.json#delivery_followup",
     "pushed": true,
     "deployed": true,
     "released": true,
-    "windows_sha256": "1b6b8c5904f29392dddfe8e3879e69335ba399532b53baa017cb112d0973363d",
-    "linux_sha256": "d7fe18b8cf0d766863ccfe12031eb1f1b1e6110dc09e59cb162095e194314bea"
+    "windows_sha256": "162b5f6d00cef01269c482b0e2350f187ada62bbfa3ba507ad5b727d3df522eb",
+    "linux_sha256": "6d24198d16d41a877828e58fcb6d70216a29db82111ab24c0c1b72ecbf6833b8"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "trial_budgets": {
-    "baseline": "docs/old-docs/phase-19-multiplayer-frame-budget/final-controls.json",
-    "held_slots_per_player": 1,
-    "projectiles_per_player": 2,
-    "projectiles_global": 4,
-    "placed_or_warning_effects_global": 6,
-    "new_loose_bodies_first_slice": 0,
-    "shared_loose_body_ceiling": 32,
-    "additional_draws_per_client": 64,
-    "additional_mean_authority_physics_ms": 0.5,
-    "additional_mean_match_apply_ms": 0.5,
-    "additional_matched_four_peer_ipv4_percent": 25,
-    "maximum_weapon_control_loss_s": 1.0,
-    "minimum_cross_item_protection_s": 1.5,
-    "qualification": "Conservative acceptance ceilings to measure per batch, not measured toy capacity or native headroom. Reserve rocket warning capacity before accepting a shot; reduce effects/concurrency if a ceiling fails. No direct weapon HP damage in first slice."
-  },
-  "validation": [
-    {"date": "2026-10-20", "scope": "phase19_checkpoint_rollover", "status": "passed", "result": "Active/archive/final-control JSON parsed; git diff --check passed; archived decisions byte-identical to retained final active log. Preserved partial diagnostic matrix/native limits and Phase18 public delivery evidence; Phase20 starts with trial ceilings, not measured arsenal capacity. Documentation-only change committed/pushed8bee371, no new gameplay validation claim."},
-    {"date": "2026-10-20", "scope": "three_toy_integration_review", "status": "passed", "result": "Integrated separate authoritative controller, snapshot/pickup/input/reset hooks, world/held presentation, HUD and deterministic audio. Review corrected client sequence advancement/round reset, authority guards, rocket warning reservations, finite snapshot validation, sphere-edge world sweep vs earlier ray approximation, same-height hammer targeting, warning orientation/priority and real blocked/protected feedback. Focused current authority42, presentation15, audio11 and existing powerup105 checks pass. Native/audio/rendered integrated acceptance not yet claimed."},
-    {"date": "2026-10-20", "scope": "toy_fixture_recovery", "status": "failed", "result": "Initial integrated parse needed explicit bool type. Initial ENet/physical charge fixtures accidentally scheduled an extra drop during seeded tests; isolated seeded scenarios by clearing fixture anchors, no production spawn suppression. Audio fixture unconditionally called quit1 after quit0; added return. ENet2-peer intents/five rematches passed but null-peer teardown emitted runtime errors; stopped/freed producers before close. ENet4-peer all stage assertions passed but simultaneous listen-host departures reproduced known native channel-zero relay failure; changed only fixture to sequential roster-acknowledged departures. Two abandoned early subagent unit processes were stopped after repeated idle checks; no normal test gate bypass."},
-    {"date": "2026-10-20", "scope": "toy_real_peers_and_input", "status": "passed", "result": "Strict ENet2/4 both-map matrix r4 and8/20 both-map matrix r5 pass public pickup/use, observer, malformed/stale intents, sequential disconnects and five rematches per room; no script/runtime errors, shutdown-only resource diagnostics retained. Real viewport F pickup, first click recapture without firing, second captured click spends charge pass. Capture fixture corrected from roof-obscured camera and below-plaza foot position; full visual review ongoing. Focused authority46, presentation15, audio11 pass."},
-    {"date": "2026-10-20", "scope": "compact_toy_wire", "status": "passed", "result": "Replaced repeated dictionary wire keys with bounded fixed-width PackedByteArray; decode validates exact length/counts/catalog/finite values before match mutation. Six pickups/four slots/four projectiles/six warnings encode3120 to543 bytes, exact sample roundtrip; this is not transport evidence. Actual matched4-client Rain/movement loopback IPv4 header sampling: authority178801 to199517 B/s (+11.586%), reverse18440 to18420 B/s, no kernel drops/fragments. Gate follows authority measurement status, approximately8.3s per run. Raw scratch report .scratch/phase20-wire-pair.json."},
-    {"date": "2026-10-20", "scope": "initial_toy_cpu_budget", "status": "failed", "result": "Separate4-client Rain/movement runs,2x600frames each: authority Main physics0.5023 to0.7667ms (+0.2644, within0.5); client whole-match apply3.1793 to3.7766ms (+0.5973, exceeds0.5). Investigating matched same-payload replay to distinguish toy work from whole-weather/scheduling variation; do not mark CPU gate passed from this run. No native FPS or heat claim."},
-    {"date": "2026-10-20", "scope": "paired_toy_apply_and_render", "status": "passed", "result": "Same received full match payload replayed with empty/full toy subsection, alternating order and restoring actual state:193/194/192/193 paired callbacks across4real clients; incremental apply0.175/0.108/0.198/0.114ms, below0.5ms. Isolates toy work from separate-process whole-weather variation; repeats fixture work and is not throughput evidence. Same-camera dry4clients/1llvmpipe renderer40sample draws4204 to4246 (+42 below64); frame intervals573 to580ms do not establish native FPS. Detailed evidence docs/checklists/phase-20-first-slice-metrics.json. All6 final held/warning/empty720p/1080p captures inspected via contact sheet; coral warning contrast and countdown positions refined."},
-    {"date": "2026-10-20", "scope": "toy_counterplay_capsules", "status": "passed", "result": "Scratch physical flat-ground fixture: real PartyPlayer capsules and apply_movement_input at60Hz walk clear0.8s blast from0.3m, backstep0.35s hammer from1.5m and strafe8m/s pellet from3m, no victim item impulse;1s travel4.132m each. Actual collider movement, not arithmetic-only escape claim; no weather/latency/native feel inference. Existing standing hit and sphere-edge cover controls pass."},
-    {"date": "2026-10-20", "scope": "late_old_round_item_recovery", "status": "passed", "result": "Review found monotonic IDs alone fail for a previously unseen reliable old-round impulse arriving after a newer channel2 match snapshot. Executed pre-fix repro moved round2 victim at velocity-2 from unseen sequence100; post-fix same old-round intent leaves velocity0. Item RPC now carries round generation checked at receiver; source/replica set it on begin/apply, transport reset clears it. Current focused authority50 checks pass, including old rejection without poisoning current sequence and normalized pitch rejection. Real2/4 ENet both maps pass after adding actual replicated hammer-hit observation and same-channel barrier proving an unseen stale item RPC is rejected after5rematches. Changes still require the normal staged gate before commit/push."},
-    {"date": "2026-10-20", "scope": "normalized_aim_pitch", "status": "passed", "result": "Public request_use regression reproduced acceptance of scaled vector(0,0.4,-0.3), which normalized to an illegal steep pitch and consumed ammo. Validate length/finite first, then normalized pitch; final authority50 passes while pre-fix test fails. No valid camera aim or ammo contract relaxed."},
-    {"date": "2026-10-20", "scope": "first_staged_gate", "status": "failed", "result": "Normal full staged-tree commit hook reached Room UI after map variety493 and earlier suites passed. Synthetic Room UI snapshots omitted newly mandatory toy wire data; Main correctly rejected them, then fixture's10.1s deadline restored OfflineMultiplayerPeer and get_peer raised a runtime error, leaving coroutine hung. Stopped hung commit/process tree; no commit created (HEAD remains8bee371). Added actual toy wire field to both synthetic snapshots, no production optional-field fallback or skipped assertion; focused ROOM_UI_OK85 now passes including new-room toy generation reset. Restage all reviewed fixes and rerun normal hook; retained .scratch/phase20-room-ui-before.log and .scratch/phase20-commit-gate.log."},
-    {"date": "2026-10-20", "scope": "maximum16_toy_effect_budget", "status": "passed", "result": "Current source with6pickups/4held/4pellets/6warnings/6outcomes on4real ENet clients/Rain/movement, no extra bodies: authority Main physics0.5524 to0.7364ms (+0.1840), alternating same-payload paired apply at most+0.2428ms across192/194/193/193callbacks, IPv4 authority179083 to207350B/s (+15.7844%, no kernel drops/fragments). Within0.5ms/25% trials; shared six-slot warning/outcome visual pool cannot add extra result draws while warnings fill it. Not native capacity. Detailed final sample in docs/checklists/phase-20-first-slice-metrics.json."}
-  ],
-  "changed_files": ["progress.json", "assets/manifest.json", "game/main.gd", "game/player/player.gd", "game/player/shove_manager.gd", "game/session/toy_sabotage.gd", "game/session/toy_sabotage_visuals.gd", "game/session/toy_sabotage_audio.gd", "game/ui/toy_sabotage_card.gd", "tests/test_toy_sabotage.gd", "tests/test_toy_sabotage_visuals.gd", "tests/test_toy_sabotage_audio.gd", "tests/toy_sabotage_network_peer.gd", "tests/run_toy_sabotage_network_test.sh", "tests/test_room_ui.gd", "tests/run_ui_regression.sh", "tools/test_changed.py", "docs/decisions.md", "docs/checklists/phase-20-toybox-sabotage.md", "docs/checklists/phase-20-first-slice-metrics.json", "GUIDE.md", "README.md"],
-  "supplemental_validation": [
-    {"date": "2026-10-20", "scope": "controlled_delayed_lossy_enet", "status": "passed", "result": "Disposable transparent UDP proxy, real Toy Town2-peer production ENet fixture:100ms each-way delay plus0..12ms jitter and deterministic1/97 datagram loss;2021 received,20 dropped,2001 forwarded. Both processes exit0, positive server/client markers and TOY_DELAYED_LOSSY_ENET_OK; pickup/finite charges/replicated impulse/5rematches/stale-round rejection/disconnect pass with no runtime errors. Initial proxy fixture wrongly supplied host-port to client, causing no transport; corrected command roles before successful run. This controlled case is not Internet/native feel acceptance."},
-    {"date": "2026-10-20", "scope": "second_staged_gate", "status": "failed", "result": "Normal staged gate passed Room UI85 and earlier map/gameplay suites, then Session Lifecycle rejected its synthetic roster snapshot because it also omitted mandatory toys. Added real create_wire_snapshot data to tests/test_session_lifecycle.gd; focused SESSION_LIFECYCLE_OK51 passes. Audited every test _apply_match_snapshot caller: remaining fixtures use production _create_playable_snapshot or updated Room UI payloads. No production fallback or relaxed assertion. Commit remains absent; restage and rerun normal hook."}
-  ],
-  "m20_1_delivery": {
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/86bdd771ae48b949bc376a84eeed6872ded2da96",
-    "pushed": true,
-    "released": false,
-    "deployed": false,
-    "gate": "Normal staged hook PRE_COMMIT_OK:63 Godot suites,8 network matrices (toy4/8/20 both maps),managed20 with5rematches and46 Python tests. Additional current-source2/4-peer delayed/lossy controls on both maps pass; four runs drop20/66/18/64datagrams with100ms each-way plus0..12ms jitter. SESSION_LIFECYCLE_OK51 after correcting mandatory synthetic payload. No hook bypass.",
-    "scope": "Automated first-slice exit only. Existing MatchManager prohibits admission during ACTIVE; late-state recovery covers already admitted clients and fresh replica wire apply, not new mid-round players. Native held-animation/audio/human feel remain unverified under continuation waiver. Intermediate skip-ci push intentionally does not deploy.",
-    "prevention": "Recorded repeated mandatory-snapshot fixture failure and real serializer fix in advancing-disaster-party skill."
-  },
-  "m20_2_batch2": {
-    "status": "completed",
-    "implementation": "Glove2 charges:0.65s visible narrow3m charge,5.5 horizontal impulse; disc2 charges:straight6m out/return,one victim per leg,cover/shared protection; soaker6 charges:short jet,1.8 impulse and supported0.9x1.8m wet strip fading/drying over6s. No extra bodies/pool slots. Replicated strip supplies actual WeatherSurfaces traction; no automatic electricity or roof rain.",
-    "validation": "Current focused authority68/visual15/audio11/weather41 pass; final both-map real2/4-peer six-toy matrix/5rematches pass. Eight720p/1080p states inspected and recaptured:charge text now fully above avatar, successful wet ground splash no false BLOCKED label. Current Rain4client max16-effect authority0.5201to0.8181ms (+0.2979),paired apply at most+0.2863ms;IPv4+17.466%,0kernel drops/fragments. No native headroom inference.",
-    "render_gate": {"status": "failed", "result": "Actual4clients/1llvmpipe renderer,dry40samples:4204to6156median draws (+1952 exceeds64),596.646to913.967ms p50. Trace: sample_surface merged toy strips, leave_footprint then persisted that temporary wetness into weather residuals, enabling overlay on whole town. Fix root ownership: temporary toy wetness belongs in movement_surface only, not precip accumulation/residuals. Preserve this failure and rerun same render control; no native FPS inference."},
-    "render_recovery": {"status": "passed", "result": "Same actual4client/1renderer/dry40sample scenario after isolating toy traction:4247median draws (+43 below64);585.278ms p50 compared with596.646baseline. Regression68 checks toy-wet footprint cannot enter weather residual snapshot and indoor divider blocks traction. Full metrics docs/checklists/phase-20-batch2-metrics.json preserves failed/control/current evidence."},
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/ad70964f1a4627b0e7d518a911baf2151f683177",
-    "staged_gate": "PRE_COMMIT_OK:63 Godot suites,8 network matrices,managed20/5rematches,46Python tests. No bypass. Intermediate skip-ci push; not released/deployed.",
-    "pushed": true
-  },
-  "m20_2_batch3": {
-    "status": "completed",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/2f0059d",
-    "staged_gate": "Normal staged gate PRE_COMMIT_OK tree45d95050b27c997f800166d6e6b639b7fa104f04,46Python tests and full UI/network regression passed. Committed and pushed main; skip-ci intermediate only, not released/deployed.",
-    "implementation": "Soap2charges: supported10s local0.7m-radius steering slick, jump/walk-around counter and no weather residual. Spring2charges: visible0.8s arming, single-use5.4m/s lift capped/set not stacked, same cross-item protection. Confetti1charge:1.4s radial2.4m warning with cover and no direct HP damage. All share six warning reservations, fixed wire sizes, no added bodies. Unsupported/through-cover placement rejects before ammo spend; lost floor/owner clears traps.",
-    "validation": "Authority98/presentation15/audio11/weather41 pass, including through-wall placement and destroyed-floor cancellation. Eight actual-public-placement captures720p/1080p inspected after elevating/shortening labels; source confetti card retains24px margin. Capsule spring rises0.684/0.774m and returns to floor0.120m. Final both-map2/4real-peer matrix passes nine finite-charge toys, production replicated lift, stale-round rejection/5rematches/disconnect. Same four cases through100ms each-way+0..12ms jitter/1-in97datagram loss pass,42/137/37/125datagrams dropped. No Internet/human acceptance inferred.",
-    "performance": "Stable max16effects/4clients control: authority0.5021to0.7698ms (+0.2677),paired client apply at most+0.2430ms; IPv4+20.7099%,0kernel drops/fragments; dry draws4204to4247 (+43). All within0.5ms/25%/64draw trials. Detailed docs/checklists/phase-20-batch3-metrics.json. Normal staged gate pending; no native capacity claim.",
-    "fixture_recovery": "Initial lift assertion sampled velocity after independently ordered movement snapshots; observe production acceptance via test-only ShoveManager subclass and same-channel barrier instead. Four-peer control also ran before earlier hammer's real-wall-time protection expired; wait on actual protection state, not accelerated match time. Positive server5.400m/s and every replica acceptance now pass. Initial failed fixture cascaded into absent slot; abort failed catalog control before rematches, no runtime contract relaxation.",
-    "pushed": true
-  },
-  "m20_2_batch4_preparation": {
-    "status": "planned",
-    "decision": "Focused Oracle consultation plus direct map/capsule inspection:1.5m Harbor gangway minus1.2m solid wall leaves0.3m vs0.56m player width; endpoint validator cannot prove escape. Explicitly revise foam to query-only firing-lane cover: blocks toy projectiles, players walk through at unchanged speed, no bodies/camera/weather/support interference. One impact pops it; preview0.7s/active6s; rocket retains warned blast. Detailed contract in docs/decisions.md; not implemented or tested. Fan/decoy remain next batch."
-  },
-  "m20_2_batch4_local": {
-    "status": "completed",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/226901b03b9aa8e70b2796ba463c7592d194d396",
-    "pushed": true,
-    "implementation": "Foam launcher/query-only screen, armed fan pulses and supported cosmetic decoy controller/presentation/audio/card; reticle queries foam. Fixed arbitrary intent-gap ceiling:70ineligible requests no longer permanently lock later pickup. Recovery before/after scratch and real2peer ToyTown ENet pass before batch4 integration.",
-    "validation": "Current authority144/presentation15/audio11 pass. Foam public-use boundary/pop/walk-through and finite lifecycle/lost-support checks pass;12actual-public-use720p/1080p captures inspected with final label/contrast fixes. Real2/4both-map twelve-toy catalog/observer replication/recovery after70knocked-down requests/5rematches pass. Final observer-enhanced same four controlled100ms each-way+0..12ms jitter+1/97loss cases pass,52/173/50/162datagrams dropped. Earlier unit failure was stale fixture treating new placements as confetti, corrected without production relaxation.",
-    "performance": "Mixed max-slot4client Rain authority0.57446to0.98214ms (+0.40768);same-payload paired apply at most+0.31611ms. Dry4clients/1llvmpipe renderer4204to4247draws (+43),601.275to634.604ms p50. IPv4+17.49798%,0kernel drops/fragments. Within0.5ms/64draw/25%trials,not native60FPS/heat proof;docs/checklists/phase-20-batch4-metrics.json.",
-    "gate": "Normal staged PRE_COMMIT_OK treeaca8beb292154939dfd05b69d78d9fa64036fc7c:63Godot suites/8network matrices/managed20/46Python tests. Committed/pushed with skip-ci; not released/deployed.",
-    "recovered_blocker": "Subscription allowance available on continuation; bounded test/render workers completed."
-  },
-  "m20_2_batch5_local": {
-    "status": "completed",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/cd681508dcf74e281efa715f022f23d345709660",
-    "pushed": true,
-    "implementation": "Remote popper single supported charge:0.7s arm/8s life,second click1s covered blast warning,shots defuse; same reservation. Umbrella0.25s prep/0.9s directional window,one per owner,at most one reflection; same ID/lifetime/wire record,credit transfers and full recipient quota absorbs. No melee/blast immunity or added bodies/pools.",
-    "design_deferral": "Magnet and rigid-crate spring/rocket relocation remain explicitly deferred after focused Oracle safety consultation: local clearance cannot bound persistent crate stopping poses or later hazard relocation; no generic player crate-push escape. Not an executed magnet bug or completed feature.",
-    "validation": "Public-intent authority205/presentation15/audio11 pass. Defuse during countdown has no delayed blast; four linear kinds reflect,frisbee absorbs; prep/expiry/rear controls and quota/second-bounce limits pass. Real2/4both-map fourteen-toy finite-charge matrix/remote countdown/replicated reflected-owner hit/5rematches pass. Same four delayed/lossy cases100ms each-way+0..12ms jitter+1/97loss pass,61/202/57/188datagrams dropped. Twelve actual-public-use720p/1080p captures inspected including opponent-facing canopy; initial cyan blending fixed with coral opening/violet active and explicit HUD controller/reflect state. Normal staged gate pending.",
-    "performance": "Active-window stable maximum-slot4client Rain authority0.594639to0.851491ms (+0.256852),paired apply at most+0.291856ms;dry draws4204to4247 (+43),607.907to561.845ms p50;IPv4+17.673602%,0kernel drops/fragments. Within trial0.5ms/64draw/25%ceilings;not native capacity or exhaustive impact/pulse spikes. Preliminary preparation-window load superseded;docs/checklists/phase-20-batch5-metrics.json.",
-    "delivery": "Normal staged gate passed63Godot/8matrices/managed20/46Python before commit/push with skip-ci;not released/deployed. Initial CLI process disappeared mid-MapVariety,no commit. Supervised retry completed gate and committed;service auto-restart then ran empty-index hook and overwrote redirected full log with PRE_COMMIT_OK tree d96484183aefab62fb1432b3943760c743ffb6e4/no-changes output. Stopped service,verified actual commit contents/remote push. Future gate service must append logs and retain terminal marker instead of restarting commits."
-  },
-  "m20_2_batch6_local": {
-    "status": "completed",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/f92fc78b04ee554faf5d9766b93e21e38e277e47",
-    "pushed": true,
-    "implementation": "Cart non-solid supported1s arm/2s straight run,reserves projectile slot,4m/s with0.25m step cap. Balloon dart converts to0.6s escape/pop warning,grounded/overhead-checked3m/s single lift and0.5s cosmetic float;server-only bounded victim metadata. No added bodies or movement prediction state. Shared finite-projectile travel now stops at remaining lifetime even on a delayed tick.",
-    "validation": "Authority283/presentation15/audio11 pass. Actual capsule walk/jump/ceiling/pop/departure counters,no stacked attachment,mild apex/floor return;cart wall/void/windup/reservation controls pass. Pre-fix delayed4s dart crossed7.5m lifetime and attached9m target;post-fix same test rejects. Initial counter fixture wrongly assumed reset clears monotonic impulse IDs;compare before/after instead. Real2/4both-map16toy catalog,replicated cart phases and3m/s balloon acceptance/5rematches pass;four delayed/lossy100ms-each-way cases pass70/63/233/215drops. Ten final720p/1080p public-use captures inspected;compact flying seed replaces floor-clipping long string,full8m cart lane;HUD in bounds. Scratch capture initially attempted prohibited ACTIVE roster registration;corrected presentation-only second-actor state,not network admission.",
-    "performance": "Stable max-slot4realclient Rain authority0.489209to0.921833ms (+0.432623);paired apply at most+0.363223ms. Dry draws4204to4246 (+42),616.021to635.19ms p50;IPv4+15.871566%,0kernel drops/fragments. Within0.5ms/64draw/25%trials;not native capacity or exhaustive pulse/impact stress. docs/checklists/phase-20-batch6-metrics.json.",
-    "delivery": "Normal staged PRE_COMMIT_OK tree7005b2a4e84b099f0e23ef3d9e580a30f418e70f:63Godot suites/8network matrices/managed20/46Python. Includes4/8/20both-map16toy/balloon acceptance/5rematches. Committed/pushed skip-ci;service stopped after one-shot marker,full log preserved .scratch/phase20-batch6-commit-gate.log. Not released/deployed."
-  },
-  "m20_3_local": {
-    "status": "completed",
-    "source_revision_url": "https://github.com/phucle297/idunno/commit/e09667269149f58cd67b35449999a4c7591044f7",
-    "delivery": "Normal full staged gate passed tree abf4fecc8c974c22fbb46813efcd3d3fff9a2ddc:63Godot suites/8network matrices/managed20/settings restart/46Python. Both-map4/8/20 sixteen-toy combos/5rematches pass. Committed/pushed skip-ci; supervised service stopped. This supersedes earlier pending gate statements below and in asset provenance; no asset content changed after inspected captures.",
-    "implementation": "Water clears uncovered same-height overlapping soap; active Rain adds2s/s erosion using actual roof ray; fan drifts only allowlisted unreflected short shots<=0.2rad once per tick, preserving owner/ID/lifetime. Actual pending-collapse area scales admission4/6/6 with nonzero minimum1, only pickups trimmed. Flood-hidden floor toys cancel before acting; submerged placement rejects before charge spend. Wet strips clear on actual lost support.",
-    "validation": "Authority345/weather integration96/presentation15, weather41/lightning24/map493/layout6910/collapse5040 pass. Real2/4 peers both maps pass water wash/fan direction/original-owner snapshots,16toy catalog,5rematches and departure. Four100ms-each-way/0..12ms-jitter/1-in-97-loss cases pass (drops74/66/239/221). Six720p/1080p soap/water/Snow-reduced-motion captures inspected; fixed text outline rendering after transparent Snow overlay. Retained before-fix floor-loss/submerged-warning reproductions now pass. Final normal staged gate pending; not released/deployed.",
-    "staged_gate_followup": "First normal gate failed at Harbor20 pickup competition after other toy2/4/8 and Town20 cases passed. Root fixture error: losing pickup creates an empty-kind range-feedback slot,not no dictionary entry. Ordered request barrier reproduces deterministically at2peers:one actual foam holder plus one empty feedback record; original assertions fail. Fixture now waits for both intents,count nonempty held kinds,and accepts zero-ammo empty feedback slots. Same2/20Harbor matrix passes with5rematches. Full staged gate must rerun; no bypass or timeout extension.",
-    "scope": "No toy electrical expansion or rigid-prop combos; magnet and crate spring/rocket remain explicitly deferred for persistent-route safety. Human/native feel unverified. Bounded test subagent failed on external usage allowance; parent implemented network fixture directly."
-  },
-  "m20_4_local": {
-    "status": "in_progress",
-    "metrics": "docs/checklists/phase-20-final-chaos-metrics.json",
-    "performance": "Four real clients/Rain/movement rotating bounded fan/shot,popper expiry and soap wash stress:authority+0.402046ms,matched-payload apply at most+0.391316ms,dry draws+44,actual IPv4+19.427323%,0kernel drops/fragments;within0.5ms/64draw/25%trials. Unpaired separate-run client1 apply delta+0.533080ms is retained as variance,not hidden;paired replay passes every client. Software render far below60FPS;not native headroom. Stable measured node counts,not long-session leak proof.",
-    "packages": "Committed e096672 Windows/Linux exports pass flat hashes/provenance isolation/154PCK entries. Exact local Linux-PCK authority345/weather integration96 pass. Standalone exported Linux allocator/version/create_join/crash_retry/port_reclaimed and durable profile restart/replay/equipment/isolation pass;reward completion synthetic. Final CI artifact/public exact-PCK and published asset re-download still pending.",
-    "verification_log": ".scratch/phase20-chain-commit-gate-r2.log"
-  },
+  "validation": [],
+  "changed_files": [],
   "blockers": [],
   "limits": [
-    "Native Windows/GPU/audio/human feel and physical focus/minimize/vblank unverified; no owner-specific heat/FPS-resolution claim.",
-    "Software renderer is far below60FPS; incremental work budgets do not establish native60FPS or permit unlimited effects.",
-    "Separate-device/network and exact reconciliation-distance/transport-loss acceptance remain unverified; earlier intermittent packet-loss investigation remains deferred.",
-    "Public profile storage remains disabled; local persistence tests do not prove public persistence.",
-    "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
-    "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
+    "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
+    "Orb software render is far below60FPS. Incremental draw/CPU/IPv4 budgets are not native headroom or production capacity.",
+    "Separate-device/network and reconciliation-distance/transport-loss acceptance remain unverified; earlier intermittent packet-loss investigation remains deferred.",
+    "Public profile storage remains disabled. Local persistence tests are not public persistence acceptance.",
+    "Known shutdown-only ObjectDB/resources remain; no blanket clean-shutdown claim. Editor-engine/exact-PCK results are not unchanged standalone throughput.",
+    "Minor lower-right plaza pavement seam artifacts observed in final dry renders;cause not diagnosed or claimed fixed."
   ],
-  "next_action": "Deploy the release-readiness commit,verify exact CI PCK/packages/public two-client smoke,publish matching prerelease and archive Phase20 without closing native/human limits.",
-  "delivery_authorization": {
-    "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
-    "release_pending": true
-  },
-  "planned_phases": []
+  "deferred_scope": ["Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established", "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"],
+  "delivery_authorization": {"scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized", "release_pending": false},
+  "planned_phases": [],
+  "next_action": "Await the owner's next scope or bug report against the matching public build; do not invent a next phase or treat native performance as resolved."
 }

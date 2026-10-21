@@ -6,8 +6,15 @@ Phase 3 performance/native gates, Phase 4 fairness/human gates and Phase 5 scale
 deployment/demand and archive-provenance claims. Preserve these payloads unchanged;
 new follow-up evidence belongs in a separately named archive.
 
+Phase20's seven metrics JSON files moved byte-identically from `docs/checklists/`
+into its archive. Historical path strings in progress and earlier Phase19 records
+are preserved;Phase20's checklist is now `phase-20-toybox-sabotage/checklist.md`.
+Pending/source-only statements in chronological records are superseded by each
+archive's final delivery evidence,not rewritten into invented earlier passes.
+
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 20 — Toybox Chaos (deployed/released; native acceptance unverified) | [Checklist](phase-20-toybox-sabotage/checklist.md) | [Decisions](phase-20-toybox-sabotage/decisions.md) | [Progress/delivery](phase-20-toybox-sabotage/progress.json) · [Final metrics](phase-20-toybox-sabotage/phase-20-final-chaos-metrics.json) |
 | 19 — Multiplayer frame budget (automated checkpoint; native acceptance and expanded matrix partial) | [Checklist](phase-19-multiplayer-frame-budget/checklist.md) | [Decisions](phase-19-multiplayer-frame-budget/decisions.md) | [Progress](phase-19-multiplayer-frame-budget/progress.json) · [Final controls](phase-19-multiplayer-frame-budget/final-controls.json) |
 | 18 — Outfits, Starter Costumes and Original Music (source checkpoint; later deployed/released) | [Checklist](phase-18-outfit-selection-and-costumes/checklist.md) | [Decisions](phase-18-outfit-selection-and-costumes/decisions.md) | [Progress](phase-18-outfit-selection-and-costumes/progress.json) · [Delivery follow-up](phase-19-multiplayer-frame-budget/progress.json#delivery_followup) |
 | 17 — Continuous Weather and Roof-Correct Shelter (deployed/released) | [Checklist](phase-17-continuous-weather/checklist.md) | [Decisions](phase-17-continuous-weather/decisions.md) | [Progress](phase-17-continuous-weather/progress.json) |

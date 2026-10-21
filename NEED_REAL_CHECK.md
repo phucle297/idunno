@@ -18,9 +18,30 @@ Harbor Snow1080p và Town Rain720p; regression60 suite/7 matrix/managed20/46 Pyt
 Không xóa hình học/collision hoặc giảm tick server. Focus/minimize chung desktop,
 GPU/Windows/nhiệt thật và diagnostic matrix mở rộng vẫn chưa hoàn tất.
 [Số đo/giới hạn](docs/old-docs/phase-19-multiplayer-frame-budget/progress.json).
-Source đã push, chưa release/deploy; không tuyên bố đã sửa hết triệu chứng máy owner.
+Source checkpoint khi đó chưa release/deploy; các tối ưu nay có trong Phase20
+bên dưới, nhưng không tuyên bố đã sửa hết triệu chứng máy owner.
 
-**Bản public hiện tại — Phase18 Outfits và Original Music (2026-10-19):**
+**Bản public hiện tại — Phase20 Toybox Chaos (2026-10-21):**
+[Source](https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad),
+[deploy thành công](https://github.com/phucle297/idunno/actions/runs/39626771256),
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650).
+Tải `DisasterParty-Windows-Internet-4279650.zip`, giải nén hết,chạy EXE cạnh PCK;
+tất cả người chơi cập nhật cùng bản khi vào https://server.permees.com.
+16 đồ chơi sabotage,các combo nước/mưa rửa soap,quạt lệch đạn,cleanup khi
+ngập/mất nền và giảm mật độ khi map sập;giữ giới hạn effect và hồi phục chống
+chain-lock. F lấy/đổi đồ,chuột trái dùng. Các tối ưu Phase19 cũng được giao.
+Regression63Godot/8matrix/managed20/46Python,both-map4/8/20 và5rematches pass.
+Exact deployed-PCK345authority/96weather/11audio,sáu ảnh720p/1080p đã xem,
+standalone Linux và public2client trang phục/Ready/Start/di chuyển/thoát pass.
+Gói Windows chứa PCK trùng byte CI đã deploy;asset tải lại/hash/tag đều khớp.
+[Toàn bộ evidence/giới hạn](docs/old-docs/phase-20-toybox-sabotage/progress.json#delivery_followup).
+Chưa xác minh nhiệt/FPS trên máy owner,Windows/GPU/loa thật,human fun/hai mạng
+riêng;waiver giữ nguyên,không thêm checklist bắt buộc. Có seam mảnh ở nền lát
+góc dưới phải trong ảnh khô;chưa xác định nguyên nhân,không coi là đã sửa.
+Magnet/crate relocation vẫn hoãn vì chưa chứng minh an toàn đường thoát;
+public profile store vẫn tắt. Các bản dưới đây là lịch sử,không phải public mới.
+
+**Bản public trước — Phase18 Outfits và Original Music (2026-10-19):**
 [Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39184818543),
 [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34).
