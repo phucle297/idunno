@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-20",
+  "updated_at": "2026-10-21",
   "project": "Disaster Party",
   "source_of_truth": true,
   "workflow_state": "in_progress",
@@ -27,7 +27,7 @@
   },
   "current": {
     "phase": "phase_20_toybox_sabotage",
-    "milestone": "M20.2",
+    "milestone": "M20.3",
     "task": null
   },
   "phase": {
@@ -37,8 +37,8 @@
     "checklist": "docs/checklists/phase-20-toybox-sabotage.md",
     "milestones": [
       {"id": "M20.1", "title": "Action framework and three-item vertical slice", "status": "completed", "gate": "passed"},
-      {"id": "M20.2", "title": "Staged toy arsenal", "status": "in_progress", "gate": "not_run"},
-      {"id": "M20.3", "title": "Bounded world chain reactions", "status": "planned", "gate": "not_run"},
+      {"id": "M20.2", "title": "Staged toy arsenal", "status": "completed", "gate": "passed"},
+      {"id": "M20.3", "title": "Bounded world chain reactions", "status": "in_progress", "gate": "not_run"},
       {"id": "M20.4", "title": "Chaos budget and regression", "status": "planned", "gate": "not_run"}
     ]
   },
@@ -158,11 +158,20 @@
     "delivery": "Normal staged gate passed63Godot/8matrices/managed20/46Python before commit/push with skip-ci;not released/deployed. Initial CLI process disappeared mid-MapVariety,no commit. Supervised retry completed gate and committed;service auto-restart then ran empty-index hook and overwrote redirected full log with PRE_COMMIT_OK tree d96484183aefab62fb1432b3943760c743ffb6e4/no-changes output. Stopped service,verified actual commit contents/remote push. Future gate service must append logs and retain terminal marker instead of restarting commits."
   },
   "m20_2_batch6_local": {
-    "status": "in_progress",
+    "status": "completed",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/f92fc78b04ee554faf5d9766b93e21e38e277e47",
+    "pushed": true,
     "implementation": "Cart non-solid supported1s arm/2s straight run,reserves projectile slot,4m/s with0.25m step cap. Balloon dart converts to0.6s escape/pop warning,grounded/overhead-checked3m/s single lift and0.5s cosmetic float;server-only bounded victim metadata. No added bodies or movement prediction state. Shared finite-projectile travel now stops at remaining lifetime even on a delayed tick.",
     "validation": "Authority283/presentation15/audio11 pass. Actual capsule walk/jump/ceiling/pop/departure counters,no stacked attachment,mild apex/floor return;cart wall/void/windup/reservation controls pass. Pre-fix delayed4s dart crossed7.5m lifetime and attached9m target;post-fix same test rejects. Initial counter fixture wrongly assumed reset clears monotonic impulse IDs;compare before/after instead. Real2/4both-map16toy catalog,replicated cart phases and3m/s balloon acceptance/5rematches pass;four delayed/lossy100ms-each-way cases pass70/63/233/215drops. Ten final720p/1080p public-use captures inspected;compact flying seed replaces floor-clipping long string,full8m cart lane;HUD in bounds. Scratch capture initially attempted prohibited ACTIVE roster registration;corrected presentation-only second-actor state,not network admission.",
     "performance": "Stable max-slot4realclient Rain authority0.489209to0.921833ms (+0.432623);paired apply at most+0.363223ms. Dry draws4204to4246 (+42),616.021to635.19ms p50;IPv4+15.871566%,0kernel drops/fragments. Within0.5ms/64draw/25%trials;not native capacity or exhaustive pulse/impact stress. docs/checklists/phase-20-batch6-metrics.json.",
-    "delivery": "Focused/budget checks passed;normal staged gate pending. Uncommitted/unpushed;not released/deployed."
+    "delivery": "Normal staged PRE_COMMIT_OK tree7005b2a4e84b099f0e23ef3d9e580a30f418e70f:63Godot suites/8network matrices/managed20/46Python. Includes4/8/20both-map16toy/balloon acceptance/5rematches. Committed/pushed skip-ci;service stopped after one-shot marker,full log preserved .scratch/phase20-batch6-commit-gate.log. Not released/deployed."
+  },
+  "m20_3_local": {
+    "status": "in_progress",
+    "implementation": "Water clears uncovered same-height overlapping soap; active Rain adds2s/s erosion using actual roof ray; fan drifts only allowlisted unreflected short shots<=0.2rad once per tick, preserving owner/ID/lifetime. Actual pending-collapse area scales admission4/6/6 with nonzero minimum1, only pickups trimmed. Flood-hidden floor toys cancel before acting; submerged placement rejects before charge spend. Wet strips clear on actual lost support.",
+    "validation": "Authority345/weather integration96/presentation15, weather41/lightning24/map493/layout6910/collapse5040 pass. Real2/4 peers both maps pass water wash/fan direction/original-owner snapshots,16toy catalog,5rematches and departure. Four100ms-each-way/0..12ms-jitter/1-in-97-loss cases pass (drops74/66/239/221). Six720p/1080p soap/water/Snow-reduced-motion captures inspected; fixed text outline rendering after transparent Snow overlay. Retained before-fix floor-loss/submerged-warning reproductions now pass. Final normal staged gate pending; not released/deployed.",
+    "staged_gate_followup": "First normal gate failed at Harbor20 pickup competition after other toy2/4/8 and Town20 cases passed. Root fixture error: losing pickup creates an empty-kind range-feedback slot,not no dictionary entry. Ordered request barrier reproduces deterministically at2peers:one actual foam holder plus one empty feedback record; original assertions fail. Fixture now waits for both intents,count nonempty held kinds,and accepts zero-ammo empty feedback slots. Same2/20Harbor matrix passes with5rematches. Full staged gate must rerun; no bypass or timeout extension.",
+    "scope": "No toy electrical expansion or rigid-prop combos; magnet and crate spring/rocket remain explicitly deferred for persistent-route safety. Human/native feel unverified. Bounded test subagent failed on external usage allowance; parent implemented network fixture directly."
   },
   "blockers": [],
   "limits": [
@@ -173,7 +182,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Pass batch6 normal staged gate,commit/push this verified arsenal batch,then implement bounded M20.3 interactions.",
+  "next_action": "Run normal staged M20.3 commit gate and push; then finish M20.4 integrated package/release/deployment verification with final measured chaos budgets.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

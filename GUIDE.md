@@ -231,6 +231,8 @@ lane: dodge twice, use cover; it never homes on its owner. Water Soaker has6
 short squirts with a light push and a small supported wet strip drying over6s;
 walk carefully or go around it. It does not create an electric hazard.
 Soap Slick has2 placements: a striped10s steering trap; jump or walk around it.
+Water strips wash away overlapping soap on the same floor when no solid divider
+separates them. Active rain washes exposed soap faster; intact roofs protect it.
 Spring Pad has2 placements, arms for0.8s then pops one player upward and expires;
 it can also launch its owner, but never stacks lift. Confetti Bomb has1 placement
 and a1.4s countdown before its marked2.4m shove; run or use cover.
@@ -238,7 +240,10 @@ Foam Launcher has2 shots: a supported screen arms for0.7s and lasts at most6s.
 It blocks toy projectiles only: walk through freely, or shoot once to pop it.
 It cannot shelter you from disasters; rockets still warn before their blast.
 Toy Fan has1 placement:0.8s arming then4s of narrow3.5m gusts; use solid cover
-or go behind it. Decoy Runner has1 harmless mechanical distraction, running
+or go behind it. Gusts also bend nearby unreflected foam/water/balloon shots
+slightly toward the fan's lane; the original shooter keeps credit. Rockets and
+discs do not bend, and solid cover blocks the gust.
+Decoy Runner has1 harmless mechanical distraction, running
 on supported ground for6s; its label always identifies it as a toy.
 Remote Popper has1 charge: place, wait0.7s for arming, then click again to
 start a1s marked blast countdown. The controller works at zero ammo for that
@@ -258,6 +263,11 @@ Umbrellas absorb balloon darts rather than reflecting them.
 Place floor toys on level supported ground in front of you, not through walls
 or over gaps. They are non-solid, cannot seal doors, and disappear if their
 floor is destroyed or their owner is eliminated/leaves.
+Flooded floor toys and submerged rocket impact warnings cancel before acting;
+you cannot place a new floor toy underwater. Elevated dry ground still works.
+As meteor collapse removes usable terrain, fewer new toys may be active at once.
+Existing warnings keep their escape countdown unless their support disappears
+or Flood hides them; an already armed remote charge can still be detonated.
 Strafe, backstep, leave the marked area or use solid cover. Hits displace rather than directly remove health; falls and
 disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
 chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy

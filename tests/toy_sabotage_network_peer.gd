@@ -34,19 +34,21 @@ class FixtureMain extends "res://game/main.gd":
 		var peer_id := multiplayer.get_unique_id()
 		match intent:
 			"pickup": toy_sabotage.local_request_pickup(peer_id)
+			"contend_pickup":
+				toy_sabotage.local_request_pickup(peer_id)
+				fixture_intent_barrier.rpc_id(1, "competition_intent")
 			"use": toy_sabotage.local_request_use(peer_id, direction)
 			"raw_use": toy_sabotage._request_use.rpc_id(1, round, sequence, direction)
 			"disabled_spam":
 				for index in 70:
 					toy_sabotage.local_request_use(peer_id, Vector3.FORWARD)
-				fixture_disabled_barrier.rpc_id(1)
+				fixture_intent_barrier.rpc_id(1, "disabled_spam")
 
 	@rpc("any_peer", "call_remote", "reliable")
-	func fixture_disabled_barrier() -> void:
-		# Same ordered channel as the seventy production use requests. Do not
-		# recover the server actor on an independent-channel acknowledgement.
+	func fixture_intent_barrier(stage: String) -> void:
+		# Same ordered channel as production requests, not a cross-channel ACK.
 		if multiplayer.is_server():
-			fixture_acks["disabled_spam"] = {multiplayer.get_remote_sender_id(): true}
+			fixture_acks[stage] = {multiplayer.get_remote_sender_id(): true}
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_expect(stage: String, expected_round: int, expected_peer: int, expected_kind: String, expected_ammo: int, expected_pickups: int) -> void:
@@ -56,7 +58,8 @@ class FixtureMain extends "res://game/main.gd":
 			var slot: Dictionary = toy_sabotage.slots.get(expected_peer, {})
 			ok = toy_sabotage.round_sequence == expected_round and toy_sabotage.pickups.size() == expected_pickups
 			if expected_kind.is_empty():
-				ok = ok and slot.is_empty()
+				# Rejected pickup feedback legitimately creates an empty held slot.
+				ok = ok and String(slot.get("kind", "")).is_empty() and int(slot.get("ammo", 0)) == 0
 			else:
 				ok = ok and String(slot.get("kind", "")) == expected_kind and int(slot.get("ammo", -1)) == expected_ammo
 			if ok:
@@ -70,6 +73,21 @@ class FixtureMain extends "res://game/main.gd":
 		var found := false
 		while Time.get_ticks_msec() < deadline:
 			found = toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == effect_kind and float(effect.remaining) > 0.0 and (expected_owner == 0 or int(effect.owner) == expected_owner))
+			if found:
+				break
+			await get_tree().process_frame
+		fixture_ack.rpc_id(1, stage, found)
+
+
+	@rpc("authority", "call_remote", "reliable", 2)
+	func fixture_observe_combo(stage: String, expected_id: int, owner: int, direction: Vector3) -> void:
+		var deadline := Time.get_ticks_msec() + 6000
+		var found := false
+		while Time.get_ticks_msec() < deadline:
+			if stage == "water_wash":
+				found = not toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "soap_patch" and float(effect.remaining) > 0.0) and toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip")
+			else:
+				found = toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return int(effect.id) == expected_id and int(effect.owner) == owner and (effect.direction as Vector3).distance_to(direction) < 0.001)
 			if found:
 				break
 			await get_tree().process_frame
@@ -186,6 +204,8 @@ func _expect(main: FixtureMain, stage: String, round: int, peer_id: int, kind: S
 	main.fixture_expect.rpc(stage, round, peer_id, kind, ammo, pickups)
 	var ok := await main.wait_acks(stage, player_count - 1, deadline)
 	print("TOY_ENET_STAGE stage=%s ok=%s round=%d" % [stage, ok, round])
+	if not ok:
+		print("TOY_ENET_MISMATCH expected_peer=%d kind=%s ammo=%d pickups=%d actual=%s acks=%s" % [peer_id, kind, ammo, pickups, main.toy_sabotage.create_snapshot(), main.fixture_acks.get(stage, {})])
 	return ok
 
 
@@ -244,14 +264,20 @@ func _server(main: FixtureMain) -> void:
 	_place(main, remote_id, pad)
 	main.toy_sabotage.pickups.append({"id": 700, "kind": "foam_blaster", "position": pad, "expires": 30.0})
 	main.toy_sabotage._revision += 1
-	_remote_intent(main, remote_id, "pickup")
+	_remote_intent(main, remote_id, "contend_pickup")
 	main.toy_sabotage.local_request_pickup(host_id)
 	while main.toy_sabotage.pickups.size() != 0 and Time.get_ticks_msec() < deadline:
 		await process_frame
-	passed = passed and main.toy_sabotage.slots.size() == 1
-	var winner := remote_id if main.toy_sabotage.slots.has(remote_id) else host_id
+	passed = passed and await main.wait_acks("competition_intent", 1, deadline)
+	var holders := main.toy_sabotage.slots.keys().filter(func(peer_id: int) -> bool: return String(main.toy_sabotage.slots[peer_id].kind) == "foam_blaster")
+	passed = passed and holders.size() == 1
+	var winner: int = holders[0] if holders.size() == 1 else 0
 	await _publish(main)
 	passed = passed and await _expect(main, "competition", main.toy_sabotage.round_sequence, remote_id, "foam_blaster" if winner == remote_id else "", 3 if winner == remote_id else 0, 0, deadline)
+	if not passed:
+		push_error("Toy pickup competition failed before catalog")
+		quit(1)
+		return
 	main.toy_sabotage.reset()
 	# Actual client requests cover every finite-charge toy, repeated uses and
 	# the replicated slots/effects snapshot path.
@@ -360,6 +386,34 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and is_equal_approx(target.velocity.y, 3.0)
 	main.fixture_observe_lift.rpc(host_id, balloon_sequence, true)
 	passed = passed and await main.wait_acks("balloon_lift", player_count - 1, deadline)
+	main.toy_sabotage.reset()
+	shoves.reset_state()
+	passed = passed and await _give_remote(main, remote_id, "soap_slick", 792, pad, deadline, "wash_soap_pickup")
+	passed = passed and await _use_remote(main, remote_id, "soap_slick", 1, deadline, "wash_soap_place")
+	_place(main, host_id, pad)
+	main.toy_sabotage.pickups.append({"id": 793, "kind": "water_soaker", "position": pad, "expires": main.match_manager.elapsed_time + 20.0})
+	main.toy_sabotage.local_request_pickup(host_id)
+	main.toy_sabotage.local_request_use(host_id, Vector3(0.8, -0.6, 0))
+	main.toy_sabotage.tick(0.3, 1)
+	passed = passed and main.toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip") and not main.toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "soap_patch" and float(effect.remaining) > 0.0)
+	await _publish(main)
+	main.fixture_observe_combo.rpc("water_wash", 0, 0, Vector3.ZERO)
+	passed = passed and await main.wait_acks("water_wash", player_count - 1, deadline)
+	main.toy_sabotage.reset()
+	passed = passed and await _give_remote(main, remote_id, "toy_fan", 794, pad, deadline, "drift_fan_pickup")
+	passed = passed and await _use_remote(main, remote_id, "toy_fan", 0, deadline, "drift_fan_place")
+	main.toy_sabotage.tick(0.79, 1)
+	_place(main, host_id, pad + Vector3.RIGHT * 3.0)
+	main.toy_sabotage.pickups.append({"id": 795, "kind": "foam_blaster", "position": (main._player_nodes[host_id] as PartyPlayer).global_position, "expires": main.match_manager.elapsed_time + 20.0})
+	main.toy_sabotage.local_request_pickup(host_id)
+	main.toy_sabotage.local_request_use(host_id, Vector3.FORWARD)
+	var drift: Dictionary = main.toy_sabotage.effects[-1]
+	var drift_id := int(drift.id)
+	main.toy_sabotage.tick(0.02, 1)
+	passed = passed and int(drift.owner) == host_id and Vector3.FORWARD.angle_to(drift.direction) > 0.19
+	await _publish(main)
+	main.fixture_observe_combo.rpc("fan_drift", drift_id, host_id, drift.direction)
+	passed = passed and await main.wait_acks("fan_drift", player_count - 1, deadline)
 	main.set_physics_process(true)
 	# Five production rematches require ordinary ready snapshots, then prove the
 	# client-local request sequence is reset by acquiring and firing every round.

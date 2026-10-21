@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-21",
+  "scope": "Final Phase20 orb incremental stress controls; not native GPU, thermal, Internet or human acceptance",
+  "load": "Four real ENet clients, Rain and movement,6pickups/4held/6outcomes. Rotate6fan pulses/4shots,6popper expiries and6Rain-washed soap within existing pools. Observed4deflected shots,1440washed patches and3expired blast waves across measured intervals. No added bodies or wire record kinds.",
+  "cpu": {
+    "scenario": "120warmup/2x600frames,4headless clients,60FPS cap,VSync off. Same-payload empty/full toy replay alternates order and restores production state.",
+    "baseline_load_authority_mean_ms": [0.7318493975903615,1.1338955823293173],
+    "additional_authority_mean_ms": 0.4020461847389558,
+    "authority_calls": [498,498],
+    "paired_client_counts": [192,194,194,193],
+    "paired_client_additional_mean_ms": [0.275921875,0.3644896907216495,0.2924896907216495,0.3913160621761658],
+    "additional_ceiling_ms": 0.5,
+    "unpaired_client_apply_delta_ms": [0.19906679080310852,0.5330804978366541,0.3038969072164943,0.3375077720207247],
+    "qualification": "Matched-payload replay isolates incremental callbacks,not unchanged production throughput. Unpaired separate-run client1 delta exceeds0.5ms; do not hide this variance or claim every run meets a wall-clock threshold. Matched replay stays below0.5ms at every client. Headless frame pacing does not establish rendered throughput.",
+    "loaded_client_frame_p95_ms_repeats": [[18.06,17.448,17.903,17.856],[17.938,17.693,17.65,17.802]],
+    "loaded_client_frame_p99_ms_repeats": [[21.965,21.07,20.963,21.138],[20.055,20.584,20.96,21.361]],
+    "authority_interval_call_mean_p50_p95_p99_ms_baseline": [0.686,0.948,1.303],
+    "authority_interval_call_mean_p50_p95_p99_ms_load": [1.072,1.5,1.74],
+    "authority_node_range_baseline_load": [[11015,11015],[11015,11015]],
+    "client_node_range_baseline_load": [[11742,11742],[11742,11742]],
+    "authority_static_bytes_baseline_load": [[160506773,163320309],[160529329,163362233]],
+    "loaded_clients_static_bytes_envelope": [184514571,186748939],
+    "resource_qualification": "Node counts stable during measured windows. Static allocation ranges are not long-session leak proof. Historical shutdown-only ObjectDB/resource diagnostics remain unresolved.",
+    "raw_reports": [".scratch/phase20-final-cpu-0",".scratch/phase20-final-cpu-1"]
+  },
+  "render": {
+    "scenario": "Dry ToyTown,4real clients/1Compatibility llvmpipe renderer,5warmup/40samples,same gameplay camera; final label priority fix included",
+    "baseline_load_draws_median": [4204,4248],
+    "additional_draws": 44,
+    "additional_draw_ceiling": 64,
+    "baseline_load_frame_interval_p50_ms": [649.611,618.9125],
+    "baseline_load_frame_interval_p95_ms": [700.51,653.927],
+    "qualification": "Software renderer is far below60FPS. These values pass incremental draw ceiling only; lower loaded frame intervals are noise,not evidence that toys improve performance.",
+    "raw_reports": [".scratch/phase20-final-render-0",".scratch/phase20-final-render-labels"]
+  },
+  "transport": {
+    "scenario": "Matched4client Rain/movement loopback IPv4-header lengths; authority measurement gate about8.3s; no payload stored",
+    "baseline_load_authority_ipv4_Bps": [179030.24038806595,213811.02398469998],
+    "additional_authority_percent": 19.42732329535122,
+    "additional_ceiling_percent": 25,
+    "kernel_drops": 0,
+    "fragment_packets": 0,
+    "toy_wire_bytes_at6pickups4slots16effects": 765,
+    "wire_qualification": "11byte header+6x21byte pickup+4x9byte slot+16x37byte effect=765byte toy record,not whole RPC or IPv4 datagram. Variant encoded match size is not transport bandwidth.",
+    "raw_report": ".scratch/phase20-wire-final-stress.json"
+  },
+  "delayed_enet": {
+    "scenario": "Real2/4peers,both maps,100ms each-way+0..12ms jitter+deterministic1/97datagram loss",
+    "dropped_town2_harbor2_town4_harbor4": [74,66,239,221],
+    "result": "All four pass16toy catalog,water/soap wash,fan drift/original-owner snapshots,5rematches,stale/malformed rejection and departure. Larger4/8/20 staged matrix still requires final gate marker."
+  },
+  "presentation": {
+    "captures": ".amp/in/artifacts/phase20-chain/",
+    "result": "Six720p/1080p public-use soap-before/water-after/Snow-reduced-motion captures inspected. Fixed Snow overlay/text outline priority and raised WET label. Earlier batch captures cover held/aim/miss/block/empty/protection/cart/balloon states. Static captures do not prove animation feel."
+  }
+}

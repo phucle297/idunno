@@ -46,14 +46,45 @@ func _run() -> void:
 		_expect(map_id != "toy_town" or (outer.is_finite() and weather.sample_surface(outer) == Vector2.ZERO), "Toy Town continuous query reaches outdoor terrain beyond 30m")
 		main.match_manager.set_player_ready(1, true)
 		main.match_manager.start_match()
+		var toys: ToySabotage = main.toy_sabotage
+		toys.anchors.clear()
+		main.match_manager.elapsed_time = 20.0
+		# Seed actual drops; placement/use still go through the public action contract.
+		player.reset_for_match(Vector3(0, 0.14, 0))
+		toys.pickups.append({"id": 9900, "kind": "confetti_bomb", "position": player.global_position, "expires": 99.0})
+		_expect(toys.request_pickup(1, toys.round_sequence, 1) and toys.request_use(1, toys.round_sequence, 2, Vector3.FORWARD), "dry ground accepts public confetti placement")
+		main.flood.start_warning()
+		main.flood.water_level = 2.0
+		toys.tick(1.5, 1)
+		_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind in ["confetti_warning", "hit"]), "rising Flood cancels ground warning before hidden blast can act")
+		toys.pickups.append({"id": 9901, "kind": "spring_pad", "position": player.global_position, "expires": 99.0})
+		_expect(toys.request_pickup(1, toys.round_sequence, 3) and not toys.request_use(1, toys.round_sequence, 4, Vector3.FORWARD) and toys.slots[1].ammo == 2, "submerged placement rejects before charge spend")
+		toys.pickups.append({"id": 9904, "kind": "plunger_rocket", "position": player.global_position, "expires": 99.0})
+		_expect(toys.request_pickup(1, toys.round_sequence, 5) and toys.request_use(1, toys.round_sequence, 6, Vector3(0, -0.6, -0.8)), "Flood control fires public rocket toward submerged floor")
+		toys.tick(0.3, 1)
+		_expect(toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "blast_warning"), "rocket produces ordinary impact warning before underwater cancellation")
+		toys.tick(0.9, 1)
+		_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind in ["blast_warning", "hit"]), "submerged rocket warning cancels instead of producing an invisible delayed blast")
+		main.flood.cleanup()
+		toys.reset()
+		toys._seen_sequences.clear()
+		_expect(is_equal_approx(float(toys.usable_area_fraction.call()), 1.0), "intact map toy density uses all support")
+		main.terrain_collapse.pending = 0
+		_expect(float(toys.usable_area_fraction.call()) < 1.0, "pending collapse reduces toy admission before floor disappears")
+		main.terrain_collapse.pending = -1
+		toys.effects.append({"id": 9902, "kind": "soap_patch", "position": exposed, "direction": Vector3.FORWARD, "remaining": 10.0, "owner": 1})
+		toys.effects.append({"id": 9903, "kind": "soap_patch", "position": sheltered, "direction": Vector3.FORWARD, "remaining": 10.0, "owner": 1})
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 901
 		_expect(main.rain.start_disaster(rng), "Rain starts on authority")
 		main.tick_weather(2.0)
 		_expect(weather.sample_surface(exposed) == Vector2.ZERO, "Warning does not invisibly wet ground")
+		_expect(float(toys.effects[0].remaining) == 10.0, "Rain warning cannot wash soap before actual precipitation")
 		main.rain.tick(5.0)
 		main.tick_weather(4.0)
 		_expect(weather.sample_surface(exposed).y == 1.0 and weather.sample_surface(sheltered) == Vector2.ZERO and (map_id != "toy_town" or weather.sample_surface(outer).y == 1.0), "Rain wets outdoors across full map, interiors dry")
+		_expect(float(toys.effects[0].remaining) == 2.0 and float(toys.effects[1].remaining) == 10.0, "active Main Rain washes only exposed soap on both maps")
+		toys.reset()
 		if map_id == "toy_town":
 			var puddle := Vector3(-4, 0, 4)
 			puddle.y = main.get_map_support_height(puddle)

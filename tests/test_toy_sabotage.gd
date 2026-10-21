@@ -29,6 +29,8 @@ func _run() -> void:
 	await _test_foam_launcher()
 	await _test_remote_and_reflector()
 	await _test_cart_and_balloon()
+	await _test_chain_reactions()
+	await _test_reduced_area()
 	_test_round_dedupe()
 	_test_knockdown_intent_recovery()
 	world.free()
@@ -516,7 +518,7 @@ func _test_remote_and_reflector() -> void:
 	toys.tick(1.0, 1)
 	_expect(players[1].velocity == Vector3.ZERO and players[2].velocity == Vector3.ZERO, "defused charge cannot produce a delayed blast")
 	var sequence := 1100
-	for weapon: String in ["foam_blaster", "plunger_rocket", "water_soaker", "foam_launcher", "boomerang"]:
+	for weapon: String in ["foam_blaster", "plunger_rocket", "water_soaker", "foam_launcher", "boomerang", "party_balloon"]:
 		toys.reset()
 		shoves.reset_state()
 		manager.elapsed_time += 1.0
@@ -528,10 +530,10 @@ func _test_remote_and_reflector() -> void:
 		toys.pickups.append({"id": 1001, "kind": weapon, "position": players[1].global_position, "expires": 99.0})
 		_expect(toys.request_pickup(1, 1, sequence) and toys.request_use(1, 1, sequence + 1, Vector3.FORWARD), "incoming projectile uses public shot: " + weapon)
 		var incoming_id := int(toys.effects[-1].id)
-		toys.tick(0.45, 1)
+		toys.tick(0.6 if weapon == "party_balloon" else 0.45, 1)
 		var bounced := toys.effects.filter(func(effect: Dictionary) -> bool: return int(effect.id) == incoming_id)
-		if weapon == "boomerang":
-			_expect(bounced.is_empty(), "umbrella absorbs a fixed-return frisbee instead of inventing a homing path")
+		if weapon in ["boomerang", "party_balloon"]:
+			_expect(bounced.is_empty() and toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "blocked"), "umbrella visibly absorbs without inventing a reflected path: " + weapon)
 		else:
 			_expect(bounced.size() == 1 and int(bounced[0].owner) == 2 and String(bounced[0].kind).ends_with("_reflected") and bounced[0].direction.z > 0.0, "reflection retains ID and transfers ownership once: " + weapon)
 			var wire := ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot())
@@ -732,6 +734,174 @@ func _test_cart_and_balloon() -> void:
 	toys.reset()
 	toys._seen_sequences.clear()
 	shoves.reset_state()
+
+
+func _chain_body(point: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	var collider := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collider.shape = shape
+	body.add_child(collider)
+	body.position = point
+	world.add_child(body)
+	return body
+
+
+func _chain_reset() -> void:
+	toys.reset()
+	toys._seen_sequences.clear()
+	toys.anchors.clear()
+	shoves.reset_state()
+	manager.elapsed_time = 20.0
+	players[1].reset_for_match(Vector3(0, 0.02, 0))
+	players[2].reset_for_match(Vector3(8, 0.02, 0))
+
+
+func _chain_use(peer_id: int, kind: String, sequence: int, direction := Vector3.FORWARD) -> void:
+	toys.pickups.append({"id": 9000 + sequence, "kind": kind, "position": players[peer_id].global_position, "expires": 99.0})
+	_expect(toys.request_pickup(peer_id, 1, sequence) and toys.request_use(peer_id, 1, sequence + 1, direction), "public chain intent: " + kind)
+
+
+func _test_chain_reactions() -> void:
+	var floor_body := _chain_body(Vector3(0, -0.1, 0), Vector3(30, 0.2, 30))
+	await physics_frame
+	await physics_frame
+	for covered: bool in [false, true]:
+		_chain_reset()
+		_chain_use(1, "soap_slick", 2000)
+		var soap: Dictionary = toys.effects[0]
+		var wall: StaticBody3D
+		if covered:
+			wall = _chain_body(Vector3(0.4, 1, -1.4), Vector3(0.08, 2, 4))
+		players[2].global_position = Vector3(0.8 if covered else 0.0, 0.02, 0)
+		await physics_frame
+		await physics_frame
+		_chain_use(2, "water_soaker", 2000, Vector3(0, -0.6, -0.8))
+		toys.tick(0.3, 1)
+		_expect(toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip"), "water forms a supported strip")
+		_expect((toys.sample_soap(soap.position) > 0.0) == covered, "water washes overlapping soap but cannot cross solid divider")
+		if is_instance_valid(wall):
+			wall.free()
+	_chain_reset()
+	_chain_use(1, "soap_slick", 2000)
+	players[2].global_position = Vector3(3, 0.02, 0)
+	_chain_use(2, "soap_slick", 2000)
+	var outside: Dictionary = toys.effects[0]
+	var inside: Dictionary = toys.effects[1]
+	var roof := _chain_body(Vector3(3, 3, -1.4), Vector3(2, 0.2, 2))
+	var weather := WeatherSurfaces.new()
+	world.add_child(weather)
+	weather.configure_world(world, 15, PackedVector3Array())
+	await physics_frame
+	await physics_frame
+	toys.wash_exposed_soap(1.0, weather.is_exposed)
+	_expect(is_equal_approx(float(outside.remaining), 8.0) and is_equal_approx(float(inside.remaining), 10.0), "rain wash uses actual roof ray, not global outdoor moisture")
+	roof.free()
+	await physics_frame
+	weather.invalidate_cover()
+	toys.wash_exposed_soap(0.5, weather.is_exposed)
+	_expect(is_equal_approx(float(inside.remaining), 9.0), "destroyed roof exposes soap to wash")
+	toys.wash_exposed_soap(10.0, weather.is_exposed)
+	_expect(toys.sample_soap(outside.position) == 0.0, "fully washed soap stops traction immediately before next toy tick")
+	weather.free()
+	# A jet's surface state must disappear along with the actual supporting floor.
+	_chain_reset()
+	_chain_use(1, "water_soaker", 2000, Vector3(0, -0.6, -0.8))
+	toys.tick(0.3, 1)
+	_expect(toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip"), "support-loss control creates real wet strip")
+	floor_body.free()
+	await physics_frame
+	toys.tick(0.01, 1)
+	_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "wet_strip"), "lost floor clears toy wet strip instead of floating above a void")
+	floor_body = _chain_body(Vector3(0, -0.1, 0), Vector3(30, 0.2, 30))
+	await physics_frame
+	for covered: bool in [false, true]:
+		_chain_reset()
+		_chain_use(1, "toy_fan", 2000)
+		toys.tick(0.79, 1)
+		players[2].global_position = Vector3(0, 0.02, -3)
+		var wall: StaticBody3D
+		if covered:
+			wall = _chain_body(Vector3(0, 1, -2.1), Vector3(4, 2, 0.08))
+		await physics_frame
+		await physics_frame
+		_chain_use(2, "foam_blaster", 2000, Vector3.RIGHT)
+		var shot: Dictionary = toys.effects[-1]
+		var id := int(shot.id)
+		toys.tick(0.02, 1)
+		var angle := Vector3.RIGHT.angle_to(shot.direction)
+		_expect((angle > 0.19 and angle < 0.201) if not covered else angle < 0.001, "fan drifts a shot once within cone, never through cover")
+		_expect(int(shot.owner) == 2 and int(shot.id) == id and is_equal_approx(float(shot.remaining), 2.98), "fan preserves projectile credit, ID and finite lifetime")
+		_expect(not ToySabotage.decode_wire_snapshot(toys.create_wire_snapshot()).is_empty(), "deflected shot remains valid fixed-width replicated state")
+		toys.remove_player(1)
+		_expect(not toys.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "fan_gust") and int(shot.owner) == 2, "fan departure leaves original projectile ownership intact")
+		if is_instance_valid(wall):
+			wall.free()
+	for weapon: String in ["water_soaker", "foam_launcher", "party_balloon", "plunger_rocket", "boomerang"]:
+		_chain_reset()
+		_chain_use(1, "toy_fan", 2000)
+		toys.tick(0.79, 1)
+		players[2].global_position = Vector3(0, 0.02, -3)
+		_chain_use(2, weapon, 2000, Vector3.RIGHT)
+		var shot: Dictionary = toys.effects[-1]
+		toys.tick(0.02, 1)
+		_expect((Vector3.RIGHT.angle_to(shot.direction) > 0.19) == (weapon not in ["plunger_rocket", "boomerang"]), "fan projectile allowlist: " + weapon)
+	_chain_reset()
+	_chain_use(1, "toy_fan", 2000)
+	# A second publicly placed fan shares the same cone; it cannot double the turn.
+	players[1].global_position.x = 0.1
+	manager.elapsed_time += 1.0
+	_chain_use(1, "toy_fan", 2010)
+	toys.tick(0.79, 1)
+	players[2].global_position = Vector3(0, 0.02, -3)
+	_chain_use(2, "foam_blaster", 2000, Vector3.RIGHT)
+	var twice: Dictionary = toys.effects[-1]
+	toys.tick(0.02, 1)
+	_expect(Vector3.RIGHT.angle_to(twice.direction) < 0.201, "overlapping fan pulses cannot multiply per-tick drift")
+	_chain_reset()
+	_chain_use(1, "toy_fan", 2000)
+	toys.tick(0.79, 1)
+	players[2].global_position = Vector3(0, 0.02, -3)
+	_chain_use(2, "foam_blaster", 2000, Vector3.RIGHT)
+	var reflected: Dictionary = toys.effects[-1]
+	reflected.kind = "pellet_reflected" # Seed an already-reflected wire state as a control.
+	toys.tick(0.02, 1)
+	_expect(Vector3.RIGHT.angle_to(reflected.direction) < 0.001, "fan never steers a reflected projectile into another combo")
+	floor_body.free()
+	_chain_reset()
+
+
+func _test_reduced_area() -> void:
+	var floor_body := _chain_body(Vector3(0, -0.1, 0), Vector3(30, 0.2, 30))
+	await physics_frame
+	await physics_frame
+	_chain_reset()
+	_chain_use(1, "remote_popper", 2000)
+	toys.tick(0.71, 1)
+	toys.usable_area_fraction = func() -> float: return 0.0
+	_expect(toys.request_use(1, 1, 2002, Vector3.FORWARD) and toys.effects[0].kind == "popper_warning" and is_equal_approx(float(toys.effects[0].remaining), 1.0), "shrink preserves already-reserved remote countdown and its escape deadline")
+	_chain_reset()
+	toys.usable_area_fraction = func() -> float: return 1.0
+	_chain_use(1, "foam_blaster", 2000, Vector3.RIGHT)
+	manager.elapsed_time += 0.3
+	_expect(toys.request_use(1, 1, 2002, Vector3.RIGHT), "intact map admits two owner projectiles")
+	var ids := toys.effects.map(func(effect: Dictionary) -> int: return int(effect.id))
+	toys.usable_area_fraction = func() -> float: return 0.25
+	manager.elapsed_time += 0.3
+	_expect(not toys.request_use(1, 1, 2003, Vector3.RIGHT) and toys.slots[1].ammo == 1, "quarter-area admission rejects excess without spending ammo")
+	toys.tick(0.01, 1)
+	_expect(toys.effects.map(func(effect: Dictionary) -> int: return int(effect.id)) == ids, "shrinking never silently erases existing projectiles")
+	for index in 6:
+		toys.pickups.append({"id": 8000 + index, "kind": "soap_slick", "position": Vector3(index * 2, 0, 0), "expires": 99.0})
+	toys.tick(0.0, 1)
+	_expect(toys.pickups.size() == 1, "quarter area trims six pickups to one")
+	toys.usable_area_fraction = func() -> float: return 0.0
+	toys.tick(0.0, 1)
+	_expect(toys.pickups.is_empty(), "no support admits no pickups")
+	toys.usable_area_fraction = Callable()
+	floor_body.free()
+	_chain_reset()
 
 
 func _test_round_dedupe() -> void:

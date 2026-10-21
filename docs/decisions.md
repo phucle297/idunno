@@ -268,3 +268,56 @@ balloon retains long string and explicit jump/move/pop counter;float cyan.
 Stable max-slot trial:+42draws,+0.433ms authority,≤+0.364ms paired apply,
 +15.872%IPv4,zero kernel drops/fragments;phase-20-batch6-metrics.json.
 Normal staged gate pending; native/human acceptance and release remain pending.
+
+### M20.3 contract — Wash, drift and reduced-area admission
+
+Batch6 normal staged gate passed63Godot/8matrices/managed20/46Python;
+sourcef92fc78 committed/pushed skip-ci. Public remains Phase18.
+Implement only water-strip overlap clearing same-height uncovered soap;
+active exposed Rain adds2s/s soap lifetime erosion (natural expiry still runs).
+Use the real roof ray,not precipitation at an unrelated outdoor location. Neither
+interaction changes retained weather,snow,electricity,HP or impulse credit.
+
+Fan pulses may rotate unreflected pellet/water/foam/balloon dart direction at most
+0.2rad toward their fixed forward lane. Same3.5m cone,vertical reach and solid
+cover apply; preserve original owner,speed,lifetime,ID and reservation. At most
+one fan deflection per projectile per simulation tick,even with overlapping fans.
+No rocket/cart/frisbee/reflect-chain steering,new effects or recursive propagation.
+Do not run covered-player gust rays during shared recovery protection.
+
+Audit reduced-area density here as part of bounded-chain safety: derive admission
+limits from actual remaining meteor usable area including pending collapse.
+Floor the intact4projectile/6warning/6pickup ceilings by that area fraction,minimum
+one for nonzero support. Remove only surplus pickups; existing warned effects
+retain their published deadline and expire naturally within10s. Never silently
+erase a warning or reject a remote detonation of an already reserved popper.
+
+Keep magnet/rigid-crate spring/rocket outcomes deferred for persistent-route
+safety. Do not electrify toy wet strips: authored-puddle-only Lightning warning
+and volume cannot authorize a larger connected damage surface. Snow cannot
+cover the separate toy warning meshes with the world surface overlay. These are
+explicit reviewed exclusions,not implemented combos or human balance acceptance.
+
+M20.3 hazard audit reproduced two missing cleanup contracts: a wet strip survived
+actual floor removal, and a submerged confetti warning/placement remained active.
+All supported floor effects now reject submerged placement/creation and cancel
+before actions when Flood covers their support. Rocket impact warnings also cancel
+when submerged, rather than hiding a delayed blast below the water. Dry elevated
+toys remain ordinary actions; this is not global weapon immunity during Flood.
+Use a narrow Flood visibility callback, not the broad pickup-anchor validator:
+the latter also bans current hazard areas/refuge routes and would erase valid
+existing toys merely because a new weather warning appeared nearby.
+Wet strips join the actual floor-support check, without entering retained weather.
+Umbrella absorption of balloon darts now emits ordinary BLOCKED feedback instead
+of silently removing the shot; it still never creates a reflected balloon.
+
+The first M20.3 staged gate found a pre-existing pickup competition fixture race
+at Harbor20. A rejected pickup legitimately stores an empty-kind,zero-ammo slot
+with range feedback. Dictionary presence was incorrectly treated as ownership;
+whether the losing request arrived before the assertion determined the result.
+An ordered production-request barrier reproduced this at2peers:one foam holder
+plus one feedback record. Count actual held kinds,accept empty feedback records,
+and wait for both intents before observing the winner. No gameplay contract or
+network timeout was weakened. Focused Harbor2/20 now pass; the normal full gate
+must pass again before committing. Failure logs remain in .scratch/phase20-chain-commit-gate.log
+and .scratch/phase20-competition-barrier-before.log.

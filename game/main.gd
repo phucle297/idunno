@@ -142,6 +142,7 @@ func _ready() -> void:
 	toy_sabotage.configure(match_manager, _player_nodes, $ShoveManager)
 	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
 	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
+	toy_sabotage.ground_is_visible = func(point: Vector3) -> bool: return not flood.is_active() or flood.water_level < point.y - 0.05
 	weather_surfaces.local_wetness = toy_sabotage.sample_wet_strip
 	weather_surfaces.local_slickness = toy_sabotage.sample_soap
 	_build_sandbox()
@@ -154,6 +155,8 @@ func _ready() -> void:
 	match_manager.state_changed.connect(_on_match_state_changed)
 	meteor_shower.configure(match_manager)
 	meteor_shower.navigable_area_query = func() -> float: return terrain_collapse.remaining_area(meteor_shower.usable_area, true)
+	toy_sabotage.usable_area_fraction = func() -> float:
+		return terrain_collapse.remaining_area(meteor_shower.usable_area, true) / maxf(meteor_shower.usable_area.get_area(), 0.001)
 	flood.configure(match_manager)
 	tornado.configure(match_manager)
 	tornado.path_for_terrain = _tornado_path_for_terrain
@@ -2855,6 +2858,8 @@ func tick_weather(delta: float) -> void:
 	var snowing := snowfall.phase == Precipitation.Phase.ACTIVE
 	weather_surfaces.precipitation = "Rain" if raining else ("Snowfall" if snowing else "")
 	weather_surfaces.tick(delta, raining, snowing, flood.water_level if flood.is_active() else -INF)
+	if raining:
+		toy_sabotage.wash_exposed_soap(delta, weather_surfaces.is_exposed)
 	for zone_id: int in fire.get_burning_zone_ids():
 		weather_surfaces.melt_snow_at(fire.zone_positions[zone_id], fire.zone_radius, delta * 0.2)
 	var damage: Array[Dictionary] = []

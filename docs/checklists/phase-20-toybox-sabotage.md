@@ -1,6 +1,6 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1 and M20.2 batches2–5 pushed; batch6 staged gate next. Owner explicitly wants
+Status: M20.1 and all six M20.2 batches pushed; M20.3 integration checks running. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
@@ -134,7 +134,9 @@ cart phases/accepted3m/s balloon lift and5rematches pass. Same four100ms-each-wa
 jitter/loss cases pass70/63/233/215drops. Ten final public-use720p/1080p states
 inspected; compact flying seed/full8m cart lane refined. [Stable max-slot budgets](phase-20-batch6-metrics.json):
 +42draws,+0.433ms authority,≤+0.364ms paired apply,+15.872%IPv4.
-Normal staged gate pending; not committed/deployed or native-capacity proof.
+Normal staged gate passed63Godot/8network matrices/managed20/46Python;
+[committed/pushed](https://github.com/phucle297/idunno/commit/f92fc78b04ee554faf5d9766b93e21e38e277e47)
+with skip-ci. Not released/deployed or native-capacity proof.
 
 | Batch | Toy / intent | Warning and counter / constraint |
 | --- | --- | --- |
@@ -159,20 +161,43 @@ cannot preserve escape routes, authority or performance after profiling.
 
 ## M20.3 — Controlled chain reactions with the world
 
-- [ ] Author an explicit allowlist: rocket → loose crate impulse; water → small wet
-  strip; fan → existing cosmetic confetti/projectile drift if server models it;
-  spring pad → crate/player limited launch. Keep effects authoritative when they
-  influence hits. No arbitrary global explosion propagation.
-- [ ] Propose wet strip + existing warned Lightning puddle only where its connected
-  volume and warning support it; never electrify the entire rain-covered town.
-  Water may clear soap; rain can wash it over time; snowfall may mark rather than
-  invisibly conceal traps. Interactions remain proposals until separately tested.
+- [x] Author an explicit allowlist: water → supported wet strip → overlapping
+  same-height uncovered soap clears; active exposed Rain → soap lifetime erodes
+  2s/s; fan → unreflected pellet/water/foam/balloon direction turns≤0.2rad/pulse.
+  One drift/projectile/tick, same ID/owner/lifetime; no recursive effect creation.
+  Spring → single bounded player lift already verified. Rigid-crate spring/rocket
+  and magnet are explicitly deferred for persistent escape-route safety, not shipped.
+- [x] Reject toy-strip electricity: existing authored wet-puddle Lightning warning
+  does not authorize a larger connected damage volume. Snow world overlay cannot
+  register toy warning meshes outside Sandbox. Roof-ray washing/solid-divider
+  controls pass; no automatic indoor wetness or electrical expansion.
 - [ ] Explicitly audit every batch with Flood, Tornado, collapse/void edges, bridges,
   wet/snow/ice, narrow indoor doors and reduced safe area. Cap chain depth/event
   work; large blasts cannot recursively spawn unbounded blasts or rewrite districts.
-- [ ] Example goal: hammer knocks crate onto marked spring pad → crate pops up →
-  rocket redirects crate beside an opponent. Each link remains visible, avoidable,
-  bounded and attributable; don't simulate cosmetic fragments as gameplay bodies.
+- [x] Resolve proposed crate chain explicitly: deferred, not a hidden deliverable.
+  Local clearance cannot prove persistent crate stopping poses or later hazard
+  relocation. No loose-body additions or physics-prop movement are authorized by
+  these toy combos. Keep current traversable maps and authoritative hazard props.
+
+M20.3 focused tests currently pass345 authority/90 weather-integration checks.
+Reproduced lost-floor wet strip and submerged placement/hidden confetti failures;
+surface effects now require actual support and unsubmerged ground before acting,
+and underwater placement rejects before charge spend. Existing warned effects
+keep deadlines when density shrinks, but loss of support/visibility safely cancels.
+Admission floors4projectile/6warning/6pickup ceilings by actual remaining meteor
+area including pending collapse, minimum1 for nonzero support. Only surplus
+pickups are trimmed; existing reserved remote detonations remain usable.
+
+| Combination | Intended outcome | Counter / credit / work bound |
+| --- | --- | --- |
+| Water + soap | Clears overlapping uncovered same-floor slick | Divider/other floor protects; no impulse-credit transfer;≤6 patches |
+| Rain + soap | Extra2s/s erosion only under open sky | Real intact roof protects; destroyed roof exposes;≤6 cover queries |
+| Fan + short shot |≤0.2rad drift, once per tick | Same3.5m cone/cover; original owner, no new record;≤4 shots×6fans |
+| Flood + floor toy | Cancel before hidden action; reject new submerged placement | Elevated dry floors retain toys; no hidden timed blast |
+| Collapse + surface toy | Actual missing support cancels | No floating wetness/trap; no new collision bodies |
+| Snow + toy | Warning remains a separate readable mesh | World overlay excludes toys; no extra damage or hard lock |
+| Tornado/earthquake + toy | No rigid-prop combo or force amplification | Existing hazard impulses/protection remain; no new prop ownership |
+| Lightning + toy strip | No new electrical damage | Only existing warned authored puddle can conduct |
 
 Exit: combo table with intended/unintended outcome, surviving escape route, credited
 cause and bounded cost. Toy Town and Harbor controls, real clients and rematch reset.

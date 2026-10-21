@@ -29,6 +29,8 @@ const OUTCOMES := ["hit", "blocked", "miss"]
 var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
 var collection_is_clear: Callable
+var usable_area_fraction: Callable
+var ground_is_visible: Callable
 var round_sequence := 0
 var pickups: Array[Dictionary] = []
 var slots: Dictionary = {}
@@ -135,6 +137,10 @@ func tick(delta: float, seed_value: int) -> void:
 		if float(pickups[index].expires) <= now or not _valid_anchor(pickups[index].position, false):
 			pickups.remove_at(index)
 			_revision += 1
+	var pickup_limit := _area_limit(MAX_PICKUPS)
+	if pickups.size() > pickup_limit:
+		pickups.resize(pickup_limit)
+		_revision += 1
 	var spawn_slot := floori((now - FIRST_SPAWN) / SPAWN_INTERVAL)
 	if now >= FIRST_SPAWN and spawn_slot > _spawn_slot:
 		_spawn_slot = spawn_slot
@@ -197,9 +203,9 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	if kind in ["squeaky_hammer", "boxing_glove"]:
 		# Melee telegraphs are planar; camera pitch must not silently narrow them.
 		direction = Vector3(direction.x, 0.0, direction.z).normalized()
-	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher", "reflector_umbrella", "party_balloon"] + PLACEABLES and _warning_reservations() >= MAX_WARNINGS:
+	if kind in ["plunger_rocket", "squeaky_hammer", "boxing_glove", "water_soaker", "foam_launcher", "reflector_umbrella", "party_balloon"] + PLACEABLES and _warning_reservations() >= _area_limit(MAX_WARNINGS):
 		return _feedback(peer_id, "capacity")
-	if (kind == "rocket_cart" or kind not in ["squeaky_hammer", "boxing_glove", "reflector_umbrella"] + PLACEABLES) and (_projectile_count() >= MAX_PROJECTILES or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
+	if (kind == "rocket_cart" or kind not in ["squeaky_hammer", "boxing_glove", "reflector_umbrella"] + PLACEABLES) and (_projectile_count() >= _area_limit(MAX_PROJECTILES) or _owner_projectiles(peer_id) >= MAX_OWNER_PROJECTILES):
 		return _feedback(peer_id, "capacity")
 	var placement := {}
 	if kind in PLACEABLES:
@@ -231,6 +237,7 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 
 
 func _tick_effects(delta: float) -> void:
+	var deflected := {} # At most four existing projectiles; reset every tick.
 	for index in range(effects.size() - 1, -1, -1):
 		var effect := effects[index]
 		effect.remaining = float(effect.remaining) - delta
@@ -240,6 +247,10 @@ func _tick_effects(delta: float) -> void:
 			continue
 		if kind in ["balloon_attached", "balloon_float"]:
 			_tick_balloon(index, effect)
+			continue
+		if kind == "blast_warning" and not _visible_ground(effect.position):
+			effects.remove_at(index)
+			_revision += 1
 			continue
 		if kind == "umbrella_open":
 			if not _eligible(int(effect.owner)):
@@ -251,7 +262,7 @@ func _tick_effects(delta: float) -> void:
 			if float(effect.remaining) > 0.0 and float(effect.remaining) <= 0.9 and float(effect.remaining) + delta > 0.9:
 				if String(slots.get(int(effect.owner), {}).get("kind", "")) == "reflector_umbrella":
 					_feedback(int(effect.owner), "reflecting")
-		if kind in ["soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning"]:
+		if kind in ["wet_strip", "soap_patch", "spring_armed", "confetti_warning", "foam_screen", "fan_gust", "decoy_running", "popper_armed", "popper_warning"]:
 			if not _supported(effect):
 				_clear_effect_controller(effect)
 				effects.remove_at(index)
@@ -272,7 +283,7 @@ func _tick_effects(delta: float) -> void:
 				var pulse := floori((4.0 - float(effect.remaining)) / 0.8)
 				var previous_pulse := floori((4.0 - float(effect.remaining) - delta) / 0.8)
 				if pulse > previous_pulse:
-					_fan_pulse(effect)
+					_fan_pulse(effect, deflected)
 			if kind == "decoy_running" and float(effect.remaining) > 0.0:
 				_move_decoy(effect, delta)
 		if kind in ["hammer_warning", "glove_warning"] and float(effect.remaining) <= 0.0:
@@ -297,7 +308,7 @@ func _tick_effects(delta: float) -> void:
 			var hit := _sweep(effect, from, destination, 0.18)
 			if not hit.is_empty():
 				if int(hit.get("umbrella_owner", 0)) > 0:
-					if kind != "balloon_dart" and _reflect(effect, hit):
+					if _reflect(effect, hit):
 						effects[index] = effect
 					else:
 						effects.remove_at(index)
@@ -485,19 +496,41 @@ func _make_ground_effect(effect: Dictionary, point: Vector3, kind: String) -> bo
 		return false
 	var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.1, point + Vector3.DOWN * 2.0, 1, [actor.get_rid()])
 	var floor_hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
-	if floor_hit.is_empty() or (floor_hit.normal as Vector3).y < 0.7:
+	if floor_hit.is_empty() or (floor_hit.normal as Vector3).y < 0.7 or not _visible_ground(floor_hit.position):
 		return false
 	effect.kind = kind
 	effect.position = floor_hit.position
 	effect.direction = Vector3(effect.direction.x, 0, effect.direction.z).normalized()
 	effect.remaining = 6.7 if kind == "foam_screen" else 6.0
+	if kind == "wet_strip":
+		_clear_soap_from_strip(effect)
 	return true
 
 
-func _fan_pulse(effect: Dictionary) -> void:
+func _clear_soap_from_strip(strip: Dictionary) -> void:
+	var forward: Vector3 = strip.direction
+	for soap in effects:
+		if soap.kind != "soap_patch" or float(soap.remaining) <= 0.0 or absf(float(soap.position.y) - float(strip.position.y)) > 0.25:
+			continue
+		var offset: Vector3 = soap.position - strip.position
+		var outside := Vector2(maxf(absf(offset.dot(forward)) - 0.9, 0.0), maxf(absf(offset.dot(forward.cross(Vector3.UP))) - 0.45, 0.0))
+		if outside.length() <= 0.7 and _world_clear(strip.position + Vector3.UP * 0.08, soap.position + Vector3.UP * 0.08, int(strip.owner)):
+			soap.remaining = 0.0
+
+
+func wash_exposed_soap(delta: float, exposed: Callable) -> void:
+	if not _can_mutate() or not is_instance_valid(_manager) or _manager.state != MatchManager.MatchState.ACTIVE or not is_finite(delta) or delta <= 0.0 or not exposed.is_valid():
+		return
+	for effect in effects:
+		if effect.kind == "soap_patch" and float(effect.remaining) > 0.0 and bool(exposed.call(effect.position)):
+			effect.remaining = maxf(0.0, float(effect.remaining) - 2.0 * delta)
+			_revision += 1
+
+
+func _fan_pulse(effect: Dictionary, deflected: Dictionary) -> void:
 	var origin: Vector3 = effect.position + Vector3.UP * 0.75
 	for peer_id: int in _players:
-		if not _eligible(peer_id):
+		if not _eligible(peer_id) or _shoves.is_protected(peer_id):
 			continue
 		var actor := _players[peer_id] as PartyPlayer
 		var offset := actor.global_position + Vector3.UP * 0.75 - origin
@@ -505,6 +538,20 @@ func _fan_pulse(effect: Dictionary) -> void:
 		if flat.length_squared() > 0.01 and flat.length() <= 3.5 and absf(offset.y) <= 1.0 and effect.direction.dot(flat.normalized()) >= 0.9 and _world_clear(origin, actor.global_position + Vector3.UP * 0.75, int(effect.owner)):
 			if _impulse(int(effect.owner), peer_id, effect.direction, 2.0):
 				_outcome("hit", actor.global_position, effect.direction, int(effect.owner))
+	for projectile in effects:
+		var id := int(projectile.id)
+		if projectile.kind not in ["pellet", "water_jet", "foam_seed", "balloon_dart"] or float(projectile.remaining) <= 0.0 or deflected.has(id):
+			continue
+		var offset: Vector3 = projectile.position - origin
+		var flat := Vector3(offset.x, 0, offset.z)
+		if flat.length_squared() <= 0.01 or flat.length() > 3.5 or absf(offset.y) > 1.0 or effect.direction.dot(flat.normalized()) < 0.9 or not _world_clear(origin, projectile.position, int(effect.owner)):
+			continue
+		var direction: Vector3 = projectile.direction
+		var planar := Vector3(direction.x, 0, direction.z)
+		if planar.length_squared() > 0.001:
+			var turn := clampf(planar.signed_angle_to(effect.direction, Vector3.UP), -0.2, 0.2)
+			projectile.direction = direction.rotated(Vector3.UP, turn).normalized()
+			deflected[id] = true
 
 
 func _move_decoy(effect: Dictionary, delta: float) -> void:
@@ -614,7 +661,7 @@ func _umbrella_contact(effect: Dictionary, from: Vector3, to: Vector3, radius: f
 
 func _reflect(effect: Dictionary, hit: Dictionary) -> bool:
 	var owner := int(hit.umbrella_owner)
-	if float(effect.remaining) <= 0.0 or String(effect.kind).ends_with("_reflected") or _owner_projectiles(owner) >= MAX_OWNER_PROJECTILES:
+	if effect.kind == "balloon_dart" or float(effect.remaining) <= 0.0 or String(effect.kind).ends_with("_reflected") or _owner_projectiles(owner) >= MAX_OWNER_PROJECTILES:
 		_outcome("blocked", hit.position, effect.direction, owner)
 		return false
 	var normal: Vector3 = hit.normal
@@ -635,7 +682,7 @@ func _placement(peer_id: int, direction: Vector3) -> Dictionary:
 	if not _world_clear(from, to, peer_id):
 		return {}
 	var hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(to, to + Vector3.DOWN * 2.0, 1, [actor.get_rid()]))
-	if hit.is_empty() or (hit.normal as Vector3).y < 0.7 or absf(float(hit.position.y) - actor.global_position.y) > 0.4:
+	if hit.is_empty() or (hit.normal as Vector3).y < 0.7 or absf(float(hit.position.y) - actor.global_position.y) > 0.4 or not _visible_ground(hit.position):
 		return {}
 	return hit
 
@@ -645,8 +692,14 @@ func _supported(effect: Dictionary) -> bool:
 	if not is_instance_valid(actor) or not is_instance_valid(_manager) or not _manager.is_player_alive(int(effect.owner)):
 		return false
 	var point: Vector3 = effect.position
+	if not _visible_ground(point):
+		return false
 	var hit := actor.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.1, point + Vector3.DOWN * 0.15, 1, [actor.get_rid()]))
 	return not hit.is_empty() and (hit.normal as Vector3).y >= 0.7
+
+
+func _visible_ground(point: Vector3) -> bool:
+	return not ground_is_visible.is_valid() or bool(ground_is_visible.call(point))
 
 
 func _spring_hit(effect: Dictionary) -> bool:
@@ -667,7 +720,7 @@ func sample_soap(point: Vector3) -> float:
 	if not point.is_finite():
 		return 0.0
 	for effect in effects:
-		if effect.kind != "soap_patch" or absf(point.y - float(effect.position.y)) > 0.25:
+		if effect.kind != "soap_patch" or float(effect.remaining) <= 0.0 or absf(point.y - float(effect.position.y)) > 0.25:
 			continue
 		var offset: Vector3 = point - effect.position
 		if Vector2(offset.x, offset.z).length() <= 0.7 and _world_clear(effect.position + Vector3.UP * 0.08, point + Vector3.UP * 0.08, int(effect.owner)):
@@ -889,7 +942,7 @@ func _feedback(peer_id: int, value: String) -> bool:
 
 
 func _spawn(now: float, seed: int, spawn_slot: int) -> void:
-	if pickups.size() >= MAX_PICKUPS:
+	if pickups.size() >= _area_limit(MAX_PICKUPS):
 		return
 	var eligible: Array[Vector3] = []
 	for point in anchors:
@@ -914,6 +967,13 @@ func _spawn(now: float, seed: int, spawn_slot: int) -> void:
 func _kind_for_spawn(spawn_slot: int) -> String:
 	var ordered := KINDS.keys()
 	return ordered[posmod(spawn_slot, ordered.size())]
+
+
+func _area_limit(intact_limit: int) -> int:
+	var fraction := float(usable_area_fraction.call()) if usable_area_fraction.is_valid() else 1.0
+	if not is_finite(fraction) or fraction <= 0.0:
+		return 0
+	return maxi(1, floori(intact_limit * minf(fraction, 1.0)))
 
 
 func _projectile_count() -> int:

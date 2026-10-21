@@ -26,6 +26,10 @@
       "audio": "Same3Effects voices/priority;22050Hz16bitmono PCM popper arm0.7s/320to700Hz/.16peak/.008noise,countdown1s/470to1300Hz/.20/.012,umbrella0.25s/520to220Hz/.16/.018. Reflected shots reuse original-kind PCM streams,stage-aware dedupe retained.",
       "validation_status": "Authority205/presentation15/audio11 and real2/4both-map fourteen-toy catalog/credited reflected hit/5rematches pass. Twelve actual-public-use720p/1080p captures inspected:popper arm/ready/countdown,umbrella opening/active/opponent front. Initial cyan canopy blended with avatar; changed active to violet and retained charge during countdown ring. HUD controller/reflect state in bounds. Active-window max-slot trial+43draws,+0.257ms authority,at most+0.292ms pairedapply,+17.674%IPv4;phase-20-batch5-metrics.json. Same four100ms-each-way/jitter/loss matrices pass;normal staged gate pending,no native/human acceptance inferred."
     },
+    "m20_3": {
+      "provenance": "Existing project-authored pooled toy meshes/materials/audio, no external intake, new bodies or voice pools. Wet-strip countdown now uses the same elevated forward label placement as soap/spring so the source avatar cannot conceal WET feedback.",
+      "validation_status": "Six public-use soap/water and Snow/reduced-motion captures720p/1080p inspected. Label outline/text priorities1/2 render after transparent weather priority0, retaining wall/roof depth tests. Elevated WET is readable outside avatar. Controller345/weather integration96 and real2/4both-map combo/5rematch/delayed-loss controls pass; final staged gate remains pending. No human/native acceptance inferred."
+    },
     "batch6": {
       "catalog": ["rocket_cart", "party_balloon"],
       "provenance": "Project-authored deterministic Godot runtime primitives only: one merged chunky cart body/four-wheel mesh with merged fixed forward lane, and a low-poly balloon, knot and visible string. Existing shared matte materials, four projectile slots, six warning slots and three Effects voices are reused. No external geometry, textures, samples, bodies, collision shapes or pools.",

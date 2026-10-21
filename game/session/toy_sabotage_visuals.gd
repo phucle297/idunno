@@ -167,7 +167,7 @@ func _configure_warning(slot: Node3D, effect: Dictionary) -> void:
 	label.font_size = 28 if kind in ["foam_screen", "fan_gust", "decoy_running"] else 24
 	# Put the swing countdown ahead of its owner rather than inside the avatar.
 	label.position = Vector3(0, 1.4, -1.8) if kind in ["hammer_warning", "glove_warning"] else Vector3(0, 0.65, 0)
-	if kind in ["soap_patch", "spring_armed", "confetti_warning"]:
+	if kind in ["wet_strip", "soap_patch", "spring_armed", "confetti_warning"]:
 		label.position = Vector3(0, 1.5, -0.7)
 	var remaining := maxf(0.0, float(effect.get("remaining", 0.0)))
 	mesh.material_override = _materials["amber"] if kind in ToySabotage.WARNINGS else _materials["impact"]
@@ -264,6 +264,8 @@ func _make_pickup(slot_name: String) -> Node3D:
 	label.outline_size = 8
 	label.modulate = DisasterPartyUI.WHITE
 	label.outline_modulate = DisasterPartyUI.INK
+	label.outline_render_priority = 1
+	label.render_priority = 2
 	slot.add_child(label)
 	slot.hide()
 	return slot
@@ -287,6 +289,10 @@ func _make_warning(slot_name: String) -> Node3D:
 	label.outline_size = 7
 	label.modulate = DisasterPartyUI.WHITE
 	label.outline_modulate = DisasterPartyUI.INK
+	# Snow/wet overlays blend at priority0. Keep both text passes after them,
+	# while retaining normal depth tests against solid walls and roofs.
+	label.outline_render_priority = 1
+	label.render_priority = 2
 	slot.add_child(label)
 	slot.hide()
 	return slot
