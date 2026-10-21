@@ -47,7 +47,7 @@
   "delayed_enet": {
     "scenario": "Real2/4peers,both maps,100ms each-way+0..12ms jitter+deterministic1/97datagram loss",
     "dropped_town2_harbor2_town4_harbor4": [74,66,239,221],
-    "result": "All four pass16toy catalog,water/soap wash,fan drift/original-owner snapshots,5rematches,stale/malformed rejection and departure. Larger4/8/20 staged matrix still requires final gate marker."
+    "result": "All four pass16toy catalog,water/soap wash,fan drift/original-owner snapshots,5rematches,stale/malformed rejection and departure. Normal full staged gate also passes both-map4/8/20 matrix,63Godot suites,managed20/settings restart/46Python,tree abf4fecc8c974c22fbb46813efcd3d3fff9a2ddc. First Harbor20 fixture failure and deterministic losing-pickup feedback reproduction are preserved in progress; no timeout extension or production relaxation."
   },
   "presentation": {
     "captures": ".amp/in/artifacts/phase20-chain/",

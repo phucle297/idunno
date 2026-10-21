@@ -8,7 +8,9 @@ Owner authorized completing the remaining plan, committing/pushing each verified
 unit and releasing after final integration. Performance checkpoint precedes sabotage:
 - [Phase20 — Toybox sabotage](checklists/phase-20-toybox-sabotage.md)
   — foam gun/rocket/hammer first, then staged toy arsenal and disaster/prop combos;
-  M20.1 verified/pushed, M20.2 next; server-authoritative and bounded against chain-lock/spam.
+  M20.1–M20.3 verified/pushed; M20.4 local stress/package checks pass, final delivery pending.
+  Sixteen toys are server-authoritative and bounded against chain-lock/spam;
+  magnet and rigid-crate relocation remain explicitly deferred for route safety.
   Trial ceilings follow Phase19 controls, not assumed native performance headroom.
 Prior B/C UI/director proposals and packet-loss investigation remain deferred.
 

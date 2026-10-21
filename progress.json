@@ -27,7 +27,7 @@
   },
   "current": {
     "phase": "phase_20_toybox_sabotage",
-    "milestone": "M20.3",
+    "milestone": "M20.4",
     "task": null
   },
   "phase": {
@@ -38,8 +38,8 @@
     "milestones": [
       {"id": "M20.1", "title": "Action framework and three-item vertical slice", "status": "completed", "gate": "passed"},
       {"id": "M20.2", "title": "Staged toy arsenal", "status": "completed", "gate": "passed"},
-      {"id": "M20.3", "title": "Bounded world chain reactions", "status": "in_progress", "gate": "not_run"},
-      {"id": "M20.4", "title": "Chaos budget and regression", "status": "planned", "gate": "not_run"}
+      {"id": "M20.3", "title": "Bounded world chain reactions", "status": "completed", "gate": "passed"},
+      {"id": "M20.4", "title": "Chaos budget and regression", "status": "in_progress", "gate": "not_run"}
     ]
   },
   "completed_phase": {
@@ -167,11 +167,20 @@
     "delivery": "Normal staged PRE_COMMIT_OK tree7005b2a4e84b099f0e23ef3d9e580a30f418e70f:63Godot suites/8network matrices/managed20/46Python. Includes4/8/20both-map16toy/balloon acceptance/5rematches. Committed/pushed skip-ci;service stopped after one-shot marker,full log preserved .scratch/phase20-batch6-commit-gate.log. Not released/deployed."
   },
   "m20_3_local": {
-    "status": "in_progress",
+    "status": "completed",
+    "source_revision_url": "https://github.com/phucle297/idunno/commit/e09667269149f58cd67b35449999a4c7591044f7",
+    "delivery": "Normal full staged gate passed tree abf4fecc8c974c22fbb46813efcd3d3fff9a2ddc:63Godot suites/8network matrices/managed20/settings restart/46Python. Both-map4/8/20 sixteen-toy combos/5rematches pass. Committed/pushed skip-ci; supervised service stopped. This supersedes earlier pending gate statements below and in asset provenance; no asset content changed after inspected captures.",
     "implementation": "Water clears uncovered same-height overlapping soap; active Rain adds2s/s erosion using actual roof ray; fan drifts only allowlisted unreflected short shots<=0.2rad once per tick, preserving owner/ID/lifetime. Actual pending-collapse area scales admission4/6/6 with nonzero minimum1, only pickups trimmed. Flood-hidden floor toys cancel before acting; submerged placement rejects before charge spend. Wet strips clear on actual lost support.",
     "validation": "Authority345/weather integration96/presentation15, weather41/lightning24/map493/layout6910/collapse5040 pass. Real2/4 peers both maps pass water wash/fan direction/original-owner snapshots,16toy catalog,5rematches and departure. Four100ms-each-way/0..12ms-jitter/1-in-97-loss cases pass (drops74/66/239/221). Six720p/1080p soap/water/Snow-reduced-motion captures inspected; fixed text outline rendering after transparent Snow overlay. Retained before-fix floor-loss/submerged-warning reproductions now pass. Final normal staged gate pending; not released/deployed.",
     "staged_gate_followup": "First normal gate failed at Harbor20 pickup competition after other toy2/4/8 and Town20 cases passed. Root fixture error: losing pickup creates an empty-kind range-feedback slot,not no dictionary entry. Ordered request barrier reproduces deterministically at2peers:one actual foam holder plus one empty feedback record; original assertions fail. Fixture now waits for both intents,count nonempty held kinds,and accepts zero-ammo empty feedback slots. Same2/20Harbor matrix passes with5rematches. Full staged gate must rerun; no bypass or timeout extension.",
     "scope": "No toy electrical expansion or rigid-prop combos; magnet and crate spring/rocket remain explicitly deferred for persistent-route safety. Human/native feel unverified. Bounded test subagent failed on external usage allowance; parent implemented network fixture directly."
+  },
+  "m20_4_local": {
+    "status": "in_progress",
+    "metrics": "docs/checklists/phase-20-final-chaos-metrics.json",
+    "performance": "Four real clients/Rain/movement rotating bounded fan/shot,popper expiry and soap wash stress:authority+0.402046ms,matched-payload apply at most+0.391316ms,dry draws+44,actual IPv4+19.427323%,0kernel drops/fragments;within0.5ms/64draw/25%trials. Unpaired separate-run client1 apply delta+0.533080ms is retained as variance,not hidden;paired replay passes every client. Software render far below60FPS;not native headroom. Stable measured node counts,not long-session leak proof.",
+    "packages": "Committed e096672 Windows/Linux exports pass flat hashes/provenance isolation/154PCK entries. Exact local Linux-PCK authority345/weather integration96 pass. Standalone exported Linux allocator/version/create_join/crash_retry/port_reclaimed and durable profile restart/replay/equipment/isolation pass;reward completion synthetic. Final CI artifact/public exact-PCK and published asset re-download still pending.",
+    "verification_log": ".scratch/phase20-chain-commit-gate-r2.log"
   },
   "blockers": [],
   "limits": [
@@ -182,7 +191,7 @@
     "Earlier headless fixtures retain shutdown-only ObjectDB/resources; no blanket clean-shutdown claim.",
     "Official release templates disable external profiler scripts; editor-engine/exact-PCK results are not unchanged standalone throughput."
   ],
-  "next_action": "Run normal staged M20.3 commit gate and push; then finish M20.4 integrated package/release/deployment verification with final measured chaos budgets.",
+  "next_action": "Deploy the release-readiness commit,verify exact CI PCK/packages/public two-client smoke,publish matching prerelease and archive Phase20 without closing native/human limits.",
   "delivery_authorization": {
     "scope": "Owner requests completing remaining plan, commit/push after each coherent part and final release after integrated completion; do not release unfinished Phase20 or trigger intermediate deployment.",
     "release_pending": true

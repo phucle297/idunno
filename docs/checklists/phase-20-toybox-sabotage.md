@@ -1,6 +1,6 @@
 # Phase20 — Toybox sabotage and chain-reaction chaos
 
-Status: M20.1 and all six M20.2 batches pushed; M20.3 integration checks running. Owner explicitly wants
+Status: M20.1–M20.3 verified/pushed; M20.4 local budgets/packages pass, final delivery pending. Owner explicitly wants
 more player sabotage, including guns/rockets and many chaotic interactions, and
 now authorizes implementation followed by release after integrated checks. This
 opens the earlier hammer/wood backlog as a toy arsenal; it does NOT restore
@@ -171,7 +171,7 @@ cannot preserve escape routes, authority or performance after profiling.
   does not authorize a larger connected damage volume. Snow world overlay cannot
   register toy warning meshes outside Sandbox. Roof-ray washing/solid-divider
   controls pass; no automatic indoor wetness or electrical expansion.
-- [ ] Explicitly audit every batch with Flood, Tornado, collapse/void edges, bridges,
+- [x] Explicitly audit every batch with Flood, Tornado, collapse/void edges, bridges,
   wet/snow/ice, narrow indoor doors and reduced safe area. Cap chain depth/event
   work; large blasts cannot recursively spawn unbounded blasts or rewrite districts.
 - [x] Resolve proposed crate chain explicitly: deferred, not a hidden deliverable.
@@ -179,7 +179,7 @@ cannot preserve escape routes, authority or performance after profiling.
   relocation. No loose-body additions or physics-prop movement are authorized by
   these toy combos. Keep current traversable maps and authoritative hazard props.
 
-M20.3 focused tests currently pass345 authority/90 weather-integration checks.
+M20.3 focused tests pass345 authority/96 weather-integration checks.
 Reproduced lost-floor wet strip and submerged placement/hidden confetti failures;
 surface effects now require actual support and unsubmerged ground before acting,
 and underwater placement rejects before charge spend. Existing warned effects
@@ -204,14 +204,14 @@ cause and bounded cost. Toy Town and Harbor controls, real clients and rematch r
 
 ## M20.4 — Chaos density, readability and release readiness
 
-- [ ] Use the measured Phase19 render baseline before increasing density: optimized dry
+- [x] Use the measured Phase19 render baseline before increasing density: optimized dry
   Toy Town orb samples show4089–4098 draws/client, down from8618–8627.
   These software-render numbers do not define native capacity. First slice should
   share meshes/materials, bound/expire warnings and avoid individual shadow-casting
   rigidbody confetti. Report incremental render/physics/network cost per active toy
   and combined with weather; retain visible projectiles/counters, not just headless
   pass results. No arsenal batch starts on an assumed final12-projectile budget.
-- [ ] Proposed initial caps for M20.1 profiling:1 held item/player,≤2 active
+- [x] Proposed initial caps for M20.1 profiling:1 held item/player,≤2 active
   projectiles/player with≤4 total,≤6 placed/warning effects (reserve rocket warning
   capacity before firing), no new loose rigidbodies,≤3s cosmetic fragments,
   ≤1s ordinary weapon-induced control interruption then≥1.5s cross-item protection.
@@ -221,18 +221,32 @@ cause and bounded cost. Toy Town and Harbor controls, real clients and rematch r
   Initial incremental ceilings:≤64 draws/client,≤0.5ms mean authority physics and
   snapshot apply,≤25% matched4-peer IPv4 traffic. Measure against archived controls;
   these are acceptance ceilings, not measured toy capacity or native headroom.
-- [ ] Register/expire pooled effects, serialize bounded state and clean up ammo,
+- [x] Register/expire pooled effects, serialize bounded state and clean up ammo,
   ownership, projectiles, reflect credit, traps and action sequences on round reset.
   No stale hit from previous match, invisible persistent trap or disconnect exploit.
-- [ ] Stress real2/4 players,8/20 correctness, mixed spam and5 rematches; collect
+- [x] Stress real2/4 players,8/20 correctness, mixed spam and5 rematches; collect
   frame percentiles, snapshot bytes, event/physics cost and resource trends against
   Phase19. If target fails, reduce presentation/active concurrency before adding
   content; retain gameplay warning clarity. Late-round shrink must reduce density.
-- [ ] Inspect world pickups/held/aim/warning/hit/miss/blocked/empty/protected states
+- [x] Inspect world pickups/held/aim/warning/hit/miss/blocked/empty/protected states
   at720p/1080p, color-independent symbols, audio warning priority and reduced motion.
   Human fun/readability and hardware feel remain unverified without actual feedback.
 - [ ] Run staged regression, provenance checks for generated assets, matching build
   package checks; release/deployment requires owner authorization at delivery time.
+
+Final local evidence: [chaos metrics](phase-20-final-chaos-metrics.json),
+63Godot suites/8network matrices/managed20/settings restart/46Python pass normal
+staged tree abf4fecc8c974c22fbb46813efcd3d3fff9a2ddc. Both-map4/8/20 catalog,
+combo snapshots and5rematches pass. The initial Harbor20 competition fixture
+failure was deterministically reproduced and corrected without production or
+timeout changes; see decisions. [M20.3 source](https://github.com/phucle297/idunno/commit/e09667269149f58cd67b35449999a4c7591044f7)
+is pushed. Six final soap/water/Snow-reduced-motion captures720p/1080p inspected;
+fixed outline render order after Snow transparency. No exhaustive all-toys ×
+all-hazards runtime cross-product or human fun acceptance is inferred from the
+bounded-interaction audit and selected map/cover/Flood/collapse controls.
+Local Windows/Linux154-entry exports and exact local-PCK345/96 controls pass;
+standalone Linux allocator/crash/retry/store checks pass. Final CI artifact,
+public matching-PCK smoke and published asset re-download are still required.
 
 No realistic warfare, gore, permanent progression, PvP grabbing, unlimited stun,
 unbounded terrain destruction or new hosting infrastructure. Maximize combinations

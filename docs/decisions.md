@@ -321,3 +321,15 @@ and wait for both intents before observing the winner. No gameplay contract or
 network timeout was weakened. Focused Harbor2/20 now pass; the normal full gate
 must pass again before committing. Failure logs remain in .scratch/phase20-chain-commit-gate.log
 and .scratch/phase20-competition-barrier-before.log.
+
+Follow-up gate passed63Godot suites/8network matrices/managed20/settings restart/
+46Python on staged tree abf4fecc8c974c22fbb46813efcd3d3fff9a2ddc;
+M20.3 committed/pushed as e096672 with skip-ci. This supersedes pending gate
+statements above/in provenance without modifying validated asset content.
+Final rotating fan/shot,popper expiry and Rain soap-wash stress remains within
+incremental trial ceilings:44draws,0.402046ms authority,at most0.391316ms paired
+snapshot apply,19.427323%IPv4. Preserve unpaired client1 variance0.533080ms and
+software rendering far below60FPS; neither is silently replaced by a native
+performance claim. Local committed Windows/Linux154-entry exports and standalone
+Linux lifecycle/profile controls pass. Final CI exact-PCK/public smoke and release
+re-download remain delivery gates; no infrastructure or profile-store change.
