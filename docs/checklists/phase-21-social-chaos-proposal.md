@@ -1,6 +1,8 @@
 # Phase21 proposal — Social chaos, not a larger weapon catalogue
 
-Status: planning only, awaiting owner selection. No gameplay implementation,
+Status: planning only; owner accepts the bomb direction and requires a hidden
+random fuse, including immediate detonation after receipt with no grace. Other
+mechanics and the added UI/UX candidates await selection. No implementation,
 prototype, balance test, new release or deployment is authorized by this plan.
 Phase20 remains the published build. DESIGN.md remains authoritative.
 
@@ -42,7 +44,7 @@ Disagreement retained rather than called consensus:
 | Candidate | Support | Objection | Parent synthesis |
 | --- | --- | --- | --- |
 | Brace / Bluff | Player and environment reviewers: bounded extension | Loop reviewer: passive play, weak crowd readability | First low-cost prototype; direct shove only |
-| Hot Potato | Distinct social chase; environment reviewer ranks second | Loop reviewer: grief/visibility; player reviewer suggests per-pass consent | Optional pre-selected variant, dodgeable transfer, strict final window; prototype before commitment |
+| Hot Potato | Distinct social chase; environment reviewer ranks second | Loop reviewer: grief/visibility; player reviewer suggests per-pass consent | Owner supersedes visible fuse/final window: hidden random fuse, immediate receipt detonation accepted; prototype before commitment |
 | Buddy Bunker | Player reviewer prefers temporary truce; loop reviewer sees value | Environment reviewer: repeats awning and adds dynamic-cover complexity | Conditional third candidate with shelter feasibility gate |
 | Seesaw | Loop reviewer prefers shared environmental action | Other reviewers: spring-pad duplication, launch/landing burden | Defer; do not add another launcher now |
 | Last-Second Catch | Strong rescue story | Latency, fall attribution and void/hazard rescue boundaries | Defer; no revival or midair safety override |
@@ -78,28 +80,44 @@ slice has no automatic counter-hit, reflection or extra recovery immunity.
 
 ## Candidate B — Hot Potato: visible wind-up parcel chase
 
-**15 seconds:** one player deliberately picks up a ticking parcel, chases a rival,
-passes it with a visible lob; the rival dodges toward a ramp and returns it before
-the final transfer window closes. Everyone then scatters from the carrier.
+**Moment:** one player picks up a wind-up parcel and chases a rival. A visible lob
+passes it; the recipient may pass it onward or it may burst immediately. Nobody
+can read an exact remaining fuse and deliberately dump it at a known final second.
 
 This is an **optional lobby-selected variant**, announced before Ready/Start,
 not an unannounced hazard in default survival. All participants opt into the rules
-before starting; no per-pass modal confirmation. One parcel globally, fixed trial
-12 s server fuse, no timer reset or extension on transfer. Solo disables it.
+before starting; no per-pass modal confirmation. One parcel globally; the server
+privately samples a random fuse once on creation. Trial range 5–15 s is a tuning
+hypothesis, not approved balance or a recipient safety window. No timer reset,
+reroll or extension on transfer. Solo disables it.
+
+Owner decision: no recipient grace, minimum possession time or final transfer
+embargo. Receipt followed immediately by detonation is an accepted random outcome,
+not a bug to fix. The prior visible 12 s fuse and 2.5 s cutoff are superseded.
+Hidden timing prevents exact-deadline dumping, not all possible toxic behavior;
+target harassment or inference from elapsed age still needs ordinary playtesting.
 
 - Transfer: prototype a short, visible, dodgeable lob at up to 3 m, validated
   server-side with LOS/sweep and alive-target checks. No instant remote assignment,
   through-wall pass or client-selected victim. Reuse analytical sweep principles,
   not a new networked rigidbody. Failure leaves ownership with the carrier.
-- A transfer must complete with at least 2.5 s remaining. From that point onward,
-  no new transfer starts/completes. Keep the carrier for the final warning; do not
-  fizzle merely because nobody is in range (that would reward avoidance exploits).
-  Trial 1 s transfer cooldown prevents same-frame ping-pong and simultaneous owners.
-- Expiry: one warned, bounded burst through the existing impulse/protection rules,
+- Privacy: deadline, duration, remaining time and RNG state/seed stay server-only;
+  do not include them in replicated state, client debug overlays or client logs.
+  Do not derive the fuse from a public map seed. No countdown, age-progress bar,
+  accelerating tick/flash or other presentation that encodes remaining fuse.
+- Keep the carrier and a constant danger footprint visible, with a steady cue
+  identifying the parcel rather than its age. Reject duplicate/rate-spam intents;
+  there is one owner and no same-tick multi-hop transfer. Do not add a time gate
+  that promises a newly receiving player immunity from detonation.
+- Expiry: one bounded burst through the existing impulse/protection rules,
   no direct HP damage or forced ragdoll. Keep environmental damage and death credit
   truthful. Do not claim the burst cannot cause a fall or void elimination.
 - Counter: dodge/cover the lob, open distance, bait a return, then leave the visible
-  final footprint. Reachability must be tested with the actual capsule and latency.
+  carrier footprint. There is deliberately no guaranteed reaction time after
+  receipt. Test ordinary lob evasion separately from this accepted random risk.
+- Resolve expiry and an arriving transfer in one deterministic server event order;
+  clients cannot backdate a pass. Test both immediate-receipt detonation and expiry
+  before a pass, with one burst/owner/outcome and no deferred safety grace.
 - No arbitrary discard into a void. If the carrier dies/disconnects, release only
   onto validated supported ground with the original fuse; otherwise visibly cancel
   the event. Clear at match end; do not spawn a replacement to change the winner.
@@ -109,9 +127,36 @@ before starting; no per-pass modal confirmation. One parcel globally, fixed tria
 - Modules: bounded parcel controller + presenter, lobby ruleset selection/validation,
   session epoch/snapshot integration, existing `ShoveManager` impulse path. Separate
   global parcel ownership from the existing personal toy slot; do not add inventory.
-- Stop/rework if dodging is impossible at controlled latency, carrier/fuse is lost
+- Stop/rework if ordinary lob dodging is impossible at controlled latency, carrier
+  identity is lost
   in 20-player crowds, all players camp until deadline, or the mode is merely a
   confetti bomb with a different skin. Compare 2-player chase with 20-player behavior.
+
+## Additional UI/UX and existing-game improvements — proposed, not selected
+
+Source review: `pause_settings.gd` already exposes audio buses, camera settings,
+resolution, fullscreen and reduced motion. `toy_sabotage_card.gd::present` already
+shows ammo/cooldown/basic feedback and a reticle. Results/spectator and room retry
+already exist. Improve those contracts rather than presenting them as missing.
+No new visual design or rendered verification was performed for these proposals.
+
+| ID / idea | User-visible change and actual gap | Likely modules / acceptance |
+| --- | --- | --- |
+| U1 — Performance controls | Low/Balanced/High local detail/shadow presets, 30/60/120 FPS cap, a separate unfocused/minimized cap, optional small frame-time/ping panel. Current display options are not quality/FPS controls. | `pause_settings.gd`, existing local detail/shadow setup; never remove collision, authoritative hazards or readable warnings. Save/restart test, compare same-scene solo/two-client focus states and show CPU/GPU/frame evidence where measurable. Native heat/FPS remains unresolved. |
+| U2 — Toy clarity and request acknowledgement | On a new toy, show one short purpose/counter hint; distinguish request pending, server accepted and rejected. Keep existing ammo/cooldown feedback, avoid repeated tutorial popups. | `toy_sabotage_card.gd`, Main input/snapshot acknowledgement; persistent action IDs only if needed. Slow/lost/reordered response tests: no false hit, double-use, stuck pending or obscured warning. Hint suppression while in personal danger. |
+| U3 — Consistent warning/audio priority | Align the HUD's selected urgent danger with audio; briefly duck music/effects for a critical cue. Add optional concise warning captions, never an omniscient through-wall radar. | `gameplay_hud.gd`, `gameplay_audio_controller.gd`, music/bus integration. Current HUD prioritizes nearest warning, audio independently plays entering disaster warnings. Verify overlap ordering, voice limits, user volumes/reduced motion and no lost critical cue. Do not expose hidden parcel time through sound or captions. |
+| U4 — Explain a death, not just name it | Short factual receipt such as "player shove → fall → impact damage", with the final cause and credited source only where supported by server evidence. Current elimination text has cause/time, not a causally supported chain. | Match/session bounded event history, existing shove/toy credit and results/HUD. No video replay or full position recording. Test stale/overwritten credit, self-fall, simultaneous events, assist vs kill and rematch clearing. Unknown attribution must stay unknown. |
+| U5 — Controls and accessibility | Rebind actions with conflict detection, dynamic prompt labels, larger text options and shape/contrast alternatives to color-only cues. Existing reduced motion and focus navigation remain. | Input actions, `pause_settings.gd`, HUD/toy/mechanism prompt sites. Rebind/save/restart/reset controls; typing in menus must not fire actions. Check 720p/1080p layout, warning visibility and no cosmetic setting changing gameplay rules. Scope text scale vs full localization separately. |
+| U6 — Room status and safer retry | Show connecting/admitting/failed states, preserve non-secret room context on failure, copy room code and offer a clear retry/back action. Existing disconnect handling clears room ID and asks users to create/join again. | Main room lifecycle and existing room UI/tests. Do not silently auto-rejoin an ACTIVE round or reuse stale credentials/peer IDs; only retry existing allowed admission, with current readiness/security checks. Test timeout, deleted room, restart, rapid clicks and cancellation. |
+| U7 — Vietnamese/English interface | Translate visible action/settings/error/toy instructions consistently and remember language. Existing inspected settings/toy/results strings are inline English; this needs a string inventory, not only translated button labels. | Existing UI text sites and translation resources; audit scope before changing schema. Check fallback/missing keys, long Vietnamese text, fonts/diacritics, rebinding placeholders and room error coverage. Never translate wire IDs, save keys or server authority identifiers. |
+
+Proposed priority for existing-game value: U1 + U2 first, then U3 + U4, then
+U5/U6/U7 as separately selectable units. Do not expand all seven into mandatory
+Phase21 milestones or silently reopen earlier rejected UI/director proposals.
+
+Each selected UI unit gets its own contract, focused tests and rendered inspection
+of default/error/pending/long-text states where relevant. No visual mockup is an
+implementation or proof. Gameplay A/C remain candidates, not prerequisites for UX.
 
 ## Candidate C — Buddy Bunker: two rivals need one another
 
@@ -150,9 +195,9 @@ until the first prototype reveals actual input/network and presentation cost.
 
 | Milestone | Deliverable / owner modules | Exit gate |
 | --- | --- | --- |
-| M21.0 — Baseline and selected contract | Existing performance/network tools; choose A/B/C and explicit input/rules | Reproduce Phase20 control scene in orb; record solo/two-client active vs unfocused/minimized behavior where supported, CPU/frame/draw/IPv4 metrics; no native-resolution claim. Agree caps and record hypothesis. |
+| M21.0 — Baseline and selected contract | Existing performance/network tools; choose A/B/C and/or UI units and explicit input/rules | Reproduce Phase20 control scene in orb; record solo/two-client active vs unfocused/minimized behavior where supported, CPU/frame/draw/IPv4 metrics; no native-resolution claim. Agree caps and record hypothesis. |
 | M21.1 — First playable A | Shove/player/stance/snapshot | Front/side/rear, expiry and cooldown boundaries; fake/stale/duplicate intents; toy/disaster controls unchanged; rendered ready/block/expired/crowd states. Reject camping-dominant contract before expanding it. |
-| M21.2 — Optional B experiment | Parcel controller, presenter, lobby/session | Single owner/fuse, miss/cover/late-transfer, no slot conflict; carrier departure, tiny usable area, Flood/collapse, two-player and crowd controls. Mode explicit before Start; default unchanged. |
+| M21.2 — Optional B experiment | Parcel controller, presenter, lobby/session | Hidden random server-only fuse, immediate-receipt detonation accepted, deterministic transfer/expiry ordering, one owner/burst, no timer disclosure or slot conflict; departure/tiny area/Flood/collapse controls. Mode explicit before Start; default unchanged. |
 | M21.3 — Conditional C feasibility then prototype | Town mechanisms/map/cover/weather | Two distinct actors, pin release, disconnect, activation clearance, expiry/support loss, real roof behavior and ordinary walk-only exits. No broad cover rewrite without a new design decision. |
 | M21.4 — Integrated regression and decision | Existing test runners + package workflow | Selected mechanics only; focused authority then real 2/4-client latency/loss, 8/20 stress, five rematches, both-map controls and full normal staged gate. Reject regressions; explicitly choose keep/rework/drop per candidate. |
 

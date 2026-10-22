@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-21",
+  "updated_at": "2026-10-22",
   "project": "Disaster Party",
   "source_of_truth": true,
   "workflow_state": "awaiting_next_scope",
@@ -60,13 +60,15 @@
     {
       "id": "phase_21_social_chaos",
       "status": "planned",
-      "approval": "awaiting_owner_selection; planning_only_authorized",
+      "approval": "bomb_direction_accepted_with_hidden_random_fuse_and_no_recipient_grace; other_candidates_await_selection; implementation_not_authorized",
       "checklist": "docs/checklists/phase-21-social-chaos-proposal.md",
       "candidates": ["A: Brace / Bluff", "B: optional Hot Potato variant", "C: conditional Buddy Bunker"],
-      "planning_evidence": "Three independent source audits and three cross-review assignments; parent verified shove, mechanism, cover, weather and route integration seams. No runtime or fun claims.",
+      "additional_candidates": ["U1: performance controls", "U2: toy clarity and acknowledgement", "U3: warning/audio priority", "U4: death explanation", "U5: controls/accessibility", "U6: room status/retry", "U7: Vietnamese/English UI"],
+      "bomb_contract": "Server-private random fuse sampled once; no countdown/timing cues/client deadline; no reroll on pass, final transfer embargo or recipient grace. Immediate detonation after receipt is accepted by owner.",
+      "planning_evidence": "Three independent source audits and three cross-review assignments plus UI/settings/room/audio/results source review. Existing features distinguished from gaps; no new runtime, rendered or fun claims.",
       "implementation_status": "not_started",
       "validation_status": "not_run"
     }
   ],
-  "next_action": "Obtain owner selection of the Phase21 Social Chaos proposal (recommend a bounded A prototype first); do not implement or release unapproved candidates or treat native performance as resolved."
+  "next_action": "Obtain owner priorities for the expanded gameplay/UI/UX proposal; preserve the accepted hidden-random bomb/no-grace contract and recommend U1/U2 for existing-game improvements. Do not implement or release unapproved scope or claim native performance resolved."
 }

@@ -8,8 +8,10 @@ No implementation phase is active. Owner-authorized Phase20 implementation,
 per-unit commits/pushes and final matching release/deployment are complete.
 The owner requested next-game ideas and agent cross-discussion; the resulting
 [Phase21 Social Chaos proposal](checklists/phase-21-social-chaos-proposal.md)
-contains three candidates, disagreements, keep/drop criteria and milestone gates.
-Planning is complete; mechanic selection/implementation are not approved or tested.
+contains three gameplay candidates plus seven UI/UX improvements, disagreements,
+keep/drop criteria and milestone gates. The owner accepts the bomb direction with
+a hidden random fuse and no recipient grace, including immediate receipt detonation.
+Other priorities await selection; implementation is not authorized or tested.
 Root progress remains idle with one proposed phase, not a new active phase.
 Native thermal/FPS/human acceptance remains unverified; magnet and rigid-crate
 relocation remain deferred for route safety. Earlier B/C UI/director proposals
