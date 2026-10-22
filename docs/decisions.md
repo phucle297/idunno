@@ -1,8 +1,20 @@
-# Active phase decisions
+# Phase21 — Hidden-fuse bomb decisions
 
-No active phase is authorized. Phase20 is complete and its decisions are
-[archived](old-docs/phase-20-toybox-sabotage/decisions.md), with matching
-[delivery evidence](old-docs/phase-20-toybox-sabotage/progress.json#delivery_followup).
+The owner removed every other proposed gameplay/UI/UX improvement and authorized
+implementing only the [bomb](checklists/phase-21-hidden-fuse-bomb.md).
 
-Root progress owns the current idle state. Existing user acceptance waiver,
-native thermal/FPS uncertainty and route-unsafe combo deferrals remain intact.
+The fuse is server-private and random, sampled once per collected parcel. No
+recipient grace, final transfer embargo or countdown: immediate explosion after
+receipt is an accepted random outcome, not a fairness bug. Presentation exposes
+the carrier/constant footprint, never fuse age. No direct HP damage; existing
+bounded impulse/protection and environmental death attribution remain authoritative.
+
+Use an independent controller and bounded public snapshot rather than embedding
+private fuse values in ToySabotage's public lifetime records. Hot Potato is an
+optional lobby preset using Normal disaster pacing, not a default-mode change.
+F picks up; left click throws only while carrying; personal toy slots are untouched.
+
+Phase20 [history](old-docs/phase-20-toybox-sabotage/progress.json) and deployed build
+remain unchanged. This task authorizes source implementation/verification and
+per-unit commit/push, not another public release/deployment. Existing native
+thermal/FPS uncertainty, waiver and route-unsafe combo deferrals remain intact.

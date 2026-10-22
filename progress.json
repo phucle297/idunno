@@ -3,7 +3,7 @@
   "updated_at": "2026-10-22",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "in_progress",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-20-toybox-sabotage/progress.json",
     "status": "completed",
@@ -18,8 +18,18 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_21_social_chaos", "milestone": "M21.0", "task": null},
+  "phase": {
+    "id": "phase_21_social_chaos",
+    "title": "Hidden-fuse bomb only",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-21-hidden-fuse-bomb.md",
+    "milestones": [
+      {"id": "M21.0", "title": "Narrowed bomb contract", "status": "completed", "gate": "passed"},
+      {"id": "M21.1", "title": "Authoritative playable bomb", "status": "in_progress", "gate": "not_run"},
+      {"id": "M21.2", "title": "Integrated verification and source delivery", "status": "planned", "gate": "not_run"}
+    ]
+  },
   "completed_phase": {
     "id": "phase_20_toybox_sabotage",
     "title": "Toybox sabotage and chain-reaction chaos",
@@ -43,8 +53,8 @@
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "validation": [],
-  "changed_files": [],
+  "validation": [{"scope": "M21.0", "result": "Source contracts inspected; all non-bomb proposals removed. Tracking JSON/links/diff checked before plan commit; no gameplay pass claimed."}],
+  "changed_files": ["progress.json", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-21-hidden-fuse-bomb.md"],
   "blockers": [],
   "limits": [
     "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
@@ -56,19 +66,6 @@
   ],
   "deferred_scope": ["Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established", "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"],
   "delivery_authorization": {"scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized", "release_pending": false},
-  "planned_phases": [
-    {
-      "id": "phase_21_social_chaos",
-      "status": "planned",
-      "approval": "bomb_direction_accepted_with_hidden_random_fuse_and_no_recipient_grace; other_candidates_await_selection; implementation_not_authorized",
-      "checklist": "docs/checklists/phase-21-social-chaos-proposal.md",
-      "candidates": ["A: Brace / Bluff", "B: optional Hot Potato variant", "C: conditional Buddy Bunker"],
-      "additional_candidates": ["U1: performance controls", "U2: toy clarity and acknowledgement", "U3: warning/audio priority", "U4: death explanation", "U5: controls/accessibility", "U6: room status/retry", "U7: Vietnamese/English UI"],
-      "bomb_contract": "Server-private random fuse sampled once; no countdown/timing cues/client deadline; no reroll on pass, final transfer embargo or recipient grace. Immediate detonation after receipt is accepted by owner.",
-      "planning_evidence": "Three independent source audits and three cross-review assignments plus UI/settings/room/audio/results source review. Existing features distinguished from gaps; no new runtime, rendered or fun claims.",
-      "implementation_status": "not_started",
-      "validation_status": "not_run"
-    }
-  ],
-  "next_action": "Obtain owner priorities for the expanded gameplay/UI/UX proposal; preserve the accepted hidden-random bomb/no-grace contract and recommend U1/U2 for existing-game improvements. Do not implement or release unapproved scope or claim native performance resolved."
+  "planned_phases": [],
+  "next_action": "Implement and verify M21.1 hidden-fuse bomb only; commit/push each verified unit, with no new public deployment."
 }

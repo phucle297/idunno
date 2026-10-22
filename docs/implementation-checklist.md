@@ -4,18 +4,13 @@
 
 ## Active and planned phases
 
-No implementation phase is active. Owner-authorized Phase20 implementation,
-per-unit commits/pushes and final matching release/deployment are complete.
-The owner requested next-game ideas and agent cross-discussion; the resulting
-[Phase21 Social Chaos proposal](checklists/phase-21-social-chaos-proposal.md)
-contains three gameplay candidates plus seven UI/UX improvements, disagreements,
-keep/drop criteria and milestone gates. The owner accepts the bomb direction with
-a hidden random fuse and no recipient grace, including immediate receipt detonation.
-Other priorities await selection; implementation is not authorized or tested.
-Root progress remains idle with one proposed phase, not a new active phase.
-Native thermal/FPS/human acceptance remains unverified; magnet and rigid-crate
-relocation remain deferred for route safety. Earlier B/C UI/director proposals
-(distinct from the new candidate letters) and packet-loss investigation remain deferred.
+[Phase21 — Hidden-fuse bomb](checklists/phase-21-hidden-fuse-bomb.md) is active.
+The owner removed all other Phase21 proposals and authorized implementing only the
+bomb: random server-private fuse, no countdown or recipient grace, immediate receipt
+detonation accepted. Normal/Hard remain unchanged; Hot Potato is optional multiplayer.
+Root progress owns implementation and validation state. Phase20 is deployed; a
+new release/deployment is not included in this request. Native thermal/FPS/human
+acceptance remains unverified under the existing waiver.
 
 ## Recently completed phases
 
