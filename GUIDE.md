@@ -1,6 +1,6 @@
 # Disaster Party Play Guide
 
-## Current release — Outfits, Original Music, Home and Choose Map
+## Current release — Hidden-Fuse Bomb / Hot Potato
 
 The game opens on fullscreen Home with the equipped character. **PLAY SOLO**
 opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor and
@@ -11,13 +11,17 @@ require acknowledged ownership in a profile-enabled room. `--solo` explicitly
 starts an offline round for automation. Jump/fall poses are held and stopping no
 longer blends the face as an affine transform. These Phase14 fixes are included.
 
-2026-10-19: **Phase18 Outfits and Original Music is deployed and published** from
-[741ae34](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341).
-Download `DisasterParty-Windows-Internet-741ae34.zip` from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-19-741ae34);
+2026-10-22: **Phase21 Hidden-Fuse Bomb is deployed and published** from
+[6065310](https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0).
+Download `DisasterParty-Windows-Internet-6065310.zip` from the
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310);
 root [progress.json](progress.json) records current hashes, public smoke and
-[successful deployment](https://github.com/phucle297/idunno/actions/runs/39184818543).
-Outfit cards now receive clicks correctly; offline Equip does not wait on profile
+[successful deployment](https://github.com/phucle297/idunno/actions/runs/39727391218).
+Hot Potato is an optional multiplayer mode with a server-private random fuse,
+no countdown/reset or recipient grace. F picks up; left click passes. Returning
+to solo normalizes this multiplayer-only mode to Normal. The16 Phase20 toys and
+earlier optimization/weather work are included; native heat/FPS is not claimed fixed.
+Outfit cards receive clicks correctly; offline Equip does not wait on profile
 HTTP. Chef, Firefighter, Sailor and Pilot are free starters. Original menu/gameplay
 music loops crossfade, duck under warnings and have persisted **Music Volume** in
 Settings (0% mutes music only). Twelve total outfits; cosmetics give no stat bonuses.
@@ -28,7 +32,7 @@ and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
 This is an unsigned Windows x86_64 playtest prototype, not a Steam release.
 Players use the packaged executable; no Godot editor or repository checkout is
 needed. Home offers solo preparation or dedicated-room create/join by ID;
-`https://server.permees.com` is built in. Extract the matching Phase18 bundle and run
+`https://server.permees.com` is built in. Extract the matching Phase21 bundle and run
 `DisasterParty.exe`; older bundles, including the historical
 [Weather and Rockslides Playtest](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-14-c0a7800),
 are incompatible. Public two-client exact-PCK
@@ -273,7 +277,7 @@ disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
 chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy
 controls require keyboard/mouse; no new gamepad/touch mapping is claimed.
 
-### Hot Potato — source builds only, not in the current public release
+### Hot Potato — optional multiplayer mode in the current release
 
 In the multiplayer room, the owner can select **Hot Potato (2+)** under Match
 Mode. Everyone readies again after entering/leaving this variant. It uses Normal
@@ -291,7 +295,9 @@ with the existing bounded recovery protection; it does not directly remove HP.
 Falls and disasters can still kill. Death/departure drops onto real safe support
 with the same fuse, or clears the parcel if unsupported/submerged. New parcels
 stop spawning when little safe terrain remains. Lobby/results/rematch clear all
-bomb state. This source addition has not replaced the deployed Phase20 build.
+bomb state. The matching Phase21 client/server passed public two-client pickup,
+pass/receive,natural-fuse burst and replicated-impulse checks. Windows contains
+the byte-exact deployed PCK; native Windows and human balance remain unverified.
 
 When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
 

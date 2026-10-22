@@ -50,19 +50,19 @@
     "title": "Hidden-fuse bomb only",
     "status": "completed",
     "archive": "docs/old-docs/phase-21-hidden-fuse-bomb/progress.json",
-    "acceptance_scope": "Bomb-only source implementation and normal regression/source-push gates passed; not publicly released/deployed. Native and human acceptance remain unverified."
+    "acceptance_scope": "Bomb-only source and normal regression gates passed; owner-authorized exact-head deployment and matching prerelease verified in delivery-2026-10-22.json. Native and human acceptance remain unverified."
   },
   "public_delivery": {
-    "revision_url": "https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650",
-    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39626771256",
+    "revision_url": "https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39727391218",
     "endpoint": "https://server.permees.com",
-    "evidence": "docs/old-docs/phase-20-toybox-sabotage/progress.json#delivery_followup",
+    "evidence": "docs/old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json",
     "pushed": true,
     "deployed": true,
     "released": true,
-    "windows_sha256": "162b5f6d00cef01269c482b0e2350f187ada62bbfa3ba507ad5b727d3df522eb",
-    "linux_sha256": "6d24198d16d41a877828e58fcb6d70216a29db82111ab24c0c1b72ecbf6833b8"
+    "windows_sha256": "ba45ec254f16a92f1ec6e70e5d02b0f7947278742e74073c6a8edccb91afc192",
+    "linux_sha256": "4a7672d335c174dea47390f4bbcedce01a93b3135ed32971f09d96d02d36e9f2"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -84,16 +84,16 @@
     "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"
   ],
   "delivery_authorization": {
-    "scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized",
+    "scope": "Owner-authorized Phase21 release/deployment fulfilled; no infrastructure/capacity or public persistence changes authorized or performed",
     "release_pending": false
   },
   "source_delivery": {
     "implementation": "https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2",
     "pushed": true,
-    "public_release_changed": false,
+    "public_release_changed": true,
     "solo_followup": "https://github.com/phucle297/idunno/commit/469ea77d4579af5d1c2076010ab04fe3636dfb37",
     "verification": "Both source commits passed normal hooks and are pushed. Follow-up gate:56 affected roots,33 startup checks,8 selected network/managed drivers,settings restart,PRE_COMMIT_OK staged_tree=aaa4a110f8520fe2cbeae4c4cc48b283fb87bb7e. Log .scratch/phase21-solo-commit.log. Scratch measurement/render fixture scripts removed after validation; logs and inspected artifacts retained."
   },
   "planned_phases": [],
-  "next_action": "Await the owner’s next scope or separate authorization to release/deploy the verified bomb source."
+  "next_action": "Await the owner’s next scope; verified Phase21 prerelease and public deployment are complete."
 }

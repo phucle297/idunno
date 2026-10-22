@@ -21,7 +21,25 @@ GPU/Windows/nhiệt thật và diagnostic matrix mở rộng vẫn chưa hoàn t
 Source checkpoint khi đó chưa release/deploy; các tối ưu nay có trong Phase20
 bên dưới, nhưng không tuyên bố đã sửa hết triệu chứng máy owner.
 
-**Bản public hiện tại — Phase20 Toybox Chaos (2026-10-21):**
+**Bản public hiện tại — Phase21 Hidden-Fuse Bomb (2026-10-22):**
+[Source](https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0),
+[deploy thành công](https://github.com/phucle297/idunno/actions/runs/39727391218),
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310).
+Tải `DisasterParty-Windows-Internet-6065310.zip`,giải nén hết,chạy EXE cạnh PCK;
+tất cả người chơi cần cùng bản khi vào https://server.permees.com.
+Trong room chọn Hot Potato (2+),Ready lại,F nhặt bom,chuột trái chuyền.
+Fuse ngẫu nhiên chỉ server giữ,không countdown/reset/grace;nhận xong nổ ngay là
+chủ ý. Nổ tạo lực đẩy,không trừ HP trực tiếp. Normal/Hard và16 toys cũ giữ nguyên.
+Exact deployed-PCK104bom/20presentation/33menu,standalone Linux và public2client
+trang phục/Ready/Start/di chuyển/nhặt/chuyền/nhận/nổ tự nhiên/impulse/100HP đều pass.
+Windows có PCK trùng byte server;asset đã tải lại,hash/byte/tag khớp.
+[Delivery evidence](docs/old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json)
+và [source regression](docs/old-docs/phase-21-hidden-fuse-bomb/progress.json).
+Ảnh Choose Map của CI-PCK đã xem;hai client cùng orb/upstream,không thay thế
+Windows/GPU/loa/nhiệt/FPS/hai mạng riêng hoặc cảm nhận chơi thật. Giữ waiver,
+không thêm checklist bắt buộc. Public profile store vẫn tắt;không thay đổi infra.
+
+**Bản public trước — Phase20 Toybox Chaos (2026-10-21):**
 [Source](https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39626771256),
 [prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650).
@@ -41,7 +59,7 @@ góc dưới phải trong ảnh khô;chưa xác định nguyên nhân,không coi
 Magnet/crate relocation vẫn hoãn vì chưa chứng minh an toàn đường thoát;
 public profile store vẫn tắt. Các bản dưới đây là lịch sử,không phải public mới.
 
-**Source Phase21 — bom giấu thời gian (2026-10-22, chưa release/deploy):**
+**Source checkpoint Phase21 — trước lần release/deploy bên trên (2026-10-22):**
 [Bom](https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2)
 và [sửa chuyển multiplayer → solo](https://github.com/phucle297/idunno/commit/469ea77d4579af5d1c2076010ab04fe3636dfb37)
 đã commit/push, giữ nguyên public Phase20 phía trên. Hot Potato là chế độ2+ người;

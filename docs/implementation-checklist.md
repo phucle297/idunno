@@ -5,8 +5,8 @@
 ## Active and planned phases
 
 None. Bomb-only source work is complete. Root progress owns the next action;
-rejected proposals are not backlogged or implicitly reopened. Phase20 remains
-public; Phase21 has not been released/deployed. Native thermal/FPS/human
+rejected proposals are not backlogged or implicitly reopened. Phase21 is now
+released/deployed after separate owner authorization. Native thermal/FPS/human
 acceptance remains unverified under the existing waiver.
 
 ## Recently completed phases
@@ -16,8 +16,12 @@ acceptance remains unverified under the existing waiver.
   or recipient grace, bounded impulse and pooled presentation. Full65 Godot suites,
   9 matrices,20 managed clients and46 Python tests passed; both-map2/4/8/20 bomb
   checks and5 rematches, inspected720p/1080p states, reproduced/fixed solo-mode
-  leakage and independent56-root follow-up hook passed. Source committed/pushed,
-  not publicly released/deployed; [full evidence](old-docs/phase-21-hidden-fuse-bomb/progress.json).
+  leakage and independent56-root follow-up hook passed. Source committed/pushed;
+  [matching prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310)
+  deployed/published. Exact CI-PCK104/20/33,standalone Linux,public2client
+  pickup/pass/natural-burst/impulse and asset re-download byte/hash/tag checks pass.
+  [Source evidence](old-docs/phase-21-hidden-fuse-bomb/progress.json) ·
+  [Delivery follow-up](old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json).
 
 - [Phase20 — Toybox sabotage](old-docs/phase-20-toybox-sabotage/checklist.md)
   —16 bounded server-authoritative toys,water/rain soap wash,fan drift,Flood/support

@@ -2,12 +2,16 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-21: **Phase20 Toybox Chaos is deployed and published** at
-`https://server.permees.com` from [4279650](https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad).
+2026-10-22: **Phase21 Hidden-Fuse Bomb is deployed and published** at
+`https://server.permees.com` from [6065310](https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0).
 Download the matching Windows ZIP from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39626771256), final63-suite/46-Python
-regression and public two-client exact-PCK smoke pass. Old clients are incompatible.
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39727391218),65-suite/46-Python
+source regression and public two-client exact-PCK bomb smoke pass. Old clients are incompatible.
+Optional **Hot Potato (2+)** uses one server-private random fuse with no countdown,
+pass reset or recipient grace. F picks up;left click passes. Natural burst and
+replicated bounded impulse/100HP were checked on public;the Windows PCK is byte-exact
+with the deployed server. Returning to solo clears multiplayer-only bomb rules.
 Includes16 server-authoritative sabotage toys,water/rain soap washing,fan shot drift,
 Flood/support cleanup and shrink-aware admission. F takes/swaps;left click uses.
 Bounded effects and shared recovery protection preserve survival/counterplay.
@@ -17,8 +21,9 @@ four free costumes and two original menu/gameplay loops remain. Continuous roof-
 weather and rotating Town mechanisms, independent Home/Choose Map, Speed/Jump drops
 and the enlarged furnished Toy Town remain included.
 Package hashes/delivery evidence are in root [progress.json](progress.json);
-the [Phase20 archive](docs/old-docs/phase-20-toybox-sabotage/progress.json)
-preserves full validation and limits. Public profile storage remains disabled; local
+the [Phase21 source archive](docs/old-docs/phase-21-hidden-fuse-bomb/progress.json)
+and [delivery follow-up](docs/old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json)
+preserve full validation and limits. Public profile storage remains disabled; local
 profile-enabled package validation is not a public persistence claim.
 Earlier delivery statements below describe historical snapshots.
 
