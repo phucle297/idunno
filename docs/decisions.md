@@ -22,6 +22,12 @@ The fixed public wire is29 bytes (52 added bytes in the full Main dictionary);
 private fuse/RNG never share the personal-toy lifetime serializer. All new
 presentation geometry is shadow-free and pooled (972 triangles, two audio voices).
 
+Entering solo Choose Map normalizes a previously selected Hot Potato preset to
+Normal. Otherwise multiplayer-only rules survive invisibly with no selected solo
+mode. The regression reproduces the failed selected-mode assertion before this
+correction and passes33 startup checks afterward; the rendered Normal checkmark
+and summary were inspected. Normal/Hard solo choices are preserved.
+
 Phase20 [history](old-docs/phase-20-toybox-sabotage/progress.json) and deployed build
 remain unchanged. This task authorizes source implementation/verification and
 per-unit commit/push, not another public release/deployment. Existing native

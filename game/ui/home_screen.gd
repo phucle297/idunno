@@ -179,6 +179,8 @@ func _build_maps() -> void:
 
 func show_page(value: String) -> void:
 	page = value
+	if page == "maps" and _main.get_match_preset() == "hot_potato":
+		_main.request_match_preset("normal") # Multiplayer-only rules cannot remain as a hidden solo selection.
 	refresh()
 	if is_instance_valid(_main.room_client):
 		_main._update_lobby_ui()

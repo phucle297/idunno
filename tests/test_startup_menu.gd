@@ -57,10 +57,12 @@ func _run() -> void:
 	main.home_screen.multiplayer_button.pressed.emit()
 	_expect(panel.visible and not main.home_screen.visible, "Multiplayer opens the real create/join room flow")
 	await _capture("multiplayer")
+	_expect(main.request_match_preset("hot_potato"), "Room can select the multiplayer bomb variant")
 	panel.get_node("Close").pressed.emit()
 	_expect(main.home_screen.visible and main.home_screen.page == "home", "Closing offline room returns to Home")
 	main.home_screen.solo.pressed.emit()
 	_expect(main.home_screen.page == "maps" and main.home_screen.maps.visible, "Play Solo opens a separate Choose Map page without starting")
+	_expect(main.get_match_preset() == "normal" and main.home_screen.mode_buttons[0].text.begins_with("✓"), "Solo preparation clears multiplayer-only bomb rules and shows a real selected mode")
 	frozen = stage.elapsed
 	await create_timer(0.08).timeout
 	_expect(stage.elapsed == frozen and main.home_screen.preview_viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED, "Choose Map stops hidden Home animation and rendering")
