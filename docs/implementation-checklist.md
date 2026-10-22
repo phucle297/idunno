@@ -4,10 +4,10 @@
 
 ## Active and planned phases
 
-None. Bomb-only source work is complete. Root progress owns the next action;
-rejected proposals are not backlogged or implicitly reopened. Phase21 is now
-released/deployed after separate owner authorization. Native thermal/FPS/human
-acceptance remains unverified under the existing waiver.
+- [Phase22 — Start-time map loading and app hardening](checklists/phase-22-start-time-map-loading.md).
+  Metadata-only selection, explicit Start loading, multiplayer load barrier, then
+  parallel app review and measured fixes/refactors. Root progress owns execution.
+  Public Phase21 remains unchanged; native thermal/FPS acceptance is unverified.
 
 ## Recently completed phases
 

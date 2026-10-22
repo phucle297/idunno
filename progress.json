@@ -3,7 +3,7 @@
   "updated_at": "2026-10-22",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "in_progress",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-21-hidden-fuse-bomb/progress.json",
     "status": "completed",
@@ -40,11 +40,21 @@
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
   "current": {
-    "phase": null,
-    "milestone": null,
+    "phase": "phase_22_start_time_map_loading",
+    "milestone": "M22.1",
     "task": null
   },
-  "phase": null,
+  "phase": {
+    "id": "phase_22_start_time_map_loading",
+    "title": "Start-time map loading and evidence-led app hardening",
+    "status": "in_progress",
+    "checklist": "docs/checklists/phase-22-start-time-map-loading.md",
+    "milestones": [
+      {"id": "M22.1", "title": "Metadata-only map selection and explicit Start loading", "status": "in_progress", "gate": "not_run"},
+      {"id": "M22.2", "title": "Multiplayer loading barrier and lifecycle controls", "status": "planned", "gate": "not_run"},
+      {"id": "M22.3", "title": "Parallel whole-app audit, focused fixes and full regression", "status": "planned", "gate": "not_run"}
+    ]
+  },
   "completed_phase": {
     "id": "phase_21_social_chaos",
     "title": "Hidden-fuse bomb only",
@@ -68,7 +78,14 @@
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "validation": [],
+  "validation": [
+    {
+      "scope": "Map-selection stall investigation",
+      "command": "godot --headless --path . --script res://.scratch/map_switch_profile.gd",
+      "result": "Reproduced with production request_map_change before gameplay edits: Harbor selection blocks73.05–134.46ms;Town blocks2059.17–2172.41ms and constructs9495 descendant nodes. Town construction accounts for2056.08–2170.16ms;warm cached box meshes only16.76–17.36ms and paving11.53–11.97ms. Cache-only optimization would not remove the main stall. Startup also builds Town before Home. Owner clarified that selection must remain metadata-only and gameplay geometry should load at Start. No production fix implemented or deployed by this investigation. Orb headless timings are not native Windows/GPU measurements.",
+      "log": ".scratch/map-switch-before.log"
+    }
+  ],
   "changed_files": [],
   "blockers": [],
   "limits": [
@@ -95,5 +112,5 @@
     "verification": "Both source commits passed normal hooks and are pushed. Follow-up gate:56 affected roots,33 startup checks,8 selected network/managed drivers,settings restart,PRE_COMMIT_OK staged_tree=aaa4a110f8520fe2cbeae4c4cc48b283fb87bb7e. Log .scratch/phase21-solo-commit.log. Scratch measurement/render fixture scripts removed after validation; logs and inspected artifacts retained."
   },
   "planned_phases": [],
-  "next_action": "Await the owner’s next scope; verified Phase21 prerelease and public deployment are complete."
+  "next_action": "Implement metadata-only Home/lobby map selection and explicit gameplay-map preparation at Start; preserve existing map content and the public deployment."
 }
