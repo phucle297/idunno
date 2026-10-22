@@ -53,7 +53,16 @@ DESIGN.md remains authoritative except for the explicit hidden-timing rule below
 - [x] Both-map, 2/4/8/20-player controls and bounded snapshot/performance evidence.
 - [x] Render and inspect ground, held, throw, burst and lobby selection states,
   reduced motion and 720p/1080p where relevant. No timer-visible presentation.
-- [ ] Run normal staged regression, inspect diff, record evidence; commit/push.
+- [x] Run normal staged regression, inspect diff, record evidence; commit/push.
+
+Source delivery: [bomb implementation](https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2)
+and [solo-selection correction](https://github.com/phucle297/idunno/commit/469ea77d4579af5d1c2076010ab04fe3636dfb37)
+are pushed with deployment skipped. Full normal hook passed65 Godot suites,
+9 network matrices,20 managed clients,settings restart and46 Python tests.
+The correction independently passed its normal56 affected-test gate,including
+both-map4/8/20 bomb replication,5 rematches and33 startup assertions. The solo
+regression failed without the fix and passed afterward; actual Choose Map render
+was inspected. Native hardware/audio/human acceptance is not inferred.
 
 Implementation is authorized; a new public release/deployment is not part of this
 request. Preserve the existing public build until separately authorized. Native

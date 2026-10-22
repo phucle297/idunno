@@ -4,15 +4,20 @@
 
 ## Active and planned phases
 
-[Phase21 — Hidden-fuse bomb](checklists/phase-21-hidden-fuse-bomb.md) is active.
-The owner removed all other Phase21 proposals and authorized implementing only the
-bomb: random server-private fuse, no countdown or recipient grace, immediate receipt
-detonation accepted. Normal/Hard remain unchanged; Hot Potato is optional multiplayer.
-Root progress owns implementation and validation state. Phase20 is deployed; a
-new release/deployment is not included in this request. Native thermal/FPS/human
+None. Bomb-only source work is complete. Root progress owns the next action;
+rejected proposals are not backlogged or implicitly reopened. Phase20 remains
+public; Phase21 has not been released/deployed. Native thermal/FPS/human
 acceptance remains unverified under the existing waiver.
 
 ## Recently completed phases
+
+- [Phase21 — Hidden-fuse bomb](old-docs/phase-21-hidden-fuse-bomb/checklist.md)
+  — optional multiplayer Hot Potato, private random fuse without countdown/reset
+  or recipient grace, bounded impulse and pooled presentation. Full65 Godot suites,
+  9 matrices,20 managed clients and46 Python tests passed; both-map2/4/8/20 bomb
+  checks and5 rematches, inspected720p/1080p states, reproduced/fixed solo-mode
+  leakage and independent56-root follow-up hook passed. Source committed/pushed,
+  not publicly released/deployed; [full evidence](old-docs/phase-21-hidden-fuse-bomb/progress.json).
 
 - [Phase20 — Toybox sabotage](old-docs/phase-20-toybox-sabotage/checklist.md)
   —16 bounded server-authoritative toys,water/rain soap wash,fan drift,Flood/support

@@ -41,6 +41,17 @@ góc dưới phải trong ảnh khô;chưa xác định nguyên nhân,không coi
 Magnet/crate relocation vẫn hoãn vì chưa chứng minh an toàn đường thoát;
 public profile store vẫn tắt. Các bản dưới đây là lịch sử,không phải public mới.
 
+**Source Phase21 — bom giấu thời gian (2026-10-22, chưa release/deploy):**
+[Bom](https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2)
+và [sửa chuyển multiplayer → solo](https://github.com/phucle297/idunno/commit/469ea77d4579af5d1c2076010ab04fe3636dfb37)
+đã commit/push, giữ nguyên public Phase20 phía trên. Hot Potato là chế độ2+ người;
+F nhặt,chuột trái chuyền;thời gian ngẫu nhiên chỉ server giữ,không countdown,
+không reset khi chuyền và chấp nhận nhận xong nổ ngay. Full65 suite/9 matrix/
+managed20/46 Python và hook56 affected roots cho bản sửa solo đều pass;ảnh hai
+map720p/1080p đã xem. [Evidence](docs/old-docs/phase-21-hidden-fuse-bomb/progress.json).
+Không suy thành kiểm chứng Windows/GPU/loa/nhiệt/FPS hoặc cảm nhận chơi thật;
+không thêm checklist bắt buộc và không áp kết quả này cho public cũ.
+
 **Bản public trước — Phase18 Outfits và Original Music (2026-10-19):**
 [Source](https://github.com/phucle297/idunno/commit/741ae3420da5b4c98c6d24b19344ffd5fbe6c341),
 [deploy thành công](https://github.com/phucle297/idunno/actions/runs/39184818543),

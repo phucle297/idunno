@@ -1,0 +1,218 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-22",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "workflow_state": "completed",
+  "previous_phase_archive": {
+    "path": "docs/old-docs/phase-20-toybox-sabotage/progress.json",
+    "status": "completed",
+    "source_of_truth": false
+  },
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_21_social_chaos",
+    "milestone": "M21.2",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_21_social_chaos",
+    "title": "Hidden-fuse bomb only",
+    "status": "completed",
+    "checklist": "docs/checklists/phase-21-hidden-fuse-bomb.md",
+    "milestones": [
+      {
+        "id": "M21.0",
+        "title": "Narrowed bomb contract",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M21.1",
+        "title": "Authoritative playable bomb",
+        "status": "completed",
+        "gate": "passed"
+      },
+      {
+        "id": "M21.2",
+        "title": "Integrated verification and source delivery",
+        "status": "completed",
+        "gate": "passed"
+      }
+    ]
+  },
+  "completed_phase": {
+    "id": "phase_20_toybox_sabotage",
+    "title": "Toybox sabotage and chain-reaction chaos",
+    "status": "completed",
+    "archive": "docs/old-docs/phase-20-toybox-sabotage/progress.json",
+    "acceptance_scope": "All four agent-owned milestones and authorized public delivery complete. Sixteen bounded toys and approved weather chains shipped; native thermal/FPS/human acceptance remains unverified,not waived into passes."
+  },
+  "public_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/42796509f2d353541a2bd2e232e417b98163b6ad",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-21-4279650",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39626771256",
+    "endpoint": "https://server.permees.com",
+    "evidence": "docs/old-docs/phase-20-toybox-sabotage/progress.json#delivery_followup",
+    "pushed": true,
+    "deployed": true,
+    "released": true,
+    "windows_sha256": "162b5f6d00cef01269c482b0e2350f187ada62bbfa3ba507ad5b727d3df522eb",
+    "linux_sha256": "6d24198d16d41a877828e58fcb6d70216a29db82111ab24c0c1b72ecbf6833b8"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
+  },
+  "validation": [
+    {
+      "scope": "M21.0",
+      "result": "Bomb-only plan validated, committed/pushed before implementation: https://github.com/phucle297/idunno/commit/c12ca8b. Other proposals removed."
+    },
+    {
+      "scope": "M21.1",
+      "command": "godot --headless --editor --path . --quit; godot --headless --path . --script res://tests/test_hot_potato.gd; godot --headless --path . --script res://tests/test_hot_potato_visuals.gd",
+      "result": "passed: HOT_POTATO_OK checks=104 maps=2 private_wire_bytes=29; HOT_POTATO_VISUALS_OK checks=20. Same-tick receive/burst, no fuse reset/public bytes, real sweep/cover, bounded shared impulse/no direct HP, malformed/duplicate/old-round, support/void/departure/reset, server personal-action guard and Ready reset covered. Cached tones/2 voices/bounded64 cue history; no headless audio suppression. Initial visual fixture printed success then incorrectly fell through to quit(1); fixed its exit path, not attributed to the engine. Three final verbose clean exits after audio teardown. Earlier failed logs retained.",
+      "logs": [
+        ".scratch/phase21-import-r3.log",
+        ".scratch/phase21-test_hot_potato-final2.log",
+        ".scratch/phase21-audio-clean-final-1.log",
+        ".scratch/phase21-audio-clean-final-2.log",
+        ".scratch/phase21-audio-clean-final-3.log"
+      ]
+    },
+    {
+      "scope": "M21.2 real ENet",
+      "command": "tests/run_hot_potato_network_test.sh",
+      "result": "passed: both maps2/4/8/20 players, real remote pickup/pass/receive/burst Main snapshots and5 rematches, supported departure drop/void cancellation. Parent strengthened client observation to require the actual replicated shared impulse sequence and unchanged100HP; both-map2-player rerun passed, larger rows repeat in normal staged gate. Existing shutdown-only ObjectDB/resources in some network rows remain separately recorded.",
+      "logs": [
+        ".scratch/hot-potato-enet",
+        ".scratch/phase21-enet-strengthened-2.log"
+      ]
+    },
+    {
+      "scope": "M21.2 render",
+      "command": "xvfb-run godot --rendering-method gl_compatibility --audio-driver Dummy --script res://.scratch/phase21_bomb_capture.gd",
+      "result": "passed:20 actual rendered states across both maps720p/1080p: lobby,ground,held,flight,burst; reduced motion at1080. All final four state contact sheets and lobby selection inspected. Initial review camera was obstructed by map awning/tree; corrected fixture to real authored roadside pads with clear sightlines. Lifted carry/flight labels above avatars after inspection; final labels visible without overlap, no fuse timer. Final render exits cleanly apart from driver V-Sync warning. Native GPU/audio/human feel not claimed.",
+      "log": ".scratch/phase21-render-reviewed.log",
+      "artifacts": [
+        ".amp/in/artifacts/phase21-bomb/toy_town-spaced-720p.jpg",
+        ".amp/in/artifacts/phase21-bomb/toy_town-spaced-1080p.jpg",
+        ".amp/in/artifacts/phase21-bomb/toy_harbor-spaced-720p.jpg",
+        ".amp/in/artifacts/phase21-bomb/toy_harbor-spaced-1080p.jpg",
+        ".amp/in/artifacts/phase21-bomb/lobby-final.jpg"
+      ]
+    },
+    {
+      "scope": "M21.2 bounded overhead",
+      "result": "Executed104-check Main fixture measures29-byte bomb wire/52 added serialized dictionary bytes/0 new rigidbodies on both maps. Procedural asset measurement:972 triangles across parcel/carry ring/burst pools,12 stable descendants through10000 presentation calls,2 voices, shadows disabled; isolated headless presentation mean4.09us on this orb, not whole-game frame time or native headroom.",
+      "log": ".scratch/phase21-asset-measure-final.log"
+    },
+    {
+      "scope": "M21.2 focused controls",
+      "result": "ROOM_UI_OK checks=85 (existing shutdown diagnostics separately retained), SESSION_LIFECYCLE_OK checks=51, TOY_SABOTAGE_OK checks=345, Python changed-test selection5 pass; JSON/shell syntax/diff checks pass. Normal staged regression is next, not yet claimed passed."
+    },
+    {
+      "scope": "M21.2 solo selection regression",
+      "command": "godot --headless --path . --script res://tests/test_startup_menu.gd",
+      "result": "Reproduced before correction: selecting Hot Potato in multiplayer, closing the panel and entering Play Solo retained the hidden multiplayer preset and failed the selected-mode assertion. Restored correction to normalize only Hot Potato when entering solo maps: STARTUP_MENU_OK checks=33. Rendered same scenario and inspected Choose Map: Normal checkmark and Toy Town / Normal summary agree; no Hot Potato option or clipped controls. Follow-up normal staged gate remains pending.",
+      "logs": [
+        ".scratch/phase21-solo-before.log",
+        ".scratch/phase21-solo-after.log",
+        ".scratch/phase21-solo-render.log"
+      ],
+      "artifact": ".amp/in/artifacts/phase21-solo/choose-map.png"
+    },
+    {
+      "scope": "M21.2 full staged source gate",
+      "command": "git commit (normal tools/test_changed.py hook)",
+      "result": "passed: UI_REGRESSION_OK suites=65 matrices=9 managed_clients=20 persistence_restart=passed; all46 Python tests pass. Strengthened Hot Potato network matrix4/8/20 on both maps passes actual replicated impulse/100HP checks and5 rematches. PRE_COMMIT_OK staged_tree=b7be4358e6fce91f1057ccc0075c413313c38691. Source committed and pushed; solo follow-up has its own pending staged gate. Existing shutdown-only resource diagnostics remain distinct from runtime failures.",
+      "log": ".scratch/phase21-source-commit.log",
+      "commit": "https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2"
+    }
+  ],
+  "changed_files": [
+    "progress.json",
+    "docs/decisions.md",
+    "docs/implementation-checklist.md",
+    "docs/checklists/phase-21-hidden-fuse-bomb.md",
+    "game/main.gd",
+    "game/session/hot_potato.gd",
+    "game/session/hot_potato_visuals.gd",
+    "game/session/toy_sabotage.gd",
+    "tests/test_hot_potato.gd",
+    "tests/test_hot_potato_visuals.gd",
+    "tests/hot_potato_network_peer.gd",
+    "tests/run_hot_potato_network_test.sh",
+    "tests/run_ui_regression.sh",
+    "tools/test_changed.py",
+    "tests/test_room_ui.gd",
+    "tests/test_session_lifecycle.gd",
+    "assets/manifest.json",
+    "GUIDE.md",
+    "game/ui/home_screen.gd",
+    "tests/test_startup_menu.gd"
+  ],
+  "blockers": [],
+  "limits": [
+    "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
+    "Orb software render is far below60FPS. Incremental draw/CPU/IPv4 budgets are not native headroom or production capacity.",
+    "Separate-device/network and reconciliation-distance/transport-loss acceptance remain unverified; earlier intermittent packet-loss investigation remains deferred.",
+    "Public profile storage remains disabled. Local persistence tests are not public persistence acceptance.",
+    "Known shutdown-only ObjectDB/resources remain; no blanket clean-shutdown claim. Editor-engine/exact-PCK results are not unchanged standalone throughput.",
+    "Minor lower-right plaza pavement seam artifacts observed in final dry renders;cause not diagnosed or claimed fixed."
+  ],
+  "deferred_scope": [
+    "Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established",
+    "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"
+  ],
+  "delivery_authorization": {
+    "scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized",
+    "release_pending": false
+  },
+  "source_delivery": {
+    "implementation": "https://github.com/phucle297/idunno/commit/cce0b84ec8193d183787a052c408ef3afd59d1e2",
+    "pushed": true,
+    "public_release_changed": false,
+    "solo_followup": "https://github.com/phucle297/idunno/commit/469ea77d4579af5d1c2076010ab04fe3636dfb37",
+    "verification": "Both source commits passed normal hooks and are pushed. Follow-up gate:56 affected roots,33 startup checks,8 selected network/managed drivers,settings restart,PRE_COMMIT_OK staged_tree=aaa4a110f8520fe2cbeae4c4cc48b283fb87bb7e. Log .scratch/phase21-solo-commit.log. Scratch measurement/render fixture scripts removed after validation; logs and inspected artifacts retained."
+  },
+  "planned_phases": [],
+  "next_action": "Await new owner scope; source delivery completed without public release/deployment.",
+  "archive": {
+    "phase_id": "phase_21_social_chaos",
+    "title": "Hidden-fuse bomb only",
+    "status": "completed",
+    "archived_at": "2026-10-22T05:13:50Z",
+    "superseded_by": "../../../progress.json"
+  }
+}
