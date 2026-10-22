@@ -31,6 +31,7 @@ var anchor_is_valid: Callable
 var collection_is_clear: Callable
 var usable_area_fraction: Callable
 var ground_is_visible: Callable
+var action_is_blocked: Callable
 var round_sequence := 0
 var pickups: Array[Dictionary] = []
 var slots: Dictionary = {}
@@ -151,6 +152,8 @@ func tick(delta: float, seed_value: int) -> void:
 func request_pickup(peer_id: int, round: int, sequence: int) -> bool:
 	if not _can_mutate() or not _eligible(peer_id) or not _accept_sequence(peer_id, round, sequence):
 		return false
+	if action_is_blocked.is_valid() and bool(action_is_blocked.call(peer_id)):
+		return false
 	var actor := _players.get(peer_id) as PartyPlayer
 	var winner := -1
 	var closest := INF
@@ -171,6 +174,8 @@ func request_pickup(peer_id: int, round: int, sequence: int) -> bool:
 
 func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) -> bool:
 	if not _can_mutate() or not _eligible(peer_id) or not _accept_sequence(peer_id, round, sequence):
+		return false
+	if action_is_blocked.is_valid() and bool(action_is_blocked.call(peer_id)):
 		return false
 	if _manager.elapsed_time < OPENING_PROTECTION:
 		return _feedback(peer_id, "protected")
@@ -871,6 +876,16 @@ func _blast(effect: Dictionary) -> void:
 		if offset.length() <= BLAST_RADIUS and _world_clear(effect.position, victim.global_position + Vector3.UP * 0.75, int(effect.owner)):
 			hit_any = _impulse(int(effect.owner), peer_id, offset, 4.5) or hit_any
 	_outcome("hit" if hit_any else "miss", effect.position, effect.direction, int(effect.owner))
+
+
+## The global parcel shares the same sweep, per-victim sequence and protection
+## as personal toys; a second sequence producer would drop valid future hits.
+func sweep_parcel(owner: int, from: Vector3, to: Vector3) -> Dictionary:
+	return _sweep({"owner": owner}, from, to, 0.16, false)
+
+
+func apply_parcel_impulse(owner: int, victim: int, direction: Vector3) -> bool:
+	return _impulse(owner, victim, direction, 4.5)
 
 
 func _impulse(owner: int, victim: int, direction: Vector3, strength: float) -> bool:

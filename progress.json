@@ -18,7 +18,7 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": "phase_21_social_chaos", "milestone": "M21.0", "task": null},
+  "current": {"phase": "phase_21_social_chaos", "milestone": "M21.2", "task": null},
   "phase": {
     "id": "phase_21_social_chaos",
     "title": "Hidden-fuse bomb only",
@@ -26,8 +26,8 @@
     "checklist": "docs/checklists/phase-21-hidden-fuse-bomb.md",
     "milestones": [
       {"id": "M21.0", "title": "Narrowed bomb contract", "status": "completed", "gate": "passed"},
-      {"id": "M21.1", "title": "Authoritative playable bomb", "status": "in_progress", "gate": "not_run"},
-      {"id": "M21.2", "title": "Integrated verification and source delivery", "status": "planned", "gate": "not_run"}
+      {"id": "M21.1", "title": "Authoritative playable bomb", "status": "completed", "gate": "passed"},
+      {"id": "M21.2", "title": "Integrated verification and source delivery", "status": "in_progress", "gate": "not_run"}
     ]
   },
   "completed_phase": {
@@ -53,8 +53,15 @@
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "validation": [{"scope": "M21.0", "result": "Source contracts inspected; all non-bomb proposals removed. Tracking JSON/links/diff checked before plan commit; no gameplay pass claimed."}],
-  "changed_files": ["progress.json", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-21-hidden-fuse-bomb.md"],
+  "validation": [
+    {"scope": "M21.0", "result": "Bomb-only plan validated, committed/pushed before implementation: https://github.com/phucle297/idunno/commit/c12ca8b. Other proposals removed."},
+    {"scope": "M21.1", "command": "godot --headless --editor --path . --quit; godot --headless --path . --script res://tests/test_hot_potato.gd; godot --headless --path . --script res://tests/test_hot_potato_visuals.gd", "result": "passed: HOT_POTATO_OK checks=104 maps=2 private_wire_bytes=29; HOT_POTATO_VISUALS_OK checks=20. Same-tick receive/burst, no fuse reset/public bytes, real sweep/cover, bounded shared impulse/no direct HP, malformed/duplicate/old-round, support/void/departure/reset, server personal-action guard and Ready reset covered. Cached tones/2 voices/bounded64 cue history; no headless audio suppression. Initial visual fixture printed success then incorrectly fell through to quit(1); fixed its exit path, not attributed to the engine. Three final verbose clean exits after audio teardown. Earlier failed logs retained.", "logs": [".scratch/phase21-import-r3.log", ".scratch/phase21-test_hot_potato-final2.log", ".scratch/phase21-audio-clean-final-1.log", ".scratch/phase21-audio-clean-final-2.log", ".scratch/phase21-audio-clean-final-3.log"]},
+    {"scope": "M21.2 real ENet", "command": "tests/run_hot_potato_network_test.sh", "result": "passed: both maps2/4/8/20 players, real remote pickup/pass/receive/burst Main snapshots and5 rematches, supported departure drop/void cancellation. Parent strengthened client observation to require the actual replicated shared impulse sequence and unchanged100HP; both-map2-player rerun passed, larger rows repeat in normal staged gate. Existing shutdown-only ObjectDB/resources in some network rows remain separately recorded.", "logs": [".scratch/hot-potato-enet", ".scratch/phase21-enet-strengthened-2.log"]},
+    {"scope": "M21.2 render", "command": "xvfb-run godot --rendering-method gl_compatibility --audio-driver Dummy --script res://.scratch/phase21_bomb_capture.gd", "result": "passed:20 actual rendered states across both maps720p/1080p: lobby,ground,held,flight,burst; reduced motion at1080. All final four state contact sheets and lobby selection inspected. Initial review camera was obstructed by map awning/tree; corrected fixture to real authored roadside pads with clear sightlines. Lifted carry/flight labels above avatars after inspection; final labels visible without overlap, no fuse timer. Final render exits cleanly apart from driver V-Sync warning. Native GPU/audio/human feel not claimed.", "log": ".scratch/phase21-render-reviewed.log", "artifacts": [".amp/in/artifacts/phase21-bomb/toy_town-spaced-720p.jpg", ".amp/in/artifacts/phase21-bomb/toy_town-spaced-1080p.jpg", ".amp/in/artifacts/phase21-bomb/toy_harbor-spaced-720p.jpg", ".amp/in/artifacts/phase21-bomb/toy_harbor-spaced-1080p.jpg", ".amp/in/artifacts/phase21-bomb/lobby-final.jpg"]},
+    {"scope": "M21.2 bounded overhead", "result": "Executed104-check Main fixture measures29-byte bomb wire/52 added serialized dictionary bytes/0 new rigidbodies on both maps. Procedural asset measurement:972 triangles across parcel/carry ring/burst pools,12 stable descendants through10000 presentation calls,2 voices, shadows disabled; isolated headless presentation mean4.09us on this orb, not whole-game frame time or native headroom.", "log": ".scratch/phase21-asset-measure-final.log"},
+    {"scope": "M21.2 focused controls", "result": "ROOM_UI_OK checks=85 (existing shutdown diagnostics separately retained), SESSION_LIFECYCLE_OK checks=51, TOY_SABOTAGE_OK checks=345, Python changed-test selection5 pass; JSON/shell syntax/diff checks pass. Normal staged regression is next, not yet claimed passed."}
+  ],
+  "changed_files": ["progress.json", "docs/decisions.md", "docs/implementation-checklist.md", "docs/checklists/phase-21-hidden-fuse-bomb.md", "game/main.gd", "game/session/hot_potato.gd", "game/session/hot_potato_visuals.gd", "game/session/toy_sabotage.gd", "tests/test_hot_potato.gd", "tests/test_hot_potato_visuals.gd", "tests/hot_potato_network_peer.gd", "tests/run_hot_potato_network_test.sh", "tests/run_ui_regression.sh", "tools/test_changed.py", "tests/test_room_ui.gd", "tests/test_session_lifecycle.gd", "assets/manifest.json"],
   "blockers": [],
   "limits": [
     "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
@@ -67,5 +74,5 @@
   "deferred_scope": ["Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established", "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"],
   "delivery_authorization": {"scope": "Owner-authorized Phase20 commit/push/release/deployment fulfilled; no new scope or infrastructure change authorized", "release_pending": false},
   "planned_phases": [],
-  "next_action": "Implement and verify M21.1 hidden-fuse bomb only; commit/push each verified unit, with no new public deployment."
+  "next_action": "Run the normal staged regression via the commit hook; fix any failure, then push verified source with deployment skipped and archive the completed bomb-only phase."
 }

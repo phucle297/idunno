@@ -38,20 +38,20 @@ DESIGN.md remains authoritative except for the explicit hidden-timing rule below
 ### M21.0 — Narrowed contract
 - [x] Remove all rejected proposals; record bomb-only scope and owner timing rule.
 - [x] Inspect preset, session snapshot, toy input/impulse and map-support contracts.
-- [ ] Validate tracking and commit/push narrowed plan before implementation.
+- [x] Validate tracking and commit/push narrowed plan before implementation.
 
 ### M21.1 — Playable authoritative bomb
-- [ ] Independent bounded bomb controller, private randomized fuse and safe state.
-- [ ] Lobby preset, Main lifecycle/input/snapshot integration and existing credit.
-- [ ] Pooled toy-plastic parcel, constant ring, readable carry/pickup/throw cues
+- [x] Independent bounded bomb controller, private randomized fuse and safe state.
+- [x] Lobby preset, Main lifecycle/input/snapshot integration and existing credit.
+- [x] Pooled toy-plastic parcel, constant ring, readable carry/pickup/throw cues
   and bounded local pickup/pass/burst audio without timing disclosure.
-- [ ] Focused public-behavior tests including immediate-receipt explosion, privacy,
+- [x] Focused public-behavior tests including immediate-receipt explosion, privacy,
   miss/cover, duplicate/old-round requests and departure/reset/support boundaries.
 
 ### M21.2 — Integrated validation and delivery
-- [ ] Real client pickup/throw/receive/burst/state replication and five rematches.
-- [ ] Both-map, 2/4/8/20-player controls and bounded snapshot/performance evidence.
-- [ ] Render and inspect ground, held, throw, burst and lobby selection states,
+- [x] Real client pickup/throw/receive/burst/state replication and five rematches.
+- [x] Both-map, 2/4/8/20-player controls and bounded snapshot/performance evidence.
+- [x] Render and inspect ground, held, throw, burst and lobby selection states,
   reduced motion and 720p/1080p where relevant. No timer-visible presentation.
 - [ ] Run normal staged regression, inspect diff, record evidence; commit/push.
 

@@ -273,6 +273,26 @@ disasters remain dangerous. Shared shove/toy recovery protection prevents rapid
 chain-pushing. Toys do not restore crouching or player/prop grabbing. These toy
 controls require keyboard/mouse; no new gamepad/touch mapping is claimed.
 
+### Hot Potato — source builds only, not in the current public release
+
+In the multiplayer room, the owner can select **Hot Potato (2+)** under Match
+Mode. Everyone readies again after entering/leaving this variant. It uses Normal
+disaster pacing and needs at least two survivors to spawn a parcel; solo has no
+bomb. Normal/Hard keep their existing rules.
+
+**F** takes the parcel; **left mouse** makes a short pass toward your aim. Solid
+cover blocks it; a miss returns it to the thrower. Your personal toy slot is kept,
+but cannot fire while you carry/pass the parcel. A fixed amber carrier ring shows
+the blast area, not time remaining. The server samples one hidden random fuse on
+first collection: passing, missing or dropping never refreshes it. There is no
+countdown, ticking acceleration or protection for a new recipient—receiving and
+immediately exploding is intentional. The burst pushes nearby exposed players
+with the existing bounded recovery protection; it does not directly remove HP.
+Falls and disasters can still kill. Death/departure drops onto real safe support
+with the same fuse, or clears the parcel if unsupported/submerged. New parcels
+stop spawning when little safe terrain remains. Lobby/results/rematch clear all
+bomb state. This source addition has not replaced the deployed Phase20 build.
+
 When a match ends, every peer sees the same ranked results with winner, survival time, disasters survived, damage taken, and death cause. Gameplay HUD and local gameplay input are suppressed, and the cursor is released. The host selects **REMATCH** or presses **Enter** to start another round; clients remain connected and display **WAITING FOR HOST TO START REMATCH**. Tab or controller left/right moves between rankings and available actions; controller A confirms.
 
 The host can instead select **RETURN TO LOBBY** to bring the session back to readiness without disconnecting anyone. All players must ready up again before the host starts. Solo results offer the same two actions; the returned offline lobby includes **PLAY SOLO** to resume solo play. Every peer can open **SETTINGS** from results or the local pause menu. Master, effects and warning volume, mouse sensitivity, invert-Y, camera shake, fullscreen and reduced motion save automatically across restarts. Opening the menu blocks only your input: hazards, networking and the match timer keep running. Reduced motion disables UI transitions and camera shake; warning identity and audio remain available.

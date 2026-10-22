@@ -46,8 +46,8 @@ const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
 const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
-const MATCH_PRESETS := ["normal", "hard"]
-const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard"}
+const MATCH_PRESETS := ["normal", "hard", "hot_potato"]
+const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard", "hot_potato": "Hot Potato (2+)"}
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -75,6 +75,8 @@ var toy_sabotage: ToySabotage
 var toy_visuals: Node3D
 var toy_card: PanelContainer
 var toy_audio: ToySabotageAudio
+var hot_potato: HotPotato
+var bomb_visuals: Node3D
 var town_mechanisms: TownMechanisms
 var _weather_geometry_state := 0
 var _weather_volcano_registered := false
@@ -143,6 +145,16 @@ func _ready() -> void:
 	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
 	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
 	toy_sabotage.ground_is_visible = func(point: Vector3) -> bool: return not flood.is_active() or flood.water_level < point.y - 0.05
+	hot_potato = HotPotato.new()
+	hot_potato.name = "HotPotato"
+	add_child(hot_potato)
+	hot_potato.configure(match_manager, _player_nodes)
+	hot_potato.anchor_is_valid = _powerup_anchor_is_valid
+	hot_potato.collection_is_clear = _powerup_collection_is_clear
+	hot_potato.sweep = toy_sabotage.sweep_parcel
+	hot_potato.apply_impulse = toy_sabotage.apply_parcel_impulse
+	hot_potato.usable_area_fraction = func() -> float: return float(toy_sabotage.usable_area_fraction.call()) if toy_sabotage.usable_area_fraction.is_valid() else 1.0
+	toy_sabotage.action_is_blocked = func(peer_id: int) -> bool: return hot_potato.holder_id == peer_id and hot_potato.phase in [HotPotato.Phase.CARRIED, HotPotato.Phase.FLIGHT]
 	weather_surfaces.local_wetness = toy_sabotage.sample_wet_strip
 	weather_surfaces.local_slickness = toy_sabotage.sample_soap
 	_build_sandbox()
@@ -424,6 +436,7 @@ func host_game(port: int = DEFAULT_NETWORK_PORT, max_players: int = MAX_NETWORK_
 		_prepare_offline_player_for_join()
 	powerups.reset_session()
 	toy_sabotage.reset_session()
+	hot_potato.reset_session()
 	# Dedicated clients communicate only with authority. Relay DEL_PEER fan-out
 	# can target another departing ENet peer after its native channels are gone.
 	(multiplayer as SceneMultiplayer).server_relay = not dedicated
@@ -461,6 +474,7 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 		return error
 	powerups.reset_session()
 	toy_sabotage.reset_session()
+	hot_potato.reset_session()
 	if not admission_token.is_empty():
 		room_admission = preload("res://game/session/room_admission.gd").new()
 		add_child(room_admission)
@@ -691,6 +705,7 @@ func _remove_network_player(peer_id: int) -> void:
 	var player := _player_nodes.get(peer_id) as PartyPlayer
 	powerups.remove_player(peer_id)
 	toy_sabotage.remove_player(peer_id)
+	hot_potato.remove_player(peer_id)
 	_player_nodes.erase(peer_id)
 	_outfits.erase(peer_id)
 	_outfit_requests.erase(peer_id)
@@ -728,6 +743,7 @@ func _physics_process(delta: float) -> void:
 	_tick_server_emotes()
 	powerups.tick(match_manager, _player_nodes, disaster_director.last_seed)
 	toy_sabotage.tick(delta, disaster_director.last_seed)
+	hot_potato.tick(delta)
 	if not _network_mode or multiplayer.is_server():
 		for peer_id: int in _player_nodes:
 			var avatar := _player_nodes[peer_id] as PartyPlayer
@@ -1299,6 +1315,9 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	var toy_state := ToySabotage.decode_wire_snapshot(snapshot.get("toys"))
 	if toy_state.is_empty():
 		return
+	var bomb_state := HotPotato.decode_wire_snapshot(snapshot.get("bomb"))
+	if bomb_state.is_empty() or String(snapshot.get("match_preset", match_preset)) not in MATCH_PRESETS:
+		return
 	if snapshot.has("match_sequence"):
 		_last_match_snapshot_sequence = int(snapshot.match_sequence)
 	if incoming_map != map_id:
@@ -1340,6 +1359,7 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	terrain_collapse.apply_snapshot(snapshot.terrain)
 	powerups.apply_snapshot(snapshot.powerups)
 	toy_sabotage.apply_snapshot(toy_state)
+	hot_potato.apply_snapshot(bomb_state)
 	if is_instance_valid(town_mechanisms):
 		town_mechanisms.apply_snapshot(snapshot.get("mechanisms", {}))
 
@@ -1358,6 +1378,7 @@ func _create_playable_snapshot() -> Dictionary:
 	snapshot.terrain = terrain_collapse.create_snapshot()
 	snapshot.powerups = powerups.create_snapshot()
 	snapshot.toys = toy_sabotage.create_wire_snapshot()
+	snapshot.bomb = hot_potato.create_wire_snapshot()
 	if is_instance_valid(town_mechanisms):
 		snapshot.mechanisms = town_mechanisms.create_snapshot()
 	if _dedicated_server:
@@ -1596,13 +1617,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	var actor := _player_nodes.get(peer_id) as PartyPlayer
 	var can_use_toy: bool = match_manager.state == MatchManager.MatchState.ACTIVE and not $Interface/LobbyPanel.visible and not spectator_controller.active and is_instance_valid(actor) and not actor.local_input_blocked and match_manager.is_player_alive(peer_id)
 	if can_use_toy and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F:
-		toy_sabotage.local_request_pickup(peer_id)
+		if hot_potato.can_collect(peer_id):
+			hot_potato.local_request(peer_id, true)
+		elif not hot_potato.is_carrier(peer_id):
+			toy_sabotage.local_request_pickup(peer_id)
 		get_viewport().set_input_as_handled()
 		return
 	if can_use_toy and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# Pointer reacquisition belongs to the player, never to a weapon shot.
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			toy_sabotage.local_request_use(peer_id, _toy_aim_direction(actor))
+			if hot_potato.is_carrier(peer_id):
+				hot_potato.local_request(peer_id, false, _toy_aim_direction(actor))
+			elif hot_potato.phase != HotPotato.Phase.FLIGHT or hot_potato.holder_id != peer_id:
+				toy_sabotage.local_request_use(peer_id, _toy_aim_direction(actor))
 			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E and match_manager.state == MatchManager.MatchState.ACTIVE and not spectator_controller.active:
@@ -1669,6 +1696,14 @@ func _present_toys(peer_id: int, personal: bool, delta: float) -> void:
 				distance = candidate
 	toy_card.present(snapshot.slots.get(peer_id, {}), nearest, personal)
 	toy_audio.present(snapshot, actor.global_position if is_instance_valid(actor) else Vector3.ZERO, gameplay_audio.is_warning_playing(), personal)
+	if not is_instance_valid(bomb_visuals):
+		bomb_visuals = preload("res://game/session/hot_potato_visuals.gd").new()
+		bomb_visuals.name = "BombVisuals"
+		add_child(bomb_visuals)
+	bomb_visuals.warning_playing = gameplay_audio.is_warning_playing()
+	bomb_visuals.present(hot_potato.create_snapshot(), _player_nodes, gameplay_hud.reduced_motion, delta, peer_id if personal else 0)
+	if hot_potato.is_carrier(peer_id):
+		toy_card.hide()
 
 
 func _cycle_spectator(direction: int) -> void:
@@ -2489,12 +2524,16 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	gameplay_audio.reset_collapse_notices()
 	if is_instance_valid(toy_audio):
 		toy_audio.reset_for_match()
+	if is_instance_valid(bomb_visuals):
+		bomb_visuals.reset_for_match()
 	if state == MatchManager.MatchState.ACTIVE and (not _network_mode or multiplayer.is_server()):
 		powerups.begin_round()
 		toy_sabotage.begin_round()
+		hot_potato.begin_round(match_preset == "hot_potato")
 	else:
 		powerups.reset()
 		toy_sabotage.reset()
+		hot_potato.reset()
 	for candidate in _player_nodes.values():
 		if candidate is PartyPlayer:
 			candidate.movement_buff = Vector2.ZERO
@@ -2529,6 +2568,7 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 func _on_player_eliminated(peer_id: int, cause: String) -> void:
 	powerups.remove_player(peer_id)
 	toy_sabotage.remove_player(peer_id)
+	hot_potato.remove_player(peer_id)
 	var last_input: Dictionary = _movement_inputs.get(peer_id, {})
 	_movement_inputs[peer_id] = _empty_movement_input()
 	# Keep event deduplication across death/rematch, without retaining movement.
@@ -2728,9 +2768,14 @@ func set_match_preset(preset: String) -> bool:
 		return false
 	if preset == match_preset:
 		return true
+	var bomb_rules_changed := preset == "hot_potato" or match_preset == "hot_potato"
 	match_preset = preset
 	# The director schedules server-side; clients only mirror the display.
-	disaster_director.set_match_preset(preset)
+	disaster_director.set_match_preset("normal" if preset == "hot_potato" else preset)
+	hot_potato.reset()
+	if bomb_rules_changed and (not _network_mode or multiplayer.is_server()):
+		for peer_id: int in _player_nodes:
+			match_manager.set_player_ready(peer_id, false)
 	return true
 
 
@@ -2805,6 +2850,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 		Vector3(0, 4.855, -18), Vector3(-18, 3.75, 9), Vector3(18, 3.75, 9),
 	])
 	toy_sabotage.anchors.assign(powerups.anchors)
+	hot_potato.anchors.assign(powerups.anchors)
 	$Sandbox.set_meta("map_anchors", anchors)
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
@@ -3330,6 +3376,7 @@ func _reset_sandbox() -> void:
 	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
 	powerups.reset()
 	toy_sabotage.reset()
+	hot_potato.reset()
 	terrain_collapse.reset()
 	volcano.cleanup()
 	if map_anchors.get("map_id", "") == map_id:

@@ -77,6 +77,7 @@ func _run() -> void:
 		"terrain": PackedFloat32Array([0, -1, 0, 0]),
 		"powerups": main.powerups.create_snapshot(),
 		"toys": main.toy_sabotage.create_wire_snapshot(),
+		"bomb": main.hot_potato.create_wire_snapshot(),
 		"player_ids": PackedInt32Array([1, 2]),
 		"player_ready": PackedByteArray([1, 1]),
 		"player_health": PackedFloat32Array([100.0, 100.0]),
