@@ -1,5 +1,19 @@
 # Báo lỗi khi gặp thực tế
 
+**Source checkpoint Phase22 — map loading (2026-10-23, chưa release/deploy):**
+[Loading](https://github.com/phucle297/idunno/commit/09d1783a08abe2dce65da7137befd6a5f375e265)
+và [cleanup thời tiết](https://github.com/phucle297/idunno/commit/1429842550e6b92e3972c252040cc432a683ccb1)
+đã commit/push. Home/chọn map không dựng gameplay world; Start mới dựng theo
+frame, chờ server và các client tải xong; rematch cùng map dùng lại hình học.
+Đã sửa race join/Start, thông báo hủy loading và work thừa lúc idle.
+Full65Godot/10network/managed20/47Python và hook follow-up74 roots pass;
+ảnh chọn map/loading/vào trận/hủy loading đã xem. [Evidence](docs/old-docs/phase-22-start-time-map-loading/progress.json).
+Chưa có gói public Phase22; bản public vẫn là Phase21 bên dưới. Orb không thay
+kiểm chứng Windows/GPU/loa/nhiệt/FPS/cảm nhận thật hoặc hai mạng riêng. Giữ waiver,
+không thêm checklist bắt buộc. Nếu sau này test bản source này, ghi revision,
+máy/độ phân giải/số app, map, thời gian chọn map/Start và còn lag ở bước nào;
+ảnh/log nếu thuận tiện. Không suy rằng đã sửa hết triệu chứng nóng máy của owner.
+
 **Báo cáo mới của owner — hiệu năng multiplayer (2026-10-19, chưa phân loại):**
 Solo khá mượt; mở2 app trên cùng máy, vào cùng room gây nóng máy và drop khung hình.
 Chưa có build/OS/CPU/GPU/độ phân giải/FPS/thời lượng/map/hazard; không tự gán báo cáo

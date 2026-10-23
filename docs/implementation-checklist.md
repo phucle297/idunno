@@ -4,12 +4,18 @@
 
 ## Active and planned phases
 
-- [Phase22 — Start-time map loading and app hardening](checklists/phase-22-start-time-map-loading.md).
-  Metadata-only selection, explicit Start loading, multiplayer load barrier, then
-  parallel app review and measured fixes/refactors. Root progress owns execution.
-  Public Phase21 remains unchanged; native thermal/FPS acceptance is unverified.
+No new phase is agreed. Root progress is idle awaiting the owner's next scope;
+no Phase22 release/deployment is authorized by the source-only completion.
 
 ## Recently completed phases
+
+- [Phase22 — Start-time map loading and app hardening](old-docs/phase-22-start-time-map-loading/checklist.md)
+  — metadata-only selection, cooperative Start construction, peer loading barrier,
+  admission/cancellation fixes and reduced weather/mechanism idle work. Primary
+  full65Godot/10network/managed20/47Python and separate74-root hook pass; rendered
+  preparation/loading/gameplay/cancellation inspected. Source committed/pushed,
+  not released/deployed. Native thermal/FPS acceptance remains unverified.
+  [Full evidence](old-docs/phase-22-start-time-map-loading/progress.json).
 
 - [Phase21 — Hidden-fuse bomb](old-docs/phase-21-hidden-fuse-bomb/checklist.md)
   — optional multiplayer Hot Potato, private random fuse without countdown/reset

@@ -14,6 +14,7 @@ archive's final delivery evidence,not rewritten into invented earlier passes.
 
 | Phase | Checklist | Decisions | Full validation evidence |
 | --- | --- | --- | --- |
+| 22 — Start-time map loading (source only; native acceptance unverified) | [Checklist](phase-22-start-time-map-loading/checklist.md) | [Decisions](phase-22-start-time-map-loading/decisions.md) | [Progress/source delivery](phase-22-start-time-map-loading/progress.json) |
 | 21 — Hidden-fuse bomb (deployed/released; native acceptance unverified) | [Checklist](phase-21-hidden-fuse-bomb/checklist.md) | [Decisions](phase-21-hidden-fuse-bomb/decisions.md) | [Source progress](phase-21-hidden-fuse-bomb/progress.json) · [Delivery follow-up](phase-21-hidden-fuse-bomb/delivery-2026-10-22.json) |
 | 20 — Toybox Chaos (deployed/released; native acceptance unverified) | [Checklist](phase-20-toybox-sabotage/checklist.md) | [Decisions](phase-20-toybox-sabotage/decisions.md) | [Progress/delivery](phase-20-toybox-sabotage/progress.json) · [Final metrics](phase-20-toybox-sabotage/phase-20-final-chaos-metrics.json) |
 | 19 — Multiplayer frame budget (automated checkpoint; native acceptance and expanded matrix partial) | [Checklist](phase-19-multiplayer-frame-budget/checklist.md) | [Decisions](phase-19-multiplayer-frame-budget/decisions.md) | [Progress](phase-19-multiplayer-frame-budget/progress.json) · [Final controls](phase-19-multiplayer-frame-budget/final-controls.json) |
@@ -41,6 +42,13 @@ archive's final delivery evidence,not rewritten into invented earlier passes.
 | 10 — Swarms, UFO and Volcanic Terrain | [Checklist](phase-10-swarms-ufo-volcano/checklist.md) | [Decisions](phase-10-swarms-ufo-volcano/decisions.md) | [Progress](phase-10-swarms-ufo-volcano/progress.json) |
 | 10F — Volcanic Relief | [Checklist](phase-10-volcanic-relief-followup/checklist.md) | [Decisions](phase-10-volcanic-relief-followup/decisions.md) | [Progress](phase-10-volcanic-relief-followup/progress.json) |
 | 11 — Meteor District Collapse | [Checklist](phase-11-meteor-terrain-collapse/checklist.md) | [Decisions](phase-11-meteor-terrain-collapse/decisions.md) | [Progress](phase-11-meteor-terrain-collapse/progress.json) |
+
+Phase22 decisions and completed checklist are preserved byte-for-byte from final
+active tracking. Progress preserves every failed/pending chronological entry and
+the final successful gates/source deliveries; only archive metadata and historical
+source-of-truth status are added. Historical root-relative paths and links retain
+their original meaning; use the table above for the moved files. Public Phase21
+and the human-acceptance waiver remain unchanged; no Phase22 release/deployment.
 
 Phase21 decisions are preserved byte-for-byte from the final source checkpoint.
 Historical active checklist/decision links and pending validation statements remain

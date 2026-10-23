@@ -1,0 +1,231 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-10-23",
+  "project": "Disaster Party",
+  "source_of_truth": false,
+  "archive_metadata": {
+    "phase_id": "phase_22_start_time_map_loading",
+    "title": "Start-time map loading and evidence-led app hardening",
+    "status": "completed",
+    "archived_at": "2026-10-23T06:19:44Z",
+    "superseded_by": "../../../progress.json",
+    "checklist": "checklist.md",
+    "decisions": "decisions.md",
+    "tracking_validation": {
+      "status": "passed",
+      "result": "PHASE22_ARCHIVE_OK: full evidence lossless apart from archive metadata/source-of-truth flag; moved decisions/checklist byte-identical; JSON and active Markdown links valid; public delivery/waiver/limits/deferred scope preserved; idle validation/changed-file diaries empty."
+    },
+    "acceptance_scope": "Source and automated/rendered gates only; no Phase22 public release or native/human acceptance."
+  },
+  "workflow_state": "completed",
+  "previous_phase_archive": {
+    "path": "docs/old-docs/phase-21-hidden-fuse-bomb/progress.json",
+    "status": "completed",
+    "source_of_truth": false
+  },
+  "human_acceptance_checklist": "NEED_REAL_CHECK.md",
+  "engine": {
+    "name": "Godot",
+    "version": "4.7.2-stable",
+    "language": "GDScript",
+    "renderer": "Compatibility",
+    "target": "Windows PC"
+  },
+  "development_model": {
+    "hierarchy": [
+      "phase",
+      "milestone",
+      "task"
+    ],
+    "task_policy": "optional_for_milestones_that_require_multiple_ordered_work_units",
+    "status_values": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "completed",
+      "cancelled"
+    ],
+    "gate_status_values": [
+      "not_run",
+      "passed",
+      "failed",
+      "blocked"
+    ],
+    "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
+  },
+  "current": {
+    "phase": "phase_22_start_time_map_loading",
+    "milestone": "M22.3",
+    "task": null
+  },
+  "phase": {
+    "id": "phase_22_start_time_map_loading",
+    "title": "Start-time map loading and evidence-led app hardening",
+    "status": "completed",
+    "checklist": "docs/checklists/phase-22-start-time-map-loading.md",
+    "milestones": [
+      {"id": "M22.1", "title": "Metadata-only map selection and explicit Start loading", "status": "completed", "gate": "passed"},
+      {"id": "M22.2", "title": "Multiplayer loading barrier and lifecycle controls", "status": "completed", "gate": "passed"},
+      {"id": "M22.3", "title": "Parallel whole-app audit, focused fixes and full regression", "status": "completed", "gate": "passed"}
+    ]
+  },
+  "completed_phase": {
+    "id": "phase_21_social_chaos",
+    "title": "Hidden-fuse bomb only",
+    "status": "completed",
+    "archive": "docs/old-docs/phase-21-hidden-fuse-bomb/progress.json",
+    "acceptance_scope": "Bomb-only source and normal regression gates passed; owner-authorized exact-head deployment and matching prerelease verified in delivery-2026-10-22.json. Native and human acceptance remain unverified."
+  },
+  "public_delivery": {
+    "revision_url": "https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39727391218",
+    "endpoint": "https://server.permees.com",
+    "evidence": "docs/old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json",
+    "pushed": true,
+    "deployed": true,
+    "released": true,
+    "windows_sha256": "ba45ec254f16a92f1ec6e70e5d02b0f7947278742e74073c6a8edccb91afc192",
+    "linux_sha256": "4a7672d335c174dea47390f4bbcedce01a93b3135ed32971f09d96d02d36e9f2"
+  },
+  "user_acceptance_waiver": {
+    "date": "2026-10-09",
+    "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
+  },
+  "validation": [
+    {
+      "scope": "Map-selection stall investigation",
+      "command": "godot --headless --path . --script res://.scratch/map_switch_profile.gd",
+      "result": "Reproduced with production request_map_change before gameplay edits: Harbor selection blocks73.05–134.46ms;Town blocks2059.17–2172.41ms and constructs9495 descendant nodes. Town construction accounts for2056.08–2170.16ms;warm cached box meshes only16.76–17.36ms and paving11.53–11.97ms. Cache-only optimization would not remove the main stall. Startup also builds Town before Home. Owner clarified that selection must remain metadata-only and gameplay geometry should load at Start. No production fix implemented or deployed by this investigation. Orb headless timings are not native Windows/GPU measurements.",
+      "log": ".scratch/map-switch-before.log"
+    },
+    {
+      "scope": "Lazy selection implementation, focused checks",
+      "status": "passed",
+      "result": "Production profiler after changes: four alternating selections0.00–0.01ms,build/mesh/paving calls0,Sandbox descendants0. Godot editor import passes;test_map_identity47 and test_startup_menu36 pass. Real dedicated ENet server/owner/guest passes five rematches,movement and disconnect recovery. Map identity and network fixtures still emit known shutdown-only ObjectDB/resource diagnostics; no blanket clean-shutdown claim. Follow-up replaces physics-process toggling with explicit PartyPlayer.world_loaded so geometry preparation preserves fixture/process ownership; combined revalidation pending.",
+      "logs": [".scratch/map-switch-after.log", ".scratch/map-identity-loading.log", ".scratch/startup-loading.log", ".scratch/map-loading-dedicated.log"]
+    },
+    {
+      "scope": "Whole-app audit fixes and real loading boundary",
+      "status": "passed",
+      "result": "Independent UI/session, authority and gameplay/performance audits completed. Delayed real HTTP admission baseline lost the third joining peer when Start raced consume; authoritative pending/authenticating-peer gating now passes the 3-client regression (8.47s). Real ENet loading fixture passes 4 processes/2 maps, held ACK, departure abort, cancellation-copy persistence, stale-generation rejection and retry. Initial fixture runs failed due missing readiness, closed-ENet processing and a success branch falling through to quit(1); corrected fixture, not relaxed checks. Weather41 and town mechanisms41 checks pass. Rendered weather50 and startup38 checks pass; inspected Choose Map, loading/disabled controls and started gameplay captures. Initial rendered launches fell back from unavailable ALSA to Dummy audio; explicit Dummy recheck pending. Residual dirty-state review caught Dictionary aliasing; fixed old-value comparison and added rendered fading regression. Geometry invalidation now reads an actual transform/visibility revision rather than serializing mechanism snapshots every physics tick. Full normal staged regression remains pending.",
+      "logs": [".scratch/admission-race-after.log", ".scratch/map-loading-network-check.log", ".scratch/map-loading-weather.log", ".scratch/map-loading-mechanisms.log", ".scratch/map-loading-weather-render.log", ".scratch/map-loading-menu-render.log"]
+    },
+    {
+      "scope": "Full staged gate first attempt",
+      "status": "failed",
+      "result": "Normal commit hook selected full80 roots and stopped at emote assertions: that fixture settled actors before Start against the now-empty Sandbox. Added explicit preparation before its geometry-dependent setup; focused EMOTES_OK checks46 now passes. No production emote logic or assertions relaxed. Explicit Dummy-audio rendered weather recheck passes50 assertions with only software-renderer V-Sync warning. Full staged rerun pending.",
+      "logs": [".scratch/map-loading-commit.log", ".scratch/map-loading-emotes.log", ".scratch/map-loading-weather-render-dummy.log"]
+    },
+    {
+      "scope": "Staged rerun and strengthened boundary controls",
+      "status": "failed",
+      "result": "Full gate rerun passed map493/prop191/quake66/rematch151 and earlier suites, then stopped on spectator snapshot equality. Scratch diff isolates deferred weather initialization (empty puddle arrays becoming configured), not spectator mutation; fixture now explicitly prepares before its initial frame and focused spectator30 passes unchanged assertions. Strengthened real ENet fixture sends stale generation from a registered remote client, asserts sender remains in barrier, forces actual process deadline expiry, then retries successfully: server29 checks, timeout/departure/stale/retry pass. Rendered cancellation state inspected; controls re-enable and recovery copy persists. Full gate rerun pending.",
+      "logs": [".scratch/map-loading-commit-rerun.log", ".scratch/map-loading-spectator-debug.log", ".scratch/map-loading-spectator.log", ".scratch/map-loading-network-strengthened.log", ".scratch/map-loading-status-final.log"]
+    },
+    {
+      "scope": "Dedicated single-process fixture isolation",
+      "status": "failed",
+      "result": "Third hook attempt hit the dedicated fixture's existing5s action deadline while four Town worlds constructed serially in one SceneTree. This fixture isolates session control, not loading costs: explicitly prepare each world at peer creation, before timed RPC assertions; focused105 checks/5rematches pass. Separate-process loading/deadline tests retain real Start-time construction and unchanged timeouts. Full staged rerun pending.",
+      "logs": [".scratch/map-loading-commit-final.log", ".scratch/map-loading-dedicated-fixture.log"]
+    },
+    {
+      "scope": "Cold managed20 loading and cooperative construction",
+      "status": "failed",
+      "result": "Fourth staged attempt passed all65 Godot suites then exposed legacy lobby-movement fixtures lacking explicit geometry. More importantly, unchanged managed20 cold Start failed: synchronous Town construction stalled real ENet/HTTP. Do not extend transport/heartbeat deadlines or prewarm that test. Replaced construction, partition clipping, terrain cache and weather registration with cancellable main-thread frame slices; serial cleanup prevents stale attempts from owning newer geometry. Authority-local readiness plus frozen-peer ACKs gate ACTIVE; channel2 stale lobby map identity cannot replace the pinned attempt. Startup38 and revised production-path ENet loading/cancel/timeout/retry pass. The first cooperative ENet test caught a fixture race between timeout reset and a later valid Ready RPC; assertion now observes the atomic abort boundary. Managed20 revalidation running; full staged gate pending.",
+      "logs": [".scratch/map-loading-commit-gate4.log", ".scratch/map-loading-managed-cold.log", ".scratch/map-loading-cooperative-startup.log", ".scratch/map-loading-cooperative-enet2.log", ".scratch/map-loading-managed-cooperative.log"]
+    },
+    {
+      "scope": "Bounded cold-Start recovery and rendered loading",
+      "status": "passed",
+      "result": "First cooperative managed20 attempt still partitioned after15s; mesh/triangle region pruning reduced standalone preparation5408→2087ms. Instrumented follow-up confirmed375–585ms unyielded compound construction spans despite outer4ms checkpoints. Finer base/building/ramp/civic boundaries then passed unchanged managed20 cold Start, movement at every peer, capacity, five rematches, owner transfer and crash retry; no prewarming or deadline changes. Temporary work-span instrumentation removed; selective fixture diagnostics retained. Final selection profiler0.00–0.01ms,zero builds/mesh calls/Sandbox descendants. Actual rendered asynchronous solo loading asserts locked controls and no published world before readiness, then ACTIVE with usable geometry; final Choose Map/loading/gameplay captures inspected, run9.63s, Dummy audio, software V-Sync warning only. Full staged gate pending.",
+      "logs": [".scratch/profile-cooperative.log", ".scratch/profile-cooperative-optimized.log", ".scratch/map-loading-managed-diagnostic.log", ".scratch/map-loading-managed-pruned.log", ".scratch/map-loading-managed-slices2.log", ".scratch/map-loading-managed-granular.log", ".scratch/map-switch-final.log", ".scratch/map-loading-cooperative-render-final.log"]
+    },
+    {
+      "scope": "Map replacement cleanup regression",
+      "status": "passed",
+      "result": "Explicitly preparing switched maps exposed a native crash in leaf-by-leaf cleanup across frames. Replaced it with budgeted top-level subtree destruction, preserving parent/child lifetimes. The unchanged combinations assertions now pass102 checks across Town/Harbor relocation and deterministic replay; exit0 with known shutdown-only resource diagnostics. Aliased quake/profile fixtures also now await explicit preparation. Full staged gate remains pending.",
+      "logs": [".scratch/map-loading-cooperative-combinations-fixed.log", ".scratch/map-loading-combinations-subtree.log"]
+    },
+    {
+      "scope": "Full staged rerun and late-created HUD reticle",
+      "status": "failed",
+      "result": "Normal staged gate passed map-variety493, map-safety234 and preceding suites, then exposed the deferred toy reticle missing the shared theme. Assigned the existing card theme to its sibling reticle; focused milestone HUD84 now passes. Rendered cooperative Start rerun passes empty-before-Start, locked loading controls and ACTIVE world assertions, Dummy audio with only software V-Sync warning. Full staged rerun pending.",
+      "logs": [".scratch/map-loading-commit-subtree.log", ".scratch/map-loading-hud-theme.log", ".scratch/map-loading-theme-render.log"]
+    },
+    {
+      "scope": "Synthetic room snapshot and remaining fixture audit",
+      "status": "failed",
+      "result": "Next normal staged gate passed through quake66/rematch151/prop191, then rejected the Room UI synthetic RESULTS snapshot because it omitted the new generation. Fixture now starts from Main's real serializer, overlays its test roster and explicitly asserts RESULTS acceptance; focused room86 passes. Remaining suites were exercised before another full gate: session51, terrain5040/routes18124, layout6910, mechanisms41, clearance963 and toy controls pass. That audit caught the weather fixture calling the now-cooperative private setup without its work token; removed duplicate setup because awaited public preparation already configures weather. Weather integration96/surfaces41/window12 now pass. No production validation guard weakened. Scratch measurement/render scripts removed; logs/captures retained. Full staged gate pending.",
+      "logs": [".scratch/map-loading-commit-theme.log", ".scratch/map-loading-room-ui-final.log", ".scratch/map-loading-tail/"]
+    },
+    {
+      "scope": "Explicit transport fixture preflight",
+      "status": "passed",
+      "result": "Real playable-scene two-peer/five-rematch controls pass. Initial migrated scale fixture failed only its literal Host spectator-name assertion: explicit post-Home hosting correctly retained Local Player unlike CLI startup. Fixture now publishes its expected Host identity before admission, preserving exact label/authority assertions. Real 4/8/20 matrix then passes movement, hazard/chaos observation, spectator presentation, rankings and five rematches. Full normal staged gate remains pending.",
+      "logs": [".scratch/map-loading-playable-scene-final.log", ".scratch/map-loading-playable-scale-final.log", ".scratch/map-loading-playable-scale-named.log"]
+    },
+    {
+      "scope": "Integrated Godot pass and movement-observer race",
+      "status": "failed",
+      "result": "Normal staged gate passed all65 Godot suites, persistence restart and initial network matrices, then exposed a timing race in the old playable-scene movement fixture: host could finish walking before client recorded its origin during cooperative preparation, exhausting readiness and cascading into later assertions. Fixture now prepares before connecting and requires a real client movement-baseline acknowledgement before walking; Start waits for actual ACTIVE within the original deadline. Two consecutive real two-peer/five-rematch reruns pass. Production cold-Start/barrier validation is unchanged and unprewarmed. Remaining network/backend preflight and full staged rerun pending.",
+      "logs": [".scratch/map-loading-commit-integrated.log", ".scratch/map-loading-playable-barrier-1.log", ".scratch/map-loading-playable-barrier-2.log"]
+    },
+    {
+      "scope": "Transport preflight and cold-Start timing margin",
+      "status": "passed",
+      "result": "Dedicated movement origins now sampled after ACTIVE reseating; two real dedicated runs pass five rematches/recovery. Powerup/toy/bomb both-map2/4/8/20 and mechanisms/loading controls pass. Managed20 intermittently missed the unchanged15s combined preparation/convergence deadline; one run had a disconnected client, another had authority ACTIVE but some ready clients still LOBBY. No permanent transport cause established. Removed redundant reliable lobby snapshots during the frozen loading interval and force an immediate post-barrier snapshot. Three consecutive managed20 runs pass but took14.26–14.92s cold convergence. Skipping polygon clipping for fully interior triangles then lowers measured cold convergence to11.46s with all movement/rematch/owner-transfer/crash-retry controls passing. Temporary RPC/duplicate-decode diagnostics removed; retain lightweight state/timestamp failure summaries. No prewarming or deadline changes; full staged gate pending.",
+      "logs": [".scratch/map-loading-network-preflight/", ".scratch/map-loading-managed-timing.log", ".scratch/map-loading-managed-no-lobby-backlog.log", ".scratch/map-loading-managed-no-lobby-backlog-2.log", ".scratch/map-loading-managed-no-lobby-backlog-3.log", ".scratch/map-loading-managed-interior-fastpath.log"]
+    },
+    {
+      "scope": "Repeated lobby cleanup residual upload follow-up",
+      "status": "passed",
+      "result": "Self-review caught Main's repeated lobby cleanup still dirtying an already-empty residual texture. Same graphical scratch instrumentation reproduces120 uploads/120 clean frames on the staged pre-fix tree; conditional invalidation gives0/120 and clears a real residual exactly once. Full graphical weather suite50 passes with Dummy audio and software V-Sync warning only. Scratch script removed. This follow-up is unstaged while the normal full gate validates the earlier staged source; it must pass its own normal hook before delivery.",
+      "logs": [".scratch/map-loading-repeated-weather-cleanup-before.log", ".scratch/map-loading-repeated-weather-cleanup.log", ".scratch/map-loading-weather-final-cleanup.log"]
+    },
+    {
+      "scope": "Full normal staged gate and primary source delivery",
+      "status": "passed",
+      "command": "git commit -m 'fix(world): prepare selected maps cooperatively at Start [skip ci]' && git push origin main",
+      "result": "Normal full hook passes65 Godot suites, persistence restart,10 network matrices, real managed20 cold Start/movement/capacity/5rematches/owner transfer/crash retry, and47 Python tests(159.477s). Managed20 cold convergence9.78s with production Main and no diagnostic RPC override. Primary source09d1783 pushed to origin/main; public Phase21 unchanged. Repeated-lobby-cleanup correction remains a separate follow-up requiring its own staged gate; M22.3 stays open until that delivery passes.",
+      "log": ".scratch/map-loading-commit-final-gate.log"
+    },
+    {
+      "scope": "Cleanup follow-up gate, source delivery and phase closure",
+      "status": "passed",
+      "command": "git commit -m 'perf(weather): keep empty lobby cleanup texture-idempotent [skip ci]' && git push origin main",
+      "result": "Normal affected hook passes all74 selected roots, including real network/managed controls, map493, terrain5040/routes18124, clearance963, weather integration96/surfaces41 and settings restart. Graphical weather50 and measured120→0 redundant cleanup uploads also pass. Follow-up1429842 pushed; all required Phase22 source gates complete. Inspected Choose Map/loading/started/cancelled captures remain available. Native Windows/GPU/audio/heat/FPS/human/separate-network acceptance is not implied; known shutdown-only resources and earlier unclassified intermittent transport causes remain recorded. No new package/release/deployment; public Phase21 unchanged. Earlier pending statements are chronological and superseded by these final deliveries.",
+      "log": ".scratch/map-loading-cleanup-followup-gate.log"
+    }
+  ],
+  "changed_files": ["game/main.gd", "game/player/player.gd", "game/session/room_admission.gd", "game/session/terrain_collapse.gd", "game/disasters/weather_surfaces.gd", "game/world/town_mechanisms.gd", "game/world/town_partitions.gd", "game/world/map_preparation.gd", "game/ui/home_screen.gd", "tests/map_loading_network_peer.gd", "tests/run_map_loading_network_test.sh", "tests/room_admission_peer.gd", "tests/test_room_service.py", "tests/test_map_identity.gd", "tests/test_startup_menu.gd", "tests/test_weather_surfaces.gd", "tests/dedicated_network_peer.gd", "tests/managed_container_peer.gd", "tests/run_managed_scale_test.py", "tests/run_ui_regression.sh", "tools/test_changed.py", "explicit geometry fixtures under tests", "AGENTS.md", ".agents/skills/recovering-town-rematch-stalls/SKILL.md"],
+  "blockers": [],
+  "limits": [
+    "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
+    "Orb software render is far below60FPS. Incremental draw/CPU/IPv4 budgets are not native headroom or production capacity.",
+    "Separate-device/network and reconciliation-distance/transport-loss acceptance remain unverified; earlier intermittent packet-loss investigation remains deferred.",
+    "Public profile storage remains disabled. Local persistence tests are not public persistence acceptance.",
+    "Known shutdown-only ObjectDB/resources remain; no blanket clean-shutdown claim. Editor-engine/exact-PCK results are not unchanged standalone throughput.",
+    "Minor lower-right plaza pavement seam artifacts observed in final dry renders;cause not diagnosed or claimed fixed."
+  ],
+  "deferred_scope": [
+    "Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established",
+    "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"
+  ],
+  "delivery_authorization": {
+    "scope": "Owner-authorized Phase21 release/deployment fulfilled; no infrastructure/capacity or public persistence changes authorized or performed",
+    "release_pending": false
+  },
+  "source_delivery": {
+    "scope": "Phase22",
+    "plan": "https://github.com/phucle297/idunno/commit/0b085696b6fd575ac17c506de432e8e55caf7d70",
+    "implementation": "https://github.com/phucle297/idunno/commit/09d1783a08abe2dce65da7137befd6a5f375e265",
+    "implementation_pushed": true,
+    "cleanup_followup": "https://github.com/phucle297/idunno/commit/1429842550e6b92e3972c252040cc432a683ccb1",
+    "cleanup_followup_pushed": true,
+    "public_release_changed": false,
+    "verification": "Primary full65Godot/10network/managed20/47Python gate and follow-up74-root normal hook pass; both source commits pushed with skip-CI. No Phase22 public release/deployment."
+  },
+  "planned_phases": [],
+  "next_action": "Await the owner's next scope or explicit Phase22 release/deploy request; do not start another phase automatically."
+}

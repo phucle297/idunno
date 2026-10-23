@@ -29,8 +29,13 @@ unchanged. Source delivery is commit/push per coherent validated unit, not deplo
       audits after the loading fix. Review returned evidence before accepting fixes.
 - [x] Reproduce concrete findings, fix/refactor narrowly and retain regression tests
       for user-visible contracts. No broad rewrite or unsupported FPS claim.
-- [ ] Normal staged regression gate passes; inspect affected rendered UI states.
-- [ ] Record findings, unresolved native/hardware checks and actual source delivery.
+- [x] Normal staged regression gate passes; inspect affected rendered UI states.
+- [x] Record findings, unresolved native/hardware checks and actual source delivery.
+
+Completed source-only2026-10-23: primary09d1783 and cleanup1429842 pushed with
+skip-CI. Normal full65Godot/10network/managed20/47Python gate and separate74-root
+follow-up pass. Choose Map/loading/started/cancelled renders inspected. Full
+chronology, including failed attempts and limits, is preserved in progress.json.
 
 Native Windows/GPU/thermal and human feel remain unverified, not automated passes.
 Existing acceptance waiver is preserved in NEED_REAL_CHECK.md and root progress.
