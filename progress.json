@@ -162,6 +162,19 @@
       "status": "passed",
       "result": "Dedicated movement origins now sampled after ACTIVE reseating; two real dedicated runs pass five rematches/recovery. Powerup/toy/bomb both-map2/4/8/20 and mechanisms/loading controls pass. Managed20 intermittently missed the unchanged15s combined preparation/convergence deadline; one run had a disconnected client, another had authority ACTIVE but some ready clients still LOBBY. No permanent transport cause established. Removed redundant reliable lobby snapshots during the frozen loading interval and force an immediate post-barrier snapshot. Three consecutive managed20 runs pass but took14.26–14.92s cold convergence. Skipping polygon clipping for fully interior triangles then lowers measured cold convergence to11.46s with all movement/rematch/owner-transfer/crash-retry controls passing. Temporary RPC/duplicate-decode diagnostics removed; retain lightweight state/timestamp failure summaries. No prewarming or deadline changes; full staged gate pending.",
       "logs": [".scratch/map-loading-network-preflight/", ".scratch/map-loading-managed-timing.log", ".scratch/map-loading-managed-no-lobby-backlog.log", ".scratch/map-loading-managed-no-lobby-backlog-2.log", ".scratch/map-loading-managed-no-lobby-backlog-3.log", ".scratch/map-loading-managed-interior-fastpath.log"]
+    },
+    {
+      "scope": "Repeated lobby cleanup residual upload follow-up",
+      "status": "passed",
+      "result": "Self-review caught Main's repeated lobby cleanup still dirtying an already-empty residual texture. Same graphical scratch instrumentation reproduces120 uploads/120 clean frames on the staged pre-fix tree; conditional invalidation gives0/120 and clears a real residual exactly once. Full graphical weather suite50 passes with Dummy audio and software V-Sync warning only. Scratch script removed. This follow-up is unstaged while the normal full gate validates the earlier staged source; it must pass its own normal hook before delivery.",
+      "logs": [".scratch/map-loading-repeated-weather-cleanup-before.log", ".scratch/map-loading-repeated-weather-cleanup.log", ".scratch/map-loading-weather-final-cleanup.log"]
+    },
+    {
+      "scope": "Full normal staged gate and primary source delivery",
+      "status": "passed",
+      "command": "git commit -m 'fix(world): prepare selected maps cooperatively at Start [skip ci]' && git push origin main",
+      "result": "Normal full hook passes65 Godot suites, persistence restart,10 network matrices, real managed20 cold Start/movement/capacity/5rematches/owner transfer/crash retry, and47 Python tests(159.477s). Managed20 cold convergence9.78s with production Main and no diagnostic RPC override. Primary source09d1783 pushed to origin/main; public Phase21 unchanged. Repeated-lobby-cleanup correction remains a separate follow-up requiring its own staged gate; M22.3 stays open until that delivery passes.",
+      "log": ".scratch/map-loading-commit-final-gate.log"
     }
   ],
   "changed_files": ["game/main.gd", "game/player/player.gd", "game/session/room_admission.gd", "game/session/terrain_collapse.gd", "game/disasters/weather_surfaces.gd", "game/world/town_mechanisms.gd", "game/world/town_partitions.gd", "game/world/map_preparation.gd", "game/ui/home_screen.gd", "tests/map_loading_network_peer.gd", "tests/run_map_loading_network_test.sh", "tests/room_admission_peer.gd", "tests/test_room_service.py", "tests/test_map_identity.gd", "tests/test_startup_menu.gd", "tests/test_weather_surfaces.gd", "tests/dedicated_network_peer.gd", "tests/managed_container_peer.gd", "tests/run_managed_scale_test.py", "tests/run_ui_regression.sh", "tools/test_changed.py", "explicit geometry fixtures under tests", "AGENTS.md", ".agents/skills/recovering-town-rematch-stalls/SKILL.md"],
@@ -185,10 +198,12 @@
   "source_delivery": {
     "scope": "Phase22",
     "plan": "https://github.com/phucle297/idunno/commit/0b085696b6fd575ac17c506de432e8e55caf7d70",
-    "implementation_pushed": false,
+    "implementation": "https://github.com/phucle297/idunno/commit/09d1783a08abe2dce65da7137befd6a5f375e265",
+    "implementation_pushed": true,
+    "cleanup_followup_pushed": false,
     "public_release_changed": false,
-    "verification": "Plan committed/pushed through normal hook; gameplay implementation and integration validation in progress."
+    "verification": "Primary implementation pushed after full65Godot/10network/managed20/47Python gate; repeated-lobby-cleanup follow-up gate pending."
   },
   "planned_phases": [],
-  "next_action": "Run the full normal staged regression gate, fix any concrete regressions, then commit/push the validated Phase22 source without releasing or deploying."
+  "next_action": "Commit/push the repeated-lobby-cleanup correction through its normal staged gate, then archive completed Phase22 source evidence without releasing or deploying."
 }

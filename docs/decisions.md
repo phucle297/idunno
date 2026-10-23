@@ -65,3 +65,10 @@ their exact vertices without four unnecessary polygon-clipping passes; measured
 cold convergence then fell to11.46s. This improves measured margin, not a claim
 that every earlier intermittent transport failure has an established cause.
 Keep lightweight timestamp/state diagnostics and the original cold gate.
+
+The final primary source gate passes65Godot/10network/managed20/47Python;
+production cold20 convergence is9.78s. Source09d1783 is pushed with skip-CI.
+Graphical follow-up exposed repeated lobby cleanup marking an already-empty
+residual texture dirty:120 uploads/120 frames before,0 after conditional
+invalidation, with actual residual clearing still uploaded once. Preserve that
+idempotence as well as live melt/dry updates; no visual downgrade is intended.

@@ -408,8 +408,9 @@ func cleanup() -> void:
 	_washed_snow = 0.0
 	_melt_areas.clear()
 	_melt_amounts.clear()
+	# Lobby ticks may repeat cleanup after the final empty texture was uploaded.
+	_residual_dirty = _residual_dirty or not _residuals.is_empty()
 	_residuals.clear()
-	_residual_dirty = true
 	_puddle_moisture.fill(0.0)
 	_electric.resize(_puddle_spots.size())
 	_electric.fill(Vector2.ZERO)
