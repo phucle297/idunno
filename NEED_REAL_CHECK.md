@@ -1,5 +1,17 @@
 # Báo lỗi khi gặp thực tế
 
+**Feedback Phase23 — 2026-10-23, chưa sửa/chưa nghiệm thu:**
+Owner báo app khoảng800MB RAM cả chơi lẫn màn hình chờ; đứng yên rồi xoay camera
+bị giật dù tổng CPU20%/RAM40%. Ảnh cấu hình xác nhận Ryzen AI7 H350, Radeon860M
+iGPU,32GB5600MT/s,Windows11 Pro25H2; không lưu device/product ID. Build, độ phân
+giải, driver, thời gian idle và màn hình chờ cụ thể chưa xác định. Đây không phải
+bằng chứng máy yếu, leak RAM hay GPU thiếu bộ nhớ; cần đo frame-time/bộ nhớ GPU.
+Owner cũng báo Normal dễ, núp mái/nhích nhẹ tránh phần lớn nguy hiểm, âm chói và
+bấm phát hai tiếng; không hài lòng model. [Plan Phase23](docs/checklists/phase-23-performance-chaos-audio-character.md)
+giữ cả bốn việc mở. Agent tự điều tra trước; nếu có feedback bổ sung, ghi build,
+map/màn hình, một/hai app, độ phân giải và thao tác phát hai tiếng. Không bắt buộc
+video hay thêm gate thủ công; chưa xác nhận sửa hiệu năng, độ khó, âm hay thẩm mỹ.
+
 **Phase22 — map loading (2026-10-23, đã release/deploy):**
 [Loading](https://github.com/phucle297/idunno/commit/09d1783a08abe2dce65da7137befd6a5f375e265)
 và [cleanup thời tiết](https://github.com/phucle297/idunno/commit/1429842550e6b92e3972c252040cc432a683ccb1)

@@ -4,8 +4,10 @@
 
 ## Active and planned phases
 
-No new phase is agreed. Root progress is idle awaiting the owner's next scope;
-no Phase22 release/deployment is authorized by the source-only completion.
+- [Phase23 — Performance, chaos, audio and character quality](checklists/phase-23-performance-chaos-audio-character.md)
+  — planned from owner feedback. Measure memory/camera hitches first, remove
+  Normal and address rooftop camping, soften/deduplicate audio, then redesign
+  character presentation. No implementation or new deployment claimed.
 
 ## Recently completed phases
 
@@ -14,8 +16,9 @@ no Phase22 release/deployment is authorized by the source-only completion.
   admission/cancellation fixes and reduced weather/mechanism idle work. Primary
   full65Godot/10network/managed20/47Python and separate74-root hook pass; rendered
   preparation/loading/gameplay/cancellation inspected. Source committed/pushed,
-  not released/deployed. Native thermal/FPS acceptance remains unverified.
-  [Full evidence](old-docs/phase-22-start-time-map-loading/progress.json).
+  then authorized release/deploy completed. Native thermal/FPS acceptance remains
+  unverified. [Full evidence](old-docs/phase-22-start-time-map-loading/progress.json) ·
+  [Delivery](old-docs/phase-22-start-time-map-loading/delivery-2026-10-23.json).
 
 - [Phase21 — Hidden-fuse bomb](old-docs/phase-21-hidden-fuse-bomb/checklist.md)
   — optional multiplayer Hot Potato, private random fuse without countdown/reset

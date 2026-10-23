@@ -3,7 +3,7 @@
   "updated_at": "2026-10-23",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "awaiting_next_scope",
+  "workflow_state": "planned",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-22-start-time-map-loading/progress.json",
     "status": "completed",
@@ -24,8 +24,25 @@
     "gate_status_values": ["not_run", "passed", "failed", "blocked"],
     "completion_rule": "all_required_milestone_gates_must_pass_before_a_phase_is_completed"
   },
-  "current": {"phase": null, "milestone": null, "task": null},
-  "phase": null,
+  "current": {"phase": "phase_23_performance_chaos_audio_character", "milestone": "M23.1", "task": "T23.1a"},
+  "phase": {
+    "id": "phase_23_performance_chaos_audio_character",
+    "title": "Performance, chaos, audio and character quality",
+    "status": "planned",
+    "checklist": "docs/checklists/phase-23-performance-chaos-audio-character.md",
+    "scope": "Plan first, execute gradually: attribute memory/camera hitches; remove Normal and rooftop dominance; soften/deduplicate audio; improve character art without performance regression.",
+    "milestones": [
+      {"id": "M23.1", "title": "Measured memory and camera-hitch fixes", "status": "planned", "gate": "not_run", "tasks": [
+        {"id": "T23.1a", "title": "Baseline state/idle/orbit and five-cycle resource traces", "status": "planned"},
+        {"id": "T23.1b", "title": "Fix attributed costs and rerun matched controls", "status": "planned"}
+      ]},
+      {"id": "M23.2", "title": "Harder baseline without Normal or rooftop immunity", "status": "planned", "gate": "not_run"},
+      {"id": "M23.3", "title": "Softer single-event audio feedback", "status": "planned", "gate": "not_run"},
+      {"id": "M23.4", "title": "Coherent character redesign with bounded rendering cost", "status": "planned", "gate": "not_run"}
+    ],
+    "reference_hardware": "Owner screenshot: Ryzen AI 7 H 350, Radeon 860M integrated GPU,32GB5600MT/s,Windows11 Pro25H2. No native performance measurement yet; device identifiers excluded.",
+    "delivery": "Planning only so far. No Phase23 gameplay/asset implementation, package, release or deployment."
+  },
   "completed_phase": {
     "id": "phase_22_start_time_map_loading",
     "title": "Start-time map loading and evidence-led app hardening",
@@ -49,8 +66,11 @@
     "date": "2026-10-09",
     "decision": "Existing manual-check prerequisites waived for continuation; preserve actual outcomes and unresolved technical causes. No native/human/network acceptance claimed. Original waiver and continuation evidence remain in the archive chain."
   },
-  "validation": [],
-  "changed_files": [],
+  "validation": [
+    {"status": "passed", "scope": "planning-source-review", "evidence": "Read authoritative brief/design, current tracking, Main lifecycle/presets, DisasterDirector pacing, audio and character owners. New owner observations and hardware kept separate from diagnosed causes."},
+    {"status": "passed", "scope": "planning-integrity", "evidence": "jq empty progress.json; git diff --check; local Markdown link and phase/milestone pointer check: PHASE23_PLAN_OK milestones=4 links=passed pointers=passed gameplay_gates=not_run. Documentation-only; no gameplay tests or native performance measurements claimed."}
+  ],
+  "changed_files": ["docs/checklists/phase-23-performance-chaos-audio-character.md", "docs/implementation-checklist.md", "docs/decisions.md", "NEED_REAL_CHECK.md", "progress.json"],
   "blockers": [],
   "limits": [
     "Owner's two-app thermal/FPS symptom not reproduced on native hardware; Windows/GPU/audio/focus/minimize/vblank/human feel remain unverified.",
@@ -62,7 +82,7 @@
   ],
   "deferred_scope": [
     "Magnet and rigid-crate spring/rocket relocation: persistent escape-route safety not established",
-    "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"
+    "Earlier rejected B/C UI proposals remain deferred; only new Phase23 performance and difficulty scope is reopened"
   ],
   "delivery_authorization": {
     "scope": "Owner explicitly requested publish and release after Phase22 source completion. Exact tested source deployed and matching packages published; no infrastructure/capacity or public persistence changes.",
@@ -79,5 +99,5 @@
     "verification": "Primary full65Godot/10network/managed20/47Python gate and follow-up74-root normal hook pass; source pushed. Subsequent authorized Phase22 delivery is recorded separately in public_delivery.evidence."
   },
   "planned_phases": [],
-  "next_action": "Await owner feedback on the published Phase22 build or next scope; do not start another phase automatically."
+  "next_action": "Execute T23.1a baseline: compare fresh Home, pre-Start lobby, active and returned-lobby memory/frame-time traces with idle-then-camera controls before changing performance code."
 }
