@@ -22,6 +22,7 @@ func _run() -> void:
 	player.set_camera_yaw(0.0)
 	for map_id in ["toy_town", "toy_harbor"]:
 		main.set_map_id(map_id)
+		await main.prepare_gameplay_map()
 		await physics_frame
 		manager.prepare_lobby()
 		manager.set_player_ready(1, true)

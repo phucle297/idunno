@@ -97,8 +97,26 @@ def run():
                 return json.load(response)
 
         def state(value, labels):
-            wait(lambda: read("server-SCALE").get("state") == value and
-                 all(read(label).get("state") == value for label in labels), f"State {value}: {labels}")
+            started = time.time()
+            try:
+                wait(lambda: read("server-SCALE").get("state") == value and
+                     all(read(label).get("state") == value for label in labels), f"State {value}: {labels}")
+            except AssertionError:
+                keys = ("state", "network", "map_loading", "map_local_ready", "map_waiting",
+                        "map_generation", "loaded_map", "map_roots", "max_frame_usec",
+                        "sample_wall_time", "first_active_at")
+                print(f"MANAGED_STATE_WINDOW start={started:.6f} end={time.time():.6f}", flush=True)
+                print("MANAGED_STATE_FAILURE " + json.dumps({
+                    label: {key: read(label).get(key) for key in keys}
+                    for label in ["server-SCALE", *labels]}), flush=True)
+                raise
+            if value == 1:
+                authority = read("server-SCALE")
+                print("MANAGED_ACTIVE_TIMING " + json.dumps({
+                    "wait_start": started, "converged_at": time.time(),
+                    "authority_first_active_at": authority.get("first_active_at"),
+                    "first_active_sample_at": {label: read(label).get("first_active_at")
+                                               for label in labels}}), flush=True)
 
         labels = [f"client-{i}" for i in range(options.clients)]
         profiles, equipped = {}, {}

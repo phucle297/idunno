@@ -34,6 +34,7 @@ func _ready() -> void:
 	prompt.add_theme_color_override("font_color", DisasterPartyUI.SLATE)
 	content.add_child(prompt)
 	reticle = Label.new()
+	reticle.theme = theme
 	reticle.text = "+"
 	reticle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reticle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

@@ -11,7 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Map/rematch fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Map/rematch fixture explicitly starts solo")
 	await physics_frame
 	main.set_process(false)
 	main.set_physics_process(false)
@@ -24,16 +24,19 @@ func _run() -> void:
 	player.set_physics_process(false)
 	player.set_process_unhandled_input(false)
 	player.set_camera_yaw(0.0)
-	# Server-selected map identity: unknown ids are rejected, switching
-	# rebuilds the sandbox and its anchors from the map itself.
+	# Server-selected map identity remains metadata-only until the explicit
+	# gameplay preparation boundary builds the selected map and its anchors.
 	_expect(not main.set_map_id("not_a_map"), "Unknown map id must be rejected")
 	_expect(main.get_map_id() == "toy_town", "Toy Town remains the default map")
 	_expect(main.set_map_id("toy_harbor") and main.get_map_id() == "toy_harbor", "Map selection switches to Toy Harbor")
+	await main.prepare_gameplay_map()
 	_expect(main.get_node("Sandbox").get_node_or_null("Warehouse") != null, "Toy Harbor builds the warehouse landmark")
 	_expect(main.set_map_id("toy_town"), "Map selection switches back to Toy Town")
+	await main.prepare_gameplay_map()
 	_expect(main.get_node("Sandbox").get_node_or_null("Shop") != null, "Toy Town rebuilds its own landmarks")
 	for map_name in ["toy_town", "toy_harbor"]:
 		_expect(main.set_map_id(map_name), "Select %s" % map_name)
+		await main.prepare_gameplay_map()
 		await _check_map(main, player, flood, map_name)
 	main.gameplay_audio.reset_for_match()
 	await create_timer(0.1).timeout

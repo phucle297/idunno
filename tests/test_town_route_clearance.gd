@@ -19,6 +19,7 @@ func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await physics_frame
+	await main.prepare_gameplay_map()
 	_disable_autonomous_processing(main)
 	var player := main.get_node("Player") as PartyPlayer
 	var anchors: Dictionary = main.map_anchors

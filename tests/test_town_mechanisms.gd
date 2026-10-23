@@ -17,6 +17,7 @@ func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await physics_frame
+	await main.prepare_gameplay_map()
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)

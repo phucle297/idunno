@@ -24,6 +24,7 @@ func _run() -> void:
 	main = main_scene
 	root.add_child(main)
 	await physics_frame
+	await main.prepare_gameplay_map()
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()

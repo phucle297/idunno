@@ -25,8 +25,13 @@ var _support_query := Callable()
 var _los_query := Callable()
 var _revision := 0
 var _remote_revision := -1
+var _geometry_revision := 0
 var _built := false
 var _host: Node3D
+
+
+func get_geometry_revision() -> int:
+	return _geometry_revision
 
 
 func construct_toy_town(host: Node3D, support_query := Callable(), los_query := Callable()) -> bool:
@@ -207,7 +212,11 @@ func _entry(body: AnimatableBody3D, pivot: Vector3, local_offset: Vector3, deck_
 
 
 func _apply_transform(mechanism: Dictionary) -> void:
-	(mechanism.body as AnimatableBody3D).global_transform = _mechanism_transform(mechanism)
+	var body := mechanism.body as AnimatableBody3D
+	var target := _mechanism_transform(mechanism)
+	if body.global_transform != target:
+		_geometry_revision += 1
+	body.global_transform = target
 
 
 func _mechanism_transform(mechanism: Dictionary) -> Transform3D:
@@ -357,6 +366,8 @@ func _disable(mechanism_id: String, mechanism: Dictionary) -> void:
 func _set_enabled(mechanism: Dictionary, enabled: bool) -> void:
 	# TerrainCollapse owns fixed posts/ramps/partitioned landings. A mechanism
 	# snapshot must not resurrect those after a district has disappeared.
+	if (mechanism.body as Node3D).visible != enabled:
+		_geometry_revision += 1
 	for node: Node in (mechanism.body as Node).find_children("*", "CollisionShape3D", true, false):
 		(node as CollisionShape3D).set_deferred("disabled", not enabled)
 	(mechanism.body as Node3D).visible = enabled

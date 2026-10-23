@@ -25,6 +25,7 @@ func _run() -> void:
 	for map_id in ["toy_town", "toy_harbor"]:
 		main.match_manager.prepare_lobby()
 		_expect(main.set_map_id(map_id), "Select %s" % map_id)
+		await main.prepare_gameplay_map()
 		main.match_manager.set_player_ready(1, true)
 		_expect(main.match_manager.start_match(), "Start controlled %s route fixture" % map_id)
 		main.disaster_director.cleanup()

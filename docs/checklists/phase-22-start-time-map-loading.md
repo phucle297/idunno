@@ -6,28 +6,28 @@ unchanged. Source delivery is commit/push per coherent validated unit, not deplo
 
 ## M22.1 — Metadata-only selection
 
-- [ ] Normal Home startup has no gameplay map geometry.
-- [ ] Solo/room map selection and replicated lobby selection do not build/delete
+- [x] Normal Home startup has no gameplay map geometry.
+- [x] Solo/room map selection and replicated lobby selection do not build/delete
       gameplay geometry. Selection does not start time, physics or hazards.
-- [ ] Start loads the selected map, wires hazards/terrain/weather and seats players.
-- [ ] Same-map rematches restore mutable state without rebuilding static geometry.
-- [ ] Existing gameplay fixtures explicitly prepare their world; startup/map tests
+- [x] Start loads the selected map, wires hazards/terrain/weather and seats players.
+- [x] Same-map rematches restore mutable state without rebuilding static geometry.
+- [x] Existing gameplay fixtures explicitly prepare their world; startup/map tests
       assert the new public lifecycle rather than preserving the previous bug.
-- [ ] Re-run the production selection measurement and focused controls.
+- [x] Re-run the production selection measurement and focused controls.
 
 ## M22.2 — Multiplayer loading barrier
 
-- [ ] Authority requests loading only on accepted Start and freezes lobby changes.
-- [ ] All registered peers acknowledge the current load before ACTIVE/time/hazards.
-- [ ] Stale/unregistered replies, late joins, departure, timeout and disconnect
+- [x] Authority requests loading only on accepted Start and freezes lobby changes.
+- [x] All registered peers acknowledge the current load before ACTIVE/time/hazards.
+- [x] Stale/unregistered replies, late joins, departure, timeout and disconnect
       cannot start a partial/stale session or leave a permanently locked lobby.
-- [ ] Real ENet map switches and rematches pass on both maps.
+- [x] Real ENet map switches and rematches pass on both maps.
 
 ## M22.3 — Whole-app audit and integration
 
-- [ ] Fan out independent UI/session, authority/network and gameplay/performance
+- [x] Fan out independent UI/session, authority/network and gameplay/performance
       audits after the loading fix. Review returned evidence before accepting fixes.
-- [ ] Reproduce concrete findings, fix/refactor narrowly and retain regression tests
+- [x] Reproduce concrete findings, fix/refactor narrowly and retain regression tests
       for user-visible contracts. No broad rewrite or unsupported FPS claim.
 - [ ] Normal staged regression gate passes; inspect affected rendered UI states.
 - [ ] Record findings, unresolved native/hardware checks and actual source delivery.

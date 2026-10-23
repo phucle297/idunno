@@ -9,7 +9,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Pause fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Pause fixture explicitly starts solo")
 	await process_frame
 	main.disaster_director.cleanup()
 	_expect(main.get_node("Interface").has_node("PauseSettings"), "Pause/settings overlay must exist")

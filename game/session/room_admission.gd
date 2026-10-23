@@ -70,6 +70,10 @@ func _forget_peer(peer: int) -> void:
 	pending.erase(peer)
 
 
+func has_pending_admissions() -> bool:
+	return not pending.is_empty() or not (main.multiplayer as SceneMultiplayer).get_authenticating_peers().is_empty()
+
+
 func _start_round(sequence: int, peer_ids: Array[int]) -> void:
 	if not main.multiplayer.is_server():
 		return
@@ -146,7 +150,7 @@ func _authenticate(peer: int, data: PackedByteArray) -> void:
 	var api := main.multiplayer as SceneMultiplayer
 	if pending.has(peer):
 		return
-	if data.size() > 128 or data.is_empty() or main.match_manager.state != MatchManager.MatchState.LOBBY:
+	if data.size() > 128 or data.is_empty() or main._map_loading or main.match_manager.state != MatchManager.MatchState.LOBBY:
 		api.disconnect_peer(peer)
 		return
 	var request := HTTPRequest.new()
@@ -170,7 +174,7 @@ func _authenticate(peer: int, data: PackedByteArray) -> void:
 				if valid:
 					profile_id = json.data.profile_id
 					main._outfits[peer] = json.data.equipped
-			if valid and main.match_manager.state == MatchManager.MatchState.LOBBY:
+			if valid and not main._map_loading and main.match_manager.state == MatchManager.MatchState.LOBBY:
 				if not profile_id.is_empty():
 					profile_ids[peer] = profile_id
 				if api.complete_auth(peer) != OK:
@@ -236,7 +240,7 @@ func _process(delta: float) -> void:
 	elapsed = 1.0
 	var payload := config.duplicate()
 	payload["peers"] = main.get_network_player_ids()
-	payload["joinable"] = main.match_manager.state == MatchManager.MatchState.LOBBY
+	payload["joinable"] = not main._map_loading and main.match_manager.state == MatchManager.MatchState.LOBBY
 	heartbeat.request(config.url + "heartbeat", ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload))
 
 

@@ -41,6 +41,7 @@ var _height_image: Image
 var _height_texture: ImageTexture
 var _residual_image: Image
 var _residual_texture: ImageTexture
+var _residual_dirty := true
 var _height_dirty := true
 var _height_cursor := 0
 var _world: Node3D
@@ -55,6 +56,45 @@ var _last_footprints: Dictionary = {}
 
 
 func configure_world(world: Node3D, extent: float, puddles: PackedVector3Array) -> bool:
+	if not _begin_world_configuration(world, extent, puddles):
+		return false
+	_register_world_meshes_sync(world)
+	_create_puddle_visuals(puddles)
+	_finish_world_configuration()
+	return true
+
+
+func configure_world_cooperative(world: Node3D, extent: float, puddles: PackedVector3Array, work: MapPreparation) -> bool:
+	if not work.is_current():
+		return false
+	if not _begin_world_configuration(world, extent, puddles):
+		return false
+	if not await work.checkpoint():
+		_abort_world_configuration()
+		return false
+	if _presentation_enabled:
+		var nodes: Array[Node] = [world]
+		while not nodes.is_empty():
+			if not work.is_current():
+				_abort_world_configuration()
+				return false
+			_register_world_node(nodes.pop_back(), nodes)
+			if not await work.checkpoint():
+				_abort_world_configuration()
+				return false
+		for index in puddles.size():
+			if not work.is_current():
+				_abort_world_configuration()
+				return false
+			_create_puddle_visual(index, puddles[index])
+			if not await work.checkpoint():
+				_abort_world_configuration()
+				return false
+	_finish_world_configuration()
+	return true
+
+
+func _begin_world_configuration(world: Node3D, extent: float, puddles: PackedVector3Array) -> bool:
 	if not is_instance_valid(world) or not is_finite(extent) or extent <= 0.0 or extent > 80.0 or puddles.size() > MAX_LOCAL_AREAS:
 		return false
 	for point in puddles:
@@ -83,25 +123,55 @@ func configure_world(world: Node3D, extent: float, puddles: PackedVector3Array) 
 	_residual_image = Image.create(size, size, false, Image.FORMAT_RGBAF)
 	_residual_texture = ImageTexture.create_from_image(_residual_image)
 	_material.set_shader_parameter("residual_surface", _residual_texture)
-	for mesh: MeshInstance3D in world.find_children("*", "MeshInstance3D", true, false):
-		register_surface_mesh(mesh)
+	_residual_dirty = true
+	return true
+
+
+func _finish_world_configuration() -> void:
+	cleanup()
+	invalidate_cover()
+
+
+func _abort_world_configuration() -> void:
 	for visual in _puddle_visuals:
 		visual.free()
 	_puddle_visuals.clear()
+	_set_surface_overlays(false)
+	_surface_meshes.clear()
+	_world = null
+
+
+func _register_world_meshes_sync(world: Node) -> void:
+	if not _presentation_enabled:
+		return
+	var nodes: Array[Node] = [world]
+	while not nodes.is_empty():
+		_register_world_node(nodes.pop_back(), nodes)
+
+
+func _register_world_node(node: Node, nodes: Array[Node]) -> void:
+	if node is MeshInstance3D:
+		register_surface_mesh(node)
+	for child in node.get_children():
+		nodes.append(child)
+
+
+func _create_puddle_visuals(puddles: PackedVector3Array) -> void:
 	for index in puddles.size():
-		var visual := MeshInstance3D.new()
-		visual.mesh = _puddle_mesh(index)
-		visual.position = puddles[index] + Vector3.UP * 0.035
-		var material := StandardMaterial3D.new()
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.vertex_color_use_as_albedo = true
-		material.roughness = 0.18
-		visual.material_override = material
-		add_child(visual)
-		_puddle_visuals.append(visual)
-	cleanup()
-	invalidate_cover()
-	return true
+		_create_puddle_visual(index, puddles[index])
+
+
+func _create_puddle_visual(index: int, point: Vector3) -> void:
+	var visual := MeshInstance3D.new()
+	visual.mesh = _puddle_mesh(index)
+	visual.position = point + Vector3.UP * 0.035
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.18
+	visual.material_override = material
+	add_child(visual)
+	_puddle_visuals.append(visual)
 
 
 func register_surface_mesh(mesh: MeshInstance3D) -> bool:
@@ -168,6 +238,7 @@ func tick(delta: float, raining: bool, snowing: bool, water_level: float) -> voi
 		_puddle_moisture[index] = clampf(_puddle_moisture[index] - maxf(drying_per_second, 0.0) * delta * 0.35 if incoming == 0.0 and water_level < spot.y else _puddle_moisture[index], 0.0, 1.0)
 	for index in range(_residuals.size() - 1, -1, -1):
 		var residual: Dictionary = _residuals[index]
+		var previous := Vector2(residual.snow, residual.wetness)
 		# A tracked footprint is retained when a roof moves over it. Covered snow
 		# never accumulates from outdoor snowfall; it still melts, then dries slowly.
 		var residual_melt_time := minf(delta, float(residual.snow) / melt_rate) if melt_rate > 0.0 else 0.0
@@ -176,8 +247,9 @@ func tick(delta: float, raining: bool, snowing: bool, water_level: float) -> voi
 		residual.wetness = maxf(0.0, minf(1.0, float(residual.wetness) + residual_melt) - maxf(drying_per_second, 0.0) * (delta - residual_melt_time) * 0.6)
 		if residual.snow <= 0.0 and residual.wetness <= 0.0:
 			_residuals.remove_at(index)
-		else:
-			_residuals[index] = residual
+			_residual_dirty = true
+		elif Vector2(residual.snow, residual.wetness) != previous:
+			_residual_dirty = true
 	for index in range(_melt_areas.size() - 1, -1, -1):
 		_melt_amounts[index] = maxf(0.0, _melt_amounts[index] - accumulation_per_second * delta) if receives_snow else minf(_melt_amounts[index], _surface.x)
 		if _melt_amounts[index] <= 0.0:
@@ -300,13 +372,16 @@ func _store_residual(point: Vector3, state: Vector2) -> void:
 	for index in _residuals.size():
 		var entry: Dictionary = _residuals[index]
 		if absf(float(entry.y) - point.y) <= CONTACT_TOLERANCE and absf(float(entry.x) - point.x) <= 0.5 and absf(float(entry.z) - point.z) <= 0.5:
-			entry.snow = state.x
-			entry.wetness = state.y
-			_residuals[index] = entry
+			if float(entry.snow) != state.x or float(entry.wetness) != state.y:
+				entry.snow = state.x
+				entry.wetness = state.y
+				_residuals[index] = entry
+				_residual_dirty = true
 			return
 	if _residuals.size() >= MAX_RESIDUALS:
 		_residuals.pop_front()
 	_residuals.append({"x": point.x, "y": point.y, "z": point.z, "snow": state.x, "wetness": state.y})
+	_residual_dirty = true
 
 
 func preserve_cover_region(center: Vector3, radius: int) -> void:
@@ -334,6 +409,7 @@ func cleanup() -> void:
 	_melt_areas.clear()
 	_melt_amounts.clear()
 	_residuals.clear()
+	_residual_dirty = true
 	_puddle_moisture.fill(0.0)
 	_electric.resize(_puddle_spots.size())
 	_electric.fill(Vector2.ZERO)
@@ -391,6 +467,13 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	for index in positions.size():
 		if not positions[index].is_finite() or not states[index].is_finite() or states[index].x < 0 or states[index].x > 1 or states[index].y < 0 or states[index].y > 1:
 			return false
+	var residuals_changed := _residuals.size() != positions.size()
+	if not residuals_changed:
+		for index in positions.size():
+			var entry: Dictionary = _residuals[index]
+			if Vector3(entry.x, entry.y, entry.z) != positions[index] or Vector2(entry.snow, entry.wetness) != states[index]:
+				residuals_changed = true
+				break
 	_surface = Vector2(snow[0], wet[0])
 	_water_level = snapshot.water
 	_flood_wash_level = snapshot.wash_level
@@ -403,6 +486,8 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	for index in positions.size():
 		var point := positions[index]
 		_residuals.append({"x": point.x, "y": point.y, "z": point.z, "snow": states[index].x, "wetness": states[index].y})
+	if residuals_changed:
+		_residual_dirty = true
 	_puddle_moisture = puddles.duplicate()
 	precipitation = snapshot.precipitation
 	return true
@@ -449,12 +534,14 @@ func _process(delta: float) -> void:
 		var amounts := _melt_amounts.duplicate()
 		amounts.resize(MAX_LOCAL_AREAS)
 		_material.set_shader_parameter("melt_amounts", amounts)
-		_residual_image.fill(Color(0, 0, -100, 0))
-		for entry in _residuals:
-			var pixel := Vector2i(roundi(float(entry.x) + _extent), roundi(float(entry.z) + _extent))
-			if pixel.x >= 0 and pixel.y >= 0 and pixel.x < _residual_image.get_width() and pixel.y < _residual_image.get_height():
-				_residual_image.set_pixelv(pixel, Color(entry.snow, entry.wetness, entry.y, 1))
-		_residual_texture.update(_residual_image)
+		if _residual_dirty and _residual_image != null and _residual_texture != null:
+			_residual_image.fill(Color(0, 0, -100, 0))
+			for entry in _residuals:
+				var pixel := Vector2i(roundi(float(entry.x) + _extent), roundi(float(entry.z) + _extent))
+				if pixel.x >= 0 and pixel.y >= 0 and pixel.x < _residual_image.get_width() and pixel.y < _residual_image.get_height():
+					_residual_image.set_pixelv(pixel, Color(entry.snow, entry.wetness, entry.y, 1))
+			_residual_texture.update(_residual_image)
+			_residual_dirty = false
 		# An alpha-zero overlay still submits another draw for every world mesh.
 		# Keep it through melt/flood/covered residuals; remove only fully dry passes.
 		_set_surface_overlays(_surface != Vector2.ZERO or _flood_residual_wetness > 0.0 or not _residuals.is_empty())

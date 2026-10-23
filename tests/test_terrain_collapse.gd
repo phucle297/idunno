@@ -27,6 +27,7 @@ func _run() -> void:
 	for map_id in ["toy_town", "toy_harbor"]:
 		manager.prepare_lobby()
 		main.set_map_id(map_id)
+		await main.prepare_gameplay_map()
 		await physics_frame
 		var world_nodes: Array = main.get_node("Sandbox").get_children()
 		terrain.candidate_is_safe = main._collapse_district_is_safe

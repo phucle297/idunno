@@ -13,6 +13,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	await main.prepare_gameplay_map()
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()

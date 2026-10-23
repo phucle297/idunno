@@ -5,6 +5,14 @@ var failures: Array[String] = []
 var checks := 0
 
 
+class FixtureMain extends "res://game/main.gd":
+	var movement_started := false
+
+	@rpc("authority", "call_remote", "reliable")
+	func begin_movement_measurement() -> void:
+		movement_started = true
+
+
 func _initialize() -> void:
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--role="):
@@ -14,6 +22,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.set_script(FixtureMain)
 	main.name = "Main"
 	root.add_child(main)
 	await process_frame
@@ -47,13 +56,16 @@ func _server(main: Node) -> void:
 		if id != owner_id:
 			guest_id = id
 	_expect(owner_id > 1 and guest_id > 1 and not main.match_manager.players.has(1), "Only clients may participate")
-	await _wait_until(func() -> bool: return main.get_map_id() == "toy_harbor", "Server must load the owner-selected map before countdown")
-	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Server map anchors must follow map identity")
+	await _wait_until(func() -> bool: return main.get_map_id() == "toy_harbor", "Server must receive the owner-selected map before countdown")
+	await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Owner must start the ready server")
+	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Start prepares server anchors for the selected map")
+	main.disaster_director.cleanup()
+	# Start reseats the frozen roster on the selected map. Measure movement
+	# from those authoritative positions, not the preceding lobby's spawn order.
 	var origins := {}
 	for id: int in main.get_network_player_ids():
 		origins[id] = main._player_nodes[id].global_position
-	await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Owner must start the ready server")
-	main.disaster_director.cleanup()
+	main.begin_movement_measurement.rpc()
 	await _wait_until(func() -> bool:
 		return main._player_nodes[owner_id].global_position.x - origins[owner_id].x > 0.75 and main._player_nodes[guest_id].global_position.x - origins[guest_id].x > 0.75,
 		"Server physics must apply both clients' movement inputs")
@@ -91,12 +103,13 @@ func _client(main: Node) -> void:
 	else:
 		_expect(not main.request_map_change("toy_harbor"), "Guest cannot change the map")
 	await _wait_until(func() -> bool: return main.get_map_id() == "toy_harbor", "Clients must load the owner-selected map before countdown")
-	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Client map anchors must follow map identity")
 	main.set_local_ready(true)
 	if role == "owner":
 		await _wait_until(func() -> bool: return main.match_manager.can_start_match(), "Both clients must ready")
 		_expect(main.start_network_match(), "Owner must send start request")
 	await _wait_until(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "Client must receive ACTIVE")
+	_expect(main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "ACTIVE prepares client anchors for the selected map")
+	await _wait_until(func() -> bool: return main.movement_started, "Authority must record the post-Start movement origins")
 	var origin: Vector3 = main._player_nodes[local_id].global_position
 	Input.action_press("move_right")
 	await _wait_until(func() -> bool: return main._player_nodes[local_id].global_position.x - origin.x > 0.75, "Client must observe authoritative rightward movement, not vertical falling")

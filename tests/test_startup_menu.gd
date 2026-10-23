@@ -25,6 +25,7 @@ func _run() -> void:
 	_expect(main.music.context == "menu", "Home starts with menu music context")
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY, "Normal launch waits in preparation, not solo gameplay")
 	_expect(main.home_screen.is_visible_in_tree() and not panel.visible and player.local_input_blocked, "Dedicated Home replaces the room dialog and blocks movement")
+	_expect(main.get_node("Sandbox").get_child_count() == 0, "Normal Home startup leaves the gameplay Sandbox empty")
 	var original_reduced: bool = main.pause_settings.values.reduced_motion
 	main.pause_settings.values.reduced_motion = false
 	main._update_lobby_ui()
@@ -33,6 +34,7 @@ func _run() -> void:
 	var moving_car: Vector3 = stage.cars[1].position
 	await create_timer(0.08).timeout
 	_expect(stage.clouds[1].position != moving_cloud and stage.cars[1].position != moving_car, "Home renders a live town: clouds and traffic actually advance")
+	_expect(not player.world_loaded and player.position == main.get_map_spawn_origin() and player.velocity == Vector3.ZERO, "An unloaded gameplay avatar must not fall while Home is open")
 	_expect(stage.find_children("*", "CollisionObject3D", true, false).is_empty(), "Home diorama must not add gameplay collision or authority")
 	await _capture_motion()
 	main.pause_settings.values.reduced_motion = true
@@ -88,15 +90,19 @@ func _run() -> void:
 	main.home_screen.mode_buttons[1].pressed.emit()
 	_expect(main.get_map_id() == "toy_harbor" and main.get_match_preset() == main.MATCH_PRESETS[1], "Menu choices update authoritative map and match preset")
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY and not main.disaster_director.running, "Changing map and mode never starts a round")
+	_expect(main.get_node("Sandbox").get_child_count() == 0, "Map selection remains metadata-only while Home is open")
 	await _capture("map-mode-selected")
 	main.home_screen.show_page("home")
 	main.home_screen.solo.pressed.emit()
 	_expect(main.get_map_id() == "toy_harbor" and main.get_match_preset() == "hard", "Back preserves map and difficulty")
-	main.home_screen.start.pressed.emit()
+	await main.start_local_match()
 	_expect(main.match_manager.state == MatchManager.MatchState.ACTIVE and main.disaster_director.running, "Solo button explicitly starts match and director")
+	_expect(main.get_node("Sandbox").get_child_count() > 0 and main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Start prepares selected gameplay geometry and anchors")
 	_expect(main.music.context == "gameplay", "Starting a match switches the real music owner to gameplay")
 	_expect(not panel.visible and not main.home_screen.visible and not player.local_input_blocked, "Start closes preparation pages and releases gameplay input")
 	_expect(player.character.get_outfit_id() == "cap" and main.get_map_id() == "toy_harbor", "Selected outfit and map survive the start boundary")
+	_expect(player.world_loaded, "Start enables avatar simulation only after loading gameplay collision")
+	await _capture("started")
 	main.disaster_director.cleanup()
 	main.match_manager.apply_damage(1, 100, "Menu regression")
 	_expect(main.return_to_lobby(), "Results can return to preparation")

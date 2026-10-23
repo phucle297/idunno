@@ -18,6 +18,7 @@ NETWORK = [
     "tests/run_town_mechanism_network_test.sh",
     "tests/run_toy_sabotage_network_test.sh",
     "tests/run_hot_potato_network_test.sh",
+    "tests/run_map_loading_network_test.sh",
 ]
 FULL_TRIGGERS = {"project.godot", "tests/run_ui_regression.sh"}
 RESOURCE_SUFFIXES = {".gd", ".tscn", ".tres", ".gdshader", ".png", ".wav", ".ogg", ".glb"}

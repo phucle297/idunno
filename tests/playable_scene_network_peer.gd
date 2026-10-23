@@ -11,6 +11,9 @@ var capture_path := ""
 class FixtureMain extends "res://game/main.gd":
 	var observed_stages: Dictionary = {}
 
+	func _start_requested_network_session() -> Error:
+		return ERR_SKIP
+
 	@rpc("any_peer", "call_remote", "reliable")
 	func acknowledge_stage(stage: String) -> void:
 		if multiplayer.is_server() and _player_nodes.has(multiplayer.get_remote_sender_id()):
@@ -39,6 +42,20 @@ func _run() -> void:
 	main.set_script(FixtureMain)
 	main.name = "Main"
 	root.add_child(main)
+	# This movement fixture deliberately walks during LOBBY; loading is covered separately.
+	await main.prepare_gameplay_map()
+	var error: Error
+	if role == "server":
+		error = main.host_game(port)
+	else:
+		main._prepare_offline_player_for_join()
+		error = main.join_game("127.0.0.1", port)
+	if error != OK:
+		push_error("Playable scene transport setup failed: %s" % error_string(error))
+		quit(1)
+		return
+	if role == "server":
+		main.match_manager.players[1].name = "Host"
 	await process_frame
 	if role == "server":
 		await _run_server(main)
@@ -73,6 +90,12 @@ func _run_server(main: Node) -> void:
 	var lobby: Panel = main.get_node("Interface/LobbyPanel")
 	var lobby_passed: bool = lobby.visible and lobby.get_node("Start").visible and lobby.get_node("Start").disabled and not main.gameplay_hud.health_card.visible
 	main._set_lobby_visible(false)
+	# Both observers must record their origins before either starts walking.
+	# Otherwise the host can finish moving while the client is still preparing.
+	if not await main.wait_for_stage("movement-ready"):
+		push_error("Playable scene client did not reach the movement observation barrier")
+		quit(1)
+		return
 	Input.action_press("move_left")
 	while (
 		is_instance_valid(client_player)
@@ -101,6 +124,8 @@ func _run_server(main: Node) -> void:
 	start_event.action = "ui_accept"
 	start_event.pressed = true
 	main._unhandled_input(start_event)
+	while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
+		await process_frame
 	await create_timer(0.4).timeout
 	var active_passed := (
 		manager.state == MatchManager.MatchState.ACTIVE
@@ -359,6 +384,7 @@ func _run_client(main: Node) -> void:
 	var lobby_passed: bool = lobby.visible and not lobby.get_node("Start").visible and not lobby.get_node("Ready").disabled and "only the host" in lobby.get_node("Status").text and not main.start_network_match() and main._create_playable_snapshot() == before
 	lobby_passed = lobby_passed and lobby.get_node("PlayerList").rows[local_id].get_node("Content/Identity/Markers").text == "YOU" and lobby.get_node("PlayerList").rows[1].get_node("Content/Identity/Markers").text == "HOST"
 	main._set_lobby_visible(false)
+	main.acknowledge_stage.rpc_id(1, "movement-ready")
 	Input.action_press("move_right")
 	while (
 		is_instance_valid(local_player)

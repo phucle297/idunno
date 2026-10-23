@@ -14,7 +14,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Rematch fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Rematch fixture explicitly starts solo")
 	await process_frame
 	var manager = main.get_node("MatchManager")
 	var director = main.get_node("DisasterDirector")

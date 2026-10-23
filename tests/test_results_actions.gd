@@ -11,7 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Results fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Results fixture explicitly starts solo")
 	await process_frame
 	main.disaster_director.cleanup()
 	main.get_node("Player").set_physics_process(false)

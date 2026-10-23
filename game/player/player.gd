@@ -35,6 +35,7 @@ var _emote_id := 0
 var _emote_remaining := 0.0
 var _peer_id := 1
 var local_input_blocked := false
+var world_loaded := true
 var mouse_sensitivity := 1.0
 var invert_y := false
 var camera_shake_level := 1.0
@@ -51,6 +52,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if not world_loaded:
+		return
 	# Cosmetic, bounded knockdown feedback; never alters body or aiming rotation.
 	var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 	var shake := minf(_knockdown_remaining, 0.25) * camera_shake_level if camera.current else 0.0
@@ -122,7 +125,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _is_eliminated or not accepts_local_input():
+	if not world_loaded or _is_eliminated or not accepts_local_input():
 		return
 	if not local_input_blocked and Input.is_action_just_pressed("shove") and is_instance_valid(_shove_manager):
 		_shove_manager.request_local_shove(_peer_id)

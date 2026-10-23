@@ -24,9 +24,9 @@ func _run() -> void:
 	for map_id in ["toy_town", "toy_harbor"]:
 		main.match_manager.prepare_lobby()
 		main.set_map_id(map_id)
+		await main.prepare_gameplay_map()
 		await physics_frame
 		await physics_frame
-		main._configure_weather_patches()
 		var weather: WeatherSurfaces = main.weather_surfaces
 		_expect(weather.create_presentation_snapshot().puddles.size() == (4 if map_id == "toy_town" else 2), "%s uses production authored puddle layout" % map_id)
 		var exposed := Vector3(INF, 0, 0)

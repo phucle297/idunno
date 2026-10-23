@@ -1236,6 +1236,87 @@ class RealProcesses(unittest.TestCase):
             playing.result(timeout=12)
             ready_guest.result(timeout=12)
 
+    def test_start_waits_for_held_real_http_admission(self):
+        """A held /consume remains part of the authoritative lobby boundary."""
+        self.service.args.players = 3
+        owner = self.post("/v1/rooms/create", self.data)
+        guest = self.post("/v1/rooms/join", self.data)
+        room = self.service.rooms["ALPHA"]
+        consume_started = threading.Event()
+        release_consume = threading.Event()
+        hold_consume = threading.Event()
+        original_internal = self.service.internal
+
+        def delayed_internal(action, data):
+            if action == "consume" and hold_consume.is_set():
+                consume_started.set()
+                if not release_consume.wait(10):
+                    raise RuntimeError("admission-race consume release timed out")
+            return original_internal(action, data)
+
+        self.service.internal = delayed_internal
+        with tempfile.TemporaryDirectory() as directory:
+            stage_dir = Path(directory) / "stages"
+            stage_dir.mkdir()
+            processes = []
+            logs = {}
+
+            def launch(role, ticket):
+                ticket_path = Path(directory) / (role + ".json")
+                ticket_path.write_text(json.dumps(dict(ticket, race_role=role, stage_dir=str(stage_dir))))
+                log_path = Path(directory) / (role + ".log")
+                log = log_path.open("w")
+                logs[role] = (log_path, log)
+                processes.append(subprocess.Popen([
+                    self.service.args.godot, "--headless", "--path", str(ROOT),
+                    "--script", "res://tests/room_admission_peer.gd", "--",
+                    f"--admission-file={ticket_path}"], stdout=log, stderr=subprocess.STDOUT))
+
+            def wait_stage(name):
+                deadline = time.monotonic() + 12
+                marker = stage_dir / name
+                while not marker.exists() and time.monotonic() < deadline:
+                    time.sleep(0.02)
+                self.assertTrue(marker.exists(), {role: path.read_text() for role, (path, _) in logs.items()})
+
+            try:
+                launch("owner", owner)
+                wait_stage("owner-admitted")
+                launch("guest", guest)
+                wait_stage("guest-admitted")
+                wait_stage("owner-ready")
+                wait_stage("guest-ready")
+                hold_consume.set()
+                third = self.post("/v1/rooms/join", self.data)
+                launch("third", third)
+                self.assertTrue(consume_started.wait(8), "Third real HTTP /consume must reach the held service hook")
+                (stage_dir / "consume-held").write_text("held")
+                wait_stage("owner-start-blocked")
+                self.assertEqual(room["round"], {}, "Held admission must not advance the service round")
+                release_consume.set()
+                (stage_dir / "consume-released").write_text("released")
+                for role in ("owner", "guest", "third"):
+                    wait_stage(role + "-active")
+                for process in processes:
+                    self.assertEqual(process.wait(timeout=15), 0, {role: path.read_text() for role, (path, _) in logs.items()})
+                for role, (path, log) in logs.items():
+                    log.close()
+                    output = path.read_text()
+                    self.assertIn("ROOM_ADMISSION_RACE_%s_OK" % role.upper(), output)
+                    self.assertNotIn("SCRIPT ERROR", output)
+                    errors = [line for line in output.splitlines() if line.startswith("ERROR:") and "resources still in use at exit" not in line]
+                    self.assertEqual(errors, [], output)
+            finally:
+                release_consume.set()
+                for process in processes:
+                    if process.poll() is None:
+                        process.kill()
+                    process.wait(timeout=5)
+                for path, log in logs.values():
+                    if not log.closed:
+                        log.close()
+                self.service.internal = original_internal
+
     def test_profile_bound_admission_and_reservation_cleanup(self):
         with tempfile.TemporaryDirectory() as directory:
             self.service.profiles = ProfileStore(Path(directory) / "profiles.sqlite3")

@@ -108,7 +108,7 @@ func _run() -> void:
 	ui.dismiss()
 	await process_frame
 	_expect(not ui.visible and main.home_screen.is_visible_in_tree() and main.match_manager.state == MatchManager.MatchState.LOBBY, "Closing returns to Home, no match change")
-	main.start_local_match()
+	await main.start_local_match()
 	main.match_manager.apply_damage(1, 100.0, "Review fixture")
 	main._receive_reward_notice(1, {"reason": "round_too_short"})
 	main._receive_reward_notice(1, {"reason": "earned"})

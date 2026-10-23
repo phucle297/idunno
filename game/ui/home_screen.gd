@@ -178,6 +178,8 @@ func _build_maps() -> void:
 
 
 func show_page(value: String) -> void:
+	if _main._map_loading:
+		return
 	page = value
 	if page == "maps" and _main.get_match_preset() == "hot_potato":
 		_main.request_match_preset("normal") # Multiplayer-only rules cannot remain as a hidden solo selection.
@@ -202,8 +204,12 @@ func refresh() -> void:
 	if outfit != _outfit:
 		_outfit = outfit
 		preview.set_outfit_id(outfit)
-	start.disabled = not _main._outfit_pending.is_empty()
-	var selection: String = _main.get_map_id() + _main.get_match_preset()
+	var loading: bool = _main._map_loading
+	start.disabled = loading or not _main._outfit_pending.is_empty()
+	start.text = "LOADING MAP…" if loading else "START SOLO   →"
+	for button: Button in map_buttons + mode_buttons + [solo, outfits, multiplayer_button]:
+		button.disabled = loading
+	var selection: String = _main.get_map_id() + _main.get_match_preset() + str(loading)
 	if selection == _selection:
 		return
 	_selection = selection
@@ -215,4 +221,4 @@ func refresh() -> void:
 		var selected: bool = _main.get_match_preset() == _main.MATCH_PRESETS[index]
 		mode_buttons[index].add_theme_stylebox_override("normal", _style(UI.WARNING if selected else UI.WHITE))
 		mode_buttons[index].text = ("✓  " if selected else "") + ["NORMAL", "HARD"][index]
-	summary.text = _main.MAP_TITLES[_main.get_map_id()] + " / " + _main.MATCH_PRESET_TITLES[_main.get_match_preset()]
+	summary.text = "Preparing your playground…" if loading else _main.MAP_TITLES[_main.get_map_id()] + " / " + _main.MATCH_PRESET_TITLES[_main.get_match_preset()]

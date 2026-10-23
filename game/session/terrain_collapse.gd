@@ -48,10 +48,34 @@ func configure(map_id: String, world: Node3D) -> void:
 	_shapes.clear()
 	_visuals.clear()
 	_structures.clear()
-	_cache_world(world)
+	_cache_world_sync(world)
 
 
-func _cache_world(node: Node) -> void:
+func configure_cooperative(map_id: String, world: Node3D, work: MapPreparation) -> bool:
+	reset()
+	regions = map_regions(map_id)
+	_shapes.clear()
+	_visuals.clear()
+	_structures.clear()
+	if not is_instance_valid(world) or not work.is_current():
+		return false
+	var nodes: Array[Node] = [world]
+	while not nodes.is_empty():
+		if not work.is_current():
+			return false
+		_cache_node(nodes.pop_back(), nodes)
+		if not await work.checkpoint():
+			return false
+	return true
+
+
+func _cache_world_sync(world: Node) -> void:
+	var nodes: Array[Node] = [world]
+	while not nodes.is_empty():
+		_cache_node(nodes.pop_back(), nodes)
+
+
+func _cache_node(node: Node, nodes: Array[Node]) -> void:
 	# Dynamic props fall naturally; never cache their moving transform.
 	if node is RigidBody3D:
 		return
@@ -67,7 +91,7 @@ func _cache_world(node: Node) -> void:
 		var bounds: AABB = node.global_transform * node.get_aabb()
 		_visuals.append({"node": node, "mask": _intersections(bounds), "changed": false, "visible": node.visible})
 	for child in node.get_children():
-		_cache_world(child)
+		nodes.append(child)
 
 
 func _intersections(bounds: AABB) -> int:

@@ -28,6 +28,7 @@ func _run() -> void:
 	for map_id in ["toy_town", "toy_harbor"]:
 		manager.prepare_lobby()
 		main.set_map_id(map_id)
+		await main.prepare_gameplay_map()
 		await physics_frame
 		await physics_frame
 		for peer_id: int in manager.players:

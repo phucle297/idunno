@@ -33,6 +33,7 @@ func _run() -> void:
 	director.set_process(false)
 	await _check_refuge_relocation(main, player, flood, main.get_node("Earthquake") as Earthquake)
 	_expect(main.set_map_id("toy_town"), "Restore Toy Town after relocation scenarios")
+	await main.prepare_gameplay_map()
 	_expect(manager.prepare_lobby() and manager.set_player_ready(1, true) and manager.start_match(), "Restart healthy match after relocation scenarios")
 	director.cleanup()
 	player.reset_for_match(Vector3.ZERO)
@@ -372,6 +373,7 @@ func _check_refuge_relocation(main: Node3D, player: PartyPlayer, flood: Flood, e
 	player.set_camera_yaw(0.0)
 	for map_id in ["toy_town", "toy_harbor"]:
 		_expect(main.set_map_id(map_id), "Relocation selects %s" % map_id)
+		await main.prepare_gameplay_map()
 		var manager := main.get_node("MatchManager") as MatchManager
 		_expect(manager.prepare_lobby() and manager.set_player_ready(1, true) and manager.start_match(), "%s relocation starts a healthy match" % map_id)
 		main.disaster_director.cleanup()

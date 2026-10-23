@@ -113,6 +113,15 @@ var _connection_remaining := 0.0
 var map_id := "toy_town"
 var match_preset := "normal"
 var map_anchors: Dictionary = {}
+var _map_loading := false
+var _map_load_generation := 0
+var _map_load_waiting: Array[int] = []
+var _map_load_deadline := 0
+var _network_connection_generation := 0
+var _map_load_notice := ""
+var _map_load_target := ""
+var _map_load_local_ready := false
+var _map_preparation: MapPreparation
 var _pending_fall_damage: Array[Dictionary] = []
 
 
@@ -157,8 +166,10 @@ func _ready() -> void:
 	toy_sabotage.action_is_blocked = func(peer_id: int) -> bool: return hot_potato.holder_id == peer_id and hot_potato.phase in [HotPotato.Phase.CARRIED, HotPotato.Phase.FLIGHT]
 	weather_surfaces.local_wetness = toy_sabotage.sample_wet_strip
 	weather_surfaces.local_slickness = toy_sabotage.sample_soap
-	_build_sandbox()
-	$Player.position = map_anchors.spawn_origin
+	# Home owns a separate diorama. The gameplay world stays empty until Start.
+	terrain_collapse.configure(map_id, $Sandbox)
+	$Player.position = get_map_spawn_origin()
+	$Player.world_loaded = false
 	spectator_controller = SpectatorControllerScript.new()
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)
@@ -277,6 +288,7 @@ func _ready() -> void:
 		if not startup_capture.is_empty():
 			capture_after_frames(startup_capture, 5)
 		return
+	await prepare_gameplay_map()
 	if _has_argument("--spectator-demo"):
 		_add_spectator_demo_player(2, "Teal Player", Vector3(-3.0, 0.05, -2.0))
 		_add_spectator_demo_player(3, "Coral Player", Vector3(3.0, 0.05, -4.0))
@@ -314,8 +326,6 @@ func _ready() -> void:
 		weather_event.set_process(false)
 		weather_event.start_disaster(weather_rng)
 		weather_event.tick(weather_event.warning_duration)
-		# Capture startup precedes the normal deferred map hook.
-		_configure_weather_patches()
 		tick_weather(8.0 if _has_argument("--rain-demo") else 16.0)
 	if _has_argument("--flood-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
@@ -472,6 +482,11 @@ func join_game(address: String, port: int = DEFAULT_NETWORK_PORT, admission_toke
 	var error := peer.create_client(address, port)
 	if error != OK:
 		return error
+	_network_connection_generation += 1
+	_map_load_generation = 0
+	_map_loading = false
+	_map_load_local_ready = false
+	_map_load_target = ""
 	powerups.reset_session()
 	toy_sabotage.reset_session()
 	hot_potato.reset_session()
@@ -546,6 +561,9 @@ func _start_requested_network_session() -> Error:
 func _on_network_peer_connected(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
+	if _map_loading:
+		(multiplayer as SceneMultiplayer).disconnect_peer(peer_id)
+		return # A Start request freezes the participating roster as well as selection.
 	# ENet's throttle re-seeds its RTT baseline only once per 5000 ms by default,
 	# so a fast-joining peer latches a quiet-time baseline whose tiny variance
 	# makes every admission-burst ACK look like congestion, ratcheting unreliable
@@ -582,6 +600,8 @@ func _on_network_peer_connected(peer_id: int) -> void:
 func _on_network_peer_disconnected(peer_id: int) -> void:
 	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
 		return
+	if _map_loading:
+		_abort_map_load()
 	_movement_inputs.erase(peer_id)
 	meteor_shower.unregister_player(peer_id)
 	flood.unregister_player(peer_id)
@@ -604,6 +624,14 @@ func _on_network_peer_disconnected(peer_id: int) -> void:
 
 func _on_server_disconnected() -> void:
 	# Clear ENet before any gameplay authority checks; a closed peer still counts as installed.
+	_network_connection_generation += 1
+	_map_load_generation += 1
+	_map_loading = false
+	_map_load_local_ready = false
+	_map_load_waiting.clear()
+	_map_load_notice = ""
+	if _map_preparation != null:
+		_map_preparation.cancel()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	var was_room := not _room_id.is_empty()
 	_room_id = ""
@@ -651,8 +679,9 @@ func _on_server_disconnected() -> void:
 	_pending_local_movement_snapshot.clear()
 	_reset_sandbox()
 	$Player.process_mode = Node.PROCESS_MODE_INHERIT
+	$Player.world_loaded = not map_anchors.is_empty()
 	$Player.set_multiplayer_authority(1)
-	$Player.reset_for_match(Vector3(0.0, 0.05, 7.0))
+	$Player.reset_for_match(get_map_spawn_origin())
 	_configure_network_player($Player, 1, $Player.position)
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
@@ -723,6 +752,7 @@ func _remove_network_player(peer_id: int) -> void:
 func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position: Vector3) -> void:
 	player.set_multiplayer_authority(peer_id)
 	player.position = spawn_position
+	player.world_loaded = not map_anchors.is_empty()
 	player.weather_surfaces = weather_surfaces
 	player.configure_emotes(self)
 	player.configure_identity(peer_id)
@@ -735,6 +765,8 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 
 func _physics_process(delta: float) -> void:
+	if map_anchors.is_empty() or _map_loading:
+		return
 	if is_instance_valid(town_mechanisms) and match_manager.state == MatchManager.MatchState.ACTIVE:
 		town_mechanisms.server_tick(delta, {}, not _network_mode or multiplayer.is_server())
 	tick_weather(delta)
@@ -1218,12 +1250,14 @@ func _flush_fall_damage() -> void:
 func _network_spawn_position(index: int) -> Vector3:
 	var column := index % 5
 	var row := index / 5
-	var origin: Vector3 = map_anchors.spawn_origin
+	var origin := get_map_spawn_origin()
 	return origin + Vector3((column - 2) * 1.5, 0.0, row * 1.5)
 
 
 func _process(delta: float) -> void:
 	music.set_warning_active(gameplay_audio.is_warning_playing())
+	if _map_loading and _network_mode and multiplayer.is_server() and Time.get_ticks_msec() >= _map_load_deadline:
+		_abort_map_load()
 	if _connection_remaining > 0.0:
 		if match_manager.players.has(multiplayer.get_unique_id()):
 			_connection_remaining = 0.0
@@ -1236,7 +1270,10 @@ func _process(delta: float) -> void:
 	terrain_collapse.tick(match_manager, disaster_director.last_seed)
 	if not _network_mode and Input.is_action_just_pressed("jump"):
 		gameplay_audio.play_jump()
-	if _network_mode and multiplayer.is_server():
+	# The loading roster and match state are frozen. The reliable load/cancel
+	# protocol owns this interval; do not queue identical lobby snapshots while
+	# every peer is busy constructing its world.
+	if _network_mode and multiplayer.is_server() and not _map_loading:
 		_match_snapshot_remaining -= delta
 		if _match_snapshot_remaining <= 0.0:
 			_match_snapshot_remaining = MATCH_SNAPSHOT_INTERVAL
@@ -1318,6 +1355,18 @@ func _apply_match_snapshot(snapshot: Dictionary) -> void:
 	var bomb_state := HotPotato.decode_wire_snapshot(snapshot.get("bomb"))
 	if bomb_state.is_empty() or String(snapshot.get("match_preset", match_preset)) not in MATCH_PRESETS:
 		return
+	# Channel-two lobby snapshots can predate the reliable load instruction.
+	# They must not replace the pinned attempt or expose a partial world.
+	if _map_loading and incoming_map != _map_load_target:
+		return
+	if int(snapshot.get("state", MatchManager.MatchState.LOBBY)) != MatchManager.MatchState.LOBBY:
+		if map_anchors.get("map_id", "") != incoming_map:
+			return
+		if _network_mode and int(snapshot.get("map_generation", -1)) != _map_load_generation:
+			return
+		if _map_loading and not _map_load_local_ready:
+			return
+		_map_loading = false
 	if snapshot.has("match_sequence"):
 		_last_match_snapshot_sequence = int(snapshot.match_sequence)
 	if incoming_map != map_id:
@@ -1374,6 +1423,7 @@ func _has_nonintact_structures() -> bool:
 func _create_playable_snapshot() -> Dictionary:
 	var snapshot: Dictionary = match_manager.create_authoritative_snapshot()
 	snapshot.map_id = map_id
+	snapshot.map_generation = _map_load_generation
 	snapshot.match_preset = match_preset
 	snapshot.terrain = terrain_collapse.create_snapshot()
 	snapshot.powerups = powerups.create_snapshot()
@@ -1757,7 +1807,7 @@ func _mechanism_line_of_sight(actor: Vector3, control: Vector3, _id: String) -> 
 
 
 func start_network_match() -> bool:
-	if not _outfit_pending.is_empty():
+	if _map_loading or not _outfit_pending.is_empty():
 		return false # Never let an accepted lobby mutation race the match boundary.
 	if not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
@@ -1767,10 +1817,101 @@ func start_network_match() -> bool:
 		return false
 	if not multiplayer.is_server():
 		return _send_owner_action("start")
-	if not match_manager.start_match():
-		return false
-	_set_lobby_visible(false)
-	return disaster_director.start_directing()
+	if is_instance_valid(room_admission) and room_admission.has_pending_admissions():
+		return false # Finish consuming valid tickets before freezing the roster.
+	_map_load_notice = ""
+	_map_loading = true
+	_map_load_generation += 1
+	_map_load_target = map_id
+	_map_load_local_ready = false
+	_map_load_deadline = Time.get_ticks_msec() + 60000
+	_map_load_waiting.clear()
+	for peer_id: int in multiplayer.get_peers():
+		if match_manager.players.has(peer_id):
+			_map_load_waiting.append(peer_id)
+			_load_gameplay_map.rpc_id(peer_id, map_id, _map_load_generation)
+	_prepare_network_map(map_id, _map_load_generation, _network_connection_generation)
+	return true # Accepted Start; ACTIVE is gated by the participating peers.
+
+
+@rpc("authority", "call_remote", "reliable")
+func _load_gameplay_map(selected_map: String, generation: int) -> void:
+	if not _network_mode or multiplayer.is_server() or selected_map not in MAP_IDS or generation <= _map_load_generation or match_manager.state != MatchManager.MatchState.LOBBY:
+		return
+	_map_load_generation = generation
+	_map_load_notice = ""
+	set_map_id(selected_map)
+	_map_load_target = selected_map
+	_map_load_local_ready = false
+	_map_loading = true
+	_update_lobby_ui()
+	_prepare_network_map(selected_map, generation, _network_connection_generation)
+
+
+func _prepare_network_map(selected_map: String, generation: int, connection: int) -> void:
+	# Leave the RPC dispatch before construction; normal frames service both
+	# ENet and HTTP. Never recursively poll into a partially built world.
+	await get_tree().process_frame
+	var current := func() -> bool:
+		return _network_mode and _map_loading and generation == _map_load_generation and connection == _network_connection_generation and selected_map == _map_load_target
+	if not current.call() or not await prepare_gameplay_map(current):
+		return
+	if not current.call():
+		return
+	_map_load_local_ready = true
+	if multiplayer.is_server():
+		_complete_map_load()
+	else:
+		await _acknowledge_map_load(generation, selected_map, connection)
+
+
+func _acknowledge_map_load(generation: int, selected_map: String, connection: int) -> void:
+	if _map_loading and generation == _map_load_generation and connection == _network_connection_generation:
+		_map_loaded.rpc_id(1, generation, selected_map)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _map_loaded(generation: int, selected_map: String) -> void:
+	if not _network_mode or not multiplayer.is_server() or not _map_loading or generation != _map_load_generation or selected_map != map_id:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	if sender not in _map_load_waiting or not match_manager.players.has(sender):
+		return
+	_map_load_waiting.erase(sender)
+	_complete_map_load()
+
+
+func _complete_map_load() -> void:
+	if not _map_loading or not _map_load_local_ready or not _map_load_waiting.is_empty():
+		return
+	if Time.get_ticks_msec() >= _map_load_deadline:
+		_abort_map_load()
+		return
+	_map_loading = false
+	_match_snapshot_remaining = 0.0
+	if match_manager.start_match():
+		_set_lobby_visible(false)
+		disaster_director.start_directing()
+
+
+func _abort_map_load() -> void:
+	_cancel_map_load.rpc(_map_load_generation)
+	_cancel_map_load(_map_load_generation)
+	for peer_id: int in match_manager.players:
+		match_manager.set_player_ready(peer_id, false)
+	_match_snapshot_remaining = 0.0
+
+
+@rpc("authority", "call_remote", "reliable")
+func _cancel_map_load(generation: int) -> void:
+	if generation != _map_load_generation:
+		return
+	_map_loading = false
+	_map_load_waiting.clear()
+	_map_load_local_ready = false
+	if _map_preparation != null:
+		_map_preparation.cancel()
+	_map_load_notice = "Loading cancelled — ready up and retry Start."
 
 
 func _send_owner_action(action: String) -> bool:
@@ -1805,8 +1946,9 @@ func _execute_owner_action(sender_id: int, action: String, revision: int) -> boo
 
 
 func set_local_ready(ready: bool) -> bool:
-	if not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
+	if _map_loading or not _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
+	_map_load_notice = ""
 	if multiplayer.is_server():
 		return match_manager.set_player_ready(multiplayer.get_unique_id(), ready)
 	_request_ready.rpc_id(1, ready)
@@ -1815,7 +1957,7 @@ func set_local_ready(ready: bool) -> bool:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _request_ready(ready: bool) -> void:
-	if not multiplayer.is_server() or match_manager.state != MatchManager.MatchState.LOBBY:
+	if _map_loading or not multiplayer.is_server() or match_manager.state != MatchManager.MatchState.LOBBY:
 		return
 	match_manager.set_player_ready(multiplayer.get_remote_sender_id(), ready)
 
@@ -2269,22 +2411,22 @@ func _update_lobby_ui() -> void:
 	var local_peer_id := multiplayer.get_unique_id() if _network_mode else 1
 	var connected := _network_mode and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and match_manager.players.has(local_peer_id)
 	panel.get_node("Ready").visible = (_network_mode or lobby_demo) and in_lobby
-	panel.get_node("Ready").disabled = not connected and not lobby_demo
+	panel.get_node("Ready").disabled = _map_loading or (not connected and not lobby_demo)
 	panel.get_node("Start").visible = can_control_session() and in_lobby and not room_client.busy
 	panel.get_node("Start").text = "START MATCH" if _network_mode or lobby_demo else "PLAY SOLO"
-	panel.get_node("Start").disabled = not _outfit_pending.is_empty() or ((not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false)
+	panel.get_node("Start").disabled = _map_loading or not _outfit_pending.is_empty() or ((not match_manager.can_start_match() or match_manager.players.size() < 2) if _network_mode or lobby_demo else false)
 	panel.get_node("Close").visible = true
 	var map_select: OptionButton = panel.get_node("MapSelect")
 	map_select.visible = in_lobby
 	panel.get_node("MapLabel").visible = in_lobby
-	map_select.disabled = room_client.busy or (_network_mode and not can_control_session())
+	map_select.disabled = _map_loading or room_client.busy or (_network_mode and not can_control_session())
 	var map_index: int = MAP_IDS.find(map_id)
 	if map_index >= 0 and map_select.selected != map_index:
 		map_select.select(map_index)
 	var preset_select: OptionButton = panel.get_node("PresetSelect")
 	preset_select.visible = in_lobby
 	panel.get_node("PresetLabel").visible = in_lobby
-	preset_select.disabled = room_client.busy or (_network_mode and not can_control_session())
+	preset_select.disabled = _map_loading or room_client.busy or (_network_mode and not can_control_session())
 	var preset_index: int = MATCH_PRESETS.find(match_preset)
 	if preset_index >= 0 and preset_select.selected != preset_index:
 		preset_select.select(preset_index)
@@ -2301,6 +2443,10 @@ func _update_lobby_ui() -> void:
 			)
 		else:
 			panel.get_node("Status").text = ("Ready — waiting for room owner" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the room owner can start") if _dedicated_server else ("Ready — waiting for host" if match_manager.is_player_ready(local_peer_id) else "Ready up — only the host can start")
+	if _map_loading:
+		panel.get_node("Status").text = "Loading %s — waiting for all players…" % MAP_TITLES[map_id]
+	elif in_lobby and not _map_load_notice.is_empty():
+		panel.get_node("Status").text = _map_load_notice
 	panel.get_node("Status").tooltip_text = panel.get_node("Status").text
 	var on_home: bool = is_instance_valid(home_screen) and in_lobby and not _network_mode and not lobby_demo and home_screen.page != "room"
 	if is_instance_valid(home_screen):
@@ -2336,7 +2482,14 @@ func restart_network_match() -> bool:
 
 
 func start_local_match() -> bool:
-	if _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
+	if _map_loading or _network_mode or match_manager.state != MatchManager.MatchState.LOBBY:
+		return false
+	_map_loading = true
+	_map_load_target = map_id
+	_update_lobby_ui()
+	var prepared := await prepare_gameplay_map()
+	_map_loading = false
+	if not prepared or _network_mode:
 		return false
 	match_manager.set_player_ready(1, true)
 	return match_manager.start_match() and disaster_director.start_directing()
@@ -2371,7 +2524,7 @@ func _accept_outfit(peer_id: int, outfit_id: String, sequence: int) -> void:
 	var error := ""
 	if sequence <= int(_outfit_requests.get(peer_id, 0)) or _outfit_pending.has(peer_id):
 		error = "stale_equipment"
-	elif match_manager.state != MatchManager.MatchState.LOBBY:
+	elif _map_loading or match_manager.state != MatchManager.MatchState.LOBBY:
 		error = "equipment_lobby_only"
 	if not error.is_empty():
 		_outfit_reply(peer_id, sequence, error)
@@ -2518,6 +2671,8 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 
 
 func _on_match_state_changed(state: MatchManager.MatchState) -> void:
+	if state == MatchManager.MatchState.ACTIVE:
+		_map_load_notice = ""
 	music.set_context(state == MatchManager.MatchState.ACTIVE)
 	_pending_local_movement_snapshot.clear()
 	_pending_fall_damage.clear()
@@ -2669,7 +2824,11 @@ func get_map_id() -> String:
 
 
 func get_map_half_extent() -> float:
-	return float(map_anchors.get("half_extent", MAP_HALF_EXTENT))
+	return 72.0 if map_id == "toy_town" else MAP_HALF_EXTENT
+
+
+func get_map_spawn_origin() -> Vector3:
+	return Vector3(0, 0.05, 7) if map_id == "toy_town" else Vector3(0, 0.05, 22)
 
 
 func get_map_surface_height(point: Vector3) -> float:
@@ -2739,18 +2898,13 @@ func set_map_id(id: String) -> bool:
 	if id == map_id:
 		return true
 	map_id = id
-	# Rebuild through the reset path so the previous map's geometry is freed
-	# instead of stacking a second sandbox on top of it.
-	_reset_sandbox()
-	# Players joined under the previous map; reseat them on the new map's
-	# spawn anchors so nobody starts embedded in the new geometry.
-	_reseat_players_for_map()
+	_map_load_notice = ""
 	return true
 
 
 func request_map_change(id: String) -> bool:
 	# Map identity changes only at the lobby boundary, before countdown.
-	if id not in MAP_IDS or id == map_id or match_manager.state != MatchManager.MatchState.LOBBY:
+	if _map_loading or id not in MAP_IDS or id == map_id or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
 	if not _network_mode or multiplayer.is_server():
 		return set_map_id(id)
@@ -2770,6 +2924,7 @@ func set_match_preset(preset: String) -> bool:
 		return true
 	var bomb_rules_changed := preset == "hot_potato" or match_preset == "hot_potato"
 	match_preset = preset
+	_map_load_notice = ""
 	# The director schedules server-side; clients only mirror the display.
 	disaster_director.set_match_preset("normal" if preset == "hot_potato" else preset)
 	hot_potato.reset()
@@ -2781,7 +2936,7 @@ func set_match_preset(preset: String) -> bool:
 
 func request_match_preset(preset: String) -> bool:
 	# Match presets change only at the lobby boundary, before countdown.
-	if preset not in MATCH_PRESETS or preset == match_preset or match_manager.state != MatchManager.MatchState.LOBBY:
+	if _map_loading or preset not in MATCH_PRESETS or preset == match_preset or match_manager.state != MatchManager.MatchState.LOBBY:
 		return false
 	if not _network_mode or multiplayer.is_server():
 		return set_match_preset(preset)
@@ -2790,8 +2945,81 @@ func request_match_preset(preset: String) -> bool:
 	return false
 
 
-func _build_sandbox() -> void:
-	var anchors := _build_toy_harbor() if map_id == "toy_harbor" else _build_toy_town()
+func _exit_tree() -> void:
+	if _map_preparation != null:
+		_map_preparation.cancel()
+
+
+func prepare_gameplay_map(is_current := Callable()) -> bool:
+	# Selection and loaded geometry have separate lifetimes. Only Start (or an
+	# explicit world fixture) enters this path; lobby snapshots never do.
+	# Serialize replacement: a cancelled builder must finish cleaning its world
+	# before a newer attempt can own the Sandbox.
+	while _map_preparation != null:
+		if not is_current.is_null() and not is_current.call():
+			return false
+		var previous := _map_preparation
+		previous.cancel()
+		if not previous.completed:
+			await previous.finished
+	if not is_current.is_null() and not is_current.call():
+		return false
+	if map_anchors.get("map_id", "") == map_id:
+		return true
+	var selected_map := map_id
+	var work := MapPreparation.new(get_tree(), func() -> bool:
+		return map_id == selected_map and (is_current.is_null() or bool(is_current.call())))
+	_map_preparation = work
+	map_anchors.clear()
+	$Sandbox.hide() # Do not render thousands of partial-world meshes behind loading UI.
+	for player: PartyPlayer in _player_nodes.values():
+		player.world_loaded = false
+	$Player.world_loaded = false
+	_reset_sandbox()
+	weather_surfaces.cleanup()
+	town_mechanisms = null
+	await _clear_map_geometry()
+	var anchors: Dictionary = {}
+	if work.is_current():
+		anchors = await _build_sandbox(work)
+	if anchors.is_empty() or not work.is_current():
+		weather_surfaces.cleanup()
+		town_mechanisms = null
+		await _clear_map_geometry()
+		_map_preparation = null
+		work.finish()
+		return false
+	map_anchors = anchors
+	$Sandbox.show()
+	_reseat_players_for_map()
+	for player: PartyPlayer in _player_nodes.values():
+		player.world_loaded = true
+	# Explicit demos/fixtures can prepare before the local registry is filled.
+	$Player.world_loaded = true
+	for body in $Sandbox.get_children():
+		if body is RigidBody3D:
+			body.freeze = _network_mode and not multiplayer.is_server()
+	_map_preparation = null
+	work.finish()
+	return true
+
+
+func _clear_map_geometry() -> void:
+	# Cleanup itself is budgeted, even when the construction token is cancelled.
+	var cleanup := MapPreparation.new(get_tree())
+	# Preserve subtree lifetimes: individually freeing descendants across frames
+	# leaves live parents referencing children that no longer exist.
+	for child in $Sandbox.get_children():
+		if is_instance_valid(child):
+			child.free()
+		await cleanup.checkpoint()
+	cleanup.finish()
+
+
+func _build_sandbox(work: MapPreparation) -> Dictionary:
+	var anchors := await _build_toy_harbor(work) if map_id == "toy_harbor" else await _build_toy_town(work)
+	if anchors.is_empty() or not await work.checkpoint():
+		return {}
 	anchors.rockslide_lane = _build_rockslide_lane()
 	if map_id == "toy_town":
 		town_mechanisms = TownMechanisms.new()
@@ -2802,8 +3030,16 @@ func _build_sandbox() -> void:
 			_mechanism_line_of_sight)
 		# Include fixed mechanism approaches before caching collapse ownership.
 		# The south landing spans a district cut; each side must fall separately.
-		preload("res://game/world/town_partitions.gd").partition($Sandbox)
+		if not await preload("res://game/world/town_partitions.gd").partition_cooperative($Sandbox, work):
+			return {}
 	_apply_map_anchors(anchors)
+	if not await terrain_collapse.configure_cooperative(map_id, $Sandbox, work):
+		return {}
+	# Publish only after collision and all weather registrations are usable.
+	await get_tree().physics_frame
+	if not work.is_current() or not await _configure_weather_patches(work):
+		return {}
+	return anchors
 
 
 func _build_rockslide_lane() -> Dictionary:
@@ -2836,7 +3072,6 @@ func _reseat_players_for_map() -> bool:
 
 
 func _apply_map_anchors(anchors: Dictionary) -> void:
-	map_anchors = anchors
 	# Authored open pads reachable by ordinary movement, not roofs selected
 	# by a top-down ray that could silently land on an inaccessible awning.
 	powerups.anchors.assign([
@@ -2867,11 +3102,9 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 		volcano.set_district("town_plaza", Vector3(0, 0.12, 0), Vector2(18, 18))
 	else:
 		volcano.set_district("harbor_boardwalk", Vector3(0, 0.05, 22), Vector2(24, 6))
-	terrain_collapse.configure(map_id, $Sandbox)
-	_configure_weather_patches.call_deferred()
 
 
-func _configure_weather_patches() -> void:
+func _configure_weather_patches(work: MapPreparation) -> bool:
 	# Continuous material on actual world geometry, with only authored local
 	# depressions receiving deep puddles. No discs define outdoor coverage.
 	var puddles := PackedVector3Array()
@@ -2882,12 +3115,12 @@ func _configure_weather_patches() -> void:
 	for point in candidates:
 		point.y = get_map_support_height(point)
 		puddles.append(point)
-	weather_surfaces.configure_world($Sandbox, get_map_half_extent(), puddles)
+	return await weather_surfaces.configure_world_cooperative($Sandbox, get_map_half_extent(), puddles, work)
 
 
 func tick_weather(delta: float) -> void:
 	var geometry_state := hash([terrain_collapse.removed_mask, earthquake.get_structure_states(), volcano.mutated,
-		town_mechanisms.create_snapshot() if is_instance_valid(town_mechanisms) else {}])
+		town_mechanisms.get_geometry_revision() if is_instance_valid(town_mechanisms) else -1])
 	if geometry_state != _weather_geometry_state:
 		_weather_geometry_state = geometry_state
 		weather_surfaces.invalidate_cover()
@@ -2972,8 +3205,10 @@ func _new_disaster_fits_terrain(disaster_name: String) -> bool:
 	return true
 
 
-func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:
+func _build_map_base(work: MapPreparation, half_extent := MAP_HALF_EXTENT) -> bool:
 	_add_static_box("Ground", Vector3(half_extent * 2, 0.4, half_extent * 2), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
+	if not await work.checkpoint():
+		return false
 	for side: String in ["North", "South", "West", "East"]:
 		var horizontal := side == "North" or side == "South"
 		var offset := half_extent - 0.25
@@ -2985,24 +3220,40 @@ func _build_map_base(half_extent := MAP_HALF_EXTENT) -> void:
 		size.y = 0.2
 		center.y = 3.1
 		_add_static_box("BoundaryCap" + side, size, center, PALETTE.slate)
+		if not await work.checkpoint():
+			return false
+	return true
 
 
-func _build_toy_town() -> Dictionary:
-	_build_map_base(72.0)
+func _build_toy_town(work: MapPreparation) -> Dictionary:
+	if not await _build_map_base(work, 72.0):
+		return {}
 	_add_static_box("RoadHorizontal", Vector3(64.0, 0.05, 5.0), Vector3(0.0, 0.025, 0.0), PALETTE.slate)
 	_add_static_box("RoadVertical", Vector3(5.0, 0.06, 64.0), Vector3(0.0, 0.03, 0.0), PALETTE.slate)
 	_add_static_box("Plaza", Vector3(18.0, 0.12, 18.0), Vector3(0.0, 0.06, 0.0), PALETTE.sand)
+	if not await work.checkpoint():
+		return {}
 
 	_add_open_building("Shop", Vector3(-16.0, 0.0, -13.0), Vector2(12.0, 10.0), 4.5, PALETTE.coral)
+	if not await work.checkpoint():
+		return {}
 	_add_open_building("Hall", Vector3(16.0, 0.0, -13.0), Vector2(12.0, 12.0), 4.5, PALETTE.teal)
 	$Sandbox/Hall/BuildingLabel.text = "SCHOOL"
+	if not await work.checkpoint():
+		return {}
 	_add_open_building("House", Vector3(-18.0, 0.0, 27.0), Vector2(8.0, 8.0), 4.5, PALETTE.sand)
 	$Sandbox/House/BuildingLabel.text = "HOME"
 	_add_school_interior()
 	_add_house_interior()
+	if not await work.checkpoint():
+		return {}
 	_add_parking_garage()
 	_add_garage_detail()
+	if not await work.checkpoint():
+		return {}
 	_add_street_detail()
+	if not await work.checkpoint():
+		return {}
 	_add_static_box("PocketParkPlatform", Vector3(10.0, 2.2, 8.0), Vector3(15.0, 1.1, 14.0), PALETTE.teal)
 	$Sandbox/PocketParkPlatform.add_to_group("landmark")
 	_add_world_label("PocketParkLabel", "POCKET PARK", Vector3(15.0, 3.0, 18.2), PALETTE.cream)
@@ -3014,9 +3265,15 @@ func _build_toy_town() -> Dictionary:
 	$Sandbox/EscapeStep.add_to_group("escape_aid")
 	_add_world_label("EscapeStepLabel", "CRATE UP", Vector3(21.9, 2.35, 14.5), PALETTE.amber)
 	_add_ramp("ShopRoofRamp", 3.0, Vector3(-16.0, 0.0, -29.3), Vector3(-16.0, 4.855, -18.3))
+	if not await work.checkpoint():
+		return {}
 	_add_ramp("HallRoofRamp", 3.0, Vector3(16.0, 0.0, -29.3), Vector3(16.0, 4.855, -19.3))
+	if not await work.checkpoint():
+		return {}
 	_add_ramp("GarageRamp", 4.0, Vector3(-15.0, 0.0, -3.0), Vector3(-15.0, 2.575, 9.0))
 	_add_ramp("ParkRamp", 3.0, Vector3(15.0, 0.05, 0.0), Vector3(15.0, 2.2, 10.0))
+	if not await work.checkpoint():
+		return {}
 	_add_world_label("ShopRouteLabel", "ROOF ACCESS", Vector3(-16.0, 1.0, -29.6), PALETTE.amber)
 	_add_world_label("HallRouteLabel", "ROOF ACCESS", Vector3(16.0, 1.0, -29.6), PALETTE.amber)
 	_add_world_label("GarageRouteLabel", "UP", Vector3(-15.0, 0.8, -3.3), PALETTE.amber)
@@ -3032,17 +3289,27 @@ func _build_toy_town() -> Dictionary:
 		_add_breakable_structure("bridge_" + tag.to_lower(), "Bridge" + tag, Vector3(4.8, 0.25, 3.8), Vector3(side * 47.7, top - 0.125, 4), PALETTE.teal, BreakableStructure.ROLE_TRAVERSAL, "town_crossings")
 		($Sandbox.get_node("Bridge" + tag) as BreakableStructure).add_bridge_rails()
 		_add_ramp("Annex" + tag + "Stairs", 4, Vector3(side * 54, 0.05, 24), Vector3(side * 54, top, 8))
+		if not await work.checkpoint():
+			return {}
 	_add_breakable_structure("awning_shop", "AwningShop", Vector3(3.0, 0.2, 1.4), Vector3(-16.0, 3.2, -8.8), PALETTE.coral)
 	_add_breakable_structure("sign_hall", "SignHall", Vector3(0.24, 2.0, 2.0), Vector3(10.8, 2.2, -13.0), PALETTE.amber)
 	_add_park_detail()
+	if not await work.checkpoint():
+		return {}
 	_add_town_props()
+	if not await work.checkpoint():
+		return {}
 
 	# Crate3 spawns at the escape-aid route base so the measured crate-boost
 	# step route is real on the map; crates1-2 remain plaza play props.
 	var crate_positions := [Vector3(0.0, 0.4, 5.7), Vector3(3.0, 0.4, 2.0), Vector3(23.2, 0.4, 14.5)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
-	var districts := _add_town_districts()
+	if not await work.checkpoint():
+		return {}
+	var districts := await _add_town_districts(work)
+	if districts.is_empty():
+		return {}
 	var anchors := {
 		"map_id": "toy_town",
 		"half_extent": 72.0,
@@ -3099,6 +3366,8 @@ func _build_toy_town() -> Dictionary:
 	for building in $Sandbox.get_children():
 		if building.is_in_group("shelter"):
 			preload("res://game/world/town_interiors.gd").furnish(self, building, str(building.name))
+			if not await work.checkpoint():
+				return {}
 	for side in [-1.0, 1.0]:
 		var tag := "West" if side < 0 else "East"
 		var top := 5.405 if side < 0 else 5.905
@@ -3106,7 +3375,7 @@ func _build_toy_town() -> Dictionary:
 	return anchors
 
 
-func _add_town_districts() -> Dictionary:
+func _add_town_districts(work: MapPreparation) -> Dictionary:
 	var data := {"cover_volumes": [], "tornado_paths": [], "elevation_routes": [], "refuges": [], "spawn_groups": [], "fire_zones": []}
 	# Elevated shortcuts remain exposed to Fire at their actual floor, not
 	# ground-floor flames that cannot ignite rubble several metres above them.
@@ -3118,6 +3387,8 @@ func _add_town_districts() -> Dictionary:
 	_add_static_box("CivicTerrace", Vector3(90, 2, 18), Vector3(0, 1, -44), PALETTE.sand)
 	_add_continuous_cornice($Sandbox/CivicTerrace, Vector2(90, 18), 1, PALETTE.cream)
 	_add_paving("CivicPaving", Vector3(0, 2, -44), Vector2(90, 18))
+	if not await work.checkpoint():
+		return {}
 	# Continuous five-metre road in front of the recessed civic flights.
 	_add_static_box("CivicRoad", Vector3(63, 0.04, 5), Vector3(0, 0.02, -24), PALETTE.slate)
 	for route in [
@@ -3127,12 +3398,16 @@ func _add_town_districts() -> Dictionary:
 	]:
 		_add_ramp(route[0], route[1], route[2], route[3])
 		data.elevation_routes.append({"name": route[0], "low": route[2], "high": route[3]})
+		if not await work.checkpoint():
+			return {}
 	_add_open_building("TownHall", Vector3(0, 2, -45), Vector2(12, 10), 5.5, PALETTE.coral, PALETTE.coral.lerp(PALETTE.cream, 0.15))
 	$Sandbox/TownHall/BuildingLabel.text = "TOWN HALL"
 	_add_round_detail($Sandbox/TownHall, "Clock", Vector3(0, 4.7, 5.25), Vector3(0.45, 0.45, 0.09), PALETTE.cream)
 	_add_detail_box($Sandbox/TownHall, "ClockHand", Vector3(0.04, 0.3, 0.05), Vector3(0, 4.78, 5.36), PALETTE.slate)
 	data.cover_volumes.append(AABB(Vector3(-5.5, 2, -49.5), Vector3(11, 5.5, 9)))
 	data.refuges.append({"name": "TownHall", "kind": "shelter", "center": Vector3(0, 2, -45), "exits": [Vector3(0, 2, -51.5), Vector3(0, 2, -38.5)]})
+	if not await work.checkpoint():
+		return {}
 	for side in [-1.0, 1.0]:
 		var y := 1.25 if side < 0 else 1.75
 		var tag := "West" if side < 0 else "East"
@@ -3145,6 +3420,8 @@ func _add_town_districts() -> Dictionary:
 			_add_detail_box($Sandbox, "RingLane%s%d" % [side, z], Vector3(0.18, 0.02, 1.7), Vector3(side * 29, 0.05, -28 + z * 4), PALETTE.cream)
 		var names := ["Bakery", "Homes", "Workshop", "Apartments"] if side < 0 else ["Library", "Clinic", "Cafe", "Market"]
 		for row in 4:
+			if not await work.checkpoint():
+				return {}
 			var center := Vector3(side * 42, y, -22 + row * 13)
 			var title: String = names[row]
 			var accent: Color = PALETTE.coral if row % 2 == 0 else PALETTE.teal
@@ -3182,6 +3459,8 @@ func _add_town_districts() -> Dictionary:
 		# onto their neighbors or putting their crowns through residence walls.
 		var civic_planting := [Vector2(10, -36.5), Vector2(18, -36.5), Vector2(21, -36.5), Vector2(39, -37.5), Vector2(42, -36.5)]
 		for i in civic_planting.size():
+			if not await work.checkpoint():
+				return {}
 			var position := Vector3(side * civic_planting[i].x, 2, civic_planting[i].y)
 			_add_tree("CivicTree%s%d" % [tag, i], position)
 			_add_toy_lamp($Sandbox, "CivicLamp%s%d" % [tag, i], position + Vector3(2, 0, 0))
@@ -3205,6 +3484,8 @@ func _add_town_districts() -> Dictionary:
 		_add_detail_box($Sandbox, "PoolEdgeZ" + str(side), Vector3(4.5, 0.3, 0.25), Vector3(14, 0.8, 45 + side * 1.875), PALETTE.cream, true)
 	_add_detail_box($Sandbox, "GardenPool", Vector3(4.5, 0.03, 3.5), Vector3(14, 0.675, 45), PALETTE.water)
 	for i in 8:
+		if not await work.checkpoint():
+			return {}
 		var x := -25 + i * 7
 		_add_tree("GardenTree%d" % i, Vector3(x, 0, 50.5))
 		if absf(x - 10) > 3.5:
@@ -3222,11 +3503,12 @@ func _add_town_districts() -> Dictionary:
 	for x in [-9.0, 9.0]:
 		for z in [-22.0, -12.0, 13.0, 23.0]:
 			_add_street_planter("CentralPlanter%s%s" % [x, z], Vector3(x, 0, z))
-	_add_town_neighborhoods(data)
+	if not await _add_town_neighborhoods(data, work):
+		return {}
 	return data
 
 
-func _add_town_neighborhoods(data: Dictionary) -> void:
+func _add_town_neighborhoods(data: Dictionary, work: MapPreparation) -> bool:
 	# A connected outer pedestrian circuit, with four furnished service courts.
 	for side in [-1.0, 1.0]:
 		_add_static_box("OuterWalkX" + str(side), Vector3(4, 0.08, 136), Vector3(side * 66, 0.04, 0), PALETTE.sand)
@@ -3241,6 +3523,8 @@ func _add_town_neighborhoods(data: Dictionary) -> void:
 			_add_ramp(route, 4, low, high)
 			data.elevation_routes.append({"name": route, "low": low, "high": high})
 		for north in [true, false]:
+			if not await work.checkpoint():
+				return false
 			var z := -56.0 if north else 56.0
 			var title := ("PostOffice" if side < 0 else "CommunityRoom") if north else ("GardenPavilion" if side < 0 else "MarketStore")
 			var center := Vector3(side * 56, 0, z)
@@ -3285,16 +3569,22 @@ func _add_town_neighborhoods(data: Dictionary) -> void:
 			_add_detail_box($Sandbox, "PicnicLeg%s%s" % [x, edge], Vector3(0.18, 0.8, 1.2), Vector3(x + edge * 0.8, 0.4, 48), PALETTE.slate, true)
 			_add_bench("PicnicSeat%s%s" % [x, edge], Vector3(x, 0, 48 + edge * 1.5))
 	_add_world_label("AllotmentSign", "COMMUNITY GARDEN", Vector3(-34, 1.5, 57), PALETTE.teal)
+	return await work.checkpoint()
 
 
-func _build_toy_harbor() -> Dictionary:
-	_build_map_base()
+func _build_toy_harbor(work: MapPreparation) -> Dictionary:
+	if not await _build_map_base(work):
+		return {}
 	# Shallow decorative basin between the docks; the floor stays walkable so
 	# flood/ground gameplay remains authoritative on real collision.
 	_add_static_box("HarborBasin", Vector3(30.0, 0.06, 16.0), Vector3(0.0, 0.03, 7.0), PALETTE.teal)
 	_add_static_box("BoardwalkSouth", Vector3(64.0, 0.05, 6.0), Vector3(0.0, 0.025, 22.0), PALETTE.sand)
+	if not await work.checkpoint():
+		return {}
 	# Sheltered warehouse: two exits (north/south doorways) and a roof refuge.
 	_add_open_building("Warehouse", Vector3(0.0, 0.0, -18.0), Vector2(16.0, 12.0), 4.5, PALETTE.amber)
+	if not await work.checkpoint():
+		return {}
 	_add_breakable_structure("roof_panel_warehouse", "RoofPanelWarehouse", Vector3(2.0, 0.24, 2.0), Vector3(0.0, 4.735, -18.0), PALETTE.cream, BreakableStructure.ROLE_ELEVATED)
 	# Crane deck: high refuge supported on visible pillars, ramp plus edge drop.
 	_add_static_box("CraneDeck", Vector3(10.0, 0.35, 8.0), Vector3(0.0, 4.68, -2.0), PALETTE.coral)
@@ -3331,7 +3621,11 @@ func _build_toy_harbor() -> Dictionary:
 	_add_tree("TreeHarborEast", Vector3(26.0, 0.0, -26.0))
 	_add_world_label("HarborLabel", "TOY HARBOR", Vector3(0.0, 1.2, 27.5), PALETTE.cream)
 	_add_warehouse_interior()
+	if not await work.checkpoint():
+		return {}
 	_add_harbor_kit()
+	if not await work.checkpoint():
+		return {}
 	var crate_positions := [Vector3(-6.0, 0.4, 20.0), Vector3(6.0, 0.4, 20.0), Vector3(0.0, 0.4, -8.0)]
 	for index in crate_positions.size():
 		_add_physics_crate(crate_positions[index], index + 1)
@@ -3372,31 +3666,26 @@ func _build_toy_harbor() -> Dictionary:
 
 
 func _reset_sandbox() -> void:
-	# Rematches restore mutable world state without rebuilding thousands of
-	# static streetscape nodes and blocking ENet polling. Map switches rebuild.
+	# Restoration never constructs geometry. Only prepare_gameplay_map may
+	# replace a loaded map, after the player has explicitly pressed Start.
 	powerups.reset()
 	toy_sabotage.reset()
 	hot_potato.reset()
 	terrain_collapse.reset()
 	volcano.cleanup()
-	if map_anchors.get("map_id", "") == map_id:
-		for child in $Sandbox.get_children():
-			if child is BreakableStructure:
-				child.reset_structure()
-			elif child is RigidBody3D and child.is_in_group("network_prop"):
-				if child.has_meta("void_parked"):
-					child.remove_meta("void_parked")
-					child.show()
-				child.freeze = false
-				child.global_transform = child.get_meta("spawn_transform")
-				child.linear_velocity = Vector3.ZERO
-				child.angular_velocity = Vector3.ZERO
-				PhysicsServer3D.body_set_state(child.get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, child.global_transform)
-				child.sleeping = false
-		return
 	for child in $Sandbox.get_children():
-		child.free()
-	_build_sandbox()
+		if child is BreakableStructure:
+			child.reset_structure()
+		elif child is RigidBody3D and child.is_in_group("network_prop"):
+			if child.has_meta("void_parked"):
+				child.remove_meta("void_parked")
+				child.show()
+			child.freeze = false
+			child.global_transform = child.get_meta("spawn_transform")
+			child.linear_velocity = Vector3.ZERO
+			child.angular_velocity = Vector3.ZERO
+			PhysicsServer3D.body_set_state(child.get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, child.global_transform)
+			child.sleeping = false
 
 
 func _add_static_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
@@ -4236,6 +4525,7 @@ func _add_breakable_structure(piece_id: String, node_name: String, size: Vector3
 
 func _add_physics_crate(position: Vector3, network_prop_id: int = 0) -> void:
 	var body := RigidBody3D.new()
+	body.freeze = true # Remain inert until the complete map is published.
 	body.name = "PhysicsCrate"
 	body.add_to_group("grabbable")
 	body.add_to_group("network_prop")

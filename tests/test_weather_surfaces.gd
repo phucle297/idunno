@@ -181,6 +181,12 @@ func _check_overlay_lifecycle() -> void:
 	await process_frame
 	await process_frame
 	_expect(weather.sample_surface(Vector3(30, 0, 30)).y > 0.0 and mesh.material_overlay != null, "Covered residual stays visible after outdoor ground dries")
+	var residual_texture := (mesh.material_overlay as ShaderMaterial).get_shader_parameter("residual_surface") as ImageTexture
+	var visible_wetness := residual_texture.get_image().get_pixel(70, 70).g
+	weather.tick(1.0, false, false, -INF)
+	await process_frame
+	await process_frame
+	_expect(residual_texture.get_image().get_pixel(70, 70).g < visible_wetness, "Covered residual fading reaches the rendered texture, not only gameplay state")
 	weather.cleanup()
 	_expect(mesh.material_overlay == null, "Rematch removes the old weather pass immediately")
 	weather.tick(20.0, false, true, -INF)

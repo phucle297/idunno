@@ -11,7 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Collision/rematch fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Collision/rematch fixture explicitly starts solo")
 	main.set_process(false)
 	main.set_physics_process(false)
 	var player := main.get_node("Player") as PartyPlayer
@@ -19,6 +19,7 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	for map_id in ["toy_town", "toy_harbor"]:
 		main.set_map_id(map_id)
+		await main.prepare_gameplay_map()
 		main.disaster_director.cleanup()
 		main.match_manager.set_process(false)
 		await physics_frame

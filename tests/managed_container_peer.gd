@@ -13,6 +13,17 @@ var profile := {}
 var release_at := 0
 var control_directory := "/control"
 var outfit_reply := {}
+var last_frame_usec := 0
+var max_frame_usec := 0
+var first_active_at := 0.0
+
+
+func _process(_delta: float) -> bool:
+	var now := Time.get_ticks_usec()
+	if last_frame_usec > 0:
+		max_frame_usec = maxi(max_frame_usec, now - last_frame_usec)
+	last_frame_usec = now
+	return false
 
 
 func _initialize() -> void:
@@ -143,7 +154,14 @@ func _summary() -> Dictionary:
 		var position: Vector3 = main._player_nodes[id].global_position
 		positions[str(id)] = [position.x, position.y, position.z]
 		outfits[str(id)] = main._player_nodes[id].character.get_outfit_id()
+	if main.match_manager.state == MatchManager.MatchState.ACTIVE and first_active_at == 0.0:
+		first_active_at = Time.get_unix_time_from_system()
 	return {"sequence": sequence, "network": main.is_network_session(), "ids": main.get_network_player_ids(),
+		"max_frame_usec": max_frame_usec,
+		"sample_wall_time": Time.get_unix_time_from_system(), "first_active_at": first_active_at,
+		"map_loading": main._map_loading, "map_local_ready": main._map_load_local_ready,
+		"map_waiting": main._map_load_waiting.size(), "map_generation": main._map_load_generation,
+		"loaded_map": main.map_anchors.get("map_id", ""), "map_roots": main.get_node("Sandbox").get_child_count(),
 		"collection_profile": main.collection.profile, "selected_outfit": main.collection.selected,
 		"reward_notice": main._reward_notice, "collection_visible": main.collection.visible,
 		"outfits": outfits, "outfit_reply": outfit_reply, "equipment_pending": main._outfit_pending.size(),

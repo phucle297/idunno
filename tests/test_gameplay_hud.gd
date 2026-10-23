@@ -11,7 +11,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "HUD fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "HUD fixture explicitly starts solo")
 	await process_frame
 	main.set_process(false)
 	var hud := main.get_node("Interface") as GameplayHud

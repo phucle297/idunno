@@ -9,6 +9,11 @@ var player_count := 4
 var map_id := "toy_town"
 
 
+class FixtureMain extends "res://game/main.gd":
+	func _start_requested_network_session() -> Error:
+		return ERR_SKIP
+
+
 func _initialize() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--role="):
@@ -24,14 +29,31 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	main.set_script(FixtureMain)
 	main.name = "Main"
 	root.add_child(main)
-	if role == "server":
-		main.set_map_id(map_id)
+	# Isolate the existing lobby movement/transport measurement from cold loading.
+	# The loading-barrier and managed-client suites retain real Start construction.
+	main.set_map_id(map_id)
+	await main.prepare_gameplay_map()
 	var probe := ProbeScript.new()
 	probe.name = "PlayableScaleProbe"
 	probe.configure(role, player_count)
 	root.add_child(probe)
+	var error: Error
+	if role == "server":
+		error = main.host_game(port)
+	else:
+		main._prepare_offline_player_for_join()
+		error = main.join_game("127.0.0.1", port)
+	if error != OK:
+		push_error("Playable scale transport setup failed: %s" % error_string(error))
+		quit(1)
+		return
+	if role == "server":
+		# Explicit hosting retains the offline name; publish this fixture's
+		# expected host identity before any client observes the roster.
+		main.match_manager.players[1].name = "Host"
 	await process_frame
 	if role == "server":
 		await _run_server(main, probe)

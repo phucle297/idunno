@@ -40,6 +40,7 @@ func _run() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_main)
 	await physics_frame
+	await _main.prepare_gameplay_map()
 	_main.set_process(false)
 	_main.set_physics_process(false)
 	_main.disaster_director.cleanup()

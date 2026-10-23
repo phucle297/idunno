@@ -26,7 +26,7 @@ func _run() -> void:
 
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
-	_expect(main.start_local_match(), "Audio/results fixture explicitly starts solo")
+	_expect(await main.start_local_match(), "Audio/results fixture explicitly starts solo")
 	await process_frame
 	var audio := main.get_node("GameplayAudio") as GameplayAudioController
 	_expect(audio.get_child_count() == 5, "Audio must use one reserved warning voice and four capped effect voices")

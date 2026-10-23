@@ -36,7 +36,7 @@ func _run() -> void:
 		_expect(main.disaster_director.match_preset == "normal", "Bomb does not change disaster pacing")
 		for peer_id: int in players:
 			manager.set_player_ready(peer_id, true)
-		_expect(main.start_local_match(), "Real scene starts a bomb round")
+		_expect(await main.start_local_match(), "Real scene starts a bomb round")
 		main.disaster_director.cleanup()
 		pad = main.toy_sabotage.anchors[0]
 		await _contract()
@@ -210,7 +210,7 @@ func _reset_and_modes() -> void:
 	_expect(players.keys().all(func(peer_id: int) -> bool: return not manager.is_player_ready(peer_id)), "Bomb-rule change clears Ready so guests acknowledge the variant")
 	for peer_id: int in players:
 		manager.set_player_ready(peer_id, true)
-	main.start_local_match()
+	await main.start_local_match()
 	main.disaster_director.cleanup()
 	_expect(bomb.phase == HotPotato.Phase.IDLE and not bomb._enabled, "Main does not enable bomb in default preset")
 

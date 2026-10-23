@@ -26,6 +26,7 @@ func _make_peer(label: String) -> Node:
 	# This fixture tests real ENet session control, not shared-world physics.
 	# Separate copies spatially and disable movement/prop broadcasts.
 	main.position.x = peers.size() * 200.0
+	await main.prepare_gameplay_map()
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.get_node("Player").set_physics_process(false)
@@ -34,7 +35,7 @@ func _make_peer(label: String) -> Node:
 
 
 func _run() -> void:
-	var server := _make_peer("Server")
+	var server := await _make_peer("Server")
 	_expect(server.host_game(0, 3, true) == OK, "Dedicated server must bind an ephemeral port")
 	await process_frame
 	_expect(not (server.multiplayer as SceneMultiplayer).server_relay, "Dedicated rooms must not relay client-to-client traffic")
@@ -48,7 +49,7 @@ func _run() -> void:
 	var clients: Array[Node] = []
 	var ids: Array[int] = []
 	for index: int in 3:
-		var client := _make_peer("Client%d" % index)
+		var client := await _make_peer("Client%d" % index)
 		client._prepare_offline_player_for_join()
 		_expect(client.join_game("127.0.0.1", port) == OK, "Client %d must start ENet join" % index)
 		await _wait_until(func() -> bool: return client.match_manager.players.size() == index + 1 and client.get_room_owner_id() > 1, "Client %d must receive the dedicated roster" % index)
@@ -114,7 +115,7 @@ func _run() -> void:
 	_expect(server.match_manager.state == MatchManager.MatchState.ACTIVE and server.disaster_director.running and server.match_manager.get_alive_count() == 2, "Owner departure must not end a match with two survivors")
 	_expect(not server._execute_owner_action(ids[0], "start", server._session_revision) and not server._execute_owner_action(ids[1], "start", old_revision), "Departed owner and old ownership revision must be rejected")
 	server.disaster_director.cleanup()
-	var late := _make_peer("LateClient")
+	var late := await _make_peer("LateClient")
 	late._prepare_offline_player_for_join()
 	_expect(late.join_game("127.0.0.1", port) == OK, "Late-client connection must start")
 	await _wait_until(func() -> bool: return not late.is_network_session(), "Active-match join must reject and recover rather than leave a ghost")

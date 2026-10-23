@@ -31,6 +31,7 @@ func _run() -> void:
 	root.size = Vector2i(1920, 1080) if "--1080p" in OS.get_cmdline_user_args() else Vector2i(1280, 720)
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_size(root.size)
+	await main.prepare_gameplay_map()
 	# Worst supported four-player prop/hazard scenario: four real player
 	# bodies, the three network props launched into physics, and overlapping
 	# flood/tornado hazards started through their real request paths before

@@ -24,6 +24,7 @@ func _run() -> void:
 	# Default startup is already at the pre-match map-selection boundary.
 	server.match_manager.prepare_lobby()
 	client.match_manager.prepare_lobby()
+	_expect(server.get_node("Sandbox").get_child_count() == 0 and client.get_node("Sandbox").get_child_count() == 0, "Home must not construct either gameplay world")
 
 	# The playable snapshot is the transport for map identity.
 	_expect(server.get_map_id() == "toy_town", "Default map identity must be toy_town")
@@ -32,18 +33,23 @@ func _run() -> void:
 	_expect(server.set_map_id("toy_harbor"), "Server must switch maps at the lobby boundary")
 	_expect(String(server._create_playable_snapshot().get("map_id", "")) == "toy_harbor", "Snapshot map identity must follow the server selection")
 
-	# A session snapshot loads the map on the client while still in the lobby,
-	# which is the "before countdown" boundary.
+	# Lobby snapshots select metadata only. Explicit Start loads the world.
 	_expect(client.get_map_id() == "toy_town", "Client must start on its own default map")
 	client._apply_match_snapshot(server._create_playable_snapshot())
 	_expect(client.match_manager.state == MatchManager.MatchState.LOBBY, "Map convergence must happen before the countdown")
-	_expect(client.get_map_id() == "toy_harbor", "Client must load the server-selected map")
+	_expect(client.get_map_id() == "toy_harbor", "Client must select the server-selected map")
+	_expect(server.get_node("Sandbox").get_child_count() == 0 and client.get_node("Sandbox").get_child_count() == 0, "Lobby selection and replication must not build gameplay geometry")
+	_expect(await client.start_local_match(), "Explicit Start must load the selected world")
 	_expect(client.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Client anchors must follow map identity")
-	_expect(client.get_node("Sandbox").get_node_or_null("GangwayWest") != null, "Client must rebuild the selected map geometry")
+	_expect(client.get_node("Sandbox").get_node_or_null("GangwayWest") != null, "Start must build the selected map geometry")
 	_expect(client.tornado.path_presets == client.map_anchors.tornado_paths, "Client hazards must wire to the loaded map anchors")
+	client.disaster_director.cleanup()
+	client.match_manager.prepare_lobby()
 
 	# Re-applying the same identity must not rebuild the sandbox.
 	var gangway: Node = client.get_node("Sandbox/GangwayWest")
+	_expect(client.request_map_change("toy_town"), "A loaded world must not prevent a new lobby selection")
+	_expect(is_instance_valid(gangway) and client.map_anchors.map_id == "toy_harbor", "Selection must not delete or replace the previously loaded world")
 	client._apply_match_snapshot(server._create_playable_snapshot())
 	_expect(is_instance_valid(gangway) and gangway == client.get_node("Sandbox/GangwayWest"), "Same map identity must not rebuild the sandbox")
 
@@ -86,7 +92,7 @@ func _run() -> void:
 	server.match_manager.register_player(1, "Solo")
 	server.match_manager.set_player_ready(1, true)
 	server.match_manager.set_player_ready(2, true)
-	_expect(server.match_manager.start_match(), "Fixture match must start")
+	_expect(await server.start_local_match(), "Fixture Start must load the selected map before gameplay")
 	_expect(not server.request_map_change("toy_town"), "Map identity must freeze after countdown")
 	_expect(server.get_map_id() == "toy_harbor", "An active match must not rebuild the map")
 	_expect(not server.request_match_preset("hard"), "Match presets must freeze after countdown")
