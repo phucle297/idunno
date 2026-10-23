@@ -1,16 +1,20 @@
 # Báo lỗi khi gặp thực tế
 
-**Feedback Phase23 — 2026-10-23, chưa sửa/chưa nghiệm thu:**
-Owner báo app khoảng800MB RAM cả chơi lẫn màn hình chờ; đứng yên rồi xoay camera
-bị giật dù tổng CPU20%/RAM40%. Ảnh cấu hình xác nhận Ryzen AI7 H350, Radeon860M
-iGPU,32GB5600MT/s,Windows11 Pro25H2; không lưu device/product ID. Build, độ phân
-giải, driver, thời gian idle và màn hình chờ cụ thể chưa xác định. Đây không phải
-bằng chứng máy yếu, leak RAM hay GPU thiếu bộ nhớ; cần đo frame-time/bộ nhớ GPU.
-Owner cũng báo Normal dễ, núp mái/nhích nhẹ tránh phần lớn nguy hiểm, âm chói và
-bấm phát hai tiếng; không hài lòng model. [Plan Phase23](docs/checklists/phase-23-performance-chaos-audio-character.md)
-giữ cả bốn việc mở. Agent tự điều tra trước; nếu có feedback bổ sung, ghi build,
-map/màn hình, một/hai app, độ phân giải và thao tác phát hai tiếng. Không bắt buộc
-video hay thêm gate thủ công; chưa xác nhận sửa hiệu năng, độ khó, âm hay thẩm mỹ.
+**Phase23 feedback — 2026-10-23; unresolved, not accepted as fixed:**
+The owner reports approximately800MB app RAM in gameplay and waiting screens,
+and camera hitches after standing idle despite total CPU20%/system RAM40%.
+The supplied screenshot identifies Ryzen AI7 H350, Radeon860M integrated GPU,
+32GB5600MT/s and Windows11 Pro25H2; device/product identifiers are not retained.
+Build, resolution, driver, idle duration and exact waiting screen remain unknown.
+This does not establish weak hardware, a memory leak or GPU memory exhaustion;
+frame-time and GPU-memory measurements are required. The owner also reports easy
+rooftop/tiny-step survival in Normal, harsh/doubled action audio and poor character
+appearance. All four remain open in the [Phase23 plan](docs/checklists/phase-23-performance-chaos-audio-character.md).
+Agents investigate first. Optional further feedback should identify build, map/
+screen, one/two apps, resolution and the action producing two sounds. No recording
+or additional manual prerequisite is imposed; performance, balance, listening
+comfort and aesthetic approval have not passed. Historical reports below retain
+their original language; all Phase23 planning and evidence are written in English.
 
 **Phase22 — map loading (2026-10-23, đã release/deploy):**
 [Loading](https://github.com/phucle297/idunno/commit/09d1783a08abe2dce65da7137befd6a5f375e265)

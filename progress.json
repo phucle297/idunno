@@ -3,7 +3,7 @@
   "updated_at": "2026-10-23",
   "project": "Disaster Party",
   "source_of_truth": true,
-  "workflow_state": "planned",
+  "workflow_state": "in_progress",
   "previous_phase_archive": {
     "path": "docs/old-docs/phase-22-start-time-map-loading/progress.json",
     "status": "completed",
@@ -28,12 +28,12 @@
   "phase": {
     "id": "phase_23_performance_chaos_audio_character",
     "title": "Performance, chaos, audio and character quality",
-    "status": "planned",
+    "status": "in_progress",
     "checklist": "docs/checklists/phase-23-performance-chaos-audio-character.md",
     "scope": "Plan first, execute gradually: attribute memory/camera hitches; remove Normal and rooftop dominance; soften/deduplicate audio; improve character art without performance regression.",
     "milestones": [
-      {"id": "M23.1", "title": "Measured memory and camera-hitch fixes", "status": "planned", "gate": "not_run", "tasks": [
-        {"id": "T23.1a", "title": "Baseline state/idle/orbit and five-cycle resource traces", "status": "planned"},
+      {"id": "M23.1", "title": "Measured memory and camera-hitch fixes", "status": "in_progress", "gate": "not_run", "tasks": [
+        {"id": "T23.1a", "title": "Baseline state/idle/orbit and five-cycle resource traces", "status": "in_progress"},
         {"id": "T23.1b", "title": "Fix attributed costs and rerun matched controls", "status": "planned"}
       ]},
       {"id": "M23.2", "title": "Harder baseline without Normal or rooftop immunity", "status": "planned", "gate": "not_run"},
@@ -41,7 +41,7 @@
       {"id": "M23.4", "title": "Coherent character redesign with bounded rendering cost", "status": "planned", "gate": "not_run"}
     ],
     "reference_hardware": "Owner screenshot: Ryzen AI 7 H 350, Radeon 860M integrated GPU,32GB5600MT/s,Windows11 Pro25H2. No native performance measurement yet; device identifiers excluded.",
-    "delivery": "Planning only so far. No Phase23 gameplay/asset implementation, package, release or deployment."
+    "delivery": "English planning recorded; first performance investigation started at owner's request. No Phase23 package, release or deployment."
   },
   "completed_phase": {
     "id": "phase_22_start_time_map_loading",

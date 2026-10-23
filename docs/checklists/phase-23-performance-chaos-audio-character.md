@@ -1,7 +1,8 @@
 # Phase23 — Performance, chaos, audio and character quality
 
-Status: planned, 2026-10-23. Owner requests planning first, then gradual execution.
-No gameplay/asset changes or release are part of this planning checkpoint.
+Status: M23.1 investigation in progress, 2026-10-23. Planning is recorded in English.
+Owner requested correction to English and execution of the first part.
+No gameplay/asset changes or release were part of the preceding planning checkpoint.
 Root `progress.json` owns operational state; DESIGN remains authoritative except
 for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
 
