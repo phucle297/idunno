@@ -31,19 +31,19 @@
     "title": "Start-time map loading and evidence-led app hardening",
     "status": "completed",
     "archive": "docs/old-docs/phase-22-start-time-map-loading/progress.json",
-    "acceptance_scope": "Primary full65Godot/10network/managed20/47Python and separate74-root normal hook pass; both source commits pushed. Rendered preparation/loading/gameplay/cancellation inspected. Native/human acceptance unverified; no new package/release/deployment."
+    "acceptance_scope": "Primary full65Godot/10network/managed20/47Python and separate74-root normal hook pass; source pushed. Rendered preparation/loading/gameplay/cancellation inspected. Subsequent authorized release/deployment is recorded in public_delivery; native/human acceptance remains unverified."
   },
   "public_delivery": {
-    "revision_url": "https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0",
-    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310",
-    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39727391218",
+    "revision_url": "https://github.com/phucle297/idunno/commit/71221db32b4430339b9e854a56a63a542c320782",
+    "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-23-71221db",
+    "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39919037551",
     "endpoint": "https://server.permees.com",
-    "evidence": "docs/old-docs/phase-21-hidden-fuse-bomb/delivery-2026-10-22.json",
+    "evidence": "docs/old-docs/phase-22-start-time-map-loading/delivery-2026-10-23.json",
     "pushed": true,
     "deployed": true,
     "released": true,
-    "windows_sha256": "ba45ec254f16a92f1ec6e70e5d02b0f7947278742e74073c6a8edccb91afc192",
-    "linux_sha256": "4a7672d335c174dea47390f4bbcedce01a93b3135ed32971f09d96d02d36e9f2"
+    "windows_sha256": "7c0fb1b189722293f8765f3692ee7a5f617fc3f79d6b8350f7af39936589391c",
+    "linux_sha256": "ec6f579f153c51e1c8aa6039f375a616867008cc852f93f32141b4e87a686796"
   },
   "user_acceptance_waiver": {
     "date": "2026-10-09",
@@ -65,7 +65,7 @@
     "Earlier B/C UI/director proposals and expanded hardware diagnostic matrix: not reopened"
   ],
   "delivery_authorization": {
-    "scope": "Phase22 source commit/push only; Phase21 release/deployment authorization fulfilled. No new release/deployment, infrastructure/capacity or public persistence changes authorized or performed.",
+    "scope": "Owner explicitly requested publish and release after Phase22 source completion. Exact tested source deployed and matching packages published; no infrastructure/capacity or public persistence changes.",
     "release_pending": false
   },
   "source_delivery": {
@@ -75,9 +75,9 @@
     "implementation_pushed": true,
     "cleanup_followup": "https://github.com/phucle297/idunno/commit/1429842550e6b92e3972c252040cc432a683ccb1",
     "cleanup_followup_pushed": true,
-    "public_release_changed": false,
-    "verification": "Primary full65Godot/10network/managed20/47Python gate and follow-up74-root normal hook pass; both source commits pushed with skip-CI. No Phase22 public release/deployment."
+    "public_release_changed": true,
+    "verification": "Primary full65Godot/10network/managed20/47Python gate and follow-up74-root normal hook pass; source pushed. Subsequent authorized Phase22 delivery is recorded separately in public_delivery.evidence."
   },
   "planned_phases": [],
-  "next_action": "Await the owner's next scope or explicit Phase22 release/deploy request; do not start another phase automatically."
+  "next_action": "Await owner feedback on the published Phase22 build or next scope; do not start another phase automatically."
 }

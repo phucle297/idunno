@@ -2,12 +2,16 @@
 
 A Godot 4 prototype for a casual multiplayer disaster-survival party game.
 
-2026-10-22: **Phase21 Hidden-Fuse Bomb is deployed and published** at
-`https://server.permees.com` from [6065310](https://github.com/phucle297/idunno/commit/60653104fad73fdfc738ab0a0109af0f4a11f4f0).
+2026-10-23: **Phase22 Start-time Map Loading is deployed and published** at
+`https://server.permees.com` from [71221db](https://github.com/phucle297/idunno/commit/71221db32b4430339b9e854a56a63a542c320782).
 Download the matching Windows ZIP from the
-[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-22-6065310).
-[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39727391218),65-suite/46-Python
-source regression and public two-client exact-PCK bomb smoke pass. Old clients are incompatible.
+[prerelease](https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-23-71221db).
+[Build/deploy](https://github.com/phucle297/idunno/actions/runs/39919037551),65-suite/47-Python
+source regression and public two-client exact-PCK Ready/Start/movement smoke pass.
+Home/map selection stays metadata-only; Start builds cooperatively and waits for
+the server and all clients. Same-map rematches reuse geometry. Published packages
+were re-downloaded and verified; Windows uses the deployed Linux PCK byte-for-byte.
+Old clients are incompatible. Native two-app thermal/FPS acceptance remains unverified.
 Optional **Hot Potato (2+)** uses one server-private random fuse with no countdown,
 pass reset or recipient grace. F picks up;left click passes. Natural burst and
 replicated bounded impulse/100HP were checked on public;the Windows PCK is byte-exact

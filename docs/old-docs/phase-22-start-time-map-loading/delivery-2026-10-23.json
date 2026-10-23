@@ -1,0 +1,30 @@
+{
+  "source_of_truth": false,
+  "date": "2026-10-23",
+  "status": "passed",
+  "authorization": "Owner explicitly requested publish and release after Phase22 source completion.",
+  "revision": "71221db32b4430339b9e854a56a63a542c320782",
+  "revision_url": "https://github.com/phucle297/idunno/commit/71221db32b4430339b9e854a56a63a542c320782",
+  "deployment_url": "https://github.com/phucle297/idunno/actions/runs/39919037551",
+  "release_url": "https://github.com/phucle297/idunno/releases/tag/playtest-2026-10-23-71221db",
+  "endpoint": "https://server.permees.com",
+  "ci": "Exact-head manual Build and deploy existing EC2 workflow succeeded, attempt1. This is deployment evidence, not a replacement for separately recorded source regression gates.",
+  "pck_sha256": "36a92c8b6b087d6eb748770c03a08ca1ccd4404665e5c5c15589ff2f2fd8554d",
+  "windows_sha256": "7c0fb1b189722293f8765f3692ee7a5f617fc3f79d6b8350f7af39936589391c",
+  "linux_sha256": "ec6f579f153c51e1c8aa6039f375a616867008cc852f93f32141b4e87a686796",
+  "exact_pck": "STARTUP_MENU_OK checks=38 using actual CI PCK; runtime build marker matched release revision. No script/runtime errors.",
+  "standalone": "RELEASE_MANAGED_LINUX_OK checksum/standalone/version_rejection/create_join/crash_retry/sigterm/port_reclaimed/cache_absent/profiles/external_store_restart/reward_open_replay/saved_equipment/isolation passed. Completion fixture is synthetic. Local durable profiles do not establish public persistence.",
+  "public": "Two real Linux editor-engine clients loaded exact CI PCK against public HTTPS/ENet. Incompatible build rejection, admission, Chef/Pilot equipment replication, Ready/Start through real cold loading, mutual authoritative input-driven movement and disconnect passed. Same orb/upstream, not separate physical networks or native Windows.",
+  "release": "Published unsigned prerelease with Windows ZIP, unchanged Linux CI tar and SHA256SUMS. Re-downloaded assets; Windows/Linux archives byte-match originals. Extracted Windows three-file manifest and160 PCK entries passed verifier. Windows PCK byte-identical to deployed Linux CI PCK; tag resolves to exact tested revision. Independent export PCKs differed, so Windows delivery deliberately uses actual deployed CI PCK rather than assuming reproducible exports.",
+  "subscription_id": "0c73ce81-f7a2-4d7f-9c83-1513343555da",
+  "logs": [
+    ".scratch/phase22-windows-export.log",
+    ".scratch/phase22-ci-startup.log",
+    ".scratch/phase22-ci-standalone.log",
+    ".scratch/phase22-ci-standalone-result.log",
+    ".scratch/phase22-public/result.json",
+    ".scratch/phase22-public/owner.log",
+    ".scratch/phase22-public/guest.log"
+  ],
+  "limits": "Native Windows/GPU/audio/thermal/FPS/focus and separate-device/network human acceptance unverified; owner two-app heating/FPS symptom not claimed resolved. Existing shutdown-only ObjectDB/resources and pavement-seam observations remain. No infrastructure/capacity or public profile-store change. Original phase archive retains historical source-only status; this subsequent authorized delivery supersedes it."
+}
