@@ -60,6 +60,27 @@ for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
   Run startup/map-loading/lifecycle/weather/rematch and real-client controls.
   Hardware-only unresolved causes stay open, not marked fixed.
 
+### First executed slice (2026-10-23)
+
+- [x] Capture fresh preparation and Town graphical resource baseline; investigate
+  the rendered load failure rather than accepting a positive profiler label.
+- [x] Remove gameplay rendering hidden behind opaque Home/Choose Map while keeping
+  the live preview, caller viewport state and same-map geometry reuse intact.
+  Same-scene draw ablation: Choose Map3621→25; Home4101→504. No RAM/FPS claim.
+- [x] Reproduce and fix weather visuals retained across map replacement and
+  incomplete puddle state at cooperative frame yields. Rendered4→2→4 regression
+  fails on unchanged source and passes with the fix; headless weather41 and
+  rendered weather59, headless/rendered startup42, weather integration96 and
+  five-rematch151 checks passed.
+- [x] Complete corrected11-stage headless traces on both maps with five cycles;
+  lobby node/object counts plateau. Preserve the first incomplete trace and errors.
+- [ ] Finish remaining T23.1a/T23.1b matrix and isolate native camera-after-idle
+  cause. The overall milestone is not complete. See `docs/decisions.md` for
+  conditions, failed fixture recovery and interpretation limits.
+- [ ] Resolve the normal commit gate's managed20 cold-Start convergence failure;
+  runtime/test edits remain local and uncommitted. Managed4 control passes but
+  does not close this gate. Preserve original deadlines and cold preparation.
+
 ## M23.2 — One harder baseline; break rooftop camping
 
 - [ ] Remove Normal as a selectable/default preset and its obsolete branches,

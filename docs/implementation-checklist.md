@@ -5,9 +5,9 @@
 ## Active and planned phases
 
 - [Phase23 — Performance, chaos, audio and character quality](checklists/phase-23-performance-chaos-audio-character.md)
-  — planned from owner feedback. Measure memory/camera hitches first, remove
-  Normal and address rooftop camping, soften/deduplicate audio, then redesign
-  character presentation. No implementation or new deployment claimed.
+  — M23.1 in progress; English plan and first measured hidden-render/weather
+  lifecycle fixes recorded. Remaining memory/camera matrix is open. Normal removal,
+  rooftop balance, audio and character work remain planned; no new deployment.
 
 ## Recently completed phases
 

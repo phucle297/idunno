@@ -12,6 +12,8 @@ Before implementation work:
 
 Do not rewrite the design plan. Record only active-phase implementation decisions in `docs/decisions.md` and executable work in `docs/checklists/{phase-slug}.md`; `docs/implementation-checklist.md` is the navigation index. Record user/device/network acceptance separately in root `NEED_REAL_CHECK.md`, with build and conditions; do not substitute automated evidence for human acceptance. Keep completed tasks of an active phase in its checklist for context. Move completed-phase checklist, decisions and progress together to `docs/old-docs/{phase-slug}/`, preserve evidence, and link archives from the active log. Never overwrite an existing archive.
 
+Write all new planning, checklists, decisions and progress evidence in English. Preserve historical user reports and archived evidence in their original language; conversation replies may follow the user's language.
+
 Work through the hierarchy `phase → milestone → task`. A phase may contain multiple milestones; add tasks only when a milestone is too large for one coherent work unit. Complete and validate the current milestone before starting another, and complete all required milestones before closing a phase. Never mark imports, animation clips, retargeting, networking, performance, or multiplayer as working without an executed check recorded in `progress.json`.
 
 When a phase is complete, archive its full progress before starting the next phase:
