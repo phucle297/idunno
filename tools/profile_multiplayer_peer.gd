@@ -73,6 +73,8 @@ var result: Dictionary = {}
 var camera: Camera3D
 var moving_client := false
 var movement_ticks := 0
+var orbit_camera := false
+var camera_angle := 0.0
 
 
 func _initialize() -> void:
@@ -136,22 +138,10 @@ func _act(command: Dictionary) -> void:
 				precipitation.tick(0.0)
 				main.weather_surfaces.tick(20.0, command.weather == "rain", command.weather == "snow", -INF)
 			main.tick_weather(0.0)
+		"prepare_view":
+			_configure_view(command)
 		"sample":
-			var graphical := DisplayServer.get_name() != "headless"
-			if graphical:
-				if command.vsync != "default":
-					DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED if command.vsync == "off" else DisplayServer.VSYNC_ENABLED)
-				if not is_instance_valid(camera):
-					camera = Camera3D.new()
-					main.add_child(camera)
-					camera.look_at_from_position(Vector3(0, 5, 12), Vector3(0, 1, 0))
-					camera.make_current()
-			# Pacing/quality experiments apply only to clients, never authority.
-			if label != "server":
-				Engine.max_fps = int(command.fps)
-				if command.ablation == "shadows-off":
-					main.get_node("Sun").shadow_enabled = false
-			root.disable_3d = command.ablation == "no-3d" or not graphical
+			_configure_view(command)
 			# A controlled throughput trace must not remove a district halfway through
 			# a slow software-render window. Fixture-only; production time is intact.
 			main.match_manager.match_duration = 1_000_000.0
@@ -161,16 +151,42 @@ func _act(command: Dictionary) -> void:
 			main.measuring = false
 			moving_client = bool(command.get("moving_client", false)) and label == "client-0"
 			movement_ticks = 0
+			orbit_camera = bool(command.get("orbit_camera", false))
+			camera_angle = 0.0
 			_release_profile_movement()
 			last_frame = 0
 			physics_ticks = 0
 			samples.clear()
 			result.clear()
+		"stop_movement":
+			moving_client = false
+			_release_profile_movement()
 
 
-func _process(_delta: float) -> bool:
+func _configure_view(command: Dictionary) -> void:
+	var graphical := DisplayServer.get_name() != "headless"
+	if graphical:
+		if command.vsync != "default":
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED if command.vsync == "off" else DisplayServer.VSYNC_ENABLED)
+		if not is_instance_valid(camera):
+			camera = Camera3D.new()
+			main.add_child(camera)
+			camera.look_at_from_position(Vector3(0, 5, 12), Vector3(0, 1, 0))
+			camera.make_current()
+	# Pacing/quality experiments apply only to clients, never authority.
+	if label != "server":
+		Engine.max_fps = int(command.fps)
+		if command.ablation == "shadows-off":
+			main.get_node("Sun").shadow_enabled = false
+	root.disable_3d = command.ablation == "no-3d" or not graphical
+
+
+func _process(delta: float) -> bool:
 	if wanted <= 0:
 		return false
+	if orbit_camera and is_instance_valid(camera):
+		camera_angle += delta * 0.8
+		camera.look_at_from_position(Vector3(sin(camera_angle) * 12.0, 5, cos(camera_angle) * 12.0), Vector3(0, 1, 0))
 	var now := Time.get_ticks_usec()
 	if warmup > 0:
 		warmup -= 1
@@ -204,6 +220,12 @@ func _process(_delta: float) -> bool:
 		"primitives": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		"nodes": Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
 		"static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC),
+		"objects": Performance.get_monitor(Performance.OBJECT_COUNT),
+		"resources": Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT),
+		"video_bytes": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED),
+		"texture_bytes": Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
+		"buffer_bytes": Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED),
+		"camera_angle": camera_angle,
 		"state": main.match_manager.state, "players": main.match_manager.players.size(),
 		"removed_district_mask": main.terrain_collapse.removed_mask,
 		"pending_district": main.terrain_collapse.pending,
@@ -220,7 +242,8 @@ func _process(_delta: float) -> bool:
 	last_frame = now
 	physics_ticks = 0
 	if samples.size() == wanted:
-		_release_profile_movement()
+		# This peer finishing its trace does not finish the shared workload.
+		# The driver stops input only after every observer has captured it.
 		result = {"sequence": sequence, "samples": samples.duplicate(), "map_id": main.map_id,
 			"build": ProjectSettings.get_setting("build/revision", "development"),
 			"engine": Engine.get_version_info().string, "display": DisplayServer.get_name(),
@@ -229,6 +252,7 @@ func _process(_delta: float) -> bool:
 			"root_3d_disabled": root.disable_3d, "sun_shadows": main.get_node("Sun").shadow_enabled,
 			"fps_cap": Engine.max_fps, "physics_hz": Engine.physics_ticks_per_second,
 			"local_peer_id": local_id, "moving_client_input": moving_client,
+			"orbit_camera": orbit_camera,
 			"world_control": "Intact map; collapse/match timeout extended and selected precipitation held active by external fixture only; real weather simulation/snapshots remain enabled.",
 			"instrumentation": "Private subclass times snapshot build/apply and whole Main physics callbacks. Extra Variant encoding is outside apply timer but remains profiler CPU; encoded decoded payload size is NOT on-wire traffic.",
 			"reconciliation_measurement": "Movement receipt age observes this process's RPC boundary, NOT pending reconciliation age, correction distance, latency or packet loss."}
@@ -242,7 +266,7 @@ func _process(_delta: float) -> bool:
 
 func _physics_process(_delta: float) -> bool:
 	physics_ticks += 1
-	if moving_client and wanted > 0:
+	if moving_client:
 		movement_ticks += 1
 		var right := (movement_ticks / 30) % 2 == 0
 		Input.action_press("move_right" if right else "move_left")

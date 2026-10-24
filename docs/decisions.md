@@ -73,3 +73,67 @@ thermal/FPS and separate-network limits in `NEED_REAL_CHECK.md`.
   owner transfer and crash retry; it does not substitute for managed20.
   Map-variety493 also passed. Tracking-only checkpoint may be committed separately
   to preserve this failure, without declaring the runtime work delivered.
+
+## M23.1 — controls and geometry budget, 2026-10-24
+
+- The managed20 cold-Start failure did not reproduce in serialized original-HEAD
+  and edited controls: both passed cold Start, movement, capacity, five rematches,
+  owner transfer and crash retry. Convergence was 9.218s / 9.015s within the same
+  15s deadline. The original failure remains unexplained; no loading workaround.
+- The next normal gate exposed a separate profiler lifetime race. Its moving
+  client released input at the end of its own trace, before the server necessarily
+  sampled it. A controlled 2s observer skew reproduced zero server displacement;
+  retaining movement until all observers finish produced 0.925m. Stop through the
+  private driver after trace collection, not through a longer timeout or weakened
+  movement assertion. The four public profiler tests pass after this correction.
+- Add opt-in wall-clock idle and camera orbit to that existing profiler, rather
+  than treating a slow SceneTree timer as elapsed wall time. Prepare the rendered
+  view before idle; record Linux VmRSS, resource/object counts and renderer memory
+  counters with platform limitations. This is diagnostic camera motion, not
+  native mouse capture, focus, minimize, Windows private memory or GPU acceptance.
+- The earlier rendered Town probe completed all 12 stages. Its internal RSS reads
+  were invalid zeros, and its nominal 300s stretched to about 20 wall minutes;
+  terrain collapse was not disabled. Keep its timing limitations explicit.
+  External RSS rose from 797.28 to 812.09MiB then plateaued, including five Home
+  returns. Node/object counts stabilized at 11608/25352 after the first cycle.
+  This is bounded-cache evidence, not proof that the owner's hitch is fixed.
+- Retain two curved segments per rounded-box edge instead of four: 300 rather
+  than 972 triangles, with unchanged dimensions, rounding radii, normals formula,
+  materials, collision, anchors and scene-node count. In serialized 720p software
+  controls (12 samples after four warmup frames, LP_NUM_THREADS=2), Town submitted
+  2,775,112 → 1,211,784 primitives at the same 4039 draws; Harbor's actual player
+  camera submitted 621,788 → 239,420 at the same 782 draws. Town p50 was
+  844.944 → 466.967ms and Harbor 326.356 → 245.163ms. RSS at gameplay sampling was
+  759.63 → 702.96MiB and 581.70 → 523.02MiB. Tiny samples and software rendering
+  do not establish native throughput or isolate camera-after-idle hitches.
+- Home keeps its live diorama: 399,546 → 206,682 primitives at the same 504 draws;
+  initial RSS was about 498.18 → 483.97MiB. Existing sphere faceting is unchanged.
+  Both-map geometry and Home were rendered and inspected. The initial Town
+  diagnostic camera is unsuitable for Harbor (roof occlusion already existed);
+  use Harbor's actual player camera. An initial mislabeled active-map row is
+  excluded; the corrected return-to-Results-to-lobby fixture checks the real page.
+  Existing Harbor cream-ramp seams are not attributed to this optimization.
+- Keep the prepared world for cheap same-map rematches: the measured repeated
+  cycles plateau rather than grow. Hidden rendering is now avoided, but retained
+  map RAM is intentionally not claimed released. Native/driver causes stay open.
+  The full normal staged gate and remaining idle matrix are still required before
+  moving to M23.2; no Phase23 release or deployment is authorized.
+- Final 1080p Home, Choose Map and both-map gameplay captures were inspected.
+  The reduced box curves remain acceptable at gameplay distance. Harbor's
+  illegible entrance sign, ramp intersections and tile/channel seams also exist
+  in the before control; they are not repaired by this performance change.
+- The third full staged gate passed 65 Godot suites, persistence and nine network
+  matrices, then failed the held-loading snapshot assertion before managed20 or
+  Python suites ran. Source inspection found another observer/lifetime race:
+  the departing client could finish its faster load and legitimately abort the
+  barrier during the server's 100ms observation. A fast-departure control measured
+  loading=false, one remaining player and sequence26→27. This is not evidence of
+  snapshots sent while loading stayed frozen.
+- Synchronize that fixture with a test-only authority release after the unchanged
+  snapshot assertion, then wait for the real transport close before fixture exit.
+  Keep production source, real cold preparation and deadlines unchanged. The
+  corrected real-ENet matrix passes twice. A disposable negative control removing
+  only production's not-loading guard still fails the assertion, demonstrating
+  the fix does not mask redundant snapshots. Temporary injection/printing removed.
+  Prevention is recorded in `recovering-validation-fixture-races`; rerun the
+  normal staged gate rather than claiming the previous failed gate passed.

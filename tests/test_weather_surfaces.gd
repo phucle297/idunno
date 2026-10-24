@@ -2,6 +2,11 @@ extends SceneTree
 
 const WeatherScript = preload("res://game/disasters/weather_surfaces.gd")
 
+class FramePreparation extends MapPreparation:
+	func checkpoint() -> bool:
+		await _tree.process_frame
+		return is_current()
+
 var checks := 0
 var failures: Array[String] = []
 
@@ -148,6 +153,7 @@ func _run() -> void:
 	peer.close()
 	if DisplayServer.get_name() != "headless":
 		await _check_overlay_lifecycle()
+		await _check_reconfiguration_lifecycle()
 	world.free()
 	if failures.is_empty():
 		print("WEATHER_SURFACES_OK checks=%d resets=5" % checks)
@@ -202,6 +208,27 @@ func _check_overlay_lifecycle() -> void:
 	await process_frame
 	await process_frame
 	_expect(mesh.material_overlay == null, "Full melt/dry removes passes and tolerates departed terrain")
+	world.free()
+
+
+func _check_reconfiguration_lifecycle() -> void:
+	var world := Node3D.new()
+	root.add_child(world)
+	var weather := WeatherScript.new()
+	world.add_child(weather)
+	var retained_children := -1
+	for count in [4, 2, 4]:
+		var puddles := PackedVector3Array()
+		for index in count:
+			puddles.append(Vector3(index * 3.0, 0, 0))
+		var work := FramePreparation.new(self)
+		_expect(await weather.configure_world_cooperative(world, 20.0, puddles, work), "Cooperative weather replacement completes across rendered frames")
+		work.finish()
+		await process_frame
+		if retained_children < 0:
+			retained_children = weather.get_child_count() - count
+		_expect(weather.get_child_count() == retained_children + count, "Map replacement owns only the current map's puddle visuals")
+		_expect(weather.create_presentation_snapshot().electric.size() == count, "Current puddle state matches the replacement map")
 	world.free()
 
 

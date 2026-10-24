@@ -10,6 +10,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	var original_3d_disabled := root.disable_3d
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -26,6 +27,7 @@ func _run() -> void:
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY, "Normal launch waits in preparation, not solo gameplay")
 	_expect(main.home_screen.is_visible_in_tree() and not panel.visible and player.local_input_blocked, "Dedicated Home replaces the room dialog and blocks movement")
 	_expect(main.get_node("Sandbox").get_child_count() == 0, "Normal Home startup leaves the gameplay Sandbox empty")
+	_expect(root.disable_3d and main.home_screen.preview_viewport.render_target_update_mode == SubViewport.UPDATE_ALWAYS, "Opaque Home suppresses gameplay rendering without suppressing its separate live preview")
 	var original_reduced: bool = main.pause_settings.values.reduced_motion
 	main.pause_settings.values.reduced_motion = false
 	main._update_lobby_ui()
@@ -100,18 +102,22 @@ func _run() -> void:
 	_expect(main.get_node("Sandbox").get_child_count() > 0 and main.get_node("Sandbox").get_meta("map_anchors").map_id == "toy_harbor", "Start prepares selected gameplay geometry and anchors")
 	_expect(main.music.context == "gameplay", "Starting a match switches the real music owner to gameplay")
 	_expect(not panel.visible and not main.home_screen.visible and not player.local_input_blocked, "Start closes preparation pages and releases gameplay input")
+	_expect(root.disable_3d == original_3d_disabled, "Start restores the caller's gameplay rendering state")
 	_expect(player.character.get_outfit_id() == "cap" and main.get_map_id() == "toy_harbor", "Selected outfit and map survive the start boundary")
 	_expect(player.world_loaded, "Start enables avatar simulation only after loading gameplay collision")
 	await _capture("started")
 	main.disaster_director.cleanup()
 	main.match_manager.apply_damage(1, 100, "Menu regression")
+	var loaded_world_id: int = main.get_node("Sandbox").get_child(0).get_instance_id()
 	_expect(main.return_to_lobby(), "Results can return to preparation")
+	_expect(root.disable_3d and main.get_node("Sandbox").get_child(0).get_instance_id() == loaded_world_id, "Returning Home hides gameplay rendering without rebuilding retained geometry")
 	_expect(main.music.context == "menu", "Results/lobby restores menu theme")
 	main.request_outfit(original_outfit)
 	_expect(main.get_outfit_id() == original_outfit, "Restore original saved starter after test")
 	main.gameplay_audio.reset_for_match()
 	await create_timer(0.1).timeout
 	main.free()
+	_expect(root.disable_3d == original_3d_disabled, "Scene departure restores the viewport rather than leaving the next scene blank")
 	await create_timer(0.1).timeout
 	if failures.is_empty():
 		print("STARTUP_MENU_OK checks=%d" % checks)

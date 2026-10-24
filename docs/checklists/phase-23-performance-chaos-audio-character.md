@@ -1,7 +1,8 @@
 # Phase23 — Performance, chaos, audio and character quality
 
-Status: M23.1 investigation in progress, 2026-10-23. Planning is recorded in English.
-Owner requested correction to English and execution of the first part.
+Status: M23.1 investigation in progress, 2026-10-24. Planning is recorded in English.
+Owner requested correction to English, then continued execution of the entire
+current plan on 2026-10-24. Commit and push verified coherent units in order.
 No gameplay/asset changes or release were part of the preceding planning checkpoint.
 Root `progress.json` owns operational state; DESIGN remains authoritative except
 for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
@@ -80,6 +81,30 @@ for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
 - [ ] Resolve the normal commit gate's managed20 cold-Start convergence failure;
   runtime/test edits remain local and uncommitted. Managed4 control passes but
   does not close this gate. Preserve original deadlines and cold preparation.
+
+### Follow-up controls (2026-10-24)
+
+- [x] Run serialized original/edited managed20 controls; both pass, including five
+  rematches. Original timeout did not reproduce; do not invent its cause.
+- [x] Reproduce the subsequent profiler's observer/input-lifetime race, correct
+  workload ownership and rerun all four public profiler tests successfully.
+- [x] Extend the existing profiler with monotonic idle/orbit and per-process
+  resource counters; do not use the flawed SceneTree-timer probe as a clean
+  0/60/300-second comparison. Its external RSS plateau and five-cycle counts are
+  usable only with the limitations recorded in decisions/progress.
+- [x] Compare four- versus two-segment box edges on both maps. Preserve node/draw
+  counts, dimensions/collision and rounded silhouette while reducing submitted
+  primitives. Inspect final Home/maps/gameplay at 720p and 1080p. Existing Harbor
+  sign/ramp/tile seams are also in the baseline and remain uncorrected.
+- [x] Reproduce the held-loading/departure fixture race; use an authority release
+  after the snapshot observation instead of racing load speed against sleeps.
+  Real matrix passes twice; removing production's snapshot guard in a disposable
+  negative control still fails. See `recovering-validation-fixture-races` before
+  diagnosing either this failure or the moving-client observer race again.
+- [ ] Pass the complete normal staged gate with the current geometry/tool changes.
+- [ ] Complete monotonic rendered idle/orbit real-client controls. Keep unavailable
+  native Windows/GPU/focus/thermal acceptance explicitly unresolved under waiver;
+  do not conflate technical gate completion with fixing the owner's exact hitch.
 
 ## M23.2 — One harder baseline; break rooftop camping
 

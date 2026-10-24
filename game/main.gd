@@ -103,6 +103,8 @@ var _local_emote_cooldown_until: Dictionary = {}
 var _prop_snapshot_remaining := 0.0
 var _ui_theme: Theme
 var _lobby_focus_ids: Array[int] = []
+var _home_occludes_gameplay := false
+var _gameplay_3d_was_disabled := false
 var pause_settings: Control
 var home_screen: Control
 var room_admission: Node
@@ -2452,6 +2454,13 @@ func _update_lobby_ui() -> void:
 	if is_instance_valid(home_screen):
 		home_screen.visible = on_home
 		home_screen.refresh()
+	# Opaque preparation pages use their own preview world. Do not render the
+	# retained gameplay map underneath them; preserve any caller-owned override.
+	if on_home != _home_occludes_gameplay:
+		if on_home:
+			_gameplay_3d_was_disabled = get_viewport().disable_3d
+		get_viewport().disable_3d = true if on_home else _gameplay_3d_was_disabled
+		_home_occludes_gameplay = on_home
 	if on_home:
 		panel.hide()
 	$Interface/LobbyToggle.visible = not on_home and match_manager.state != MatchManager.MatchState.RESULTS
@@ -2948,6 +2957,8 @@ func request_match_preset(preset: String) -> bool:
 func _exit_tree() -> void:
 	if _map_preparation != null:
 		_map_preparation.cancel()
+	if _home_occludes_gameplay and is_instance_valid(get_viewport()):
+		get_viewport().disable_3d = _gameplay_3d_was_disabled
 
 
 func prepare_gameplay_map(is_current := Callable()) -> bool:
@@ -4040,7 +4051,7 @@ func _add_detail_collision(parent: Node3D, position: Vector3, shape: Shape3D) ->
 
 # Owner's rounded-playset reference supersedes the old tiny architectural bevel.
 # Independent radii keep thin panels soft in silhouette, not just in thickness.
-# Four curved segments per edge; collision boxes and anchor positions stay exact.
+# Two curved segments per edge; collision boxes and anchor positions stay exact.
 func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 	var key := "toy_mesh_%s_%s" % [size, color]
 	var cache: Dictionary = $Sandbox.get_meta("toy_mesh_cache", {})
@@ -4060,10 +4071,10 @@ func _toy_box_mesh(size: Vector3, color: Color) -> ArrayMesh:
 		var v := (axis + 2) % 3
 		var us: Array[float] = []
 		var vs: Array[float] = []
-		for fraction in [-1.0, -0.75, -0.5, -0.25, 0.0]:
+		for fraction in [-1.0, -0.5, 0.0]:
 			us.append(-inner[u] + fraction * radius[u])
 			vs.append(-inner[v] + fraction * radius[v])
-		for fraction in [0.0, 0.25, 0.5, 0.75, 1.0]:
+		for fraction in [0.0, 0.5, 1.0]:
 			us.append(inner[u] + fraction * radius[u])
 			vs.append(inner[v] + fraction * radius[v])
 		for side in [-1.0, 1.0]:

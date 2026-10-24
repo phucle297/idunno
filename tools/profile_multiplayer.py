@@ -18,6 +18,17 @@ ROOT = Path(__file__).resolve().parents[1]
 PEER = ROOT / "tools/profile_multiplayer_peer.gd"
 
 
+def resident_bytes(pid):
+    """Linux process RSS, not private working set or GPU memory; None elsewhere."""
+    try:
+        for line in Path(f"/proc/{pid}/status").read_text().splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) * 1024
+    except OSError:
+        pass
+    return None
+
+
 def summarize(trace):
     """Keep temporal order in raw traces; sort copies only for percentiles."""
     samples = trace["samples"]
@@ -81,6 +92,8 @@ def parser():
     result.add_argument("--vsync", choices=("default", "off", "on"), default="off")
     result.add_argument("--ablation", choices=("none", "shadows-off", "no-3d"), default="none")
     result.add_argument("--moving-client", action="store_true", help="Opt in to bounded real strafe input for client-0; default is stationary")
+    result.add_argument("--idle-seconds", type=float, default=0, help="Real wall-clock idle before sampling, after cold Start and controlled weather")
+    result.add_argument("--orbit-camera", action="store_true", help="Orbit the diagnostic camera during samples after the idle; not physical mouse/focus acceptance")
     result.add_argument("--timeout", type=float, default=1800, help="Sampling deadline; setup stages are limited to at most60s, never retries")
     result.add_argument("--xvfb", action="store_true", help="Separate Linux virtual displays; NOT same-desktop focus validation")
     return result
@@ -89,7 +102,7 @@ def parser():
 def run(options):
     if not options.engine:
         raise ValueError("Set --engine or GODOT_BIN to the Godot4.7.2 editor executable")
-    if min(options.width, options.height, options.samples, options.repeats) <= 0 or min(options.warmup, options.fps) < 0 or options.timeout <= 0:
+    if min(options.width, options.height, options.samples, options.repeats) <= 0 or min(options.warmup, options.fps) < 0 or options.timeout <= 0 or not math.isfinite(options.idle_seconds) or options.idle_seconds < 0:
         raise ValueError("Positive resolution/samples/repeats/timeout and nonnegative warmup/FPS required")
     network = options.scenario == "network"
     player_count = options.clients if network else 1
@@ -223,12 +236,26 @@ def run(options):
         command("server" if network else labels[0], "weather", weather=options.weather)
         expected_precipitation = {"dry": "", "rain": "Rain", "snow": "Snowfall"}[options.weather]
         wait(lambda: all(read(label).get("precipitation") == expected_precipitation for label in all_labels), "weather agreement")
+        if options.idle_seconds:
+            for label in all_labels:
+                command(label, "prepare_view", fps=options.fps,
+                        vsync=options.vsync, ablation=options.ablation)
+        metadata["resident_bytes_before_idle"] = {label: resident_bytes(peer.pid) for label, peer in processes.items()}
+        metadata["resident_memory_metric"] = "Linux /proc VmRSS bytes; null when unavailable, not Windows private memory or GPU memory"
+        # SceneTree timers can advance slower than wall time under a saturated
+        # renderer. Idle outside the engine, while still checking peer liveness.
+        idle_started = time.monotonic()
+        idle_until = idle_started + options.idle_seconds
+        wait(lambda: time.monotonic() >= idle_until, "wall-clock idle", options.idle_seconds + 1)
+        metadata["observed_idle_seconds"] = time.monotonic() - idle_started
+        metadata["resident_bytes_after_idle"] = {label: resident_bytes(peer.pid) for label, peer in processes.items()}
+        (output / "metadata.json").write_text(json.dumps(metadata, indent=2))
         summaries = []
         for repeat in range(options.repeats):
             for label in all_labels:
                 command(label, "sample", warmup=options.warmup, samples=options.samples,
                         fps=options.fps, vsync=options.vsync, ablation=options.ablation,
-                        moving_client=options.moving_client)
+                        moving_client=options.moving_client, orbit_camera=options.orbit_camera)
             wait(lambda: all(read(label).get("complete") for label in all_labels), "frame samples", options.timeout)
             for label in all_labels:
                 trace = json.loads((control / (label + ".trace.json")).read_text())
@@ -241,7 +268,8 @@ def run(options):
                 if any(row["precipitation"] != expected_precipitation for row in trace["samples"]):
                     raise RuntimeError("Precipitation workload changed during trace")
                 (output / f"{repeat}-{label}.json").write_text(json.dumps(trace))
-                summaries.append(dict(repeat=repeat, peer=label, **summarize(trace)))
+                summaries.append(dict(repeat=repeat, peer=label,
+                                      resident_bytes=resident_bytes(processes[label].pid), **summarize(trace)))
             if options.moving_client:
                 client_trace = json.loads((control / "client-0.trace.json").read_text())
                 server_trace = json.loads((control / "server.trace.json").read_text())
@@ -250,6 +278,8 @@ def run(options):
                     raise RuntimeError("Controlled input did not move the authoritative client position")
                 summaries[-1]["moving_client_authoritative"] = movement
             (output / "summary.json").write_text(json.dumps(summaries, indent=2))
+            if options.moving_client:
+                command(labels[0], "stop_movement")
         # Close clients first so authority can process departures before its own shutdown.
         for label in all_labels:
             command(label, "quit")

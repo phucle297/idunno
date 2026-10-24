@@ -55,7 +55,7 @@ class MultiplayerProfileContract(unittest.TestCase):
             output = Path(temporary) / "results"
             completed = subprocess.run([sys.executable, "tools/profile_multiplayer.py", "--engine", engine,
                 "--renderers", "0", "--output", str(output), "--warmup", "2", "--samples", "24",
-                "--repeats", "2", "--fps", "60", "--timeout", "30"], cwd=ROOT, capture_output=True, text=True, timeout=120)
+                "--repeats", "2", "--fps", "60", "--timeout", "30", "--idle-seconds", ".1", "--orbit-camera"], cwd=ROOT, capture_output=True, text=True, timeout=120)
             diagnostics = completed.stdout + completed.stderr
             for log in output.glob("*.log"):
                 diagnostics += log.read_text()
@@ -63,6 +63,7 @@ class MultiplayerProfileContract(unittest.TestCase):
             self.assertIn("MULTIPLAYER_PROFILE_OK", completed.stdout)
             summaries = json.loads((output / "summary.json").read_text())
             self.assertEqual(len(summaries), 6)
+            self.assertGreaterEqual(json.loads((output / "metadata.json").read_text())["observed_idle_seconds"], .1)
             for repeat in range(2):
                 for peer in ["client-0", "client-1", "server"]:
                     trace = json.loads((output / f"{repeat}-{peer}.json").read_text())
@@ -70,6 +71,8 @@ class MultiplayerProfileContract(unittest.TestCase):
                     self.assertEqual(len(rows), 24)
                     self.assertEqual(trace["fps_cap"], 0 if peer == "server" else 60)
                     self.assertFalse(trace["moving_client_input"])
+                    self.assertTrue(trace["orbit_camera"])
+                    self.assertTrue(all(row["static_bytes"] > 0 and row["resources"] > 0 for row in rows))
                     self.assertTrue(all(row["state"] == 1 and row["players"] == 2 for row in rows))
                     self.assertTrue(all(row["removed_district_mask"] == 0 and row["pending_district"] == -1 for row in rows))
                     self.assertTrue(all(a["time_usec"] < b["time_usec"] for a, b in zip(rows, rows[1:])))

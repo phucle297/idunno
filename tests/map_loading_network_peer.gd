@@ -12,6 +12,8 @@ var checks := 0
 class FixtureMain extends "res://game/main.gd":
 	var fixture_hold_ack := true
 	var fixture_depart_after_load := false
+	var fixture_departure_released := false
+	var fixture_departure_closed := false
 	var fixture_active_peers: Array[int] = []
 	var fixture_send_stale := false
 	var fixture_stale_sender := 0
@@ -22,6 +24,10 @@ class FixtureMain extends "res://game/main.gd":
 		super._abort_map_load()
 		fixture_abort_cleared_readiness = match_manager.players.keys().all(func(peer_id: int) -> bool:
 			return not match_manager.is_player_ready(peer_id))
+
+	@rpc("authority", "call_remote", "reliable")
+	func fixture_release_departure() -> void:
+		fixture_departure_released = true
 
 	@rpc("any_peer", "call_remote", "reliable")
 	func fixture_stale_sent(generation: int) -> void:
@@ -39,8 +45,15 @@ class FixtureMain extends "res://game/main.gd":
 	func _acknowledge_map_load(generation: int, selected_map: String, connection: int) -> void:
 		# Delay only the acknowledgement, not a duplicate of production loading.
 		if fixture_depart_after_load:
+			# The snapshot check must finish before departure can legitimately
+			# cancel the barrier and resume lobby snapshots, even on a fast load.
+			while not fixture_departure_released and _map_loading and generation == _map_load_generation and connection == _network_connection_generation and _network_mode:
+				await get_tree().process_frame
+			if not _map_loading or generation != _map_load_generation or connection != _network_connection_generation or not _network_mode:
+				return
 			process_mode = Node.PROCESS_MODE_DISABLED
 			multiplayer.multiplayer_peer.close()
+			fixture_departure_closed = true
 			return
 		if fixture_send_stale:
 			_map_loaded.rpc_id(1, generation - 1, selected_map)
@@ -101,6 +114,7 @@ func _server(main: Node) -> void:
 	var loading_sequence: int = main._match_snapshot_sequence
 	await create_timer(0.1).timeout
 	_expect(main._map_loading and main._match_snapshot_sequence == loading_sequence, "held loading does not queue redundant lobby snapshots")
+	main.fixture_release_departure.rpc()
 	await _wait(func() -> bool: return main.match_manager.players.size() == 1, "departing held client aborts the barrier")
 	_expect(not main._map_loading and main.match_manager.state == MatchManager.MatchState.LOBBY, "departure abort returns server to lobby")
 	main._update_lobby_ui()
@@ -150,7 +164,7 @@ func _client(main: Node) -> void:
 		main.set_local_ready(true)
 		if role == "departing":
 			await _wait(func() -> bool: return main._map_loading, "held client receives loading RPC before disconnect")
-			await create_timer(0.2).timeout
+			await _wait(func() -> bool: return main.fixture_departure_closed, "held client departs only after the authority's snapshot observation")
 		else:
 			await _wait(func() -> bool: return main.match_manager.state == MatchManager.MatchState.ACTIVE, "replacement ACK permits ACTIVE")
 	if role != "departing":

@@ -100,16 +100,16 @@ func _begin_world_configuration(world: Node3D, extent: float, puddles: PackedVec
 	for point in puddles:
 		if not point.is_finite():
 			return false
-	_set_surface_overlays(false)
-	_surface_meshes.clear()
+	# Configuration can yield rendered frames. Retire the previous map's
+	# visuals and initialize all parallel state before publishing new puddles.
+	_abort_world_configuration()
 	_world = world
 	_extent = extent
 	_puddle_spots = puddles.duplicate()
 	_puddle_moisture.resize(puddles.size())
-	_puddle_moisture.fill(0.0)
+	cleanup()
 	_presentation_enabled = not OS.has_feature("dedicated_server") and DisplayServer.get_name() != "headless"
 	if not _presentation_enabled:
-		cleanup()
 		return true
 	_material = ShaderMaterial.new()
 	_material.shader = SurfaceShader
@@ -128,7 +128,6 @@ func _begin_world_configuration(world: Node3D, extent: float, puddles: PackedVec
 
 
 func _finish_world_configuration() -> void:
-	cleanup()
 	invalidate_cover()
 
 
