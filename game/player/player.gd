@@ -460,36 +460,61 @@ func _move_and_report_landing(allow_step := false) -> void:
 			landed.emit(fall_height)
 
 
-# Grounded walk/sprint into a wall-like lip no taller than STEP_HEIGHT: sweep up,
-# forward by this tick's motion, then down onto walkable floor. Shared by local,
-# predicted and server movement (all go through apply_movement_input).
+# Grounded walk/sprint into a lip no taller than STEP_HEIGHT: sweep up, forward,
+# then down onto walkable floor, keeping horizontal velocity. Runs before
+# move_and_slide so the face never zeroes velocity. Also re-steps while the
+# rounded capsule rides the lip's corner. Shared by local, predicted, replayed
+# and server movement (all go through apply_movement_input).
 func _step_up() -> bool:
 	var motion := Vector3(velocity.x, 0.0, velocity.z) * get_physics_process_delta_time()
 	if motion.length_squared() < 1e-8:
 		return false
 	var start := global_transform
 	var blocked := KinematicCollision3D.new()
-	if not test_move(start, motion, blocked) or blocked.get_normal().angle_to(up_direction) <= floor_max_angle:
+	if not test_move(start, motion, blocked):
 		return false
+	if (blocked.get_position() - start.origin).dot(up_direction) < 0.01:
+		# The sweep can report the floor under the feet first; probe again
+		# just above it so the face of a lip ahead is what gets reported.
+		if not test_move(start.translated(up_direction * 0.02), motion, blocked):
+			return false
+		if (blocked.get_position() - start.origin).dot(up_direction) < 0.01:
+			return false
+	var blocked_angle := blocked.get_normal().angle_to(up_direction)
 	var lift := up_direction * Tuning.STEP_HEIGHT
 	var ceiling := KinematicCollision3D.new()
 	if test_move(start, lift, ceiling):
 		lift = ceiling.get_travel()
-	# Advance at least half a radius so the rounded capsule bottom rests on the
-	# lip, not on its corner, even when walking slowly or already touching it.
-	var advance := motion if motion.length() >= Tuning.CAPSULE_RADIUS * 0.5 else motion.normalized() * Tuning.CAPSULE_RADIUS * 0.5
 	var raised := start.translated(lift)
-	if test_move(raised, advance):
-		return false
-	var ahead := raised.translated(advance)
-	var floor_hit := KinematicCollision3D.new()
-	if not test_move(ahead, -lift, floor_hit) or floor_hit.get_normal().angle_to(up_direction) > floor_max_angle:
-		return false
-	var rise := (floor_hit.get_position() - start.origin).dot(up_direction)
-	if rise < 0.01 or rise > Tuning.STEP_HEIGHT + 0.005:
-		return false
-	global_transform = ahead.translated(floor_hit.get_travel())
-	return true
+	# First try this tick's motion. If that leaves the capsule hanging on the
+	# lip's corner beyond floor_max_angle, advance just far enough past the
+	# contact for the corner to count as floor (<= ~0.09 m along the face normal).
+	var face := Vector3(blocked.get_normal().x, 0.0, blocked.get_normal().z)
+	var into := maxf(motion.normalized().dot(-face.normalized()), 0.25) if face.length_squared() > 1e-6 else 1.0
+	var needed := blocked.get_travel().length() + (Tuning.CAPSULE_RADIUS * (1.0 - sin(floor_max_angle)) + 0.01) / into
+	for advance_length in [motion.length(), maxf(motion.length(), needed)]:
+		var advance: Vector3 = motion.normalized() * float(advance_length)
+		if test_move(raised, advance):
+			return false
+		var ahead := raised.translated(advance)
+		var floor_hit := KinematicCollision3D.new()
+		# Sweep a little past the lift: an exact-length sweep can miss a lip
+		# corner that is only touched near its end.
+		if not test_move(ahead, -lift - up_direction * 0.1, floor_hit):
+			return false
+		var landing_angle := floor_hit.get_normal().angle_to(up_direction)
+		if landing_angle > floor_max_angle:
+			continue
+		# A uniform ramp lands on the same plane it blocked on: leave slopes to
+		# move_and_slide so slope speed is unchanged.
+		if blocked_angle <= floor_max_angle and landing_angle > blocked_angle - deg_to_rad(1.0):
+			return false
+		var rise := (floor_hit.get_position() - start.origin).dot(up_direction)
+		if rise < 0.01 or rise > Tuning.STEP_HEIGHT + 0.005:
+			return false
+		global_transform = ahead.translated(floor_hit.get_travel())
+		return true
+	return false
 
 
 func _update_capsule() -> void:
