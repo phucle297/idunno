@@ -202,7 +202,7 @@ func apply_movement_input(
 
 	if wish_direction.length_squared() > 0.01:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
-	_move_and_report_landing()
+	_move_and_report_landing(grounded and velocity.y <= 0.0)
 
 
 func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, jump_pressed: bool, delta: float) -> void:
@@ -437,19 +437,59 @@ func _process_knockdown(delta: float) -> void:
 		_update_capsule()
 
 
-func _move_and_report_landing() -> void:
+func _move_and_report_landing(allow_step := false) -> void:
 	var airborne := not is_on_floor()
 	# Measure the actual descent, not velocity (impulses can exaggerate impact).
 	if not airborne or is_nan(_fall_peak):
 		_fall_peak = global_position.y
 	_fall_peak = maxf(_fall_peak, global_position.y)
-	move_and_slide()
+	if allow_step and _step_up():
+		# Already moved this tick; refresh floor contact without moving again.
+		var kept_velocity := velocity
+		velocity = Vector3.ZERO
+		move_and_slide()
+		velocity = kept_velocity
+		velocity.y = 0.0
+	else:
+		move_and_slide()
 	_fall_peak = maxf(_fall_peak, global_position.y)
 	if is_on_floor():
 		var fall_height := maxf(_fall_peak - global_position.y, 0.0)
 		_fall_peak = global_position.y
 		if airborne and fall_height > 0.0:
 			landed.emit(fall_height)
+
+
+# Grounded walk/sprint into a wall-like lip no taller than STEP_HEIGHT: sweep up,
+# forward by this tick's motion, then down onto walkable floor. Shared by local,
+# predicted and server movement (all go through apply_movement_input).
+func _step_up() -> bool:
+	var motion := Vector3(velocity.x, 0.0, velocity.z) * get_physics_process_delta_time()
+	if motion.length_squared() < 1e-8:
+		return false
+	var start := global_transform
+	var blocked := KinematicCollision3D.new()
+	if not test_move(start, motion, blocked) or blocked.get_normal().angle_to(up_direction) <= floor_max_angle:
+		return false
+	var lift := up_direction * Tuning.STEP_HEIGHT
+	var ceiling := KinematicCollision3D.new()
+	if test_move(start, lift, ceiling):
+		lift = ceiling.get_travel()
+	# Advance at least half a radius so the rounded capsule bottom rests on the
+	# lip, not on its corner, even when walking slowly or already touching it.
+	var advance := motion if motion.length() >= Tuning.CAPSULE_RADIUS * 0.5 else motion.normalized() * Tuning.CAPSULE_RADIUS * 0.5
+	var raised := start.translated(lift)
+	if test_move(raised, advance):
+		return false
+	var ahead := raised.translated(advance)
+	var floor_hit := KinematicCollision3D.new()
+	if not test_move(ahead, -lift, floor_hit) or floor_hit.get_normal().angle_to(up_direction) > floor_max_angle:
+		return false
+	var rise := (floor_hit.get_position() - start.origin).dot(up_direction)
+	if rise < 0.01 or rise > Tuning.STEP_HEIGHT + 0.005:
+		return false
+	global_transform = ahead.translated(floor_hit.get_travel())
+	return true
 
 
 func _update_capsule() -> void:

@@ -1,12 +1,15 @@
 extends SceneTree
 
 # T2 run+jump physics regression (games/idunno acceptance T2.1-T2.6).
+# Hard pass criteria run at the shipping 60 Hz tick (Owner, 2026-11-14).
+# 30 Hz and 144 Hz are measured and printed as T2_INFO only, never asserted.
 # Drives PartyPlayer.apply_movement_input on a fixed physics tick. The tick is
 # changed with Engine.physics_ticks_per_second and the controller runs inside
 # a physics frame, so move_and_slide and the controller share the same delta.
 
 const Tuning = preload("res://game/player/player_tuning.gd")
 const RATES: Array[int] = [30, 60, 144]
+const ASSERTED_RATE := 60
 const APEX_MIN := 1.25
 const APEX_MAX := 1.45
 const APEX_PAIR_DELTA := 0.05
@@ -29,6 +32,8 @@ var checks := 0
 var player: PartyPlayer
 var dt := 1.0 / 60.0
 var rate := 60
+var asserting := true
+var info_misses: Array[String] = []
 
 
 func _initialize() -> void:
@@ -49,18 +54,22 @@ func _run() -> void:
 		Engine.physics_ticks_per_second = tick_rate
 		await _await_tick_rate(tick_rate)
 		rate = tick_rate
+		asserting = tick_rate == ASSERTED_RATE
 		dt = 1.0 / float(tick_rate)
 		print("T2_RATE rate=%d dt=%.6f physics_delta=%.6f in_physics=%s" % [rate, dt, player.get_physics_process_delta_time(), Engine.is_in_physics_frame()])
 		_expect(is_equal_approx(player.get_physics_process_delta_time(), dt), "rate %d: engine physics delta must equal the controller delta" % rate)
 		results[tick_rate] = _run_rate_suite()
+	asserting = false
 	_check_tick_independence(results)
+	asserting = true
 	Engine.physics_ticks_per_second = 60
 	await _await_tick_rate(60)
 	rate = 60
 	dt = 1.0 / 60.0
 	await _test_real_input_pulse_and_hold()
+	print("T2_INFO_SUMMARY not_asserted_misses=%d (30/144 Hz and cross-rate comparisons)" % info_misses.size())
 	if failures.is_empty():
-		print("RUN_JUMP_PHYSICS_OK checks=%d rates=30,60,144" % checks)
+		print("RUN_JUMP_PHYSICS_OK checks=%d asserted_rate=60 info_rates=30,144" % checks)
 		quit(0)
 	else:
 		for failure in failures:
@@ -478,6 +487,11 @@ func _test_real_input_pulse_and_hold() -> void:
 
 
 func _expect(condition: bool, message: String) -> void:
+	if not asserting:
+		if not condition:
+			info_misses.append(message)
+			print("T2_INFO (not asserted) %s" % message)
+		return
 	checks += 1
 	if not condition:
 		failures.append(message)

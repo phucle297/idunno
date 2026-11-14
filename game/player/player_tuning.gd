@@ -21,6 +21,7 @@ const POWERUP_SPEED_MULTIPLIER := 1.2
 const POWERUP_JUMP_HEIGHT_MULTIPLIER := 1.2
 const COYOTE_TIME := 0.12
 const JUMP_BUFFER_TIME := 0.12
+const STEP_HEIGHT := 0.30 # DESIGN §8: climb square lips up to 0.30 m without jumping.
 const STANDING_HEIGHT := 1.5
 const CAPSULE_RADIUS := 0.28
 const PREDICTION_HISTORY_TICKS := 60
