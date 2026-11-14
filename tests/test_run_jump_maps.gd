@@ -5,7 +5,10 @@ extends SceneTree
 # exactly once, leave the ground, and (when no ceiling is hit) reach the
 # 1.25-1.45 m apex band. Also asserted (DESIGN §8 step height 0.30 m): every
 # low lip (0.12-0.30 m) found by a ray scan of the map, with a clear capsule
-# path above it, is climbed by walking into it without jumping.
+# path above it, is climbed by walking into it without jumping. And the known
+# real lips (Town 0.165 m, Harbor 0.222 m, both directions) are crossed from 12
+# start offsets 1 cm apart on several lanes, walk and sprint, with every tick
+# >= 80% of target speed and no tick moving further than its own motion.
 
 const DT := 1.0 / 60.0
 const Tuning = preload("res://game/player/player_tuning.gd")
@@ -38,6 +41,7 @@ func _run() -> void:
 		_expect(is_equal_approx(player.get_physics_process_delta_time(), DT), "%s fixture runs at 60 Hz" % map_id)
 		_spawn_jumps(main, player, map_id)
 		_scan_lips(main, player, map_id)
+		_lip_sweeps(main, player, map_id)
 	main.gameplay_audio.reset_for_match()
 	await create_timer(0.1).timeout
 	main.free()
@@ -146,6 +150,63 @@ func _scan_lips(main: Node, player: PartyPlayer, map_id: String) -> void:
 					map_id, base.x, before, base.z, direction.x, direction.z, rise, ok, player.global_position.x, player.global_position.y, player.global_position.z])
 	print("T2_MAP_LIP_SUMMARY map=%s candidates=%d climbed_walking=%d" % [map_id, found, climbed])
 	_expect(found > 0, "%s: lip scan must find at least one real low lip" % map_id)
+
+
+# [map, face x, x direction, start distance from the face, lanes z]. The lip tops
+# tilt along z (ray-profiled: rise 0.165 m / 0.222 m at z = -2, ~0.21 m per m of z),
+# so each lane crosses a different real rise; all stay within 0.10-0.30 m.
+const REAL_LIPS := [["toy_town", -17.0, 1.0, 4.0, [-2.0, -1.787, -2.213]],
+	["toy_town", -12.8, -1.0, 3.4, [-2.0, -1.787, -2.213]],
+	["toy_harbor", 25.0, 1.0, 4.0, [-2.0, -1.613, -2.137]],
+	["toy_harbor", 29.2, -1.0, 1.9, [-2.0, -1.613, -2.137]]]
+
+
+func _lip_sweeps(main: Node, player: PartyPlayer, map_id: String) -> void:
+	var space: PhysicsDirectSpaceState3D = main.get_world_3d().direct_space_state
+	for lip: Array in REAL_LIPS:
+		if lip[0] != map_id:
+			continue
+		var face := float(lip[1])
+		var dirx := float(lip[2])
+		for z: float in lip[4]:
+			var low := _height(space, Vector3(face - dirx * 0.3, 0.0, z))
+			var high := _height(space, Vector3(face + dirx * 0.3, 0.0, z))
+			var rise := high - low
+			_expect(rise >= 0.10 and rise <= 0.30, "%s lip x=%.1f z=%.3f: fixture rise %.3f must be a 0.10-0.30 m lip" % [map_id, face, z, rise])
+			for sprinting in [false, true]:
+				var target := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
+				var worst := INF
+				var pop := 0.0
+				var bad := 0
+				var not_crossed := 0
+				for k in 12:
+					player.reset_for_match(Vector3(face - dirx * (float(lip[3]) - 0.01 * k), 0.5, z))
+					player.movement_buff = Vector2.ZERO
+					player.set_camera_yaw(0.0)
+					for index in 20:
+						player.apply_movement_input(Vector2.ZERO, false, false, DT)
+					var min_ratio := INF
+					for index in 75:
+						var before := player.global_position
+						player.apply_movement_input(Vector2(dirx, 0.0), sprinting, false, DT)
+						var moved := player.global_position - before
+						var ratio := Vector2(moved.x, moved.z).length() / DT / target
+						var dist := (player.global_position.x - face) * dirx
+						if index > 20 and dist > -0.9 and dist < 0.8:
+							min_ratio = minf(min_ratio, ratio)
+							pop = maxf(pop, ratio)
+					worst = minf(worst, min_ratio)
+					var crossed := (player.global_position.x - face) * dirx > 0.8 and player.is_on_floor()
+					if min_ratio < 0.8:
+						bad += 1
+					if not crossed:
+						not_crossed += 1
+					if min_ratio < 0.8 or not crossed:
+						print("T2_MAP_LIP_SWEEP_DETAIL map=%s face_x=%.1f z=%.3f dir=%+d sprint=%s k=%d min_ratio=%.3f final=%s floor=%s" % [map_id, face, z, int(dirx), sprinting, k, min_ratio, player.global_position, player.is_on_floor()])
+				var label := "sprint" if sprinting else "walk"
+				print("T2_MAP_LIP_SWEEP map=%s face_x=%.1f z=%.3f rise=%.3f dir=%+d %s starts=12 below_80pct=%d not_crossed=%d worst_ratio=%.3f max_tick_ratio=%.3f" % [map_id, face, z, absf(rise), int(dirx), label, bad, not_crossed, worst, pop])
+				_expect(bad == 0 and not_crossed == 0, "%s lip x=%.1f z=%.2f dir %+d %s: %d below 80%%, %d not crossed (worst %.3f)" % [map_id, face, z, int(dirx), label, bad, not_crossed, worst])
+				_expect(pop <= 1.02, "%s lip x=%.1f z=%.2f dir %+d %s: forward pop %.3fx tick motion (cap 1.02)" % [map_id, face, z, int(dirx), label, pop])
 
 
 func _height(space: PhysicsDirectSpaceState3D, point: Vector3) -> float:

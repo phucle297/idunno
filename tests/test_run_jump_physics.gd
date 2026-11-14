@@ -23,15 +23,21 @@ const LANE_STEP_35 := 55.0
 const LANE_TILES := 70.0
 const LANE_WALL := 90.0
 const LANE_CEILING := 110.0
-const LANE_SWEEP_BASE := 200.0 # straight lips, one lane per height
-const LANE_ANGLED := 400.0 # wide 0.30 m lip for oblique approaches
-const LANE_STAIRS := 500.0
+const LANE_SWEEP_BASE := 1000.0 # straight lips: placement * 100 + height index * 10
+const LANE_ANGLED := 2000.0 # wide lips for oblique approaches: placement * 100
+const LANE_STAIRS := 3000.0 # placement * 20
 const LANE_TALL_BASE := 560.0 # lanes 50 m apart (40 m wide)
 const LANE_RAMP_BASE := 700.0
 const SWEEP_HEIGHTS: Array[float] = [0.10, 0.15, 0.165, 0.20, 0.222, 0.25, 0.28, 0.30]
 const TALL_HEIGHTS: Array[float] = [0.32, 0.35]
 const SWEEP_OFFSETS := 12 # start positions 1 cm apart (covers a full sprint tick, 0.108 m)
-const APPROACH_ANGLES: Array[float] = [0.0, 15.0, 30.0, 45.0, 60.0]
+# World placements of every probe fixture (face x shift, lane z shift): results
+# of contact queries depend on world coordinates, so one placement is not enough.
+const PLACEMENTS: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(0.37, 2.13), Vector2(-1.613, -3.271), Vector2(7.049, 0.5)]
+const APPROACH_ANGLES: Array[float] = [0.0, 15.0, 30.0, 45.0, 60.0, 75.0]
+const ANGLED_HEIGHTS: Array[float] = [0.222, 0.30]
+# Forward-pop cap: one tick may not move further than its own horizontal motion.
+const POP_CAP_RATIO := 1.02
 const STAIR_RISER := 0.25
 const STAIR_TREAD := 0.35
 const STAIR_COUNT := 5
@@ -127,16 +133,21 @@ func _build_world() -> void:
 	_add_box(world, Vector3(WALL_FACE_X + 0.5, 1.5, LANE_WALL), Vector3(1.0, 3.0, 10.0))
 	# Low ceiling slab: bottom at CEILING_BOTTOM.
 	_add_box(world, Vector3(14.0, CEILING_BOTTOM + 0.25, LANE_CEILING), Vector3(12.0, 0.5, 10.0))
-	for index in SWEEP_HEIGHTS.size():
-		var lane := LANE_SWEEP_BASE + 10.0 * index
-		_add_box(world, Vector3(50.0, -0.1, lane), Vector3(200.0, 0.2, 10.0))
-		_add_box(world, Vector3(STEP_FACE_X + 10.0, SWEEP_HEIGHTS[index] * 0.5, lane), Vector3(20.0, SWEEP_HEIGHTS[index], 10.0))
-	_add_box(world, Vector3(50.0, -0.1, LANE_ANGLED), Vector3(200.0, 0.2, 80.0))
-	_add_box(world, Vector3(STEP_FACE_X + 10.0, 0.15, LANE_ANGLED), Vector3(20.0, 0.30, 80.0))
-	_add_box(world, Vector3(50.0, -0.1, LANE_STAIRS), Vector3(200.0, 0.2, 10.0))
-	for index in STAIR_COUNT:
-		var top := STAIR_RISER * float(index + 1)
-		_add_box(world, Vector3(STEP_FACE_X + STAIR_TREAD * index + 10.0, top * 0.5, LANE_STAIRS), Vector3(20.0, top, 10.0))
+	for p in PLACEMENTS.size():
+		var face := STEP_FACE_X + PLACEMENTS[p].x
+		for index in SWEEP_HEIGHTS.size():
+			var lane := LANE_SWEEP_BASE + 100.0 * p + 10.0 * index + PLACEMENTS[p].y
+			_add_box(world, Vector3(face + 50.0, -0.1, lane), Vector3(200.0, 0.2, 10.0))
+			_add_box(world, Vector3(face + 10.0, SWEEP_HEIGHTS[index] * 0.5, lane), Vector3(20.0, SWEEP_HEIGHTS[index], 10.0))
+		for index in ANGLED_HEIGHTS.size():
+			var lane := LANE_ANGLED + 100.0 * p + 40.0 * index + PLACEMENTS[p].y
+			_add_box(world, Vector3(face + 50.0, -0.1, lane), Vector3(200.0, 0.2, 36.0))
+			_add_box(world, Vector3(face + 10.0, ANGLED_HEIGHTS[index] * 0.5, lane), Vector3(20.0, ANGLED_HEIGHTS[index], 36.0))
+		var stairs := LANE_STAIRS + 20.0 * p + PLACEMENTS[p].y
+		_add_box(world, Vector3(face + 50.0, -0.1, stairs), Vector3(200.0, 0.2, 10.0))
+		for index in STAIR_COUNT:
+			var top := STAIR_RISER * float(index + 1)
+			_add_box(world, Vector3(face + STAIR_TREAD * index + 10.0, top * 0.5, stairs), Vector3(20.0, top, 10.0))
 	for index in TALL_HEIGHTS.size():
 		var lane := LANE_TALL_BASE + 50.0 * index
 		_add_box(world, Vector3(50.0, -0.1, lane), Vector3(200.0, 0.2, 40.0))
@@ -425,101 +436,116 @@ func _test_step(lane: float, height: float, required: bool) -> Dictionary:
 
 # QA-style criterion: worst single-tick horizontal speed (position delta / dt)
 # within 1 m of the face, after acceleration, must stay >= 80% of target.
-func _climb_once(lane: float, height: float, sprinting: bool, heading_deg: float, start_back: float) -> Dictionary:
+func _climb_once(face_x: float, lane: float, height: float, sprinting: bool, heading_deg: float, start_back: float) -> Dictionary:
 	var heading := deg_to_rad(heading_deg)
 	var input_2d := Vector2(cos(heading), sin(heading))
 	var target := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
-	_reset(Vector3(STEP_FACE_X - start_back * cos(heading), 0.0, lane - start_back * sin(heading)))
+	_reset(Vector3(face_x - start_back * cos(heading), 0.0, lane - start_back * sin(heading)))
 	var min_ratio := INF
+	var max_ratio := 0.0
 	var zero_ticks := 0
 	var off_floor := 0
 	var max_vy := 0.0
-	for index in _ticks(2.5):
+	for index in _ticks(3.0):
 		var step := _tick(input_2d, sprinting, false)
 		max_vy = maxf(max_vy, player.velocity.y)
 		var x := float(step.x)
-		if index >= _ticks(0.5) and x > STEP_FACE_X - 1.0 and x < STEP_FACE_X + 1.0:
+		if index >= _ticks(0.5) and x > face_x - 1.0 and x < face_x + 1.0:
 			min_ratio = minf(min_ratio, float(step.hspeed) / target)
+			max_ratio = maxf(max_ratio, float(step.hspeed) / target)
 			if float(step.hspeed) < 0.05:
 				zero_ticks += 1
 			if not bool(step.floor):
 				off_floor += 1
-		if x > STEP_FACE_X + 1.5:
+		if x > face_x + 1.5:
 			break
-	return {"ratio": min_ratio, "zero": zero_ticks, "off_floor": off_floor, "max_vy": max_vy,
+	return {"ratio": min_ratio, "pop": max_ratio, "zero": zero_ticks, "off_floor": off_floor, "max_vy": max_vy,
 		"y": player.global_position.y, "x": player.global_position.x, "floor": player.is_on_floor()}
 
 
+func _sweep_case(tag: String, face_x: float, lane: float, height: float, sprinting: bool, angle: float) -> Dictionary:
+	var label := "sprint" if sprinting else "walk"
+	var out := {"worst": INF, "bad": 0, "not_climbed": 0, "max_off": 0, "pop": 0.0}
+	for offset in SWEEP_OFFSETS:
+		var back := 4.0 + 0.01 * offset
+		var r := _climb_once(face_x, lane, height, sprinting, angle, back)
+		out.worst = minf(float(out.worst), float(r.ratio))
+		out.max_off = maxi(int(out.max_off), int(r.off_floor))
+		out.pop = maxf(float(out.pop), float(r.pop))
+		if float(r.ratio) < 0.8 or int(r.zero) > 0 or float(r.max_vy) >= 1.0:
+			out.bad = int(out.bad) + 1
+			print("T2_%s_SLOW height=%.3f angle=%d move=%s face_x=%.3f lane=%.3f start_back=%.2f ratio=%.3f zero=%d max_vy=%.3f" % [tag, height, int(angle), label, face_x, lane, back, r.ratio, r.zero, r.max_vy])
+		if absf(float(r.y) - height) > 0.02 or not bool(r.floor):
+			out.not_climbed = int(out.not_climbed) + 1
+			print("T2_%s_NOT_CLIMBED height=%.3f angle=%d move=%s face_x=%.3f lane=%.3f start_back=%.2f final_y=%.4f floor=%s" % [tag, height, int(angle), label, face_x, lane, back, r.y, r.floor])
+	return out
+
+
 func _test_step_robustness() -> void:
-	# Heights x walk/sprint x 12 start offsets, straight approach.
-	for index in SWEEP_HEIGHTS.size():
-		var height := SWEEP_HEIGHTS[index]
-		for sprinting in [false, true]:
-			var label := "sprint" if sprinting else "walk"
-			var worst := INF
-			var bad := 0
-			var not_climbed := 0
-			var max_off := 0
-			for offset in SWEEP_OFFSETS:
-				var r := _climb_once(LANE_SWEEP_BASE + 10.0 * index, height, sprinting, 0.0, 4.0 + 0.01 * offset)
-				worst = minf(worst, float(r.ratio))
-				max_off = maxi(max_off, int(r.off_floor))
-				if float(r.ratio) < 0.8 or int(r.zero) > 0 or float(r.max_vy) >= 1.0:
-					bad += 1
-					print("T2_STEP_SWEEP_SLOW height=%.3f move=%s start_back=%.2f ratio=%.3f zero=%d max_vy=%.3f" % [height, label, 4.0 + 0.01 * offset, r.ratio, r.zero, r.max_vy])
-				if absf(float(r.y) - height) > 0.02 or not bool(r.floor):
-					not_climbed += 1
-			print("T2_STEP_SWEEP height=%.3f move=%s starts=%d below_80pct=%d not_climbed=%d worst_ratio=%.3f max_off_floor_ticks=%d" % [height, label, SWEEP_OFFSETS, bad, not_climbed, worst, max_off])
-			_expect(bad == 0, "T2.4 sweep %.3f m %s: %d/%d start offsets drop below 80%% / stall / launch (worst %.3f)" % [height, label, bad, SWEEP_OFFSETS, worst])
-			_expect(not_climbed == 0, "T2.4 sweep %.3f m %s: %d/%d start offsets do not end on the step" % [height, label, not_climbed, SWEEP_OFFSETS])
-			_expect(max_off == 0, "T2.4 sweep %.3f m %s: must stay on the floor through the step (%d off ticks)" % [height, label, max_off])
-	# Oblique approaches on the wide 0.30 m lip.
-	for angle in APPROACH_ANGLES:
-		for sprinting in [false, true]:
-			var label := "sprint" if sprinting else "walk"
-			var worst := INF
-			var bad := 0
-			var not_climbed := 0
-			for offset in SWEEP_OFFSETS:
-				var r := _climb_once(LANE_ANGLED, 0.30, sprinting, angle, 4.0 + 0.01 * offset)
-				worst = minf(worst, float(r.ratio))
-				if float(r.ratio) < 0.8 or int(r.zero) > 0 or float(r.max_vy) >= 1.0:
-					bad += 1
-					print("T2_STEP_ANGLE_SLOW angle=%d move=%s start_back=%.2f ratio=%.3f" % [int(angle), label, 4.0 + 0.01 * offset, r.ratio])
-				if absf(float(r.y) - 0.30) > 0.02 or not bool(r.floor):
-					not_climbed += 1
-			print("T2_STEP_ANGLE angle=%d height=0.30 move=%s starts=%d below_80pct=%d not_climbed=%d worst_ratio=%.3f" % [int(angle), label, SWEEP_OFFSETS, bad, not_climbed, worst])
-			_expect(bad == 0 and not_climbed == 0, "T2.4 0.30 m lip at %d deg %s: %d slow, %d not climbed of %d (worst %.3f)" % [int(angle), label, bad, not_climbed, SWEEP_OFFSETS, worst])
-	# Stairs: 5 x 0.25 m risers, 0.35 m treads.
-	for sprinting in [false, true]:
-		var label := "sprint" if sprinting else "walk"
-		var target := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
-		var worst := INF
-		var bad := 0
-		var not_top := 0
-		for offset in SWEEP_OFFSETS:
-			_reset(Vector3(STEP_FACE_X - 4.0 - 0.01 * offset, 0.0, LANE_STAIRS))
-			var min_ratio := INF
-			var off_floor := 0
-			var stair_end := STEP_FACE_X + STAIR_TREAD * STAIR_COUNT + 0.5
-			for index in _ticks(3.0):
-				var step := _tick(FORWARD, sprinting, false)
-				if index >= _ticks(0.5) and float(step.x) > STEP_FACE_X - 1.0 and float(step.x) < stair_end:
-					min_ratio = minf(min_ratio, float(step.hspeed) / target)
-					if not bool(step.floor):
-						off_floor += 1
-			worst = minf(worst, min_ratio)
-			if min_ratio < 0.8 or off_floor > 0:
-				bad += 1
-			if absf(player.global_position.y - STAIR_RISER * STAIR_COUNT) > 0.02:
-				not_top += 1
-		print("T2_STAIRS risers=%dx%.2f tread=%.2f move=%s starts=%d below_80pct_or_off_floor=%d not_top=%d worst_ratio=%.3f" % [STAIR_COUNT, STAIR_RISER, STAIR_TREAD, label, SWEEP_OFFSETS, bad, not_top, worst])
-		_expect(bad == 0 and not_top == 0, "T2.4 stairs %s: %d slow/off-floor, %d not at top of %d starts (worst %.3f)" % [label, bad, not_top, SWEEP_OFFSETS, worst])
-	# Too tall: still blocked, straight and at 45 deg, walk and sprint.
-	for index in TALL_HEIGHTS.size():
-		for angle in [0.0, 45.0]:
+	var max_pop := 0.0
+	# Heights x walk/sprint x 12 start offsets x world placements, straight approach.
+	for p in PLACEMENTS.size():
+		var face := STEP_FACE_X + PLACEMENTS[p].x
+		for index in SWEEP_HEIGHTS.size():
+			var height := SWEEP_HEIGHTS[index]
+			var lane := LANE_SWEEP_BASE + 100.0 * p + 10.0 * index + PLACEMENTS[p].y
 			for sprinting in [false, true]:
-				var r := _climb_once(LANE_TALL_BASE + 50.0 * index, TALL_HEIGHTS[index], sprinting, angle, 3.0)
+				var label := "sprint" if sprinting else "walk"
+				var r := _sweep_case("STEP_SWEEP", face, lane, height, sprinting, 0.0)
+				max_pop = maxf(max_pop, float(r.pop))
+				print("T2_STEP_SWEEP placement=%d height=%.3f move=%s starts=%d below_80pct=%d not_climbed=%d worst_ratio=%.3f max_off_floor_ticks=%d max_tick_ratio=%.3f" % [p, height, label, SWEEP_OFFSETS, r.bad, r.not_climbed, r.worst, r.max_off, r.pop])
+				_expect(int(r.bad) == 0, "T2.4 sweep p%d %.3f m %s: %d/%d start offsets drop below 80%% / stall / launch (worst %.3f)" % [p, height, label, r.bad, SWEEP_OFFSETS, r.worst])
+				_expect(int(r.not_climbed) == 0, "T2.4 sweep p%d %.3f m %s: %d/%d start offsets do not end on the step" % [p, height, label, r.not_climbed, SWEEP_OFFSETS])
+				_expect(int(r.max_off) == 0, "T2.4 sweep p%d %.3f m %s: must stay on the floor through the step (%d off ticks)" % [p, height, label, r.max_off])
+	# Oblique approaches 0-75 deg on wide lips.
+	for p in PLACEMENTS.size():
+		var face := STEP_FACE_X + PLACEMENTS[p].x
+		for index in ANGLED_HEIGHTS.size():
+			var lane := LANE_ANGLED + 100.0 * p + 40.0 * index + PLACEMENTS[p].y
+			for angle in APPROACH_ANGLES:
+				for sprinting in [false, true]:
+					var label := "sprint" if sprinting else "walk"
+					var r := _sweep_case("STEP_ANGLE", face, lane, ANGLED_HEIGHTS[index], sprinting, angle)
+					max_pop = maxf(max_pop, float(r.pop))
+					print("T2_STEP_ANGLE placement=%d angle=%d height=%.3f move=%s starts=%d below_80pct=%d not_climbed=%d worst_ratio=%.3f max_off_floor_ticks=%d max_tick_ratio=%.3f" % [p, int(angle), ANGLED_HEIGHTS[index], label, SWEEP_OFFSETS, r.bad, r.not_climbed, r.worst, r.max_off, r.pop])
+					_expect(int(r.bad) == 0 and int(r.not_climbed) == 0, "T2.4 p%d %.3f m lip at %d deg %s: %d slow, %d not climbed of %d (worst %.3f)" % [p, ANGLED_HEIGHTS[index], int(angle), label, r.bad, r.not_climbed, SWEEP_OFFSETS, r.worst])
+	# Stairs: 5 x 0.25 m risers, 0.35 m treads, every placement.
+	for p in PLACEMENTS.size():
+		var face := STEP_FACE_X + PLACEMENTS[p].x
+		var lane := LANE_STAIRS + 20.0 * p + PLACEMENTS[p].y
+		for sprinting in [false, true]:
+			var label := "sprint" if sprinting else "walk"
+			var target := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
+			var worst := INF
+			var bad := 0
+			var not_top := 0
+			for offset in SWEEP_OFFSETS:
+				_reset(Vector3(face - 4.0 - 0.01 * offset, 0.0, lane))
+				var min_ratio := INF
+				var off_floor := 0
+				var stair_end := face + STAIR_TREAD * STAIR_COUNT + 0.5
+				for index in _ticks(3.0):
+					var step := _tick(FORWARD, sprinting, false)
+					if index >= _ticks(0.5) and float(step.x) > face - 1.0 and float(step.x) < stair_end:
+						min_ratio = minf(min_ratio, float(step.hspeed) / target)
+						max_pop = maxf(max_pop, float(step.hspeed) / target)
+						if not bool(step.floor):
+							off_floor += 1
+				worst = minf(worst, min_ratio)
+				if min_ratio < 0.8 or off_floor > 0:
+					bad += 1
+					print("T2_STAIRS_SLOW placement=%d move=%s start_back=%.2f ratio=%.3f off_floor=%d" % [p, label, 4.0 + 0.01 * offset, min_ratio, off_floor])
+				if absf(player.global_position.y - STAIR_RISER * STAIR_COUNT) > 0.02:
+					not_top += 1
+			print("T2_STAIRS placement=%d risers=%dx%.2f tread=%.2f move=%s starts=%d below_80pct_or_off_floor=%d not_top=%d worst_ratio=%.3f" % [p, STAIR_COUNT, STAIR_RISER, STAIR_TREAD, label, SWEEP_OFFSETS, bad, not_top, worst])
+			_expect(bad == 0 and not_top == 0, "T2.4 stairs p%d %s: %d slow/off-floor, %d not at top of %d starts (worst %.3f)" % [p, label, bad, not_top, SWEEP_OFFSETS, worst])
+	print("T2_POP_CAP max_tick_distance_over_tick_motion=%.4f cap=%.2f" % [max_pop, POP_CAP_RATIO])
+	_expect(max_pop <= POP_CAP_RATIO, "T2.4 forward pop: one tick moved %.3fx its own horizontal motion (cap %.2f)" % [max_pop, POP_CAP_RATIO])
+	# Too tall: still blocked, straight and at 45/75 deg, walk and sprint.
+	for index in TALL_HEIGHTS.size():
+		for angle in [0.0, 45.0, 75.0]:
+			for sprinting in [false, true]:
+				var r := _climb_once(STEP_FACE_X, LANE_TALL_BASE + 50.0 * index, TALL_HEIGHTS[index], sprinting, angle, 3.0)
 				var label := "sprint" if sprinting else "walk"
 				print("T2_STEP_TALL height=%.2f angle=%d move=%s final_y=%.4f" % [TALL_HEIGHTS[index], int(angle), label, r.y])
 				_expect(float(r.y) < 0.05, "T2.4 %.2f m lip at %d deg %s must stay blocked (y %.4f)" % [TALL_HEIGHTS[index], int(angle), label, r.y])
