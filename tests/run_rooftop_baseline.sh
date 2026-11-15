@@ -21,7 +21,8 @@ fi
 
 # One fresh Godot process per (map, preset, seed, control): runs that share a
 # process carry engine/physics state between matches and drift by ~1 mm, which
-# can flip later director picks. Isolated runs replay bit-identically.
+# can flip later director picks. Within a process the harness re-inserts map
+# bodies into the physics space after preparation (D4, see the .gd file).
 JOBS="${JOBS:-8}"
 RUN_DIR="$OUT_DIR/T3b-$TAG-runs"
 mkdir -p "$RUN_DIR"
@@ -86,7 +87,6 @@ for shard in shards:
     merged["sectors"].update(blob["sectors"])
 merged["runs"].sort(key=lambda r: (r["map"], r["preset"], r["seed"], r["control"]))
 # Same rollup as _summarize() in test_rooftop_baseline.gd, over all runs.
-cause_map = merged["definitions"]["cause_to_disaster"]
 def median(values):
     values = sorted(values)
     if not values:
@@ -98,24 +98,30 @@ for run in merged["runs"]:
     groups.setdefault("%s|%s|%s" % (run["map"], run["preset"], run["control"]), []).append(run)
 for key, runs in groups.items():
     per = {}
-    row = lambda name: per.setdefault(name, {"starts": 0, "damage": 0.0, "kills": 0, "forced_relocations": 0, "runs_damaged": 0})
+    row = lambda name: per.setdefault(name, {"starts": 0, "damage": 0.0, "kills": 0, "forced_relocations": 0, "runs_damaged": 0,
+        "post_death_starts": 0, "post_death_forced_relocations": 0})
     causes = {}
+    disasters = {}
     for run in runs:
         for name, count in run["starts_by_name"].items():
             row(name)["starts"] += count
+        for name, count in run["post_death_starts_by_name"].items():
+            row(name)["post_death_starts"] += count
         for name, amount in run["damage_by_disaster"].items():
             row(name)["damage"] = round(row(name)["damage"] + amount, 2)
             row(name)["runs_damaged"] += 1
         if not run["survived_horizon"]:
             causes[run["death_cause"]] = causes.get(run["death_cause"], 0) + 1
-            row(cause_map.get(run["death_cause"], run["death_cause"]))["kills"] += 1
-        for episode in run["relocations"]:
-            if episode["forced"]:
-                for name in episode["active_at_leave"] or [cause_map.get(episode["last_damage_cause"], "none")]:
-                    row(name)["forced_relocations"] += 1
+            disasters[run["death_disaster"]] = disasters.get(run["death_disaster"], 0) + 1
+            row(run["death_disaster"])["kills"] += 1
+        for field, counter in (("relocations", "forced_relocations"), ("post_death_relocations", "post_death_forced_relocations")):
+            for episode in run[field]:
+                if episode["forced"]:
+                    for name in episode["active_at_leave"] or [episode["last_damage_disaster"] or "none"]:
+                        row(name)[counter] += 1
     merged["summary"][key] = {"runs": len(runs), "survived_horizon": sum(r["survived_horizon"] for r in runs),
         "median_death_time": median([r["death_time"] for r in runs if not r["survived_horizon"]]),
-        "death_causes": causes, "median_zero_disaster_s_120_480": median([r["zero_disaster_s_120_480"] for r in runs]),
+        "death_causes": causes, "death_disasters": disasters, "median_zero_disaster_s_120_480": median([r["zero_disaster_s_120_480"] for r in runs]),
         "camp_broken_by_360": sum(r["camp_broken_by_360"] for r in runs),
         "camp_untouched_by_360": sum(r["camp_untouched_by_360"] for r in runs), "per_disaster": per}
 expected = sum(len(o["maps"]) * len(o["presets"]) * len(o["seeds"]) * len(o["controls"]) for o in merged["options"]["shards"])
@@ -123,6 +129,7 @@ merged["options"]["expected_runs"] = expected
 with open(f"{out_dir}/T3b-{tag}.json", "w") as handle:
     json.dump(merged, handle, sort_keys=True)
 print("ROOFTOP_BASELINE_JSON " + json.dumps(merged, sort_keys=True))
+print("ROOFTOP_BASELINE_FIELDS " + json.dumps(merged["definitions"]["official_fields"], sort_keys=True))
 if merged["failures"] or len(merged["runs"]) != expected:
     print("ROOFTOP_BASELINE_FAILED runs=%d failures=%d" % (len(merged["runs"]), len(merged["failures"])))
     sys.exit(1)
