@@ -3,8 +3,8 @@
 ## Current release — Hidden-Fuse Bomb / Hot Potato
 
 The game opens on fullscreen Home with the equipped character. **PLAY SOLO**
-opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor and
-Normal/Hard, then **START SOLO**. **BACK** preserves choices. **MULTIPLAYER**
+opens a separate **CHOOSE YOUR MAP** page: select Toy Town/Toy Harbor, then
+**START SOLO**. Survival play uses Hard pacing. **BACK** preserves choices. **MULTIPLAYER**
 opens the existing Create/Join room flow. **OUTFITS** previews and equips owned
 items before play. Eight starter items are available offline; earned costumes still
 require acknowledged ownership in a profile-enabled room. `--solo` explicitly
@@ -19,7 +19,7 @@ root [progress.json](progress.json) records current hashes, public smoke and
 [successful deployment](https://github.com/phucle297/idunno/actions/runs/39727391218).
 Hot Potato is an optional multiplayer mode with a server-private random fuse,
 no countdown/reset or recipient grace. F picks up; left click passes. Returning
-to solo normalizes this multiplayer-only mode to Normal. The16 Phase20 toys and
+to solo switches this multiplayer-only mode back to Hard. The16 Phase20 toys and
 earlier optimization/weather work are included; native heat/FPS is not claimed fixed.
 Outfit cards receive clicks correctly; offline Equip does not wait on profile
 HTTP. Chef, Firefighter, Sailor and Pilot are free starters. Original menu/gameplay
@@ -54,12 +54,14 @@ Same-PC checks do not prove physical LAN or Internet play.
   shelter. If caught, move sideways; horizontal control remains. Lift is capped
   at2.5m above the chosen support. Release adds no launch impulse. Ordinary high
   falls now cause authoritative damage; normal jumps and baseline UFO drops are safe.
-- **Volcano:** leave the outlined district during its twelve-second warning.
-  Raised banks and broad crossing corridors replace the original surface. Orange
-  and sand-colored ground damages on contact immediately; slate ground is cooled
-  and safe. Dry heat lasts60s; exposed Rain/Snow cool faster, and actual Flood
-  immersion cools only the reached shelves. Raised dry banks can remain hot.
-  The changed collision stays for the round and resets on rematch/map change.
+- **Volcano:** a twelve-second warning precedes a ground lava flow across the
+  map floor. Get to high ground (a roof, terrace, or dock); roofs and elevated
+  pads stay safe. The outlined vent may still raise banks and broad crossing
+  corridors. Orange and sand-colored vent ground damages on contact immediately;
+  slate ground is cooled and safe. Dry heat lasts60s; exposed Rain/Snow cool
+  faster, and actual Flood immersion cools only the reached shelves. Raised dry
+  banks can remain hot. The changed collision stays for the round and resets on
+  rematch/map change.
 
 Volcanic banks now have unequal faceted slopes and matching collision, while low
 crossing corridors remain walkable. Historical precommit Phase10 local packages
@@ -280,9 +282,9 @@ controls require keyboard/mouse; no new gamepad/touch mapping is claimed.
 ### Hot Potato — optional multiplayer mode in the current release
 
 In the multiplayer room, the owner can select **Hot Potato (2+)** under Match
-Mode. Everyone readies again after entering/leaving this variant. It uses Normal
+Mode. Everyone readies again after entering/leaving this variant. It uses Hard
 disaster pacing and needs at least two survivors to spawn a parcel; solo has no
-bomb. Normal/Hard keep their existing rules.
+bomb. This variant only adds the bomb rules on top of Hard pacing.
 
 **F** takes the parcel; **left mouse** makes a short pass toward your aim. Solid
 cover blocks it; a miss returns it to the thrower. Your personal toy slot is kept,
@@ -315,8 +317,11 @@ Warnings, impacts, jumping, death, and victory have synthesized placeholder audi
 - At **5:00**: two compatible disasters can overlap, but only after both have completed alone at least once.
 - At most two disasters overlap in the current prototype.
 
-Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, and Fire**.
+Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, Fire, Rain, Snowfall, Rockslide, Bee Swarm, UFO, and Volcano**.
 
+- **Rain:** a five-second warning, then rain wets exposed ground. Intact roofs stay dry. Wet ground can suppress ground fire.
+- **Snowfall:** a five-second warning, then snow builds on exposed ground and slows you; walk to brake. Intact roofs stay clear. Rain and Snowfall do not run at the same time.
+- **Rockslide:** a five-second warning marks a downhill lane. Step off the marked corridor or get behind solid cover; rocks stop at real static cover.
 - **Flood:** ordinary water does not damage you while your head remains above the surface. A bottom danger card distinguishes wading, the two-second breathing grace, and `DROWNING` at 12 HP/s, with a head-above-water escape instruction. There is no full-screen blue overlay. Electrified water is a separate danger: even shallow foot contact causes damage, so leave the water entirely.
 - **Flood + Lightning:** a strike in active floodwater electrifies the connected water for three seconds. Violet ripples and the `ELECTRIFIED WATER` warning identify it. Get onto raised ground immediately.
 - **Tornado + Fire:** Tornado wind doubles Fire's spread frequency and carries one visibly flaming debris body. Keep away from both the funnel and orange Fire-zone rings.
