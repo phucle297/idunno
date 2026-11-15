@@ -11,6 +11,7 @@ extends SceneTree
 #     -- [--maps=toy_town,toy_harbor] [--presets=hard] [--seeds=101-110]
 #        [--controls=rooftop_idle,rooftop_tiny_step,ground_idle,active_route]
 #        [--horizon=480] [--samples-out=/tmp/x.jsonl] [--json-out=/tmp/x.json] [--real-death]
+#        [--probe=volcano,collapse]  (T3v route probes instead of the matrix)
 # tests/run_rooftop_baseline.sh runs the full matrix as parallel shards, each
 # Godot process with ASLR off (setarch -R): GodotPhysics3D contact order can
 # depend on memory layout (D4). Run single shards the same way for repeatable
@@ -56,6 +57,7 @@ const CAUSE_TO_DISASTER := {
 	"Lightning": "Lightning", "Electrified Puddle": "Lightning",
 	"Fire": "Fire", "Earthquake": "Earthquake", "Burning Rubble": "Earthquake",
 	"Bee Swarm": "Bee Swarm", "Rockslide": "Rockslide", "Volcanic ground": "Volcano",
+	"Lava flow": "Volcano", # T3p whole-floor flow (volcano.gd tick)
 }
 # D3 attribution (see RunLedger). TerrainCollapse (game/session/terrain_collapse.gd)
 # removes districts on its own schedule; it is not a director disaster, so its
@@ -69,6 +71,16 @@ const PUSH_CAPABLE := ["Tornado", "Lightning", "Meteor Shower", "Rockslide"]
 const PUSH_MIN_DV := 0.75 # m/s velocity change in one step not made by harness input
 const PUSH_HIT_WINDOW := 0.25 # s: a hit this recent names the push source
 const LINK_WINDOW := 0.5 # s: landing-to-damage and collapse-to-takeoff link window
+# T3v active-route reactions to published hazard state only (no RNG, no
+# private future front): the Volcano warning / visible floor flow and the
+# TerrainCollapse marked district (the same state the HUD shows).
+const LAVA_SAFE_Y := 1.2 # volcano.gd SAFE_SUPPORT: pads at/above this never burn
+const FLOOD_SAFE_Y := 3.7 # roofs, decks and docks; terraces can flood
+const ROUTE_CLEAR := 0.6 # m kept from a marked district or void while routing
+const ESCAPE_MARGIN := 2.0 # m outside the marked district before holding
+const GRID_STEP := 1.0 # m: open-ground walk grid (top-down map surface)
+const GROUND_MAX_Y := 0.35 # surface height counted as walkable open ground
+const VOID_CAREFUL := 3.0 # m: within this of a removed district, walk (no sprint) and ease into turns
 # Official per-run / per-group JSON fields read by T3z (also printed as
 # ROOFTOP_BASELINE_FIELDS). Everything not listed is diagnostic.
 const OFFICIAL_FIELDS := {
@@ -119,6 +131,7 @@ var director: DisasterDirector
 var player: PartyPlayer
 var samples_file: FileAccess
 var _warning_pending := false
+var _probe_check_count := 0
 var fixed_step := false
 
 
@@ -165,6 +178,7 @@ func _run() -> void:
 	director.disaster_started.connect(func(_name: String, _intensity: int, _active: Array[String]) -> void: _warning_pending = true)
 	var runs: Array = []
 	var sectors := {}
+	var probes: Array = []
 	for map_id: String in options.maps:
 		main.set_map_id(map_id)
 		if not await main.prepare_gameplay_map():
@@ -177,6 +191,9 @@ func _run() -> void:
 		if layout.is_empty():
 			continue
 		sectors[map_id] = layout.public
+		if not (options.probe as Array).is_empty():
+			probes.append_array(await _run_probes(map_id, layout, options))
+			continue
 		for preset: String in options.presets:
 			for seed: int in options.seeds:
 				for control: String in options.controls:
@@ -185,7 +202,11 @@ func _run() -> void:
 						runs.append(record)
 	samples_file.close()
 	var summary := _summarize(runs)
-	_finish({"runs": runs, "summary": summary, "sectors": sectors}, wall_start, options)
+	var result := {"runs": runs, "summary": summary, "sectors": sectors}
+	if not (options.probe as Array).is_empty():
+		result.route_probes = probes
+		print("ROUTE_PROBE_%s checks=%d probes=%d" % ["OK" if failures.is_empty() else "FAILED", _probe_check_count, probes.size()])
+	_finish(result, wall_start, options)
 
 
 # D4: the map is built across real-time-budgeted MapPreparation frames, so how
@@ -229,6 +250,7 @@ func _finish(result: Dictionary, wall_start: int, options: Dictionary) -> void:
 			"official_fields": OFFICIAL_FIELDS, "collapse_cause": COLLAPSE_CAUSE, "terrain_collapse_name": TERRAIN_COLLAPSE,
 			"push_capable": PUSH_CAPABLE, "push_min_dv": PUSH_MIN_DV, "push_hit_window_s": PUSH_HIT_WINDOW, "link_window_s": LINK_WINDOW,
 			"physics_space": "map bodies re-inserted into the physics space in one frame after preparation (D4)",
+			"active_route_t3v": "active_route reacts to published state only: Volcano WARNING / visible floor flow (flow_heat > 0) -> starting roof via the authored route, back down once the flow is over; TerrainCollapse marked district containing the bot -> leave it (>= %.1f m outside) before the deadline, never route through a marked or removed district; if its roof/shelter district is marked or removed, Flood/Volcano -> nearest other authored climb (pad >= %.1f m lava / %.1f m flood). Diagnostics: runs[].route" % [ESCAPE_MARGIN, LAVA_SAFE_Y, FLOOD_SAFE_Y],
 		},
 		"failures": failures,
 	}
@@ -256,7 +278,7 @@ func _finish(result: Dictionary, wall_start: int, options: Dictionary) -> void:
 func _parse_options() -> Dictionary:
 	var options := {"maps": MAPS.duplicate(), "presets": PRESETS.duplicate(), "seeds": PUBLISHED_SEEDS.duplicate(),
 		"controls": CONTROLS.duplicate(), "horizon": DEFAULT_HORIZON, "real_death": false,
-		"samples_out": "/tmp/idunno-T3b/rooftop-baseline-samples.jsonl", "json_out": ""}
+		"samples_out": "/tmp/idunno-T3b/rooftop-baseline-samples.jsonl", "json_out": "", "probe": []}
 	var user_args := OS.get_cmdline_user_args()
 	options.mode = "fixed_step" if fixed_step else "realtime_smoke"
 	if not fixed_step and "--full" not in user_args:
@@ -289,6 +311,8 @@ func _parse_options() -> Dictionary:
 			options.samples_out = value
 		elif argument.begins_with("--json-out="):
 			options.json_out = value
+		elif argument.begins_with("--probe="):
+			options.probe = _filtered(value.split(","), ["volcano", "collapse"], "probe")
 		elif argument == "--real-death":
 			options.real_death = true
 	return options
@@ -376,9 +400,11 @@ func _map_layout(map_id: String) -> Dictionary:
 	up.reverse()
 	up.remove_at(0)
 	up.append(center)
+	var world := _route_world(anchors, [center, high, low, shelter.center])
 	return {
 		"roof": roof, "center": center, "rect": Rect2(x_min, z_min, x_max - x_min, z_max - z_min),
 		"roof_y": center.y, "down": down, "up": up, "spawn": anchors.spawn_origin,
+		"shelter_center": shelter.center, "world": world,
 		"public": {"roof": roof.name, "kind": roof.kind, "center": _v(center),
 			"sector_xz_rect": [x_min, z_min, x_max, z_max], "roof_y": center.y, "min_y": center.y - 0.5,
 			"probed_half_width": half_width, "route": route.name, "shelter": shelter.name,
@@ -426,7 +452,7 @@ func _run_one(map_id: String, preset: String, seed: int, control: String, layout
 	var max_jiggle := 0.0
 	var max_jiggle_opening := 0.0
 	var was_knocked := player.is_knocked_down()
-	var route_state := {"path": [], "index": 0, "mode": "roof", "shelter_arrivals": 0, "roof_returns": 0, "first_leave": -1.0, "hops": 0, "check": start_position}
+	var route_state := _new_route_state(start_position)
 	while manager.state == MatchManager.MatchState.ACTIVE and manager.elapsed_time < horizon:
 		var t := manager.elapsed_time
 		var position := player.global_position
@@ -451,11 +477,11 @@ func _run_one(map_id: String, preset: String, seed: int, control: String, layout
 						max_jiggle_opening = maxf(max_jiggle_opening, displacement)
 			"active_route":
 				input = _active_route_step(layout, route_state, position, t)
-				sprint = input != Vector2.ZERO
+				sprint = input != Vector2.ZERO and not bool(route_state.careful)
 				# Hop when walking into a curb/lip the controller cannot step
 				# (less than 0.3 m of progress over 0.5 s while steering).
 				if frame % 30 == 0:
-					if sprint and Vector2(position.x - route_state.check.x, position.z - route_state.check.z).length() < 0.3:
+					if input != Vector2.ZERO and Vector2(position.x - route_state.check.x, position.z - route_state.check.z).length() < 0.3:
 						jump = true
 						route_state.hops = int(route_state.hops) + 1
 					route_state.check = position
@@ -534,30 +560,220 @@ func _run_one(map_id: String, preset: String, seed: int, control: String, layout
 		"camp_untouched_by_360": first_relocation_by_deadline < 0.0 and ledger.hp_lost_by_deadline <= 0.0,
 		"zero_disaster_s_120_480": snappedf(zero_window, 0.001), "zero_disaster_s_after_10": snappedf(zero_after_opening, 0.001),
 		"max_jiggle_m": snappedf(max_jiggle, 0.001), "max_jiggle_opening_m": snappedf(max_jiggle_opening, 0.001),
-		"route": {"shelter_arrivals": route_state.shelter_arrivals, "roof_returns": route_state.roof_returns, "first_leave": snappedf(route_state.first_leave, 0.001), "hops": route_state.hops},
+		"route": _route_record(route_state),
 		"final_pos": _v(final_position),
 	})
 	return record
 
 
+func _new_route_state(start_position: Vector3) -> Dictionary:
+	# key: current goal ("home:roof" / "home:shelter" use the authored T3b
+	# route; "escape:*", "refuge:*", "descend", "hold" are T3v reactions).
+	return {"path": [], "index": 0, "mode": "roof", "shelter_arrivals": 0, "roof_returns": 0, "first_leave": -1.0, "hops": 0, "check": start_position,
+		"base": "roof", "flood": false, "key": "home:roof", "lava_home": false, "plan": [], "plan_index": 0, "plan_ok": true, "refuge": {}, "now": 0.0, "target": Vector3.ZERO, "careful": false, "careful_frames": 0,
+		"volcano_climbs": 0, "volcano_returns": 0, "escapes": 0, "escape_done": [], "refuge_climbs": 0, "plan_failures": 0, "events": []}
+
+
+func _route_record(state: Dictionary) -> Dictionary:
+	return {"shelter_arrivals": state.shelter_arrivals, "roof_returns": state.roof_returns, "first_leave": snappedf(state.first_leave, 0.001), "hops": state.hops,
+		"volcano_climbs": state.volcano_climbs, "volcano_returns": state.volcano_returns, "collapse_escapes": state.escapes,
+		"collapse_escape_done": state.escape_done, "refuge_climbs": state.refuge_climbs, "plan_failures": state.plan_failures, "careful_frames": state.careful_frames, "events": state.events}
+
+
+func _lava_published() -> bool:
+	# The 12 s WARNING (banner + preview edge) or the visible molten disc while
+	# "LAVA FLOW — Xs left" counts down (flow_heat > 0); volcano.gd hides the
+	# disc at flow_heat <= 0 (_update_flow_visual).
+	var volcano: Volcano = main.volcano
+	return volcano.phase == Volcano.Phase.WARNING or (volcano.phase == Volcano.Phase.ACTIVE and volcano.flow_heat > 0.0)
+
+
 func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3, t: float) -> Vector2:
-	# React to every published start (director disaster_started fires when a
-	# disaster begins its warning): Flood -> go up to the roof; anything else ->
-	# take the authored ramp down into the shelter under the roof.
+	# T3b/T3n behaviour, kept for every published director start (the
+	# disaster_started signal fires when a disaster begins its warning):
+	# Flood -> go up to the roof; anything else -> take the authored ramp down
+	# into the shelter under the roof (state.base).
+	# T3v overrides, from published state only:
+	#  - Volcano WARNING or visible floor flow -> high ground (the starting roof
+	#    above the shelter); back down once the flow is over.
+	#  - TerrainCollapse marked district (HUD "LEAVE MARKED GROUND") containing
+	#    the bot -> leave it before the deadline; never route through a marked
+	#    or removed district. If the authored roof/shelter is marked or gone,
+	#    climb the nearest other authored refuge for Flood/Volcano instead.
+	state.now = t
 	if _warning_pending:
 		_warning_pending = false
 		var active: Array = director.get("_active")
-		var wants := "roof" if "Flood" in active else "shelter"
-		if wants != state.mode:
-			state.mode = wants
-			state.path = (layout.up if wants == "roof" else layout.down).duplicate()
+		state.base = "roof" if "Flood" in active else "shelter"
+		state.flood = "Flood" in active
+	var tc: TerrainCollapse = main.terrain_collapse
+	var lava := _lava_published()
+	var home_ok := true
+	for index: int in layout.world.home_regions:
+		if tc.removed_mask & (1 << index) or tc.pending == index:
+			home_ok = false
+	var key := ""
+	# Visible flood water (the Flood disaster is up) changes where an escape
+	# may end: on ground it would drown.
+	var water: bool = main.flood.is_active()
+	var escape_kind := "lava" if lava else ("flood" if water else "ground")
+	var escaping := String(state.key).begins_with("escape:%d:" % tc.pending) and int(state.plan_index) < (state.plan as Array).size()
+	if tc.pending >= 0 and (tc.regions[tc.pending].has_point(Vector2(position.x, position.z)) or escaping):
+		key = "escape:%d:%s" % [tc.pending, escape_kind]
+	elif home_ok:
+		key = "home:" + ("roof" if lava else String(state.base))
+	elif lava or bool(state.flood):
+		key = "refuge:" + ("lava" if lava else "flood")
+	elif not (state.refuge as Dictionary).is_empty() and position.y > 0.5:
+		key = "descend"
+	else:
+		state.refuge = {} # never climbed it (or already down): nothing to undo
+		key = "hold"
+	if key != state.key:
+		_replan(layout, state, key, position, t, lava)
+	elif lava and key == "home:roof":
+		state.lava_home = true # already up when the warning came: still a lava stay
+	var input := _follow(layout, state, position)
+	# Near a visible void a sprinting turn overshoots by metres (harbor's
+	# west leg is 1.25 m from the NORTHWEST seam): walk and ease into the
+	# waypoint, like a player at a cliff edge.
+	state.careful = false
+	if input != Vector2.ZERO and tc.removed_mask != 0:
+		var target: Vector3 = state.target
+		for index in tc.regions.size():
+			if tc.removed_mask & (1 << index):
+				var near_void := tc.regions[index].grow(VOID_CAREFUL)
+				if near_void.has_point(Vector2(position.x, position.z)) or near_void.has_point(Vector2(target.x, target.z)):
+					state.careful = true
+		if state.careful:
+			input *= clampf(Vector2(target.x - position.x, target.z - position.z).length() / 2.5, 0.35, 1.0)
+	if state.careful:
+		state.careful_frames = int(state.careful_frames) + 1
+	return input
+
+
+func _replan(layout: Dictionary, state: Dictionary, key: String, position: Vector3, t: float, lava: bool) -> void:
+	var previous: String = state.key
+	var tc: TerrainCollapse = main.terrain_collapse
+	state.key = key
+	state.plan = []
+	state.plan_index = 0
+	state.plan_ok = true
+	state.events.append({"t": snappedf(t, 0.001), "key": key, "pos": _v(position)})
+	if key.begins_with("home:"):
+		var wants := key.get_slice(":", 1)
+		# A plain base switch between home goals is the unchanged T3b route
+		# (restart the authored path at its first waypoint).
+		var original := previous.begins_with("home:") and bool(state.lava_home) == lava
+		if wants == "shelter" and float(state.first_leave) < 0.0:
+			state.first_leave = t
+		if lava and wants == "roof" and not _on_roof(layout, position):
+			state.volcano_climbs = int(state.volcano_climbs) + 1
+		if not lava and bool(state.lava_home) and wants == "shelter":
+			state.volcano_returns = int(state.volcano_returns) + 1
+		state.lava_home = lava
+		state.mode = wants
+		var path: Array = (layout.up if wants == "roof" else layout.down).duplicate()
+		state.path = path
+		if original:
 			state.index = 0
-			if wants == "shelter" and float(state.first_leave) < 0.0:
-				state.first_leave = t
+			return
+		state.index = _join_index(path, position)
+		var world: Dictionary = layout.world
+		var avoid := _collapse_rects(true)
+		var joined: Vector3 = path[state.index]
+		var near := Geometry3D.get_closest_point_to_segment(position, path[maxi(int(state.index) - 1, 0)], joined)
+		if position.y < 0.5 and Vector2(near.x - position.x, near.z - position.z).length() > 1.5 and _cell_ok(world, _cell_of(world, position), avoid):
+			# Off the authored path on open ground (after an escape): walk the
+			# open-ground grid to the nearest ground waypoint, then follow it.
+			var targets: Array = []
+			for i in path.size():
+				var point: Vector3 = _nudge(layout, path[i])
+				if point.y < 0.5 and _cell_ok(world, _cell_of(world, point), avoid):
+					targets.append([i, point])
+			var goal := func(p: Vector3) -> int:
+				for entry: Array in targets:
+					if Vector2(p.x - entry[1].x, p.z - entry[1].z).length() <= 1.0:
+						return int(entry[0])
+				return -1
+			var result := _grid_search(world, position, avoid, goal)
+			if result.is_empty():
+				_plan_failed(state, key, position)
+			else:
+				state.plan = result.points
+				state.index = int(result.tag)
+		return
+	state.path = []
+	state.index = 0
+	if key.begins_with("escape:"):
+		state.escapes = int(state.escapes) + 1
+		var removed := _collapse_rects(false)
+		var prefix := _exit_prefix(layout, state, position, removed)
+		var from: Vector3 = prefix.back() if not prefix.is_empty() else position
+		var result := {}
+		if key.ends_with(":lava") or key.ends_with(":flood"):
+			result = _climb_search(layout, from, removed, LAVA_SAFE_Y if key.ends_with(":lava") else FLOOD_SAFE_Y)
+		if result.is_empty():
+			var keep_out := tc.regions[tc.pending].grow(ESCAPE_MARGIN)
+			var goal := func(p: Vector3) -> int:
+				return -1 if keep_out.has_point(Vector2(p.x, p.z)) else 0
+			result = _grid_search(layout.world, from, removed, goal)
+		if result.is_empty():
+			_plan_failed(state, key, from)
+			state.plan = prefix
+			state.plan_ok = false
+			return
+		state.plan = prefix + result.points
+		if result.has("climb"):
+			state.refuge = result.climb
+		return
+	if key.begins_with("refuge:"):
+		var need := LAVA_SAFE_Y if key.ends_with("lava") else FLOOD_SAFE_Y
+		var refuge: Dictionary = state.refuge
+		if not refuge.is_empty() and position.y > 0.5 and float(refuge.y) >= need:
+			return # already up on an authored refuge high enough
+		var avoid := _collapse_rects(true)
+		var prefix := _exit_prefix(layout, state, position, avoid)
+		var from: Vector3 = prefix.back() if not prefix.is_empty() else position
+		var result := _climb_search(layout, from, avoid, need)
+		if result.is_empty():
+			_plan_failed(state, key, from)
+			return
+		state.plan = prefix + result.points
+		state.refuge = result.climb
+		state.refuge_climbs = int(state.refuge_climbs) + 1
+		return
+	if key == "descend":
+		state.plan = [state.refuge.high, state.refuge.low]
+
+
+func _plan_failed(state: Dictionary, key: String, from: Vector3) -> void:
+	state.plan_failures = int(state.plan_failures) + 1
+	state.events.append({"t": snappedf(float(state.now), 0.001), "key": "plan_failed:" + key, "pos": _v(from)})
+
+
+func _follow(layout: Dictionary, state: Dictionary, position: Vector3) -> Vector2:
+	var plan: Array = state.plan
+	while int(state.plan_index) < plan.size():
+		var waypoint: Vector3 = plan[state.plan_index]
+		var to_waypoint := Vector2(waypoint.x - position.x, waypoint.z - position.z)
+		if to_waypoint.length() >= 0.6:
+			state.target = waypoint
+			return to_waypoint.normalized()
+		state.plan_index = int(state.plan_index) + 1
+		if int(state.plan_index) >= plan.size():
+			var tc: TerrainCollapse = main.terrain_collapse
+			if String(state.key).begins_with("escape:") and bool(state.plan_ok):
+				state.escape_done.append({"t": snappedf(state.now, 0.001), "district": tc.pending, "deadline": snappedf(tc.deadline, 0.001),
+					"before_deadline": tc.pending >= 0 and float(state.now) < tc.deadline, "pos": _v(position)})
+			elif state.key == "descend":
+				state.refuge = {}
+	if not String(state.key).begins_with("home:"):
+		return Vector2.ZERO
 	var path: Array = state.path
 	if int(state.index) >= path.size():
 		return Vector2.ZERO
-	var target: Vector3 = path[state.index]
+	var target: Vector3 = _nudge(layout, path[state.index])
 	var delta := Vector2(target.x - position.x, target.z - position.z)
 	if delta.length() < 0.6:
 		state.index = int(state.index) + 1
@@ -567,9 +783,565 @@ func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3
 			else:
 				state.roof_returns = int(state.roof_returns) + 1
 			return Vector2.ZERO
-		target = path[state.index]
+		target = _nudge(layout, path[state.index])
 		delta = Vector2(target.x - position.x, target.z - position.z)
+	state.target = target
 	return delta.normalized()
+
+
+func _collapse_rects(include_pending: bool) -> Array[Rect2]:
+	# Removed districts (visible void) and, optionally, the marked district.
+	var tc: TerrainCollapse = main.terrain_collapse
+	var rects: Array[Rect2] = []
+	for index in tc.regions.size():
+		if tc.removed_mask & (1 << index) or (include_pending and tc.pending == index):
+			rects.append(tc.regions[index].grow(ROUTE_CLEAR))
+	return rects
+
+
+func _in_rects(point: Vector3, rects: Array[Rect2]) -> bool:
+	for rect in rects:
+		if rect.has_point(Vector2(point.x, point.z)):
+			return true
+	return false
+
+
+func _nudge(layout: Dictionary, point: Vector3) -> Vector3:
+	# Keep authored-route waypoints that sit on a district seam (harbor's
+	# far-door corner is 0.5 m into CENTER) inside the home district while a
+	# neighbour is marked or removed.
+	var rects := _collapse_rects(true)
+	if rects.is_empty() or not _in_rects(point, rects):
+		return point
+	var home: Rect2 = (layout.world.home_rect as Rect2).grow(-(ROUTE_CLEAR + 0.6))
+	return Vector3(clampf(point.x, home.position.x, home.end.x), point.y, clampf(point.z, home.position.y, home.end.y))
+
+
+func _join_index(path: Array, position: Vector3) -> int:
+	# Nearest waypoint/segment, with height weighted so a roof never joins a
+	# ground path below it (and the reverse).
+	var best := 0
+	var best_d := INF
+	for i in path.size():
+		var closest := Geometry3D.get_closest_point_to_segment(position, path[maxi(i - 1, 0)], path[i])
+		var d := Vector2(closest.x - position.x, closest.z - position.z).length() + 4.0 * absf(closest.y - position.y)
+		if d < best_d - 0.01:
+			best_d = d
+			best = i
+	return best
+
+
+func _exit_prefix(layout: Dictionary, state: Dictionary, position: Vector3, avoid: Array[Rect2]) -> Array:
+	# Waypoints from a roof, ramp, refuge or shelter interior to open ground.
+	var world: Dictionary = layout.world
+	var refuge: Dictionary = state.refuge
+	if not refuge.is_empty() and position.y > 0.5:
+		return [refuge.high, refuge.low]
+	if position.y < 0.5 and _cell_ok(world, _cell_of(world, position), avoid):
+		return []
+	if not refuge.is_empty() and Geometry3D.get_closest_point_to_segment(position, refuge.low, refuge.high).distance_to(position) < 2.0:
+		return [refuge.low] # at the foot of the climb it was using
+	var tc: TerrainCollapse = main.terrain_collapse
+	for index: int in world.home_regions:
+		if tc.removed_mask & (1 << index):
+			return [] # authored roof/shelter are gone: start from the nearest open cell
+	var path: Array = layout.down if position.y > 0.5 else layout.up
+	var result: Array = []
+	for i in range(_join_index(path, position), path.size()):
+		result.append(path[i])
+		var point: Vector3 = path[i]
+		if point.y < 0.5 and _cell_ok(world, _cell_of(world, point), avoid):
+			break
+	return result
+
+
+func _climb_search(layout: Dictionary, from: Vector3, walk_avoid: Array[Rect2], need_y: float) -> Dictionary:
+	# Nearest authored elevation route (ground foot -> pad at or above need_y)
+	# whose foot, top and pad are outside every marked or removed district.
+	var avoid := _collapse_rects(true)
+	var climbs: Array = []
+	for climb: Dictionary in layout.world.climbs:
+		if float(climb.y) >= need_y and not _in_rects(climb.low, avoid) and not _in_rects(climb.high, avoid) and not _in_rects(climb.dest, avoid):
+			climbs.append(climb)
+	if climbs.is_empty():
+		return {}
+	var goal := func(p: Vector3) -> int:
+		for i in climbs.size():
+			var low: Vector3 = climbs[i].low
+			if Vector2(p.x - low.x, p.z - low.z).length() <= 1.6:
+				return i
+		return -1
+	var result := _grid_search(layout.world, from, walk_avoid, goal)
+	if result.is_empty():
+		return {}
+	var climb: Dictionary = climbs[int(result.tag)]
+	result.points.append_array([climb.low, climb.high, climb.dest])
+	result.climb = climb
+	return result
+
+
+# Ground-level walk grid, sampled once per map from the built world (what a
+# player sees): a cell is walkable when there is floor at most GROUND_MAX_Y
+# high under it and a player-sized column above that (0.4-1.9 m) is clear, so
+# overhead decks and jibs do not block and walls, props and ramps do. Roofs,
+# ramps and decks are reached only through authored paths and climbs.
+func _route_world(anchors: Dictionary, home_points: Array) -> Dictionary:
+	var tc: TerrainCollapse = main.terrain_collapse
+	var span := tc.regions[0]
+	for rect: Rect2 in tc.regions:
+		span = span.merge(rect)
+	var nx := int(ceil(span.size.x / GRID_STEP))
+	var nz := int(ceil(span.size.y / GRID_STEP))
+	var walk := PackedByteArray()
+	walk.resize(nx * nz)
+	var space: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
+	var body := PhysicsShapeQueryParameters3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.9, 1.5, 0.9) # player-sized column from 0.4 m (above curbs) to 1.9 m
+	body.shape = box
+	body.collision_mask = 1
+	body.exclude = [player.get_rid()]
+	for iz in nz:
+		for ix in nx:
+			var c := span.position + Vector2((ix + 0.5) * GRID_STEP, (iz + 0.5) * GRID_STEP)
+			var floor_hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(c.x, GROUND_MAX_Y, c.y), Vector3(c.x, -2.0, c.y), 1, [player.get_rid()]))
+			var ok := 0
+			if not floor_hit.is_empty() and float(floor_hit.position.y) > -0.3:
+				body.transform = Transform3D(Basis(), Vector3(c.x, 0.4 + box.size.y / 2.0, c.y))
+				ok = 1 if space.intersect_shape(body, 1).is_empty() else 0
+			walk[iz * nx + ix] = ok
+	var home_regions: Array[int] = []
+	for point: Vector3 in home_points:
+		for index in tc.regions.size():
+			if tc.regions[index].has_point(Vector2(point.x, point.z)) and index not in home_regions:
+				home_regions.append(index)
+	var climbs: Array = []
+	for route: Dictionary in anchors.elevation_routes:
+		var low: Vector3 = route.low
+		var high: Vector3 = route.high
+		if low.y > GROUND_MAX_Y or high.y < LAVA_SAFE_Y:
+			continue
+		var dest: Vector3 = high + Vector3(high.x - low.x, 0, high.z - low.z).normalized() * 2.0
+		for refuge: Dictionary in anchors.refuges:
+			var refuge_center: Vector3 = refuge.center
+			if absf(refuge_center.y - high.y) > 0.3:
+				continue
+			for exit_point: Vector3 in refuge.exits:
+				if Vector2(exit_point.x - high.x, exit_point.z - high.z).length() <= 1.5:
+					dest = refuge_center
+		climbs.append({"name": route.name, "low": low, "high": high, "dest": dest, "y": high.y})
+	var open := 0
+	for value in walk:
+		open += value
+	return {"span": span, "nx": nx, "nz": nz, "walk": walk, "open_cells": open, "home_regions": home_regions,
+		"home_rect": tc.regions[home_regions[0]] if not home_regions.is_empty() else span, "climbs": climbs}
+
+
+func _cell_of(world: Dictionary, point: Vector3) -> Vector2i:
+	var span: Rect2 = world.span
+	return Vector2i(int(floor((point.x - span.position.x) / GRID_STEP)), int(floor((point.z - span.position.y) / GRID_STEP)))
+
+
+func _cell_center(world: Dictionary, cell: Vector2i) -> Vector3:
+	var span: Rect2 = world.span
+	return Vector3(span.position.x + (cell.x + 0.5) * GRID_STEP, 0.0, span.position.y + (cell.y + 0.5) * GRID_STEP)
+
+
+func _cell_ok(world: Dictionary, cell: Vector2i, avoid: Array[Rect2]) -> bool:
+	if cell.x < 0 or cell.y < 0 or cell.x >= int(world.nx) or cell.y >= int(world.nz):
+		return false
+	if (world.walk as PackedByteArray)[cell.y * int(world.nx) + cell.x] == 0:
+		return false
+	return not _in_rects(_cell_center(world, cell), avoid)
+
+
+# Dijkstra over open-ground cells. goal(cell_centre) returns a tag >= 0 at a
+# goal cell. Returns {"points": smoothed waypoints, "tag": tag} or {}.
+func _grid_search(world: Dictionary, start: Vector3, avoid: Array[Rect2], goal: Callable) -> Dictionary:
+	var nx: int = world.nx
+	var nz: int = world.nz
+	var ok := PackedByteArray()
+	ok.resize(nx * nz)
+	for iz in nz:
+		for ix in nx:
+			ok[iz * nx + ix] = 1 if _cell_ok(world, Vector2i(ix, iz), avoid) else 0
+	var origin := _cell_of(world, start)
+	var start_cell := Vector2i(-1, -1)
+	var start_d := INF
+	for dz in range(-3, 4):
+		for dx in range(-3, 4):
+			var cell := origin + Vector2i(dx, dz)
+			if cell.x < 0 or cell.y < 0 or cell.x >= nx or cell.y >= nz or ok[cell.y * nx + cell.x] == 0:
+				continue
+			var d := _cell_center(world, cell).distance_to(Vector3(start.x, 0, start.z))
+			if d < start_d:
+				start_d = d
+				start_cell = cell
+	if start_cell.x < 0:
+		return {}
+	var dist := PackedFloat64Array() # 64-bit like the heap keys (stale-entry test)
+	dist.resize(nx * nz)
+	dist.fill(INF)
+	var prev := PackedInt32Array()
+	prev.resize(nx * nz)
+	prev.fill(-1)
+	var heap_keys: Array[float] = []
+	var heap_cells: Array[int] = []
+	var first := start_cell.y * nx + start_cell.x
+	dist[first] = 0.0
+	_heap_push(heap_keys, heap_cells, 0.0, first)
+	var steps: Array[Vector3i] = [Vector3i(1, 0, 10), Vector3i(-1, 0, 10), Vector3i(0, 1, 10), Vector3i(0, -1, 10),
+		Vector3i(1, 1, 14), Vector3i(1, -1, 14), Vector3i(-1, 1, 14), Vector3i(-1, -1, 14)]
+	while not heap_cells.is_empty():
+		var popped := _heap_pop(heap_keys, heap_cells)
+		var current: int = popped[1]
+		if float(popped[0]) > dist[current]:
+			continue
+		var cx := current % nx
+		var cz := current / nx
+		var tag: int = goal.call(_cell_center(world, Vector2i(cx, cz)))
+		if tag >= 0:
+			var cells: Array[Vector3] = []
+			var walk_back := current
+			while walk_back >= 0:
+				cells.push_front(_cell_center(world, Vector2i(walk_back % nx, walk_back / nx)))
+				walk_back = prev[walk_back]
+			return {"points": _smooth(world, ok, cells), "tag": tag}
+		for step in steps:
+			var x := cx + step.x
+			var z := cz + step.y
+			if x < 0 or z < 0 or x >= nx or z >= nz or ok[z * nx + x] == 0:
+				continue
+			if step.z == 14 and (ok[cz * nx + x] == 0 or ok[z * nx + cx] == 0):
+				continue
+			var next := z * nx + x
+			var cost := dist[current] + step.z * 0.1 * GRID_STEP
+			if cost < dist[next]:
+				dist[next] = cost
+				prev[next] = current
+				_heap_push(heap_keys, heap_cells, cost, next)
+	return {}
+
+
+func _smooth(world: Dictionary, ok: PackedByteArray, cells: Array[Vector3]) -> Array:
+	# Greedy line-of-sight pruning over walkable cells (0.25 m samples).
+	var result: Array = []
+	var i := 0
+	while i < cells.size() - 1:
+		var j := cells.size() - 1
+		while j > i + 1 and not _line_ok(world, ok, cells[i], cells[j]):
+			j -= 1
+		result.append(cells[j])
+		i = j
+	if result.is_empty():
+		result.append(cells[0])
+	return result
+
+
+func _line_ok(world: Dictionary, ok: PackedByteArray, a: Vector3, b: Vector3) -> bool:
+	var samples := int(ceil(a.distance_to(b) / 0.25))
+	for s in samples + 1:
+		var cell := _cell_of(world, a.lerp(b, float(s) / maxf(samples, 1)))
+		if cell.x < 0 or cell.y < 0 or cell.x >= int(world.nx) or cell.y >= int(world.nz) or ok[cell.y * int(world.nx) + cell.x] == 0:
+			return false
+	return true
+
+
+func _heap_push(keys: Array[float], cells: Array[int], key: float, cell: int) -> void:
+	keys.append(key)
+	cells.append(cell)
+	var i := keys.size() - 1
+	while i > 0:
+		var parent := (i - 1) / 2
+		if keys[parent] <= keys[i]:
+			break
+		var k := keys[parent]
+		keys[parent] = keys[i]
+		keys[i] = k
+		var c := cells[parent]
+		cells[parent] = cells[i]
+		cells[i] = c
+		i = parent
+
+
+func _heap_pop(keys: Array[float], cells: Array[int]) -> Array:
+	var top := [keys[0], cells[0]]
+	var last_key: float = keys.pop_back()
+	var last_cell: int = cells.pop_back()
+	if keys.is_empty():
+		return top
+	keys[0] = last_key
+	cells[0] = last_cell
+	var i := 0
+	var n := keys.size()
+	while true:
+		var smallest := i
+		for child in [2 * i + 1, 2 * i + 2]:
+			if child < n and keys[child] < keys[smallest]:
+				smallest = child
+		if smallest == i:
+			break
+		var k := keys[smallest]
+		keys[smallest] = keys[i]
+		keys[i] = k
+		var c := cells[smallest]
+		cells[smallest] = cells[i]
+		cells[i] = c
+		i = smallest
+	return top
+
+
+# T3v route probes (--probe=volcano,collapse): unit-level proof that the
+# active-route control reacts to published Volcano / TerrainCollapse state.
+# The probe only stages the published event (volcano.start_disaster, or a
+# marked district with the standard warning length); the bot reads the same
+# public state as in matrix runs. No director runs, so nothing else starts.
+func _run_probes(map_id: String, layout: Dictionary, options: Dictionary) -> Array:
+	var results: Array = []
+	if "volcano" in options.probe:
+		for start: String in ["shelter", "route", "roof", "shelter_idle"]:
+			results.append(await _probe_volcano(map_id, layout, start))
+	if "collapse" in options.probe:
+		for start: String in ["shelter", "roof", "neighbor_route"]:
+			results.append(await _probe_collapse(map_id, layout, start))
+	return results
+
+
+func _probe_begin(map_id: String, label: String) -> bool:
+	if manager.state != MatchManager.MatchState.LOBBY or not main.set_match_preset("hard"):
+		failures.append("probe %s/%s: not in lobby / preset" % [map_id, label])
+		return false
+	manager.damage_log.clear()
+	manager.keep_alive = true
+	manager.set_player_ready(1, true)
+	if not manager.start_match():
+		failures.append("probe %s/%s: match did not start" % [map_id, label])
+		return false
+	_warning_pending = false
+	return true
+
+
+func _probe_end(map_id: String, label: String) -> void:
+	manager.keep_alive = false
+	if manager.state == MatchManager.MatchState.ACTIVE:
+		manager.apply_damage(1, 1000000.0, "harness_end")
+	await process_frame
+	if not main.return_to_lobby():
+		failures.append("probe %s/%s: return_to_lobby failed" % [map_id, label])
+	await physics_frame
+	await physics_frame
+
+
+func _probe_place(layout: Dictionary, state: Dictionary, start: String) -> Vector3:
+	var position: Vector3 = layout.center + Vector3.UP * 0.05
+	if start in ["shelter", "shelter_idle"]:
+		position = layout.shelter_center + Vector3.UP * 0.05
+	elif start == "route":
+		# Mid-route on the ground leg (west side), walking down to the shelter.
+		position = (layout.down[3] as Vector3) + Vector3.UP * 0.05
+	if start != "roof" and start != "neighbor_route":
+		state.mode = "shelter"
+		state.base = "shelter"
+		state.key = "home:shelter"
+		state.path = layout.down.duplicate()
+		state.index = 4 if start == "route" else (layout.down as Array).size()
+	player.reset_for_match(position)
+	player.set_camera_yaw(0.0)
+	state.check = position
+	return position
+
+
+func _probe_drive(layout: Dictionary, state: Dictionary, idle: bool, frame: int) -> void:
+	var position := player.global_position
+	var input := Vector2.ZERO
+	var jump := false
+	if not idle:
+		input = _active_route_step(layout, state, position, manager.elapsed_time)
+		if frame % 30 == 0:
+			if input != Vector2.ZERO and Vector2(position.x - state.check.x, position.z - state.check.z).length() < 0.3:
+				jump = true
+				state.hops = int(state.hops) + 1
+			state.check = position
+	player.apply_movement_input(input, input != Vector2.ZERO and not bool(state.careful), jump, DT)
+	await physics_frame
+
+
+func _probe_volcano(map_id: String, layout: Dictionary, start: String) -> Dictionary:
+	var label := "volcano/" + start
+	if not await _probe_begin(map_id, label):
+		return {}
+	var volcano: Volcano = main.volcano
+	var state := _new_route_state(Vector3.ZERO)
+	var start_position := _probe_place(layout, state, start)
+	for _settle in 30:
+		await _probe_drive(layout, state, true, 1)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 101
+	var started := volcano.start_disaster(rng)
+	_warning_pending = true # what the director's disaster_started publishes
+	var t0 := manager.elapsed_time
+	var r := {"map": map_id, "probe": label, "started": started, "t_warning": snappedf(t0, 0.001), "t_eruption": -1.0, "t_climb_start": -1.0,
+		"t_high": -1.0, "t_flow_end": -1.0, "t_left_high": -1.0, "t_back_in_shelter": -1.0, "exposed_frames": 0, "early_descent_frames": 0,
+		"lava_damage": 0.0, "lava_damage_attributed": {}, "min_support_while_flow_over_bot": INF}
+	var damage_index := manager.damage_log.size()
+	var ledger := RunLedger.new("active_route", false, t0)
+	var frame := 0
+	var after_return := -1.0
+	while started and manager.state == MatchManager.MatchState.ACTIVE and manager.elapsed_time < t0 + 110.0:
+		await _probe_drive(layout, state, start == "shelter_idle", frame)
+		frame += 1
+		var t := manager.elapsed_time
+		var position := player.global_position
+		var support: float = main.get_map_support_height(position)
+		var grounded := player.is_on_floor()
+		var high := grounded and support >= LAVA_SAFE_Y
+		var flow_up := volcano.phase == Volcano.Phase.ACTIVE and volcano.flow_heat > 0.0
+		if r.t_climb_start < 0.0 and (Vector2(position.x - start_position.x, position.z - start_position.z).length() > 1.0 or position.y > start_position.y + 0.5):
+			r.t_climb_start = snappedf(t, 0.001)
+		if r.t_eruption < 0.0 and volcano.phase == Volcano.Phase.ACTIVE:
+			r.t_eruption = snappedf(t, 0.001)
+		if r.t_high < 0.0 and high:
+			r.t_high = snappedf(t, 0.001)
+		if r.t_eruption >= 0.0 and r.t_flow_end < 0.0 and not flow_up:
+			r.t_flow_end = snappedf(t, 0.001)
+		if flow_up and volcano.flow_covers(position):
+			r.min_support_while_flow_over_bot = minf(r.min_support_while_flow_over_bot, support if grounded else INF)
+			if grounded and support < LAVA_SAFE_Y:
+				r.exposed_frames += 1
+		if r.t_high >= 0.0 and (volcano.phase == Volcano.Phase.WARNING or flow_up) and grounded and support < LAVA_SAFE_Y:
+			r.early_descent_frames += 1
+		if r.t_high >= 0.0 and r.t_left_high < 0.0 and grounded and support < LAVA_SAFE_Y:
+			r.t_left_high = snappedf(t, 0.001)
+		if r.t_flow_end >= 0.0 and r.t_back_in_shelter < 0.0 and int(state.shelter_arrivals) > 0 and position.y < 0.5:
+			r.t_back_in_shelter = snappedf(t, 0.001)
+			after_return = t
+		for event: Dictionary in manager.damage_log.slice(damage_index):
+			if String(event.cause) == "Lava flow":
+				r.lava_damage += float(event.amount)
+				var name := String(ledger.attribute("Lava flow", t).disaster)
+				r.lava_damage_attributed[name] = float(r.lava_damage_attributed.get(name, 0.0)) + float(event.amount)
+		damage_index = manager.damage_log.size()
+		if start == "shelter_idle" and r.lava_damage >= 100.0:
+			break
+		if after_return >= 0.0 and t > after_return + 2.0:
+			break
+	r.lava_damage = snappedf(r.lava_damage, 0.01)
+	if r.min_support_while_flow_over_bot == INF:
+		r.min_support_while_flow_over_bot = -1.0
+	r.final_pos = _v(player.global_position)
+	r.route = _route_record(state)
+	await _probe_end(map_id, label)
+	var checks: Array = []
+	checks.append(["volcano started", started])
+	if start == "shelter_idle":
+		# Negative control: a bot that stays on the ground floor burns, and
+		# the official attribution says Volcano.
+		checks.append(["idle shelter bot takes Lava flow damage", r.lava_damage > 0.0])
+		checks.append(["Lava flow attributed to Volcano", r.lava_damage_attributed.keys() == ["Volcano"]])
+	else:
+		if start != "roof":
+			checks.append(["climb starts during the 12 s warning", r.t_climb_start >= 0.0 and r.t_eruption >= 0.0 and r.t_climb_start < r.t_eruption])
+			checks.append(["high (support >= 1.2 m) before lava reaches the bot", r.t_high >= 0.0 and r.exposed_frames == 0])
+		checks.append(["no damaging-ground frames under the flow", r.exposed_frames == 0])
+		checks.append(["no Lava flow damage", r.lava_damage == 0.0])
+		checks.append(["stays high while warning/flow is published", r.early_descent_frames == 0])
+		checks.append(["comes back down only after the flow is over", r.t_flow_end >= 0.0 and r.t_left_high >= r.t_flow_end and r.t_back_in_shelter >= 0.0])
+	r.checks = _probe_checks(map_id, label, checks)
+	print("ROUTE_PROBE " + JSON.stringify(r))
+	return r
+
+
+func _probe_collapse(map_id: String, layout: Dictionary, start: String) -> Dictionary:
+	var label := "collapse/" + start
+	if not await _probe_begin(map_id, label):
+		return {}
+	var tc: TerrainCollapse = main.terrain_collapse
+	var volcano: Volcano = main.volcano
+	var state := _new_route_state(Vector3.ZERO)
+	_probe_place(layout, state, start)
+	for _settle in 30:
+		await _probe_drive(layout, state, true, 1)
+	var home: int = layout.world.home_regions[0]
+	# neighbor_route: the district the authored route touches (harbor: the
+	# far-door corner sits in CENTER) / town: the west neighbour.
+	var district := home if start != "neighbor_route" else (4 if map_id == "toy_harbor" else 3)
+	if start == "neighbor_route":
+		_warning_pending = true # a published non-Flood start: walk down to the shelter
+	tc.pending = district
+	tc.deadline = manager.elapsed_time + TerrainCollapse.WARNING_SECONDS / 600.0 * manager.match_duration
+	tc.warning_started.emit(tc.stage)
+	var marked: Rect2 = tc.regions[district]
+	var r := {"map": map_id, "probe": label, "district": TerrainCollapse.DISTRICT_NAMES[district], "t_warning": snappedf(manager.elapsed_time, 0.001),
+		"deadline": snappedf(tc.deadline, 0.001), "t_out_of_marked": -1.0, "inside_at_deadline": false, "frames_inside_marked": 0,
+		"void_frames": 0, "collapse_damage": 0.0, "lava_damage": 0.0, "t_removed": -1.0, "t_lava": -1.0, "t_high_after_lava": -1.0, "exposed_frames": 0}
+	var damage_index := manager.damage_log.size()
+	var frame := 0
+	var end_t := tc.deadline + 60.0
+	var lava_started := false
+	while manager.state == MatchManager.MatchState.ACTIVE and manager.elapsed_time < end_t:
+		await _probe_drive(layout, state, false, frame)
+		frame += 1
+		var t := manager.elapsed_time
+		var position := player.global_position
+		var inside := marked.has_point(Vector2(position.x, position.z))
+		if r.t_removed < 0.0:
+			if inside:
+				r.frames_inside_marked += 1
+			elif r.t_out_of_marked < 0.0:
+				r.t_out_of_marked = snappedf(t, 0.001)
+			if tc.removed_mask & (1 << district):
+				r.t_removed = snappedf(t, 0.001)
+				r.inside_at_deadline = inside
+		if tc.is_void(position) or position.y < -0.5:
+			r.void_frames += 1
+		# After the removal, stage the published Volcano warning too: a bot
+		# whose roof is gone must find other high ground.
+		if r.t_removed >= 0.0 and not lava_started and t > r.t_removed + 3.0 and start != "neighbor_route":
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 101
+			lava_started = volcano.start_disaster(rng)
+			_warning_pending = true
+			r.t_lava = snappedf(t, 0.001)
+			end_t = t + 40.0
+		if lava_started:
+			var support: float = main.get_map_support_height(position)
+			if r.t_high_after_lava < 0.0 and player.is_on_floor() and support >= LAVA_SAFE_Y:
+				r.t_high_after_lava = snappedf(t, 0.001)
+			if volcano.phase == Volcano.Phase.ACTIVE and volcano.flow_heat > 0.0 and volcano.flow_covers(position) and player.is_on_floor() and support < LAVA_SAFE_Y:
+				r.exposed_frames += 1
+		for event: Dictionary in manager.damage_log.slice(damage_index):
+			if String(event.cause) == COLLAPSE_CAUSE:
+				r.collapse_damage += float(event.amount)
+			elif String(event.cause) == "Lava flow":
+				r.lava_damage += float(event.amount)
+		damage_index = manager.damage_log.size()
+	r.final_pos = _v(player.global_position)
+	r.route = _route_record(state)
+	await _probe_end(map_id, label)
+	var checks: Array = []
+	checks.append(["district removed at its deadline", r.t_removed >= 0.0])
+	if start == "neighbor_route":
+		checks.append(["never enters the marked neighbour district", r.frames_inside_marked == 0])
+		checks.append(["still completes the authored route", int(state.shelter_arrivals) > 0])
+	else:
+		checks.append(["out of the marked district before removal", r.t_out_of_marked >= 0.0 and not r.inside_at_deadline])
+		checks.append(["escape completed before the deadline", not (state.escape_done as Array).is_empty() and bool(state.escape_done[0].before_deadline)])
+		checks.append(["Volcano after removal: climbs other authored high ground", lava_started and r.t_high_after_lava >= 0.0 and r.exposed_frames == 0 and r.lava_damage == 0.0])
+	checks.append(["never over the void / no collapsed-ground damage", r.void_frames == 0 and r.collapse_damage == 0.0])
+	r.checks = _probe_checks(map_id, label, checks)
+	print("ROUTE_PROBE " + JSON.stringify(r))
+	return r
+
+
+func _probe_checks(map_id: String, label: String, checks: Array) -> Dictionary:
+	var out := {}
+	for entry: Array in checks:
+		out[entry[0]] = bool(entry[1])
+		_probe_check_count += 1
+		print("ROUTE_PROBE_CHECK %s %s/%s: %s" % ["PASS" if entry[1] else "FAIL", map_id, label, entry[0]])
+		if not entry[1]:
+			failures.append("route probe %s/%s: %s" % [map_id, label, entry[0]])
+	return out
 
 
 func _median(values: Array) -> float:
@@ -723,6 +1495,10 @@ func _self_test() -> int:
 	h.step(obs.call(40.0, true, ["Earthquake"], [], {"grounded": false, "jumped": true, "steering": true}))
 	h.step(obs.call(41.0, false, ["Earthquake"], [{"t": 41.0, "amount": 100.0, "cause": "Fall"}]))
 	check.call(h.death_disaster == "Unattributed (Fall)" and h.death_link == "unknown", "D3 unknown fall stays unattributed (got %s)" % h.death_disaster)
+	# T3v: T3p floor lava ("Lava flow") is official Volcano damage.
+	var v := RunLedger.new("active_route", false, 0.0)
+	v.step(obs.call(150.0, false, ["Volcano"], [{"t": 150.0, "amount": 100.0, "cause": "Lava flow"}]))
+	check.call(v.death_disaster == "Volcano" and is_equal_approx(float(v.damage_by_disaster.get("Volcano", 0.0)), 100.0), "Lava flow -> Volcano (got %s)" % v.death_disaster)
 	return checks[0]
 
 
