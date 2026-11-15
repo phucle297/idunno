@@ -130,6 +130,53 @@ func _run() -> void:
 			_expect(worst_pos <= TOLERANCE, "lip %.3f start %d: offline vs server diverged %.4f m" % [height, offset, worst_pos])
 			_expect(worst_client <= TOLERANCE, "lip %.3f start %d: predicted+reconciled client vs server diverged %.4f m" % [height, offset, worst_client])
 			_expect(state_mismatch == 0, "lip %.3f start %d: grounded/coyote/buffer differ after reconcile on %d ticks" % [height, offset, state_mismatch])
+	# QA a4 item 5: 0.28 m sprint at (1003.3, 567.9), 6-tick ack, 12 starts (k=3 was 0.058 m).
+	var qa_origin := Vector3(1003.3, 0.0, 567.9)
+	var qa_height := 0.28
+	var qa_face := qa_origin.x + FACE_X
+	_add_box(world, qa_origin + Vector3(0.0, -0.1, 0.0), Vector3(80.0, 0.2, 70.0))
+	_add_box(world, qa_origin + Vector3(FACE_X + 10.0, qa_height * 0.5, 0.0), Vector3(20.0, qa_height, 70.0))
+	await physics_frame
+	for offset in OFFSETS:
+		var qa_start := qa_origin + Vector3(FACE_X - 0.6 - 4.0 + 0.01 * offset, 0.0, 0.0)
+		for player in [offline, server, client]:
+			_reset(player, qa_start)
+		# nosettle: only two physics frames, no idle apply (QA --nosettle).
+		await physics_frame
+		await physics_frame
+		var qa_states: Array[Dictionary] = []
+		var qa_worst_pos := 0.0
+		var qa_worst_client := 0.0
+		var qa_max_y := 0.0
+		var qa_mismatch := 0
+		var qa_climbed := false
+		for tick in TAPE_TICKS:
+			await physics_frame
+			var sequence := tick + 1
+			offline.apply_movement_input(Vector2.RIGHT, true, false, DELTA)
+			server.apply_movement_input(Vector2.RIGHT, true, false, DELTA)
+			qa_states.append({"position": server.global_position, "velocity": server.velocity, "state": server.get_movement_replay_state()})
+			client.predict_movement_input(sequence, Vector2.RIGHT, true, false, DELTA)
+			var acked := sequence - ACK_DELAY
+			if acked >= 1:
+				var snapshot: Dictionary = qa_states[acked - 1]
+				client.reconcile_movement(snapshot.position, snapshot.velocity, 0.0, false, acked, snapshot.state)
+			qa_worst_pos = maxf(qa_worst_pos, offline.global_position.distance_to(server.global_position))
+			qa_worst_client = maxf(qa_worst_client, client.global_position.distance_to(server.global_position))
+			qa_max_y = maxf(qa_max_y, server.global_position.y)
+			if server.global_position.y > qa_height - 0.01 and server.global_position.x > qa_face + 0.3:
+				qa_climbed = true
+			var a := client.get_movement_replay_state()
+			var b := server.get_movement_replay_state()
+			if not (absf(a.x - b.x) <= 1e-4 and absf(a.y - b.y) <= 1e-4 and a.z == b.z):
+				qa_mismatch += 1
+		worst_all = maxf(worst_all, maxf(qa_worst_pos, qa_worst_client))
+		worst_state = maxi(worst_state, qa_mismatch)
+		print("T2_NET_STEP lip=0.280 origin=qa_sprint start_k=%d climbed=%s max_y=%.4f max_offline_vs_server_m=%.5f max_client_vs_server_m=%.5f state_mismatches=%d final_x=%.3f" % [offset, qa_climbed, qa_max_y, qa_worst_pos, qa_worst_client, qa_mismatch, server.global_position.x])
+		_expect(qa_climbed, "lip 0.280 qa origin start %d: the tape must climb the lip" % offset)
+		_expect(qa_worst_pos <= TOLERANCE, "lip 0.280 qa origin start %d: offline vs server diverged %.4f m" % [offset, qa_worst_pos])
+		_expect(qa_worst_client <= TOLERANCE, "lip 0.280 qa origin start %d: predicted+reconciled client vs server diverged %.4f m" % [offset, qa_worst_client])
+		_expect(qa_mismatch == 0, "lip 0.280 qa origin start %d: grounded/coyote/buffer differ after reconcile on %d ticks" % [offset, qa_mismatch])
 	print("T2_NET_STEP_SUMMARY max_divergence_m=%.5f max_state_mismatch_ticks=%d tolerance_m=%.2f" % [worst_all, worst_state, TOLERANCE])
 	world.queue_free()
 	if failures.is_empty():

@@ -98,6 +98,7 @@ func _run() -> void:
 	rate = 60
 	dt = 1.0 / 60.0
 	await _test_real_input_pulse_and_hold()
+	await _test_qa_reported_origins()
 	print("T2_INFO_SUMMARY not_asserted_misses=%d (30/144 Hz and cross-rate comparisons)" % info_misses.size())
 	if failures.is_empty():
 		print("RUN_JUMP_PHYSICS_OK checks=%d asserted_rate=60 info_rates=30,144" % checks)
@@ -785,6 +786,138 @@ func _test_real_input_pulse_and_hold() -> void:
 	print("T2_HOLD held_2s jump_kicks=%d" % kicks)
 	_expect(kicks == 1, "T2.2: holding jump for 2 s must fire exactly one jump (got %d)" % kicks)
 	player.set_physics_process(false)
+
+
+
+# QA a4 reported failures that the four small placements missed: 0.28 m walk
+# stalls at (37.31, 743.7) k=4/7, 0.28 m sprint fall-back at (1003.3, 567.9)
+# k=3 with no idle settle, and a one-tick floor gap + landed signal at
+# (37.31, 1823.7) on a 0.30 m 45 deg walk k=8 (tick 93). Each controller
+# tick waits for a physics frame, matching QA's repro.
+const QA_ORIGIN_WALK_028 := Vector3(37.31, 0.0, 743.7)
+const QA_ORIGIN_SPRINT_028 := Vector3(1003.3, 0.0, 567.9)
+const QA_ORIGIN_FLICKER_030 := Vector3(37.31, 0.0, 1823.7)
+
+
+func _qa_start(origin: Vector3, angle_deg: float, k: int) -> Vector3:
+	var heading := deg_to_rad(angle_deg)
+	var d := Vector2(cos(heading), sin(heading))
+	return origin + Vector3(STEP_FACE_X - 0.6 - 4.0 * d.x + 0.01 * float(k) * d.x, 0.0, -4.0 * d.y + 0.01 * float(k) * d.y)
+
+
+func _qa_build_lane(origin: Vector3, height: float) -> void:
+	var world := root.get_node("T2World")
+	_add_box(world, origin + Vector3(0.0, -0.1, 0.0), Vector3(80.0, 0.2, 70.0))
+	_add_box(world, origin + Vector3(STEP_FACE_X + 10.0, height * 0.5, 0.0), Vector3(20.0, height, 70.0))
+
+
+func _qa_reset(position: Vector3, settle: int) -> void:
+	player.movement_buff = Vector2.ZERO
+	player.global_position = position
+	player.velocity = Vector3.ZERO
+	player._coyote_remaining = 0.0
+	player._jump_buffer_remaining = 0.0
+	player.set_camera_yaw(0.0)
+	for _i in settle:
+		await physics_frame
+		player.apply_movement_input(Vector2.ZERO, false, false, dt)
+	if settle == 0:
+		await physics_frame
+		await physics_frame
+
+
+func _qa_tick(input_2d: Vector2, sprinting: bool) -> Dictionary:
+	await physics_frame
+	var before := player.global_position
+	player.apply_movement_input(input_2d, sprinting, false, dt)
+	var moved := player.global_position - before
+	return {
+		"floor": player.is_on_floor(),
+		"y": player.global_position.y,
+		"vy": player.velocity.y,
+		"hspeed": Vector2(moved.x, moved.z).length() / dt,
+		"x": player.global_position.x,
+		"rel": player.global_position - before, # unused placeholder
+	}
+
+
+func _qa_climb(origin: Vector3, height: float, sprinting: bool, angle_deg: float, k: int, settle: int) -> Dictionary:
+	var heading := deg_to_rad(angle_deg)
+	var input_2d := Vector2(cos(heading), sin(heading))
+	var target := Tuning.SPRINT_SPEED if sprinting else Tuning.WALK_SPEED
+	var face_x := origin.x + STEP_FACE_X
+	await _qa_reset(_qa_start(origin, angle_deg, k), settle)
+	var min_ratio := INF
+	var off_floor := 0
+	var landed := [0]
+	var first_off := -1
+	var on_landed := func(_h: float) -> void: landed[0] += 1
+	player.landed.connect(on_landed)
+	for index in 180:
+		var step: Dictionary = await _qa_tick(input_2d, sprinting)
+		var x := float(step.x)
+		var near_face := index >= 20 and x > face_x - 1.0 and x < face_x + 1.5
+		var on_top := float(step.y) > height - 0.02 and x > face_x + 0.3
+		if near_face:
+			min_ratio = minf(min_ratio, float(step.hspeed) / target)
+		if (near_face or on_top) and not bool(step.floor):
+			off_floor += 1
+			if first_off < 0:
+				first_off = index
+	player.landed.disconnect(on_landed)
+	return {
+		"ratio": min_ratio if min_ratio < INF else 0.0,
+		"off_floor": off_floor,
+		"first_off": first_off,
+		"landed": landed[0],
+		"y": player.global_position.y,
+		"floor": player.is_on_floor(),
+	}
+
+
+func _test_qa_reported_origins() -> void:
+	_qa_build_lane(QA_ORIGIN_WALK_028, 0.28)
+	_qa_build_lane(QA_ORIGIN_SPRINT_028, 0.28)
+	# QA --two: a second stacked lip further along, as in the net/sprint repro.
+	var world := root.get_node("T2World")
+	_add_box(world, QA_ORIGIN_SPRINT_028 + Vector3(STEP_FACE_X + 25.0, 0.28 * 1.5, 0.0), Vector3(10.0, 0.28, 70.0))
+	_qa_build_lane(QA_ORIGIN_FLICKER_030, 0.30)
+	await physics_frame
+	await physics_frame
+	# Item 1: 0.28 m walk at QA's p1 lane, all 12 starts; k=4 and k=7 were the stalls.
+	var walk_worst := INF
+	var walk_bad := 0
+	for k in SWEEP_OFFSETS:
+		var r: Dictionary = await _qa_climb(QA_ORIGIN_WALK_028, 0.28, false, 0.0, k, 6)
+		walk_worst = minf(walk_worst, float(r.ratio))
+		var ok := float(r.ratio) >= 0.8 and int(r.off_floor) == 0 and absf(float(r.y) - 0.28) <= 0.02 and bool(r.floor)
+		if not ok:
+			walk_bad += 1
+			print("T2_QA_SLOW origin=walk028 k=%d ratio=%.3f off=%d first_off=%d landed=%d final_y=%.4f floor=%s" % [k, r.ratio, r.off_floor, r.first_off, r.landed, r.y, r.floor])
+		_expect(ok, "T2.4 QA 0.28 m walk at (37.31,743.7) k=%d: ratio %.3f off=%d y=%.4f" % [k, r.ratio, r.off_floor, r.y])
+	print("T2_QA_ORIGIN walk028 starts=%d below_80pct_or_off=%d worst_ratio=%.3f" % [SWEEP_OFFSETS, walk_bad, walk_worst])
+	# Item 1/5: 0.28 m sprint at QA's net origin, no idle settle, all 12 starts; k=3 was the fall-back.
+	var sprint_worst := INF
+	var sprint_bad := 0
+	for k in SWEEP_OFFSETS:
+		var r2: Dictionary = await _qa_climb(QA_ORIGIN_SPRINT_028, 0.28, true, 0.0, k, 0)
+		sprint_worst = minf(sprint_worst, float(r2.ratio))
+		var ok2 := float(r2.ratio) >= 0.8 and int(r2.off_floor) == 0 and absf(float(r2.y) - 0.28) <= 0.02 and bool(r2.floor)
+		if not ok2:
+			sprint_bad += 1
+			print("T2_QA_SLOW origin=sprint028 k=%d ratio=%.3f off=%d first_off=%d landed=%d final_y=%.4f floor=%s" % [k, r2.ratio, r2.off_floor, r2.first_off, r2.landed, r2.y, r2.floor])
+		_expect(ok2, "T2.4 QA 0.28 m sprint at (1003.3,567.9) nosettle k=%d: ratio %.3f off=%d y=%.4f" % [k, r2.ratio, r2.off_floor, r2.y])
+	print("T2_QA_ORIGIN sprint028 starts=%d below_80pct_or_off=%d worst_ratio=%.3f" % [SWEEP_OFFSETS, sprint_bad, sprint_worst])
+	# Item 2: 0.30 m 45 deg walk flicker at QA's p1 lane, including k=8 tick-93.
+	var flick_bad := 0
+	for k in SWEEP_OFFSETS:
+		var r3: Dictionary = await _qa_climb(QA_ORIGIN_FLICKER_030, 0.30, false, 45.0, k, 6)
+		var ok3 := int(r3.off_floor) == 0 and int(r3.landed) == 0 and absf(float(r3.y) - 0.30) <= 0.02 and bool(r3.floor)
+		if not ok3:
+			flick_bad += 1
+			print("T2_QA_FLICKER origin=flicker030 k=%d off=%d first_off=%d landed=%d final_y=%.4f floor=%s" % [k, r3.off_floor, r3.first_off, r3.landed, r3.y, r3.floor])
+		_expect(ok3, "T2.4 QA 0.30 m 45 deg walk at (37.31,1823.7) k=%d: %d off-floor ticks (first %d), %d landed, y=%.4f" % [k, r3.off_floor, r3.first_off, r3.landed, r3.y])
+	print("T2_QA_ORIGIN flicker030 starts=%d flicker_or_landed=%d" % [SWEEP_OFFSETS, flick_bad])
 
 
 func _expect(condition: bool, message: String) -> void:
