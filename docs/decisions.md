@@ -137,3 +137,79 @@ thermal/FPS and separate-network limits in `NEED_REAL_CHECK.md`.
   the fix does not mask redundant snapshots. Temporary injection/printing removed.
   Prevention is recorded in `recovering-validation-fixture-races`; rerun the
   normal staged gate rather than claiming the previous failed gate passed.
+
+## T3 — harder disasters, break rooftop camping (2026-11-15)
+
+Recorded by idunno-T3j (docs only) on the T3c-integrated branch `1d70659b`. Coverage and Volcano gameplay changes listed below are specified by the plan and contracts; they are **pending T3z** until independently QA-verified on an integrated branch. This page does not invent gate numbers.
+
+### Owner goal (2026-11-15 15:59 UTC+7)
+
+Quoted from `games/idunno/T3-plan.md:6` (labeled there “verbatim sense”; factory `log.md` has no separate 15:59 Owner line):
+
+> the game gets boring because standing on a rooftop dodges most disasters.
+
+T3 exists so rooftops must not dodge most disasters.
+
+### Owner-accepted defaults (now in force)
+
+Quoted from `games/idunno/T3-plan.md:8–14`, which cites `games/idunno/pm-review.md` §4 (lines 104–107) as the source of the defaults:
+
+> - Delete Normal.
+> - Current Hard gap scaling becomes the only survival baseline; Hot Potato stays a rule variant on that baseline.
+> - Record a baseline first.
+> - Use the provisional T3 numbers in `acceptance-T2-T3.md` §2.3.
+> - Keep meteor warning lengths (live **2.5 s**; do not shrink toward the 1.2 s DESIGN floor).
+
+**Normal removed; Hard is the baseline (T3c).** On this branch, `MATCH_PRESETS` is `["hard"]` in the director and `["hard", "hot_potato"]` in `main.gd`; default `match_preset` is `"hard"`; `request_match_preset("normal")` is rejected; leaving Hot Potato in solo falls back to Hard. Hot Potato remains a 2+ lobby variant on that Hard director pacing (`hard_pacing_scale = 0.6`; late Hard gaps stay 1.2 s recovery / 2.4 s overlap). T3c commit `1d70659b` was independently QA-passed (factory log 2026-11-15 19:34 UTC+7). Player-facing GUIDE no longer lists Normal as a selectable preset.
+
+### 19:10 floor ruling — Volcano is ground-only
+
+Owner ruling, 2026-11-15 19:10 UTC+7, quoted from `games/idunno/T3-plan.md:229` and `:350` / `:462` (factory `log.md` 2026-11-15 19:10 summarizes the same call):
+
+> Only floor, but larger. Maybe can the whole map.
+
+Rooftop ash was rejected. T3p turns Volcano into a **ground-only, whole-map spreading lava flow**: a twelve-second warning, then lava spreads from the authored vent across the map floor; roofs and elevated pads stay safe. Player-facing copy says **get to high ground** (a roof, terrace, or dock), not “leave the outlined district.” GUIDE.md was updated against T3p commit `87c7826` (not merged into this T3j base). Volcano gameplay and HUD/context copy (T3p / T3s) remain **pending T3z**.
+
+### Numeric product gates
+
+Quoted from `games/idunno/T3-plan.md:38–49` (Owner-accepted provisional set; measured first on current Normal and Hard by T3b/T3bQ, then after implementation on the Hard-only baseline by T3z):
+
+> | Gate | Number | Notes |
+> | --- | --- | --- |
+> | Matrix | **10 seeds × 2 maps** (`toy_town`, `toy_harbor`) | Publish the seed list in the harness. INFERRED seeds if unset: `101`–`110`. |
+> | Controls | Rooftop idle; rooftop tiny-step; ground idle; active route | Same scripts before/after. |
+> | Dead time | Median time with **zero** active disasters during **2:00–8:00** drops **≥ 30%** vs current **Normal** | Hard-only after T3c should already cut gaps (`hard_pacing_scale = 0.6` in `disaster_director.gd`). Still measure. |
+> | Rooftop camp | Broken on **≥ 8 / 10** seeds **per map** by **6:00** | “Broken” = forced off the starting roof sector for **≥ 3 s** and/or **≥ 30 HP** lost. Elevation may still help versus **Flood**. |
+> | Active route | Survive to **≥ 8:00** (or timeout) in **≥ 6 / 10** seeds **per map** | Beatable floor, not a human-skill claim. |
+> | Fairness | Meteor warning stays **2.5 s**; no intensity-scaled damage/forces; max two overlaps; solo-first intro; at least one escape; rain/snow do not penetrate roofs | Director policy “faster, never meaner.” |
+
+T3b/T3bQ produce the before-numbers only and do not have to meet the harder gates (`T3-plan.md:51`). Official after-numbers and pass/fail are **pending T3z**.
+
+### Per-disaster rooftop pressure (as designed in the plan)
+
+All of the following except T3c and the already-recorded T3bQ Earthquake finding are **pending T3z** (not integrated into this branch; maker-only deliveries must not be treated as shipped):
+
+- **Meteor (T3d, `T3-plan.md:125–127`):** occupy a meaningful roof sector with warned, finite, multi-pulse footprints so a camper cannot tiny-step around one small mark; warning stays 2.5 s; players under a static roof stay sheltered.
+- **Lightning (T3e, `T3-plan.md:137–139`):** prefer exposed elevated campers (open sky) with the existing 2.0 s telegraph; do not strike through solid overhead cover.
+- **UFO carry (T3o, after T3f targeting; `T3-plan.md:307–308`):** during the active beam, carry an exposed rooftop idle camper sideways off the pad (or they take existing fall damage from that drop). A vertical lift that lands back on the same pad is not pressure. Indoor / under-roof players stay untargetable; walk out or take overhead cover still releases.
+- **Bee Swarm (T3g, `T3-plan.md:161–163`):** standing on a roof is not shelter; an exposed roof target can be stung. Players under a real roof or indoor volume stay protected.
+- **Tornado carry (T3q, after T3k lane bend; `T3-plan.md:371–373`):** an exposed rooftop idle camper must leave the pad or take attributed fall damage. Knockdown or a landing on the same pad is not pressure.
+- **Rockslide lane (T3r, after T3m climb; `T3-plan.md:401–403`):** the warned corridor must actually cross an occupied, exposed real-map roof; cover still blocks; rocks travel only the published lane.
+- **Earthquake:** not a designed gap. T3bQ already measured rooftop pressure (`T3-plan.md:77`: “Earthquake is not a gap (47/39 HP and 3/1 kills on roofs)”). No T3 contract changes quake.
+- **Flood / Rain / Snow excluded by design (fairness, T3h, `T3-plan.md:173–175` and `:225–228`):** the roof is the authored Flood counter; Rain and Snow do not penetrate roofs. A 0 HP / 0 relocation roof cell for these is not a T3z fail. Fire stays unmeasured in the baseline (no Fire contract in this plan).
+
+### T3z pressure definition
+
+Quoted from `games/idunno/T3-plan.md:219–229`:
+
+> A rooftop_idle / tiny-step **camp cell** is **pressured** only if, while shadow-alive and before 6:00, the player takes **HP loss > 0** from that disaster (including fall damage **attributed to it**), **or** is **relocated off the pad**: feet leave the starting pad footprint and land on **lower ground**. **Knockdown, stagger, or a lift that lands back on the same pad do not count** (T3k’s 10/10 knockdown with 0/10 off-pad is not pressure; T3f’s vertical UFO lift is not pressure).
+>
+> The overall camp-broken gate is unchanged: forced off the starting roof sector for **≥ 3 s** and/or **≥ 30 HP** lost, on **≥ 8 / 10** seeds per map by 6:00. That gate is the match outcome; this definition is how each disaster’s §4 cell is scored.
+>
+> **Excluded by design** (a 0 HP / 0 reloc roof cell is not a fail):
+>
+> - **Flood** — the roof is the authored counter.
+> - **Rain / Snow** — no roof penetration.
+> - **Volcano roof cells** — Owner 2026-11-15 19:10 UTC+7: “Only floor, but larger. Maybe can the whole map.” Roofs and elevated pads stay safe from Volcano. **Ground-idle / ground-camp** Volcano cells **should** show pressure after T3p (idle ground HP > 0; a ground bot that reaches high ground in time may survive).
+
+T3n attribution rules for official T3z fields are in `T3-plan.md:231–236`.
