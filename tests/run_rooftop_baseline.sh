@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# T3b rooftop / pacing baseline: full matrix (10 seeds x 2 maps x 2 presets x
+# 4 controls) through 8:00, one fresh headless Godot process per run (JOBS in
+# parallel, default 8), merged into one JSON blob. Logs and samples go to OUT_DIR, never the repo.
+# Usage: GODOT_BIN=godot tests/run_rooftop_baseline.sh [OUT_DIR] [TAG]
+set -euo pipefail
+
+ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
+GODOT_BIN="${GODOT_BIN:-godot}"
+OUT_DIR="$(realpath -m "${1:-/tmp/idunno-T3b}")"
+TAG="${2:-run}"
+SEEDS="${SEEDS:-101-110}"
+HORIZON="${HORIZON:-480}"
+mkdir -p "$OUT_DIR"
+
+"$GODOT_BIN" --headless --editor --path "$ROOT" --quit > "$OUT_DIR/T3b-$TAG-import.log" 2>&1
+if rg -q '^(SCRIPT ERROR|ERROR):' "$OUT_DIR/T3b-$TAG-import.log"; then
+  cat "$OUT_DIR/T3b-$TAG-import.log"
+  exit 1
+fi
+
+# One fresh Godot process per (map, preset, seed, control): runs that share a
+# process carry engine/physics state between matches and drift by ~1 mm, which
+# can flip later director picks. Isolated runs replay bit-identically.
+JOBS="${JOBS:-8}"
+RUN_DIR="$OUT_DIR/T3b-$TAG-runs"
+mkdir -p "$RUN_DIR"
+seed_list="$(python3 -c "import sys
+out=[]
+for part in sys.argv[1].split(','):
+    if '-' in part:
+        a,b=part.split('-'); out+=range(int(a),int(b)+1)
+    elif part: out.append(int(part))
+print(' '.join(map(str,out)))" "$SEEDS")"
+jobs_file="$RUN_DIR/jobs.txt"
+: > "$jobs_file"
+for map in toy_town toy_harbor; do
+  for preset in normal hard; do
+    for seed in $seed_list; do
+      for control in rooftop_idle rooftop_tiny_step ground_idle active_route; do
+        echo "$map $preset $seed $control" >> "$jobs_file"
+      done
+    done
+  done
+done
+export ROOT GODOT_BIN RUN_DIR HORIZON
+run_job() {
+  local map="$1" preset="$2" seed="$3" control="$4"
+  local name="$map-$preset-$seed-$control"
+  "$GODOT_BIN" --headless --fixed-fps 60 --path "$ROOT" --script res://tests/test_rooftop_baseline.gd -- \
+    --maps="$map" --presets="$preset" --controls="$control" --seeds="$seed" --horizon="$HORIZON" \
+    --samples-out="$RUN_DIR/$name-samples.jsonl" --json-out="$RUN_DIR/$name.json" > "$RUN_DIR/$name.log" 2>&1 || true
+  if ! rg -q '^ROOFTOP_BASELINE_OK' "$RUN_DIR/$name.log" || \
+      rg '^(SCRIPT ERROR|ERROR):' "$RUN_DIR/$name.log" | rg -v '^ERROR: [0-9]+ resources still in use at exit' | rg -q .; then
+    echo "run $name failed: $RUN_DIR/$name.log"
+    return 1
+  fi
+}
+export -f run_job
+status=0
+xargs -P "$JOBS" -L 1 bash -c 'run_job "$@"' _ < "$jobs_file" || status=1
+[ "$status" -eq 0 ] || exit 1
+shards=()
+while read -r map preset seed control; do
+  shards+=("$map-$preset-$seed-$control")
+done < "$jobs_file"
+# One samples file per full run, in job order (deterministic).
+: > "$OUT_DIR/T3b-$TAG-samples.jsonl"
+for shard in "${shards[@]}"; do
+  cat "$RUN_DIR/$shard-samples.jsonl" >> "$OUT_DIR/T3b-$TAG-samples.jsonl"
+  rm "$RUN_DIR/$shard-samples.jsonl"
+done
+
+python3 - "$OUT_DIR" "$TAG" "${shards[@]}" <<'PY'
+import json, sys
+out_dir, tag, shards = sys.argv[1], sys.argv[2], sys.argv[3:]
+merged = None
+for shard in shards:
+    blob = json.load(open(f"{out_dir}/T3b-{tag}-runs/{shard}.json"))
+    if merged is None:
+        merged = {key: value for key, value in blob.items() if key not in ("options", "runs", "summary", "sectors", "failures")}
+        merged.update({"options": {"shards": []}, "runs": [], "summary": {}, "sectors": {}, "failures": []})
+    merged["options"]["shards"].append(blob["options"])
+    merged["failures"] += blob["failures"]
+    merged["runs"] += blob["runs"]
+    merged["sectors"].update(blob["sectors"])
+merged["runs"].sort(key=lambda r: (r["map"], r["preset"], r["seed"], r["control"]))
+# Same rollup as _summarize() in test_rooftop_baseline.gd, over all runs.
+cause_map = merged["definitions"]["cause_to_disaster"]
+def median(values):
+    values = sorted(values)
+    if not values:
+        return -1.0
+    mid = len(values) // 2
+    return float(values[mid]) if len(values) % 2 else (values[mid - 1] + values[mid]) / 2.0
+groups = {}
+for run in merged["runs"]:
+    groups.setdefault("%s|%s|%s" % (run["map"], run["preset"], run["control"]), []).append(run)
+for key, runs in groups.items():
+    per = {}
+    row = lambda name: per.setdefault(name, {"starts": 0, "damage": 0.0, "kills": 0, "forced_relocations": 0, "runs_damaged": 0})
+    causes = {}
+    for run in runs:
+        for name, count in run["starts_by_name"].items():
+            row(name)["starts"] += count
+        for name, amount in run["damage_by_disaster"].items():
+            row(name)["damage"] = round(row(name)["damage"] + amount, 2)
+            row(name)["runs_damaged"] += 1
+        if not run["survived_horizon"]:
+            causes[run["death_cause"]] = causes.get(run["death_cause"], 0) + 1
+            row(cause_map.get(run["death_cause"], run["death_cause"]))["kills"] += 1
+        for episode in run["relocations"]:
+            if episode["forced"]:
+                for name in episode["active_at_leave"] or [cause_map.get(episode["last_damage_cause"], "none")]:
+                    row(name)["forced_relocations"] += 1
+    merged["summary"][key] = {"runs": len(runs), "survived_horizon": sum(r["survived_horizon"] for r in runs),
+        "median_death_time": median([r["death_time"] for r in runs if not r["survived_horizon"]]),
+        "death_causes": causes, "median_zero_disaster_s_120_480": median([r["zero_disaster_s_120_480"] for r in runs]),
+        "camp_broken_by_360": sum(r["camp_broken_by_360"] for r in runs),
+        "camp_untouched_by_360": sum(r["camp_untouched_by_360"] for r in runs), "per_disaster": per}
+expected = sum(len(o["maps"]) * len(o["presets"]) * len(o["seeds"]) * len(o["controls"]) for o in merged["options"]["shards"])
+merged["options"]["expected_runs"] = expected
+with open(f"{out_dir}/T3b-{tag}.json", "w") as handle:
+    json.dump(merged, handle, sort_keys=True)
+print("ROOFTOP_BASELINE_JSON " + json.dumps(merged, sort_keys=True))
+if merged["failures"] or len(merged["runs"]) != expected:
+    print("ROOFTOP_BASELINE_FAILED runs=%d failures=%d" % (len(merged["runs"]), len(merged["failures"])))
+    sys.exit(1)
+print("ROOFTOP_BASELINE_OK runs=%d" % len(merged["runs"]))
+PY
