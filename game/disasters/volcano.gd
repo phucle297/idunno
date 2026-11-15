@@ -383,7 +383,7 @@ func surface_at(feet: Vector3, require_contact := true) -> int:
 
 func get_escape_context(feet: Vector3) -> String:
 	if phase == Phase.WARNING and absf(feet.x - district_center.x) <= district_size.x / 2 and absf(feet.z - district_center.z) <= district_size.y / 2:
-		return "VOLCANO — evacuate the outlined district; two crossing exits"
+		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
 	if phase == Phase.WARNING and feet.y < SAFE_SUPPORT:
 		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
 	var index := surface_at(feet)
