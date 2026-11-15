@@ -4,6 +4,10 @@ extends Node3D
 signal warning_started(start: Vector3, duration: float)
 signal activated
 signal finished
+# T3q: a committed roof carry starts / releases (attribution hooks for the
+# fall that follows; main.gd still labels the fall damage "Fall").
+signal carry_started(peer_id: int, target: Vector3)
+signal carry_released(peer_id: int, position: Vector3)
 
 enum Phase {
 	IDLE,
@@ -15,6 +19,19 @@ const DISASTER_NAME := "Tornado"
 # T3k: an exposed standee at least this far above the lane's authored ground
 # counts as a rooftop camper the published lane may bend onto.
 const ROOF_TARGET_MIN_HEIGHT := 1.5
+# T3q roof carry (INFERRED values from the T3q contract): hover just off the
+# pad so ground braking is off, travel to the nearest lip plus a margin at
+# throw_speed, then release with no upward launch.
+const CARRY_HOVER_HEIGHT := 0.8
+const CARRY_PAST_LIP := 1.0
+const CARRY_MAX_TIME := 2.5
+const CARRY_LIFT_GAIN := 8.0
+const CARRY_LIFT_SPEED_MAX := 4.0
+const LIP_PROBE_DIRECTIONS := 16
+const LIP_PROBE_RANGE := 12.0
+const LIP_PROBE_STEP := 0.25
+const LIP_MIN_DROP := 1.0
+const MAP_COLLISION_MASK := 1
 
 @export var warning_duration := 3.0
 @export var influence_radius := 8.0
@@ -34,6 +51,7 @@ var end_position := Vector3.ZERO
 var active_duration := 0.0
 var active_elapsed := 0.0
 var throw_count := 0
+var carry_count := 0
 var path_preset_index := -1
 var path_reversed := false
 
@@ -41,6 +59,10 @@ var _match_manager: MatchManager
 var _players: Dictionary = {}
 var _core_exposure: Dictionary = {}
 var _thrown_players: Dictionary = {}
+# peer_id -> {"target": Vector3, "direction": Vector3, "hover_y": float, "elapsed": float}
+var _carries: Dictionary = {}
+# peer_id -> true for every player carried off a roof during this event.
+var _carried_players: Dictionary = {}
 var _cover_volumes: Array[AABB] = []
 var path_presets: Array = [
 	[Vector3(-24.0, 0.0, -12.0), Vector3(24.0, 0.0, 12.0)],
@@ -79,9 +101,17 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 		# sideways (at most influence_radius) so its core crosses an exposed
 		# roof camper already inside the authored footprint; the shifted lane
 		# is the one published with the 3.0 s warning.
-		var roof_lane := _lane_through_exposed_roof(path)
-		if roof_lane.size() == 2 and path_for_terrain.is_valid():
-			roof_lane = path_for_terrain.call(roof_lane)
+		var roof_lane := _valid_roof_lane(path)
+		# T3q: when the drawn preset passes too far from every exposed roof
+		# camper to bend onto one, use the next preset (in index order) that
+		# can. RNG draws are unchanged; ground-only matches are unaffected.
+		if roof_lane.is_empty():
+			for step in range(1, path_presets.size()):
+				var alternate_index := (path_preset_index + step) % path_presets.size()
+				roof_lane = _valid_roof_lane(path_presets[alternate_index])
+				if roof_lane.size() == 2:
+					path_preset_index = alternate_index
+					break
 		if roof_lane.size() == 2:
 			path = roof_lane
 		elif path_for_terrain.is_valid():
@@ -92,6 +122,13 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 			return start_warning(path[1], path[0])
 		return start_warning(path[0], path[1])
 	return false
+
+
+func _valid_roof_lane(path: Array) -> Array:
+	var roof_lane := _lane_through_exposed_roof(path)
+	if roof_lane.size() == 2 and path_for_terrain.is_valid():
+		roof_lane = path_for_terrain.call(roof_lane)
+	return roof_lane if roof_lane.size() == 2 else []
 
 
 func _lane_through_exposed_roof(path: Array) -> Array:
@@ -146,6 +183,8 @@ func unregister_player(peer_id: int) -> bool:
 	_players.erase(peer_id)
 	_core_exposure.erase(peer_id)
 	_thrown_players.erase(peer_id)
+	_carries.erase(peer_id)
+	_carried_players.erase(peer_id)
 	return true
 
 
@@ -181,6 +220,8 @@ func start_warning(path_start: Vector3, path_end: Vector3) -> bool:
 	phase = Phase.WARNING
 	_core_exposure.clear()
 	_thrown_players.clear()
+	_carries.clear()
+	_carried_players.clear()
 	_spawn_effect()
 	warning_started.emit(start_position, warning_duration)
 	return true
@@ -220,6 +261,16 @@ func cleanup() -> void:
 	path_reversed = false
 	_core_exposure.clear()
 	_thrown_players.clear()
+	_carries.clear()
+	_carried_players.clear()
+
+
+func is_carrying(peer_id: int) -> bool:
+	return _carries.has(peer_id)
+
+
+func was_carried(peer_id: int) -> bool:
+	return _carried_players.has(peer_id)
 
 
 func active_effect_count() -> int:
@@ -280,6 +331,10 @@ func _apply_forces(delta: float) -> void:
 	for peer_id: int in _players:
 		var player := _players[peer_id] as PartyPlayer
 		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+			_carries.erase(peer_id)
+			continue
+		if _carries.has(peer_id):
+			_update_carry(peer_id, player, delta)
 			continue
 		var offset := global_position - player.global_position
 		var horizontal := Vector3(offset.x, 0.0, offset.z)
@@ -299,10 +354,11 @@ func _apply_forces(delta: float) -> void:
 			if not player.is_knocked_down():
 				player.apply_knockdown((tangent + Vector3.UP).normalized() * 4.0)
 			if exposure >= lift_time and not _thrown_players.has(peer_id):
-				var outward := -inward
-				player.apply_hazard_velocity((outward + Vector3.UP * 0.75).normalized() * throw_speed, throw_speed)
 				_thrown_players[peer_id] = true
 				throw_count += 1
+				if not _commit_carry(peer_id, player):
+					var outward := -inward
+					player.apply_hazard_velocity((outward + Vector3.UP * 0.75).normalized() * throw_speed, throw_speed)
 		else:
 			_core_exposure[peer_id] = 0.0
 
@@ -321,6 +377,75 @@ func _apply_forces(delta: float) -> void:
 		var force := (inward + tangent * 0.6 + Vector3.UP * proximity).normalized() * prop_force_max * proximity
 		body.sleeping = false
 		body.apply_central_force(force.limit_length(prop_force_max))
+
+
+# T3q: an exposed roof camper who stayed in the core for lift_time is carried
+# off the nearest lip instead of getting the ground throw (which ground
+# braking / knockdown damping eat before it can clear a roof).
+func _commit_carry(peer_id: int, player: PartyPlayer) -> bool:
+	var feet := player.global_position
+	if feet.y - minf(start_position.y, end_position.y) < ROOF_TARGET_MIN_HEIGHT:
+		return false
+	var lip := _nearest_lip(feet)
+	if lip.is_empty():
+		return false
+	var direction: Vector3 = lip.direction
+	var target := feet + direction * (float(lip.distance) + CARRY_PAST_LIP)
+	_carries[peer_id] = {"target": target, "direction": direction, "hover_y": feet.y + CARRY_HOVER_HEIGHT, "elapsed": 0.0}
+	_carried_players[peer_id] = true
+	carry_count += 1
+	_update_carry(peer_id, player, 0.0)
+	carry_started.emit(peer_id, target)
+	return true
+
+
+func _update_carry(peer_id: int, player: PartyPlayer, delta: float) -> void:
+	var carry: Dictionary = _carries[peer_id]
+	carry.elapsed = float(carry.elapsed) + delta
+	var position := player.global_position
+	var direction: Vector3 = carry.direction
+	var target: Vector3 = carry.target
+	var remaining := Vector3(target.x - position.x, 0.0, target.z - position.z).dot(direction)
+	if remaining <= 0.0 or float(carry.elapsed) >= CARRY_MAX_TIME or is_position_covered(position):
+		# Release past the lip: keep the sideways speed, never launch upward.
+		player.velocity.y = minf(player.velocity.y, 0.0)
+		_carries.erase(peer_id)
+		carry_released.emit(peer_id, position)
+		return
+	var lift := clampf((float(carry.hover_y) - position.y) * CARRY_LIFT_GAIN, -CARRY_LIFT_SPEED_MAX, CARRY_LIFT_SPEED_MAX)
+	var desired := (direction * throw_speed + Vector3.UP * lift).limit_length(throw_speed)
+	# Override, not an impulse: velocity_change = desired - current.
+	player.apply_hazard_velocity(desired - player.velocity, throw_speed)
+
+
+# Nearest direction (of LIP_PROBE_DIRECTIONS) where the support under the
+# probe drops at least LIP_MIN_DROP below the feet, with no wall in between.
+func _nearest_lip(feet: Vector3) -> Dictionary:
+	if not is_inside_tree():
+		return {}
+	var space := get_world_3d().direct_space_state
+	var best := {}
+	var best_distance := INF
+	for index in LIP_PROBE_DIRECTIONS:
+		var angle := TAU * float(index) / float(LIP_PROBE_DIRECTIONS)
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var step := LIP_PROBE_STEP
+		while step <= LIP_PROBE_RANGE and step < best_distance:
+			var probe := feet + direction * step
+			var down := PhysicsRayQueryParameters3D.create(probe + Vector3.UP * 0.4, probe + Vector3.DOWN * 60.0, MAP_COLLISION_MASK)
+			var hit := space.intersect_ray(down)
+			if hit.is_empty() or float(hit.position.y) < feet.y - LIP_MIN_DROP:
+				var chest := Vector3.UP * (CARRY_HOVER_HEIGHT + 0.9)
+				var past := feet + direction * (step + CARRY_PAST_LIP)
+				var across := PhysicsRayQueryParameters3D.create(feet + chest, past + chest, MAP_COLLISION_MASK)
+				if space.intersect_ray(across).is_empty():
+					best_distance = step
+					best = {"direction": direction, "distance": step}
+				break
+			if float(hit.position.y) > feet.y + 0.6:
+				break
+			step += LIP_PROBE_STEP
+	return best
 
 
 func _spawn_effect() -> void:
