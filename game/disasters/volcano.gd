@@ -6,6 +6,10 @@ const SURFACE_COUNT := 9
 const HOT_LIFETIME := 60.0
 const DAMAGE_PER_SECOND := 6.0
 const CONTACT_TOLERANCE := 0.22
+# Rising heat column: an exposed roof or ledge above the active crater is not a
+# safe pad. Same DAMAGE_PER_SECOND as the shelves; cover (a roof overhead) or
+# leaving the district footprint ends it.
+const HEAT_COLUMN_HEIGHT := 12.0
 
 @export var warning_duration := 12.0
 var phase := Phase.IDLE
@@ -273,12 +277,33 @@ func surface_at(feet: Vector3, require_contact := true) -> int:
 	return -1
 
 
+func _heat_column_at(feet: Vector3) -> int:
+	# Elevated, supported, open-sky footing inside the district footprint.
+	# Shelf contact, airborne points and covered/indoor floors are excluded.
+	if phase != Phase.ACTIVE or centers.size() != SURFACE_COUNT:
+		return -1
+	var index := surface_at(feet, false)
+	if index < 0:
+		return -1
+	var shelf := _surface_height(index, feet)
+	if feet.y <= shelf + CONTACT_TOLERANCE or feet.y > district_center.y + HEAT_COLUMN_HEIGHT:
+		return -1
+	if support_height.is_valid() and absf(float(support_height.call(feet)) - feet.y) > CONTACT_TOLERANCE:
+		return -1
+	if exposed.is_valid() and not bool(exposed.call(feet)):
+		return -1
+	return index
+
+
 func get_escape_context(feet: Vector3) -> String:
 	if phase == Phase.WARNING and absf(feet.x - district_center.x) <= district_size.x / 2 and absf(feet.z - district_center.z) <= district_size.y / 2:
 		return "VOLCANO — evacuate the outlined district; two crossing exits"
 	var index := surface_at(feet)
 	if index >= 0 and heat[index] > 0:
 		return "HOT GROUND — %.0fs heat left — move off this support" % ceilf(heat[index])
+	var column := _heat_column_at(feet)
+	if column >= 0 and heat[column] > 0:
+		return "VOLCANIC HEAT — %.0fs left — take cover or leave the district" % ceilf(heat[column])
 	return ""
 
 
@@ -315,7 +340,12 @@ func tick(delta: float) -> void:
 			continue
 		var feet := player.global_position
 		var index := surface_at(feet)
-		if index < 0 or hot_times[index] <= 0:
+		if index < 0:
+			var column := _heat_column_at(feet)
+			if column >= 0 and hot_times[column] > 0:
+				events.append({"peer_id": id, "amount": DAMAGE_PER_SECOND * hot_times[column], "cause": "Volcanic heat"})
+			continue
+		if hot_times[index] <= 0:
 			continue
 		if support_height.is_valid() and absf(float(support_height.call(feet)) - _surface_height(index, feet)) > CONTACT_TOLERANCE:
 			continue
