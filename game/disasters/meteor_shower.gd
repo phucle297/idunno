@@ -25,9 +25,15 @@ const ROOF_SECTOR_PULSES := 2
 const ROOF_SECTOR_MIN_HEIGHT := 1.5
 const ROOF_SECTOR_STANDING_TOLERANCE := 0.75
 const ROOF_SECTOR_SURFACE_TOLERANCE := 0.6
-const ROOF_SECTOR_MIN_OFFSET := 1.0
-const ROOF_SECTOR_MAX_OFFSET := 2.0 # < impact_radius - 0.5: a 0.5 m tiny-step stays inside.
-const ROOF_SECTOR_ANGLE_TRIES := 12
+const ROOF_SECTOR_MIN_OFFSET := 1.0 # Also the minimum distance from the frozen camper (no direct hit).
+const ROOF_SECTOR_MAX_OFFSET := 4.0 # From the projected anchor; reaches the valid lobes beside an exit reserve.
+const ROOF_SECTOR_OFFSET_STEP := 0.25
+const ROOF_SECTOR_ANGLE_TRIES := 24
+const ROOF_SECTOR_TINY_STEP := 0.5 # A pulse within impact_radius - this still covers a 0.5 m tiny-step.
+# Anchor projection: nearest same-roof point the route-safety reserve accepts.
+const ROOF_SECTOR_ANCHOR_STEP := 0.25
+const ROOF_SECTOR_ANCHOR_MAX_SHIFT := 4.5 # = impact_radius + 1.5, the exit/landing reserve.
+const ROOF_SECTOR_ANCHOR_ANGLES := 24
 
 @export var warning_duration := 2.5
 @export var impact_radius := 3.0
@@ -281,20 +287,62 @@ func _plan_roof_sector_pulses(rng: RandomNumberGenerator) -> void:
 		return
 	var camper := campers[rng.randi_range(0, campers.size() - 1)]
 	var sector_y := float(surface_height.call(camper))
-	roof_sector_center = Vector3(camper.x, sector_y, camper.z)
+	var frozen_camper := Vector3(camper.x, sector_y, camper.z)
 	var base_angle := rng.randf_range(0.0, TAU)
-	var radius := rng.randf_range(ROOF_SECTOR_MIN_OFFSET, ROOF_SECTOR_MAX_OFFSET)
+	# A camper inside an exit/landing reserve still gets pressure: the sector is
+	# pushed away from that exit to the nearest valid point on the same roof.
+	var anchor := _project_roof_sector_anchor(frozen_camper, sector_y, base_angle)
+	if anchor == Vector3.INF:
+		return
 	var placed: Array[Vector3] = []
 	for pulse in ROOF_SECTOR_PULSES:
 		var pulse_angle := base_angle + TAU * float(pulse) / float(ROOF_SECTOR_PULSES)
-		for attempt in ROOF_SECTOR_ANGLE_TRIES:
-			var angle := pulse_angle + TAU * float(attempt) / float(ROOF_SECTOR_ANGLE_TRIES)
-			var point := _bounded_point(roof_sector_center + Vector3(cos(angle), 0.0, sin(angle)) * radius)
-			if _is_roof_sector_point(point, sector_y, placed):
-				var pulse_points: Array[Vector3] = [point]
+		var tiers: Array = [[], [], []]
+		var radius := ROOF_SECTOR_MIN_OFFSET
+		while radius <= ROOF_SECTOR_MAX_OFFSET + 0.001:
+			for attempt in ROOF_SECTOR_ANGLE_TRIES:
+				var angle := pulse_angle + TAU * float(attempt) / float(ROOF_SECTOR_ANGLE_TRIES)
+				var point := _bounded_point(anchor + Vector3(cos(angle), 0.0, sin(angle)) * radius)
+				var camper_distance := _horizontal_distance(point, frozen_camper)
+				if camper_distance < ROOF_SECTOR_MIN_OFFSET or not _is_roof_sector_point(point, sector_y, placed):
+					continue
+				# Prefer footprints that still cover a frozen tiny-stepper, then any
+				# that reach the camper, then any valid footprint in the sector.
+				if camper_distance <= impact_radius - ROOF_SECTOR_TINY_STEP:
+					tiers[0].append(point)
+				elif camper_distance <= impact_radius:
+					tiers[1].append(point)
+				else:
+					tiers[2].append(point)
+			radius += ROOF_SECTOR_OFFSET_STEP
+		for tier: Array in tiers:
+			if not tier.is_empty():
+				var chosen: Vector3 = tier[rng.randi_range(0, tier.size() - 1)]
+				var pulse_points: Array[Vector3] = [chosen]
 				_pending_pulses.append(pulse_points)
-				placed.append(point)
+				placed.append(chosen)
 				break
+	# Never record a sector that cannot publish a single pulse.
+	if not _pending_pulses.is_empty():
+		roof_sector_center = anchor
+
+
+# Nearest point on the camper's roof surface that the route-safety reserve
+# accepts (>= impact_radius + 1.5 from every exit/landing), searched in rings.
+func _project_roof_sector_anchor(camper: Vector3, sector_y: float, base_angle: float) -> Vector3:
+	var shift := 0.0
+	while shift <= ROOF_SECTOR_ANCHOR_MAX_SHIFT + 0.001:
+		var angles := 1 if shift == 0.0 else ROOF_SECTOR_ANCHOR_ANGLES
+		for step in angles:
+			var angle := base_angle + TAU * float(step) / float(ROOF_SECTOR_ANCHOR_ANGLES)
+			var point := _bounded_point(camper + Vector3(cos(angle), 0.0, sin(angle)) * shift)
+			if absf(point.y - 0.06 - sector_y) > ROOF_SECTOR_SURFACE_TOLERANCE:
+				continue
+			var candidate: Array[Vector3] = [point]
+			if not _route_safety_query.is_valid() or bool(_route_safety_query.call(candidate)):
+				return Vector3(point.x, sector_y, point.z)
+		shift += ROOF_SECTOR_ANCHOR_STEP
+	return Vector3.INF
 
 
 func _is_roof_sector_point(point: Vector3, sector_y: float, placed: Array[Vector3]) -> bool:

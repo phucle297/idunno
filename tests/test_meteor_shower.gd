@@ -292,6 +292,7 @@ func _run() -> void:
 	shelter.free()
 	pad_body.free()
 	await process_frame
+	await _check_exit_adjacent_roof(world, manager, meteor, players)
 	if failures.is_empty():
 		print("METEOR_SHOWER_OK checks=%d" % checks)
 		quit(0)
@@ -299,6 +300,162 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+# T3d attempt 2: a ShopRoof-like pad whose refuge exit sits 2.3 m from its centre.
+# The 4.5 m exit reserve rejects every 1-2 m offset around a centre camper, so the
+# sector anchor must be projected off the exit before pulses are placed.
+func _check_exit_adjacent_roof(world: Node3D, manager: MatchManager, meteor: MeteorShower, players: Array[PartyPlayer]) -> void:
+	var pad := Rect2(13.7, -25.3, 12.6, 10.6)
+	var pad_top := 4.855
+	var pad_center := Vector3(20.0, pad_top, -20.0)
+	var pad_exit := Vector3(20.0, pad_top, -22.3)
+	var reserve_radius := meteor.impact_radius + 1.5
+	var pad_body := StaticBody3D.new()
+	pad_body.collision_layer = 1
+	var pad_collider := CollisionShape3D.new()
+	var pad_box := BoxShape3D.new()
+	pad_box.size = Vector3(pad.size.x, 0.5, pad.size.y)
+	pad_collider.shape = pad_box
+	pad_body.add_child(pad_collider)
+	pad_body.position = Vector3(pad.get_center().x, pad_top - 0.25, pad.get_center().y)
+	world.add_child(pad_body)
+	await physics_frame
+	var space := world.get_world_3d().direct_space_state
+	meteor.set_strike_area(56.0, func(point: Vector3) -> float:
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(point.x, 40.0, point.z), Vector3(point.x, -10.0, point.z), 1))
+		return float(hit.position.y) if not hit.is_empty() else 0.0)
+	var exit_clear := func(points: Array[Vector3]) -> bool:
+		for point in points:
+			if absf(point.y - pad_exit.y) <= meteor.vertical_exposure and Vector2(point.x - pad_exit.x, point.z - pad_exit.z).length() <= reserve_radius:
+				return false
+		return true
+	meteor.set_route_safety_query(exit_clear)
+	var on_pad := func(point: Vector3) -> bool: return pad.has_point(Vector2(point.x, point.z)) and absf(point.y - pad_top) <= meteor.vertical_exposure
+	_expect(is_equal_approx(MeteorScript.ROOF_SECTOR_MAX_OFFSET, 4.0) and is_equal_approx(MeteorScript.ROOF_SECTOR_MIN_OFFSET, 1.0), "sector offsets 1.0-4.0 m around the projected anchor")
+	# Stands: centre (QA jitter), off-centre, near the exit, and on the exit pad itself.
+	var stands := {"centre": pad_center, "east": pad_center + Vector3(4.0, 0, 0), "west": pad_center + Vector3(-4.0, 0, 0), "far": pad_center + Vector3(0, 0, 3.5), "near_exit_2m": pad_exit + Vector3(0, 0, 2.0), "near_exit_2m_side": pad_exit + Vector3(1.6, 0, 1.2), "reserve_band_1.5m_side": pad_exit + Vector3(1.2, 0, 0.9), "exit_pad_0.5m": pad_exit + Vector3(0, 0, 0.5)}
+	for stand: String in stands:
+		var sector_hits := 0
+		var hit_or_moved := 0
+		var events_with_pulses := 0
+		var dodger_survived := 0
+		var exit_reachable := 0
+		var pulse_counts: Array[int] = []
+		for seed_index in 10:
+			var jitter := RandomNumberGenerator.new()
+			jitter.seed = 9700 + seed_index * 31
+			var start: Vector3 = stands[stand]
+			if stand == "centre":
+				start += Vector3(jitter.randf_range(-1.0, 1.0), 0.0, jitter.randf_range(-1.0, 1.0))
+			for dodge in [false, true]:
+				for peer_id in [1, 2, 3, 4]:
+					manager.players[peer_id].health = 100.0
+					manager.players[peer_id].alive = true
+				players[0].position = start
+				for index in range(1, players.size()):
+					players[index].position = Vector3(-40.0 + float(index) * 8.0, 0.0, 40.0)
+				var seeded := RandomNumberGenerator.new()
+				seeded.seed = 9600 + seed_index
+				_expect(meteor.start_disaster(seeded), "exit-adjacent roof %s seed %d starts" % [stand, seed_index])
+				var pending := meteor.pending_pulse_count()
+				if not dodge:
+					pulse_counts.append(pending)
+					if pending > 0:
+						events_with_pulses += 1
+						_expect(meteor.roof_sector_center != Vector3.INF and Vector2(meteor.roof_sector_center.x - pad_exit.x, meteor.roof_sector_center.z - pad_exit.z).length() > reserve_radius - 0.01, "%s seed %d: sector anchor projected >= 4.5 m off the exit" % [stand, seed_index])
+					else:
+						_expect(meteor.roof_sector_center == Vector3.INF, "%s seed %d: no sector recorded without a pulse" % [stand, seed_index])
+				var main_wave_hp := -1.0
+				var exit_covered := false
+				var pulse_index := 0
+				var guard := 0.0
+				while meteor.is_active() and guard < 30.0:
+					if dodge and meteor.phase == MeteorScript.Phase.WARNING:
+						# Scripted dodger: once a telegraph appears, step out of it (bounded
+						# by walk speed over the warning minus 0.5 s reaction) to the nearest pad spot.
+						players[0].position = _dodge_spot(players[0].position, meteor, pad, pad_top, 4.5 * (meteor.warning_remaining - 0.5))
+						for point: Vector3 in meteor.strike_points:
+							exit_covered = exit_covered or Vector2(point.x - pad_exit.x, point.z - pad_exit.z).length() <= meteor.impact_radius
+					var phase_before := meteor.phase
+					meteor.tick(0.05)
+					guard += 0.05
+					if phase_before == MeteorScript.Phase.IMPACT and meteor.phase == MeteorScript.Phase.WARNING:
+						if pulse_index == 0:
+							main_wave_hp = manager.get_health(1)
+						pulse_index += 1
+						for point: Vector3 in meteor.strike_points:
+							_expect(on_pad.call(point), "%s seed %d: sector pulse stays on the same roof" % [stand, seed_index])
+							_expect(Vector2(point.x - pad_exit.x, point.z - pad_exit.z).length() > reserve_radius, "%s seed %d: no sector footprint on the reserved exit" % [stand, seed_index])
+							_expect(Vector2(point.x - players[0].position.x, point.z - players[0].position.z).length() >= MeteorScript.ROOF_SECTOR_MIN_OFFSET - 0.01 or dodge, "%s seed %d: pulse >= 1 m from the frozen camper (no direct hit)" % [stand, seed_index])
+				_expect(not meteor.is_active() and meteor.pending_pulse_count() == 0, "%s seed %d: event is finite" % [stand, seed_index])
+				if main_wave_hp < 0.0:
+					main_wave_hp = manager.get_health(1)
+				if dodge:
+					if manager.is_player_alive(1) and is_equal_approx(manager.get_health(1), 100.0):
+						dodger_survived += 1
+					# Exit stays reachable: never under a live footprint; the pad is convex.
+					if manager.is_player_alive(1) and not exit_covered:
+						exit_reachable += 1
+				else:
+					if manager.get_health(1) < main_wave_hp - 0.01:
+						sector_hits += 1
+					if manager.get_health(1) < 100.0 or players[0].position.distance_to(start) > 0.01:
+						hit_or_moved += 1
+				meteor.cleanup()
+		print("METEOR_T3D_A2_STAND stand=%s pulses_planned=%s events_with_pulses=%d idle_sector_hits=%d idle_hit_any=%d dodger_survived=%d exit_reachable=%d" % [stand, pulse_counts, events_with_pulses, sector_hits, hit_or_moved, dodger_survived, exit_reachable])
+		_expect(dodger_survived == 10 and exit_reachable == 10, "%s: scripted dodger survives every sector pulse 10/10 and reaches the exit" % stand)
+		if stand in ["centre", "east", "west", "far", "near_exit_2m", "near_exit_2m_side"]:
+			_expect(sector_hits >= 7, "%s: idle camper hit by sector pulses in >= 7/10 seeds (got %d)" % [stand, sector_hits])
+		else:
+			# Within 1.5 m of an exit no 3 m footprint can reach the camper while staying
+			# 4.5 m off the exit (geometric limit of the unchanged reserve).
+			_expect(events_with_pulses >= 7, "%s: camper on the exit pad still gets projected sector pulses in >= 7/10 seeds" % stand)
+	# If not a single pulse can be placed, no sector is recorded (no 0-pulse pending).
+	meteor.set_route_safety_query(func(points: Array[Vector3]) -> bool:
+		for point in points:
+			if point.y > 1.0:
+				return false
+		return true)
+	for peer_id in [1, 2, 3, 4]:
+		manager.players[peer_id].health = 100.0
+		manager.players[peer_id].alive = true
+	players[0].position = pad_center
+	for index in range(1, players.size()):
+		players[index].position = Vector3(-40.0 + float(index) * 8.0, 0.0, 40.0)
+	var blocked := RandomNumberGenerator.new()
+	blocked.seed = 9650
+	var blocked_started := meteor.start_disaster(blocked)
+	_expect(blocked_started and meteor.roof_sector_center == Vector3.INF and meteor.pending_pulse_count() == 0, "a roof sector with 0 placeable pulses is never recorded")
+	meteor.cleanup()
+	meteor.set_route_safety_query(exit_clear)
+	pad_body.free()
+	await process_frame
+
+
+func _dodge_spot(position: Vector3, meteor: MeteorShower, pad: Rect2, pad_top: float, max_step: float) -> Vector3:
+	var best := position
+	var best_distance := INF
+	var safe_radius := meteor.impact_radius + 0.4
+	var inside := false
+	for point: Vector3 in meteor.strike_points:
+		inside = inside or Vector2(point.x - position.x, point.z - position.z).length() <= safe_radius
+	if not inside:
+		return position
+	for gx in 50:
+		for gz in 42:
+			var spot := Vector3(pad.position.x + 0.5 + float(gx) * 0.25, pad_top, pad.position.y + 0.5 + float(gz) * 0.25)
+			if not pad.grow(-0.5).has_point(Vector2(spot.x, spot.z)):
+				continue
+			var clear := true
+			for point: Vector3 in meteor.strike_points:
+				clear = clear and Vector2(point.x - spot.x, point.z - spot.z).length() > safe_radius
+			var distance := spot.distance_to(position)
+			if clear and distance < best_distance:
+				best = spot
+				best_distance = distance
+	_expect(best_distance <= max_step, "dodger reaches a clear pad spot within walk speed x warning (%.2f m <= %.2f m)" % [best_distance, max_step])
+	return best
+
 
 func _expect(condition: bool, message: String) -> void:
 	checks += 1
