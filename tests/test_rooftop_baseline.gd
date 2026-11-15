@@ -10,7 +10,10 @@ extends SceneTree
 #     -- [--maps=toy_town,toy_harbor] [--presets=normal,hard] [--seeds=101-110]
 #        [--controls=rooftop_idle,rooftop_tiny_step,ground_idle,active_route]
 #        [--horizon=480] [--samples-out=/tmp/x.jsonl] [--json-out=/tmp/x.json] [--real-death]
-# tests/run_rooftop_baseline.sh runs the full matrix as parallel shards.
+# tests/run_rooftop_baseline.sh runs the full matrix as parallel shards, each
+# Godot process with ASLR off (setarch -R): GodotPhysics3D contact order can
+# depend on memory layout (D4). Run single shards the same way for repeatable
+# positions.
 #
 # Without --fixed-fps the engine steps in real time (8:00 of match per run), so
 # generic runners (run_ui_regression.sh, the pre-commit gate) that launch every

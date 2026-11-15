@@ -2,7 +2,7 @@
 # T3b rooftop / pacing baseline: full matrix (10 seeds x 2 maps x 2 presets x
 # 4 controls) through 8:00, one fresh headless Godot process per run (JOBS in
 # parallel, default 8), merged into one JSON blob. Logs and samples go to OUT_DIR, never the repo.
-# Usage: GODOT_BIN=godot tests/run_rooftop_baseline.sh [OUT_DIR] [TAG]
+# Usage: GODOT_BIN=godot [JOBS=8] [SEEDS=101-110] [MAPS=..] [PRESETS=..] [CONTROLS=..] tests/run_rooftop_baseline.sh [OUT_DIR] [TAG]
 set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
@@ -11,6 +11,20 @@ OUT_DIR="$(realpath -m "${1:-/tmp/idunno-T3b}")"
 TAG="${2:-run}"
 SEEDS="${SEEDS:-101-110}"
 HORIZON="${HORIZON:-480}"
+# Subset filters (defaults = full matrix).
+MAPS="${MAPS:-toy_town toy_harbor}"
+PRESETS="${PRESETS:-normal hard}"
+CONTROLS="${CONTROLS:-rooftop_idle rooftop_tiny_step ground_idle active_route}"
+# D4: GodotPhysics3D iterates some address-keyed containers, so contact order
+# (and positions, by ~1e-5 m per event, amplified by the route) can depend on
+# address-space layout randomization. Run each Godot process with ASLR off.
+NO_ASLR=()
+if command -v setarch > /dev/null && setarch "$(uname -m)" -R true 2> /dev/null; then
+  NO_ASLR=(setarch "$(uname -m)" -R)
+  echo "ROOFTOP_BASELINE_ASLR off"
+else
+  echo "ROOFTOP_BASELINE_ASLR on (setarch -R unavailable; positions may differ by > 1 cm between runs)"
+fi
 mkdir -p "$OUT_DIR"
 
 "$GODOT_BIN" --headless --editor --path "$ROOT" --quit > "$OUT_DIR/T3b-$TAG-import.log" 2>&1
@@ -35,20 +49,22 @@ for part in sys.argv[1].split(','):
 print(' '.join(map(str,out)))" "$SEEDS")"
 jobs_file="$RUN_DIR/jobs.txt"
 : > "$jobs_file"
-for map in toy_town toy_harbor; do
-  for preset in normal hard; do
+for map in $MAPS; do
+  for preset in $PRESETS; do
     for seed in $seed_list; do
-      for control in rooftop_idle rooftop_tiny_step ground_idle active_route; do
+      for control in $CONTROLS; do
         echo "$map $preset $seed $control" >> "$jobs_file"
       done
     done
   done
 done
-export ROOT GODOT_BIN RUN_DIR HORIZON
+NO_ASLR_CMD="${NO_ASLR[*]:-}"
+export ROOT GODOT_BIN RUN_DIR HORIZON NO_ASLR_CMD
 run_job() {
   local map="$1" preset="$2" seed="$3" control="$4"
   local name="$map-$preset-$seed-$control"
-  "$GODOT_BIN" --headless --fixed-fps 60 --path "$ROOT" --script res://tests/test_rooftop_baseline.gd -- \
+  # shellcheck disable=SC2086
+  $NO_ASLR_CMD "$GODOT_BIN" --headless --fixed-fps 60 --path "$ROOT" --script res://tests/test_rooftop_baseline.gd -- \
     --maps="$map" --presets="$preset" --controls="$control" --seeds="$seed" --horizon="$HORIZON" \
     --samples-out="$RUN_DIR/$name-samples.jsonl" --json-out="$RUN_DIR/$name.json" > "$RUN_DIR/$name.log" 2>&1 || true
   if ! rg -q '^ROOFTOP_BASELINE_OK' "$RUN_DIR/$name.log" || \
