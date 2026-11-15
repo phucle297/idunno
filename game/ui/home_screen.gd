@@ -169,8 +169,8 @@ func _build_maps() -> void:
 		map_labels.append(_label(button, _main.MAP_TITLES[_main.MAP_IDS[index]].to_upper(), Rect2(20, 244, 540, 36), 28))
 		_label(button, descriptions[index], Rect2(20, 285, 540, 26), 18, UI.SLATE)
 	_label(maps, "MATCH MODE", Rect2(52, 574, 400, 28), 20)
-	for index in 2:
-		mode_buttons.append(_button(maps, ["NORMAL", "HARD"][index], Rect2(48 + index * 180, 616, 164, 58), func() -> void:
+	for index in 1:
+		mode_buttons.append(_button(maps, ["HARD"][index], Rect2(48 + index * 180, 616, 164, 58), func() -> void:
 			_main.get_node("Interface/LobbyPanel/PresetSelect").item_selected.emit(index)
 			refresh()))
 	summary = _label(maps, "", Rect2(840, 574, 390, 28), 20, UI.SLATE)
@@ -182,7 +182,7 @@ func show_page(value: String) -> void:
 		return
 	page = value
 	if page == "maps" and _main.get_match_preset() == "hot_potato":
-		_main.request_match_preset("normal") # Multiplayer-only rules cannot remain as a hidden solo selection.
+		_main.request_match_preset("hard") # Multiplayer-only rules cannot remain as a hidden solo selection.
 	refresh()
 	if is_instance_valid(_main.room_client):
 		_main._update_lobby_ui()
@@ -220,5 +220,5 @@ func refresh() -> void:
 	for index in mode_buttons.size():
 		var selected: bool = _main.get_match_preset() == _main.MATCH_PRESETS[index]
 		mode_buttons[index].add_theme_stylebox_override("normal", _style(UI.WARNING if selected else UI.WHITE))
-		mode_buttons[index].text = ("✓  " if selected else "") + ["NORMAL", "HARD"][index]
+		mode_buttons[index].text = ("✓  " if selected else "") + ["HARD"][index]
 	summary.text = "Preparing your playground…" if loading else _main.MAP_TITLES[_main.get_map_id()] + " / " + _main.MATCH_PRESET_TITLES[_main.get_match_preset()]

@@ -62,6 +62,10 @@ func _run() -> void:
 		root.add_child(disaster)
 
 	_expect(director.configure(manager), "Authority must configure the director")
+	_expect(director.match_preset == "hard", "Default director match preset must be hard")
+	_expect(is_equal_approx(director.hard_pacing_scale, 0.6), "hard_pacing_scale must stay 0.6")
+	_expect("normal" not in director.MATCH_PRESETS and not director.set_match_preset("normal"), "Normal must not be a selectable director preset")
+	_expect(director.match_preset == "hard", "Rejected Normal must leave Hard in place")
 	_expect(director.register_disaster(meteor), "Meteor must satisfy the shared disaster contract")
 	_expect(director.register_disaster(flood), "Flood must satisfy the shared disaster contract")
 	_expect(director.register_disaster(tornado), "Tornado must satisfy the shared disaster contract")
@@ -100,6 +104,16 @@ func _run() -> void:
 	_expect(director.has_completed_solo("Tornado"), "Tornado must record a solo completion")
 	manager.elapsed_time = 300.0
 	_expect(director.get_intensity() == 3, "Intensity three must begin at five minutes")
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 1.8) and is_equal_approx(float(director.get_pacing()["overlap"]), 3.6), "Hard I3 pacing must be 1.8/3.6")
+	var saved_elapsed := manager.elapsed_time
+	manager.elapsed_time = 0.0
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 2.4) and is_equal_approx(float(director.get_pacing()["overlap"]), 4.8), "Hard I1–2 pacing must be 2.4/4.8")
+	manager.elapsed_time = 120.0
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 2.4) and is_equal_approx(float(director.get_pacing()["overlap"]), 4.8), "Hard I2 pacing must stay 2.4/4.8")
+	manager.elapsed_time = 480.0
+	_expect(director.get_intensity() == 4, "Intensity clock must still reach four at eight minutes")
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 1.2) and is_equal_approx(float(director.get_pacing()["overlap"]), 2.4), "Hard I4–5 pacing must be 1.2/2.4")
+	manager.elapsed_time = saved_elapsed
 
 	_expect(director.try_start_disaster("Meteor Shower"), "A previously seen disaster must restart at intensity three")
 	_expect(director.try_start_disaster("Flood"), "Two separately introduced compatible disasters must overlap")

@@ -74,39 +74,44 @@ func _run() -> void:
 	root.add_child(director)
 	_expect(director.configure(manager), "Authority must configure the pacing director")
 
-	# The pacing curve: the opening keeps its forgiving baseline, later tiers
-	# shorten the gaps, and fixture overrides still work with protection floors.
+	# Hard is the only survival baseline. The intensity clock is unchanged;
+	# Hard multiplies the mid/late curve by hard_pacing_scale 0.6:
+	# I1–2 2.4/4.8, I3 1.8/3.6, I4–5 1.2/2.4. Fixture overrides still work.
+	_expect(director.match_preset == "hard", "Default director match preset must be hard")
+	_expect(is_equal_approx(director.hard_pacing_scale, 0.6), "hard_pacing_scale must stay 0.6")
+	_expect("normal" not in director.MATCH_PRESETS and not director.set_match_preset("normal"), "Normal must not be a selectable director preset")
+	_expect(director.match_preset == "hard", "Rejected Normal must leave Hard in place")
 	manager.register_player(1, "Pacing Player")
 	manager.set_player_ready(1, true)
 	manager.start_match()
 	manager.elapsed_time = 0.0
 	var opening := director.get_pacing()
-	_expect(opening["recovery"] == director.recovery_duration and opening["overlap"] == director.overlap_delay, "The opening must keep the forgiving baseline gaps")
+	_expect(is_equal_approx(float(opening["recovery"]), 2.4) and is_equal_approx(float(opening["overlap"]), 4.8), "Hard opening (I1) must be 2.4/4.8")
 	manager.elapsed_time = 119.99
 	var opening_edge := director.get_pacing()
-	_expect(opening_edge["recovery"] == director.recovery_duration, "The first two minutes must stay forgiving up to the boundary")
+	_expect(is_equal_approx(float(opening_edge["recovery"]), 2.4) and is_equal_approx(float(opening_edge["overlap"]), 4.8), "The first two minutes must stay on the Hard I1 2.4/4.8 table")
 	manager.elapsed_time = 120.0
-	_expect(director.get_pacing()["recovery"] == director.recovery_duration, "Intensity two must keep baseline recovery (frequency, not damage, is the early lever)")
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 2.4) and is_equal_approx(float(director.get_pacing()["overlap"]), 4.8), "Hard intensity two must keep the I1–2 2.4/4.8 table")
 	manager.elapsed_time = 299.99
 	var mid_edge := director.get_pacing()
 	manager.elapsed_time = 300.0
 	var mid := director.get_pacing()
-	_expect(is_equal_approx(float(mid_edge["recovery"]), director.recovery_duration), "Pacing must not change before the five-minute boundary")
-	_expect(float(mid["recovery"]) < float(mid_edge["recovery"]) and float(mid["overlap"]) < float(mid_edge["overlap"]), "Intensity three must shorten recovery and overlap")
+	_expect(is_equal_approx(float(mid_edge["recovery"]), 2.4) and is_equal_approx(float(mid_edge["overlap"]), 4.8), "Pacing must not change before the five-minute boundary")
+	_expect(is_equal_approx(float(mid["recovery"]), 1.8) and is_equal_approx(float(mid["overlap"]), 3.6), "Hard intensity three must be 1.8/3.6")
 	manager.elapsed_time = 479.99
 	var late_edge := director.get_pacing()
 	manager.elapsed_time = 480.0
 	var late := director.get_pacing()
-	_expect(is_equal_approx(float(late_edge["recovery"]), float(mid["recovery"])), "Intensity four must not start before its boundary")
-	_expect(float(late["recovery"]) < float(mid["recovery"]) and float(late["overlap"]) < float(mid["overlap"]), "Intensity four must shorten the gaps again")
+	_expect(is_equal_approx(float(late_edge["recovery"]), 1.8) and is_equal_approx(float(late_edge["overlap"]), 3.6), "Intensity four must not start before its boundary")
+	_expect(is_equal_approx(float(late["recovery"]), 1.2) and is_equal_approx(float(late["overlap"]), 2.4), "Hard intensity four must stay 1.2/2.4")
 	manager.elapsed_time = 999.0
-	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), float(late["recovery"])), "The fastest tier must stay bounded at extreme match times")
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 1.2) and is_equal_approx(float(director.get_pacing()["overlap"]), 2.4), "The fastest Hard tier must stay bounded at 1.2/2.4")
 	director.recovery_duration = 0.1
 	director.overlap_delay = 0.1
 	var floored := director.get_pacing()
 	_expect(float(floored["recovery"]) > 0.0 and float(floored["overlap"]) > 0.0, "Pacing must never zero a positive recovery gap")
 	_expect(director.mid_pacing_scale >= 0.5 and director.late_pacing_scale >= 0.5, "Recovery protection must bound the pacing scales")
-	_expect(float(late["recovery"]) >= 1.5 and float(late["overlap"]) >= 1.5, "Default gaps must stay readable at the fastest tier")
+	_expect(is_equal_approx(float(late["recovery"]), 1.2) and is_equal_approx(float(late["overlap"]), 2.4), "Default Hard gaps must stay at the 1.2/2.4 table")
 	director.recovery_duration = 4.0
 	director.overlap_delay = 8.0
 
@@ -137,29 +142,39 @@ func _run() -> void:
 		root.add_child(hazard)
 		_expect(director.register_disaster(hazard), "Death-timing hazards must register")
 	var lethal_hazards: Array = [rival_a, rival_b]
-	var normal := _simulate_death(manager, director, lethal_hazards, 0.0, 1111)
+	var opening_run := _simulate_death(manager, director, lethal_hazards, 0.0, 1111)
 	var late_run := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
-	_expect(normal["death_time"] > 0.0 and late_run["death_time"] > 0.0, "Both pacing runs must end in a readable death")
-	_expect(late_run["duration"] < normal["duration"], "Late tiers must kill sooner through pacing gaps alone")
-	_expect(late_run["frequency"] > normal["frequency"], "Late tiers must raise hazard frequency")
-	_expect(normal["damage_per_second"] == 10.0 and late_run["damage_per_second"] == 10.0, "Pacing must never silently multiply damage")
-	_expect(normal["cause"] in ["Rival A", "Rival B"] and late_run["cause"] in ["Rival A", "Rival B"], "Death causes must name a real hazard at every pace")
+	_expect(opening_run["death_time"] > 0.0 and late_run["death_time"] > 0.0, "Both Hard pacing runs must end in a readable death")
+	_expect(late_run["duration"] < opening_run["duration"], "Late Hard tiers must kill sooner through pacing gaps alone")
+	_expect(late_run["frequency"] > opening_run["frequency"], "Late Hard tiers must raise hazard frequency")
+	_expect(opening_run["damage_per_second"] == 10.0 and late_run["damage_per_second"] == 10.0, "Pacing must never silently multiply damage")
+	_expect(opening_run["cause"] in ["Rival A", "Rival B"] and late_run["cause"] in ["Rival A", "Rival B"], "Death causes must name a real hazard at every pace")
 
 	# Rematch reproducibility: the same seed replays the same death timing.
 	for cycle in 5:
 		var replay := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
 		_expect(is_equal_approx(float(replay["death_time"]), float(late_run["death_time"])), "Rematch cycle %d must replay identical death timing from the same seed" % (cycle + 1))
 
-	# Owner-selected Hard preset: harder through shorter gaps only. It must
-	# kill sooner than Normal at the same tier and seed while damage stays
-	# identical, and its gaps stay bounded and positive.
+	# Hard vs an explicit 1.0-scale helper (not a selectable Normal preset).
+	# Hard (0.6×) must kill sooner at the same late tier and seed, damage unchanged.
 	_expect(director.set_match_preset("hard"), "Authority must accept the Hard preset")
+	_expect(not director.set_match_preset("normal"), "Normal must be rejected as a director preset")
 	_expect(not director.set_match_preset("nightmare"), "Unknown presets must be rejected")
+	_expect(director.match_preset == "hard", "Rejected presets must leave Hard in place")
+	var saved_scale := director.hard_pacing_scale
+	director.hard_pacing_scale = 1.0
+	manager.elapsed_time = 480.0
+	var unscaled := director.get_pacing()
+	var unscaled_run := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
+	director.hard_pacing_scale = saved_scale
+	_expect(is_equal_approx(director.hard_pacing_scale, 0.6), "The 1.0-scale helper must restore hard_pacing_scale 0.6")
 	var hard_run := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
-	_expect(hard_run["death_time"] > 0.0, "The Hard run must end in a readable death")
-	_expect(hard_run["duration"] < late_run["duration"], "Hard must kill sooner than Normal at the same tier and seed")
-	_expect(hard_run["damage_per_second"] == late_run["damage_per_second"], "Hard must never multiply damage")
-	_expect(float(director.get_pacing()["recovery"]) < float(late["recovery"]), "Hard must shorten gaps below Normal at the same tier")
+	_expect(unscaled_run["death_time"] > 0.0 and hard_run["death_time"] > 0.0, "The Hard and 1.0-scale runs must end in a readable death")
+	_expect(hard_run["duration"] < unscaled_run["duration"], "Hard must kill sooner than an explicit 1.0-scale helper at the same tier and seed")
+	_expect(hard_run["damage_per_second"] == unscaled_run["damage_per_second"], "Hard must never multiply damage")
+	manager.elapsed_time = 480.0
+	_expect(float(director.get_pacing()["recovery"]) < float(unscaled["recovery"]), "Hard must shorten gaps below the 1.0-scale helper at the same tier")
+	_expect(is_equal_approx(float(director.get_pacing()["recovery"]), 1.2) and is_equal_approx(float(director.get_pacing()["overlap"]), 2.4), "Hard I4–5 must stay 1.2/2.4 after the helper")
 	_expect(float(director.get_pacing()["recovery"]) >= 1.0, "Hard must keep a readable recovery gap at defaults")
 	for cycle in 5:
 		var hard_replay := _simulate_death(manager, director, lethal_hazards, 480.0, 1111)
@@ -198,7 +213,7 @@ func _run() -> void:
 	solo_director.cleanup()
 
 	if failures.is_empty():
-		print("SURVIVAL_PACING_OK checks=%d normal_death=%.1fs late_death=%.1fs hard_death=%.1fs" % [checks, float(normal["duration"]), float(late_run["duration"]), float(hard_run["duration"])])
+		print("SURVIVAL_PACING_OK checks=%d opening_death=%.1fs unscaled_death=%.1fs hard_death=%.1fs" % [checks, float(opening_run["duration"]), float(unscaled_run["duration"]), float(hard_run["duration"])])
 		quit(0)
 	else:
 		for failure in failures:
