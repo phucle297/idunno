@@ -21,6 +21,14 @@ const POWERUP_SPEED_MULTIPLIER := 1.2
 const POWERUP_JUMP_HEIGHT_MULTIPLIER := 1.2
 const COYOTE_TIME := 0.12
 const JUMP_BUFFER_TIME := 0.12
+const STEP_HEIGHT := 0.30 # DESIGN §8: climb square lips up to 0.30 m without jumping.
+# Foot probe (T2 a4): a flat cylinder, narrower than the capsule, cast down from
+# just above the soles after a grounded move; a walkable floor this close
+# keeps the floor contact when the capsule's own contact drops for a tick.
+const FOOT_PROBE_RADIUS := 0.22
+const FOOT_PROBE_THICKNESS := 0.02
+const FOOT_PROBE_START := 0.01 # cast starts this far above the soles
+const FOOT_PROBE_DEPTH := 0.03 # and reaches this far below them
 const STANDING_HEIGHT := 1.5
 const CAPSULE_RADIUS := 0.28
 const PREDICTION_HISTORY_TICKS := 60

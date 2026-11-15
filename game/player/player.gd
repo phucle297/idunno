@@ -10,6 +10,15 @@ const EMOTE_WAVE := 1
 const EMOTE_CHEER := 2
 const EMOTE_CLIPS := {EMOTE_WAVE: "wave", EMOTE_CHEER: "cheer"}
 const EMOTE_DURATIONS := {EMOTE_WAVE: 1.2, EMOTE_CHEER: 1.0}
+const STEP_DOWN_MARGIN := 0.1 # step-up: down sweep reaches this far below the start
+const STEP_PROBE_EXTRA := 0.02 # step-up: blocked-probe reach past this tick's motion
+const STEP_OVERLAP_TOLERANCE := 0.002 # step-up: landing overlap that triggers a split re-sweep
+const STEP_STAND_CLEARANCE := 0.05 # step-up: headroom check height above the lip top
+const STEP_SETTLE := 0.002 # step-up: downward settle after a step, registers the floor contact
+const STEP_NONE := -1.0
+const STEP_KEEP_SPEED := -2.0
+const STEP_CORNER_MAX_ANGLE := deg_to_rad(85.0) # step-up: steepest lip-corner contact to step onto
+const STEP_DEPENETRATE := 0.06 # max upward recovery of a 2-5 cm step-top sink this tick
 
 @onready var visual: Node3D = $Visual
 @onready var collider: CollisionShape3D = $CollisionShape3D
@@ -26,6 +35,7 @@ var _is_eliminated := false
 var _get_up_remaining := 0.0
 var _landing_remaining := 0.0
 var _presentation_airborne := false
+var _foot_probe_shape: CylinderShape3D
 var _network_grounded := -1
 var _fall_peak := NAN
 var _shove_manager: Node
@@ -202,7 +212,13 @@ func apply_movement_input(
 
 	if wish_direction.length_squared() > 0.01:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
-	_move_and_report_landing()
+	# Replay from an airborne server state must not snap with the client's
+	# own (later) floor contact; the server did not snap on this tick either.
+	var snap := floor_snap_length
+	if grounded_override == 0:
+		floor_snap_length = 0.0
+	_move_and_report_landing(grounded and velocity.y <= 0.0, delta)
+	floor_snap_length = snap
 
 
 func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, jump_pressed: bool, delta: float) -> void:
@@ -437,19 +453,311 @@ func _process_knockdown(delta: float) -> void:
 		_update_capsule()
 
 
-func _move_and_report_landing() -> void:
+func _move_and_report_landing(allow_step := false, delta := 0.0) -> void:
 	var airborne := not is_on_floor()
 	# Measure the actual descent, not velocity (impulses can exaggerate impact).
 	if not airborne or is_nan(_fall_peak):
 		_fall_peak = global_position.y
 	_fall_peak = maxf(_fall_peak, global_position.y)
-	move_and_slide()
+	var step_contact_angle := _step_up(delta) if allow_step else STEP_NONE
+	if step_contact_angle == STEP_KEEP_SPEED:
+		# Climbable lip just ahead: normal move, but keep the speed the face
+		# would zero, and stay grounded so the next tick steps.
+		var kept_velocity := velocity
+		move_and_slide()
+		velocity.x = kept_velocity.x
+		velocity.z = kept_velocity.z
+	if step_contact_angle >= 0.0 or (step_contact_angle == STEP_KEEP_SPEED and not is_on_floor()):
+		# Already moved this tick. Refresh floor contact with a 2 mm settle (no
+		# snap) so the next tick is grounded, keeping horizontal speed; after a
+		# step the rounded capsule may rest on the lip's corner, so that
+		# contact counts as floor.
+		var kept_velocity := velocity
+		var max_angle := floor_max_angle
+		var snap := floor_snap_length
+		floor_max_angle = maxf(max_angle, step_contact_angle + 0.01)
+		floor_snap_length = 0.0
+		velocity = -up_direction * (STEP_SETTLE / maxf(delta, 1e-4))
+		move_and_slide()
+		floor_max_angle = max_angle
+		floor_snap_length = snap
+		velocity = Vector3(kept_velocity.x, 0.0, kept_velocity.z)
+	elif step_contact_angle == STEP_NONE:
+		# body_test_motion can miss a graze that move_and_slide then zeroes
+		# (QA 0.28 m walk at (37.31, 743.7) k=4). Restore speed only when a
+		# climbable lip is immediately ahead, not when we ran into a wall.
+		var kept_velocity := velocity
+		move_and_slide()
+		if allow_step:
+			var kept_h := Vector2(kept_velocity.x, kept_velocity.z).length()
+			var now_h := Vector2(velocity.x, velocity.z).length()
+			if kept_h > 1.0 and now_h < 0.25 * kept_h and is_on_floor() and velocity.y <= 0.05 and _climbable_lip_ahead(kept_velocity, delta):
+				velocity.x = kept_velocity.x
+				velocity.z = kept_velocity.z
+	if allow_step and not is_on_floor() and velocity.y <= 0.0:
+		_settle_on_probed_floor(delta)
+	if velocity.y <= 0.0:
+		_depenetrate_walkable_floor()
 	_fall_peak = maxf(_fall_peak, global_position.y)
 	if is_on_floor():
 		var fall_height := maxf(_fall_peak - global_position.y, 0.0)
 		_fall_peak = global_position.y
 		if airborne and fall_height > 0.0:
 			landed.emit(fall_height)
+
+
+# Classic step-up (up / forward / down sweep), DESIGN §8. Runs before
+# move_and_slide on grounded ticks, so a lip's face never zeroes velocity:
+# if this tick's horizontal motion is blocked, sweep up by STEP_HEIGHT, forward
+# by exactly this tick's motion (no extra pop), then down by the lift plus a
+# margin. The step is taken only when it ends higher than the start, the lip's
+# top surface (read by a short ray just inside the contact) is walkable, no
+# more than STEP_HEIGHT above the feet and within the (ceiling-limited) lift,
+# and the capsule fits standing on it. Otherwise nothing moves here and the
+# normal move_and_slide runs. Ramps are left to move_and_slide (slope speed
+# unchanged). Shared by local, predicted, replayed and server movement (all go
+# through apply_movement_input). Returns the landing contact's angle from up,
+# STEP_KEEP_SPEED when a climbable lip is just out of reach, or STEP_NONE.
+func _step_up(delta: float) -> float:
+	var motion := Vector3(velocity.x, 0.0, velocity.z) * delta
+	if motion.length_squared() < 1e-8:
+		return STEP_NONE
+	# Start from a clean pose: after riding a lip corner the body can rest
+	# slightly inside it, which would make every sweep below stop at once.
+	var start := global_transform
+	start = start.translated(_recovery(start))
+	# Probe slightly past this tick's motion: move_and_slide also collides with
+	# a face it only grazes within the safe margin.
+	var probe_motion := motion + motion.normalized() * STEP_PROBE_EXTRA
+	var blocked := _sweep(start, probe_motion, 4)
+	if blocked == null or blocked.get_travel().length() >= probe_motion.length() - 1e-4:
+		return STEP_NONE
+	# The floor under the feet is reported too; the blocker is the steepest contact.
+	var face_angle := 0.0
+	var face_index := 0
+	for index in blocked.get_collision_count():
+		var angle := blocked.get_collision_normal(index).angle_to(up_direction)
+		if angle > face_angle:
+			face_angle = angle
+			face_index = index
+	var face_point: Vector3 = blocked.get_collision_point(face_index)
+	var face_normal: Vector3 = blocked.get_collision_normal(face_index)
+	var early_top := _step_top(start, face_point, face_normal, motion, 0.01)
+	# A steep face with a walkable top no higher than STEP_HEIGHT: if this tick
+	# cannot finish the step, keep speed instead of letting move_and_slide zero it.
+	var climbable := early_top.x >= 0.0 and early_top.y <= Tuning.STEP_HEIGHT + 0.005
+	# 3 cm of temporary extra lift helps the down sweep register a 0.28 m lip
+	# when this tick only just reaches the face (walk k=7). Not a forward pop.
+	var lift := up_direction * (Tuning.STEP_HEIGHT + 0.03)
+	var ceiling := _sweep(start, lift, 1)
+	if ceiling != null:
+		lift = ceiling.get_travel()
+	if lift.dot(up_direction) < 0.02:
+		return STEP_NONE
+	if climbable:
+		climbable = early_top.y <= lift.dot(up_direction) + 0.005
+	var keep := climbable
+	var raised := start.translated(lift)
+	if _sweep(raised, motion, 1) != null:
+		return STEP_KEEP_SPEED if keep else STEP_NONE
+	var ahead := raised.translated(motion)
+	var down := _sweep_down(ahead, -lift - up_direction * STEP_DOWN_MARGIN)
+	if down.is_empty():
+		return STEP_KEEP_SPEED if keep else STEP_NONE
+	var landed := ahead.translated(down.travel)
+	# Stepped only if the down sweep rests on something above the start floor.
+	var stepped := ((down.point as Vector3) - start.origin).dot(up_direction) >= 0.001 \
+		and (landed.origin - start.origin).dot(up_direction) >= 0.001
+	# Walkability is judged on the lip's top surface, read by a short ray just
+	# inside the landing contact (the round bottom may only touch the corner),
+	# or, when this tick's motion does not reach the lip yet, inside the face.
+	var contact: Vector3 = down.point if stepped else face_point
+	var contact_normal: Vector3 = down.normal if stepped else face_normal
+	var top := _step_top(start, contact, contact_normal, motion, 0.001 if stepped else 0.01)
+	var top_angle := top.x
+	# No walkable top, or the lift (cut short by a ceiling) cannot clear it.
+	if top_angle < 0.0 or top.y > lift.dot(up_direction) + 0.005 or top.y > Tuning.STEP_HEIGHT + 0.005:
+		return STEP_KEEP_SPEED if keep else STEP_NONE
+	# The capsule must fit standing on the top just past the edge (no stepping
+	# into a gap lower than the capsule); checked a little above the top so a
+	# tilted top does not count as an overlap.
+	var stand := contact + _inward_of(contact_normal, motion) * 0.01
+	stand += up_direction * (start.origin + up_direction * (top.y + STEP_STAND_CLEARANCE) - stand).dot(up_direction)
+	if _recovery(Transform3D(start.basis, stand)).length() > STEP_OVERLAP_TOLERANCE:
+		return STEP_KEEP_SPEED if keep else STEP_NONE
+	# Blocked by a walkable plane that continues as the "top": a ramp, not a lip.
+	# (A face angle near 0 means only the floor under the feet was reported.)
+	if face_angle > deg_to_rad(1.0) and face_angle <= floor_max_angle and top_angle > face_angle - deg_to_rad(1.0):
+		return STEP_NONE
+	if not stepped or contact_normal.angle_to(up_direction) > STEP_CORNER_MAX_ANGLE:
+		# A climbable lip is just ahead but this tick's motion does not reach
+		# it (or only grazes its corner): move normally but keep the speed,
+		# so the next tick steps from the face.
+		return STEP_KEEP_SPEED
+	global_transform = landed
+	return contact_normal.angle_to(up_direction)
+
+
+# A grounded move that ends without floor contact although a walkable floor is
+# right under the feet (the capsule can end a tick hovering about one safe
+# margin above a flat top, e.g. after a step) settles onto it, so the contact
+# does not drop for a tick. A real edge or drop is left alone: the probe finds
+# no floor within FOOT_PROBE_DEPTH, or starts inside the lip the capsule rests on.
+
+func _climbable_lip_ahead(kept_velocity: Vector3, delta: float) -> bool:
+	var motion := Vector3(kept_velocity.x, 0.0, kept_velocity.z) * maxf(delta, 1e-4)
+	if motion.length_squared() < 1e-8:
+		return false
+	var blocked := _sweep(global_transform, motion + motion.normalized() * STEP_PROBE_EXTRA, 4)
+	if blocked == null:
+		return false
+	var face_angle := 0.0
+	var face_index := 0
+	for index in blocked.get_collision_count():
+		var angle := blocked.get_collision_normal(index).angle_to(up_direction)
+		if angle > face_angle:
+			face_angle = angle
+			face_index = index
+	if face_angle <= floor_max_angle:
+		return false
+	var top := _step_top(global_transform, blocked.get_collision_point(face_index), blocked.get_collision_normal(face_index), motion, 0.01)
+	return top.x >= 0.0 and top.y <= Tuning.STEP_HEIGHT + 0.005
+
+
+func _settle_on_probed_floor(delta: float) -> void:
+	var gap := _foot_probe_gap(global_transform)
+	if is_nan(gap):
+		gap = _capsule_floor_gap(0.06)
+	if is_nan(gap) or delta <= 0.0:
+		return
+	var kept_velocity := velocity
+	var snap := floor_snap_length
+	floor_snap_length = 0.0
+	velocity = -up_direction * ((maxf(gap, 0.0) + STEP_SETTLE) / delta)
+	move_and_slide()
+	floor_snap_length = snap
+	velocity = kept_velocity
+
+
+# If the capsule has sunk a small amount into a walkable floor (the 2-5 cm
+# one-tick step-top dips new in attempt 4), push it back up. The existing
+# ~8 cm move_and_slide snap sinks on main are left alone.
+func _depenetrate_walkable_floor() -> void:
+	var push := _recovery(global_transform)
+	var up_comp := push.dot(up_direction)
+	var sideways := (push - up_direction * up_comp).length()
+	if up_comp > 0.005 and up_comp <= STEP_DEPENETRATE and sideways <= 0.01:
+		global_transform = global_transform.translated(up_direction * up_comp)
+
+
+# Fallback when the cylinder foot probe misses (large-coordinate precision):
+# the body's own capsule swept a short way down onto a walkable floor.
+func _capsule_floor_gap(depth: float) -> float:
+	var hit := _sweep(global_transform, -up_direction * depth, 1)
+	if hit == null:
+		return NAN
+	if hit.get_collision_normal(0).angle_to(up_direction) > floor_max_angle:
+		return NAN
+	return hit.get_travel().length()
+
+
+# Foot probe: synchronous cylinder cast (same mask as the body) from
+# FOOT_PROBE_START above the soles to FOOT_PROBE_DEPTH below them. Returns the
+# gap from the soles down to a walkable floor (negative if slightly above the
+# soles), or NAN if there is none or the cast starts overlapping.
+func _foot_probe_gap(pose: Transform3D) -> float:
+	if _foot_probe_shape == null:
+		_foot_probe_shape = CylinderShape3D.new()
+		_foot_probe_shape.radius = Tuning.FOOT_PROBE_RADIUS
+		_foot_probe_shape.height = Tuning.FOOT_PROBE_THICKNESS
+	var parameters := PhysicsShapeQueryParameters3D.new()
+	parameters.shape = _foot_probe_shape
+	parameters.collision_mask = collision_mask
+	parameters.exclude = [get_rid()]
+	parameters.transform = Transform3D(pose.basis, pose.origin + up_direction * (Tuning.FOOT_PROBE_START + Tuning.FOOT_PROBE_THICKNESS * 0.5))
+	parameters.motion = -up_direction * (Tuning.FOOT_PROBE_START + Tuning.FOOT_PROBE_DEPTH)
+	var space := get_world_3d().direct_space_state
+	var fractions := space.cast_motion(parameters)
+	if fractions.size() < 2 or fractions[1] >= 1.0 or fractions[1] <= 0.0:
+		return NAN
+	parameters.transform = parameters.transform.translated(parameters.motion * fractions[1])
+	var rest := space.get_rest_info(parameters)
+	if rest.is_empty() or (rest.normal as Vector3).angle_to(up_direction) > floor_max_angle:
+		return NAN
+	return parameters.motion.length() * fractions[0] - Tuning.FOOT_PROBE_START
+
+
+# (angle from up, rise above the feet at `start`) of the walkable lip top just
+# inside `contact`; angle -1 if there is no walkable top min_rise..STEP_HEIGHT up
+# (a small min_rise lets the capsule finish riding over a lip's corner).
+func _step_top(start: Transform3D, contact: Vector3, contact_normal: Vector3, motion: Vector3, min_rise: float) -> Vector2:
+	var best_miss := Vector2(-1.0, 0.0)
+	var inward := _inward_of(contact_normal, motion)
+	for distance: float in [0.02, 0.05, 0.08]:
+		var probe := contact + inward * distance
+		var from := probe + up_direction * ((start.origin - probe).dot(up_direction) + Tuning.STEP_HEIGHT + 0.05)
+		var query := PhysicsRayQueryParameters3D.create(from, probe - up_direction * 0.05, collision_mask, [get_rid()])
+		var top := get_world_3d().direct_space_state.intersect_ray(query)
+		if top.is_empty():
+			continue
+		var top_angle := (top.normal as Vector3).angle_to(up_direction)
+		var top_rise := ((top.position as Vector3) - start.origin).dot(up_direction)
+		if top_angle > floor_max_angle or top_rise < min_rise or top_rise > Tuning.STEP_HEIGHT + 0.005:
+			best_miss = Vector2(-1.0, top_rise)
+			continue
+		return Vector2(top_angle, top_rise)
+	return best_miss
+
+
+# Down sweep whose resting pose is checked: a capsule sweep against a box edge
+# can occasionally stop inside the edge, so if the end pose overlaps, sweep
+# again in two halves and keep the cleaner result, pushed out of any overlap.
+# Returns {travel, point, normal}, or {} if nothing is below.
+func _sweep_down(from: Transform3D, motion: Vector3) -> Dictionary:
+	var best := {}
+	for attempt in 2:
+		var parts := [motion] if attempt == 0 else [motion * 0.5, motion * 0.5]
+		var offset := Vector3.ZERO
+		for part: Vector3 in parts:
+			var hit := _sweep(from.translated(offset), part, 1)
+			if hit == null:
+				offset += part
+				continue
+			offset += hit.get_travel()
+			var push := _recovery(from.translated(offset))
+			if best.is_empty() or push.length() < (best.push as Vector3).length():
+				best = {"travel": offset + push, "push": push, "point": hit.get_collision_point(0), "normal": hit.get_collision_normal(0)}
+			break
+		if not best.is_empty() and (best.push as Vector3).length() <= STEP_OVERLAP_TOLERANCE:
+			break
+	return best
+
+
+# Horizontal direction into the solid at a contact (fallback: along the motion).
+func _inward_of(contact_normal: Vector3, motion: Vector3) -> Vector3:
+	var inward := -(contact_normal - up_direction * contact_normal.dot(up_direction))
+	return inward.normalized() if inward.length_squared() > 1e-6 else motion.normalized()
+
+
+# How far the body would be pushed out of overlaps at `pose` (zero when it only touches).
+func _recovery(pose: Transform3D) -> Vector3:
+	var parameters := PhysicsTestMotionParameters3D.new()
+	parameters.from = pose
+	parameters.motion = Vector3.ZERO
+	parameters.margin = safe_margin
+	var result := PhysicsTestMotionResult3D.new()
+	PhysicsServer3D.body_test_motion(get_rid(), parameters, result)
+	return result.get_travel()
+
+
+func _sweep(from: Transform3D, motion: Vector3, max_collisions: int) -> PhysicsTestMotionResult3D:
+	var parameters := PhysicsTestMotionParameters3D.new()
+	parameters.from = from
+	parameters.motion = motion
+	parameters.margin = safe_margin
+	parameters.max_collisions = max_collisions
+	var result := PhysicsTestMotionResult3D.new()
+	return result if PhysicsServer3D.body_test_motion(get_rid(), parameters, result) else null
 
 
 func _update_capsule() -> void:
