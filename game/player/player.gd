@@ -484,13 +484,14 @@ func _move_and_report_landing(allow_step := false, delta := 0.0) -> void:
 		velocity = Vector3(kept_velocity.x, 0.0, kept_velocity.z)
 	elif step_contact_angle == STEP_NONE:
 		# body_test_motion can miss a graze that move_and_slide then zeroes
-		# (QA 0.28 m walk at (37.31, 743.7) k=4, first face-contact tick).
+		# (QA 0.28 m walk at (37.31, 743.7) k=4). Restore speed only when a
+		# climbable lip is immediately ahead, not when we ran into a wall.
 		var kept_velocity := velocity
 		move_and_slide()
 		if allow_step:
 			var kept_h := Vector2(kept_velocity.x, kept_velocity.z).length()
 			var now_h := Vector2(velocity.x, velocity.z).length()
-			if kept_h > 1.0 and now_h < 0.25 * kept_h and is_on_floor() and velocity.y <= 0.05:
+			if kept_h > 1.0 and now_h < 0.25 * kept_h and is_on_floor() and velocity.y <= 0.05 and _climbable_lip_ahead(kept_velocity, delta):
 				velocity.x = kept_velocity.x
 				velocity.z = kept_velocity.z
 	if allow_step and not is_on_floor() and velocity.y <= 0.0:
@@ -555,9 +556,7 @@ func _step_up(delta: float) -> float:
 		return STEP_NONE
 	if climbable:
 		climbable = early_top.y <= lift.dot(up_direction) + 0.005
-	# A steep unwalkable face (lip or wall): if this tick cannot finish a step,
-	# keep speed so move_and_slide does not zero it (QA 0.28 m walk at the face).
-	var keep := climbable or face_angle > floor_max_angle
+	var keep := climbable
 	var raised := start.translated(lift)
 	if _sweep(raised, motion, 1) != null:
 		return STEP_KEEP_SPEED if keep else STEP_NONE
@@ -604,6 +603,27 @@ func _step_up(delta: float) -> float:
 # margin above a flat top, e.g. after a step) settles onto it, so the contact
 # does not drop for a tick. A real edge or drop is left alone: the probe finds
 # no floor within FOOT_PROBE_DEPTH, or starts inside the lip the capsule rests on.
+
+func _climbable_lip_ahead(kept_velocity: Vector3, delta: float) -> bool:
+	var motion := Vector3(kept_velocity.x, 0.0, kept_velocity.z) * maxf(delta, 1e-4)
+	if motion.length_squared() < 1e-8:
+		return false
+	var blocked := _sweep(global_transform, motion + motion.normalized() * STEP_PROBE_EXTRA, 4)
+	if blocked == null:
+		return false
+	var face_angle := 0.0
+	var face_index := 0
+	for index in blocked.get_collision_count():
+		var angle := blocked.get_collision_normal(index).angle_to(up_direction)
+		if angle > face_angle:
+			face_angle = angle
+			face_index = index
+	if face_angle <= floor_max_angle:
+		return false
+	var top := _step_top(global_transform, blocked.get_collision_point(face_index), blocked.get_collision_normal(face_index), motion, 0.01)
+	return top.x >= 0.0 and top.y <= Tuning.STEP_HEIGHT + 0.005
+
+
 func _settle_on_probed_floor(delta: float) -> void:
 	var gap := _foot_probe_gap(global_transform)
 	if is_nan(gap):
