@@ -140,6 +140,157 @@ func _run() -> void:
 		meteor.start_warning(Vector3.ZERO)
 		meteor.cleanup()
 		_expect(meteor.active_effect_count() == 0 and meteor.impact_debris_count() == 0 and not meteor.wind_active, "rematch clears every warning/body/wind state")
+	# T3d: a frozen rooftop AABB pad gets warned, sequential multi-pulse sector pressure.
+	_expect(is_equal_approx(meteor.warning_duration, 2.5) and is_equal_approx(MeteorScript.MINIMUM_STRIKE_WARNING, 1.2), "warning lengths unchanged: 2.5 s live, 1.2 s minimum")
+	var pad := Rect2(15.0, -24.0, 10.0, 8.0)
+	var pad_top := 4.75
+	var pad_body := StaticBody3D.new()
+	pad_body.collision_layer = 1
+	var pad_collider := CollisionShape3D.new()
+	var pad_box := BoxShape3D.new()
+	pad_box.size = Vector3(pad.size.x, 0.5, pad.size.y)
+	pad_collider.shape = pad_box
+	pad_body.add_child(pad_collider)
+	pad_body.position = Vector3(pad.get_center().x, pad_top - 0.25, pad.get_center().y)
+	world.add_child(pad_body)
+	await physics_frame
+	var space := world.get_world_3d().direct_space_state
+	var height_query := func(point: Vector3) -> float:
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(point.x, 40.0, point.z), Vector3(point.x, -10.0, point.z), 1))
+		return float(hit.position.y) if not hit.is_empty() else 0.0
+	var pad_exit := Vector3(pad.end.x, pad_top, pad.get_center().y)
+	var reserve_radius := meteor.impact_radius + 1.5
+	meteor.set_strike_area(56.0, height_query)
+	meteor.set_route_safety_query(func(points: Array[Vector3]) -> bool:
+		for point in points:
+			if absf(point.y - pad_exit.y) <= meteor.vertical_exposure and Vector2(point.x - pad_exit.x, point.z - pad_exit.z).length() <= reserve_radius:
+				return false
+		return true)
+	var clock := {"t": 0.0}
+	var warnings: Array[Dictionary] = []
+	var impacts: Array[Dictionary] = []
+	meteor.warning_started.connect(func(target: Vector3, duration: float) -> void: warnings.append({"point": target, "duration": duration, "t": clock.t}))
+	meteor.impacted.connect(func(target: Vector3) -> void: impacts.append({"point": target, "t": clock.t}))
+	var on_pad := func(point: Vector3) -> bool: return pad.has_point(Vector2(point.x, point.z)) and absf(point.y - pad_top) <= meteor.vertical_exposure
+	var camper_rng := RandomNumberGenerator.new()
+	camper_rng.seed = 9300
+	var roof_events := 0
+	var idle_camper_hits := 0
+	var min_logged_warning := INF
+	for seed_index in 10:
+		for peer_id in [1, 2, 3, 4]:
+			manager.players[peer_id].health = 100.0
+			manager.players[peer_id].alive = true
+		var camper_start := Vector3(camper_rng.randf_range(16.5, 20.5), pad_top, camper_rng.randf_range(-22.0, -18.0))
+		players[0].position = camper_start
+		for index in range(1, players.size()):
+			players[index].position = Vector3(-40.0 + float(index) * 8.0, 0.0, 40.0)
+		warnings.clear()
+		impacts.clear()
+		clock.t = 0.0
+		var seeded := RandomNumberGenerator.new()
+		seeded.seed = 9400 + seed_index
+		_expect(meteor.start_disaster(seeded), "rooftop seeded event %d starts" % seed_index)
+		_expect(meteor.roof_sector_center != Vector3.INF and meteor.pending_pulse_count() >= 2, "rooftop event %d freezes a roof sector with >= 2 follow-up pulses" % seed_index)
+		var pulses: Array = [meteor.strike_points.duplicate()]
+		while meteor.is_active() and clock.t < 30.0:
+			var phase_before := meteor.phase
+			clock.t += 0.05
+			meteor.tick(0.05)
+			if phase_before == MeteorScript.Phase.IMPACT and meteor.phase == MeteorScript.Phase.WARNING:
+				pulses.append(meteor.strike_points.duplicate())
+		_expect(not meteor.is_active() and meteor.active_effect_count() == 0, "rooftop event %d is finite and cleans up" % seed_index)
+		_expect(pulses.size() >= 3, "rooftop event %d runs multiple sequential pulses" % seed_index)
+		var pad_footprints: Array[Vector3] = []
+		for warning in warnings:
+			min_logged_warning = minf(min_logged_warning, float(warning.duration))
+			_expect(float(warning.duration) >= 2.5, "every published warning is >= 2.5 s")
+			var matched := false
+			for impact in impacts:
+				if impact.point == warning.point and float(impact.t) >= float(warning.t):
+					matched = float(impact.t) - float(warning.t) >= 2.5 - 0.001
+					print("METEOR_T3D_WARNING seed=%d published_t=%.2f impact_t=%.2f lead=%.2f duration=%.2f on_pad=%s" % [9400 + seed_index, warning.t, impact.t, float(impact.t) - float(warning.t), warning.duration, on_pad.call(warning.point)])
+					break
+			_expect(matched, "every warning is published >= 2.5 s before its impact")
+			if on_pad.call(warning.point):
+				var distinct := true
+				for other in pad_footprints:
+					if Vector2(other.x - warning.point.x, other.z - warning.point.z).length() < 0.5:
+						distinct = false
+				if distinct:
+					pad_footprints.append(warning.point)
+		# Union coverage of the pad by all published warnings this event (0.25 m grid).
+		var covered := 0
+		var cells := 0
+		var tiny_step_covered := true
+		for gx in 40:
+			for gz in 32:
+				var sample := Vector2(pad.position.x + (float(gx) + 0.5) * 0.25, pad.position.y + (float(gz) + 0.5) * 0.25)
+				cells += 1
+				for point in pad_footprints:
+					if sample.distance_to(Vector2(point.x, point.z)) <= meteor.impact_radius:
+						covered += 1
+						break
+		var coverage := float(covered) / float(cells)
+		_expect(pad_footprints.size() >= 2 or coverage >= 0.4, "rooftop event %d publishes >= 2 distinct pad footprints or >= 40%% pad coverage" % seed_index)
+		# A tiny-stepper (<= 0.5 m) cannot stay outside every sector footprint.
+		for step in 9:
+			var offset := Vector2.ZERO if step == 0 else Vector2.from_angle(TAU * float(step) / 8.0) * 0.5
+			var spot := Vector2(camper_start.x, camper_start.z) + offset
+			var inside := false
+			for point in pad_footprints:
+				inside = inside or spot.distance_to(Vector2(point.x, point.z)) <= meteor.impact_radius
+			tiny_step_covered = tiny_step_covered and inside
+		_expect(tiny_step_covered, "rooftop event %d: every 0.5 m tiny-step spot is inside a published footprint" % seed_index)
+		# Escape remains: no single pulse blankets the whole pad, and the pad exit stays clear.
+		for pulse: Array in pulses:
+			var pulse_uncovered := false
+			for gx in 40:
+				for gz in 32:
+					var sample := Vector2(pad.position.x + (float(gx) + 0.5) * 0.25, pad.position.y + (float(gz) + 0.5) * 0.25)
+					var hit := false
+					for point: Vector3 in pulse:
+						hit = hit or (on_pad.call(point) and sample.distance_to(Vector2(point.x, point.z)) <= meteor.impact_radius)
+					pulse_uncovered = pulse_uncovered or not hit
+			_expect(pulse_uncovered, "no live pulse covers 100% of the rooftop pad")
+			for point: Vector3 in pulse:
+				_expect(not on_pad.call(point) or Vector2(point.x - pad_exit.x, point.z - pad_exit.z).length() > reserve_radius, "pad exit stays outside every published footprint")
+		if manager.get_health(1) < 100.0:
+			idle_camper_hits += 1
+		roof_events += 1
+		print("METEOR_T3D_EVENT seed=%d pulses=%d warnings=%d pad_footprints=%d pad_coverage=%.2f idle_camper_hp=%.1f" % [9400 + seed_index, pulses.size(), warnings.size(), pad_footprints.size(), coverage, manager.get_health(1)])
+		meteor.cleanup()
+	_expect(roof_events == 10 and idle_camper_hits == 10, "an idle rooftop camper is hit in every seeded rooftop event")
+	print("METEOR_T3D_SUMMARY events=%d idle_camper_hits=%d min_logged_warning=%.2f" % [roof_events, idle_camper_hits, min_logged_warning])
+	# Ground players keep the original single-wave event (no roof sector).
+	players[0].position = Vector3(-30.0, 0.0, -40.0)
+	var ground_rng := RandomNumberGenerator.new()
+	ground_rng.seed = 9500
+	_expect(meteor.start_disaster(ground_rng) and meteor.pending_pulse_count() == 0 and meteor.roof_sector_center == Vector3.INF, "no ground camper: event keeps one wave")
+	meteor.cleanup()
+	# A player under a static roof is neither a roof camper nor directly damaged by a sector pulse.
+	var shelter := StaticBody3D.new()
+	shelter.collision_layer = 1
+	var shelter_collider := CollisionShape3D.new()
+	var shelter_box := BoxShape3D.new()
+	shelter_box.size = Vector3(6, 0.25, 6)
+	shelter_collider.shape = shelter_box
+	shelter.add_child(shelter_collider)
+	shelter.position = Vector3(19.0, pad_top + 3.0, -20.0)
+	world.add_child(shelter)
+	await physics_frame
+	for peer_id in [1, 2, 3, 4]:
+		manager.players[peer_id].health = 100.0
+		manager.players[peer_id].alive = true
+	players[0].position = Vector3(19.0, pad_top, -20.0)
+	_expect(meteor._roof_campers().is_empty(), "a player under a static roof is not a roof-sector target")
+	meteor.strike_points = [Vector3(19.0, pad_top + 0.06, -20.0)]
+	meteor._begin_wave()
+	meteor.tick(meteor.warning_remaining + 0.01)
+	_expect(is_equal_approx(manager.get_health(1), 100.0), "sheltered-under-roof immunity preserved for a rooftop-sector footprint")
+	meteor.cleanup()
+	shelter.free()
+	pad_body.free()
 	await process_frame
 	if failures.is_empty():
 		print("METEOR_SHOWER_OK checks=%d" % checks)

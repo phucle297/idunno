@@ -19,6 +19,15 @@ const CLUSTER_RADIUS := 8.0
 const LANE_SPACING := 7.0
 const IMPACT_DEBRIS_COUNT := 3
 const IMPACT_DEBRIS_MAX_ALIVE := 6
+# Roof-sector pressure: an exposed elevated camper gets sequential, fully warned
+# follow-up pulses spread around their frozen roof sector, one footprint each.
+const ROOF_SECTOR_PULSES := 2
+const ROOF_SECTOR_MIN_HEIGHT := 1.5
+const ROOF_SECTOR_STANDING_TOLERANCE := 0.75
+const ROOF_SECTOR_SURFACE_TOLERANCE := 0.6
+const ROOF_SECTOR_MIN_OFFSET := 1.0
+const ROOF_SECTOR_MAX_OFFSET := 2.0 # < impact_radius - 0.5: a 0.5 m tiny-step stays inside.
+const ROOF_SECTOR_ANGLE_TRIES := 12
 
 @export var warning_duration := 2.5
 @export var impact_radius := 3.0
@@ -54,6 +63,8 @@ var _impact_remaining := 0.0
 var _impact_debris: Array[Dictionary] = []
 var _impact_debris_visuals: Array[MeshInstance3D] = []
 var _route_safety_query: Callable
+var _pending_pulses: Array = [] # Array of Array[Vector3]; frozen at event start.
+var roof_sector_center := Vector3.INF # Frozen sector of the current event, INF if none.
 
 
 func configure(match_manager: MatchManager) -> void:
@@ -116,6 +127,7 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 	for attempt in 16:
 		strike_points = _choose_wave_points(rng, budget)
 		if not strike_points.is_empty() and (not _route_safety_query.is_valid() or bool(_route_safety_query.call(strike_points))):
+			_plan_roof_sector_pulses(rng)
 			return _begin_wave()
 	strike_points.clear()
 	return false
@@ -162,7 +174,10 @@ func tick(delta: float) -> void:
 		_impact_remaining = maxf(_impact_remaining - safe_delta, 0.0)
 		_update_impact_visuals()
 		if _impact_remaining <= 0.0:
-			_finish_wave()
+			if _pending_pulses.is_empty():
+				_finish_wave()
+			else:
+				_begin_next_pulse()
 
 
 func cleanup() -> void:
@@ -226,6 +241,80 @@ func _begin_wave() -> bool:
 	for point in strike_points:
 		warning_started.emit(point, warning_remaining)
 	return true
+
+
+func pending_pulse_count() -> int:
+	return _pending_pulses.size()
+
+
+# Each follow-up pulse is published only after the previous impact, with the
+# same full warning. Points are frozen at event start, so moving cannot steer them.
+func _begin_next_pulse() -> void:
+	strike_points.clear()
+	for point: Vector3 in _pending_pulses.pop_front():
+		strike_points.append(point)
+	_impact_remaining = 0.0
+	_begin_wave()
+
+
+func _roof_campers() -> Array[Vector3]:
+	var campers: Array[Vector3] = []
+	if not surface_height.is_valid():
+		return campers
+	for peer_id: int in _players:
+		var player := _players[peer_id] as Node3D
+		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+			continue
+		var position := player.global_position
+		var surface := float(surface_height.call(position))
+		# Standing on an elevated top surface (roof, deck), not under one.
+		if surface >= ROOF_SECTOR_MIN_HEIGHT and absf(position.y - surface) <= ROOF_SECTOR_STANDING_TOLERANCE and not _is_sheltered(player):
+			campers.append(position)
+	return campers
+
+
+func _plan_roof_sector_pulses(rng: RandomNumberGenerator) -> void:
+	_pending_pulses.clear()
+	roof_sector_center = Vector3.INF
+	var campers := _roof_campers()
+	if campers.is_empty():
+		return
+	var camper := campers[rng.randi_range(0, campers.size() - 1)]
+	var sector_y := float(surface_height.call(camper))
+	roof_sector_center = Vector3(camper.x, sector_y, camper.z)
+	var base_angle := rng.randf_range(0.0, TAU)
+	var radius := rng.randf_range(ROOF_SECTOR_MIN_OFFSET, ROOF_SECTOR_MAX_OFFSET)
+	var placed: Array[Vector3] = []
+	for pulse in ROOF_SECTOR_PULSES:
+		var pulse_angle := base_angle + TAU * float(pulse) / float(ROOF_SECTOR_PULSES)
+		for attempt in ROOF_SECTOR_ANGLE_TRIES:
+			var angle := pulse_angle + TAU * float(attempt) / float(ROOF_SECTOR_ANGLE_TRIES)
+			var point := _bounded_point(roof_sector_center + Vector3(cos(angle), 0.0, sin(angle)) * radius)
+			if _is_roof_sector_point(point, sector_y, placed):
+				var pulse_points: Array[Vector3] = [point]
+				_pending_pulses.append(pulse_points)
+				placed.append(point)
+				break
+
+
+func _is_roof_sector_point(point: Vector3, sector_y: float, placed: Array[Vector3]) -> bool:
+	if absf(point.y - 0.06 - sector_y) > ROOF_SECTOR_SURFACE_TOLERANCE:
+		return false
+	for other in placed:
+		if _horizontal_distance(point, other) < impact_radius * 0.5:
+			return false
+	var candidate: Array[Vector3] = [point]
+	if _route_safety_query.is_valid() and not bool(_route_safety_query.call(candidate)):
+		return false
+	# Never blanket the whole roof: some same-surface spot near the sector must
+	# stay outside this footprint while it is live.
+	for ring: float in [impact_radius + 0.75, impact_radius + 2.0]:
+		for step in 8:
+			var angle := TAU * float(step) / 8.0
+			var probe := point + Vector3(cos(angle), 0.0, sin(angle)) * ring
+			if absf(float(surface_height.call(probe)) - sector_y) <= ROOF_SECTOR_SURFACE_TOLERANCE:
+				return true
+	return false
 
 
 func _choose_wave_points(rng: RandomNumberGenerator, budget: int) -> Array[Vector3]:
@@ -431,6 +520,8 @@ func _reset_strike_state() -> void:
 	warning_remaining = 0.0
 	_impact_remaining = 0.0
 	strike_points.clear()
+	_pending_pulses.clear()
+	roof_sector_center = Vector3.INF
 
 
 func _clear_effects() -> void:
