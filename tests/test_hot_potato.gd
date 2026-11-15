@@ -33,7 +33,7 @@ func _run() -> void:
 		manager.prepare_lobby()
 		main.set_map_id(map_id)
 		_expect(main.request_match_preset("hot_potato") or main.match_preset == "hot_potato", "Lobby selects bomb preset")
-		_expect(main.disaster_director.match_preset == "normal", "Bomb does not change disaster pacing")
+		_expect(main.disaster_director.match_preset == "hard", "Hot Potato uses Hard director pacing")
 		for peer_id: int in players:
 			manager.set_player_ready(peer_id, true)
 		_expect(await main.start_local_match(), "Real scene starts a bomb round")
@@ -206,7 +206,7 @@ func _reset_and_modes() -> void:
 	manager.prepare_lobby()
 	for peer_id: int in players:
 		manager.set_player_ready(peer_id, true)
-	_expect(main.request_match_preset("normal"), "Return to unchanged Normal mode")
+	_expect(main.request_match_preset("hard"), "Return to the Hard survival baseline")
 	_expect(players.keys().all(func(peer_id: int) -> bool: return not manager.is_player_ready(peer_id)), "Bomb-rule change clears Ready so guests acknowledge the variant")
 	for peer_id: int in players:
 		manager.set_player_ready(peer_id, true)

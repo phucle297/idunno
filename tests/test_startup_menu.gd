@@ -66,7 +66,10 @@ func _run() -> void:
 	_expect(main.home_screen.visible and main.home_screen.page == "home", "Closing offline room returns to Home")
 	main.home_screen.solo.pressed.emit()
 	_expect(main.home_screen.page == "maps" and main.home_screen.maps.visible, "Play Solo opens a separate Choose Map page without starting")
-	_expect(main.get_match_preset() == "normal" and main.home_screen.mode_buttons[0].text.begins_with("✓"), "Solo preparation clears multiplayer-only bomb rules and shows a real selected mode")
+	_expect(main.get_match_preset() == "hard" and main.home_screen.mode_buttons[0].text.begins_with("✓"), "Solo preparation clears multiplayer-only bomb rules onto Hard and shows a real selected mode")
+	_expect(main.home_screen.mode_buttons.size() == 1 and "HARD" in main.home_screen.mode_buttons[0].text, "Solo mode select offers only Hard")
+	_expect(not main.request_match_preset("normal"), "request_match_preset(normal) must be rejected")
+	_expect("normal" not in main.MATCH_PRESETS and main.match_preset == "hard" and main.disaster_director.match_preset == "hard", "Hard must be the only survival default in main and the director")
 	frozen = stage.elapsed
 	await create_timer(0.08).timeout
 	_expect(stage.elapsed == frozen and main.home_screen.preview_viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED, "Choose Map stops hidden Home animation and rendering")
@@ -89,8 +92,8 @@ func _run() -> void:
 	await _capture("home-equipped")
 	main.home_screen.solo.pressed.emit()
 	main.home_screen.map_buttons[1].pressed.emit()
-	main.home_screen.mode_buttons[1].pressed.emit()
-	_expect(main.get_map_id() == "toy_harbor" and main.get_match_preset() == main.MATCH_PRESETS[1], "Menu choices update authoritative map and match preset")
+	main.home_screen.mode_buttons[0].pressed.emit()
+	_expect(main.get_map_id() == "toy_harbor" and main.get_match_preset() == "hard", "Menu choices update the authoritative map; Hard remains the only solo baseline")
 	_expect(main.match_manager.state == MatchManager.MatchState.LOBBY and not main.disaster_director.running, "Changing map and mode never starts a round")
 	_expect(main.get_node("Sandbox").get_child_count() == 0, "Map selection remains metadata-only while Home is open")
 	await _capture("map-mode-selected")
