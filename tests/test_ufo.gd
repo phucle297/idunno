@@ -9,6 +9,8 @@ const ROOF_MIN_SELECTED := 7
 var failures: Array[String] = []
 var checks := 0
 var roof_selected := {}
+var roof_relocated := {}
+var carry_table: Array[String] = []
 
 
 func _initialize() -> void:
@@ -45,6 +47,8 @@ func _run() -> void:
 			var first := ufo.create_presentation_snapshot()
 			ufo.tick(4.9)
 			_expect(player.velocity == Vector3.ZERO and ufo.captured.is_empty(), "Warning never lifts")
+			var ground_start := Vector2(player.global_position.x, player.global_position.z)
+			_expect(ufo.drift_direction == Vector3.ZERO, "T3o: no lip near the ground spawn, so the beam does not drift (%s)" % map_id)
 			var highest := player.position.y
 			for step in 360:
 				ufo.tick(1.0 / 60)
@@ -54,6 +58,7 @@ func _run() -> void:
 			_expect(highest > first.position.y + 1 and highest <= first.position.y + UFO.LIFT_HEIGHT + 0.01, "Real lift bounded from collision support, not nominal spawn")
 			_expect(main.match_manager.get_health(1) > 0 and player.position.y < at.y + 0.1, "Ordinary fall returns to real support nonlethally")
 			_expect(not ufo.is_active() and ufo.captured.is_empty(), "Single capture expires and resets")
+			_expect(Vector2(player.global_position.x, player.global_position.z).distance_to(ground_start) < 0.25, "T3o: idle ground player is not carried sideways (%s)" % map_id)
 			player.reset_for_match(at)
 			rng.seed = 1002
 			ufo.start_disaster(rng)
@@ -93,14 +98,19 @@ func _run() -> void:
 		roof.free()
 		main.match_manager.prepare_lobby()
 		await _check_exposed_roof(main, ufo, player, map_id)
+		await _check_roof_carry(main, ufo, player, map_id)
 	main.gameplay_audio.reset_for_match()
 	await create_timer(0.1).timeout
 	main.free()
 	await create_timer(0.1).timeout
 	if failures.is_empty():
-		print("UFO_OK checks=%d maps=2 resets=5 actual_lift_walk_fall_roof=passed exposed_roof_selected=%s" % [checks, roof_selected])
+		for row in carry_table:
+			print(row)
+		print("UFO_OK checks=%d maps=2 resets=5 actual_lift_walk_fall_roof=passed exposed_roof_selected=%s roof_camper_relocated=%s" % [checks, roof_selected, roof_relocated])
 		quit(0)
 	else:
+		for row in carry_table:
+			print(row)
 		for failure in failures:
 			push_error(failure)
 		quit(1)
@@ -167,10 +177,15 @@ func _check_exposed_roof(main, ufo: UFO, player: PartyPlayer, map_id: String) ->
 
 	# Leaving the ring (moving sideways, along the roof toward its far exit) releases.
 	# Beam keeps ticking while the camper steers out (air control while lifted).
+	# T3o: the ring now drifts toward the nearest lip, so the far exit is the
+	# side away from the drift (camera yaw 0 maps input (x, y) to world (x, z)).
+	var escape := Vector2.DOWN
+	if ufo.drift_direction != Vector3.ZERO:
+		escape = Vector2(-ufo.drift_direction.x, -ufo.drift_direction.z)
 	var away := 0.0
 	for step in 150:
 		ufo.tick(1.0 / 60)
-		player.apply_movement_input(Vector2.DOWN, false, false, 1.0 / 60)
+		player.apply_movement_input(escape, false, false, 1.0 / 60)
 		await physics_frame
 		away = Vector2(player.global_position.x - ufo.beam_position.x, player.global_position.z - ufo.beam_position.z).length()
 		if away > UFO.BEAM_RADIUS + 0.2:
@@ -219,6 +234,61 @@ func _check_exposed_roof(main, ufo: UFO, player: PartyPlayer, map_id: String) ->
 		ufo.cleanup()
 	_expect(indoor == 0, "%s: player under the roof slab selected in %d/%d seeds (need 0)" % [map_id, indoor, ROOF_SEEDS.size()])
 	main.match_manager.prepare_lobby()
+
+
+# T3o: during ACTIVE the beam drifts toward the nearest roof lip and carries
+# an idle camper off the roof; nothing moves during the warning, lift stays
+# capped, and the UFO itself never deals damage (only the existing fall curve).
+func _check_roof_carry(main, ufo: UFO, player: PartyPlayer, map_id: String) -> void:
+	var center: Vector3 = Vector3.ZERO
+	for candidate: Dictionary in main.map_anchors.refuges:
+		if String(candidate.get("name", "")) == STARTING_ROOF[map_id]:
+			center = candidate.center
+	var relocated := 0
+	for seed: int in ROOF_SEEDS:
+		await _start_on(main, player, center)
+		var roof_y := player.global_position.y
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed
+		if not ufo.start_disaster(rng):
+			_expect(false, "%s seed %d: roof carry beam starts" % [map_id, seed])
+			ufo.cleanup()
+			main.match_manager.prepare_lobby()
+			continue
+		var lock := ufo.beam_position
+		_expect(ufo.drift_direction != Vector3.ZERO and absf(ufo.drift_direction.length() - 1.0) < 0.001 and ufo.drift_direction.y == 0.0, "%s seed %d: roof beam has a horizontal drift toward a lip" % [map_id, seed])
+		ufo.tick(4.9)
+		_expect(ufo.beam_position == lock and ufo.captured.is_empty() and player.velocity.y <= 0.0, "%s seed %d: no drift or lift during the warning" % [map_id, seed])
+		var drift := ufo.drift_direction
+		var highest := player.global_position.y
+		var hp_at_release := -1.0
+		var travelled := 0.0
+		for step in 300:
+			ufo.tick(1.0 / 60)
+			if not ufo.is_active():
+				break
+			travelled = ufo.drift_travelled
+			player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
+			await physics_frame
+			highest = maxf(highest, player.global_position.y)
+			hp_at_release = main.match_manager.get_health(1)
+		_expect(not ufo.is_active(), "%s seed %d: carry ends with the 4.0 s active window" % [map_id, seed])
+		_expect(hp_at_release == 100.0, "%s seed %d: beam itself deals no damage while carrying (HP %.1f)" % [map_id, seed, hp_at_release])
+		_expect(highest <= roof_y + UFO.LIFT_HEIGHT + 0.01, "%s seed %d: lift stays capped at 2.5 m while carried (peak +%.2f m)" % [map_id, seed, highest - roof_y])
+		await _settle(player, 180)
+		var final := player.global_position
+		var hp: float = main.match_manager.get_health(1)
+		var carry := Vector2(final.x - center.x, final.z - center.z).length()
+		var off_roof := final.y < roof_y - 1.0
+		if off_roof or hp < 100.0:
+			relocated += 1
+		_expect(hp > 0.0, "%s seed %d: carry drop is not lethal (HP %.1f)" % [map_id, seed, hp])
+		_expect(travelled > 7.5 and travelled <= UFO.DRIFT_MAX + 0.01, "%s seed %d: beam drifts ~2 m/s for the 4 s window, bounded by DRIFT_MAX (%.2f m)" % [map_id, seed, travelled])
+		carry_table.append("UFO_CARRY map=%s seed=%d drift=(%.2f,%.2f) beam_travel=%.2f final=(%.2f,%.2f,%.2f) horiz_from_centre=%.2f off_roof=%s hp=%.1f" % [map_id, seed, drift.x, drift.z, travelled, final.x, final.y, final.z, carry, off_roof, hp])
+		ufo.cleanup()
+		main.match_manager.prepare_lobby()
+	roof_relocated[map_id] = "%d/%d" % [relocated, ROOF_SEEDS.size()]
+	_expect(relocated >= ROOF_MIN_SELECTED, "%s: idle roof camper relocated off the roof or damaged in %d/%d seeds (need >= %d)" % [map_id, relocated, ROOF_SEEDS.size(), ROOF_MIN_SELECTED])
 
 
 func _expect(condition: bool, message: String) -> void:
