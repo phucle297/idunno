@@ -21,6 +21,11 @@ const DAMAGE_CAUSE := "Lightning"
 @export var edge_damage := 25.0
 @export var knockdown_speed := 6.0
 @export var flash_duration := 0.45
+## Chance per start to aim at a live, exposed, elevated player when one exists.
+## Not a lock: the remainder keeps the original random-area sampling.
+@export var exposed_target_chance := 0.8
+## Feet height (m, world y) at or above which a player counts as elevated.
+@export var elevated_min_height := 1.0
 
 var phase := Phase.IDLE
 var warning_remaining := 0.0
@@ -56,6 +61,14 @@ func get_disaster_metadata() -> Dictionary:
 
 
 func start_disaster(rng: RandomNumberGenerator) -> bool:
+	var candidates := exposed_elevated_targets()
+	if not candidates.is_empty() and rng.randf() < exposed_target_chance:
+		var feet: Vector3 = candidates[rng.randi_range(0, candidates.size() - 1)]
+		var aimed := Vector3(feet.x, feet.y + 0.06, feet.z)
+		if surface_height.is_valid():
+			aimed.y = float(surface_height.call(aimed)) + 0.06
+		if not target_is_viable.is_valid() or bool(target_is_viable.call(aimed)):
+			return start_warning(aimed)
 	for attempt in 16:
 		var target := Vector3(rng.randf_range(-strike_half_extent, strike_half_extent), 0.06, rng.randf_range(-strike_half_extent, strike_half_extent))
 		if surface_height.is_valid():
@@ -63,6 +76,33 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 		if not target_is_viable.is_valid() or bool(target_is_viable.call(target)):
 			return start_warning(target)
 	return false
+
+
+## Feet positions of live players standing elevated under open sky. Uses the
+## same overhead-cover ray as UFO `_exposed` (head height to +80 m, layer 1),
+## so a player under a roof slab is never preferred.
+func exposed_elevated_targets() -> Array[Vector3]:
+	var result: Array[Vector3] = []
+	if not is_instance_valid(_match_manager) or not is_inside_tree():
+		return result
+	for peer_id: int in _players:
+		var player := _players[peer_id] as Node3D
+		if not is_instance_valid(player) or not player.is_inside_tree() or not _match_manager.is_player_alive(peer_id):
+			continue
+		var feet := player.global_position
+		if not feet.is_finite() or feet.y < elevated_min_height:
+			continue
+		if _exposed(feet):
+			result.append(feet)
+	return result
+
+
+func _exposed(feet: Vector3) -> bool:
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return false
+	var query := PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 1.45, feet + Vector3.UP * 80, 1)
+	return space.intersect_ray(query).is_empty()
 
 
 func is_active() -> bool:
