@@ -12,6 +12,9 @@ enum Phase {
 }
 
 const DISASTER_NAME := "Tornado"
+# T3k: an exposed standee at least this far above the lane's authored ground
+# counts as a rooftop camper the published lane may bend onto.
+const ROOF_TARGET_MIN_HEIGHT := 1.5
 
 @export var warning_duration := 3.0
 @export var influence_radius := 8.0
@@ -71,7 +74,17 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 		path_preset_index = rng.randi_range(0, path_presets.size() - 1)
 		path_reversed = (rng.randi_range(0, 1) == 1)
 		var path: Array = path_presets[path_preset_index]
-		if path_for_terrain.is_valid():
+		# T3k: idle standees brake at 25 m/s^2, which cancels the outer pull
+		# (<= 13 m/s^2), so only the core moves a camper. Shift the lane
+		# sideways (at most influence_radius) so its core crosses an exposed
+		# roof camper already inside the authored footprint; the shifted lane
+		# is the one published with the 3.0 s warning.
+		var roof_lane := _lane_through_exposed_roof(path)
+		if roof_lane.size() == 2 and path_for_terrain.is_valid():
+			roof_lane = path_for_terrain.call(roof_lane)
+		if roof_lane.size() == 2:
+			path = roof_lane
+		elif path_for_terrain.is_valid():
 			path = path_for_terrain.call(path)
 		if path.size() != 2:
 			continue
@@ -79,6 +92,41 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 			return start_warning(path[1], path[0])
 		return start_warning(path[0], path[1])
 	return false
+
+
+func _lane_through_exposed_roof(path: Array) -> Array:
+	if path.size() != 2 or not is_instance_valid(_match_manager):
+		return []
+	var a: Vector3 = path[0]
+	var b: Vector3 = path[1]
+	var lane := Vector3(b.x - a.x, 0.0, b.z - a.z)
+	var lane_length_squared := lane.length_squared()
+	if lane_length_squared < 0.01:
+		return []
+	var ground_y := minf(a.y, b.y)
+	var best_shift := Vector3.ZERO
+	var best_distance := INF
+	var peer_ids: Array = _players.keys()
+	peer_ids.sort()
+	for peer_id: int in peer_ids:
+		var player := _players[peer_id] as Node3D
+		if not is_instance_valid(player) or not _match_manager.is_player_alive(peer_id):
+			continue
+		var feet := player.global_position
+		if feet.y - ground_y < ROOF_TARGET_MIN_HEIGHT or is_position_covered(feet):
+			continue
+		var along := (Vector3(feet.x - a.x, 0.0, feet.z - a.z)).dot(lane) / lane_length_squared
+		if along < 0.0 or along > 1.0:
+			continue
+		var closest := Vector3(a.x, 0.0, a.z) + lane * along
+		var shift := Vector3(feet.x, 0.0, feet.z) - closest
+		var distance := shift.length()
+		if distance <= influence_radius and distance < best_distance:
+			best_distance = distance
+			best_shift = shift
+	if best_distance == INF:
+		return []
+	return [a + best_shift, b + best_shift]
 
 
 func is_active() -> bool:
