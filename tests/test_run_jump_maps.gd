@@ -22,6 +22,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	print("PHYSICS_ENGINE=%s" % ProjectSettings.get_setting("physics/3d/physics_engine"))
 	Engine.physics_ticks_per_second = 60
 	var main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)

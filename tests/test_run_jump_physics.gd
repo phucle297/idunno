@@ -38,6 +38,9 @@ const APPROACH_ANGLES: Array[float] = [0.0, 15.0, 30.0, 45.0, 60.0, 75.0]
 const ANGLED_HEIGHTS: Array[float] = [0.222, 0.30]
 # Forward-pop cap: one tick may not move further than its own horizontal motion.
 const POP_CAP_RATIO := 1.02
+const FLICKER_HEIGHTS: Array[float] = [0.222, 0.30]
+const FLICKER_ANGLES: Array[float] = [0.0, 30.0, 45.0, 60.0]
+const FLICKER_TICKS := 180
 const STAIR_RISER := 0.25
 const STAIR_TREAD := 0.35
 const STAIR_COUNT := 5
@@ -45,8 +48,10 @@ const RAMP_ANGLES: Array[float] = [20.0, 40.0]
 const RAMP_HEIGHT := 3.0
 # Mean sprint horizontal speed on the ramp fixture, measured with this same
 # fixture on main ccc1f2f (no step-up, floor_constant_speed unset), 60 Hz.
-const SLOPE_REFERENCE := {"20_up": 5.7396, "20_down": 6.5181, "40_up": 3.8144, "40_down": 6.5287}
-const SLOPE_TOLERANCE := 0.05
+# Re-measured on main in the a4 session (games/idunno/qa/T2-a4-main-slope-ccc1f2f8.log);
+# the a3 value 6.5287 for 40_down was stale. Parity is to 4 decimals (m/s).
+const SLOPE_REFERENCE := {"20_up": 5.7396, "20_down": 6.5181, "40_up": 3.8144, "40_down": 6.5311}
+const SLOPE_TOLERANCE := 0.0001
 const WALL_FACE_X := 10.0
 const CEILING_BOTTOM := 2.2
 const STEP_FACE_X := 5.0
@@ -58,6 +63,7 @@ var dt := 1.0 / 60.0
 var rate := 60
 var asserting := true
 var info_misses: Array[String] = []
+var max_step_rise := 0.0
 
 
 func _initialize() -> void:
@@ -70,6 +76,7 @@ func _run() -> void:
 	await physics_frame
 	player.set_physics_process(false)
 	player.set_camera_yaw(0.0)
+	print("PHYSICS_ENGINE=%s" % ProjectSettings.get_setting("physics/3d/physics_engine"))
 	print("T2_ENV physics_engine=%s jump_velocity=%.4f floor_snap_length=%.3f floor_max_angle=%.4f safe_margin=%.4f" % [
 		ProjectSettings.get_setting("physics/3d/physics_engine"), Tuning.JUMP_VELOCITY, player.floor_snap_length,
 		player.floor_max_angle, player.safe_margin])
@@ -301,6 +308,7 @@ func _run_rate_suite() -> Dictionary:
 	_test_ceiling_and_drop()
 	if rate == ASSERTED_RATE:
 		_test_step_robustness()
+		_test_floor_flicker()
 		_test_slope_speed()
 	return summary
 
@@ -446,9 +454,12 @@ func _climb_once(face_x: float, lane: float, height: float, sprinting: bool, hea
 	var zero_ticks := 0
 	var off_floor := 0
 	var max_vy := 0.0
+	var max_rise := 0.0
 	for index in _ticks(3.0):
+		var y_before := player.global_position.y
 		var step := _tick(input_2d, sprinting, false)
 		max_vy = maxf(max_vy, player.velocity.y)
+		max_rise = maxf(max_rise, float(step.y) - y_before)
 		var x := float(step.x)
 		if index >= _ticks(0.5) and x > face_x - 1.0 and x < face_x + 1.0:
 			min_ratio = minf(min_ratio, float(step.hspeed) / target)
@@ -459,19 +470,21 @@ func _climb_once(face_x: float, lane: float, height: float, sprinting: bool, hea
 				off_floor += 1
 		if x > face_x + 1.5:
 			break
-	return {"ratio": min_ratio, "pop": max_ratio, "zero": zero_ticks, "off_floor": off_floor, "max_vy": max_vy,
+	return {"ratio": min_ratio, "pop": max_ratio, "zero": zero_ticks, "off_floor": off_floor, "max_vy": max_vy, "max_rise": max_rise,
 		"y": player.global_position.y, "x": player.global_position.x, "floor": player.is_on_floor()}
 
 
 func _sweep_case(tag: String, face_x: float, lane: float, height: float, sprinting: bool, angle: float) -> Dictionary:
 	var label := "sprint" if sprinting else "walk"
-	var out := {"worst": INF, "bad": 0, "not_climbed": 0, "max_off": 0, "pop": 0.0}
+	var out := {"worst": INF, "bad": 0, "not_climbed": 0, "max_off": 0, "pop": 0.0, "rise": 0.0}
 	for offset in SWEEP_OFFSETS:
 		var back := 4.0 + 0.01 * offset
 		var r := _climb_once(face_x, lane, height, sprinting, angle, back)
 		out.worst = minf(float(out.worst), float(r.ratio))
 		out.max_off = maxi(int(out.max_off), int(r.off_floor))
 		out.pop = maxf(float(out.pop), float(r.pop))
+		out.rise = maxf(float(out.rise), float(r.max_rise))
+		max_step_rise = maxf(max_step_rise, float(r.max_rise))
 		if float(r.ratio) < 0.8 or int(r.zero) > 0 or float(r.max_vy) >= 1.0:
 			out.bad = int(out.bad) + 1
 			print("T2_%s_SLOW height=%.3f angle=%d move=%s face_x=%.3f lane=%.3f start_back=%.2f ratio=%.3f zero=%d max_vy=%.3f" % [tag, height, int(angle), label, face_x, lane, back, r.ratio, r.zero, r.max_vy])
@@ -540,6 +553,8 @@ func _test_step_robustness() -> void:
 			print("T2_STAIRS placement=%d risers=%dx%.2f tread=%.2f move=%s starts=%d below_80pct_or_off_floor=%d not_top=%d worst_ratio=%.3f" % [p, STAIR_COUNT, STAIR_RISER, STAIR_TREAD, label, SWEEP_OFFSETS, bad, not_top, worst])
 			_expect(bad == 0 and not_top == 0, "T2.4 stairs p%d %s: %d slow/off-floor, %d not at top of %d starts (worst %.3f)" % [p, label, bad, not_top, SWEEP_OFFSETS, worst])
 	print("T2_POP_CAP max_tick_distance_over_tick_motion=%.4f cap=%.2f" % [max_pop, POP_CAP_RATIO])
+	print("T2_RISE_CAP max_rise_per_tick_m=%.4f cap=%.3f" % [max_step_rise, Tuning.STEP_HEIGHT + 0.005])
+	_expect(max_step_rise <= Tuning.STEP_HEIGHT + 0.005, "T2.4 vertical pop: one tick rose %.4f m (cap %.3f)" % [max_step_rise, Tuning.STEP_HEIGHT + 0.005])
 	_expect(max_pop <= POP_CAP_RATIO, "T2.4 forward pop: one tick moved %.3fx its own horizontal motion (cap %.2f)" % [max_pop, POP_CAP_RATIO])
 	# Too tall: still blocked, straight and at 45/75 deg, walk and sprint.
 	for index in TALL_HEIGHTS.size():
@@ -549,6 +564,76 @@ func _test_step_robustness() -> void:
 				var label := "sprint" if sprinting else "walk"
 				print("T2_STEP_TALL height=%.2f angle=%d move=%s final_y=%.4f" % [TALL_HEIGHTS[index], int(angle), label, r.y])
 				_expect(float(r.y) < 0.05, "T2.4 %.2f m lip at %d deg %s must stay blocked (y %.4f)" % [TALL_HEIGHTS[index], int(angle), label, r.y])
+
+
+# T2.4 floor flicker: on a walk/sprint up onto a lip and along its flat top,
+# is_on_floor() must never drop for a tick and no landed signal may fire
+# (QA a2/a3 flicker headings + the a3 p3 0.222 m 30 deg miss), every
+# placement, 12 start offsets. Every tick after the reset is counted.
+func _test_floor_flicker() -> void:
+	var landings := [0]
+	var sink_ticks := 0
+	var max_top_dy := 0.0
+	var on_landed := func(_height: float) -> void: landings[0] += 1
+	player.landed.connect(on_landed)
+	for p in PLACEMENTS.size():
+		var face := STEP_FACE_X + PLACEMENTS[p].x
+		for index in FLICKER_HEIGHTS.size():
+			var height := FLICKER_HEIGHTS[index]
+			var lane := LANE_ANGLED + 100.0 * p + 40.0 * index + PLACEMENTS[p].y
+			for angle in FLICKER_ANGLES:
+				var heading := deg_to_rad(angle)
+				var input_2d := Vector2(cos(heading), sin(heading))
+				for sprinting in [false, true]:
+					var label := "sprint" if sprinting else "walk"
+					var worst_off := 0
+					var worst_land := 0
+					var not_on_top := 0
+					for offset in SWEEP_OFFSETS:
+						var back := 4.0 + 0.01 * offset
+						_reset(Vector3(face - back * cos(heading), 0.0, lane - back * sin(heading)))
+						landings[0] = 0
+						var off := 0
+						var first_off := -1
+						for tick in FLICKER_TICKS:
+							var y_before := player.global_position.y
+							var step := _tick(input_2d, sprinting, false)
+							if _sinking():
+								sink_ticks += 1
+							if y_before > height - 0.02 and float(step.y) > height - 0.06:
+								max_top_dy = maxf(max_top_dy, absf(float(step.y) - y_before))
+							if not bool(step.floor):
+								off += 1
+								if first_off < 0:
+									first_off = tick
+						var on_top := absf(player.global_position.y - height) <= 0.02 and player.is_on_floor()
+						if off > 0 or landings[0] > 0 or not on_top:
+							print("T2_FLICKER_MISS placement=%d height=%.3f angle=%d move=%s start_back=%.2f off_floor_ticks=%d first_off_tick=%d landed_signals=%d final_y=%.4f floor=%s" % [p, height, int(angle), label, back, off, first_off, landings[0], player.global_position.y, player.is_on_floor()])
+						worst_off = maxi(worst_off, off)
+						worst_land = maxi(worst_land, landings[0])
+						if not on_top:
+							not_on_top += 1
+					print("T2_FLICKER placement=%d height=%.3f angle=%d move=%s starts=%d max_off_floor_ticks=%d max_landed_signals=%d not_on_top=%d" % [p, height, int(angle), label, SWEEP_OFFSETS, worst_off, worst_land, not_on_top])
+					_expect(worst_off == 0 and worst_land == 0 and not_on_top == 0, "T2.4 flicker p%d %.3f m %d deg %s: %d off-floor ticks, %d landed signals, %d not on top (of %d starts)" % [p, height, int(angle), label, worst_off, worst_land, not_on_top, SWEEP_OFFSETS])
+	player.landed.disconnect(on_landed)
+	print("T2_FLICKER_TOP_DY max_abs_dy_on_top_m=%.4f cap=0.05" % max_top_dy)
+	_expect(max_top_dy <= 0.05, "T2.4 flat lip top: one tick moved %.4f m vertically (cap 0.05)" % max_top_dy)
+	# Info only (main's move_and_slide snap sink is out of T2 scope): ticks on
+	# which a capsule 2 cm smaller than the player's overlaps the world.
+	print("T2_FLICKER_SINK_INFO (not asserted) ticks_overlapping_2cm=%d runs=%d" % [sink_ticks, PLACEMENTS.size() * FLICKER_HEIGHTS.size() * FLICKER_ANGLES.size() * 2 * SWEEP_OFFSETS])
+
+
+func _sinking() -> bool:
+	var capsule := player.collider.shape as CapsuleShape3D
+	var shape := CapsuleShape3D.new()
+	shape.radius = capsule.radius - 0.02
+	shape.height = capsule.height - 0.04
+	var parameters := PhysicsShapeQueryParameters3D.new()
+	parameters.shape = shape
+	parameters.transform = player.collider.global_transform
+	parameters.collision_mask = player.collision_mask
+	parameters.exclude = [player.get_rid()]
+	return not player.get_world_3d().direct_space_state.intersect_shape(parameters, 1).is_empty()
 
 
 func _test_slope_speed() -> void:
@@ -565,7 +650,7 @@ func _test_slope_speed() -> void:
 			_expect(SLOPE_REFERENCE.has(entry[0]), "slope reference %s must be recorded" % entry[0])
 			if SLOPE_REFERENCE.has(entry[0]):
 				var ref := float(SLOPE_REFERENCE[entry[0]])
-				_expect(absf(float(entry[1]) - ref) / ref <= SLOPE_TOLERANCE, "slope %s: sprint speed %.4f must be within 5%% of main %.4f" % [entry[0], entry[1], ref])
+				_expect(absf(float(entry[1]) - ref) <= SLOPE_TOLERANCE, "slope %s: sprint speed %.4f must match main %.4f within 0.0001 m/s" % [entry[0], entry[1], ref])
 
 
 func _ramp_mean_speed(start: Vector3, input_2d: Vector2, run: float) -> float:

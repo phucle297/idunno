@@ -34,6 +34,7 @@ var _is_eliminated := false
 var _get_up_remaining := 0.0
 var _landing_remaining := 0.0
 var _presentation_airborne := false
+var _foot_probe_shape: CylinderShape3D
 var _network_grounded := -1
 var _fall_peak := NAN
 var _shove_manager: Node
@@ -210,7 +211,13 @@ func apply_movement_input(
 
 	if wish_direction.length_squared() > 0.01:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(-wish_direction.x, -wish_direction.z), 12.0 * delta)
+	# Replay from an airborne server state must not snap with the client's
+	# own (later) floor contact; the server did not snap on this tick either.
+	var snap := floor_snap_length
+	if grounded_override == 0:
+		floor_snap_length = 0.0
 	_move_and_report_landing(grounded and velocity.y <= 0.0, delta)
+	floor_snap_length = snap
 
 
 func predict_movement_input(sequence: int, direction: Vector2, sprinting: bool, jump_pressed: bool, delta: float) -> void:
@@ -476,6 +483,8 @@ func _move_and_report_landing(allow_step := false, delta := 0.0) -> void:
 		velocity = Vector3(kept_velocity.x, 0.0, kept_velocity.z)
 	elif step_contact_angle == STEP_NONE:
 		move_and_slide()
+	if allow_step and not is_on_floor() and velocity.y <= 0.0:
+		_settle_on_probed_floor(delta)
 	_fall_peak = maxf(_fall_peak, global_position.y)
 	if is_on_floor():
 		var fall_height := maxf(_fall_peak - global_position.y, 0.0)
@@ -563,6 +572,50 @@ func _step_up(delta: float) -> float:
 		return STEP_KEEP_SPEED
 	global_transform = landed
 	return contact_normal.angle_to(up_direction)
+
+
+# A grounded move that ends without floor contact although a walkable floor is
+# right under the feet (the capsule can end a tick hovering about one safe
+# margin above a flat top, e.g. after a step) settles onto it, so the contact
+# does not drop for a tick. A real edge or drop is left alone: the probe finds
+# no floor within FOOT_PROBE_DEPTH, or starts inside the lip the capsule rests on.
+func _settle_on_probed_floor(delta: float) -> void:
+	var gap := _foot_probe_gap(global_transform)
+	if is_nan(gap) or delta <= 0.0:
+		return
+	var kept_velocity := velocity
+	var snap := floor_snap_length
+	floor_snap_length = 0.0
+	velocity = -up_direction * ((maxf(gap, 0.0) + STEP_SETTLE) / delta)
+	move_and_slide()
+	floor_snap_length = snap
+	velocity = kept_velocity
+
+
+# Foot probe: synchronous cylinder cast (same mask as the body) from
+# FOOT_PROBE_START above the soles to FOOT_PROBE_DEPTH below them. Returns the
+# gap from the soles down to a walkable floor (negative if slightly above the
+# soles), or NAN if there is none or the cast starts overlapping.
+func _foot_probe_gap(pose: Transform3D) -> float:
+	if _foot_probe_shape == null:
+		_foot_probe_shape = CylinderShape3D.new()
+		_foot_probe_shape.radius = Tuning.FOOT_PROBE_RADIUS
+		_foot_probe_shape.height = Tuning.FOOT_PROBE_THICKNESS
+	var parameters := PhysicsShapeQueryParameters3D.new()
+	parameters.shape = _foot_probe_shape
+	parameters.collision_mask = collision_mask
+	parameters.exclude = [get_rid()]
+	parameters.transform = Transform3D(pose.basis, pose.origin + up_direction * (Tuning.FOOT_PROBE_START + Tuning.FOOT_PROBE_THICKNESS * 0.5))
+	parameters.motion = -up_direction * (Tuning.FOOT_PROBE_START + Tuning.FOOT_PROBE_DEPTH)
+	var space := get_world_3d().direct_space_state
+	var fractions := space.cast_motion(parameters)
+	if fractions.size() < 2 or fractions[1] >= 1.0 or fractions[1] <= 0.0:
+		return NAN
+	parameters.transform = parameters.transform.translated(parameters.motion * fractions[1])
+	var rest := space.get_rest_info(parameters)
+	if rest.is_empty() or (rest.normal as Vector3).angle_to(up_direction) > floor_max_angle:
+		return NAN
+	return parameters.motion.length() * fractions[0] - Tuning.FOOT_PROBE_START
 
 
 # (angle from up, rise above the feet at `start`) of the walkable lip top just
