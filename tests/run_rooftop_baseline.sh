@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# T3b rooftop / pacing baseline: full matrix (10 seeds x 2 maps x 2 presets x
+# T3b rooftop / pacing baseline: full matrix (10 seeds x 2 maps x Hard preset x
 # 4 controls) through 8:00, one fresh headless Godot process per run (JOBS in
 # parallel, default 8), merged into one JSON blob. Logs and samples go to OUT_DIR, never the repo.
 # Usage: GODOT_BIN=godot [JOBS=8] [SEEDS=101-110] [MAPS=..] [PRESETS=..] [CONTROLS=..] tests/run_rooftop_baseline.sh [OUT_DIR] [TAG]
@@ -13,7 +13,7 @@ SEEDS="${SEEDS:-101-110}"
 HORIZON="${HORIZON:-480}"
 # Subset filters (defaults = full matrix).
 MAPS="${MAPS:-toy_town toy_harbor}"
-PRESETS="${PRESETS:-normal hard}"
+PRESETS="${PRESETS:-hard}"
 CONTROLS="${CONTROLS:-rooftop_idle rooftop_tiny_step ground_idle active_route}"
 # D4: GodotPhysics3D iterates some address-keyed containers, so contact order
 # (and positions, by ~1e-5 m per event, amplified by the route) can depend on

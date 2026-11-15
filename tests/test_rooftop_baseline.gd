@@ -2,12 +2,13 @@ extends SceneTree
 
 # T3b rooftop / pacing baseline harness (measurement only, no product asserts).
 # Drives scenes/main.tscn + DisasterDirector on the real toy_town and
-# toy_harbor maps with seeded starts, four scripted controls and both match
-# presets, then prints one JSON blob and ROOFTOP_BASELINE_OK.
+# toy_harbor maps with seeded starts, four scripted controls and the Hard match
+# preset (Normal was deleted in T3c; its baseline row lives in T3bQ), then
+# prints one JSON blob and ROOFTOP_BASELINE_OK.
 #
 # Run (deterministic stepping is required; --fixed-fps disables real-time sync):
 #   godot --headless --fixed-fps 60 --path . --script res://tests/test_rooftop_baseline.gd \
-#     -- [--maps=toy_town,toy_harbor] [--presets=normal,hard] [--seeds=101-110]
+#     -- [--maps=toy_town,toy_harbor] [--presets=hard] [--seeds=101-110]
 #        [--controls=rooftop_idle,rooftop_tiny_step,ground_idle,active_route]
 #        [--horizon=480] [--samples-out=/tmp/x.jsonl] [--json-out=/tmp/x.json] [--real-death]
 # tests/run_rooftop_baseline.sh runs the full matrix as parallel shards, each
@@ -17,7 +18,7 @@ extends SceneTree
 #
 # Without --fixed-fps the engine steps in real time (8:00 of match per run), so
 # generic runners (run_ui_regression.sh, the pre-commit gate) that launch every
-# test_*.gd without it get a short real-time smoke instead: toy_town, normal,
+# test_*.gd without it get a short real-time smoke instead: toy_town, hard,
 # seed 101, rooftop_idle, 12 s. That smoke is not baseline evidence. Pass
 # --full to force the full matrix anyway.
 #
@@ -32,7 +33,7 @@ extends SceneTree
 
 const PUBLISHED_SEEDS := [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
 const MAPS := ["toy_town", "toy_harbor"]
-const PRESETS := ["normal", "hard"]
+const PRESETS := ["hard"]
 const CONTROLS := ["rooftop_idle", "rooftop_tiny_step", "ground_idle", "active_route"]
 # Starting roof sectors are authored elevation refuges from game/main.gd
 # map_anchors (read only). Each sits directly above an authored shelter and is
@@ -260,7 +261,7 @@ func _parse_options() -> Dictionary:
 	options.mode = "fixed_step" if fixed_step else "realtime_smoke"
 	if not fixed_step and "--full" not in user_args:
 		options.maps = ["toy_town"]
-		options.presets = ["normal"]
+		options.presets = ["hard"]
 		options.seeds = [PUBLISHED_SEEDS[0]]
 		options.controls = ["rooftop_idle"]
 		options.horizon = SMOKE_HORIZON
