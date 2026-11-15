@@ -6,6 +6,12 @@ const MAX_ROCKS := 3
 const RADIUS := 0.65
 const MAX_SPEED := 9.0
 const DAMAGE := 25.0
+# A rock blocked by a raised surface may ride onto it only when an exposed,
+# alive standee is on that same surface inside the lane corridor. Unoccupied
+# solid cover (and anyone sheltering behind or under it) still stops rocks.
+const MAX_CLIMB := 6.0
+const CORRIDOR_HALF_WIDTH := 2.4
+const EXPOSURE_HEIGHT := 8.0
 
 @export var warning_duration := 5.0
 @export var active_duration := 10.0
@@ -109,6 +115,9 @@ func tick(delta: float) -> void:
 				rock.set_meta("stopped", true)
 				break
 			if collision.get_normal().y < 0.65:
+				if not rock.get_meta("climbed", false) and _ride_onto_occupied_surface(rock, collision):
+					motion = Vector3(rock.velocity.x, 0, rock.velocity.z) * delta
+					continue
 				rock.set_meta("stopped", true)
 				rock.velocity = Vector3.ZERO
 				break
@@ -122,6 +131,50 @@ func tick(delta: float) -> void:
 	# iteration first; simultaneous impacts use the existing batch contract.
 	if not impacts.is_empty():
 		_manager.apply_damage_batch(impacts)
+
+
+func _ride_onto_occupied_surface(rock: CharacterBody3D, collision: KinematicCollision3D) -> bool:
+	var body := collision.get_collider() as CollisionObject3D
+	var normal := collision.get_normal()
+	var forward := Vector3(-normal.x, 0, -normal.z)
+	if body == null or body is PartyPlayer or forward.length() < 0.5:
+		return false
+	forward = forward.normalized()
+	var contact := collision.get_position()
+	var bottom := rock.global_position.y - RADIUS
+	var space := get_world_3d().direct_space_state
+	var edge := Vector3(rock.global_position.x, 0, contact.z) + forward * 0.15
+	var down := PhysicsRayQueryParameters3D.create(Vector3(edge.x, bottom + MAX_CLIMB, edge.z), Vector3(edge.x, bottom, edge.z), 1)
+	var top := space.intersect_ray(down)
+	if top.is_empty() or top.collider != body or top.normal.y < 0.65:
+		return false
+	var top_y := float(top.position.y)
+	if not _has_exposed_standee(space, body, top_y, contact, forward):
+		return false
+	rock.global_position = Vector3(rock.global_position.x, top_y + RADIUS + 0.05, contact.z + forward.z * 0.05)
+	var speed := maxf(Vector2(rock.velocity.x, rock.velocity.z).length(), 4.0)
+	rock.velocity = forward * minf(speed, MAX_SPEED)
+	rock.set_meta("climbed", true)
+	return true
+
+
+func _has_exposed_standee(space: PhysicsDirectSpaceState3D, body: CollisionObject3D, top_y: float, contact: Vector3, forward: Vector3) -> bool:
+	for peer_id: int in _players:
+		var player: Node3D = _players[peer_id]
+		if not is_instance_valid(player) or not _manager.is_player_alive(peer_id):
+			continue
+		var feet := player.global_position
+		if absf(feet.y - top_y) > 0.6 or absf(feet.x - (lane.low as Vector3).x) > CORRIDOR_HALF_WIDTH:
+			continue
+		if (feet - contact).dot(forward) <= 0:
+			continue
+		var support := space.intersect_ray(PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 0.35, feet + Vector3.DOWN * 0.6, 1))
+		if support.is_empty() or support.collider != body:
+			continue
+		var overhead := space.intersect_ray(PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 1.0, feet + Vector3.UP * EXPOSURE_HEIGHT, 1))
+		if overhead.is_empty():
+			return true
+	return false
 
 
 func _spawn_rock() -> void:
