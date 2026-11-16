@@ -3,7 +3,16 @@ extends SceneTree
 ## clients only acquire/use them through ToySabotage's public local requests.
 
 const TIMEOUT_MSEC := 90000
+# Clients must outlive the server's scenario budget: the server owns the verdict.
+# A client that leaves on its own clock while the server is still mid-scenario
+# ends the match for everyone and turns a slow host into an unknown-peer crash.
+# Still below the runner's 180 s process timeout so a client always reports.
+const CLIENT_SAFETY_MSEC := TIMEOUT_MSEC + 60000
 var role := ""
+var inject_drop_stage := ""
+var current_stage := "start"
+var rematch_phase := false
+var aborted := false
 var port := 29940
 var player_count := 2
 var map_id := "toy_town"
@@ -28,6 +37,38 @@ class ObservedShoves extends ShoveManager:
 class FixtureMain extends "res://game/main.gd":
 	var fixture_acks: Dictionary = {}
 	var departure_allowed := false
+	# Server-side peer accounting: departures the fixture asked for vs. drops.
+	var departing_peers: Dictionary = {}
+	var dropped_peers: Dictionary = {}
+	# Client-side session state.
+	var server_gone := false
+	var injected_drop := false
+	# Once the server aborts, every fixture coroutine parks on this never-emitted
+	# signal so no scenario step runs against a broken session before quit.
+	var aborted := false
+	signal halted_forever
+
+	func park_if_aborted() -> void:
+		if aborted:
+			await halted_forever
+
+	func peer_connected(peer_id: int) -> bool:
+		return multiplayer.has_multiplayer_peer() and multiplayer.get_peers().has(peer_id) and get_network_player_ids().has(peer_id)
+
+	func send_ack(stage: String, ok: bool) -> void:
+		# A client whose session ended must not try to answer a vanished server.
+		var peer := multiplayer.multiplayer_peer
+		if multiplayer.is_server() or peer == null or peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+			print("TOY_ENET_ACK_SKIPPED stage=%s reason=disconnected" % stage)
+			return
+		fixture_ack.rpc_id(1, stage, ok)
+
+	@rpc("authority", "call_remote", "reliable", 2)
+	func fixture_drop() -> void:
+		# Negative-path hook: vanish mid-scenario like a crashed client.
+		injected_drop = true
+		print("TOY_ENET_INJECTED_DROP peer=%d" % multiplayer.get_unique_id())
+		multiplayer.multiplayer_peer.close()
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_intent(intent: String, direction: Vector3 = Vector3.ZERO, round := 0, sequence := 0) -> void:
@@ -65,7 +106,7 @@ class FixtureMain extends "res://game/main.gd":
 			if ok:
 				break
 			await get_tree().process_frame
-		fixture_ack.rpc_id(1, stage, ok)
+		send_ack(stage, ok)
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_observe_effect(stage: String, effect_kind: String, expected_owner := 0) -> void:
@@ -76,7 +117,7 @@ class FixtureMain extends "res://game/main.gd":
 			if found:
 				break
 			await get_tree().process_frame
-		fixture_ack.rpc_id(1, stage, found)
+		send_ack(stage, found)
 
 
 	@rpc("authority", "call_remote", "reliable", 2)
@@ -91,13 +132,13 @@ class FixtureMain extends "res://game/main.gd":
 			if found:
 				break
 			await get_tree().process_frame
-		fixture_ack.rpc_id(1, stage, found)
+		send_ack(stage, found)
 
 
 	@rpc("authority", "call_remote", "reliable")
 	func fixture_observe_reflection(owner: int, victim: int) -> void:
 		var shoves := get_node("ShoveManager") as ObservedShoves
-		fixture_ack.rpc_id(1, "reflection_hit", int(shoves.applied_owners.get(victim, 0)) == owner)
+		send_ack("reflection_hit", int(shoves.applied_owners.get(victim, 0)) == owner)
 
 	@rpc("authority", "call_remote", "reliable", 2)
 	func fixture_allow_departure() -> void:
@@ -109,7 +150,7 @@ class FixtureMain extends "res://game/main.gd":
 		var shoves := get_node("ShoveManager") as ShoveManager
 		while int(shoves._last_item_sequence.get(victim_id, 0)) == 0 and Time.get_ticks_msec() < deadline:
 			await get_tree().process_frame
-		fixture_ack.rpc_id(1, "hammer_impulse", int(shoves._last_item_sequence.get(victim_id, 0)) > 0)
+		send_ack("hammer_impulse", int(shoves._last_item_sequence.get(victim_id, 0)) > 0)
 
 	@rpc("authority", "call_remote", "reliable")
 	func fixture_observe_lift(victim_id: int, sequence: int, balloon := false) -> void:
@@ -118,14 +159,14 @@ class FixtureMain extends "res://game/main.gd":
 		# Record at acceptance: independent movement snapshots can replace velocity
 		# before this barrier, so querying the later velocity tests a channel race.
 		var observations: Dictionary = shoves.balloon_lifts if balloon else shoves.applied_lifts
-		fixture_ack.rpc_id(1, "balloon_lift" if balloon else "spring_lift", sequence > 0 and int(observations.get(victim_id, 0)) == sequence)
+		send_ack("balloon_lift" if balloon else "spring_lift", sequence > 0 and int(observations.get(victim_id, 0)) == sequence)
 
 	@rpc("authority", "call_remote", "reliable")
 	func fixture_verify_old_round(victim_id: int) -> void:
 		# Same ordered channel as the preceding production impulse, not a timer
 		# or a different-channel acknowledgement that could race its delivery.
 		var shoves := get_node("ShoveManager") as ShoveManager
-		fixture_ack.rpc_id(1, "old_round_rejected", int(shoves._last_item_sequence.get(victim_id, 0)) < 999)
+		send_ack("old_round_rejected", int(shoves._last_item_sequence.get(victim_id, 0)) < 999)
 
 	@rpc("any_peer", "call_remote", "reliable", 2)
 	func fixture_ack(stage: String, ok: bool) -> void:
@@ -134,8 +175,9 @@ class FixtureMain extends "res://game/main.gd":
 			fixture_acks[stage][multiplayer.get_remote_sender_id()] = ok
 
 	func wait_acks(stage: String, expected: int, deadline: int) -> bool:
-		while (not fixture_acks.has(stage) or fixture_acks[stage].size() != expected or fixture_acks[stage].values().has(false)) and Time.get_ticks_msec() < deadline:
+		while (not fixture_acks.has(stage) or fixture_acks[stage].size() != expected or fixture_acks[stage].values().has(false)) and dropped_peers.is_empty() and not aborted and Time.get_ticks_msec() < deadline:
 			await get_tree().process_frame
+		await park_if_aborted()
 		return fixture_acks.has(stage) and fixture_acks[stage].size() == expected and not fixture_acks[stage].values().has(false)
 
 
@@ -149,6 +191,8 @@ func _initialize() -> void:
 			player_count = argument.trim_prefix("--players=").to_int()
 		elif argument.begins_with("--map-id="):
 			map_id = argument.trim_prefix("--map-id=")
+		elif argument.begins_with("--inject-drop-stage="):
+			inject_drop_stage = argument.trim_prefix("--inject-drop-stage=")
 	_run.call_deferred()
 
 
@@ -194,23 +238,89 @@ func _place(main: FixtureMain, peer_id: int, point: Vector3) -> void:
 
 
 func _publish(main: FixtureMain) -> void:
+	await main.park_if_aborted()
 	main._match_snapshot_remaining = 0.0
 	await process_frame
 	await physics_frame
 
 
+## Explicit, single failure exit for a broken session (dropped peer, match ended
+## under the scenario, missing authoritative state). Never masks: always exit 1.
+func _fail_fast(main: FixtureMain, reason: String) -> void:
+	if aborted:
+		return
+	aborted = true
+	main.aborted = true
+	print("TOY_ENET_ABORT reason=%s stage=%s dropped=%s match_state=%d connected=%s" % [reason, current_stage, main.dropped_peers, main.match_manager.state, main.multiplayer.get_peers() if main.multiplayer.has_multiplayer_peer() else []])
+	push_error("Toy sabotage ENet server failed map=%s players=%d reason=%s stage=%s" % [map_id, player_count, reason, current_stage])
+	# Release the remaining clients promptly (end of frame, after the parked
+	# scenario can no longer touch the session) instead of letting them time out.
+	_close_session.call_deferred(main)
+	quit(1)
+
+
+func _close_session(main: FixtureMain) -> void:
+	if not is_instance_valid(main):
+		return
+	# Same teardown order as a departing client: stop simulation, then close.
+	main.process_mode = Node.PROCESS_MODE_DISABLED
+	if main.multiplayer.multiplayer_peer != null:
+		main.multiplayer.multiplayer_peer.close()
+
+
+func _actor_state(main: FixtureMain, peer_id: int) -> String:
+	var actor := main._player_nodes.get(peer_id) as PartyPlayer
+	return "connected=%s alive=%s can_act=%s knocked=%s match_state=%d seen_seq=%d slot=%s pos=%s" % [main.peer_connected(peer_id), main.match_manager.is_player_alive(peer_id), actor.can_perform_actions() if is_instance_valid(actor) else false, actor.is_knocked_down() if is_instance_valid(actor) else false, main.match_manager.state, int(main.toy_sabotage._seen_sequences.get(peer_id, 0)), main.toy_sabotage.slots.get(peer_id, {}), actor.global_position if is_instance_valid(actor) else Vector3.INF]
+
+
+## Before a production intent, the acting peer must be registered and able to
+## act; otherwise the server silently (and correctly) ignores the request and
+## the fixture would wait on a state change that can never come. Transient
+## knockdown is waited out on real state; a missing/dead peer fails explicitly.
+func _await_actor_ready(main: FixtureMain, peer_id: int, intent: String, deadline: int) -> bool:
+	await main.park_if_aborted()
+	var actor := main._player_nodes.get(peer_id) as PartyPlayer
+	while not aborted and main.peer_connected(peer_id) and main.match_manager.state == MatchManager.MatchState.ACTIVE and main.match_manager.is_player_alive(peer_id) and is_instance_valid(actor) and not actor.can_perform_actions() and Time.get_ticks_msec() < deadline:
+		await process_frame
+	await main.park_if_aborted()
+	var ready := main.peer_connected(peer_id) and main.match_manager.state == MatchManager.MatchState.ACTIVE and main.match_manager.is_player_alive(peer_id) and is_instance_valid(actor) and actor.can_perform_actions()
+	if not ready:
+		print("TOY_ENET_ACTOR_UNAVAILABLE peer=%d intent=%s %s" % [peer_id, intent, _actor_state(main, peer_id)])
+		_fail_fast(main, "actor_unavailable" if main.peer_connected(peer_id) else "unknown_peer")
+		await main.park_if_aborted()
+	return ready
+
+
 func _expect(main: FixtureMain, stage: String, round: int, peer_id: int, kind: String, ammo: int, pickups: int, deadline: int) -> bool:
+	current_stage = stage
+	await main.park_if_aborted()
 	main.fixture_acks.erase(stage)
 	main.fixture_expect.rpc(stage, round, peer_id, kind, ammo, pickups)
 	var ok := await main.wait_acks(stage, player_count - 1, deadline)
 	print("TOY_ENET_STAGE stage=%s ok=%s round=%d" % [stage, ok, round])
+	if not ok and Time.get_ticks_msec() >= deadline:
+		print("TOY_ENET_BUDGET_EXCEEDED stage=%s budget_ms=%d" % [stage, TIMEOUT_MSEC])
 	if not ok:
-		print("TOY_ENET_MISMATCH expected_peer=%d kind=%s ammo=%d pickups=%d actual=%s acks=%s" % [peer_id, kind, ammo, pickups, main.toy_sabotage.create_snapshot(), main.fixture_acks.get(stage, {})])
+		print("TOY_ENET_MISMATCH expected_peer=%d kind=%s ammo=%d pickups=%d actual=%s acks=%s actor={%s}" % [peer_id, kind, ammo, pickups, main.toy_sabotage.create_snapshot(), main.fixture_acks.get(stage, {}), _actor_state(main, peer_id)])
+		if not main.dropped_peers.is_empty():
+			_fail_fast(main, "peer_dropped")
 	return ok
 
 
-func _remote_intent(main: FixtureMain, peer_id: int, intent: String, direction := Vector3.ZERO, round := 0, sequence := 0) -> void:
+func _remote_intent(main: FixtureMain, peer_id: int, intent: String, direction := Vector3.ZERO, round := 0, sequence := 0) -> bool:
+	if aborted:
+		return false
+	# Never RPC a peer that is not (or no longer) registered: account for it.
+	if not main.peer_connected(peer_id):
+		print("TOY_ENET_UNKNOWN_PEER peer=%d intent=%s stage=%s connected=%s" % [peer_id, intent, current_stage, main.multiplayer.get_peers()])
+		_fail_fast(main, "unknown_peer")
+		return false
 	main.fixture_intent.rpc_id(peer_id, intent, direction, round, sequence)
+	return true
+
+
+func _ready_intent(main: FixtureMain, peer_id: int, intent: String, deadline: int, direction := Vector3.ZERO) -> bool:
+	return await _await_actor_ready(main, peer_id, intent, deadline) and _remote_intent(main, peer_id, intent, direction)
 
 
 func _give_remote(main: FixtureMain, remote_id: int, kind: String, pickup_id: int, pad: Vector3, deadline: int, stage: String) -> bool:
@@ -220,28 +330,55 @@ func _give_remote(main: FixtureMain, remote_id: int, kind: String, pickup_id: in
 	main.toy_sabotage.pickups.append({"id": pickup_id, "kind": kind, "position": pad, "expires": main.match_manager.elapsed_time + 20.0})
 	main.toy_sabotage._revision += 1
 	await _publish(main)
-	_remote_intent(main, remote_id, "pickup")
+	current_stage = stage
+	if not await _ready_intent(main, remote_id, "pickup", deadline):
+		return false
 	var expected_ammo := int(ToySabotage.KINDS[kind])
-	while not main.toy_sabotage.slots.has(remote_id) and Time.get_ticks_msec() < deadline:
+	while not main.toy_sabotage.slots.has(remote_id) and not aborted and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await _publish(main)
 	return main.toy_sabotage.slots.has(remote_id) and await _expect(main, stage, main.toy_sabotage.round_sequence, remote_id, kind, expected_ammo, 0, deadline)
 
 
 func _use_remote(main: FixtureMain, remote_id: int, kind: String, ammo: int, deadline: int, stage: String) -> bool:
+	current_stage = stage
+	if stage == inject_drop_stage and main.peer_connected(remote_id):
+		print("TOY_ENET_INJECTING_DROP peer=%d stage=%s" % [remote_id, stage])
+		main.fixture_drop.rpc_id(remote_id)
+		# State-driven: the real ENet disconnect notification drives the abort.
+		while main.dropped_peers.is_empty() and not aborted and Time.get_ticks_msec() < deadline:
+			await process_frame
 	main.match_manager.elapsed_time += 1.0
-	_remote_intent(main, remote_id, "use", Vector3(1, 0, 0))
+	if not await _ready_intent(main, remote_id, "use", deadline, Vector3(1, 0, 0)):
+		return false
 	var slot: Dictionary = main.toy_sabotage.slots.get(remote_id, {})
-	while int(slot.get("ammo", -1)) != ammo and Time.get_ticks_msec() < deadline:
+	while int(slot.get("ammo", -1)) != ammo and not aborted and Time.get_ticks_msec() < deadline:
 		await process_frame
 		slot = main.toy_sabotage.slots.get(remote_id, {})
+	if int(slot.get("ammo", -1)) != ammo and not aborted:
+		print("TOY_ENET_INTENT_STALL stage=%s intent=use expected_ammo=%d actor={%s}" % [stage, ammo, _actor_state(main, remote_id)])
 	await _publish(main)
 	return int(slot.get("ammo", -1)) == ammo and await _expect(main, stage, main.toy_sabotage.round_sequence, remote_id, kind, ammo, 0, deadline)
 
 
 func _server(main: FixtureMain) -> void:
 	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
+	print("TOY_ENET_BUDGET role=server budget_ms=%d start_unix=%.3f" % [TIMEOUT_MSEC, Time.get_unix_time_from_system()])
 	var passed: bool = await _start(main, deadline)
+	# Account for every departure: only peers the fixture released may leave.
+	main.multiplayer.peer_disconnected.connect(func(peer_id: int) -> void:
+		if main.departing_peers.has(peer_id):
+			return
+		main.dropped_peers[peer_id] = current_stage
+		print("TOY_ENET_PEER_DROPPED peer=%d stage=%s" % [peer_id, current_stage])
+		_fail_fast(main, "peer_dropped"))
+	main.match_manager.player_eliminated.connect(func(peer_id: int, cause: String) -> void:
+		if not rematch_phase:
+			print("TOY_ENET_UNEXPECTED_ELIMINATION peer=%d cause=%s stage=%s" % [peer_id, cause, current_stage]))
+	main.match_manager.match_finished.connect(func(winners: Array[int]) -> void:
+		# The catalog runs inside one match; only the rematch phase ends rounds.
+		if not rematch_phase:
+			_fail_fast(main, "match_finished_mid_scenario winners=%s" % [winners]))
 	var peers := main.get_network_player_ids()
 	var host_id := peers[0]
 	var remote_id := peers[1]
@@ -254,6 +391,7 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and await _expect(main, "initial_round", main.toy_sabotage.round_sequence, remote_id, "", 0, 0, deadline)
 	var recovering := main._player_nodes[remote_id] as PartyPlayer
 	recovering.set_network_knockdown(true)
+	# Deliberately sent while knocked down: no readiness wait here.
 	_remote_intent(main, remote_id, "disabled_spam")
 	passed = passed and await main.wait_acks("disabled_spam", 1, deadline)
 	passed = passed and not main.toy_sabotage._seen_sequences.has(remote_id)
@@ -264,7 +402,7 @@ func _server(main: FixtureMain) -> void:
 	_place(main, remote_id, pad)
 	main.toy_sabotage.pickups.append({"id": 700, "kind": "foam_blaster", "position": pad, "expires": 30.0})
 	main.toy_sabotage._revision += 1
-	_remote_intent(main, remote_id, "contend_pickup")
+	passed = passed and await _ready_intent(main, remote_id, "contend_pickup", deadline)
 	main.toy_sabotage.local_request_pickup(host_id)
 	while main.toy_sabotage.pickups.size() != 0 and Time.get_ticks_msec() < deadline:
 		await process_frame
@@ -276,6 +414,7 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and await _expect(main, "competition", main.toy_sabotage.round_sequence, remote_id, "foam_blaster" if winner == remote_id else "", 3 if winner == remote_id else 0, 0, deadline)
 	if not passed:
 		push_error("Toy pickup competition failed before catalog")
+		_close_session.call_deferred(main)
 		quit(1)
 		return
 	main.toy_sabotage.reset()
@@ -336,7 +475,7 @@ func _server(main: FixtureMain) -> void:
 	passed = passed and await _give_remote(main, remote_id, "remote_popper", 780, pad, deadline, "remote_control_pickup")
 	passed = passed and await _use_remote(main, remote_id, "remote_popper", 0, deadline, "remote_control_place")
 	main.toy_sabotage.tick(0.71, 1)
-	_remote_intent(main, remote_id, "use", Vector3.RIGHT)
+	passed = passed and await _ready_intent(main, remote_id, "use", deadline, Vector3.RIGHT)
 	while not main.toy_sabotage.effects.any(func(effect: Dictionary) -> bool: return effect.kind == "popper_warning") and Time.get_ticks_msec() < deadline:
 		await process_frame
 	await _publish(main)
@@ -407,6 +546,12 @@ func _server(main: FixtureMain) -> void:
 	main.toy_sabotage.pickups.append({"id": 795, "kind": "foam_blaster", "position": (main._player_nodes[host_id] as PartyPlayer).global_position, "expires": main.match_manager.elapsed_time + 20.0})
 	main.toy_sabotage.local_request_pickup(host_id)
 	main.toy_sabotage.local_request_use(host_id, Vector3.FORWARD)
+	if aborted:
+		return
+	if main.toy_sabotage.effects.is_empty():
+		# Host use rejected (e.g. match no longer active): fail explicitly, never index -1.
+		_fail_fast(main, "fan_drift_effect_missing")
+		return
 	var drift: Dictionary = main.toy_sabotage.effects[-1]
 	var drift_id := int(drift.id)
 	main.toy_sabotage.tick(0.02, 1)
@@ -419,8 +564,10 @@ func _server(main: FixtureMain) -> void:
 	# client-local request sequence is reset by acquiring and firing every round.
 	if not passed:
 		push_error("Toy catalog or replicated spring acceptance failed before rematch")
+		_close_session.call_deferred(main)
 		quit(1)
 		return
+	rematch_phase = true
 	for cycle in 5:
 		for peer_id in main.get_network_player_ids():
 			main.match_manager.apply_damage(peer_id, 1000.0, "toy fixture")
@@ -441,6 +588,7 @@ func _server(main: FixtureMain) -> void:
 	_remote_intent(main, remote_id, "raw_use", Vector3(1, 0, 0), main.toy_sabotage.round_sequence - 1, 4)
 	for _frame in 12:
 		await process_frame
+	await main.park_if_aborted()
 	passed = passed and before_ammo == 2 and int(main.toy_sabotage.slots[remote_id].ammo) == before_ammo
 	shoves._replicate_item_impulse.rpc(host_id, remote_id, 999, Vector3.RIGHT, 2.0, 8.0, main.toy_sabotage.round_sequence - 1)
 	main.fixture_verify_old_round.rpc(remote_id)
@@ -449,38 +597,52 @@ func _server(main: FixtureMain) -> void:
 	# must remove it without fixture mutation.
 	for peer_id in peers:
 		if peer_id != host_id:
+			main.departing_peers[peer_id] = true
 			main.fixture_allow_departure.rpc_id(peer_id)
 			# Listen-host relay remains enabled; wait for real departure before
 			# asking another peer to close its native ENet channels.
 			while main.get_network_player_ids().has(peer_id) and Time.get_ticks_msec() < deadline:
 				await process_frame
 	passed = passed and not main.get_network_player_ids().has(remote_id) and not main.toy_sabotage.slots.has(remote_id)
+	if aborted:
+		return
 	if passed:
 		print("TOY_SABOTAGE_ENET_SERVER_OK map=%s players=%d competition=single_winner finite_charge_catalog=%d spring_lift=replicated snapshot_observer=passed malformed_duplicate_stale=passed rematches=5 disconnect_cleanup=passed" % [map_id, player_count, ToySabotage.KINDS.size()])
 	else:
 		push_error("Toy sabotage ENet server failed map=%s players=%d round=%d slots=%s" % [map_id, player_count, main.toy_sabotage.round_sequence, main.toy_sabotage.slots])
+		_close_session.call_deferred(main)
 	quit(0 if passed else 1)
 
 
 func _client(main: FixtureMain) -> void:
-	var deadline := Time.get_ticks_msec() + TIMEOUT_MSEC
-	while (main.get_network_player_ids().size() != player_count or main.match_manager.players.size() != player_count) and Time.get_ticks_msec() < deadline:
+	# Session-driven lifetime: leave when the server releases us or goes away;
+	# the safety cap only guards against a wedged process.
+	var deadline := Time.get_ticks_msec() + CLIENT_SAFETY_MSEC
+	print("TOY_ENET_BUDGET role=client budget_ms=%d start_unix=%.3f" % [CLIENT_SAFETY_MSEC, Time.get_unix_time_from_system()])
+	main.multiplayer.server_disconnected.connect(func() -> void: main.server_gone = true)
+	while (main.get_network_player_ids().size() != player_count or main.match_manager.players.size() != player_count) and not main.server_gone and Time.get_ticks_msec() < deadline:
 		await process_frame
 	main.set_local_ready(true)
-	while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
+	while main.match_manager.state != MatchManager.MatchState.ACTIVE and not main.server_gone and Time.get_ticks_msec() < deadline:
 		await process_frame
-	while not main.departure_allowed and Time.get_ticks_msec() < deadline:
+	while not main.departure_allowed and not main.server_gone and not main.injected_drop and Time.get_ticks_msec() < deadline:
 		await process_frame
+	var my_id := main.multiplayer.get_unique_id()
 	var passed := main.departure_allowed and main.toy_sabotage.round_sequence >= 1
-	if passed:
-		print("TOY_SABOTAGE_ENET_CLIENT_OK map=%s players=%d peer=%d snapshots=passed local_intents=passed rematches=5" % [map_id, player_count, main.multiplayer.get_unique_id()])
+	if main.injected_drop:
+		print("TOY_SABOTAGE_ENET_CLIENT_DROPPED_AS_INJECTED map=%s players=%d" % [map_id, player_count])
+		passed = true
+	elif passed:
+		print("TOY_SABOTAGE_ENET_CLIENT_OK map=%s players=%d peer=%d snapshots=passed local_intents=passed rematches=5" % [map_id, player_count, my_id])
 	else:
-		push_error("Toy sabotage ENet client failed round=%d departure=%s" % [main.toy_sabotage.round_sequence, main.departure_allowed])
+		var reason := "server_disconnected" if main.server_gone else "safety_cap"
+		push_error("Toy sabotage ENet client failed round=%d departure=%s reason=%s" % [main.toy_sabotage.round_sequence, main.departure_allowed, reason])
 	main.process_mode = Node.PROCESS_MODE_DISABLED
 	main.gameplay_audio.reset_for_match()
 	if is_instance_valid(main.toy_audio):
 		main.toy_audio.reset_for_match()
-	main.multiplayer.multiplayer_peer.close()
+	if main.multiplayer.multiplayer_peer != null:
+		main.multiplayer.multiplayer_peer.close()
 	main.multiplayer.multiplayer_peer = null
 	main.free()
 	await create_timer(0.1).timeout
