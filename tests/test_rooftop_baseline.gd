@@ -81,6 +81,15 @@ const ESCAPE_MARGIN := 2.0 # m outside the marked district before holding
 const GRID_STEP := 1.0 # m: open-ground walk grid (top-down map surface)
 const GROUND_MAX_Y := 0.35 # surface height counted as walkable open ground
 const VOID_CAREFUL := 3.0 # m: within this of a removed district, walk (no sprint) and ease into turns
+# T3v attempt 2: attentive reactions to published warnings (telegraph decals,
+# HUD prompts, the visible swarm/water/panels). Footprint sizes are the
+# disasters' own exported radii; nothing reads RNG or future targets.
+const DODGE_MARGIN := 0.8 # m kept outside a warned footprint edge when choosing where to step
+const DODGE_TRIGGER := 0.4 # m: react when within this of a warned footprint edge
+const DODGE_SPEED := 4.5 # m/s walking speed used for the "can I get there in time" check
+const DODGE_MAX := 10.0 # m: farthest step-out searched
+const PANEL_CLEAR := 1.5 # m between a stand point and a breakable 2x2 roof panel
+const PANEL_THREAT_GROW := 0.75 # m around a threatened panel (on it or under it)
 # Official per-run / per-group JSON fields read by T3z (also printed as
 # ROOFTOP_BASELINE_FIELDS). Everything not listed is diagnostic.
 const OFFICIAL_FIELDS := {
@@ -256,7 +265,7 @@ func _finish(result: Dictionary, wall_start: int, options: Dictionary) -> void:
 	}
 	blob.merge(result)
 	var text := JSON.stringify(blob)
-	var json_out: String = options.get("json_out", "")
+	var json_out: String = options.get("json_out T3v a2 (attentive layer, published state only): steps out of / does not walk into warned Meteor, Lightning and Earthquake footprints, the visible Tornado core and lane, and the breakable roof panels while a quake or meteor threatens them; roof/shelter stand points keep 1.5 m from the panels; bees: shelter, a loop on the roof, or nearest cover / away from the swarm; re-goals after being knocked off; waits on high ground above flood water before leaving a marked district while time allows. Diagnostics: runs[].route.dodge_log", "")
 	if not json_out.is_empty():
 		DirAccess.make_dir_recursive_absolute(json_out.get_base_dir())
 		var file := FileAccess.open(json_out, FileAccess.WRITE)
@@ -394,22 +403,80 @@ func _map_layout(map_id: String) -> Dictionary:
 	var margin := 2.5
 	var west_x := x_min - margin
 	var far_z := far_exit.z + signf(far_exit.z - center.z) * 1.0
+	# T3v a2: the breakable 2x2 roof panel sits over the shelter centre (and
+	# under/near the roof centre). A player can see it, so the route's stand
+	# points keep PANEL_CLEAR from it: the roof stand moves toward the ramp
+	# top, the shelter stand toward the far door, and stays under intact roof.
+	var panels := _roof_panels()
+	var roof_stand := _clear_of_panels(panels, center, high)
+	var shelter_stand := _clear_of_panels(panels, shelter.center, far_exit)
+	if absf(main.get_map_surface_height(roof_stand) - center.y) > 0.35:
+		failures.append("%s: roof stand point %s is not on the roof" % [map_id, roof_stand])
+	if not _covered(shelter_stand):
+		failures.append("%s: shelter stand point %s has no roof overhead" % [map_id, shelter_stand])
 	var down: Array[Vector3] = [high, low, Vector3(west_x, 0, low.z), Vector3(west_x, 0, far_z),
-		Vector3(far_exit.x, 0, far_z), far_exit, shelter.center]
+		Vector3(far_exit.x, 0, far_z), far_exit, shelter_stand]
 	var up: Array[Vector3] = down.duplicate()
 	up.reverse()
 	up.remove_at(0)
-	up.append(center)
+	up.append(roof_stand)
 	var world := _route_world(anchors, [center, high, low, shelter.center])
 	return {
 		"roof": roof, "center": center, "rect": Rect2(x_min, z_min, x_max - x_min, z_max - z_min),
 		"roof_y": center.y, "down": down, "up": up, "spawn": anchors.spawn_origin,
-		"shelter_center": shelter.center, "world": world,
+		"shelter_center": shelter.center, "world": world, "panels": panels,
+		"roof_stand": roof_stand, "shelter_stand": shelter_stand,
 		"public": {"roof": roof.name, "kind": roof.kind, "center": _v(center),
 			"sector_xz_rect": [x_min, z_min, x_max, z_max], "roof_y": center.y, "min_y": center.y - 0.5,
 			"probed_half_width": half_width, "route": route.name, "shelter": shelter.name,
-			"down_waypoints": down.map(_v), "spawn_ground": _v(anchors.spawn_origin)},
+			"down_waypoints": down.map(_v), "spawn_ground": _v(anchors.spawn_origin),
+			"roof_stand": _v(roof_stand), "shelter_stand": _v(shelter_stand),
+			"panels": panels.map(func(panel: Dictionary) -> Array: return [panel.id, (panel.rect as Rect2).position.x, (panel.rect as Rect2).position.y, (panel.rect as Rect2).end.x, (panel.rect as Rect2).end.y, panel.y])},
 	}
+
+
+func _roof_panels() -> Array:
+	# Breakable elevated roof panels (visible 2x2 cream slabs): xz rect + top.
+	var panels: Array = []
+	var stack: Array[Node] = [main.get_node("Sandbox")]
+	while not stack.is_empty():
+		var node: Node = stack.pop_front()
+		if node is BreakableStructure and (node as BreakableStructure).route_role == BreakableStructure.ROLE_ELEVATED:
+			var structure := node as BreakableStructure
+			var size: Vector3 = structure.get("_size")
+			var at := structure.global_position
+			panels.append({"id": structure.piece_id, "rect": Rect2(at.x - size.x / 2.0, at.z - size.z / 2.0, size.x, size.z), "y": at.y + size.y / 2.0})
+		stack.append_array(node.get_children())
+	return panels
+
+
+func _clear_of_panels(panels: Array, from: Vector3, toward: Vector3) -> Vector3:
+	# Walk from `from` toward `toward` in 0.25 m steps until PANEL_CLEAR away
+	# from every panel (xz), never past `toward`.
+	var direction := Vector3(toward.x - from.x, 0, toward.z - from.z)
+	var length := direction.length()
+	if length < 0.001:
+		return from
+	direction /= length
+	var offset := 0.0
+	while offset <= length:
+		var point := from + direction * offset
+		var clear := true
+		for panel: Dictionary in panels:
+			if (panel.rect as Rect2).grow(PANEL_CLEAR).has_point(Vector2(point.x, point.z)):
+				clear = false
+		if clear:
+			return point
+		offset += 0.25
+	return from
+
+
+func _covered(feet: Vector3) -> bool:
+	# Real overhead collision (what a player sees above them; the same test
+	# bee_swarm.gd uses for a protected target).
+	var space: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 1.4, feet + Vector3.UP * 80.0, 1, [player.get_rid()])
+	return not space.intersect_ray(query).is_empty()
 
 
 func _v(value: Vector3) -> Array:
@@ -453,6 +520,10 @@ func _run_one(map_id: String, preset: String, seed: int, control: String, layout
 	var max_jiggle_opening := 0.0
 	var was_knocked := player.is_knocked_down()
 	var route_state := _new_route_state(start_position)
+	if control == "active_route":
+		# Off the breakable panel before anything is warned (harbor's roof
+		# centre is on it); a no-op where the roof centre is already clear.
+		route_state.path = [layout.roof_stand]
 	while manager.state == MatchManager.MatchState.ACTIVE and manager.elapsed_time < horizon:
 		var t := manager.elapsed_time
 		var position := player.global_position
@@ -477,13 +548,20 @@ func _run_one(map_id: String, preset: String, seed: int, control: String, layout
 						max_jiggle_opening = maxf(max_jiggle_opening, displacement)
 			"active_route":
 				input = _active_route_step(layout, route_state, position, t)
-				sprint = input != Vector2.ZERO and not bool(route_state.careful)
+				sprint = input != Vector2.ZERO and not bool(route_state.careful) and not bool(route_state.walk)
 				# Hop when walking into a curb/lip the controller cannot step
 				# (less than 0.3 m of progress over 0.5 s while steering).
 				if frame % 30 == 0:
 					if input != Vector2.ZERO and Vector2(position.x - route_state.check.x, position.z - route_state.check.z).length() < 0.3:
 						jump = true
 						route_state.hops = int(route_state.hops) + 1
+						if (route_state.hop_log as Array).size() < 40:
+							var touching: Array[String] = []
+							for i in player.get_slide_collision_count():
+								var collider := player.get_slide_collision(i).get_collider() as Node
+								if collider != null and String(collider.name) not in touching:
+									touching.append(String(collider.name))
+							(route_state.hop_log as Array).append({"t": snappedf(t, 0.001), "pos": _v(position), "touching": touching})
 					route_state.check = position
 		player.apply_movement_input(input, sprint, jump, DT)
 		# Anything that changes the velocity between here and the next frame is
@@ -571,13 +649,18 @@ func _new_route_state(start_position: Vector3) -> Dictionary:
 	# route; "escape:*", "refuge:*", "descend", "hold" are T3v reactions).
 	return {"path": [], "index": 0, "mode": "roof", "shelter_arrivals": 0, "roof_returns": 0, "first_leave": -1.0, "hops": 0, "check": start_position,
 		"base": "roof", "flood": false, "key": "home:roof", "lava_home": false, "plan": [], "plan_index": 0, "plan_ok": true, "refuge": {}, "now": 0.0, "target": Vector3.ZERO, "careful": false, "careful_frames": 0,
-		"volcano_climbs": 0, "volcano_returns": 0, "escapes": 0, "escape_done": [], "refuge_climbs": 0, "plan_failures": 0, "events": []}
+		"volcano_climbs": 0, "volcano_returns": 0, "escapes": 0, "escape_done": [], "refuge_climbs": 0, "plan_failures": 0, "events": [],
+		"dodge": Vector3.INF, "walk": false, "dodges": 0, "dodge_failures": 0, "dodge_log": [], "wait_frames": 0, "threat_sig": "",
+		"kite": -1, "kite_dir": 1, "kites": 0, "recheck_t": 0.0, "regoals": 0, "hop_log": [],
+		"bee_goal": Vector3.INF, "bee_goal_covered": false, "bee_goal_t": 0.0, "bee_evades": 0}
 
 
 func _route_record(state: Dictionary) -> Dictionary:
 	return {"shelter_arrivals": state.shelter_arrivals, "roof_returns": state.roof_returns, "first_leave": snappedf(state.first_leave, 0.001), "hops": state.hops,
 		"volcano_climbs": state.volcano_climbs, "volcano_returns": state.volcano_returns, "collapse_escapes": state.escapes,
-		"collapse_escape_done": state.escape_done, "refuge_climbs": state.refuge_climbs, "plan_failures": state.plan_failures, "careful_frames": state.careful_frames, "events": state.events}
+		"collapse_escape_done": state.escape_done, "refuge_climbs": state.refuge_climbs, "plan_failures": state.plan_failures, "careful_frames": state.careful_frames, "events": state.events,
+		"dodges": state.dodges, "dodge_failures": state.dodge_failures, "dodge_log": state.dodge_log, "wait_frames": state.wait_frames,
+		"bee_kites": state.kites, "regoals": state.regoals, "hop_log": state.hop_log, "bee_evades": state.bee_evades}
 
 
 func _lava_published() -> bool:
@@ -589,6 +672,312 @@ func _lava_published() -> bool:
 
 
 func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3, t: float) -> Vector2:
+	# T3v attempt 2: the goal layer below decides where to go; this layer
+	# reacts like an attentive player to published footprints (meteor/lightning
+	# telegraphs, earthquake "Leave cracked ground", a threatened roof panel):
+	# step out of one the bot is in, and do not walk into one.
+	var input := _route_goal_step(layout, state, position, t)
+	state.walk = false
+	var zones := _threat_zones(layout)
+	var dodge: Vector3 = state.dodge
+	if zones.is_empty():
+		if dodge != Vector3.INF:
+			state.dodge = Vector3.INF
+			_replan(layout, state, String(state.key), position, t, _lava_published(), true)
+			return Vector2.ZERO
+		var kite_only := _bee_kite(layout, state, position, zones)
+		return kite_only if kite_only != Vector2.INF else input
+	if dodge != Vector3.INF and _zones_hit(dodge, zones, DODGE_TRIGGER):
+		dodge = Vector3.INF # a new warning covers the spot: choose again
+	if dodge == Vector3.INF and _zones_hit(position, zones, DODGE_TRIGGER):
+		dodge = _dodge_target(layout, state, position, zones)
+		var log_entry := {"t": snappedf(t, 0.001), "pos": _v(position), "zones": zones.map(_zone_tag)}
+		if dodge == Vector3.INF:
+			var signature := str(log_entry.zones.map(func(tag: Array) -> Array: return tag.slice(0, 3)))
+			if signature != state.threat_sig:
+				state.threat_sig = signature
+				state.dodge_failures = int(state.dodge_failures) + 1
+				log_entry.to = null
+				(state.dodge_log as Array).append(log_entry)
+			return input
+		state.dodges = int(state.dodges) + 1
+		log_entry.to = _v(dodge)
+		(state.dodge_log as Array).append(log_entry)
+	if dodge != Vector3.INF:
+		state.dodge = dodge
+		state.walk = true # no sprint overshoot into a footprint or off an edge
+		var to_spot := Vector2(dodge.x - position.x, dodge.z - position.z)
+		if to_spot.length() < 0.3:
+			return Vector2.ZERO
+		return to_spot.normalized() * clampf(to_spot.length() / 1.5, 0.35, 1.0)
+	var kite := _bee_kite(layout, state, position, zones)
+	if kite != Vector2.INF:
+		return kite
+	if input != Vector2.ZERO and _blocked_ahead(state, position, input, zones):
+		state.wait_frames = int(state.wait_frames) + 1
+		return Vector2.ZERO
+	return input
+
+
+func _bee_kite(layout: Dictionary, state: Dictionary, position: Vector3, zones: Array) -> Vector2:
+	# The visible swarm is after the bot and the bot is up on the roof (the
+	# flood base, so the shelter below is not an option): run a loop inside
+	# the roof (2.5 m from its edges) away from the swarm. Bees fly 3 m/s and
+	# a pursuer that slow never closes on a loop runner at 4.5-6.5 m/s.
+	var bees: BeeSwarm = main.bee_swarm
+	if bees.phase == BeeSwarm.Phase.IDLE or bees.target_id != 1:
+		state.kite = -1
+		state.bee_goal = Vector3.INF
+		return Vector2.INF
+	if String(state.key) == "home:shelter":
+		return Vector2.INF # already heading under the shelter roof (cover ends the chase)
+	if String(state.key) != "home:roof" or not _on_roof(layout, position):
+		state.kite = -1
+		return _bee_evade(state, position, zones)
+	var loop := _kite_loop(layout)
+	if int(state.kite) < 0:
+		var nearest := 0
+		for k in loop.size():
+			if Vector2(loop[k].x - position.x, loop[k].z - position.z).length() < Vector2(loop[nearest].x - position.x, loop[nearest].z - position.z).length():
+				nearest = k
+		var ahead: Vector3 = loop[(nearest + 1) % loop.size()]
+		var behind: Vector3 = loop[(nearest - 1 + loop.size()) % loop.size()]
+		var swarm := bees.swarm_position
+		state.kite_dir = 1 if Vector2(ahead.x - swarm.x, ahead.z - swarm.z).length() >= Vector2(behind.x - swarm.x, behind.z - swarm.z).length() else -1
+		state.kite = nearest
+		state.kites = int(state.kites) + 1
+		(state.dodge_log as Array).append({"t": snappedf(float(state.now), 0.001), "pos": _v(position), "kite": _v(swarm), "dir": state.kite_dir})
+	var target: Vector3 = loop[int(state.kite)]
+	if Vector2(target.x - position.x, target.z - position.z).length() < 1.2:
+		state.kite = (int(state.kite) + int(state.kite_dir) + loop.size()) % loop.size()
+		target = loop[int(state.kite)]
+	state.target = target
+	return Vector2(target.x - position.x, target.z - position.z).normalized()
+
+
+func _bee_evade(state: Dictionary, position: Vector3, zones: Array) -> Vector2:
+	# Away from home (refuge, hold, escape): get under the nearest real roof
+	# within 12 m (a covered target is not eligible, bee_swarm.gd _protected),
+	# else keep running away from the visible swarm.
+	var bees: BeeSwarm = main.bee_swarm
+	var goal: Vector3 = state.bee_goal
+	var now := float(state.now)
+	var covered_goal := bool(state.get("bee_goal_covered", false))
+	if goal != Vector3.INF and (covered_goal or now < float(state.get("bee_goal_t", 0.0))):
+		var to_goal := Vector2(goal.x - position.x, goal.z - position.z)
+		if to_goal.length() < 0.4:
+			if covered_goal:
+				return Vector2.ZERO
+		else:
+			state.target = goal
+			return to_goal.normalized()
+	var avoid := _collapse_rects(true)
+	var swarm := bees.swarm_position
+	var best := Vector3.INF
+	var best_score := INF
+	var covered := false
+	for ring: float in [2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0]:
+		for k in 16:
+			var angle := TAU * k / 16.0
+			var point := position + Vector3(cos(angle), 0, sin(angle)) * ring
+			if _in_rects(point, avoid) or _zones_hit(point, zones, DODGE_MARGIN):
+				continue
+			var floor_y := _walk_line(position, point)
+			if is_nan(floor_y):
+				continue
+			point.y = floor_y
+			if _covered(point):
+				best = point
+				covered = true
+				break
+			if ring == 6.0:
+				var score := -Vector2(point.x - swarm.x, point.z - swarm.z).length()
+				if score < best_score:
+					best_score = score
+					best = point
+		if covered:
+			break
+	if best == Vector3.INF:
+		return Vector2.INF
+	state.bee_goal = best
+	state.bee_goal_covered = covered
+	state.bee_goal_t = now + 1.0
+	state.bee_evades = int(state.get("bee_evades", 0)) + 1
+	if (state.dodge_log as Array).size() < 200:
+		(state.dodge_log as Array).append({"t": snappedf(now, 0.001), "pos": _v(position), "bee_evade": _v(best), "covered": covered, "swarm": _v(swarm)})
+	state.target = best
+	return Vector2(best.x - position.x, best.z - position.z).normalized()
+
+
+func _kite_loop(layout: Dictionary) -> Array[Vector3]:
+	var rect: Rect2 = layout.rect
+	var center := rect.get_center()
+	var half := rect.size / 2.0 - Vector2(2.5, 2.5)
+	var loop: Array[Vector3] = []
+	for k in 16:
+		var angle := TAU * k / 16.0
+		loop.append(Vector3(center.x + half.x * cos(angle), float(layout.roof_y), center.y + half.y * sin(angle)))
+	return loop
+
+
+func _zone_tag(zone: Dictionary) -> Array:
+	if zone.has("rect"):
+		var rect: Rect2 = zone.rect
+		return [zone.kind, snappedf(rect.get_center().x, 0.01), snappedf(rect.get_center().y, 0.01), snappedf(float(zone.rem), 0.01)]
+	return [zone.kind, snappedf((zone.c as Vector3).x, 0.01), snappedf((zone.c as Vector3).z, 0.01), snappedf(float(zone.rem), 0.01)]
+
+
+func _threat_zones(layout: Dictionary) -> Array:
+	# Published footprints only: meteor telegraph decals (WARNING),
+	# the lightning target ring (WARNING), earthquake fracture decals (WARNING
+	# and ACTIVE), and the breakable roof panels while a quake is on or a
+	# meteor telegraph overlaps one.
+	var zones: Array = []
+	var meteor: MeteorShower = main.meteor_shower
+	var meteor_points: Array[Vector3] = []
+	if meteor.phase == MeteorShower.Phase.WARNING:
+		for point: Vector3 in meteor.strike_points:
+			meteor_points.append(point)
+			zones.append({"kind": "meteor", "c": point, "r": meteor.impact_radius, "ylo": point.y - meteor.vertical_exposure,
+				"yhi": point.y + meteor.vertical_exposure, "rem": meteor.warning_remaining})
+	var bolt: Lightning = main.lightning
+	if bolt.phase == Lightning.Phase.WARNING:
+		zones.append({"kind": "lightning", "c": bolt.target_position, "r": bolt.strike_radius, "ylo": -INF, "yhi": INF, "rem": bolt.warning_remaining})
+	var quake: Earthquake = main.earthquake
+	var quaking := quake.phase == Earthquake.Phase.WARNING or quake.phase == Earthquake.Phase.ACTIVE
+	var quake_rem := quake.warning_remaining if quake.phase == Earthquake.Phase.WARNING else 1.0
+	if quaking:
+		for center in quake.fracture_positions:
+			zones.append({"kind": "earthquake", "c": center, "r": quake.fracture_radius, "ylo": center.y - 0.5, "yhi": center.y + 2.0, "rem": quake_rem})
+	# The visible funnel: keep out of its core (+2.5 m) now and along its
+	# straight lane for the next 3 s at travel_speed (the motion a player sees).
+	var twister: Tornado = main.tornado
+	if twister.phase != Tornado.Phase.IDLE:
+		var lane := Vector3(twister.end_position.x - twister.start_position.x, 0, twister.end_position.z - twister.start_position.z)
+		var heading := lane.normalized() if lane.length() > 0.01 else Vector3.ZERO
+		var twister_rem := twister.warning_remaining if twister.phase == Tornado.Phase.WARNING else 1.0
+		for ahead: float in [0.0, 2.0, 4.0, 6.0]:
+			zones.append({"kind": "tornado", "c": twister.global_position + heading * ahead * twister.travel_speed / 2.0, "r": twister.core_radius + 2.5,
+				"ylo": -INF, "yhi": INF, "rem": twister_rem})
+	for panel: Dictionary in layout.panels:
+		var rect: Rect2 = panel.rect
+		var rem := quake_rem if quaking else INF
+		for point in meteor_points:
+			var nearest := Vector2(clampf(point.x, rect.position.x, rect.end.x), clampf(point.z, rect.position.y, rect.end.y))
+			if nearest.distance_to(Vector2(point.x, point.z)) <= meteor.impact_radius:
+				rem = minf(rem, meteor.warning_remaining)
+		if rem < INF:
+			zones.append({"kind": "panel", "rect": rect.grow(PANEL_THREAT_GROW), "ylo": -INF, "yhi": INF, "rem": rem})
+	return zones
+
+
+func _zones_hit(point: Vector3, zones: Array, margin: float) -> bool:
+	for zone: Dictionary in zones:
+		if point.y < float(zone.ylo) or point.y > float(zone.yhi):
+			continue
+		if zone.has("rect"):
+			if (zone.rect as Rect2).grow(margin).has_point(Vector2(point.x, point.z)):
+				return true
+		elif Vector2(point.x - zone.c.x, point.z - zone.c.z).length() <= float(zone.r) + margin:
+			return true
+	return false
+
+
+func _blocked_ahead(state: Dictionary, position: Vector3, input: Vector2, zones: Array) -> bool:
+	# Do not walk into a warned footprint: wait at its edge until it resolves
+	# (only checks the stretch up to the current waypoint).
+	if _zones_hit(position, zones, DODGE_TRIGGER):
+		return false
+	var target: Vector3 = state.target
+	var reach := minf(2.5, Vector2(target.x - position.x, target.z - position.z).length())
+	var direction := input.normalized()
+	var step := 0.5
+	while step <= reach + 0.001:
+		var point := position + Vector3(direction.x, 0, direction.y) * step
+		point.y = lerpf(position.y, target.y, clampf(step / maxf(reach, 0.001), 0.0, 1.0))
+		if _zones_hit(point, zones, DODGE_TRIGGER):
+			return true
+		step += 0.5
+	return false
+
+
+func _dodge_target(layout: Dictionary, state: Dictionary, position: Vector3, zones: Array) -> Vector3:
+	# Nearest walkable spot outside every footprint (rings of 0.5 m, 16
+	# bearings), same floor (no drops, no walls), not on/under a panel, not in
+	# a marked or removed district; among a ring, the one nearest the current
+	# waypoint. Rings beyond what walking reaches in the warning are still
+	# searched (a late step is better than none).
+	var tc: TerrainCollapse = main.terrain_collapse
+	var inside_marked := tc.pending >= 0 and tc.regions[tc.pending].has_point(Vector2(position.x, position.z))
+	var avoid := _collapse_rects(not inside_marked)
+	var target: Vector3 = state.target
+	var ring := 1.0
+	while ring <= DODGE_MAX + 0.001:
+		var best := Vector3.INF
+		var best_d := INF
+		for k in 16:
+			var angle := TAU * k / 16.0
+			var point := position + Vector3(cos(angle), 0, sin(angle)) * ring
+			if _in_rects(point, avoid):
+				continue
+			var blocked := false
+			for panel: Dictionary in layout.panels:
+				if (panel.rect as Rect2).grow(PANEL_THREAT_GROW + DODGE_MARGIN).has_point(Vector2(point.x, point.z)):
+					blocked = true
+			if blocked:
+				continue
+			var probe := Vector3(point.x, position.y, point.z)
+			if _zones_hit(probe, zones, DODGE_MARGIN):
+				continue
+			var d := Vector2(point.x - target.x, point.z - target.z).length()
+			if d >= best_d:
+				continue
+			var floor_y := _walk_line(position, point)
+			if is_nan(floor_y):
+				continue
+			point.y = floor_y
+			if _zones_hit(point, zones, DODGE_MARGIN):
+				continue
+			best = point
+			best_d = d
+		if best != Vector3.INF:
+			return best
+		ring += 0.5
+	return Vector3.INF
+
+
+func _walk_line(from: Vector3, to: Vector3) -> float:
+	# Straight walk on continuous floor (steps <= 0.3 m, no drop-off) with a
+	# player-sized clear column; the end keeps 0.6 m of floor on every side.
+	# Returns the end floor height, or NAN.
+	var space: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
+	var exclude: Array[RID] = [player.get_rid()]
+	var column := PhysicsShapeQueryParameters3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.7, 1.2, 0.7)
+	column.shape = box
+	column.collision_mask = 1
+	column.exclude = exclude
+	var y := from.y
+	var count := maxi(1, int(ceil(Vector2(to.x - from.x, to.z - from.z).length() / 0.25)))
+	for i in range(1, count + 1):
+		var sample := from.lerp(to, float(i) / count)
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(sample.x, y + 0.6, sample.z), Vector3(sample.x, y - 0.8, sample.z), 1, exclude))
+		if hit.is_empty() or absf(float(hit.position.y) - y) > 0.3:
+			return NAN
+		y = float(hit.position.y)
+		if i % 2 == 0 or i == count:
+			column.transform = Transform3D(Basis(), Vector3(sample.x, y + 0.45 + box.size.y / 2.0, sample.z))
+			if not space.intersect_shape(column, 1).is_empty():
+				return NAN
+	for offset: Vector2 in [Vector2(0.6, 0), Vector2(-0.6, 0), Vector2(0, 0.6), Vector2(0, -0.6)]:
+		var edge := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(to.x + offset.x, y + 0.6, to.z + offset.y), Vector3(to.x + offset.x, y - 0.8, to.z + offset.y), 1, exclude))
+		if edge.is_empty() or absf(float(edge.position.y) - y) > 0.3:
+			return NAN
+	return y
+
+
+func _route_goal_step(layout: Dictionary, state: Dictionary, position: Vector3, t: float) -> Vector2:
 	# T3b/T3n behaviour, kept for every published director start (the
 	# disaster_started signal fires when a disaster begins its warning):
 	# Flood -> go up to the roof; anything else -> take the authored ramp down
@@ -620,6 +1009,22 @@ func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3
 	var escaping := String(state.key).begins_with("escape:%d:" % tc.pending) and int(state.plan_index) < (state.plan as Array).size()
 	if tc.pending >= 0 and (tc.regions[tc.pending].has_point(Vector2(position.x, position.z)) or escaping):
 		key = "escape:%d:%s" % [tc.pending, escape_kind]
+		if escape_kind == "flood" and String(state.key) == "escape:%d:ground" % tc.pending:
+			key = String(state.key) # walking out after the wait: keep going
+		elif escape_kind == "flood" and position.y >= FLOOD_SAFE_Y - 0.6:
+			# T3v a2 (town 106/110): already above visible flood water and the
+			# marked ground's countdown is on the HUD. Wait up here while the
+			# water is high and there is still time to walk out on the
+			# ground (walking time of the ground plan + 2 s), then walk out.
+			var flood: Flood = main.flood
+			var high_water := flood.phase != Flood.Phase.DRAINING or flood.water_level > 0.3
+			if int(state.get("wait_district", -1)) != tc.pending:
+				state.wait_district = tc.pending
+				state.wait_need = _ground_escape_seconds(layout, state, position)
+			if high_water and float(state.wait_need) >= 0.0 and t < tc.deadline - float(state.wait_need):
+				key = "escape:%d:wait" % tc.pending
+			elif float(state.wait_need) >= 0.0:
+				key = "escape:%d:ground" % tc.pending
 	elif home_ok:
 		key = "home:" + ("roof" if lava else String(state.base))
 	elif lava or bool(state.flood):
@@ -631,6 +1036,12 @@ func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3
 		key = "hold"
 	if key != state.key:
 		_replan(layout, state, key, position, t, lava)
+	elif t >= float(state.recheck_t):
+		# Knocked off the goal (tornado, blast) after arriving: go back.
+		state.recheck_t = t + 1.0
+		if _goal_lost(state, position):
+			state.regoals = int(state.regoals) + 1
+			_replan(layout, state, key, position, t, lava, true)
 	elif lava and key == "home:roof":
 		state.lava_home = true # already up when the warning came: still a lava stay
 	var input := _follow(layout, state, position)
@@ -652,33 +1063,53 @@ func _active_route_step(layout: Dictionary, state: Dictionary, position: Vector3
 	return input
 
 
-func _replan(layout: Dictionary, state: Dictionary, key: String, position: Vector3, t: float, lava: bool) -> void:
+func _goal_lost(state: Dictionary, position: Vector3) -> bool:
+	if Vector3(state.dodge) != Vector3.INF or int(state.plan_index) < (state.plan as Array).size():
+		return false
+	var key := String(state.key)
+	if key.begins_with("refuge:"):
+		var refuge: Dictionary = state.refuge
+		return not refuge.is_empty() and position.y < float(refuge.y) - 1.0
+	if key.begins_with("home:"):
+		var path: Array = state.path
+		if path.is_empty() or int(state.index) < path.size():
+			return false
+		var goal: Vector3 = path.back()
+		return Vector2(goal.x - position.x, goal.z - position.z).length() > 2.5 or absf(goal.y - position.y) > 1.0
+	return false
+
+
+func _replan(layout: Dictionary, state: Dictionary, key: String, position: Vector3, t: float, lava: bool, rejoin := false) -> void:
+	# rejoin: same goal again from where a dodge left the bot (no counters).
 	var previous: String = state.key
 	var tc: TerrainCollapse = main.terrain_collapse
 	state.key = key
 	state.plan = []
 	state.plan_index = 0
 	state.plan_ok = true
-	state.events.append({"t": snappedf(t, 0.001), "key": key, "pos": _v(position)})
+	state.events.append({"t": snappedf(t, 0.001), "key": key + (" (rejoin)" if rejoin else ""), "pos": _v(position)})
 	if key.begins_with("home:"):
 		var wants := key.get_slice(":", 1)
 		# A plain base switch between home goals is the unchanged T3b route
 		# (restart the authored path at its first waypoint).
-		var original := previous.begins_with("home:") and bool(state.lava_home) == lava
+		var original := not rejoin and previous.begins_with("home:") and bool(state.lava_home) == lava
 		if wants == "shelter" and float(state.first_leave) < 0.0:
 			state.first_leave = t
-		if lava and wants == "roof" and not _on_roof(layout, position):
+		if not rejoin and lava and wants == "roof" and not _on_roof(layout, position):
 			state.volcano_climbs = int(state.volcano_climbs) + 1
-		if not lava and bool(state.lava_home) and wants == "shelter":
+		if not rejoin and not lava and bool(state.lava_home) and wants == "shelter":
 			state.volcano_returns = int(state.volcano_returns) + 1
 		state.lava_home = lava
 		state.mode = wants
 		var path: Array = (layout.up if wants == "roof" else layout.down).duplicate()
 		state.path = path
-		if original:
+		# T3v a2: only when the bot is at the path start; mid-route (a new
+		# warning while walking) restarting at waypoint 0 walked it straight
+		# into the shelter wall (town 105 / harbor 103 Flood deaths).
+		if original and position.distance_to(path[0] as Vector3) <= 2.0:
 			state.index = 0
 			return
-		state.index = _join_index(path, position)
+		state.index = _join_index(path, position, position.y < 0.5)
 		var world: Dictionary = layout.world
 		var avoid := _collapse_rects(true)
 		var joined: Vector3 = path[state.index]
@@ -706,7 +1137,10 @@ func _replan(layout: Dictionary, state: Dictionary, key: String, position: Vecto
 	state.path = []
 	state.index = 0
 	if key.begins_with("escape:"):
-		state.escapes = int(state.escapes) + 1
+		if not rejoin and not previous.begins_with(key.substr(0, key.rfind(":") + 1)):
+			state.escapes = int(state.escapes) + 1
+		if key.ends_with(":wait"):
+			return # hold on the high ground (see _route_goal_step)
 		var removed := _collapse_rects(false)
 		var prefix := _exit_prefix(layout, state, position, removed)
 		var from: Vector3 = prefix.back() if not prefix.is_empty() else position
@@ -745,6 +1179,25 @@ func _replan(layout: Dictionary, state: Dictionary, key: String, position: Vecto
 		return
 	if key == "descend":
 		state.plan = [state.refuge.high, state.refuge.low]
+
+
+func _ground_escape_seconds(layout: Dictionary, state: Dictionary, position: Vector3) -> float:
+	# Walking time (4.5 m/s) of the ground escape plan from here, + 2 s; -1 if none.
+	var tc: TerrainCollapse = main.terrain_collapse
+	var removed := _collapse_rects(false)
+	var prefix := _exit_prefix(layout, state, position, removed)
+	var from: Vector3 = prefix.back() if not prefix.is_empty() else position
+	var keep_out := tc.regions[tc.pending].grow(ESCAPE_MARGIN)
+	var goal := func(p: Vector3) -> int:
+		return -1 if keep_out.has_point(Vector2(p.x, p.z)) else 0
+	var result := _grid_search(layout.world, from, removed, goal)
+	if result.is_empty():
+		return -1.0
+	var points: Array = [position] + prefix + result.points
+	var length := 0.0
+	for i in range(1, points.size()):
+		length += (points[i] as Vector3).distance_to(points[i - 1])
+	return length / DODGE_SPEED + 2.0
 
 
 func _plan_failed(state: Dictionary, key: String, from: Vector3) -> void:
@@ -817,12 +1270,16 @@ func _nudge(layout: Dictionary, point: Vector3) -> Vector3:
 	return Vector3(clampf(point.x, home.position.x, home.end.x), point.y, clampf(point.z, home.position.y, home.end.y))
 
 
-func _join_index(path: Array, position: Vector3) -> int:
+func _join_index(path: Array, position: Vector3, ground_only := false) -> int:
 	# Nearest waypoint/segment, with height weighted so a roof never joins a
-	# ground path below it (and the reverse).
+	# ground path below it (and the reverse). ground_only: only segments with
+	# both ends on the ground (from the ground, never aim mid-ramp: the ramp's
+	# side/underside is a wall; T3v a2, town 105 / harbor 103 Flood deaths).
 	var best := 0
 	var best_d := INF
 	for i in path.size():
+		if ground_only and ((path[i] as Vector3).y >= 0.5 or (path[maxi(i - 1, 0)] as Vector3).y >= 0.5):
+			continue
 		var closest := Geometry3D.get_closest_point_to_segment(position, path[maxi(i - 1, 0)], path[i])
 		var d := Vector2(closest.x - position.x, closest.z - position.z).length() + 4.0 * absf(closest.y - position.y)
 		if d < best_d - 0.01:
