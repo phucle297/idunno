@@ -259,13 +259,13 @@ func _finish(result: Dictionary, wall_start: int, options: Dictionary) -> void:
 			"official_fields": OFFICIAL_FIELDS, "collapse_cause": COLLAPSE_CAUSE, "terrain_collapse_name": TERRAIN_COLLAPSE,
 			"push_capable": PUSH_CAPABLE, "push_min_dv": PUSH_MIN_DV, "push_hit_window_s": PUSH_HIT_WINDOW, "link_window_s": LINK_WINDOW,
 			"physics_space": "map bodies re-inserted into the physics space in one frame after preparation (D4)",
-			"active_route_t3v": "active_route reacts to published state only: Volcano WARNING / visible floor flow (flow_heat > 0) -> starting roof via the authored route, back down once the flow is over; TerrainCollapse marked district containing the bot -> leave it (>= %.1f m outside) before the deadline, never route through a marked or removed district; if its roof/shelter district is marked or removed, Flood/Volcano -> nearest other authored climb (pad >= %.1f m lava / %.1f m flood). Diagnostics: runs[].route" % [ESCAPE_MARGIN, LAVA_SAFE_Y, FLOOD_SAFE_Y],
+			"active_route_t3v": "active_route reacts to published state only: Volcano WARNING / visible floor flow (flow_heat > 0) -> starting roof via the authored route, back down once the flow is over; TerrainCollapse marked district containing the bot -> leave it (>= %.1f m outside) before the deadline, never route through a marked or removed district; if its roof/shelter district is marked or removed, Flood/Volcano -> nearest other authored climb (pad >= %.1f m lava / %.1f m flood). Diagnostics: runs[].route T3v a2 (attentive layer, published state only): steps out of / does not walk into warned Meteor, Lightning and Earthquake footprints, the visible Tornado core and lane, and the breakable roof panels while a quake or meteor threatens them; roof/shelter stand points keep 1.5 m from the panels; bees: shelter, a loop on the roof, or nearest cover / away from the swarm; re-goals after being knocked off; waits on high ground above flood water before leaving a marked district while time allows. Diagnostics: runs[].route.dodge_log" % [ESCAPE_MARGIN, LAVA_SAFE_Y, FLOOD_SAFE_Y],
 		},
 		"failures": failures,
 	}
 	blob.merge(result)
 	var text := JSON.stringify(blob)
-	var json_out: String = options.get("json_out T3v a2 (attentive layer, published state only): steps out of / does not walk into warned Meteor, Lightning and Earthquake footprints, the visible Tornado core and lane, and the breakable roof panels while a quake or meteor threatens them; roof/shelter stand points keep 1.5 m from the panels; bees: shelter, a loop on the roof, or nearest cover / away from the swarm; re-goals after being knocked off; waits on high ground above flood water before leaving a marked district while time allows. Diagnostics: runs[].route.dodge_log", "")
+	var json_out: String = options.get("json_out", "")
 	if not json_out.is_empty():
 		DirAccess.make_dir_recursive_absolute(json_out.get_base_dir())
 		var file := FileAccess.open(json_out, FileAccess.WRITE)
