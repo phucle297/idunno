@@ -28,6 +28,8 @@ const OUTCOMES := ["hit", "blocked", "miss"]
 
 var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
+## T17: Main's shared PickupPlacement (family, sequence, seed) -> point or INF.
+var placer: Callable
 var collection_is_clear: Callable
 var usable_area_fraction: Callable
 var ground_is_visible: Callable
@@ -981,6 +983,17 @@ func _feedback(peer_id: int, value: String) -> bool:
 
 func _spawn(now: float, seed: int, spawn_slot: int) -> void:
 	if pickups.size() >= _area_limit(MAX_PICKUPS):
+		return
+	if placer.is_valid():
+		# Empty anchors still mean "no scheduled drops" (fixtures rely on it).
+		if anchors.is_empty():
+			return
+		var placed: Vector3 = placer.call(&"toy", spawn_slot, seed)
+		if not placed.is_finite():
+			return
+		_next_id += 1
+		pickups.append({"id": _next_id, "kind": _kind_for_spawn(spawn_slot), "position": placed, "expires": now + PICKUP_LIFETIME})
+		_revision += 1
 		return
 	var eligible: Array[Vector3] = []
 	for point in anchors:
