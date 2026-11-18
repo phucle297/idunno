@@ -147,6 +147,26 @@ func tick(delta: float, seed_value: int) -> void:
 		_spawn_slot = spawn_slot
 		_spawn(now, seed_value, spawn_slot)
 	_tick_effects(maxf(delta, 0.0))
+	_release_depleted()
+
+
+## Empty-hand slot: no toy is shown or usable, and the next pickup is accepted.
+static func _empty_hand(feedback: String) -> Dictionary:
+	return {"kind": "", "ammo": 0, "cooldown_until": 0.0, "feedback": feedback}
+
+
+## T18: a toy with no charges never stays held. The remote popper controller is
+## the only zero-charge holdover, and only while its own charge is still live.
+func _release_depleted() -> void:
+	for peer_id: int in slots.keys():
+		var slot: Dictionary = slots[peer_id]
+		var kind := String(slot.get("kind", ""))
+		if kind.is_empty() or int(slot.get("ammo", 0)) > 0:
+			continue
+		if kind == "remote_popper" and effects.any(func(effect: Dictionary) -> bool: return int(effect.owner) == peer_id and String(effect.kind) in ["popper_armed", "popper_warning"] and float(effect.remaining) > 0.0):
+			continue
+		slots[peer_id] = _empty_hand("empty")
+		_revision += 1
 
 
 func request_pickup(peer_id: int, round: int, sequence: int) -> bool:
@@ -222,6 +242,9 @@ func request_use(peer_id: int, round: int, sequence: int, direction: Vector3) ->
 	slot.feedback = "arming" if kind == "remote_popper" else "used"
 	if kind == "reflector_umbrella":
 		slot.feedback = "umbrella_opening"
+	if int(slot.ammo) <= 0 and kind != "remote_popper":
+		# T18: the last charge leaves the hand in the same authoritative step.
+		slot = _empty_hand("empty")
 	slots[peer_id] = slot
 	_next_id += 1
 	var origin := (_players[peer_id] as PartyPlayer).global_position + Vector3.UP * 1.05
