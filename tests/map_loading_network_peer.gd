@@ -108,7 +108,9 @@ func _server(main: Node) -> void:
 	_expect(is_zero_approx(main.match_manager.elapsed_time), "elapsed time stays zero while loading")
 	_expect(not main.disaster_director.running, "director stays stopped while loading")
 	_expect(not main.request_map_change("toy_town"), "map changes are frozen while loading")
-	_expect(not main.request_match_preset("hard"), "preset changes are frozen while loading")
+	_expect(main.match_preset != "hot_potato", "preset-lock probe must request a non-current preset")
+	_expect(not main.request_match_preset("hot_potato"), "preset changes are frozen while loading")
+	_expect(main.match_preset != "hot_potato", "frozen preset request leaves the preset unchanged")
 	_expect(not main.set_local_ready(false), "ready changes are frozen while loading")
 	_expect(not main.start_network_match(), "second Start is rejected while loading")
 	var loading_sequence: int = main._match_snapshot_sequence

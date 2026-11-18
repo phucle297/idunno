@@ -62,6 +62,12 @@ func _run() -> void:
 		["earthquake", "EARTHQUAKE INCOMING", "LEAVE CRACKS AND UNSTABLE ROOFS"],
 		["lightning", "LIGHTNING INCOMING", "LEAVE THE RING AND WATER"],
 		["fire", "FIRE INCOMING", "AVOID BURNING ZONES"],
+		["rain", "RAIN INCOMING", "EXPOSED GROUND GETS WET — FIRE COOLS"],
+		["snowfall", "SNOWFALL INCOMING", "WALK TO BRAKE — SHELTER STAYS DRY"],
+		["rockslide", "ROCKSLIDE INCOMING", "LEAVE THE DOWNHILL LANE — USE SOLID COVER"],
+		["bees", "BEE SWARM INCOMING", "RUN — BREAK PURSUIT UNDER COVER OR DIVE INTO WATER"],
+		["ufo", "UFO INCOMING", "LEAVE THE FIXED BEAM RING — TAKE OVERHEAD COVER"],
+		["volcano", "VOLCANO INCOMING", "LAVA RISING — GET TO HIGH GROUND"],
 	]
 	for entry: Array in warning_cases:
 		hud.present_major_warning(entry[0], 2.01)
@@ -71,7 +77,21 @@ func _run() -> void:
 		_expect(hud.warning_banner.visible and hud.warning_icon.disaster_id == entry[0], "Each incoming disaster must show its own icon")
 		_expect(hud.warning_name.text == entry[1] and hud.warning_action.text == entry[2], "Each warning must name the hazard and give a concise action")
 		_expect(hud.warning_countdown.text == "3 s", "A fractional warning must round up rather than announce an early impact")
+		if entry[0] == "volcano":
+			_expect(hud.warning_action.text.find("district") < 0 and hud.warning_action.text.find("DISTRICT") < 0 and hud.warning_action.text.to_lower().find("district") < 0, "Volcano warning action must not mention a district")
+			_expect(hud.warning_action.text.to_lower().find("evacuate") < 0, "Volcano warning action must not tell players to evacuate")
 		await _capture(entry[0])
+	# Light get_escape_context check: vent-footprint warning branch, no extra scene setup.
+	var previous_volcano_phase: int = main.volcano.phase
+	var previous_volcano_warning: float = main.volcano.warning_remaining
+	main.volcano.phase = Volcano.Phase.WARNING
+	main.volcano.warning_remaining = 12.0
+	var escape_copy: String = main.volcano.get_escape_context(main.volcano.district_center)
+	_expect(escape_copy.to_lower().find("district") < 0, "Volcano vent-footprint warning context must not mention a district")
+	_expect(escape_copy.to_lower().find("evacuate") < 0, "Volcano vent-footprint warning context must not tell players to evacuate")
+	_expect(escape_copy.to_lower().find("climb") >= 0 or escape_copy.to_lower().find("high") >= 0 or escape_copy.to_lower().find("roof") >= 0, "Volcano vent-footprint warning context must tell players to climb high ground")
+	main.volcano.phase = previous_volcano_phase
+	main.volcano.warning_remaining = previous_volcano_warning
 	hud.present_major_warning("flood", 2.0)
 	_expect(hud.warning_countdown.text == "2 s", "An exact countdown boundary must not gain a second")
 	hud.present_major_warning("flood", 0.0)

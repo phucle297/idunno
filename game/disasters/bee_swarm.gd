@@ -8,6 +8,9 @@ const STING_DAMAGE := 8.0
 const PURSUIT_TIME := 6.0
 const RETARGET_WARNING := 3.0
 const MAX_STALLED_TIME := 2.0
+# Climb this far above a raised target's chest so the 0.4 m swarm clears roof
+# slabs and roof rails (rail top is ~1.0 m above the roof surface).
+const CLIMB_CLEARANCE := 0.6
 
 @export var warning_duration := 5.0
 @export var active_duration := 24.0
@@ -24,6 +27,7 @@ var _last_target := 0
 var _pursuit_remaining := 0.0
 var _sting_remaining := 0.0
 var _stalled := 0.0
+var _climb_ceiling := -INF
 var _visual: Node3D
 var _label: Label3D
 var _bees: Array[MeshInstance3D] = []
@@ -97,6 +101,7 @@ func _select_target(warning: float) -> bool:
 	_pursuit_remaining = PURSUIT_TIME
 	_sting_remaining = 1.0
 	_stalled = 0.0
+	_climb_ceiling = -INF
 	return true
 
 
@@ -121,6 +126,11 @@ func _move_toward(goal: Vector3, delta: float) -> void:
 	query.shape = shape
 	query.collision_mask = 1
 	query.transform = Transform3D(Basis.IDENTITY, swarm_position)
+	# A target standing above with no straight approach (an exposed roof):
+	# rise vertically first, then cross over the roof edge. The swept cast
+	# still blocks eaves, ramps, ceilings and overhead roofs.
+	if _climb(query, goal, delta):
+		return
 	# Bounded local steering: never tunnel through walls or search indefinitely.
 	for angle in [0.0, PI / 3, -PI / 3]:
 		var motion := direction.rotated(Vector3.UP, angle) * distance
@@ -130,7 +140,24 @@ func _move_toward(goal: Vector3, delta: float) -> void:
 			swarm_position += motion
 			_stalled = 0.0
 			return
+	if goal.y > swarm_position.y + 0.5:
+		_climb_ceiling = goal.y + CLIMB_CLEARANCE
+		if _climb(query, goal, delta):
+			return
 	_stalled += delta
+
+
+func _climb(query: PhysicsShapeQueryParameters3D, goal: Vector3, delta: float) -> bool:
+	var ceiling := minf(_climb_ceiling, goal.y + CLIMB_CLEARANCE)
+	if swarm_position.y >= ceiling - 0.001:
+		return false
+	var climb := Vector3.UP * minf(SPEED * delta, ceiling - swarm_position.y)
+	query.motion = climb
+	if get_world_3d().direct_space_state.cast_motion(query)[0] < 0.99:
+		return false
+	swarm_position += climb
+	_stalled = 0.0
+	return true
 
 
 func tick(delta: float) -> void:
@@ -182,6 +209,7 @@ func cleanup() -> void:
 	_pursuit_remaining = 0
 	_sting_remaining = 0
 	_stalled = 0
+	_climb_ceiling = -INF
 	swarm_position = Vector3.ZERO
 	if is_instance_valid(_visual):
 		_visual.hide()

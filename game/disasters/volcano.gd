@@ -6,6 +6,55 @@ const SURFACE_COUNT := 9
 const HOT_LIFETIME := 60.0
 const DAMAGE_PER_SECOND := 6.0
 const CONTACT_TOLERANCE := 0.22
+# Ground lava flow (T3p, Owner 2026-11-15 19:10: "Only floor, but larger.
+# Maybe can the whole map."). After the warning, lava spreads from the vent
+# (the district crater) across the whole map floor. Only floor-level support
+# burns: anything at or above SAFE_SUPPORT (terraces, docks, decks, roofs) is
+# a safe refuge. The front is slower than walking (4.5 m/s), so a runner who
+# leaves at the warning can always outpace it.
+const SPREAD_RATE := 3.0
+const SAFE_SUPPORT := 1.2
+const DEFAULT_MAP_HALF_EXTENT := 72.0
+const FLOW_HEIGHT := 0.06
+const FLOW_SHADER := """
+shader_type spatial;
+render_mode unshaded, cull_disabled, depth_draw_opaque;
+uniform vec3 center;
+uniform float radius = 0.0;
+uniform float preview = 0.0;
+uniform float vent_radius = 9.0;
+uniform float glow = 1.0;
+varying vec3 world_position;
+void vertex() {
+	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+void fragment() {
+	float d = distance(world_position.xz, center.xz);
+	if (preview > 0.5) {
+		// Warning: amber edges pulse outward from the vent, showing where
+		// and how the flow will spread. No lava is down yet.
+		float ring = vent_radius + mod(TIME * 3.0, 24.0);
+		float band = 1.0 - smoothstep(0.0, 0.45, abs(d - ring));
+		float rim = 1.0 - smoothstep(0.0, 0.3, abs(d - vent_radius));
+		float alpha = max(band * 0.8, rim * 0.95);
+		if (alpha < 0.02) {
+			discard;
+		}
+		ALBEDO = vec3(1.0, 0.72, 0.22);
+		ALPHA = alpha;
+	} else {
+		if (d > radius) {
+			discard;
+		}
+		float edge = 1.0 - smoothstep(0.0, 2.5, radius - d);
+		float ripple = 0.5 + 0.5 * sin(d * 1.3 - TIME * 2.0);
+		vec3 crust = vec3(0.70, 0.20, 0.05);
+		vec3 molten = vec3(1.0, 0.60, 0.12);
+		ALBEDO = mix(crust, molten, max(edge, ripple * 0.4)) * mix(0.45, 1.0, glow);
+		ALPHA = 0.93;
+	}
+}
+"""
 
 @export var warning_duration := 12.0
 var phase := Phase.IDLE
@@ -21,6 +70,12 @@ var district_size := Vector2.ONE
 var environment: Callable
 var support_height: Callable
 var exposed: Callable
+var map_half_extent := DEFAULT_MAP_HALF_EXTENT
+var flow_elapsed := 0.0
+var flow_heat := 0.0
+var _extent_set := false
+var _flow: MultiMeshInstance3D
+var _flow_material: ShaderMaterial
 var _manager: MatchManager
 var _players: Dictionary = {}
 var _terrain: Node3D
@@ -40,6 +95,56 @@ func set_district(id: String, center: Vector3, size: Vector2) -> void:
 	district_size = size
 	heat.resize(SURFACE_COUNT)
 	heat.fill(0)
+
+
+func set_map_extent(half_extent: float) -> void:
+	# Same contract as Flood.set_map_extent: the square floor the flow covers.
+	map_half_extent = maxf(half_extent, 1.0)
+	_extent_set = true
+	if is_instance_valid(_flow):
+		_flow.free()
+		_flow = null
+		_update_flow_visual()
+
+
+func get_map_extent() -> float:
+	# Explicit setter wins; otherwise follow the hosting map (main.gd exposes
+	# get_map_half_extent) so Harbor's 32 m floor is not drawn past its edge.
+	if not _extent_set and get_parent() != null and get_parent().has_method("get_map_half_extent"):
+		return float(get_parent().call("get_map_half_extent"))
+	return map_half_extent
+
+
+func flow_radius() -> float:
+	return SPREAD_RATE * flow_elapsed
+
+
+func flow_arrival_time(point: Vector3) -> float:
+	# Seconds after ACTIVE starts until the front reaches this XZ point.
+	return Vector2(point.x - district_center.x, point.z - district_center.z).length() / SPREAD_RATE
+
+
+func full_coverage_time() -> float:
+	var extent := get_map_extent()
+	var farthest := 0.0
+	for corner: Vector2 in [Vector2(extent, extent), Vector2(-extent, extent), Vector2(extent, -extent), Vector2(-extent, -extent)]:
+		farthest = maxf(farthest, corner.distance_to(Vector2(district_center.x, district_center.z)))
+	return farthest / SPREAD_RATE
+
+
+func flow_covers(point: Vector3) -> bool:
+	# The molten floor has reached this XZ point and is still hot.
+	var extent := get_map_extent()
+	if phase != Phase.ACTIVE or flow_heat <= 0 or absf(point.x) > extent or absf(point.z) > extent:
+		return false
+	return Vector2(point.x - district_center.x, point.z - district_center.z).length() <= flow_radius()
+
+
+func _on_lava_floor(feet: Vector3) -> bool:
+	# Standing on map floor or an indoor ground floor (support below
+	# SAFE_SUPPORT). Elevated pads, roofs and airborne points never burn.
+	var support := float(support_height.call(feet)) if support_height.is_valid() else feet.y
+	return absf(support - feet.y) <= CONTACT_TOLERANCE and support < SAFE_SUPPORT
 
 
 func get_disaster_metadata() -> Dictionary:
@@ -69,6 +174,8 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 	phase = Phase.WARNING
 	warning_remaining = warning_duration
 	active_remaining = HOT_LIFETIME
+	flow_elapsed = 0.0
+	flow_heat = HOT_LIFETIME
 	_show_warning()
 	return true
 
@@ -126,6 +233,7 @@ func _erupt() -> void:
 	heat.fill(HOT_LIFETIME)
 	phase = Phase.ACTIVE
 	_build_terrain()
+	_update_flow_visual()
 	# A warned player who ignored evacuation is placed atop the changed
 	# support, never embedded inside a newly raised bank. No launch impulse.
 	for player: Node3D in _players.values():
@@ -275,10 +383,18 @@ func surface_at(feet: Vector3, require_contact := true) -> int:
 
 func get_escape_context(feet: Vector3) -> String:
 	if phase == Phase.WARNING and absf(feet.x - district_center.x) <= district_size.x / 2 and absf(feet.z - district_center.z) <= district_size.y / 2:
-		return "VOLCANO — evacuate the outlined district; two crossing exits"
+		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
+	if phase == Phase.WARNING and feet.y < SAFE_SUPPORT:
+		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
 	var index := surface_at(feet)
 	if index >= 0 and heat[index] > 0:
 		return "HOT GROUND — %.0fs heat left — move off this support" % ceilf(heat[index])
+	if phase == Phase.ACTIVE and flow_heat > 0 and feet.y < SAFE_SUPPORT:
+		if flow_covers(feet):
+			return "LAVA FLOW — %.0fs left — climb a roof, terrace or dock" % ceilf(flow_heat)
+		var extent := get_map_extent()
+		if absf(feet.x) <= extent and absf(feet.z) <= extent:
+			return "LAVA SPREADING — reaches you in %.0fs — climb high" % ceilf(maxf(flow_arrival_time(feet) - flow_elapsed, 0))
 	return ""
 
 
@@ -298,6 +414,12 @@ func tick(delta: float) -> void:
 	if phase != Phase.ACTIVE:
 		return
 	var conditions: Dictionary = environment.call() if environment.is_valid() else {}
+	# The open floor flow cools with weather like an exposed shelf.
+	var flow_rate := 4.0 if conditions.get("snow", false) else (3.0 if conditions.get("rain", false) else 1.0)
+	var flow_time := minf(remaining, flow_heat / flow_rate)
+	flow_heat = maxf(flow_heat - remaining * flow_rate, 0)
+	flow_elapsed += remaining
+	var water := float(conditions.get("water", -INF))
 	var hot_times := PackedFloat32Array()
 	for index in SURFACE_COUNT:
 		var rate := 1.0
@@ -315,12 +437,18 @@ func tick(delta: float) -> void:
 			continue
 		var feet := player.global_position
 		var index := surface_at(feet)
-		if index < 0 or hot_times[index] <= 0:
+		if index < 0:
+			# Floor lava only: never roofs or pads at/above SAFE_SUPPORT, and
+			# a player standing in flood water is not touching the lava.
+			if flow_time > 0 and water < feet.y and flow_covers(feet) and _on_lava_floor(feet):
+				events.append({"peer_id": id, "amount": DAMAGE_PER_SECOND * flow_time, "cause": "Lava flow"})
+			continue
+		if hot_times[index] <= 0:
 			continue
 		if support_height.is_valid() and absf(float(support_height.call(feet)) - _surface_height(index, feet)) > CONTACT_TOLERANCE:
 			continue
 		events.append({"peer_id": id, "amount": DAMAGE_PER_SECOND * hot_times[index], "cause": "Volcanic ground"})
-	active_remaining = heat[0]
+	active_remaining = flow_heat
 	for value in heat:
 		active_remaining = maxf(active_remaining, value)
 	if active_remaining <= 0:
@@ -336,7 +464,45 @@ func _update_materials() -> void:
 		var bank := index % 3 != 1 and index / 3 != 1
 		_materials[index].albedo_color = (Color("ad4935") if bank else Color("e35a32")) if heat[index] > 20 else (Color("d9b77e") if heat[index] > 0 else Color("49566a"))
 	if is_instance_valid(_warning):
-		(_warning.get_child(_warning.get_child_count() - 1) as Label3D).text = "VOLCANO — EVACUATE %.0fs" % ceilf(warning_remaining) if phase == Phase.WARNING else ("HOT GROUND — %.0fs" % ceilf(active_remaining) if is_active() else "COOLED CRATER — SAFE TO CROSS")
+		(_warning.get_child(_warning.get_child_count() - 1) as Label3D).text = "VOLCANO — LAVA FLOOD IN %.0fs — CLIMB HIGH" % ceilf(warning_remaining) if phase == Phase.WARNING else ("LAVA FLOW — CLIMB HIGH — %.0fs" % ceilf(active_remaining) if is_active() else "COOLED CRATER — SAFE TO CROSS")
+	_update_flow_visual()
+
+
+func _update_flow_visual() -> void:
+	# One map-sized quad; the shader draws the molten disc (or, during the
+	# warning, the outward-pulsing preview edge). MultiMeshInstance3D keeps it
+	# out of the weather overlay registration of volcano MeshInstance3Ds.
+	var show := phase == Phase.WARNING or (phase == Phase.ACTIVE and flow_heat > 0)
+	if not show:
+		if is_instance_valid(_flow):
+			_flow.visible = false
+		return
+	if not is_instance_valid(_flow):
+		var extent := get_map_extent()
+		var plane := PlaneMesh.new()
+		plane.size = Vector2(extent * 2, extent * 2)
+		var multimesh := MultiMesh.new()
+		multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		multimesh.mesh = plane
+		multimesh.instance_count = 1
+		multimesh.set_instance_transform(0, Transform3D(Basis(), Vector3(0, FLOW_HEIGHT, 0)))
+		if _flow_material == null:
+			var shader := Shader.new()
+			shader.code = FLOW_SHADER
+			_flow_material = ShaderMaterial.new()
+			_flow_material.shader = shader
+		_flow = MultiMeshInstance3D.new()
+		_flow.name = "LavaFlow"
+		_flow.multimesh = multimesh
+		_flow.material_override = _flow_material
+		_flow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_flow)
+	_flow.visible = true
+	_flow_material.set_shader_parameter("center", district_center)
+	_flow_material.set_shader_parameter("vent_radius", district_size.length() / 2)
+	_flow_material.set_shader_parameter("preview", 1.0 if phase == Phase.WARNING else 0.0)
+	_flow_material.set_shader_parameter("radius", flow_radius())
+	_flow_material.set_shader_parameter("glow", clampf(flow_heat / 20.0, 0.0, 1.0))
 
 
 func _show_warning() -> void:
@@ -369,6 +535,11 @@ func cleanup() -> void:
 	active_remaining = 0
 	mutated = false
 	variant = 0
+	flow_elapsed = 0.0
+	flow_heat = 0.0
+	if is_instance_valid(_flow):
+		_flow.free()
+	_flow = null
 	heat.resize(SURFACE_COUNT)
 	heat.fill(0)
 	centers.clear()
@@ -384,7 +555,8 @@ func cleanup() -> void:
 
 func create_presentation_snapshot() -> Dictionary:
 	return {"phase": phase, "warning": warning_remaining, "active": active_remaining,
-		"district": district_id, "variant": variant, "mutated": mutated, "heat": heat.duplicate()}
+		"district": district_id, "variant": variant, "mutated": mutated, "heat": heat.duplicate(),
+		"flow": flow_elapsed, "flow_heat": flow_heat}
 
 
 func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
@@ -401,6 +573,10 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	for value in values:
 		if not is_finite(value) or value < 0 or value > HOT_LIFETIME:
 			return false
+	var flow := float(snapshot.get("flow", 0.0))
+	var flow_hot := float(snapshot.get("flow_heat", 0.0))
+	if not is_finite(flow) or flow < 0 or not is_finite(flow_hot) or flow_hot < 0 or flow_hot > HOT_LIFETIME:
+		return false
 	var changed := bool(snapshot.get("mutated", false))
 	var new_variant := clampi(int(snapshot.get("variant", 0)), 0, 1)
 	if mutated != changed or variant != new_variant:
@@ -410,6 +586,8 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 	active_remaining = maxf(float(snapshot.get("active", 0)), 0)
 	variant = new_variant
 	mutated = changed
+	flow_elapsed = flow
+	flow_heat = flow_hot
 	heat = values.duplicate()
 	if mutated:
 		_build_terrain()

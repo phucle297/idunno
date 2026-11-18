@@ -5,6 +5,14 @@ enum Phase { IDLE, WARNING, ACTIVE }
 const BEAM_RADIUS := 3.5
 const LIFT_HEIGHT := 2.5
 const LIFT_SPEED := 3.0
+# T3o: during ACTIVE only, the beam footprint drifts toward the nearest real
+# drop-off of the support it locked onto, carrying captured players with it
+# (relocation pressure; no damage, no extra lift, no release impulse).
+const DRIFT_SPEED := 2.0
+const DRIFT_MAX := 8.0
+const DROP_PROBE_STEP := 0.25
+const DROP_MIN_STEP := 1.0
+const DROP_DIRECTIONS := 16
 
 @export var warning_duration := 5.0
 @export var active_duration := 4.0
@@ -15,6 +23,8 @@ var beam_position := Vector3.ZERO
 var support_height: Callable
 var target_is_viable: Callable
 var captured := PackedInt32Array()
+var drift_direction := Vector3.ZERO
+var drift_travelled := 0.0
 var _manager: MatchManager
 var _players: Dictionary = {}
 var _released: Dictionary = {}
@@ -66,12 +76,51 @@ func start_disaster(rng: RandomNumberGenerator) -> bool:
 	beam_position = candidates[rng.randi_range(0, candidates.size() - 1)]
 	if support_height.is_valid():
 		beam_position.y = float(support_height.call(beam_position))
+	drift_direction = _nearest_drop_direction(beam_position)
+	drift_travelled = 0.0
 	phase = Phase.WARNING
 	warning_remaining = warning_duration
 	active_remaining = active_duration
 	captured.clear()
 	_released.clear()
 	return true
+
+
+func _support_at(point: Vector3) -> float:
+	if support_height.is_valid():
+		return float(support_height.call(point))
+	var query := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.35, point + Vector3.DOWN * 80, 1)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	return float(hit.position.y) if not hit.is_empty() else point.y
+
+
+# Horizontal unit direction to the closest lip where the support under the
+# lock point steps down by more than DROP_MIN_STEP within DRIFT_MAX. Gentle
+# slopes (ramps) are not lips; walls stop a direction; void (no support) is
+# never a target. Flat ground with no lip in range gives no drift at all.
+func _nearest_drop_direction(lock: Vector3) -> Vector3:
+	var best := Vector3.ZERO
+	var best_distance := INF
+	for index in DROP_DIRECTIONS:
+		var angle := TAU * index / DROP_DIRECTIONS
+		var direction := Vector3(sin(angle), 0, cos(angle))
+		var previous := lock.y
+		var distance := DROP_PROBE_STEP
+		while distance <= DRIFT_MAX and distance < best_distance:
+			var sample := lock + direction * distance
+			var below := PhysicsRayQueryParameters3D.create(sample + Vector3.UP * 0.35, sample + Vector3.DOWN * 80, 1)
+			if get_world_3d().direct_space_state.intersect_ray(below).is_empty():
+				break
+			var support := _support_at(sample)
+			if support > lock.y + 0.5:
+				break
+			if previous - support > DROP_MIN_STEP:
+				best = direction
+				best_distance = distance
+				break
+			previous = support
+			distance += DROP_PROBE_STEP
+	return best
 
 
 func is_active() -> bool:
@@ -102,6 +151,9 @@ func tick(delta: float) -> void:
 	if active_remaining <= 0:
 		cleanup()
 		return
+	var carry := drift_direction * minf(DRIFT_SPEED * remaining, maxf(DRIFT_MAX - drift_travelled, 0))
+	drift_travelled += carry.length()
+	beam_position += carry
 	for id: int in _players:
 		var player := _players[id] as PartyPlayer
 		if not is_instance_valid(player):
@@ -120,6 +172,10 @@ func tick(delta: float) -> void:
 			continue
 		if id not in captured:
 			captured.append(id)
+		if carry != Vector3.ZERO:
+			# Carried with the moving footprint through collision, not teleported;
+			# the player's own input still moves them relative to the ring.
+			player.move_and_collide(carry)
 		# Preserve horizontal air control. One capture/event; height and upward
 		# speed are bounded rather than translating the body through collision.
 		var height_left := beam_position.y + LIFT_HEIGHT - feet.y
@@ -136,6 +192,8 @@ func cleanup() -> void:
 	warning_remaining = 0
 	active_remaining = 0
 	beam_position = Vector3.ZERO
+	drift_direction = Vector3.ZERO
+	drift_travelled = 0.0
 	captured.clear()
 	_released.clear()
 	if is_instance_valid(_visual):

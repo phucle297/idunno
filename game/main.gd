@@ -46,8 +46,8 @@ const MAP_HALF_EXTENT := 32.0
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
 const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
-const MATCH_PRESETS := ["normal", "hard", "hot_potato"]
-const MATCH_PRESET_TITLES := {"normal": "Normal", "hard": "Hard", "hot_potato": "Hot Potato (2+)"}
+const MATCH_PRESETS := ["hard", "hot_potato"]
+const MATCH_PRESET_TITLES := {"hard": "Hard", "hot_potato": "Hot Potato (2+)"}
 
 @onready var match_manager: MatchManager = $MatchManager
 @onready var disaster_director: DisasterDirector = $DisasterDirector
@@ -113,7 +113,7 @@ var _direct_ip_mode := false
 var _room_id := ""
 var _connection_remaining := 0.0
 var map_id := "toy_town"
-var match_preset := "normal"
+var match_preset := "hard"
 var map_anchors: Dictionary = {}
 var _map_loading := false
 var _map_load_generation := 0
@@ -2935,7 +2935,8 @@ func set_match_preset(preset: String) -> bool:
 	match_preset = preset
 	_map_load_notice = ""
 	# The director schedules server-side; clients only mirror the display.
-	disaster_director.set_match_preset("normal" if preset == "hot_potato" else preset)
+	# Hot Potato is a rule variant on the Hard survival baseline, not an easier pacing.
+	disaster_director.set_match_preset("hard")
 	hot_potato.reset()
 	if bomb_rules_changed and (not _network_mode or multiplayer.is_server()):
 		for peer_id: int in _player_nodes:
