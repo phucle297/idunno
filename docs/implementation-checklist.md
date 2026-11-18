@@ -5,9 +5,9 @@
 ## Active and planned phases
 
 - [Phase23 — Performance, chaos, audio and character quality](checklists/phase-23-performance-chaos-audio-character.md)
-  — M23.1 in progress; English plan and first measured hidden-render/weather
-  lifecycle fixes recorded. Remaining memory/camera matrix is open. Normal removal,
-  rooftop balance, audio and character work remain planned; no new deployment.
+  — T2/T3 (harder baseline) are on `main`. Remaining work follows root
+  `progress.json` `next_action`: T9 determinism, T5 docs, T6 fall damage,
+  T8 Owner playtest, M23.3 Audio, M23.1 Perf, M23.4 Character, then T10/T11.
 
 ## Recently completed phases
 
