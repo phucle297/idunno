@@ -10,6 +10,8 @@ const HEARING_RANGE_SQUARED := HEARING_RANGE * HEARING_RANGE
 const SEEN_LIMIT := 96
 const DEBOUNCE_SECONDS := 0.06
 const SAMPLE_RATE := 22050
+## M23.3: toy cues 2 dB softer (was -15), pending Art & Audio sign-off.
+const VOICE_DB := -17.0
 
 var sound_play_count := 0
 var muted_warning_count := 0
@@ -33,7 +35,7 @@ func _ready() -> void:
 		var voice := AudioStreamPlayer.new()
 		voice.name = "ToyEffectVoice%d" % (index + 1)
 		voice.bus = EFFECTS_BUS
-		voice.volume_db = -15.0
+		voice.volume_db = VOICE_DB
 		add_child(voice)
 		_voices.append(voice)
 

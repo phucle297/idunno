@@ -317,6 +317,8 @@ The host can instead select **RETURN TO LOBBY** to bring the session back to rea
 
 Warnings, impacts, jumping, death, and victory have synthesized placeholder audio. Flood, Meteor, and Tornado use distinct warning cues. Warning audio has a reserved voice so overlapping impact effects cannot silence it.
 
+Action audio (M23.3): one press plays at most one action cue. Space is both jump and menu confirm, so the jump cue only plays when your avatar can act (active match, no menu/pause/focused control, alive); a menu press plays only its confirm cue; a mouse click plays one confirm (no extra focus tick); a confirm that moves focus to a new page does not add a focus tick. Jump uses a softer, lower synthesized hop; pickups (power-ups and toys) use their own soft chime instead of the jump sound; the 3-2-1 warning countdown uses a low warning-family thud instead of the jump sound. Disaster warnings keep their own stems, reserved voice and Warnings bus, and sit at least 6 dB above every action cue. Levels are listed in `game/gameplay_audio_controller.gd` (constants) and are pending Art & Audio sign-off and an Owner listen; all SFX remain synthesized placeholders. Shove has no sound. `tests/test_action_audio.gd` counts cues per press on Toy Town and Toy Harbor.
+
 ## Disaster timing
 
 Survival matches use Hard pacing only (Normal is not a selectable preset).

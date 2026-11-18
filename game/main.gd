@@ -113,6 +113,7 @@ var _direct_ip_mode := false
 var _room_id := ""
 var _connection_remaining := 0.0
 var map_id := "toy_town"
+var _last_held_toy := ""
 var match_preset := "hard"
 var map_anchors: Dictionary = {}
 ## T17: shared seeded placement for every ground pickup (powerup/toy/potato).
@@ -1290,7 +1291,7 @@ func _process(delta: float) -> void:
 				_on_connection_failed()
 	match_manager.tick_match(delta)
 	terrain_collapse.tick(match_manager, disaster_director.last_seed)
-	if not _network_mode and Input.is_action_just_pressed("jump"):
+	if not _network_mode and Input.is_action_just_pressed("jump") and _offline_jump_cue_allowed():
 		gameplay_audio.play_jump()
 	# The loading roster and match state are frozen. The reliable load/cancel
 	# protocol owns this interval; do not queue identical lobby snapshots while
@@ -1767,6 +1768,11 @@ func _present_toys(peer_id: int, personal: bool, delta: float) -> void:
 				nearest = pickup
 				distance = candidate
 	toy_card.present(snapshot.slots.get(peer_id, {}), nearest, personal)
+	# M23.3: one soft pickup cue when the local slot gains a toy (authoritative snapshot).
+	var held_toy := String(snapshot.slots.get(peer_id, {}).get("kind", "")) if personal else ""
+	if not held_toy.is_empty() and held_toy != _last_held_toy and String(snapshot.slots.get(peer_id, {}).get("feedback", "")) == "picked":
+		gameplay_audio.play_pickup()
+	_last_held_toy = held_toy
 	toy_audio.present(snapshot, actor.global_position if is_instance_valid(actor) else Vector3.ZERO, gameplay_audio.is_warning_playing(), personal)
 	if not is_instance_valid(bomb_visuals):
 		bomb_visuals = preload("res://game/session/hot_potato_visuals.gd").new()
@@ -2028,9 +2034,28 @@ func _configure_lobby_ui() -> void:
 	settings.pressed.connect(func() -> void: pause_settings.show_settings())
 
 
+# M23.3: Space is both "jump" and "ui_accept". The jump cue only follows a press
+# the local avatar can act on, never a press consumed by menus/focused controls.
+func _offline_jump_cue_allowed() -> bool:
+	if match_manager.state != MatchManager.MatchState.ACTIVE:
+		return false
+	if $Interface/LobbyPanel.visible or pause_settings.visible or collection.visible or spectator_controller.active:
+		return false
+	if is_instance_valid(home_screen) and home_screen.visible:
+		return false
+	if get_viewport().gui_get_focus_owner() != null:
+		return false
+	var player := get_node_or_null("Player") as PartyPlayer
+	return is_instance_valid(player) and not player.local_input_blocked and match_manager.is_player_alive(1)
+
+
 func _connect_ui_audio(node: Node) -> void:
 	if node is Control and node.focus_mode != Control.FOCUS_NONE:
-		node.focus_entered.connect(func() -> void: gameplay_audio.play_ui("focus"))
+		# Mouse clicks focus on press and confirm on release: one click, one cue.
+		node.focus_entered.connect(func() -> void:
+			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+				gameplay_audio.play_ui("focus")
+		)
 	if node is Button:
 		node.pressed.connect(func() -> void: gameplay_audio.play_ui("ready" if node.name == "Ready" else "confirm"))
 	for child: Node in node.get_children():
