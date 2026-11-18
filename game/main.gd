@@ -1211,7 +1211,8 @@ func _tick_server_emotes() -> void:
 
 
 func _emote_now() -> float:
-	return Time.get_ticks_msec() / 1000.0
+	# T9: sim time (physics ticks), so emote expiry/cooldown never depends on load.
+	return match_clock.now()
 
 
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
