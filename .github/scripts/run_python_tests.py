@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Run tests/test_*.py, split by the repo flake list (tests/FLAKY.md).
 
-blocking: every collected test except listed ids (required job).
-flaky: only the listed ids (visible non-blocking job).
+blocking: every collected Python test except listed Python ids (required job).
+flaky: only the listed Python ids (visible non-blocking job).
 
-Removing an entry from the list makes that test blocking again.
-Nothing is skipped or deleted.
+Godot suite names (tests/<name>.gd) in the list are ignored here; the
+Godot runner handles them. Removing an entry from the list makes that
+test blocking again. Nothing is skipped or deleted.
 """
 from __future__ import annotations
 
@@ -32,6 +33,14 @@ def listed_ids() -> list[str]:
     return ids
 
 
+def classify(entry: str) -> str:
+    if (ROOT / "tests" / f"{entry}.gd").is_file():
+        return "godot"
+    if "." in entry:
+        return "python"
+    return "unknown"
+
+
 def walk(suite: unittest.TestSuite):
     for item in suite:
         if isinstance(item, unittest.TestSuite):
@@ -44,6 +53,21 @@ def matches(test_id: str, entry: str) -> bool:
     return test_id == entry or test_id.endswith("." + entry)
 
 
+def classified_ids() -> tuple[list[str], list[str], list[str]]:
+    python_ids: list[str] = []
+    godot_ids: list[str] = []
+    unknown: list[str] = []
+    for entry in listed_ids():
+        kind = classify(entry)
+        if kind == "godot":
+            godot_ids.append(entry)
+        elif kind == "python":
+            python_ids.append(entry)
+        else:
+            unknown.append(entry)
+    return python_ids, godot_ids, unknown
+
+
 def main() -> int:
     os.chdir(ROOT)
     if str(ROOT) not in sys.path:
@@ -51,21 +75,31 @@ def main() -> int:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("blocking", "flaky"), default="blocking")
-    parser.add_argument("--list", action="store_true", help="print selected ids and exit")
+    parser.add_argument("--list", action="store_true", help="print selected Python ids and exit")
+    parser.add_argument("--list-godot", action="store_true", help="print listed Godot suite names and exit")
     args = parser.parse_args()
 
-    flake_ids = listed_ids()
+    python_ids, godot_ids, unknown = classified_ids()
+    if unknown:
+        sys.stderr.write("ERROR: flake list entries are neither a tests/<name>.gd suite nor a Python id: %s\n" % unknown)
+        return 2
+
+    if args.list_godot:
+        for name in godot_ids:
+            print(name)
+        return 0
+
     collected = list(walk(unittest.TestLoader().discover("tests", pattern="test_*.py")))
-    unmatched = [entry for entry in flake_ids if not any(matches(test.id(), entry) for test in collected)]
+    unmatched = [entry for entry in python_ids if not any(matches(test.id(), entry) for test in collected)]
     if unmatched:
-        sys.stderr.write("ERROR: flake list entries matched no collected test: %s\n" % unmatched)
+        sys.stderr.write("ERROR: flake list Python entries matched no collected test: %s\n" % unmatched)
         sys.stderr.write("collected: %s\n" % [test.id() for test in collected])
         return 2
 
     want_flaky = args.mode == "flaky"
-    selected = [test for test in collected if any(matches(test.id(), entry) for entry in flake_ids) == want_flaky]
-    print("MODE=%s selected=%d collected=%d flake_list=%d" % (
-        args.mode, len(selected), len(collected), len(flake_ids)))
+    selected = [test for test in collected if any(matches(test.id(), entry) for entry in python_ids) == want_flaky]
+    print("MODE=%s selected=%d collected=%d flake_python=%d flake_godot=%d" % (
+        args.mode, len(selected), len(collected), len(python_ids), len(godot_ids)))
     if args.list:
         for test in selected:
             print(test.id())

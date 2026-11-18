@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
-# CI fast gate: headless import, then every tests/test_*.gd except the slow list
-# (those run in the manual full regression), in parallel with a per-suite timeout.
-# Pass criteria mirror tools/test_changed.py: exit 0, a *_OK marker, no ERROR lines
-# (except Godot's shutdown-only "resources still in use at exit").
+# CI Godot suites: headless import, then tests/test_*.gd, in parallel with a
+# per-suite timeout. Pass criteria mirror tools/test_changed.py: exit 0, a
+# *_OK marker, no ERROR lines (except Godot's shutdown-only
+# "resources still in use at exit").
+# blocking (default): every suite except the slow list (manual full regression)
+# and Godot names listed in tests/FLAKY.md (those run in the non-blocking
+# flake job). flaky: only the Godot names in tests/FLAKY.md.
+# Remove a FLAKY.md id to make that suite blocking again. Nothing is skipped
+# or deleted.
 set -euo pipefail
 GODOT_BIN="${GODOT_BIN:-godot}"
 JOBS="${JOBS:-$(nproc)}"
 SUITE_TIMEOUT="${SUITE_TIMEOUT:-600}"
 LOG_DIR="${LOG_DIR:-.scratch/ci-suites}"
 SLOW_LIST="${SLOW_LIST:-.github/slow-suites.txt}"
+FLAKE_LIST="${FLAKE_LIST:-tests/FLAKY.md}"
+MODE=blocking
+for arg in "$@"; do
+  case "$arg" in
+    --mode=blocking|--mode=flaky) MODE="${arg#--mode=}" ;;
+    *) echo "unknown arg: $arg" >&2; exit 2 ;;
+  esac
+done
 mkdir -p "$LOG_DIR"
 export GODOT_BIN SUITE_TIMEOUT LOG_DIR
 
@@ -19,13 +32,23 @@ fi
 echo "IMPORT_OK"
 
 mapfile -t slow < <(grep -vE '^\s*(#|$)' "$SLOW_LIST" || true)
+mapfile -t flaky_godot < <(python3 .github/scripts/run_python_tests.py --list-godot)
 suites=()
-for path in tests/test_*.gd; do
-  name="$(basename "$path" .gd)"
-  [[ " ${slow[*]} " == *" $name "* ]] && continue
-  suites+=("$name")
-done
-echo "Running ${#suites[@]} suites with JOBS=$JOBS timeout=${SUITE_TIMEOUT}s (slow, manual-only: ${slow[*]})"
+if [[ "$MODE" == flaky ]]; then
+  suites+=("${flaky_godot[@]}")
+else
+  for path in tests/test_*.gd; do
+    name="$(basename "$path" .gd)"
+    [[ " ${slow[*]} " == *" $name "* ]] && continue
+    [[ " ${flaky_godot[*]} " == *" $name "* ]] && continue
+    suites+=("$name")
+  done
+fi
+echo "MODE=$MODE Running ${#suites[@]} suites with JOBS=$JOBS timeout=${SUITE_TIMEOUT}s (slow, manual-only: ${slow[*]}; flaky-godot: ${flaky_godot[*]})"
+if [[ ${#suites[@]} -eq 0 ]]; then
+  echo "No Godot suites in this mode; OK"
+  exit 0
+fi
 
 run_one() {
   local name="$1" log="$LOG_DIR/$1.log" start ec errs marker
