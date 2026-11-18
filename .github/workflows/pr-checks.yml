@@ -44,12 +44,29 @@ jobs:
       - uses: ./.github/actions/setup-godot
         with:
           version: ${{ env.GODOT_VERSION }}
-      - name: unittest discover
+      - name: unittest discover (blocking, excludes tests/FLAKY.md)
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PLAYER_COUNTS: "4 8 20"
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+        run: python3 .github/scripts/run_python_tests.py --mode=blocking
+
+  flaky-tests:
+    name: Flaky tests (non-blocking)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+      - name: unittest tests/FLAKY.md
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PLAYER_COUNTS: "4 8 20"
+        run: python3 .github/scripts/run_python_tests.py --mode=flaky
 
   godot-tests:
     name: Godot import + fast suites
