@@ -44,12 +44,44 @@ jobs:
       - uses: ./.github/actions/setup-godot
         with:
           version: ${{ env.GODOT_VERSION }}
-      - name: unittest discover
+      - name: unittest discover (blocking, excludes tests/FLAKY.md)
         shell: bash
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PLAYER_COUNTS: "4 8 20"
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+        run: python3 .github/scripts/run_python_tests.py --mode=blocking
+
+  flaky-tests:
+    name: Flaky tests (non-blocking)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+      - name: Restore import cache
+        uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-${{ env.GODOT_VERSION }}-${{ hashFiles('project.godot', 'assets/**', 'game/**', 'scenes/**', 'tests/**') }}
+          restore-keys: godot-import-${{ env.GODOT_VERSION }}-
+      - name: unittest tests/FLAKY.md (Python)
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PLAYER_COUNTS: "4 8 20"
+        run: python3 .github/scripts/run_python_tests.py --mode=flaky
+      - name: Godot suites in tests/FLAKY.md
+        shell: bash
+        run: .github/scripts/run_godot_suites.sh --mode=flaky
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flaky-suite-logs
+          path: .scratch/ci-suites/
+          retention-days: 7
 
   godot-tests:
     name: Godot import + fast suites
