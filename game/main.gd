@@ -1240,9 +1240,17 @@ func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_
 func _on_player_landed(fall_height: float, peer_id: int) -> void:
 	if _network_mode and not multiplayer.is_server():
 		return
+	# T6: every landing consumes the disaster credit (tornado/UFO carry or throw).
+	var player := _player_nodes.get(peer_id) as PartyPlayer
+	if player == null and peer_id == 1:
+		player = get_node_or_null("Player") as PartyPlayer
+	var credit := player.take_fall_credit() if is_instance_valid(player) else ""
 	if match_manager.state != MatchManager.MatchState.ACTIVE or fall_height <= Tuning.FALL_DAMAGE_SAFE_HEIGHT:
 		return
-	_pending_fall_damage.append({"peer_id": peer_id, "amount": Tuning.fall_damage(fall_height), "cause": "Fall"})
+	var event := {"peer_id": peer_id, "amount": Tuning.fall_damage(fall_height), "cause": "Fall"}
+	if credit != "":
+		event = {"peer_id": peer_id, "amount": event.amount, "cause": credit, "via": "Fall"}
+	_pending_fall_damage.append(event)
 	if _pending_fall_damage.size() == 1:
 		_flush_fall_damage.call_deferred()
 

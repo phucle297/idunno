@@ -172,6 +172,9 @@ func tick(delta: float) -> void:
 			continue
 		if id not in captured:
 			captured.append(id)
+		# T6: the fall after this lift is credited to the UFO; refreshed every
+		# captured tick so a brief touch-down mid-lift does not drop the credit.
+		player.credit_fall_to("UFO")
 		if carry != Vector3.ZERO:
 			# Carried with the moving footprint through collision, not teleported;
 			# the player's own input still moves them relative to the ring.

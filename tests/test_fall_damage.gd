@@ -89,13 +89,66 @@ func _check_drops() -> void:
 		else:
 			_expect(not main.match_manager.is_player_alive(1) and main.match_manager.get_cause_of_death(1) == "Fall", "%.2f m drop kills (Fall)" % height)
 		previous = damage
+	await _check_attribution(main, player, origin)
 	main.gameplay_audio.reset_for_match()
 	await create_timer(0.1).timeout
 	main.free()
 	await create_timer(0.1).timeout
 
 
-func _drop(main: Node, player: PartyPlayer, origin: Vector3, height: float) -> float:
+# T6 attribution: tornado/UFO credit names the next landing; grounded credit
+# expires after PartyPlayer.FALL_CREDIT_GROUNDED_TICKS physics ticks.
+func _check_attribution(main: Node, player: PartyPlayer, origin: Vector3) -> void:
+	main.match_manager.prepare_lobby()
+	main.match_manager.set_player_ready(1, true)
+	main.match_manager.start_match()
+	for credit: String in ["Tornado", "UFO", ""]:
+		player.reset_for_match(origin)
+		if credit != "":
+			player.credit_fall_to(credit)
+		main._pending_fall_damage.clear()
+		main._on_player_landed(7.36, 1)
+		var event: Dictionary = main._pending_fall_damage[0] if main._pending_fall_damage.size() == 1 else {}
+		main._pending_fall_damage.clear()
+		var want := credit if credit != "" else "Fall"
+		print("FALL_CREDIT credit=%s event=%s" % [credit, event])
+		_expect(String(event.get("cause", "")) == want, "Landing with credit '%s' has cause %s (got %s)" % [credit, want, event])
+		_expect(credit == "" or String(event.get("via", "")) == "Fall", "Credited landing carries via=Fall")
+		_expect(float(event.get("amount", 0.0)) >= 30.0 and float(event.get("amount", 0.0)) <= 36.0, "Carry-off 7.36 m costs 30-36 HP")
+		_expect(player.take_fall_credit() == "", "Landing consumed the credit")
+	await create_timer(0.05).timeout
+	# Safe landing still consumes the credit (no stale credit on a later jump).
+	player.credit_fall_to("UFO")
+	main._on_player_landed(1.0, 1)
+	_expect(player.take_fall_credit() == "", "Safe landing consumes the credit")
+	# Grounded expiry: kept for < 30 ticks, gone after 30.
+	player.reset_for_match(origin)
+	for step in 20:
+		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
+		await physics_frame
+	_expect(player.is_on_floor(), "Player grounded before credit expiry check")
+	player.credit_fall_to("Tornado")
+	for step in PartyPlayer.FALL_CREDIT_GROUNDED_TICKS - 2:
+		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
+		await physics_frame
+	_expect(player.take_fall_credit() == "Tornado", "Grounded credit still held before 30 ticks")
+	player.credit_fall_to("Tornado")
+	for step in PartyPlayer.FALL_CREDIT_GROUNDED_TICKS:
+		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
+		await physics_frame
+	_expect(player.take_fall_credit() == "", "Grounded credit expired after 30 ticks (0.5 s)")
+	# Real drops: credited carry-off band and credited lethal cause.
+	var damage := await _drop(main, player, origin, 7.36, "UFO")
+	print("FALL_CREDIT_DROP credit=UFO h=7.36 damage=%.2f" % damage)
+	_expect(damage >= 30.0 and damage <= 36.0, "UFO-credited 7.36 m drop costs 30-36 HP (got %.2f)" % damage)
+	damage = await _drop(main, player, origin, 15.0, "Tornado")
+	print("FALL_CREDIT_DROP credit=Tornado h=15 damage=%.2f cause=%s" % [damage, main.match_manager.get_cause_of_death(1)])
+	_expect(main.match_manager.get_cause_of_death(1) == "Tornado", "Credited lethal fall is attributed to the Tornado")
+	damage = await _drop(main, player, origin, 15.0)
+	_expect(main.match_manager.get_cause_of_death(1) == "Fall", "Own lethal fall stays Fall")
+
+
+func _drop(main: Node, player: PartyPlayer, origin: Vector3, height: float, credit := "") -> float:
 	main.match_manager.prepare_lobby()
 	main.match_manager.set_player_ready(1, true)
 	main.match_manager.start_match()
@@ -106,6 +159,8 @@ func _drop(main: Node, player: PartyPlayer, origin: Vector3, height: float) -> f
 	var ground: float = player.global_position.y
 	_last_fall = -1.0
 	player.reset_for_match(Vector3(origin.x, ground + height, origin.z))
+	if credit != "":
+		player.credit_fall_to(credit)
 	for step in 180:
 		player.apply_movement_input(Vector2.ZERO, false, false, 1.0 / 60)
 		await physics_frame

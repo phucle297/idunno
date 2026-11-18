@@ -4,8 +4,9 @@ extends Node3D
 signal warning_started(start: Vector3, duration: float)
 signal activated
 signal finished
-# T3q: a committed roof carry starts / releases (attribution hooks for the
-# fall that follows; main.gd still labels the fall damage "Fall").
+# T3q: a committed roof carry starts / releases. T6: the carried/thrown player
+# also gets PartyPlayer.credit_fall_to(DISASTER_NAME), so main.gd credits the
+# landing's fall damage to the Tornado (cause "Tornado", via "Fall").
 signal carry_started(peer_id: int, target: Vector3)
 signal carry_released(peer_id: int, position: Vector3)
 
@@ -356,6 +357,7 @@ func _apply_forces(delta: float) -> void:
 			if exposure >= lift_time and not _thrown_players.has(peer_id):
 				_thrown_players[peer_id] = true
 				throw_count += 1
+				player.credit_fall_to(DISASTER_NAME)
 				if not _commit_carry(peer_id, player):
 					var outward := -inward
 					player.apply_hazard_velocity((outward + Vector3.UP * 0.75).normalized() * throw_speed, throw_speed)
@@ -402,6 +404,7 @@ func _commit_carry(peer_id: int, player: PartyPlayer) -> bool:
 func _update_carry(peer_id: int, player: PartyPlayer, delta: float) -> void:
 	var carry: Dictionary = _carries[peer_id]
 	carry.elapsed = float(carry.elapsed) + delta
+	player.credit_fall_to(DISASTER_NAME) # T6: refresh while carried (a mid-carry touch-down consumes it)
 	var position := player.global_position
 	var direction: Vector3 = carry.direction
 	var target: Vector3 = carry.target

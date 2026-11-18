@@ -58,6 +58,8 @@ const CAUSE_TO_DISASTER := {
 	"Fire": "Fire", "Earthquake": "Earthquake", "Burning Rubble": "Earthquake",
 	"Bee Swarm": "Bee Swarm", "Rockslide": "Rockslide", "Volcanic ground": "Volcano",
 	"Lava flow": "Volcano", # T3p whole-floor flow (volcano.gd tick)
+	# T6: carry/throw falls credited in-game (main.gd cause=<disaster>, via="Fall").
+	"Tornado": "Tornado", "UFO": "UFO",
 }
 # D3 attribution (see RunLedger). TerrainCollapse (game/session/terrain_collapse.gd)
 # removes districts on its own schedule; it is not a director disaster, so its
@@ -113,7 +115,7 @@ class RecordingManager extends MatchManager:
 			var peer_id: int = event.get("peer_id", 0)
 			var amount: float = event.get("amount", 0.0)
 			if amount > 0.0 and state == MatchState.ACTIVE and players.has(peer_id) and players[peer_id].alive:
-				damage_log.append({"t": elapsed_time, "amount": amount, "cause": String(event.get("cause", "Unknown"))})
+				damage_log.append({"t": elapsed_time, "amount": amount, "cause": String(event.get("cause", "Unknown")), "via": String(event.get("via", ""))})
 		var forwarded := events
 		if keep_alive:
 			# Never let the real pool reach zero (void/out-of-bounds request the
