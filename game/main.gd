@@ -115,6 +115,10 @@ var _connection_remaining := 0.0
 var map_id := "toy_town"
 var match_preset := "hard"
 var map_anchors: Dictionary = {}
+## T17: shared seeded placement for every ground pickup (powerup/toy/potato).
+var pickup_placement := PickupPlacement.new()
+## Report names for pickup_placement.zones (same order).
+var pickup_zone_names: Array[String] = []
 var _map_loading := false
 var _map_load_generation := 0
 var _map_load_waiting: Array[int] = []
@@ -153,12 +157,14 @@ func _ready() -> void:
 	powerups.name = "MatchPowerups"
 	add_child(powerups)
 	powerups.anchor_is_valid = _powerup_anchor_is_valid
+	powerups.placer = _place_pickup
 	powerups.collection_is_clear = _powerup_collection_is_clear
 	toy_sabotage = ToySabotage.new()
 	toy_sabotage.name = "ToySabotage"
 	add_child(toy_sabotage)
 	toy_sabotage.configure(match_manager, _player_nodes, $ShoveManager)
 	toy_sabotage.anchor_is_valid = _powerup_anchor_is_valid
+	toy_sabotage.placer = _place_pickup
 	toy_sabotage.collection_is_clear = _powerup_collection_is_clear
 	toy_sabotage.ground_is_visible = func(point: Vector3) -> bool: return not flood.is_active() or flood.water_level < point.y - 0.05
 	hot_potato = HotPotato.new()
@@ -166,6 +172,7 @@ func _ready() -> void:
 	add_child(hot_potato)
 	hot_potato.configure(match_manager, _player_nodes)
 	hot_potato.anchor_is_valid = _powerup_anchor_is_valid
+	hot_potato.placer = _place_pickup
 	hot_potato.collection_is_clear = _powerup_collection_is_clear
 	hot_potato.sweep = toy_sabotage.sweep_parcel
 	hot_potato.apply_impulse = toy_sabotage.apply_parcel_impulse
@@ -2704,6 +2711,7 @@ func _on_match_state_changed(state: MatchManager.MatchState) -> void:
 	if is_instance_valid(bomb_visuals):
 		bomb_visuals.reset_for_match()
 	if state == MatchManager.MatchState.ACTIVE and (not _network_mode or multiplayer.is_server()):
+		pickup_placement.begin_round(disaster_director.last_seed)
 		powerups.begin_round()
 		toy_sabotage.begin_round()
 		hot_potato.begin_round(match_preset == "hot_potato")
@@ -2893,6 +2901,8 @@ func _powerup_anchor_is_valid(point: Vector3, spawning: bool) -> bool:
 		return false
 	if not spawning:
 		return true
+	if not _pickup_spawn_clear_of_hazards(point):
+		return false
 	for index in MAX_NETWORK_PLAYERS:
 		if point.distance_to(_network_spawn_position(index)) < 2.0:
 			return false
@@ -2907,6 +2917,81 @@ func _powerup_anchor_is_valid(point: Vector3, spawning: bool) -> bool:
 		if is_instance_valid(candidate) and candidate.global_position.distance_to(point) < 2.0:
 			return false
 	return true
+
+
+## T17: moving hazards whose position is cheaply exposed. Spawn-time only, so
+## live pickups are never removed by these (unchanged expiry rules).
+func _pickup_spawn_clear_of_hazards(point: Vector3) -> bool:
+	var flat := Vector2(point.x, point.z)
+	if ufo.is_active() and flat.distance_to(Vector2(ufo.beam_position.x, ufo.beam_position.z)) <= UFO.BEAM_RADIUS + 1.1:
+		return false
+	if bee_swarm.is_active() and flat.distance_to(Vector2(bee_swarm.swarm_position.x, bee_swarm.swarm_position.z)) <= BeeSwarm.REACH + 3.0:
+		return false
+	if tornado.is_active():
+		var a := Vector2(tornado.start_position.x, tornado.start_position.z)
+		var b := Vector2(tornado.end_position.x, tornado.end_position.z)
+		var closest := Geometry2D.get_closest_point_to_segment(flat, a, b)
+		if flat.distance_to(closest) <= tornado.core_radius + 1.1:
+			return false
+	if rockslide.is_active() and not rockslide.lane.is_empty():
+		var along := (point - (rockslide.lane.high as Vector3)).dot(rockslide._lane_forward())
+		if along >= -1.1 and along <= float(rockslide.lane.get("length", 0.0)) + 1.1 and rockslide._lane_offset(point) <= Rockslide.CORRIDOR_HALF_WIDTH + 1.1:
+			return false
+	return true
+
+
+## T17: every ground pickup spawn goes through here. Occupancy is gathered
+## across all three systems at call time. Server-only (systems call it from
+## their authority tick).
+func _place_pickup(family: StringName, sequence: int, seed_value: Variant = null) -> Vector3:
+	var match_seed: int = disaster_director.last_seed if seed_value == null else int(seed_value)
+	if not pickup_placement.seeded or match_seed != pickup_placement.match_seed:
+		pickup_placement.begin_round(match_seed)
+	return pickup_placement.place(family, sequence, live_pickup_positions())
+
+
+func live_pickup_positions() -> PackedVector3Array:
+	var occupied := PackedVector3Array()
+	for pickup: Dictionary in powerups.pickups:
+		occupied.append(pickup.position)
+	for pickup: Dictionary in toy_sabotage.pickups:
+		occupied.append(pickup.position)
+	if hot_potato.phase == HotPotato.Phase.GROUND:
+		occupied.append(hot_potato.position_world)
+	return occupied
+
+
+func _configure_pickup_zones() -> void:
+	# Flat rects on surfaces reached by ordinary movement (streets, plaza,
+	# basin, boardwalk) or by an authored ramp (Shop/Hall/Warehouse roofs,
+	# Garage deck, Pocket Park, Crane deck, docks). The down ray comes from
+	# above every roof, so points under roofs, awnings, decks and inside props
+	# fall outside the height tolerance and are rejected. No TownHall roof.
+	var named: Array = [
+		["plaza", AABB(Vector3(-8.5, 0.05, -8.5), Vector3(17, 0, 17))],
+		["town_north", AABB(Vector3(-26, 0.05, -24), Vector3(52, 0, 15.5))],
+		["town_south", AABB(Vector3(-26, 0.05, 8.5), Vector3(52, 0, 15.5))],
+		["town_west", AABB(Vector3(-26, 0.05, -8.5), Vector3(17.5, 0, 17))],
+		["town_east", AABB(Vector3(8.5, 0.05, -8.5), Vector3(17.5, 0, 17))],
+		["shop_roof", AABB(Vector3(-21, 4.855, -17), Vector3(10, 0, 8))],
+		["hall_roof", AABB(Vector3(11, 4.855, -18), Vector3(10, 0, 10))],
+		["garage_deck", AABB(Vector3(-21, 2.575, 10), Vector3(12, 0, 10))],
+		["pocket_park", AABB(Vector3(11, 2.2, 11), Vector3(8, 0, 6))],
+	] if map_id == "toy_town" else [
+		["harbor_south", AABB(Vector3(-26, 0.05, 15), Vector3(52, 0, 11))],
+		["harbor_mid", AABB(Vector3(-26, 0.05, -10), Vector3(52, 0, 25))],
+		["harbor_north", AABB(Vector3(-26, 0.05, -28), Vector3(52, 0, 18))],
+		["warehouse_roof", AABB(Vector3(-7, 4.855, -23), Vector3(14, 0, 10))],
+		["crane_deck", AABB(Vector3(-4.5, 4.855, -5.5), Vector3(9, 0, 7))],
+		["dock_west", AABB(Vector3(-23, 3.75, 4.5), Vector3(10, 0, 9))],
+		["dock_east", AABB(Vector3(13, 3.75, 4.5), Vector3(10, 0, 9))],
+	]
+	var zones: Array[AABB] = []
+	pickup_zone_names.clear()
+	for entry: Array in named:
+		pickup_zone_names.append(entry[0])
+		zones.append(entry[1])
+	pickup_placement.configure(zones, powerups.anchors, _powerup_anchor_is_valid, get_map_surface_height)
 
 
 func _powerup_collection_is_clear(player: PartyPlayer, point: Vector3) -> bool:
@@ -3111,6 +3196,7 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	])
 	toy_sabotage.anchors.assign(powerups.anchors)
 	hot_potato.anchors.assign(powerups.anchors)
+	_configure_pickup_zones()
 	$Sandbox.set_meta("map_anchors", anchors)
 	tornado.set_cover_volumes(anchors.cover_volumes)
 	tornado.set_path_presets(anchors.tornado_paths)
