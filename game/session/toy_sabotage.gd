@@ -48,6 +48,8 @@ var _seen_sequences: Dictionary = {}
 var _item_sequences: Dictionary = {}
 var _local_sequence := 0
 var _balloons: Dictionary = {} # At most MAX_WARNINGS; authority-only victim/anchor.
+var _kind_order_key: Array = [] # T19 cache: [match_seed, pass_index]
+var _kind_order_cache: Array[String] = []
 
 
 func configure(manager: MatchManager, players: Dictionary, shoves: ShoveManager) -> void:
@@ -992,7 +994,7 @@ func _spawn(now: float, seed: int, spawn_slot: int) -> void:
 		if not placed.is_finite():
 			return
 		_next_id += 1
-		pickups.append({"id": _next_id, "kind": _kind_for_spawn(spawn_slot), "position": placed, "expires": now + PICKUP_LIFETIME})
+		pickups.append({"id": _next_id, "kind": _kind_for_spawn(spawn_slot, seed), "position": placed, "expires": now + PICKUP_LIFETIME})
 		_revision += 1
 		return
 	var eligible: Array[Vector3] = []
@@ -1011,13 +1013,33 @@ func _spawn(now: float, seed: int, spawn_slot: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed + spawn_slot * 104729
 	_next_id += 1
-	pickups.append({"id": _next_id, "kind": _kind_for_spawn(spawn_slot), "position": eligible[rng.randi_range(0, eligible.size() - 1)], "expires": now + PICKUP_LIFETIME})
+	pickups.append({"id": _next_id, "kind": _kind_for_spawn(spawn_slot, seed), "position": eligible[rng.randi_range(0, eligible.size() - 1)], "expires": now + PICKUP_LIFETIME})
 	_revision += 1
 
 
-func _kind_for_spawn(spawn_slot: int) -> String:
-	var ordered := KINDS.keys()
-	return ordered[posmod(spawn_slot, ordered.size())]
+## T19: seeded shuffle bag. Every block of KINDS.size() consecutive slots holds
+## each kind exactly once, in an order drawn from the match seed (own stream,
+## local RNG), reshuffled per pass. Same seed -> same order on every peer.
+static func kind_order(match_seed: int, pass_index: int) -> Array[String]:
+	var order: Array[String] = []
+	for kind: String in KINDS.keys():
+		order.append(kind)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([MatchClock.derive_seed(match_seed, &"toy_kind_order"), pass_index])
+	for i in range(order.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var held := order[i]
+		order[i] = order[j]
+		order[j] = held
+	return order
+
+
+func _kind_for_spawn(spawn_slot: int, match_seed: int) -> String:
+	var pass_index := floori(float(spawn_slot) / KINDS.size())
+	if _kind_order_cache.is_empty() or _kind_order_key != [match_seed, pass_index]:
+		_kind_order_key = [match_seed, pass_index]
+		_kind_order_cache = kind_order(match_seed, pass_index)
+	return _kind_order_cache[posmod(spawn_slot, KINDS.size())]
 
 
 func _area_limit(intact_limit: int) -> int:
