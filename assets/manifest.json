@@ -162,13 +162,15 @@
       "export_path": "assets/audio/generated/",
       "generator_script": "tools/audio_generation/generate_audio.gd",
       "seed": 297,
-      "generator_version": "1",
+      "generator_version": "2",
       "sample_rate_hz": 22050,
       "channels": 1,
       "bit_depth": 16,
-      "files": ["warning.wav", "impact.wav", "jump.wav", "death.wav", "victory.wav", "flood_warning.wav", "meteor_warning.wav", "tornado_warning.wav"],
+      "files": ["warning.wav", "impact.wav", "jump.wav", "death.wav", "victory.wav", "flood_warning.wav", "meteor_warning.wav", "tornado_warning.wav", "pickup.wav"],
       "provenance": "Deterministically synthesized PCM in Godot; no third-party audio",
-      "sha256_manifest": "4406ef7d5bc7dd742d1a7a70a612fa0defa75b5edc958c574573d979fdfc01bc",
+      "sha256_manifest": "0781fdfbf3581432b4c558d61ce271f52a08839ce3858672752581354f7d268c",
+      "sha256_manifest_method": "sha256sum of the listed files in order, piped to sha256sum (v2, M23.3)",
+      "m23_3_change": "jump.wav softened (300-560 Hz sweep, ~35 ms attack, exp tail, 0.2 s); new pickup.wav soft two-note chime; other files byte-identical",
       "validation_status": "all_eight_wav_files_imported; duration_and_reserved_warning_voice_overlap_checks_passed"
     },
     {

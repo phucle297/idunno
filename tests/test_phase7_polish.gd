@@ -40,10 +40,10 @@ func _run() -> void:
 	_expect(audio.effect_play_count == effects_before + 8, "Effect pool must accept overlap through bounded voice reuse")
 	var countdown_voice: AudioStreamPlayer = audio._effect_voices[audio._next_effect_voice]
 	audio.play_warning_countdown()
-	_expect(countdown_voice.volume_db == -16.0, "Countdown cue must remain quieter than the dedicated warning voice")
+	_expect(countdown_voice.volume_db == GameplayAudioController.COUNTDOWN_DB and countdown_voice.volume_db < audio._warning_voice.volume_db, "Countdown cue must remain quieter than the dedicated warning voice")
 	for effect_index: int in 4:
 		audio.play_effect(load("res://assets/audio/generated/impact.wav"))
-	_expect(countdown_voice.volume_db == -7.0, "Reused countdown voice must restore the normal effect volume")
+	_expect(countdown_voice.volume_db == GameplayAudioController.JUMP_DB and countdown_voice.bus == "Effects", "Reused countdown voice must restore the normal effect volume")
 	_expect(audio._warning_voice.stream == reserved_stream and audio.get_child_count() == 5, "Countdown audio must not replace warning audio or expand the voice pool")
 
 	var meteor := main.get_node("MeteorShower") as MeteorShower

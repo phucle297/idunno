@@ -2,12 +2,13 @@ extends SceneTree
 
 const OUTPUT_DIR := "res://assets/audio/generated"
 const SAMPLE_RATE := 22050
-const GENERATOR_VERSION := 1
+const GENERATOR_VERSION := 2
 const SEED := 297
 const SOUNDS := {
 	"warning": 0.8,
 	"impact": 0.55,
-	"jump": 0.22,
+	"jump": 0.2,
+	"pickup": 0.2,
 	"death": 0.7,
 	"victory": 1.1,
 	"flood_warning": 1.0,
@@ -69,7 +70,14 @@ func _sample(sound_name: String, time: float, duration: float, index: int) -> fl
 		"impact":
 			return (sin(TAU * 72.0 * time) * 0.55 + _noise(index) * 0.28) * pow(1.0 - progress, 2.5)
 		"jump":
-			return sin(TAU * (420.0 + progress * 520.0) * time) * 0.3 * envelope
+			# M23.3: softer hop. Lower, narrower sweep; ~35 ms attack and exponential tail.
+			var soft_attack := minf(progress * 6.0, 1.0)
+			return sin(TAU * (300.0 + progress * 260.0) * time) * 0.3 * soft_attack * pow(1.0 - progress, 1.6)
+		"pickup":
+			# M23.3: gentle two-note chime so pickups no longer reuse the jump cue.
+			var chime_attack := minf(progress * 8.0, 1.0)
+			var chime_frequency := 587.33 if progress < 0.45 else 783.99
+			return sin(TAU * chime_frequency * time) * 0.16 * chime_attack * pow(1.0 - progress, 1.2)
 		"death":
 			return sin(TAU * (310.0 - progress * 190.0) * time) * 0.38 * envelope
 		"victory":
