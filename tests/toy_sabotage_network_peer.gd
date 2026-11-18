@@ -358,7 +358,10 @@ func _use_remote(main: FixtureMain, remote_id: int, kind: String, ammo: int, dea
 	if int(slot.get("ammo", -1)) != ammo and not aborted:
 		print("TOY_ENET_INTENT_STALL stage=%s intent=use expected_ammo=%d actor={%s}" % [stage, ammo, _actor_state(main, remote_id)])
 	await _publish(main)
-	return int(slot.get("ammo", -1)) == ammo and await _expect(main, stage, main.toy_sabotage.round_sequence, remote_id, kind, ammo, 0, deadline)
+	# T18: the last charge empties the hand on every peer (the remote popper
+	# controller stays only while its own charge is live).
+	var held := "" if ammo == 0 and kind != "remote_popper" else kind
+	return int(slot.get("ammo", -1)) == ammo and String(slot.get("kind", "")) == held and await _expect(main, stage, main.toy_sabotage.round_sequence, remote_id, held, ammo, 0, deadline)
 
 
 func _server(main: FixtureMain) -> void:
