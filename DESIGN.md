@@ -163,9 +163,9 @@ Grab range is 1.5 m. One player owns an object at a time, with server arbitratio
 
 ### Damage and recovery
 
-Start at 100 HP. No ordinary walking-contact damage. Collision damage requires a significant relative impact and has a per-source cooldown. Fall damage starts above an impact speed around 9 m/s and increases to lethal near 18 m/s, with a tuned curve. Base damage on server impact measurements, not camera animation.
+Start at 100 HP. No ordinary walking-contact damage. Collision damage requires a significant relative impact and has a per-source cooldown. Fall damage is measured on the server from the height fallen (peak minus landing), not camera animation: falls under 3 m are free (jumps, ramps, stairs); a fall from a walkable roof (step-off, jump-off, or being carried off by the Tornado or UFO, up to about 7.5 m) costs about 1/3 HP (30–36 HP); damage rises with height to lethal at 12 m or more, so no single fall on today's maps kills a full-health player. Falls after a Tornado or UFO carry or throw are credited to that disaster.
 
-Note (T5, 2026-11-18): the impact-speed fall-damage rule above is superseded. Fall-damage tuning is pending T6; do not treat this paragraph as the live rule.
+Note (T6, 2026-11-18): this height rule replaces the earlier 9–18 m/s impact-speed rule (waived by PM). Curve: `PlayerTuning.FALL_DAMAGE_CURVE`.
 
 Ragdoll lasts at least 0.6 s. Recover after speed is low and a valid surface is available, normally within 1.5–2.5 s. Search for a nearby non-overlapping capsule position before standing. Use a bounded timeout recovery only when it will not rescue a player from an active lethal hazard. Out-of-bounds death is clearly signaled.
 
