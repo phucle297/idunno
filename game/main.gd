@@ -43,6 +43,12 @@ const ENET_THROTTLE_INTERVAL_MSEC := 1000
 const ENET_THROTTLE_ACCELERATION := 2
 const ENET_THROTTLE_DECELERATION := 1
 const MAP_HALF_EXTENT := 32.0
+# T16 warm interior lamps (~2900 K). Broad map surfaces sit on visual layer 2
+# and the lamps skip it, so no lamp is dropped by the per-object light limit.
+const INTERIOR_LIGHT_COLOR := Color(1.0, 0.77, 0.52)
+const INTERIOR_LIGHT_ENERGY := 1.6
+const BROAD_SURFACE_LAYER := 2
+const INTERIOR_LIGHT_CULL_MASK := 0xFFFFF & ~BROAD_SURFACE_LAYER
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
 const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
@@ -3343,6 +3349,7 @@ func _new_disaster_fits_terrain(disaster_name: String) -> bool:
 
 func _build_map_base(work: MapPreparation, half_extent := MAP_HALF_EXTENT) -> bool:
 	_add_static_box("Ground", Vector3(half_extent * 2, 0.4, half_extent * 2), Vector3(0.0, -0.2, 0.0), PALETTE.grass)
+	_set_broad_surface_layer($Sandbox.get_node("Ground"))
 	if not await work.checkpoint():
 		return false
 	for side: String in ["North", "South", "West", "East"]:
@@ -3521,6 +3528,7 @@ func _add_town_districts(work: MapPreparation) -> Dictionary:
 	# Real, collision-backed elevation districts surround the retained central
 	# survival routes. All entrances connect to ground or another terrace.
 	_add_static_box("CivicTerrace", Vector3(90, 2, 18), Vector3(0, 1, -44), PALETTE.sand)
+	_set_broad_surface_layer($Sandbox.get_node("CivicTerrace"))
 	_add_continuous_cornice($Sandbox/CivicTerrace, Vector2(90, 18), 1, PALETTE.cream)
 	_add_paving("CivicPaving", Vector3(0, 2, -44), Vector2(90, 18))
 	if not await work.checkpoint():
@@ -3548,6 +3556,7 @@ func _add_town_districts(work: MapPreparation) -> Dictionary:
 		var y := 1.25 if side < 0 else 1.75
 		var tag := "West" if side < 0 else "East"
 		_add_static_box(tag + "Terrace", Vector3(20, y, 62), Vector3(side * 42, y * 0.5, 0), PALETTE.sand)
+		_set_broad_surface_layer($Sandbox.get_node(tag + "Terrace"))
 		_add_continuous_cornice($Sandbox.get_node(tag + "Terrace"), Vector2(20, 62), y * 0.5, PALETTE.cream)
 		_add_paving(tag + "Paving", Vector3(side * 42, y, 0), Vector2(20, 62))
 		_add_static_box("RingRoad%s" % side, Vector3(4, 0.04, 64), Vector3(side * 29, 0.02, 0), PALETTE.slate)
@@ -3988,6 +3997,70 @@ func _add_open_building(node_name: String, center: Vector3, footprint: Vector2, 
 		_add_detail_box(root, "StockShelf", Vector3(1.6, 1.3, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.65, -2.6), PALETTE.slate, true)
 		_add_detail_box(root, "StockCrateA", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.3, -1.4), PALETTE.sand, true)
 		_add_detail_box(root, "StockCrateB", Vector3(0.6, 0.6, 0.6), Vector3(footprint.x * 0.5 - 1.0, 0.9, -1.4), PALETTE.sand, true)
+	_add_interior_lighting(root, footprint, height)
+
+
+func _set_broad_surface_layer(node: Node) -> void:
+	# Map-spanning ground/terrace/paving meshes touch more interior lights than
+	# Compatibility's per-object light limit; keep them on their own visual layer
+	# (still drawn and sun-lit) so interior lamps never pop on them.
+	if node is VisualInstance3D:
+		(node as VisualInstance3D).layers = BROAD_SURFACE_LAYER
+	for child in node.get_children():
+		_set_broad_surface_layer(child)
+
+
+func _add_interior_lighting(root: Node3D, footprint: Vector2, height: float) -> void:
+	# Render-only warm toy lamps (T16): shadow-less spot pointing down from the
+	# ceiling, a small glowing bulb, and a thin floor visual the lamp can light
+	# (the shared ground is excluded via cull mask). No colliders, no gameplay.
+	var floor_visual := MeshInstance3D.new()
+	floor_visual.name = "InteriorFloorVisual"
+	var floor_mesh := BoxMesh.new()
+	floor_mesh.size = Vector3(footprint.x - 0.3, 0.01, footprint.y - 0.3)
+	floor_mesh.material = _material(PALETTE.cream.lerp(PALETTE.sand, 0.32))
+	floor_visual.mesh = floor_mesh
+	floor_visual.position = Vector3(0.0, 0.03, 0.0)
+	floor_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(floor_visual)
+	var xs: Array[float] = [0.0]
+	if maxf(footprint.x, footprint.y) >= 14.0:
+		xs = [-footprint.x * 0.25, footprint.x * 0.25]
+	var bulb_material := StandardMaterial3D.new()
+	bulb_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bulb_material.albedo_color = Color(1.0, 0.86, 0.62)
+	bulb_material.emission_enabled = true
+	bulb_material.emission = INTERIOR_LIGHT_COLOR
+	var bulb_mesh := SphereMesh.new()
+	bulb_mesh.radius = 0.18
+	bulb_mesh.height = 0.36
+	bulb_mesh.radial_segments = 12
+	bulb_mesh.rings = 6
+	bulb_mesh.material = bulb_material
+	for i in xs.size():
+		var lamp := SpotLight3D.new()
+		lamp.name = "InteriorLamp%d" % i
+		lamp.position = Vector3(xs[i], height - 0.4, 0.0)
+		lamp.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+		lamp.light_color = INTERIOR_LIGHT_COLOR
+		lamp.light_energy = INTERIOR_LIGHT_ENERGY
+		# Reach the lower walls so they get a floor-up gradient while the
+		# ceiling underside and upper corners stay outside the cone (darker).
+		lamp.spot_angle = 70.0
+		lamp.spot_range = Vector2(height, maxf(footprint.x / xs.size(), footprint.y) * 0.5).length() + 1.5
+		lamp.spot_attenuation = 1.0
+		lamp.shadow_enabled = false
+		lamp.light_cull_mask = INTERIOR_LIGHT_CULL_MASK
+		lamp.distance_fade_enabled = true
+		lamp.distance_fade_begin = 32.0
+		lamp.distance_fade_length = 8.0
+		root.add_child(lamp)
+		var bulb := MeshInstance3D.new()
+		bulb.name = "InteriorBulb%d" % i
+		bulb.mesh = bulb_mesh
+		bulb.position = lamp.position + Vector3(0.0, 0.05, 0.0)
+		bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(bulb)
 
 
 func _rounded_wall_outline(footprint: Vector2, radius: float) -> Array[Vector3]:
@@ -4331,6 +4404,8 @@ func _add_parking_garage() -> void:
 	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 5.4, 0.0), PALETTE.coral)
 	_add_detail_box(root, "GarageSignboard", Vector3(5.0, 0.8, 0.18), Vector3(0, 3.65, 6.1), PALETTE.cream)
 	_add_label_to(root, "GarageLabel", "GARAGE", Vector3(0.0, 3.65, 6.21), PALETTE.slate)
+	# Covered lower level: the warm lamp hangs under the deck slab (bottom 2.225 m).
+	_add_interior_lighting(root, Vector2(14.0, 12.0), 2.6)
 
 
 func _add_school_interior() -> void:
@@ -4467,6 +4542,7 @@ func _add_paving(node_name: String, center: Vector3, footprint: Vector2) -> void
 	paving.name = node_name
 	paving.mesh = mesh
 	paving.position = center
+	paving.layers = BROAD_SURFACE_LAYER
 	$Sandbox.add_child(paving)
 
 
