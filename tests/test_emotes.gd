@@ -13,6 +13,8 @@ var checks := 0
 var main: Node
 var player: PartyPlayer
 var victim: PartyPlayer
+var wave_accept_tick := -1
+var server_expiry_ticks := -1
 
 
 func _initialize() -> void:
@@ -58,6 +60,7 @@ func _run() -> void:
 	await _test_death_and_rematch_cancel()
 	await _test_sequence_suppression()
 	if failures.is_empty():
+		print("EMOTE_TICKS server_expiry=%d clock_tick=%d" % [server_expiry_ticks, main.match_clock.tick])
 		print("EMOTES_OK checks=%d" % checks)
 		quit(0)
 	else:
@@ -74,16 +77,15 @@ func _settle(actor: PartyPlayer) -> void:
 			break
 
 
-func _wait_wall(seconds: float) -> void:
-	# Request cooldowns and emote expiry run on wall clock; frame-accumulated
-	# SceneTree timers drift from it under headless frame pacing.
-	var deadline: float = main._emote_now() + seconds
-	while main._emote_now() < deadline:
-		await create_timer(0.05).timeout
+func _wait_physics(seconds: float) -> void:
+	# T9: request cooldowns and emote expiry run on MatchClock sim time, so
+	# wait whole physics ticks (never wall time).
+	for frame in main.match_clock.ticks_for(seconds):
+		await physics_frame
 
 
 func _clear_cooldowns() -> void:
-	# The request cooldown is wall-clock; clearing both gates simulates the
+	# The request cooldown is sim time; clearing both gates simulates the
 	# elapsed 1.5s between independent cases without slowing the suite.
 	main._local_emote_cooldown_until.clear()
 	main._server_emote_cooldown_until.clear()
@@ -103,6 +105,7 @@ func _test_wave_start_and_clip() -> void:
 	var speed := player.velocity
 	_clear_cooldowns()
 	player.request_emote(PartyPlayer.EMOTE_WAVE)
+	wave_accept_tick = main.match_clock.tick
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "Accepted wave request must start the wave emote")
 	_expect(main._server_emote_states.has(1), "Accepted emote must be tracked by server state")
 	player._process(DELTA)
@@ -112,15 +115,19 @@ func _test_wave_start_and_clip() -> void:
 
 func _test_server_expiry() -> void:
 	# Presentation expiry is deterministic (duration ticks in _process); the
-	# server-side watchdog expires on wall clock and cancels authoritatively.
+	# server-side watchdog expires on MatchClock sim time and cancels authoritatively.
 	for _tick in 80:
 		player._process(DELTA)
 	_expect(player.get_emote_id() == 0, "Wave must end on its own one-shot duration")
 	player._process(DELTA)
 	_expect(player.character.current_clip == "idle", "Expired emote must return to idle presentation")
-	await _wait_wall(1.4)
-	main._tick_server_emotes()
+	var limit: int = main.match_clock.ticks_for(1.4)
+	while main._server_emote_states.has(1) and main.match_clock.tick - wave_accept_tick < limit:
+		await physics_frame
+		main._tick_server_emotes()
+	server_expiry_ticks = main.match_clock.tick - wave_accept_tick
 	_expect(not main._server_emote_states.has(1), "Server emote state must expire with the clip duration")
+	_expect(server_expiry_ticks >= main.match_clock.ticks_for(1.2), "Server emote state must not expire before the 1.2s clip (got %d ticks)" % server_expiry_ticks)
 
 
 func _test_cheer_clip_and_rate_limit() -> void:
@@ -134,7 +141,7 @@ func _test_cheer_clip_and_rate_limit() -> void:
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_CHEER, "A rate-limited press must not switch or stop the playing emote")
 	player._process(DELTA)
 	_expect(player.character.current_clip == "cheer", "A rate-limited press must not disturb emote presentation")
-	await _wait_wall(1.6)
+	await _wait_physics(1.6)
 	player.request_emote(PartyPlayer.EMOTE_WAVE)
 	_expect(player.get_emote_id() == PartyPlayer.EMOTE_WAVE, "A request after the cooldown must be accepted again")
 

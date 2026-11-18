@@ -16,6 +16,9 @@ var manager: ManagerScript
 var shove: ShoveScript
 var players: Dictionary = {}
 var cue_count := 0
+var clock: MatchClock
+var recovery_protection_ticks := -1
+var shove_protection_ticks := -1
 
 
 func _initialize() -> void:
@@ -37,6 +40,7 @@ func _run() -> void:
 	await _test_replication_contract()
 	await _test_rematch_reset()
 	if failures.is_empty():
+		print("SHOVE_TICKS recovery_protection=%d shove_protection=%d clock_tick=%d" % [recovery_protection_ticks, shove_protection_ticks, clock.tick])
 		print("SHOVE_OK checks=%d" % checks)
 		quit(0)
 	else:
@@ -64,9 +68,12 @@ func _build_world() -> void:
 	ramp.rotation.x = 0.3
 	manager = ManagerScript.new()
 	world.add_child(manager)
+	# T9: protection/cooldown windows run on the physics-tick sim clock.
+	clock = MatchClock.new()
+	world.add_child(clock)
 	shove = ShoveScript.new()
 	world.add_child(shove)
-	shove.configure(manager)
+	shove.configure(manager, clock)
 	shove.shove_effect_applied.connect(_on_shove_cue)
 	for peer_id in [1, 2, 3]:
 		var player := _add_player(Vector3(0.0, 0.05, peer_id * 3.0))
@@ -110,6 +117,19 @@ func _place(player: PartyPlayer, position: Vector3, face: Vector3) -> void:
 		await physics_frame
 		if tick > 4 and player.is_on_floor():
 			break
+
+
+func _wait_physics(frames: int) -> void:
+	for frame in frames:
+		await physics_frame
+
+
+## Physics ticks from now until `peer_id` is no longer shove-protected.
+func _ticks_until_unprotected(peer_id: int, limit := 600) -> int:
+	var start := clock.tick
+	while shove.is_protected(peer_id) and clock.tick - start < limit:
+		await physics_frame
+	return clock.tick - start
 
 
 func _setup_open_pair() -> void:
@@ -168,13 +188,17 @@ func _test_opposing_and_opportunity() -> void:
 	await _place(players[3], Vector3(0.0, 0.05, -3.0), Vector3(0.0, 0.05, -1.5))
 	shove.reset_state()
 	_expect(shove.request_shove(1), "First attacker's shove is accepted")
+	var granted_tick := clock.tick
 	_expect(not shove.request_shove(3), "A simultaneous second attacker must be rejected by protection")
 	var start: Vector3 = players[2].position
 	for tick in 18:
 		players[2].apply_movement_input(Vector2(1, 0), false, false, DELTA)
 		await physics_frame
 	_expect(players[2].position.distance_to(start) > 0.3, "The victim must retain a real movement window between accepted shoves")
-	await create_timer(2.6).timeout
+	await _ticks_until_unprotected(2)
+	shove_protection_ticks = clock.tick - granted_tick
+	_expect(shove_protection_ticks == clock.ticks_for(2.5), "Shove protection must last exactly %d physics ticks (got %d)" % [clock.ticks_for(2.5), shove_protection_ticks])
+	await _wait_physics(6)
 	_expect(shove.is_protected(2) == false, "Shove protection must expire")
 	# Re-place the victim squarely in both attackers' reach so the chain-lock
 	# rejection can only be the protection window, never range/cone.
@@ -234,13 +258,18 @@ func _test_recovery_protection() -> void:
 	await _setup_open_pair()
 	players[2].apply_knockdown(Vector3.ZERO)
 	_expect(players[2].is_knocked_down(), "Knockdown must be active for the recovery case")
+	var recovered_tick := -1
 	for tick in 100:
 		players[2].apply_movement_input(Vector2.ZERO, false, false, DELTA)
 		await physics_frame
+		if recovered_tick < 0 and shove.is_protected(2):
+			recovered_tick = clock.tick
 	_expect(not players[2].is_knocked_down(), "The victim must recover from knockdown")
 	_expect(shove.is_protected(2), "Knockdown recovery must grant the shove protection window")
 	_expect(not shove.request_shove(1), "A recovering player is protected from immediate re-shove")
-	await create_timer(2.6).timeout
+	await _ticks_until_unprotected(2)
+	recovery_protection_ticks = clock.tick - recovered_tick
+	_expect(recovered_tick >= 0 and recovery_protection_ticks == clock.ticks_for(2.5), "Recovery protection must last exactly %d physics ticks (got %d)" % [clock.ticks_for(2.5), recovery_protection_ticks])
 	_expect(not shove.is_protected(2) and shove.request_shove(1), "After the recovery protection window the victim is shovable again")
 
 
