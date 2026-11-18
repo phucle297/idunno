@@ -54,7 +54,7 @@ Same-PC checks do not prove physical LAN or Internet play.
   shelter. If caught, move sideways; horizontal control remains. Lift is capped
   at2.5m above the chosen support. Release adds no launch impulse. A UFO lift off
   a roof costs about 1/3 HP on landing (see Fall damage below); a lift from the
-  street is under 3 m and safe.
+  street is under 4 m and safe.
 - **Volcano:** a twelve-second warning precedes a ground lava flow across the
   map floor. Get to high ground (a roof, terrace, or dock); roofs and elevated
   pads stay safe. The outlined vent may still raise banks and broad crossing
@@ -327,7 +327,7 @@ Hard recovery and overlap gaps (live baseline; the 10 s opening delay is not sca
 
 Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, Fire, Rain, Snowfall, Rockslide, Bee Swarm, UFO, and Volcano**.
 
-**Fall damage** is authoritative and depends only on the height fallen (peak to landing): falls under 3 m are free (jumps, ramps, stairs); a fall from a walkable roof (step-off, jump-off, or being carried off by the Tornado or UFO, up to about 7.5 m) costs about 1/3 HP (30–36 HP); damage rises with height to lethal at 12 m or more, so no single fall on today's maps kills a full-health player. A fall after a Tornado or UFO carry or throw is credited to that disaster.
+**Fall damage** is authoritative and depends only on the height fallen (peak to landing): falls under 4 m are free (jumps, ramps, stairs, ledges up to ~2.6 m); a fall from a walkable roof (step-off, jump-off, or being carried off by the Tornado or UFO, up to about 7.5 m) costs about 1/3 HP (30–36 HP); damage rises with height to lethal at 12 m or more, so no single fall on today's maps kills a full-health player. A fall after a Tornado or UFO carry or throw is credited to that disaster.
 
 - **Rain:** a five-second warning, then rain wets exposed ground. Intact roofs stay dry. Wet ground can suppress ground fire.
 - **Snowfall:** a five-second warning, then snow builds on exposed ground and slows you; walk to brake. Intact roofs stay clear. Rain and Snowfall do not run at the same time.
