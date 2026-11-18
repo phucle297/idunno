@@ -1,22 +1,34 @@
 class_name MapPreparation
 extends RefCounted
 ## Main-thread construction budget. Yield normal frames, never recursively poll RPCs.
+## T9: the budget is a deterministic work-unit count, not wall time, so how many
+## frames preparation takes (and how body creation is split across physics
+## steps) is identical on every run of the same map, idle or under load.
 
 signal finished
 
-const BUDGET_USEC := 4000
+## Checkpoint calls per frame slice. Measured once on the dev box
+## (2026-11-18, T9): toy_town ~23 us per checkpoint -> ~3.7 ms per slice.
+## Heavier per-checkpoint maps (toy_harbor ~150 us) get longer slices.
+const CHECKPOINTS_PER_SLICE := 160
+
+## Process-wide diagnostics (monotonic, never reset): Main prints the deltas
+## per preparation so QA can compare yield counts across runs.
+static var total_checkpoints := 0
+static var total_yields := 0
 
 var cancelled := false
 var completed := false
+var checkpoint_count := 0
+var yield_count := 0
 var _tree: SceneTree
 var _is_current: Callable
-var _slice_started := 0
+var _slice_calls := 0
 
 
 func _init(tree: SceneTree, is_current := Callable()) -> void:
 	_tree = tree
 	_is_current = is_current
-	_slice_started = Time.get_ticks_usec()
 
 
 func is_current() -> bool:
@@ -26,9 +38,14 @@ func is_current() -> bool:
 func checkpoint() -> bool:
 	if not is_current():
 		return false
-	if Time.get_ticks_usec() - _slice_started >= BUDGET_USEC:
+	checkpoint_count += 1
+	total_checkpoints += 1
+	_slice_calls += 1
+	if _slice_calls >= CHECKPOINTS_PER_SLICE:
+		_slice_calls = 0
+		yield_count += 1
+		total_yields += 1
 		await _tree.process_frame
-		_slice_started = Time.get_ticks_usec()
 	return is_current()
 
 
