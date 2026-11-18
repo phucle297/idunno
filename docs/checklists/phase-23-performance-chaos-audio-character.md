@@ -171,7 +171,8 @@ for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
 
 ## Execution and delivery
 
-Order: M23.1 → M23.2 → M23.3 → M23.4. Finish and validate each coherent unit,
+Historical plan order was M23.1 → M23.2 → M23.3 → M23.4 (M23.2 difficulty shipped with T3).
+Remaining Owner-approved sequence is in root `progress.json` `next_action`: T9, T5, T6, T8, M23.3, M23.1, M23.4, then T10/T11. Finish and validate each coherent unit,
 commit/push with Conventional Commits; no speculative all-app refactor.
 Keep failed runs and before/after evidence. Full affected regression and matching
 package checks follow implementation. This plan does not deploy/release a build;

@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-24",
+  "updated_at": "2026-11-18",
   "project": "Disaster Party",
   "source_of_truth": true,
   "workflow_state": "in_progress",
@@ -112,5 +112,5 @@
     "verification": "Primary full65Godot/10network/managed20/47Python gate and follow-up74-root normal hook pass; source pushed. Subsequent authorized Phase22 delivery is recorded separately in public_delivery.evidence."
   },
   "planned_phases": [],
-  "next_action": "Run the unchanged normal full staged gate with the loading-fixture correction, then complete serialized monotonic idle/orbit controls before difficulty."
+  "next_action": "T9 determinism, then T5 docs, T6 fall damage, T8 Owner playtest, M23.3 Audio, M23.1 Perf, M23.4 Character, then T10/T11."
 }

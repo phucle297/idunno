@@ -311,13 +311,22 @@ Warnings, impacts, jumping, death, and victory have synthesized placeholder audi
 
 ## Disaster timing
 
-- About **0:10**: the first Meteor or Flood warning can begin.
-- Before **2:00**: one Meteor or Flood runs at a time.
-- At **2:00**: Tornado, Earthquake, and Lightning become eligible.
-- At **5:00**: two compatible disasters can overlap, but only after both have completed alone at least once.
-- At most two disasters overlap in the current prototype.
+Survival matches use Hard pacing only (Normal is not a selectable preset).
+
+- About **0:10**: the first disaster can begin — Meteor Shower, Flood, Rain, or Snowfall.
+- From **0:30**: Bee Swarm also becomes eligible. Until **5:00**, only one disaster runs at a time.
+- At **2:00**: Tornado, Earthquake, Lightning, Rockslide, UFO, and Volcano become eligible.
+- At **5:00**: Fire becomes eligible, and two compatible disasters can overlap, but only after both have completed alone at least once.
+- At most two disasters overlap.
+
+Hard recovery and overlap gaps (live baseline; the 10 s opening delay is not scaled):
+- Until **5:00**: 2.4 s after a disaster ends before the next can start; 4.8 s overlap gap.
+- From **5:00** to **8:00**: 1.8 s recovery / 3.6 s overlap.
+- From **8:00**: 1.2 s recovery / 2.4 s overlap.
 
 Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning, Fire, Rain, Snowfall, Rockslide, Bee Swarm, UFO, and Volcano**.
+
+Fall damage is authoritative. The impact-speed rule in DESIGN.md (about 9–18 m/s) is superseded; fall-damage tuning is pending T6.
 
 - **Rain:** a five-second warning, then rain wets exposed ground. Intact roofs stay dry. Wet ground can suppress ground fire.
 - **Snowfall:** a five-second warning, then snow builds on exposed ground and slows you; walk to brake. Intact roofs stay clear. Rain and Snowfall do not run at the same time.
@@ -326,7 +335,7 @@ Implemented disasters are **Meteor Shower, Flood, Tornado, Earthquake, Lightning
 - **Flood + Lightning:** a strike in active floodwater electrifies the connected water for three seconds. Violet ripples and the `ELECTRIFIED WATER` warning identify it. Get onto raised ground immediately.
 - **Tornado + Fire:** Tornado wind doubles Fire's spread frequency and carries one visibly flaming debris body. Keep away from both the funnel and orange Fire-zone rings.
 
-Earthquake, Lightning, and Tornado become eligible as intensity rises after 2:00. Fire and two-disaster overlaps unlock at 5:00. A disaster must complete alone before the director can use it in an overlap.
+A disaster must complete alone before the director can use it in an overlap.
 
 To inspect the implemented visuals immediately without waiting for normal match timing, launch one of these local demo states:
 
