@@ -230,6 +230,12 @@ localhost transport only, even when using Windows executables.
 
 The HUD shows health at bottom-left, match time at top-center, and alive players at top-right. Large centered text names active disaster warnings.
 
+All ground pickups (Speed/Jump drops, toys and the Hot Potato parcel) spawn at
+random reachable spots, never within 3 m of each other. Spots are seeded per
+match: the same seed replays the same spots, a new seed gives new ones. Streets,
+plaza, harbor ground and the ramp-reached roofs/decks are all in play; a spot
+that is already hazardous at spawn time is skipped.
+
 Toy pickups appear after the opening protection window. Foam Blaster has3 slow
 pellets; Plunger Rocket has1 slow shot followed by a0.8s blast warning; Squeaky
 Hammer has2 swings with a0.35s windup. Spring Glove has2 narrow,3m punches after

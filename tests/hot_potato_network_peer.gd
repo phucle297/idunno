@@ -161,6 +161,9 @@ func _server(main: FixtureMain) -> void:
 	var pad: Vector3 = main.toy_sabotage.anchors[0]
 	# Retain the production anchor contract while suppressing unrelated pickups.
 	main.hot_potato.anchors.assign([pad])
+	# T17: pin the parcel to the authored pad (legacy path); shared placement
+	# is covered by test_hot_potato/test_pickup_placement, replication here.
+	main.hot_potato.placer = Callable()
 	passed = passed and await _spawn_and_pickup(main, remote_id, pad, deadline, "remote_pickup")
 	await _place(main, host_id, pad + Vector3(1.2, 0, 0))
 	main.fixture_action.rpc_id(remote_id, "throw", Vector3.RIGHT)

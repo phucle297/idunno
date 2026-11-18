@@ -13,6 +13,8 @@ const WIRE_SIZE := 29
 
 var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
+## T17: Main's shared PickupPlacement (family, sequence) -> point or INF.
+var placer: Callable
 var collection_is_clear: Callable
 var usable_area_fraction: Callable
 var sweep: Callable
@@ -154,6 +156,16 @@ func tick(delta: float) -> void:
 		_next_spawn = _now() + 3.0
 		var fraction := float(usable_area_fraction.call()) if usable_area_fraction.is_valid() else 1.0
 		if not is_finite(fraction) or fraction < 0.25 or _manager.get_alive_count() < 2:
+			return
+		if placer.is_valid() and not anchors.is_empty():
+			var placed: Vector3 = placer.call(&"potato", parcel_id + 1)
+			if placed.is_finite():
+				parcel_id += 1
+				position_world = placed
+				phase = Phase.GROUND
+				holder_id = 0
+				_deadline = INF
+				_revision += 1
 			return
 		for point in anchors:
 			if _valid_anchor(point, true):

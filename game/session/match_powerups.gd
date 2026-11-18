@@ -15,6 +15,8 @@ var pickups: Array[Dictionary] = []
 var buffs: Dictionary = {}
 var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
+## T17: Main's shared PickupPlacement (family, sequence, seed) -> point or INF.
+var placer: Callable
 var collection_is_clear: Callable
 var _slot := 0
 var _next_id := 0
@@ -97,6 +99,19 @@ func _valid_anchor(point: Vector3, spawning: bool) -> bool:
 
 func _spawn(now: float, seed_value: int, slot: int) -> void:
 	if pickups.size() >= MAX_PICKUPS:
+		return
+	if placer.is_valid():
+		# Empty anchors still mean "no scheduled drops" (fixtures rely on it).
+		if anchors.is_empty():
+			return
+		var placed: Vector3 = placer.call(&"powerup", slot, seed_value)
+		if not placed.is_finite():
+			return
+		var kind_rng := RandomNumberGenerator.new()
+		kind_rng.seed = seed_value + slot * 104729
+		_next_id += 1
+		pickups.append({"id": _next_id, "kind": kind_rng.randi_range(Kind.SPEED, Kind.JUMP), "position": placed, "expires": now + PICKUP_LIFETIME})
+		_revision += 1
 		return
 	var eligible: Array[Vector3] = []
 	for point: Vector3 in anchors:
