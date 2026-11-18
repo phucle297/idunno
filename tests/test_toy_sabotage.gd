@@ -50,10 +50,10 @@ func _test_pickups_and_intents() -> void:
 	_expect(toys.pickups.is_empty(), "first pickup waits five seconds")
 	manager.elapsed_time = 5.0
 	toys.tick(0.0, 77)
-	_expect(toys.pickups.size() == 1 and toys.pickups[0].kind == "foam_blaster", "first spawn covers foam blaster")
+	_expect(toys.pickups.size() == 1 and toys.pickups[0].kind == ToySabotage.kind_order(77, 0)[0], "first spawn takes the seeded bag's first kind (T19)")
 	manager.elapsed_time = 20.0
 	toys.tick(0.0, 77)
-	_expect(toys.pickups.size() == 2 and toys.pickups[1].kind == "plunger_rocket", "second spawn rotates rocket and avoids occupied anchor")
+	_expect(toys.pickups.size() == 2 and toys.pickups[1].kind == ToySabotage.kind_order(77, 0)[1], "second spawn takes the bag's next kind and avoids occupied anchor")
 	manager.elapsed_time = 35.0
 	toys.tick(0.0, 77)
 	_expect(toys.pickups.size() == 2, "occupied anchors do not stack pickups")

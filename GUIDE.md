@@ -234,7 +234,8 @@ All ground pickups (Speed/Jump drops, toys and the Hot Potato parcel) spawn at
 random reachable spots, never within 3 m of each other. Spots are seeded per
 match: the same seed replays the same spots, a new seed gives new ones. Streets,
 plaza, harbor ground and the ramp-reached roofs/decks are all in play; a spot
-that is already hazardous at spawn time is skipped.
+that is already hazardous at spawn time is skipped. Toy types appear in a shuffled order each
+match (same seed, same order); every type appears once per 16 drops.
 
 Toy pickups appear after the opening protection window. Foam Blaster has3 slow
 pellets; Plunger Rocket has1 slow shot followed by a0.8s blast warning; Squeaky
