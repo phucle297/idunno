@@ -42,6 +42,7 @@ func _run() -> void:
 		await _contract()
 		await _cover_and_departure()
 		await _reset_and_modes()
+		await _shared_placement()
 	main.gameplay_audio.reset_for_match()
 	if is_instance_valid(main.bomb_visuals):
 		main.bomb_visuals.reset_for_match()
@@ -63,6 +64,9 @@ func _fresh() -> void:
 	main.toy_sabotage.reset()
 	main.get_node("ShoveManager").reset_state()
 	bomb.anchors.assign([pad])
+	# Contract fixtures pin the parcel to one authored pad (legacy path);
+	# T17 shared placement is covered by _shared_placement().
+	bomb.placer = Callable()
 	for peer_id: int in players:
 		players[peer_id].reset_for_match(pad + Vector3(8 + peer_id * 2, 0.05, 0))
 		players[peer_id].set_physics_process(false)
@@ -70,6 +74,24 @@ func _fresh() -> void:
 	bomb.tick(0.0)
 	_expect(bomb.phase == HotPotato.Phase.GROUND, "Supported authored pad spawns one global parcel")
 	await _place(1, pad)
+
+
+func _shared_placement() -> void:
+	bomb.begin_round(true)
+	manager.elapsed_time = 5.0
+	main.toy_sabotage.reset()
+	bomb.anchors.assign(main.powerups.anchors)
+	bomb.placer = main._place_pickup
+	main.toy_sabotage.pickups.append({"id": 9100, "kind": "foam_blaster", "position": pad, "expires": 999.0})
+	for peer_id: int in players:
+		players[peer_id].reset_for_match(pad + Vector3(8 + peer_id * 2, 0.05, 0))
+	await physics_frame
+	bomb.tick(0.0)
+	_expect(bomb.phase == HotPotato.Phase.GROUND and bomb.position_world.is_finite(), "T17: Main placer spawns the ground parcel")
+	_expect(PickupPlacement.gap_ok(bomb.position_world, PackedVector3Array([pad])), "T17: parcel keeps 3 m from a live toy pickup")
+	_expect(main._powerup_anchor_is_valid(bomb.position_world, false), "T17: placed parcel stands on valid ground")
+	main.toy_sabotage.reset()
+	bomb.reset()
 
 
 func _place(peer_id: int, point: Vector3) -> void:
