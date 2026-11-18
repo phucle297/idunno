@@ -133,7 +133,7 @@ func _run() -> void:
 		await physics_frame
 	_expect(main.match_manager.get_health(1) == 100, "Normal jump never causes fall damage")
 	var previous_damage := 0.0
-	for height in [2.5, 6.0, 10.0, 16.0]:
+	for height in [2.5, 3.5, 6.0, 10.0, 16.0]:
 		main.match_manager.prepare_lobby()
 		main.match_manager.set_player_ready(1, true)
 		main.match_manager.start_match()
@@ -143,8 +143,8 @@ func _run() -> void:
 			await physics_frame
 		var damage: float = 100.0 - main.match_manager.get_health(1)
 		print("FALL_HEIGHT height=%.1f damage=%.2f" % [height, damage])
-		if height == 2.5:
-			_expect(damage == 0.0, "Low ledge drops are safe")
+		if height == 2.5 or height == 3.5:
+			_expect(damage == 0.0, "Low ledge drops (under 4 m, T15) are safe")
 		else:
 			_expect(damage > previous_damage, "Higher real drops cause progressively more damage")
 		# T6 curve (player_tuning.gd FALL_DAMAGE_CURVE): roof band ~1/3 HP, lethal at 12 m.

@@ -13,12 +13,13 @@ const ICE_BRAKING := 0.3
 const PUDDLE_SPEED := 0.82
 const AIR_ACCELERATION := 8.0
 const GRAVITY := 20.0
-const FALL_DAMAGE_SAFE_HEIGHT := 3.0
+const FALL_DAMAGE_SAFE_HEIGHT := 4.0
 const FALL_DAMAGE_LETHAL_HEIGHT := 12.0
-# T6: piecewise-linear fall damage (x = fall height in metres, y = HP of 100).
-# Roof falls (step-off, jump-off, tornado/UFO carry-off, ~4.7-7.5 m) cost about
-# 1/3 HP; 12 m or more is lethal from full health.
-const FALL_DAMAGE_CURVE := [Vector2(3, 0), Vector2(4, 6), Vector2(4.7, 32), Vector2(7.5, 36), Vector2(12, 100)]
+# T6/T15: piecewise-linear fall damage (x = fall height in metres, y = HP of 100).
+# Drops up to 4 m are free (T15: jumps, stairs, ledges, deck jump-offs); the
+# ramp 4.0-4.7 m reaches the roof band. Roof falls (step-off, jump-off,
+# tornado/UFO carry-off, ~4.7-7.5 m) cost about 1/3 HP; 12 m or more is lethal.
+const FALL_DAMAGE_CURVE := [Vector2(4, 0), Vector2(4.7, 32), Vector2(7.5, 36), Vector2(12, 100)]
 const JUMP_HEIGHT := 1.35
 const JUMP_VELOCITY := sqrt(2.0 * GRAVITY * JUMP_HEIGHT)
 

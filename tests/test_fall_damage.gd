@@ -4,12 +4,12 @@ extends SceneTree
 # through Main._on_player_landed. Contract: game-factory tasks/T6.md §1b / §3.
 
 const Tuning := preload("res://game/player/player_tuning.gd")
-# Architect table 1b (HP of 100), checked within +-0.5 HP.
-const TABLE := [[2.9, 0.0], [3.0, 0.0], [3.93, 5.5], [4.86, 32.2], [5.0, 32.4], [5.66, 33.4],
+# Architect table T6 1b / T15 §1 (HP of 100), checked within +-0.5 HP.
+const TABLE := [[2.9, 0.0], [3.0, 0.0], [3.4, 0.0], [3.93, 0.0], [3.99, 0.0], [4.0, 0.0], [4.4, 18.3], [4.7, 32.0], [4.86, 32.2], [5.0, 32.4], [5.66, 33.4],
 	[6.29, 34.3], [7.36, 35.8], [7.86, 41.0], [9.21, 60.2], [10.0, 71.6], [11.9, 98.6], [12.0, 100.0], [15.0, 100.0]]
 # 12.05, not 12.0: a nominal 12.000 m spawn measures ~11.9997 m peak-minus-landing
 # (float settle), which leaves ~0.01 HP; the curve itself is checked at exactly 12.0.
-const DROP_HEIGHTS := [2.9, 3.0, 4.86, 5.0, 5.66, 6.29, 7.36, 9.21, 11.9, 12.05, 15.0]
+const DROP_HEIGHTS := [2.9, 3.0, 3.4, 3.9, 4.86, 5.0, 5.66, 6.29, 7.36, 9.21, 11.9, 12.05, 15.0]
 
 var checks := 0
 var failures: Array[String] = []
@@ -37,7 +37,7 @@ func _check_curve() -> void:
 		var damage := Tuning.fall_damage(float(row[0]))
 		print("FALL_CURVE h=%.2f damage=%.2f expected=%.1f" % [row[0], damage, row[1]])
 		_expect(absf(damage - float(row[1])) <= 0.5, "Curve h=%.2f gives %.2f, expected %.1f +-0.5" % [row[0], damage, row[1]])
-	_expect(Tuning.fall_damage(0.0) == 0.0 and Tuning.fall_damage(2.99) == 0.0, "Below 3 m is free")
+	_expect(Tuning.fall_damage(0.0) == 0.0 and Tuning.fall_damage(3.99) == 0.0 and Tuning.fall_damage(4.0) == 0.0, "T15: up to 4 m is free")
 	_expect(Tuning.fall_damage(11.99) < 100.0, "Just under 12 m survives from full HP")
 	_expect(Tuning.fall_damage(12.0) >= 100.0 and Tuning.fall_damage(40.0) >= 100.0, "12 m or more is lethal")
 	# AC2/AC3/AC4 band: every roof-origin fall (4.7-7.5 m) costs 30-36 HP.
@@ -80,8 +80,8 @@ func _check_drops() -> void:
 		_expect(absf(_last_fall - height) <= 0.1, "Drop %.2f measured fall %.3f" % [height, _last_fall])
 		_expect(absf(damage - expected) <= 0.01, "Drop %.2f damage %.2f matches curve %.2f" % [height, damage, expected])
 		_expect(damage >= previous - 0.01, "Drop damage never decreases with height (%.2f)" % height)
-		if height < 3.0:
-			_expect(damage == 0.0, "Below 3 m drop is free")
+		if height < 4.0:
+			_expect(damage == 0.0, "T15: below 4 m drop is free")
 		if height >= 4.86 and height <= 7.36:
 			_expect(damage >= 30.0 and damage <= 36.0, "Roof-height drop %.2f costs 30-36 HP (got %.2f)" % [height, damage])
 		if height < 12.0:
