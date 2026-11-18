@@ -125,6 +125,7 @@ var _map_load_target := ""
 var _map_load_local_ready := false
 var _map_preparation: MapPreparation
 var _pending_fall_damage: Array[Dictionary] = []
+var match_clock: MatchClock
 
 
 func _ready() -> void:
@@ -134,6 +135,10 @@ func _ready() -> void:
 		ProjectSettings.get_setting("rendering/renderer/rendering_method"),
 	])
 	_configure_ui_theme()
+	# T9: shared physics-tick sim clock; must exist before ShoveManager is configured.
+	match_clock = MatchClock.new()
+	match_clock.name = "MatchClock"
+	add_child(match_clock)
 	music = preload("res://game/music_controller.gd").new()
 	music.name = "Music"
 	add_child(music)
@@ -209,7 +214,7 @@ func _ready() -> void:
 	fire.surface_wetness = weather_surfaces.sample_surface
 	weather_surfaces.support_height = get_map_support_height
 	meteor_shower.impacted.connect(_on_meteor_weather_impact)
-	$ShoveManager.configure(match_manager)
+	$ShoveManager.configure(match_manager, match_clock)
 	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
 	lightning.struck.connect(_on_lightning_struck)
 	tornado.activated.connect(_on_tornado_activated)

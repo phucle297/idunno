@@ -26,10 +26,16 @@ var _item_round_sequence := 0
 var _shove_origin_position: Dictionary = {}
 var _shove_impulse_speed: Dictionary = {}
 var _match_manager: MatchManager = null
+## T9: shared sim clock. Without one (standalone tests) a local physics-tick
+## counter is used instead; never wall time.
+var _clock: MatchClock = null
+var _local_ticks := 0
 
 
-func configure(match_manager: MatchManager) -> void:
+func configure(match_manager: MatchManager, clock: MatchClock = null) -> void:
 	_match_manager = match_manager
+	if clock != null:
+		_clock = clock
 
 
 func register_player(peer_id: int, player: PartyPlayer) -> bool:
@@ -82,6 +88,7 @@ func _replicate_reset() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	_local_ticks += 1
 	# Knockdown recovery starts the same protection window an accepted shove
 	# grants, so a recovering player cannot be immediately re-shoved. This
 	# covers only shove acceptance: disasters still damage and knock down.
@@ -91,7 +98,7 @@ func _physics_process(_delta: float) -> void:
 			continue
 		var knocked := player.is_knocked_down()
 		if bool(_was_knocked_down.get(peer_id, false)) and not knocked:
-			_protection_until[peer_id] = _now() + Tuning.SHOVE_PROTECTION
+			_protection_until[peer_id] = _until(Tuning.SHOVE_PROTECTION)
 		_was_knocked_down[peer_id] = knocked
 
 
@@ -171,8 +178,8 @@ func apply_replicated_shove(shover_id: int, victim_id: int, sequence: int, direc
 	victim.velocity.x = horizontal.x
 	victim.velocity.z = horizontal.z
 	_last_shove_sequence[victim_id] = sequence
-	_cooldown_until[shover_id] = _now() + Tuning.SHOVE_COOLDOWN
-	_protection_until[victim_id] = _now() + Tuning.SHOVE_PROTECTION
+	_cooldown_until[shover_id] = _until(Tuning.SHOVE_COOLDOWN)
+	_protection_until[victim_id] = _until(Tuning.SHOVE_PROTECTION)
 	shove_effect_applied.emit(shover_id, victim_id)
 	return true
 
@@ -215,7 +222,7 @@ func apply_replicated_item_impulse(owner_id: int, victim_id: int, sequence: int,
 	if lift > 0.0:
 		victim.velocity.y = clampf(lift, 0.0, 5.4)
 	_last_item_sequence[victim_id] = sequence
-	_protection_until[victim_id] = maxf(float(_protection_until.get(victim_id, 0.0)), _now() + 1.5)
+	_protection_until[victim_id] = maxf(float(_protection_until.get(victim_id, 0.0)), _until(1.5))
 	return true
 
 
@@ -320,7 +327,17 @@ func _has_line_of_sight(shover: PartyPlayer, candidate: PartyPlayer) -> bool:
 
 
 func _now() -> float:
-	return Time.get_ticks_msec() / 1000.0
+	if is_instance_valid(_clock):
+		return _clock.now()
+	return _local_ticks / float(Engine.physics_ticks_per_second)
+
+
+## Deadline `seconds` of sim time from now, quantized to whole physics ticks so
+## a window lasts exactly ceili(seconds * hz) ticks (no float-compare jitter).
+func _until(seconds: float) -> float:
+	var hz := Engine.physics_ticks_per_second
+	var tick_now := roundi(_now() * hz)
+	return (tick_now + ceili(seconds * hz)) / float(hz)
 
 
 func _can_mutate() -> bool:
