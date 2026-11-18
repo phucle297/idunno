@@ -1,0 +1,11 @@
+# Godot suites excluded from the PR gate because they take minutes each
+# (box + CI timings). They still run in the
+# manual "PR checks" workflow_dispatch with full=true (tests/run_ui_regression.sh).
+test_rockslide_rooftop
+test_tornado_rooftop
+test_ufo
+test_run_jump_physics
+test_volcano_rooftop
+test_run_jump_network_step
+# CI run 44262493662 (4 vCPU): 596 s, close to the 600 s per-suite timeout.
+test_map_variety

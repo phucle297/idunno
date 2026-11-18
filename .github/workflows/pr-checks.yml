@@ -1,0 +1,132 @@
+name: PR checks
+
+on:
+  pull_request:
+  push:
+    branches: [main] # seeds caches that PR branches can restore
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Also run the heavy full regression (all suites + network matrices, ~1 h+)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  actionlint:
+    name: Lint workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.8/scripts/download-actionlint.bash) 1.7.8
+          ./actionlint -color
+
+  python-tests:
+    name: Python unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+      - name: unittest discover
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PLAYER_COUNTS: "4 8 20"
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+  godot-tests:
+    name: Godot import + fast suites
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+      - name: Restore import cache
+        uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-${{ env.GODOT_VERSION }}-${{ hashFiles('project.godot', 'assets/**', 'game/**', 'scenes/**', 'tests/**') }}
+          restore-keys: godot-import-${{ env.GODOT_VERSION }}-
+      - name: Import and run suites
+        shell: bash
+        run: .github/scripts/run_godot_suites.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: godot-suite-logs
+          path: .scratch/ci-suites/
+          retention-days: 7
+
+  export-smoke:
+    name: Export smoke (Linux server + Windows)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ripgrep
+        shell: bash
+        run: command -v rg || { sudo apt-get update -q && sudo apt-get install -y -q ripgrep; }
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          templates: linux_release.x86_64 linux_debug.x86_64 windows_release_x86_64.exe windows_debug_x86_64.exe
+      - name: Export committed HEAD (same commands as Deploy + Release)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools/export_playtest.sh linux-server .scratch/ci-export
+          tools/export_playtest.sh windows .scratch/ci-windows
+      - name: Standalone release smoke (tests/run_release_linux_test.py)
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: timeout 600 python3 tests/run_release_linux_test.py .scratch/ci-export --log .scratch/release-smoke.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: export-smoke-logs
+          path: |
+            .scratch/ci-export/*.log
+            .scratch/ci-export/BUILD.txt
+            .scratch/ci-windows/*.log
+            .scratch/release-smoke.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  full-regression:
+    name: Full regression (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.full
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ripgrep
+        shell: bash
+        run: command -v rg || { sudo apt-get update -q && sudo apt-get install -y -q ripgrep; }
+      - uses: ./.github/actions/setup-godot
+        with:
+          version: ${{ env.GODOT_VERSION }}
+      - name: tests/run_ui_regression.sh
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: bash tests/run_ui_regression.sh
