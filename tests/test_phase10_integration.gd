@@ -147,10 +147,11 @@ func _run() -> void:
 			_expect(damage == 0.0, "Low ledge drops are safe")
 		else:
 			_expect(damage > previous_damage, "Higher real drops cause progressively more damage")
+		# T6 curve (player_tuning.gd FALL_DAMAGE_CURVE): roof band ~1/3 HP, lethal at 12 m.
 		if height == 6.0:
-			_expect(damage < 12.0, "Typical rooftop descent deals modest damage")
+			_expect(damage >= 30.0 and damage <= 36.0, "Typical rooftop descent costs about 1/3 HP")
 		if height == 10.0:
-			_expect(damage > 0.0 and damage < 45.0, "Ten-metre drop is survivable from full health")
+			_expect(damage > 36.0 and damage < 100.0, "Ten-metre drop is survivable from full health")
 		previous_damage = damage
 	_expect(main.match_manager.get_cause_of_death(1) == "Fall", "Real lethal landing reports Fall, not cosmetic or UFO damage")
 	peer.close()

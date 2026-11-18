@@ -1242,8 +1242,7 @@ func _on_player_landed(fall_height: float, peer_id: int) -> void:
 		return
 	if match_manager.state != MatchManager.MatchState.ACTIVE or fall_height <= Tuning.FALL_DAMAGE_SAFE_HEIGHT:
 		return
-	var severity := clampf((fall_height - Tuning.FALL_DAMAGE_SAFE_HEIGHT) / (Tuning.FALL_DAMAGE_LETHAL_HEIGHT - Tuning.FALL_DAMAGE_SAFE_HEIGHT), 0, 1)
-	_pending_fall_damage.append({"peer_id": peer_id, "amount": 100.0 * severity * severity, "cause": "Fall"})
+	_pending_fall_damage.append({"peer_id": peer_id, "amount": Tuning.fall_damage(fall_height), "cause": "Fall"})
 	if _pending_fall_damage.size() == 1:
 		_flush_fall_damage.call_deferred()
 
