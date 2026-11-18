@@ -161,7 +161,7 @@ func _stats(times: Array) -> Dictionary:
 	var total := 0.0
 	for t: float in sorted:
 		total += t
-	return {"frames": sorted.size(), "avg": snappedf(total / sorted.size(), 0.01), "p95": snappedf(sorted[mini(sorted.size() - 1, int(sorted.size() * 0.95))], 0.01), "max": snappedf(sorted[-1], 0.01)}
+	return {"frames": sorted.size(), "max_frame": times.find(sorted[-1]), "avg": snappedf(total / sorted.size(), 0.01), "p95": snappedf(sorted[mini(sorted.size() - 1, int(sorted.size() * 0.95))], 0.01), "max": snappedf(sorted[-1], 0.01)}
 
 
 func _write_trace() -> void:
