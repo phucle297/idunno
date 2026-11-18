@@ -14,9 +14,14 @@ const PUDDLE_SPEED := 0.82
 const AIR_ACCELERATION := 8.0
 const GRAVITY := 20.0
 const FALL_DAMAGE_SAFE_HEIGHT := 3.0
-const FALL_DAMAGE_LETHAL_HEIGHT := 15.0
+const FALL_DAMAGE_LETHAL_HEIGHT := 12.0
+# T6: piecewise-linear fall damage (x = fall height in metres, y = HP of 100).
+# Roof falls (step-off, jump-off, tornado/UFO carry-off, ~4.7-7.5 m) cost about
+# 1/3 HP; 12 m or more is lethal from full health.
+const FALL_DAMAGE_CURVE := [Vector2(3, 0), Vector2(4, 6), Vector2(4.7, 32), Vector2(7.5, 36), Vector2(12, 100)]
 const JUMP_HEIGHT := 1.35
 const JUMP_VELOCITY := sqrt(2.0 * GRAVITY * JUMP_HEIGHT)
+
 const POWERUP_SPEED_MULTIPLIER := 1.2
 const POWERUP_JUMP_HEIGHT_MULTIPLIER := 1.2
 const COYOTE_TIME := 0.12
@@ -41,3 +46,18 @@ const SHOVE_PROTECTION := 2.5
 const EMOTE_REQUEST_COOLDOWN := 1.5
 const SHOVE_IMPULSE := 6.0
 const SHOVE_MAX_HORIZONTAL_SPEED := 8.0
+
+
+# T6: damage in HP (of 100) for a landing after falling fall_height metres.
+# Monotone non-decreasing; pure function of the height (no clock reads).
+static func fall_damage(fall_height: float) -> float:
+	if fall_height <= FALL_DAMAGE_SAFE_HEIGHT:
+		return 0.0
+	if fall_height >= FALL_DAMAGE_LETHAL_HEIGHT:
+		return 100.0
+	for index in range(1, FALL_DAMAGE_CURVE.size()):
+		var upper: Vector2 = FALL_DAMAGE_CURVE[index]
+		if fall_height <= upper.x:
+			var lower: Vector2 = FALL_DAMAGE_CURVE[index - 1]
+			return lerpf(lower.y, upper.y, (fall_height - lower.x) / (upper.x - lower.x))
+	return 100.0

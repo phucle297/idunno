@@ -26,6 +26,12 @@ const STEP_DEPENETRATE := 0.06 # max upward recovery of a 2-5 cm step-top sink t
 @onready var character: ToyCharacterVisual = $Visual/Character
 
 var _coyote_remaining := 0.0
+# T6 fall credit: a disaster that carries/throws this player names the next
+# landing's fall damage. Kept until that landing; if the player stays grounded
+# it expires after FALL_CREDIT_GROUNDED_TICKS physics ticks (tick count, no clock).
+const FALL_CREDIT_GROUNDED_TICKS := 30
+var _fall_credit := ""
+var _fall_credit_grounded_ticks := 0
 var _jump_buffer_remaining := 0.0
 var _knockdown_remaining := 0.0
 var _camera_yaw := 0.0
@@ -357,6 +363,8 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	_presentation_airborne = false
 	_network_grounded = -1
 	_fall_peak = NAN
+	_fall_credit = ""
+	_fall_credit_grounded_ticks = 0
 	_shove_cue_remaining = 0.0
 	_is_eliminated = false
 	_coyote_remaining = 0.0
@@ -504,6 +512,25 @@ func _move_and_report_landing(allow_step := false, delta := 0.0) -> void:
 		_fall_peak = global_position.y
 		if airborne and fall_height > 0.0:
 			landed.emit(fall_height)
+		elif not airborne and _fall_credit != "":
+			_fall_credit_grounded_ticks += 1
+			if _fall_credit_grounded_ticks >= FALL_CREDIT_GROUNDED_TICKS:
+				_fall_credit = ""
+				_fall_credit_grounded_ticks = 0
+
+
+# T6: called on authority by a disaster that carries or throws this player.
+func credit_fall_to(disaster: String) -> void:
+	_fall_credit = disaster
+	_fall_credit_grounded_ticks = 0
+
+
+# T6: returns and clears the current fall credit ("" when none).
+func take_fall_credit() -> String:
+	var credit := _fall_credit
+	_fall_credit = ""
+	_fall_credit_grounded_ticks = 0
+	return credit
 
 
 # Classic step-up (up / forward / down sweep), DESIGN §8. Runs before
