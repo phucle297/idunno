@@ -191,6 +191,7 @@ func _ready() -> void:
 	hot_potato.configure(match_manager, _player_nodes)
 	hot_potato.anchor_is_valid = _powerup_anchor_is_valid
 	hot_potato.placer = _place_pickup
+	hot_potato.seed_source = func() -> int: return disaster_director.last_seed
 	hot_potato.collection_is_clear = _powerup_collection_is_clear
 	hot_potato.sweep = toy_sabotage.sweep_parcel
 	hot_potato.apply_impulse = toy_sabotage.apply_parcel_impulse

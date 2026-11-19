@@ -15,6 +15,10 @@ var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
 ## T17: Main's shared PickupPlacement (family, sequence) -> point or INF.
 var placer: Callable
+## T10: Main's published match seed (DisasterDirector.last_seed) -> int. When
+## valid, each round's fuse stream is derived from it so a seeded multiplayer
+## round replays the same fuse lengths. Unset keeps the randomized fallback.
+var seed_source: Callable
 var collection_is_clear: Callable
 var usable_area_fraction: Callable
 var sweep: Callable
@@ -38,17 +42,19 @@ var _last_intent := {}
 var _last_action := -INF
 var _local_sequence := 0
 var _rng := RandomNumberGenerator.new()
+var _seed_pending := false
 
 
 func configure(manager: MatchManager, players: Dictionary) -> void:
 	_manager = manager
 	_players = players
-	_rng.randomize() # Independent of the publicly replicated director/map seed.
+	_rng.randomize() # Fallback only; seeded rounds reseed in _fuse_length().
 
 
 func begin_round(enabled: bool) -> void:
 	reset()
 	round_sequence += 1
+	_seed_pending = true
 	_enabled = enabled and _manager.get_alive_count() >= 2
 	_last_intent.clear()
 	_local_sequence = 0
@@ -109,7 +115,7 @@ func request(peer_id: int, round_id: int, sequence: int, pickup: bool, direction
 		if not can_collect(peer_id) or not actor.is_on_floor() or not _valid_anchor(position_world, false):
 			return false
 		if is_inf(_deadline):
-			_deadline = _now() + _rng.randf_range(FUSE_MIN, FUSE_MAX)
+			_deadline = _now() + _fuse_length()
 		_source_id = peer_id
 		_carry(peer_id)
 		return true
@@ -326,6 +332,15 @@ func _eligible(peer_id: int) -> bool:
 
 func _valid_anchor(point: Vector3, spawning: bool) -> bool:
 	return anchor_is_valid.is_valid() and bool(anchor_is_valid.call(point, spawning))
+
+
+## The seed is read lazily at the first fuse of a round: Main publishes
+## last_seed only after the ACTIVE state change that calls begin_round().
+func _fuse_length() -> float:
+	if _seed_pending and seed_source.is_valid():
+		_rng.seed = MatchClock.derive_seed(int(seed_source.call()), &"hot_potato")
+	_seed_pending = false
+	return _rng.randf_range(FUSE_MIN, FUSE_MAX)
 
 
 func _now() -> float:

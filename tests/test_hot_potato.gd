@@ -43,6 +43,8 @@ func _run() -> void:
 		await _cover_and_departure()
 		await _reset_and_modes()
 		await _shared_placement()
+		await _seeded_replay(map_id)
+	_solo_unseeded_path()
 	main.gameplay_audio.reset_for_match()
 	if is_instance_valid(main.bomb_visuals):
 		main.bomb_visuals.reset_for_match()
@@ -92,6 +94,80 @@ func _shared_placement() -> void:
 	_expect(main._powerup_anchor_is_valid(bomb.position_world, false), "T17: placed parcel stands on valid ground")
 	main.toy_sabotage.reset()
 	bomb.reset()
+
+
+## T10: same published match seed + same scripted inputs => same fuse lengths
+## and same holder at detonation; different seeds still vary the fuse.
+func _seeded_replay(map_id: String) -> void:
+	_expect(bomb.seed_source.is_valid() and int(bomb.seed_source.call()) == main.disaster_director.last_seed, "T10: Main feeds the published match seed to the fuse (%s)" % map_id)
+	var first := await _scripted_round(297)
+	var second := await _scripted_round(297)
+	_expect(first.fuses.size() == 3 and first.holders.size() == 3, "T10: scripted round detonates three parcels (%s)" % map_id)
+	_expect(first == second, "T10: same seed replays same fuses and holders (%s) %s vs %s" % [map_id, first, second])
+	var distinct := {}
+	for seed_value in [297, 298, 1001, 424242, 7]:
+		var run := await _scripted_round(seed_value)
+		distinct[str(run.fuses)] = true
+		for fuse: float in run.fuses:
+			_expect(fuse >= HotPotato.FUSE_MIN and fuse <= HotPotato.FUSE_MAX, "T10: seeded fuse stays in configured range")
+	_expect(distinct.size() >= 4, "T10: different seeds give varied fuses (%s, %d distinct of 5)" % [map_id, distinct.size()])
+	print("HOT_POTATO_SEEDED_REPLAY map=%s seed=297 fuses=%s holders=%s distinct_seeds=%d/5" % [map_id, first.fuses, first.holders, distinct.size()])
+	bomb.seed_source = func() -> int: return main.disaster_director.last_seed
+	bomb.reset()
+
+
+## Scripted inputs: 1 collects, carriers pass every 1.0 s until the private
+## fuse expires; records fuse length and holder at burst for three parcels.
+func _scripted_round(seed_value: int) -> Dictionary:
+	bomb.seed_source = func() -> int: return seed_value
+	var fuses: Array[float] = []
+	var holders: Array[int] = []
+	await _fresh()
+	for parcel in 3:
+		if parcel > 0:
+			for peer_id: int in players:
+				players[peer_id].reset_for_match(pad + Vector3(8 + peer_id * 2, 0.05, 0))
+				players[peer_id].set_physics_process(false)
+			manager.elapsed_time = bomb._next_spawn
+			bomb.tick(0.0)
+			await _place(1, pad)
+		await _place(2, pad + Vector3(1.5, 0, 0))
+		var start := manager.elapsed_time
+		if not _request(1, true):
+			break
+		fuses.append(snappedf(bomb._deadline - start, 0.000001))
+		var steps := 0
+		while bomb.phase != HotPotato.Phase.BURST and steps < 400:
+			steps += 1
+			manager.elapsed_time += 0.1
+			bomb.tick(0.1)
+			if bomb.phase == HotPotato.Phase.CARRIED and steps % 10 == 0:
+				_request(bomb.holder_id, false, Vector3.RIGHT if bomb.holder_id == 1 else Vector3.LEFT)
+		holders.append(bomb.holder_id if bomb.phase == HotPotato.Phase.BURST else -1)
+		manager.elapsed_time += 1.0
+		bomb.tick(1.0)
+	return {"fuses": fuses, "holders": holders}
+
+
+## T10/AC3: single-player keeps the controller disabled, so no fuse is drawn.
+func _solo_unseeded_path() -> void:
+	var solo_manager := MatchManager.new()
+	root.add_child(solo_manager)
+	solo_manager.register_player(1, "Solo")
+	solo_manager.set_player_ready(1, true)
+	solo_manager.start_match()
+	var solo := HotPotato.new()
+	root.add_child(solo)
+	solo.configure(solo_manager, {})
+	solo.seed_source = func() -> int: return 297
+	var before: int = solo._rng.state
+	solo.begin_round(true)
+	solo_manager.elapsed_time = 40.0
+	solo.tick(1.0)
+	_expect(solo_manager.get_alive_count() == 1 and not solo._enabled and solo.phase == HotPotato.Phase.IDLE, "T10: single-player Hot Potato stays disabled")
+	_expect(solo._rng.state == before, "T10: single-player path draws no fuse and is not reseeded")
+	solo.free()
+	solo_manager.free()
 
 
 func _place(peer_id: int, point: Vector3) -> void:

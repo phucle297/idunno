@@ -148,6 +148,10 @@ func _spawn_and_pickup(main: FixtureMain, remote_id: int, pad: Vector3, deadline
 	print("HOT_POTATO_ENET_PICKUP_SETUP stage=%s phase=%d floor=%s collect=%s" % [stage, main.hot_potato.phase, (main._player_nodes[remote_id] as PartyPlayer).is_on_floor(), main.hot_potato.can_collect(remote_id)])
 	main.fixture_action.rpc_id(remote_id, "pickup")
 	var picked := await _wait_state(main, HotPotato.Phase.CARRIED, remote_id, deadline)
+	# T10: the authority fuse stream is keyed by this round's published seed.
+	var seeded: bool = main.hot_potato._rng.seed == MatchClock.derive_seed(main.disaster_director.last_seed, &"hot_potato") and not main.hot_potato._seed_pending
+	print("HOT_POTATO_ENET_SEEDED stage=%s seed=%d seeded=%s" % [stage, main.disaster_director.last_seed, seeded])
+	picked = picked and seeded
 	await _publish(main)
 	return picked and await _observe(main, stage, HotPotato.Phase.CARRIED, remote_id, player_count - 1, deadline)
 
