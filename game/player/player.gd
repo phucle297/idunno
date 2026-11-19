@@ -119,6 +119,16 @@ func _process(_delta: float) -> void:
 	character.set_locomotion_speed(horizontal_speed)
 
 
+## test-only: headless has no OS pointer grab (mouse_mode always reads
+## VISIBLE), so tests set this to drive the real left-click toy/bomb path.
+## Ignored on any real display server; never set it in game code (T25).
+static var headless_pointer_captured := false
+
+
+static func pointer_captured() -> bool:
+	return Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or (headless_pointer_captured and DisplayServer.get_name() == "headless")
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not accepts_local_input() or local_input_blocked:
 		return
@@ -129,7 +139,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		event is InputEventMouseButton
 		and event.button_index == MOUSE_BUTTON_LEFT
 		and event.pressed
-		and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
+		and not pointer_captured()
 	):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()

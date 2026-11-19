@@ -1718,7 +1718,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if can_use_toy and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# Pointer reacquisition belongs to the player, never to a weapon shot.
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if PartyPlayer.pointer_captured():
 			if hot_potato.is_carrier(peer_id):
 				hot_potato.local_request(peer_id, false, _toy_aim_direction(actor))
 			elif hot_potato.phase != HotPotato.Phase.FLIGHT or hot_potato.holder_id != peer_id:

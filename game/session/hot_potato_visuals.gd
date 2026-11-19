@@ -25,6 +25,8 @@ var _last_round := -1
 var _last_phase := PHASE_IDLE
 var _last_owner := 0
 var _burst_age := 0.0
+## Cues started by _play_cue (tests: a 0.09 s tone can end between polled frames).
+var cue_play_count := 0
 
 
 func _ready() -> void:
@@ -229,6 +231,7 @@ func _play_cue(round: int, id: int, phase: int, revision: int) -> void:
 	voice.stop()
 	voice.stream = _tones[phase]
 	voice.play()
+	cue_play_count += 1
 
 
 func _ensure_effects_bus() -> void:

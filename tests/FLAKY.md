@@ -22,18 +22,16 @@ listed here is skipped or deleted; contracts stay unchanged.
 
 test_multiplayer_profile.MultiplayerProfileContract.test_four_real_clients_moving_client_changes_authoritative_position
 
-# test_action_audio (Godot suite). Assertions unchanged, including
-# toy_harbor bomb_pickup and bomb_throw (one press -> exactly one cue).
-# Two fail-then-pass signatures (suite quarantined under T26 / RULES §7):
-# 1. toy_harbor:bomb_pickup got 0 cues (tests/test_action_audio.gd:191)
-#    https://github.com/phucle297/idunno/actions/runs/44372826235
-#    push M23.3 @6756d3c4; attempt 1 FAIL (Godot, 2026-11-19 01:48 ICT);
-#    attempt 3 PASS (no-code rerun, 2026-11-19 03:02 ICT)
-#    (toy_town bomb_pickup and toy_harbor bomb_throw were 1)
-# 2. toy_harbor:bomb_throw got 0 cues (tests/test_action_audio.gd:191)
-#    https://github.com/phucle297/idunno/actions/runs/44384131654
-#    PR #11 T16 @3e6eef87; attempt 1 FAIL (Godot, 2026-11-19 02:53 ICT);
-#    attempt 2 PASS (rerun of failed jobs, 2026-11-19 03:21 ICT)
-#    (toy_town pickup/throw and toy_harbor bomb_pickup were 1)
-
-test_action_audio
+# test_action_audio: removed from this list by T25 (blocking again).
+# Causes found under 8-busy-loop load (evidence in the T25 ledger):
+# - bomb 0 cues: the emitter played once, but the per-frame is_playing()
+#   poll can miss a 0.09 s generated tone (its observed active window under
+#   the headless dummy audio driver ranged from under one frame to ~70 ms); the
+#   probe reads HotPotatoVisuals.cue_play_count, 1..1 still asserted.
+# - bomb_throw 2 cues: the pass returned to the thrower (0.3 s game time)
+#   inside a 24-frame window; the window now ends with the flight.
+# - toy_harbor toy_use 0 cues: the fixture swaps maps inside one match, so
+#   toy effect ids restart while toy audio dedup keeps Town's id:kind keys;
+#   the fixture now does the match-state presentation reset.
+# History: runs 44372826235 (bomb_pickup) and 44384131654 (bomb_throw),
+# quarantined under T26.

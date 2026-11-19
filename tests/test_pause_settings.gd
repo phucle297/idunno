@@ -22,6 +22,9 @@ func _run() -> void:
 		menu.config_path = "user://test-milestone-1-5.cfg"
 	if "--verify-restart" in OS.get_cmdline_user_args():
 		_expect(is_equal_approx(menu.values.master_volume, 0.31) and is_equal_approx(menu.values.music_volume, 0.42) and is_equal_approx(menu.values.mouse_sensitivity, 1.7) and menu.values.invert_y and menu.values.reduced_motion, "New process must restore persisted settings including Music at startup")
+		# T25 AC2: the effects and warning buses come back at their saved levels too.
+		_expect(is_equal_approx(menu.values.effects_volume, 0.67) and is_equal_approx(menu.values.warning_volume, 0.83), "New process must restore saved effects (0.67) and warning (0.83) volumes, got %s / %s" % [menu.values.effects_volume, menu.values.warning_volume])
+		_expect(is_equal_approx(AudioServer.get_bus_volume_linear(AudioServer.get_bus_index("Effects")), 0.67) and is_equal_approx(AudioServer.get_bus_volume_linear(AudioServer.get_bus_index("Warnings")), 0.83), "New process must apply saved effects/warning volumes to their buses at startup")
 		_expect(menu.values.windowed_resolution == Vector2i(1111, 666) and (DisplayServer.get_name() == "headless" or DisplayServer.window_get_size() == Vector2i(1111, 666)), "New process must restore custom windowed dimensions to the actual window")
 		DirAccess.remove_absolute(menu.config_path)
 		main.free()
