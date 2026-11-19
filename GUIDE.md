@@ -1040,7 +1040,7 @@ authoritative movement, Flood/health and later Meteor observations, six natural
 results/five rematches, owner transfer and a new-owner rematch. Result-time RTT
 samples were 124–137ms; mostly stationary clients ended rounds in 43–51s, not a
 human balance/performance benchmark. No runtime errors. Default local DNS was
-intermittent; container DNS1.1.1.1 resolved the public address for the repeat.
+intermittent; container DNS 1.1.1.1 resolved the public address for the repeat.
 Clients use Linux editor/source and share a host/upstream NAT: this does not
 pass Windows release, physically separate networks, all hazards/props,
 server-loss retry or physical audio/settings gates. No redeploy was needed.
