@@ -191,7 +191,8 @@ func _ready() -> void:
 	hot_potato.configure(match_manager, _player_nodes)
 	hot_potato.anchor_is_valid = _powerup_anchor_is_valid
 	hot_potato.placer = _place_pickup
-	hot_potato.seed_source = func() -> int: return disaster_director.last_seed
+	# T10: fuse stream = public seed ^ server-private salt (replay record only).
+	hot_potato.seed_source = func() -> int: return MatchClock.derive_seed(disaster_director.last_seed ^ disaster_director.fuse_salt, &"hot_potato")
 	hot_potato.collection_is_clear = _powerup_collection_is_clear
 	hot_potato.sweep = toy_sabotage.sweep_parcel
 	hot_potato.apply_impulse = toy_sabotage.apply_parcel_impulse
@@ -2722,7 +2723,7 @@ func _on_match_finished(winner_ids: Array[int]) -> void:
 	# history reproduces the configured scenario.
 	var replay: Dictionary = disaster_director.get_replay_record()
 	if not replay.is_empty():
-		print("DISASTER_REPLAY seed=%d history=%s" % [int(replay.get("seed", -1)), str(replay.get("selection_history", []))])
+		print("DISASTER_REPLAY seed=%d history=%s fuse_salt=%d" % [int(replay.get("seed", -1)), str(replay.get("selection_history", [])), int(replay.get("fuse_salt", -1))])
 	if _dedicated_server and multiplayer.is_server():
 		return
 	if _profiles_enabled and _reward_notice.is_empty():

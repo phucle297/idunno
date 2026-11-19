@@ -22,6 +22,9 @@ const MATCH_PRESETS := ["hard"]
 var running := false
 var selection_history: Array[String] = []
 var last_seed := 0
+## T10: server-private salt for the Hot Potato fuse stream. Kept only in the
+## server replay record; never in any snapshot, RPC or synced property.
+var fuse_salt := 0
 var finished_replay_record: Dictionary = {}
 var match_preset := "hard"
 var start_is_viable: Callable
@@ -57,7 +60,7 @@ func register_disaster(disaster: Node) -> bool:
 	return true
 
 
-func start_directing(seed: int = -1) -> bool:
+func start_directing(seed: int = -1, salt: int = -1) -> bool:
 	if not _can_mutate() or running or not is_instance_valid(_match_manager):
 		return false
 	if _match_manager.state != MatchManager.MatchState.ACTIVE or _disasters.is_empty():
@@ -70,6 +73,8 @@ func start_directing(seed: int = -1) -> bool:
 	else:
 		_rng.seed = effective_seed
 	last_seed = effective_seed
+	# Separate RNG: drawing the salt must not shift the director's own stream.
+	fuse_salt = salt if salt >= 0 else new_fuse_salt()
 	running = true
 	_next_start_in = initial_delay
 	return true
@@ -129,8 +134,15 @@ func get_replay_record() -> Dictionary:
 	# While running this is the live record; after cleanup it retains the last
 	# finished round so failures can still be replayed from its seed/history.
 	if running or not selection_history.is_empty():
-		return {"seed": last_seed, "selection_history": selection_history.duplicate()}
+		return {"seed": last_seed, "selection_history": selection_history.duplicate(), "fuse_salt": fuse_salt}
 	return finished_replay_record.duplicate()
+
+
+## Non-negative 62-bit salt from a fresh randomized RNG.
+static func new_fuse_salt() -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	return (int(rng.randi()) << 30) ^ int(rng.randi())
 
 
 func try_start_disaster(disaster_name: String) -> bool:
@@ -276,7 +288,7 @@ func _maximum_simultaneous() -> int:
 
 func _reset_runtime_state() -> void:
 	if not selection_history.is_empty():
-		finished_replay_record = {"seed": last_seed, "selection_history": selection_history.duplicate()}
+		finished_replay_record = {"seed": last_seed, "selection_history": selection_history.duplicate(), "fuse_salt": fuse_salt}
 	selection_history.clear()
 	_active.clear()
 	_completed_solo.clear()

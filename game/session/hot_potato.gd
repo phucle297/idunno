@@ -15,9 +15,10 @@ var anchors: Array[Vector3] = []
 var anchor_is_valid: Callable
 ## T17: Main's shared PickupPlacement (family, sequence) -> point or INF.
 var placer: Callable
-## T10: Main's published match seed (DisasterDirector.last_seed) -> int. When
-## valid, each round's fuse stream is derived from it so a seeded multiplayer
-## round replays the same fuse lengths. Unset keeps the randomized fallback.
+## T10: Main's fuse stream seed -> int, derived from the public match seed XOR
+## the server-private DisasterDirector.fuse_salt. The fuse is NOT predictable
+## from the public seed; a round replays from the server's replay record
+## (seed + fuse_salt). Unset keeps the randomized fallback.
 var seed_source: Callable
 var collection_is_clear: Callable
 var usable_area_fraction: Callable
@@ -48,7 +49,7 @@ var _seed_pending := false
 func configure(manager: MatchManager, players: Dictionary) -> void:
 	_manager = manager
 	_players = players
-	_rng.randomize() # Fallback only; seeded rounds reseed in _fuse_length().
+	_rng.randomize() # Fallback only; rounds reseed from the server-salted seed_source.
 
 
 func begin_round(enabled: bool) -> void:
@@ -334,11 +335,11 @@ func _valid_anchor(point: Vector3, spawning: bool) -> bool:
 	return anchor_is_valid.is_valid() and bool(anchor_is_valid.call(point, spawning))
 
 
-## The seed is read lazily at the first fuse of a round: Main publishes
-## last_seed only after the ACTIVE state change that calls begin_round().
+## The stream is read lazily at the first fuse of a round: the director sets
+## last_seed/fuse_salt only after the ACTIVE state change that calls begin_round().
 func _fuse_length() -> float:
 	if _seed_pending and seed_source.is_valid():
-		_rng.seed = MatchClock.derive_seed(int(seed_source.call()), &"hot_potato")
+		_rng.seed = int(seed_source.call())
 	_seed_pending = false
 	return _rng.randf_range(FUSE_MIN, FUSE_MAX)
 

@@ -37,6 +37,8 @@ func _run() -> void:
 		for peer_id: int in players:
 			manager.set_player_ready(peer_id, true)
 		_expect(await main.start_local_match(), "Real scene starts a bomb round")
+		var record: Dictionary = main.disaster_director.get_replay_record()
+		_expect(record.keys() == ["seed", "selection_history", "fuse_salt"] and int(record.fuse_salt) == main.disaster_director.fuse_salt and main.disaster_director.fuse_salt >= 0, "T10: existing replay record gains exactly one key, fuse_salt")
 		main.disaster_director.cleanup()
 		pad = main.toy_sabotage.anchors[0]
 		await _contract()
@@ -96,34 +98,51 @@ func _shared_placement() -> void:
 	bomb.reset()
 
 
-## T10: same published match seed + same scripted inputs => same fuse lengths
-## and same holder at detonation; different seeds still vary the fuse.
+## T10: same seed + server-private fuse_salt (the replay record) + same
+## scripted inputs => same fuse lengths and holder at detonation; the public
+## seed alone does not predict the fuse; unseeded/different matches vary.
 func _seeded_replay(map_id: String) -> void:
-	_expect(bomb.seed_source.is_valid() and int(bomb.seed_source.call()) == main.disaster_director.last_seed, "T10: Main feeds the published match seed to the fuse (%s)" % map_id)
-	var first := await _scripted_round(297)
-	var second := await _scripted_round(297)
+	var director: DisasterDirector = main.disaster_director
+	_expect(int(bomb.seed_source.call()) == MatchClock.derive_seed(director.last_seed ^ director.fuse_salt, &"hot_potato"), "T10: Main keys the fuse by public seed ^ private salt (%s)" % map_id)
+	# (a) replay from the record
+	var first := await _scripted_round(297, 123456789)
+	var second := await _scripted_round(297, 123456789)
 	_expect(first.fuses.size() == 3 and first.holders.size() == 3, "T10: scripted round detonates three parcels (%s)" % map_id)
-	_expect(first == second, "T10: same seed replays same fuses and holders (%s) %s vs %s" % [map_id, first, second])
+	_expect(first == second, "T10: same seed+salt replays same fuses and holders (%s) %s vs %s" % [map_id, first, second])
+	# (b) a client knowing only the public seed cannot derive the fuse
+	var predicted := 0
+	for index in 20:
+		var seed_value := 5000 + index * 7919
+		var run := await _scripted_round(seed_value, DisasterDirector.new_fuse_salt(), 1)
+		var guess := RandomNumberGenerator.new()
+		guess.seed = MatchClock.derive_seed(seed_value, &"hot_potato")
+		if run.fuses.is_empty() or is_equal_approx(float(run.fuses[0]), snappedf(guess.randf_range(HotPotato.FUSE_MIN, HotPotato.FUSE_MAX), 0.000001)):
+			predicted += 1
+	_expect(predicted == 0, "T10: public-seed-only derivation never matches the real fuse (%s, %d/20 matched)" % [map_id, predicted])
+	# (d) different seeds, and the same public seed with fresh salts, still vary
 	var distinct := {}
+	var salted := {}
 	for seed_value in [297, 298, 1001, 424242, 7]:
-		var run := await _scripted_round(seed_value)
+		var run := await _scripted_round(seed_value, DisasterDirector.new_fuse_salt())
 		distinct[str(run.fuses)] = true
 		for fuse: float in run.fuses:
 			_expect(fuse >= HotPotato.FUSE_MIN and fuse <= HotPotato.FUSE_MAX, "T10: seeded fuse stays in configured range")
-	_expect(distinct.size() >= 4, "T10: different seeds give varied fuses (%s, %d distinct of 5)" % [map_id, distinct.size()])
-	print("HOT_POTATO_SEEDED_REPLAY map=%s seed=297 fuses=%s holders=%s distinct_seeds=%d/5" % [map_id, first.fuses, first.holders, distinct.size()])
-	bomb.seed_source = func() -> int: return main.disaster_director.last_seed
+		salted[str((await _scripted_round(297, DisasterDirector.new_fuse_salt(), 1)).fuses)] = true
+	_expect(distinct.size() >= 4 and salted.size() >= 4, "T10: fuses vary across matches (%s, %d and %d distinct of 5)" % [map_id, distinct.size(), salted.size()])
+	print("HOT_POTATO_SEEDED_REPLAY map=%s seed=297 salt=123456789 fuses=%s holders=%s public_seed_predicted=%d/20 distinct=%d/5 salted=%d/5" % [map_id, first.fuses, first.holders, predicted, distinct.size(), salted.size()])
 	bomb.reset()
 
 
-## Scripted inputs: 1 collects, carriers pass every 1.0 s until the private
-## fuse expires; records fuse length and holder at burst for three parcels.
-func _scripted_round(seed_value: int) -> Dictionary:
-	bomb.seed_source = func() -> int: return seed_value
+## Scripted inputs through Main's real seed_source: 1 collects, carriers pass
+## every 1.0 s until the private fuse expires; records fuse length and holder
+## at burst per parcel.
+func _scripted_round(seed_value: int, salt: int, parcels := 3) -> Dictionary:
+	main.disaster_director.last_seed = seed_value
+	main.disaster_director.fuse_salt = salt
 	var fuses: Array[float] = []
 	var holders: Array[int] = []
 	await _fresh()
-	for parcel in 3:
+	for parcel in parcels:
 		if parcel > 0:
 			for peer_id: int in players:
 				players[peer_id].reset_for_match(pad + Vector3(8 + peer_id * 2, 0.05, 0))
