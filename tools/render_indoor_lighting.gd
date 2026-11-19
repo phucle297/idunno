@@ -10,6 +10,11 @@ extends SceneTree
 const MAPS := ["toy_town", "toy_harbor"]
 const OVERVIEW := {"toy_town": [Vector3(0, 16, 34), Vector3(0, 0, -6)], "toy_harbor": [Vector3(0, 16, 30), Vector3(0, 0, -10)]}
 const TOWN_ROOF := [Vector3(-16, 4.855 + 1.6, -16), Vector3(0, 1.0, 0)]
+# Door camera stand-off from the south face (m). The 3 m default lands inside
+# GardenTree1's trunk (z 50.15..50.85) for GardenCafe and inside the House's
+# north wall for ParkingGarage (House z 23..31), so those two step in closer.
+const DOOR_GAP := 3.0
+const DOOR_GAP_OVERRIDE := {"GardenCafe": 1.5, "ParkingGarage": 1.4}
 
 var mode := "capture"
 var out := "user://indoor-lighting"
@@ -97,7 +102,7 @@ func _views(shelter: Node3D) -> Dictionary:
 	var o := shelter.global_position
 	return {
 		"inside": [o + Vector3(0, 1.6, 0.3 * depth), o + Vector3(0, 1.2, -0.5 * depth)],
-		"door": [o + Vector3(0, 1.7, 0.5 * depth + 3.0), o + Vector3(0, 1.2, 0)],
+		"door": [o + Vector3(0, 1.7, 0.5 * depth + float(DOOR_GAP_OVERRIDE.get(String(shelter.name), DOOR_GAP))), o + Vector3(0, 1.2, 0)],
 	}
 
 
