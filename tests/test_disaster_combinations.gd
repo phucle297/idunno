@@ -26,11 +26,13 @@ func _run() -> void:
 	director.cleanup()
 	for disaster in [flood, lightning, tornado, fire]:
 		disaster.set_process(false)
+		disaster.set_physics_process(false)
 	player.set_physics_process(false)
 	player.position = Vector3.ZERO
 	main.set_process(false)
 	manager.set_process(false)
 	director.set_process(false)
+	director.set_physics_process(false)
 	await _check_refuge_relocation(main, player, flood, main.get_node("Earthquake") as Earthquake)
 	_expect(main.set_map_id("toy_town"), "Restore Toy Town after relocation scenarios")
 	await main.prepare_gameplay_map()
@@ -97,6 +99,7 @@ func _run() -> void:
 	# solo round (solo hazards before combinations, even at max intensity).
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	meteor.set_process(false)
+	meteor.set_physics_process(false)
 	manager.elapsed_time = 400.0
 	director.initial_delay = 0.0
 	director.recovery_duration = 0.0
@@ -139,6 +142,7 @@ func _run() -> void:
 	# telegraphs before collider loss, and deaths keep clear causes.
 	var earthquake := main.get_node("Earthquake") as Earthquake
 	earthquake.set_process(false)
+	earthquake.set_physics_process(false)
 	flood.warning_duration = 0.5
 	flood.rise_duration = 0.5
 	flood.hold_duration = 12.0
@@ -329,6 +333,7 @@ func _run() -> void:
 	var client_quake := Earthquake.new()
 	client_root.add_child(client_quake)
 	client_quake.set_process(false)
+	client_quake.set_physics_process(false)
 	var rubble_snapshot := earthquake.create_presentation_snapshot()
 	_expect((rubble_snapshot["burning_rubble"] as PackedVector3Array).size() == earthquake.burning_rubble_count(), "Snapshots must replicate every live burning-rubble position")
 	_expect(client_quake.apply_presentation_snapshot(rubble_snapshot), "Client must accept replicated burning rubble")
@@ -370,6 +375,7 @@ func _run() -> void:
 
 func _check_refuge_relocation(main: Node3D, player: PartyPlayer, flood: Flood, earthquake: Earthquake) -> void:
 	earthquake.set_process(false)
+	earthquake.set_physics_process(false)
 	player.set_camera_yaw(0.0)
 	for map_id in ["toy_town", "toy_harbor"]:
 		_expect(main.set_map_id(map_id), "Relocation selects %s" % map_id)

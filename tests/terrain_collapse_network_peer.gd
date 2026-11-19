@@ -78,6 +78,7 @@ func _run_server(main: FixtureMain) -> void:
 	while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
 	(main.disaster_director as DisasterDirector).set_process(false)
+	(main.disaster_director as DisasterDirector).set_physics_process(false)
 	var terrain: TerrainCollapse = main.terrain_collapse
 	var peers := main.get_network_player_ids()
 	var client_count := player_count - 1
@@ -173,6 +174,7 @@ func _run_server(main: FixtureMain) -> void:
 		for peer_id in peers:
 			rematches_ok = rematches_ok and is_equal_approx(manager.get_health(peer_id), 100.0)
 		main.disaster_director.set_process(false)
+		main.disaster_director.set_physics_process(false)
 	all_passed = all_passed and rematches_ok and removed_count == 4
 	all_passed = all_passed and await main.wait_for_collapse("done", client_count, deadline)
 	_stop_producers(main)
@@ -295,5 +297,6 @@ func _stop_producers(main: Node) -> void:
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	for player: PartyPlayer in main._player_nodes.values():
 		player.set_physics_process(false)

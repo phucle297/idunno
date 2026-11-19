@@ -195,8 +195,10 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		match_passed = manager.state == MatchManager.MatchState.LOBBY and not main.start_network_match()
 		var solo_meteor := main.get_node("MeteorShower") as MeteorShower
 		solo_meteor.set_process(false)
+		solo_meteor.set_physics_process(false)
 		var solo_lightning := main.get_node("Lightning") as Lightning
 		solo_lightning.set_process(false)
+		solo_lightning.set_physics_process(false)
 		disaster_passed = not solo_meteor.start_warning(Vector3(0.0, 0.06, 0.0)) and not solo_lightning.start_warning(Vector3(4.0, 0.06, 4.0))
 		damage_passed = not manager.apply_damage_batch([{"peer_id": 1, "amount": 25.0, "cause": "Playable scale test"}])
 		hud_passed = true
@@ -204,21 +206,27 @@ func _run_server(main: Node, probe: PlayableScaleProbe) -> void:
 		match_passed = manager.state == MatchManager.MatchState.ACTIVE and manager.get_alive_count() == player_count
 		var meteor := main.get_node("MeteorShower") as MeteorShower
 		meteor.set_process(false)
+		meteor.set_physics_process(false)
 		var meteor_rng := RandomNumberGenerator.new()
 		meteor_rng.seed = 8105
 		disaster_passed = meteor.start_disaster(meteor_rng) and meteor.active_effect_count() >= (2 if map_id == "toy_town" else 1)
 		var lightning := main.get_node("Lightning") as Lightning
 		lightning.set_process(false)
+		lightning.set_physics_process(false)
 		disaster_passed = disaster_passed and lightning.start_warning(Vector3(4.0, 0.06, 4.0))
 		var fire := main.get_node("Fire") as Fire
 		var quake := main.get_node("Earthquake") as Earthquake
 		fire.set_process(false)
+		fire.set_physics_process(false)
 		quake.set_process(false)
+		quake.set_physics_process(false)
 		# Synthetic snapshot stress beyond the director's two-disaster limit;
 		# the HUD still intentionally presents its bounded priority chips.
 		disaster_passed = disaster_passed and fire.start_warning(0) and quake.start_warning()
 		main.rain.set_process(false)
+		main.rain.set_physics_process(false)
 		main.snowfall.set_process(false)
+		main.snowfall.set_physics_process(false)
 		main.rockslide.set_physics_process(false)
 		disaster_passed = disaster_passed and main.rain.start_disaster(meteor_rng) and main.snowfall.start_disaster(meteor_rng) and main.rockslide.start_disaster(meteor_rng)
 		main.snowfall.tick(5)

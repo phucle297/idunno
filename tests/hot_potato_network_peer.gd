@@ -176,7 +176,7 @@ func _start(main: FixtureMain, deadline: int) -> bool:
 	main._unhandled_input(start)
 	while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
-	(main.disaster_director as DisasterDirector).set_process(false)
+	(main.disaster_director as DisasterDirector).set_physics_process(false)
 	var started := main.match_manager.state == MatchManager.MatchState.ACTIVE and main.match_preset == "hot_potato"
 	print("HOT_POTATO_ENET_START preset_ok=%s started=%s preset=%s ready=%s" % [preset_ok, started, main.match_preset, main.match_manager.can_start_match()])
 	return started
@@ -240,7 +240,7 @@ func _server(main: FixtureMain) -> void:
 		passed = passed and main.restart_network_match()
 		while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 			await process_frame
-		(main.disaster_director as DisasterDirector).set_process(false)
+		(main.disaster_director as DisasterDirector).set_physics_process(false)
 		main.hot_potato.anchors.assign([pad])
 		passed = passed and await _spawn_and_pickup(main, remote_id, pad, deadline, "rematch_%d" % cycle)
 	# T10(c): no client-received snapshot payload carries the private salt.

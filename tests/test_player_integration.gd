@@ -308,6 +308,7 @@ func _test_default_scene_offline_input() -> void:
 	var flood := main.get_node("Flood") as Flood
 	(main.get_node("DisasterDirector") as DisasterDirector).cleanup()
 	flood.set_process(false)
+	flood.set_physics_process(false)
 	playable_player.set_physics_process(false)
 	_expect(flood.start_warning(), "Default scene must start a representative Flood for feedback validation")
 	flood.tick(flood.warning_duration)

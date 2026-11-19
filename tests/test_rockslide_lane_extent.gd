@@ -23,7 +23,7 @@ func _run() -> void:
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.match_manager.prepare_lobby()
 	main._add_gameplay_demo_player(2, "Second", Vector3(2, 0.05, 7))
 	for player: PartyPlayer in main._player_nodes.values():

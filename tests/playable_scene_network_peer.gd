@@ -143,6 +143,7 @@ func _run_server(main: Node) -> void:
 	# This fixture explicitly sequences hazards; random selections must not
 	# overlap its observation barriers (director scheduling is tested separately).
 	(main.get_node("DisasterDirector") as DisasterDirector).set_process(false)
+	(main.get_node("DisasterDirector") as DisasterDirector).set_physics_process(false)
 	# Social emote replication contract: the observer must see the host's
 	# wave identity, and an early authoritative cancel (host movement) must
 	# terminate it well before the 1.2s one-shot clip would end on its own.
@@ -170,6 +171,7 @@ func _run_server(main: Node) -> void:
 	var ragdoll_replication_passed := host_player.is_knocked_down() and host_player.ragdoll_body_count() == 11
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	meteor.set_process(false)
+	meteor.set_physics_process(false)
 	var meteor_rng := RandomNumberGenerator.new()
 	meteor_rng.seed = 8105
 	var meteor_started := meteor.start_disaster(meteor_rng) and meteor.active_effect_count() >= 2
@@ -178,12 +180,14 @@ func _run_server(main: Node) -> void:
 	await create_timer(0.3).timeout
 	var lightning := main.get_node("Lightning") as Lightning
 	lightning.set_process(false)
+	lightning.set_physics_process(false)
 	var lightning_started := lightning.start_warning(Vector3(4.0, 0.06, 4.0))
 	await create_timer(0.4).timeout
 	lightning.cleanup()
 	await create_timer(0.3).timeout
 	var fire := main.get_node("Fire") as Fire
 	fire.set_process(false)
+	fire.set_physics_process(false)
 	var fire_started := fire.start_warning(7)
 	await create_timer(0.4).timeout
 	fire.cleanup()
@@ -191,7 +195,9 @@ func _run_server(main: Node) -> void:
 	var flood := main.get_node("Flood") as Flood
 	var tornado := main.get_node("Tornado") as Tornado
 	flood.set_process(false)
+	flood.set_physics_process(false)
 	tornado.set_process(false)
+	tornado.set_physics_process(false)
 	var flood_started := flood.start_warning()
 	flood.tick(flood.warning_duration)
 	flood.tick(flood.rise_duration * 0.45)
@@ -223,6 +229,7 @@ func _run_server(main: Node) -> void:
 	await create_timer(0.3).timeout
 	var earthquake := main.get_node("Earthquake") as Earthquake
 	earthquake.set_process(false)
+	earthquake.set_physics_process(false)
 	var earthquake_started := earthquake.start_warning()
 	earthquake.tick(earthquake.warning_duration)
 	await create_timer(0.5).timeout

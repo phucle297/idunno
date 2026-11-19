@@ -249,7 +249,12 @@ func get_structure_states() -> Dictionary:
 	return result
 
 
-func _process(delta: float) -> void:
+func _init() -> void:
+	# T11: disasters tick after DisasterDirector (10) in each physics step.
+	process_physics_priority = 20
+
+
+func _physics_process(delta: float) -> void:
 	tick(delta)
 
 

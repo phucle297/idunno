@@ -284,7 +284,7 @@ func _run() -> void:
 	main.get_node("ShoveManager").shove_effect_applied.connect(func(_a: int, _b: int) -> void: main.shove_applications += 1)
 	if role == "server":
 		# Disable selection before ACTIVE, not after a hazard has already started.
-		main.disaster_director.set_process(false)
+		main.disaster_director.set_physics_process(false)
 		main.disaster_director.initial_delay = 3600.0
 		await wait_for(func(): return main.match_manager.state == MatchManager.MatchState.ACTIVE)
 		main.disaster_director.cleanup()

@@ -22,6 +22,7 @@ func _run() -> void:
 	main._process(0) # Allocate the same lazy visual owner used by real clients.
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.get_node("Player").set_physics_process(false)
 	var hud: GameplayHud = main.gameplay_hud
 	var card: PanelContainer = hud.powerup_card

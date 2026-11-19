@@ -13,7 +13,7 @@ func _run() -> void:
 	main.set_physics_process(false)
 	main.match_manager.set_process(false)
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	var player: PartyPlayer = main.get_node("Player")
 	player.set_physics_process(false)
 	var camera := Camera3D.new()

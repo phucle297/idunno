@@ -261,10 +261,19 @@ func get_submerged_time(peer_id: int) -> float:
 
 
 func _process(delta: float) -> void:
+	# T11: presentation only; the gameplay tick runs in _physics_process.
 	_visual_time += delta
-	tick(delta)
 	_update_water_cues()
 	_update_electric_visual()
+
+
+func _init() -> void:
+	# T11: disasters tick after DisasterDirector (10) in each physics step.
+	process_physics_priority = 20
+
+
+func _physics_process(delta: float) -> void:
+	tick(delta)
 
 
 func _apply_water_effects(delta: float, previous_water_level: float, electrified_delta: float) -> void:

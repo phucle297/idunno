@@ -17,6 +17,7 @@ func _run() -> void:
 	manager.set_process(false)
 	var quake := main.get_node("Earthquake") as Earthquake
 	quake.set_process(false)
+	quake.set_physics_process(false)
 	var player := main.get_node("Player") as PartyPlayer
 	player.set_physics_process(false)
 	player.set_camera_yaw(0.0)

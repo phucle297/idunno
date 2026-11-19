@@ -42,9 +42,11 @@ func _run() -> void:
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.match_manager.set_process(false)
 	for hazard in [main.rain, main.snowfall, main.fire, main.flood]:
 		hazard.set_process(false)
+		hazard.set_physics_process(false)
 	player = main.get_node("Player")
 	player.set_physics_process(false)
 	var flood: Flood = main.flood

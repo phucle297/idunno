@@ -20,7 +20,7 @@ func _run() -> void:
 	await main.prepare_gameplay_map()
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	var mechanisms: TownMechanisms = main.town_mechanisms
 	var player := main.get_node("Player") as PartyPlayer
 	player.set_physics_process(false)

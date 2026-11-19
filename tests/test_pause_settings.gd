@@ -37,7 +37,7 @@ func _run() -> void:
 	root.push_input(cancel)
 	await process_frame
 	_expect(menu.visible and main.get_node("Player").local_input_blocked and not paused, "Escape blocks local input without pausing SceneTree")
-	main._process(0.75)
+	main._physics_process(0.75) # T11: tick_match runs on the physics step
 	_expect(main.match_manager.elapsed_time >= before + 0.75, "Authority timer must continue under pause")
 	await _capture("pause")
 	menu.show_settings()

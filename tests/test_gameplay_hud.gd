@@ -153,6 +153,7 @@ func _run() -> void:
 
 	for disaster: Node in [main.meteor_shower, main.flood, main.tornado, main.earthquake, main.lightning, main.fire]:
 		disaster.set_process(false)
+		disaster.set_physics_process(false)
 	main.meteor_shower.phase = MeteorShower.Phase.WARNING
 	main.flood.phase = Flood.Phase.HOLDING
 	main.flood.electrified_remaining = 1.5

@@ -50,12 +50,12 @@ func _run() -> void:
 	director.cleanup()
 	for disaster in [earthquake, flood, fire, meteor, main.get_node("Tornado") as Tornado, main.get_node("Lightning") as Lightning]:
 		disaster.set_process(false)
+		disaster.set_physics_process(false)
 	player.set_physics_process(false)
 	player.set_process(false)
 	main.set_process(false)
 	manager.set_process(false)
-	director.set_process(false)
-
+	director.set_physics_process(false)
 	if "eq" in _scenarios:
 		await _scenario_earthquake(main, earthquake, player, manager)
 	if "flood-eq" in _scenarios:
