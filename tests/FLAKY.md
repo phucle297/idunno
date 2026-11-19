@@ -8,19 +8,14 @@ from the blocking "Python unit tests" job; Godot suite names
 comments. Remove an id to make that test blocking again. Nothing
 listed here is skipped or deleted; contracts stay unchanged.
 
-# test_multiplayer_profile 4-client move (Python)
-# Signature: RuntimeError: Controlled input did not move the authoritative client position
-# Contract unchanged: moving client shifts authoritative position > 0.5 m
-# Hits (failed on already-green trees, then passed on no-code rerun):
-# - https://github.com/phucle297/idunno/actions/runs/44352390724
-#   push T19 @3b59d713; attempt 1 FAIL (Python, 2026-11-18 23:56 ICT);
-#   attempt 2 PASS (no-code rerun, 2026-11-19 02:57 ICT)
-# - https://github.com/phucle297/idunno/actions/runs/44372826235
-#   push M23.3 @6756d3c4; attempt 1 FAIL (Python, 2026-11-19 01:46 ICT);
-#   attempt 2 cancelled; attempt 3 PASS (no-code rerun, 2026-11-19 03:00 ICT)
-# Follow-up: T21 (load-independent).
-
-test_multiplayer_profile.MultiplayerProfileContract.test_four_real_clients_moving_client_changes_authoritative_position
+# test_multiplayer_profile 4-client move: removed from this list by T21
+# (blocking again). Cause: the >0.5 m check read only the server's fixed
+# 90-frame trace (~0.6 s game time) while the strafe flipped every 30 client
+# ticks, so the result depended on cross-process phase and load (unloaded
+# margins 0.59-0.91 m). Now strafe legs end by distance (~2 m span, 120-tick
+# cap) and the driver waits, input held, for the server's per-tick
+# observation from the same origin (deadline --timeout). Assertion unchanged.
+# History: runs 44352390724 and 44372826235, quarantined under T26.
 
 # test_action_audio: removed from this list by T25 (blocking again).
 # Causes found under 8-busy-loop load (evidence in the T25 ledger):

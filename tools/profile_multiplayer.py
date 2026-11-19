@@ -134,7 +134,7 @@ def run(options):
                     transport="local direct-IP dedicated ENet; no HTTP allocator" if network else "offline solo",
                     actual_player_count=player_count,
                     admission_rendering="disabled until sampling", audio="Dummy", moving_players=options.moving_client,
-                    movement_scenario="stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground",
+                    movement_scenario="stationary by default; --moving-client sends bounded alternating strafe Input actions on safe spawn ground (legs end at ~2 m travel or 120 ticks)",
                     instrumentation="Private Main subclass observes build/apply/physics CPU and movement RPC receipt age. Variant-encoded decoded match payload size is NOT ENet/on-wire bandwidth. Additional encoding/timing cost remains in frame measurements.",
                     reconciliation_measurement="Movement receipt age is same-process hook time, NOT pending reconciliation age, correction distance, latency or packet loss; those are not inferred.",
                     thermal_sensors="not collected", gpu_power="not collected",
@@ -274,12 +274,35 @@ def run(options):
                 client_trace = json.loads((control / "client-0.trace.json").read_text())
                 server_trace = json.loads((control / "server.trace.json").read_text())
                 movement = authoritative_movement_summary(server_trace, client_trace["local_peer_id"])
+                # The server's fixed 90-frame trace covers only ~0.6 s of game time,
+                # so whether that window alone shows >0.5 m depends on cross-process
+                # phase and box load. Input stays held here, so wait (bounded) for
+                # the server's own per-tick observation from the same trace origin.
+                movement["window_max_displacement_m"] = movement["authoritative_max_displacement_m"]
+                peer_key = str(client_trace["local_peer_id"])
+
+                def observed():
+                    status = read("server")
+                    if status.get("authoritative_observation_invalid"):
+                        raise RuntimeError("Match/roster changed during movement observation: " + status["authoritative_observation_invalid"])
+                    return status.get("authoritative_max_displacement", {}).get(peer_key, 0.0)
+
+                if movement["authoritative_max_displacement_m"] <= 0.5:
+                    try:
+                        wait(lambda: observed() > 0.5, "authoritative movement", options.timeout)
+                    except TimeoutError:
+                        raise RuntimeError("Controlled input did not move the authoritative client position") from None
+                status = read("server")
+                movement["observed_max_displacement_m"] = observed()
+                movement["observed_physics_ticks"] = status.get("authoritative_observed_ticks", 0)
+                movement["authoritative_max_displacement_m"] = max(movement["window_max_displacement_m"], movement["observed_max_displacement_m"])
                 if movement["authoritative_max_displacement_m"] <= 0.5:
                     raise RuntimeError("Controlled input did not move the authoritative client position")
                 summaries[-1]["moving_client_authoritative"] = movement
             (output / "summary.json").write_text(json.dumps(summaries, indent=2))
             if options.moving_client:
                 command(labels[0], "stop_movement")
+                command("server", "stop_movement")
         # Close clients first so authority can process departures before its own shutdown.
         for label in all_labels:
             command(label, "quit")

@@ -73,6 +73,25 @@ var result: Dictionary = {}
 var camera: Camera3D
 var moving_client := false
 var movement_ticks := 0
+# Bounded strafe legs end by distance, not by tick count: the first leg goes
+# MOVE_HALF_SPAN_M right of the start point, later legs cross 2 * that span, so
+# the authoritative track spans ~2 m whatever the frame/tick timing under load.
+# A leg also ends after MOVE_LEG_MAX_TICKS (wall/blocked) to stay bounded.
+const MOVE_HALF_SPAN_M := 1.0
+const MOVE_LEG_MAX_TICKS := 120
+var move_right := true
+var leg_start := Vector2.INF
+var leg_span := MOVE_HALF_SPAN_M
+# Server-side authoritative movement observation for --moving-client. Origin is
+# each player's position at this server's first trace sample (same origin as the
+# trace). It keeps running per physics tick after the trace while the driver
+# still holds input, so the >0.5 m check waits on server-observed motion instead
+# of on how much game time a fixed 90-frame window happened to cover.
+var observe_movement := false
+var observe_origins := {}
+var observe_max_displacement := {}
+var observe_ticks := 0
+var observe_invalid := ""
 var orbit_camera := false
 var camera_angle := 0.0
 
@@ -151,6 +170,14 @@ func _act(command: Dictionary) -> void:
 			main.measuring = false
 			moving_client = bool(command.get("moving_client", false)) and label == "client-0"
 			movement_ticks = 0
+			move_right = true
+			leg_start = Vector2.INF
+			leg_span = MOVE_HALF_SPAN_M
+			observe_movement = bool(command.get("moving_client", false)) and label == "server"
+			observe_origins.clear()
+			observe_max_displacement.clear()
+			observe_ticks = 0
+			observe_invalid = ""
 			orbit_camera = bool(command.get("orbit_camera", false))
 			camera_angle = 0.0
 			_release_profile_movement()
@@ -160,6 +187,7 @@ func _act(command: Dictionary) -> void:
 			result.clear()
 		"stop_movement":
 			moving_client = false
+			observe_movement = false
 			_release_profile_movement()
 
 
@@ -213,6 +241,11 @@ func _process(delta: float) -> bool:
 	var pending_inputs: int = player._prediction_inputs.size() if is_instance_valid(player) and not main.multiplayer.is_server() else -1
 	var acknowledged_sequence: int = player._last_movement_ack if is_instance_valid(player) else -1
 	var local_position := [player.global_position.x, player.global_position.y, player.global_position.z] if is_instance_valid(player) else []
+	if observe_movement and samples.is_empty():
+		for peer_id: String in authoritative_positions:
+			var origin: Array = authoritative_positions[peer_id]
+			observe_origins[peer_id] = Vector2(origin[0], origin[2])
+			observe_max_displacement[peer_id] = 0.0
 	samples.append({"time_usec": now, "frame_ms": (now - last_frame) / 1000.0,
 		"process_ms": Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
 		"physics_ms": Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
@@ -266,12 +299,46 @@ func _process(delta: float) -> bool:
 
 func _physics_process(_delta: float) -> bool:
 	physics_ticks += 1
+	if observe_movement and not observe_origins.is_empty():
+		_observe_authoritative_movement()
 	if moving_client:
-		movement_ticks += 1
-		var right := (movement_ticks / 30) % 2 == 0
-		Input.action_press("move_right" if right else "move_left")
-		Input.action_release("move_left" if right else "move_right")
+		_step_profile_movement()
 	return false
+
+
+func _step_profile_movement() -> void:
+	var player := main._player_nodes.get(main.multiplayer.get_unique_id()) as PartyPlayer
+	if not is_instance_valid(player):
+		return
+	var position := Vector2(player.global_position.x, player.global_position.z)
+	if leg_start == Vector2.INF:
+		leg_start = position
+	movement_ticks += 1
+	if position.distance_to(leg_start) >= leg_span or movement_ticks >= MOVE_LEG_MAX_TICKS:
+		move_right = not move_right
+		leg_start = position
+		leg_span = 2.0 * MOVE_HALF_SPAN_M
+		movement_ticks = 0
+	Input.action_press("move_right" if move_right else "move_left")
+	Input.action_release("move_left" if move_right else "move_right")
+
+
+func _observe_authoritative_movement() -> void:
+	# Motion only counts inside the same ACTIVE, full-roster match the trace
+	# asserted; a state or roster change voids the observation (driver fails).
+	if main.match_manager.state != 1 or main.match_manager.players.size() != observe_origins.size():
+		if observe_invalid.is_empty():
+			observe_invalid = "state=%d players=%d" % [main.match_manager.state, main.match_manager.players.size()]
+		return
+	observe_ticks += 1
+	for peer_id: String in observe_origins:
+		var authoritative_player := main._player_nodes.get(int(peer_id)) as PartyPlayer
+		if not is_instance_valid(authoritative_player):
+			if observe_invalid.is_empty():
+				observe_invalid = "missing player " + peer_id
+			continue
+		var position := Vector2(authoritative_player.global_position.x, authoritative_player.global_position.z)
+		observe_max_displacement[peer_id] = maxf(float(observe_max_displacement[peer_id]), position.distance_to(observe_origins[peer_id]))
 
 
 func _release_profile_movement() -> void:
@@ -285,6 +352,10 @@ func _write_status() -> void:
 		"can_start": main.match_manager.can_start_match(), "map_id": main.map_id,
 		"precipitation": main.weather_surfaces.precipitation,
 		"complete": not result.is_empty()}
+	if label == "server":
+		status.authoritative_max_displacement = observe_max_displacement
+		status.authoritative_observed_ticks = observe_ticks
+		status.authoritative_observation_invalid = observe_invalid
 	var path := control.path_join(label + ".json")
 	var file := FileAccess.open(path + ".tmp", FileAccess.WRITE)
 	file.store_string(JSON.stringify(status))
@@ -294,6 +365,8 @@ func _write_status() -> void:
 
 func _shutdown() -> void:
 	wanted = 0
+	moving_client = false
+	observe_movement = false
 	_release_profile_movement()
 	main.process_mode = Node.PROCESS_MODE_DISABLED
 	main.gameplay_audio.reset_for_match()
