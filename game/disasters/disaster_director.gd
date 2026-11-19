@@ -12,7 +12,7 @@ const MATCH_PRESETS := ["hard"]
 # Later rounds run faster, never meaner: intensity shortens the scheduling
 # gaps only. Damage, warnings and force bounds never scale with intensity.
 # Recovery protection is the bounded scale itself: with the default gaps the
-# fastest tier stays at a readable 2s/4s, and fixture/test overrides stay
+# fastest Hard late tier stays at a readable 1.2s/2.4s, and fixture/test overrides stay
 # authoritative instead of being floored.
 @export var mid_pacing_scale := 0.75
 @export var late_pacing_scale := 0.5
