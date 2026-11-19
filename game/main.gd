@@ -809,8 +809,11 @@ func _physics_process(delta: float) -> void:
 	# the timer and the disaster schedule do not depend on frame rate. Runs
 	# before the map guard, exactly as it did at the top of _process.
 	# Order per step: MatchClock -1000, Main 0, DisasterDirector 10, disasters 20.
-	match_manager.tick_match(delta)
-	terrain_collapse.tick(match_manager, disaster_director.last_seed)
+	# Gated on Main's process flag (always on in play) so fixtures that disable
+	# Main's processing still freeze the match clock exactly as before T11.
+	if is_processing():
+		match_manager.tick_match(delta)
+		terrain_collapse.tick(match_manager, disaster_director.last_seed)
 	if map_anchors.is_empty() or _map_loading:
 		return
 	if is_instance_valid(town_mechanisms) and match_manager.state == MatchManager.MatchState.ACTIVE:
