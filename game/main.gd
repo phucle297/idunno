@@ -813,6 +813,7 @@ func _physics_process(delta: float) -> void:
 			var avatar := _player_nodes[peer_id] as PartyPlayer
 			if is_instance_valid(avatar):
 				avatar.movement_buff = powerups.buff_state(peer_id, match_manager.elapsed_time)
+	_play_local_shove_cue()
 	if not _network_mode:
 		return
 	var local_peer_id := multiplayer.get_unique_id()
@@ -2053,6 +2054,22 @@ func _configure_lobby_ui() -> void:
 
 # M23.3: Space is both "jump" and "ui_accept". The jump cue only follows a press
 # the local avatar can act on, never a press consumed by menus/focused controls.
+# T23: one soft cue per shove press for the local shover (hit or miss alike),
+# local-only like the jump cue. Mirrors PartyPlayer's own shove-request gate.
+func _play_local_shove_cue() -> void:
+	if match_manager.state != MatchManager.MatchState.ACTIVE or not Input.is_action_just_pressed("shove"):
+		return
+	var local_id := multiplayer.get_unique_id() if _network_mode else 1
+	var player := _player_nodes.get(local_id) as PartyPlayer
+	if not is_instance_valid(player):
+		player = get_node_or_null("Player") as PartyPlayer
+	if not is_instance_valid(player) or not player.world_loaded or player.local_input_blocked or not player.accepts_local_input():
+		return
+	if not match_manager.is_player_alive(local_id):
+		return
+	gameplay_audio.play_shove()
+
+
 func _offline_jump_cue_allowed() -> bool:
 	if match_manager.state != MatchManager.MatchState.ACTIVE:
 		return false
