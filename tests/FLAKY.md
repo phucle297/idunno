@@ -23,8 +23,15 @@ listed here is skipped or deleted; contracts stay unchanged.
 test_multiplayer_profile.MultiplayerProfileContract.test_four_real_clients_moving_client_changes_authoritative_position
 
 # test_action_audio: removed from this list by T25 (blocking again).
-# Root cause of the 0-cue bomb_pickup/bomb_throw flake: the 0.09 s bomb
-# tone can start and finish between two polled frames on a loaded runner;
-# the test now reads the emitter's own play counter (one press -> exactly
-# one cue still asserted). History: runs 44372826235 (bomb_pickup) and
-# 44384131654 (bomb_throw), quarantined under T26.
+# Causes found under 8-busy-loop load (evidence in the T25 ledger):
+# - bomb 0 cues: the emitter played once, but the per-frame is_playing()
+#   poll can miss a 0.09 s generated tone (its observed active window under
+#   the headless dummy audio driver ranged from under one frame to ~70 ms); the
+#   probe reads HotPotatoVisuals.cue_play_count, 1..1 still asserted.
+# - bomb_throw 2 cues: the pass returned to the thrower (0.3 s game time)
+#   inside a 24-frame window; the window now ends with the flight.
+# - toy_harbor toy_use 0 cues: the fixture swaps maps inside one match, so
+#   toy effect ids restart while toy audio dedup keeps Town's id:kind keys;
+#   the fixture now does the match-state presentation reset.
+# History: runs 44372826235 (bomb_pickup) and 44384131654 (bomb_throw),
+# quarantined under T26.
