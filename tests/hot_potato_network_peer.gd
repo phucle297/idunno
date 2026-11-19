@@ -7,12 +7,57 @@ var role := ""
 var port := 29970
 var player_count := 2
 var map_id := "toy_town"
+var salts_used: Array = []
 
 
 class FixtureMain extends "res://game/main.gd":
 	var fixture_acks: Dictionary = {}
 	var departure_allowed := false
 	var departure_phase := HotPotato.Phase.IDLE
+	## T10(c): every match/session snapshot payload this client receives.
+	var received_payloads: Array[PackedByteArray] = []
+	var received_count := 0
+
+	@rpc("authority", "call_remote", "reliable", 2)
+	func _apply_session_snapshot(snapshot: Dictionary) -> void:
+		_record_payload(snapshot)
+		super._apply_session_snapshot(snapshot)
+
+	@rpc("authority", "call_remote", "unreliable_ordered", 2)
+	func _apply_match_snapshot(snapshot: Dictionary) -> void:
+		_record_payload(snapshot)
+		super._apply_match_snapshot(snapshot)
+
+	func _record_payload(snapshot: Dictionary) -> void:
+		if not multiplayer.is_server():
+			received_count += 1
+			received_payloads.append(var_to_bytes(snapshot))
+
+	## Server sends the private salts only after play, for the leak scan.
+	@rpc("authority", "call_remote", "reliable", 2)
+	func fixture_scan_salts(salts: Array) -> void:
+		var leaks := 0
+		for payload in received_payloads:
+			var text := payload.get_string_from_ascii()
+			if payload.size() > 0 and ("fuse_salt" in str(bytes_to_var(payload)) or "fuse_salt" in text):
+				leaks += 1
+				continue
+			for salt: int in salts:
+				var needle := PackedByteArray()
+				needle.resize(8)
+				needle.encode_s64(0, salt)
+				if _contains(payload, needle) or str(salt) in str(bytes_to_var(payload)):
+					leaks += 1
+					break
+		var ok := received_count > 0 and leaks == 0 and disaster_director.fuse_salt == 0
+		print("HOT_POTATO_ENET_SALT_SCAN peer=%d payloads=%d leaks=%d client_salt_zero=%s" % [multiplayer.get_unique_id(), received_count, leaks, disaster_director.fuse_salt == 0])
+		fixture_ack.rpc_id(1, "salt_scan", ok)
+
+	func _contains(haystack: PackedByteArray, needle: PackedByteArray) -> bool:
+		for i in range(0, haystack.size() - needle.size() + 1):
+			if haystack[i] == needle[0] and haystack.slice(i, i + needle.size()) == needle:
+				return true
+		return false
 
 	func _remove_network_player(peer_id: int) -> void:
 		super._remove_network_player(peer_id)
@@ -148,6 +193,14 @@ func _spawn_and_pickup(main: FixtureMain, remote_id: int, pad: Vector3, deadline
 	print("HOT_POTATO_ENET_PICKUP_SETUP stage=%s phase=%d floor=%s collect=%s" % [stage, main.hot_potato.phase, (main._player_nodes[remote_id] as PartyPlayer).is_on_floor(), main.hot_potato.can_collect(remote_id)])
 	main.fixture_action.rpc_id(remote_id, "pickup")
 	var picked := await _wait_state(main, HotPotato.Phase.CARRIED, remote_id, deadline)
+	# T10: the authority fuse stream is keyed by public seed ^ private salt,
+	# not by the public seed alone. The salt value itself is never printed.
+	var director := main.disaster_director as DisasterDirector
+	var seeded: bool = main.hot_potato._rng.seed == MatchClock.derive_seed(director.last_seed ^ director.fuse_salt, &"hot_potato") and main.hot_potato._rng.seed != MatchClock.derive_seed(director.last_seed, &"hot_potato") and not main.hot_potato._seed_pending
+	if not salts_used.has(director.fuse_salt):
+		salts_used.append(director.fuse_salt)
+	print("HOT_POTATO_ENET_SEEDED stage=%s seed=%d salted=%s" % [stage, director.last_seed, seeded])
+	picked = picked and seeded
 	await _publish(main)
 	return picked and await _observe(main, stage, HotPotato.Phase.CARRIED, remote_id, player_count - 1, deadline)
 
@@ -190,6 +243,12 @@ func _server(main: FixtureMain) -> void:
 		(main.disaster_director as DisasterDirector).set_process(false)
 		main.hot_potato.anchors.assign([pad])
 		passed = passed and await _spawn_and_pickup(main, remote_id, pad, deadline, "rematch_%d" % cycle)
+	# T10(c): no client-received snapshot payload carries the private salt.
+	main.fixture_acks.erase("salt_scan")
+	main.fixture_scan_salts.rpc(salts_used)
+	var salt_scan := await main.wait_acks("salt_scan", player_count - 1, deadline)
+	print("HOT_POTATO_ENET_SALT_SCAN_ALL ok=%s rounds=%d" % [salt_scan, salts_used.size()])
+	passed = passed and salt_scan and salts_used.size() == 6
 	# An actual ENet departure while carrying must remove the player through Main.
 	# Two-player rows prove supported drop; larger rows prove void cancellation.
 	if player_count > 2:
