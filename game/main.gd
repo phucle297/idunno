@@ -127,8 +127,12 @@ var _last_held_toy := ""
 var match_preset := "hard"
 var map_anchors: Dictionary = {}
 # M23.1: meteor route-safety reserved points, rebuilt when map_anchors is replaced.
+# T31: keyed on the anchor dict identity AND its map_id/size, and invalidated on
+# map change, because map prep clear()s map_anchors in place (same identity).
 var _meteor_reserved_cache: Array[Vector3] = []
 var _meteor_reserved_source: Variant = null
+var _meteor_reserved_map := ""
+var _meteor_reserved_size := -1
 ## T17: shared seeded placement for every ground pickup (powerup/toy/potato).
 var pickup_placement := PickupPlacement.new()
 ## Report names for pickup_placement.zones (same order).
@@ -3119,6 +3123,7 @@ func prepare_gameplay_map(is_current := Callable()) -> bool:
 		return map_id == selected_map and (is_current.is_null() or bool(is_current.call())))
 	_map_preparation = work
 	map_anchors.clear()
+	_invalidate_meteor_reserved_points()
 	$Sandbox.hide() # Do not render thousands of partial-world meshes behind loading UI.
 	for player: PartyPlayer in _player_nodes.values():
 		player.world_loaded = false
@@ -3326,8 +3331,18 @@ func _meteor_routes_clear(points: Array[Vector3]) -> bool:
 	return true
 
 
+func _invalidate_meteor_reserved_points() -> void:
+	_meteor_reserved_cache = []
+	_meteor_reserved_source = null
+	_meteor_reserved_map = ""
+	_meteor_reserved_size = -1
+
+
 func _meteor_reserved_points() -> Array[Vector3]:
-	if is_same(_meteor_reserved_source, map_anchors):
+	# T31: identity alone is not enough; map prep clears the same dict in place.
+	if is_same(_meteor_reserved_source, map_anchors) \
+			and _meteor_reserved_map == String(map_anchors.get("map_id", "")) \
+			and _meteor_reserved_size == map_anchors.size():
 		return _meteor_reserved_cache
 	var reserved: Array[Vector3] = []
 	for refuge: Dictionary in map_anchors.get("refuges", []):
@@ -3338,6 +3353,8 @@ func _meteor_reserved_points() -> Array[Vector3]:
 		reserved.append(route.high)
 	_meteor_reserved_cache = reserved
 	_meteor_reserved_source = map_anchors
+	_meteor_reserved_map = String(map_anchors.get("map_id", ""))
+	_meteor_reserved_size = map_anchors.size()
 	return reserved
 
 
