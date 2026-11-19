@@ -50,10 +50,13 @@ func _run() -> void:
 	player.set_process_unhandled_input(false)
 	_flood = _main.get_node("Flood")
 	_flood.set_process(false)
+	_flood.set_physics_process(false)
 	_meteor = _main.get_node("MeteorShower")
 	_meteor.set_process(false)
+	_meteor.set_physics_process(false)
 	_tornado = _main.get_node("Tornado")
 	_tornado.set_process(false)
+	_tornado.set_physics_process(false)
 	_register_trio()
 	_holder = _main._player_nodes[2]
 	_passenger = _main._player_nodes[3]

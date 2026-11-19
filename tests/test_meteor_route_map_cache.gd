@@ -15,7 +15,7 @@ func _run() -> void:
 	root.add_child(main)
 	await physics_frame
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.match_manager.prepare_lobby()
 	var first_town := await _load(main, "toy_town")
 	var harbor := await _load(main, "toy_harbor")

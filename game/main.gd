@@ -353,19 +353,20 @@ func _ready() -> void:
 	if _has_argument("--meteor-demo") or _has_argument("--meteor-impact-demo"):
 		meteor_shower.start_warning(Vector3(1.5, 0.06, 5.0))
 		if _has_argument("--meteor-demo"):
-			meteor_shower.set_process(false)
+			meteor_shower.set_physics_process(false)
 			meteor_shower.tick(2.3)
 	if _has_argument("--rain-demo") or _has_argument("--snow-demo"):
 		var weather_rng := RandomNumberGenerator.new()
 		weather_rng.seed = 1701
 		var weather_event: Precipitation = rain if _has_argument("--rain-demo") else snowfall
-		weather_event.set_process(false)
+		weather_event.set_physics_process(false)
 		weather_event.start_disaster(weather_rng)
 		weather_event.tick(weather_event.warning_duration)
 		tick_weather(8.0 if _has_argument("--rain-demo") else 16.0)
 	if _has_argument("--flood-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
+		flood.set_physics_process(false)
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
 		flood.tick(flood.rise_duration * 0.45)
@@ -374,27 +375,28 @@ func _ready() -> void:
 		$Player.set_physics_process(false)
 		$Player.apply_movement_input(Vector2.ZERO, false, false, 0.0)
 		flood.set_process(false)
+		flood.set_physics_process(false)
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
 		flood._set_water_level(1.0)
 		flood.phase = Flood.Phase.HOLDING
 		flood.tick(1.0 if _has_argument("--flood-grace-demo") else flood.breathing_grace + 0.5)
 	if _has_argument("--tornado-demo"):
-		tornado.set_process(false)
+		tornado.set_physics_process(false)
 		tornado.start_warning(Vector3(-7.0, 0.0, 0.0), Vector3(9.0, 0.0, 0.0))
 		tornado.tick(tornado.warning_duration)
 		tornado.tick(1.6)
 	if _has_argument("--earthquake-demo"):
-		earthquake.set_process(false)
+		earthquake.set_physics_process(false)
 		earthquake.start_warning()
 		earthquake.tick(earthquake.warning_duration)
 		earthquake.tick(3.8)
 	if _has_argument("--lightning-demo"):
-		lightning.set_process(false)
+		lightning.set_physics_process(false)
 		lightning.start_warning(Vector3(1.5, 0.06, 5.0))
 		lightning.tick(lightning.warning_duration * 0.72)
 	if _has_argument("--fire-demo"):
-		fire.set_process(false)
+		fire.set_physics_process(false)
 		fire.start_warning(6)
 		fire.tick(fire.warning_duration)
 		fire.tick(3.0)
@@ -405,13 +407,14 @@ func _ready() -> void:
 			prop.queue_free()
 		$Sandbox/SignHall.visible = false
 		flood.set_process(false)
+		flood.set_physics_process(false)
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
 		flood.tick(flood.rise_duration * 0.45)
 		flood.electrify_at(Vector3(-5.0, 0.06, -5.0))
 	if _has_argument("--fire-tornado-demo"):
-		fire.set_process(false)
-		tornado.set_process(false)
+		fire.set_physics_process(false)
+		tornado.set_physics_process(false)
 		fire.start_warning(6)
 		fire.tick(fire.warning_duration)
 		tornado.start_warning(Vector3(-7.0, 0.0, 5.0), Vector3(9.0, 0.0, 5.0))
@@ -423,7 +426,8 @@ func _ready() -> void:
 	if _has_argument("--overlap-demo"):
 		$Player.position = Vector3(16.0, 4.95, -13.0)
 		flood.set_process(false)
-		tornado.set_process(false)
+		flood.set_physics_process(false)
+		tornado.set_physics_process(false)
 		flood.start_warning()
 		flood.tick(flood.warning_duration)
 		flood.tick(flood.rise_duration * 0.45)
@@ -801,6 +805,12 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 
 
 func _physics_process(delta: float) -> void:
+	# T11: official match time advances once per physics step (fixed delta), so
+	# the timer and the disaster schedule do not depend on frame rate. Runs
+	# before the map guard, exactly as it did at the top of _process.
+	# Order per step: MatchClock -1000, Main 0, DisasterDirector 10, disasters 20.
+	match_manager.tick_match(delta)
+	terrain_collapse.tick(match_manager, disaster_director.last_seed)
 	if map_anchors.is_empty() or _map_loading:
 		return
 	if is_instance_valid(town_mechanisms) and match_manager.state == MatchManager.MatchState.ACTIVE:
@@ -1313,8 +1323,6 @@ func _process(delta: float) -> void:
 			if _connection_remaining <= 0.0:
 				multiplayer.multiplayer_peer.close()
 				_on_connection_failed()
-	match_manager.tick_match(delta)
-	terrain_collapse.tick(match_manager, disaster_director.last_seed)
 	if not _network_mode and Input.is_action_just_pressed("jump") and _offline_jump_cue_allowed():
 		gameplay_audio.play_jump()
 	# The loading roster and match state are frozen. The reliable load/cancel

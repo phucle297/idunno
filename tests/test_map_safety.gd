@@ -253,6 +253,7 @@ func _check_garage_canopy(main: Node3D, player: PartyPlayer) -> void:
 func _check_roof_breakage(main: Node3D, player: PartyPlayer) -> void:
 	var flood := main.get_node("Flood") as Flood
 	flood.set_process(false)
+	flood.set_physics_process(false)
 	var camera := Camera3D.new()
 	main.add_child(camera)
 	for building_name in ["Shop", "Hall"]:

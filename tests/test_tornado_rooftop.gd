@@ -94,6 +94,7 @@ func _make_world(pad_size: Vector2 = PAD_SIZE) -> Dictionary:
 	# T3q: disable _process after entering the tree (set before add_child is
 	# re-enabled on ready, which made the fixture tick the Tornado twice).
 	tornado.set_process(false)
+	tornado.set_physics_process(false)
 	tornado.configure(manager)
 	return {"world": world, "manager": manager, "tornado": tornado}
 
@@ -348,9 +349,11 @@ func _check_real_maps() -> void:
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.match_manager.set_process(false)
 	var tornado = main.tornado
 	tornado.set_process(false)
+	tornado.set_physics_process(false)
 	var player: PartyPlayer = main.get_node("Player")
 	player.set_physics_process(false)
 	for map_id: String in ["toy_town", "toy_harbor"]:

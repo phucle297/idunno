@@ -201,7 +201,12 @@ func cleanup() -> void:
 	_reset_runtime_state()
 
 
-func _process(delta: float) -> void:
+func _init() -> void:
+	# T11: after Main (tick_match) and before the disasters in every physics step.
+	process_physics_priority = 10
+
+
+func _physics_process(delta: float) -> void:
 	tick(delta)
 
 

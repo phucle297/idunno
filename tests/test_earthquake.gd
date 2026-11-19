@@ -27,7 +27,7 @@ func _run() -> void:
 	var manager := ManagerScript.new()
 	world.add_child(manager)
 	var earthquake := EarthquakeScript.new()
-	earthquake.set_process(false)
+	earthquake.set_physics_process(false)
 	world.add_child(earthquake)
 	earthquake.configure(manager)
 
@@ -202,7 +202,7 @@ func _run() -> void:
 	set_multiplayer(client_api, client_root.get_path())
 	var client_quake := EarthquakeScript.new()
 	client_root.add_child(client_quake)
-	client_quake.set_process(false)
+	client_quake.set_physics_process(false)
 	var rubble_snapshot := earthquake.create_presentation_snapshot()
 	_expect((rubble_snapshot["burning_rubble"] as PackedVector3Array).size() == earthquake.burning_rubble_count(), "Snapshots must replicate every live burning-rubble position")
 	_expect(client_quake.apply_presentation_snapshot(rubble_snapshot), "Client must accept replicated burning rubble")

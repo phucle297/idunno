@@ -118,7 +118,7 @@ func _start(main: FixtureMain, deadline: int) -> bool:
 	main._unhandled_input(start)
 	while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
-	(main.disaster_director as DisasterDirector).set_process(false)
+	(main.disaster_director as DisasterDirector).set_physics_process(false)
 	return main.get_network_player_ids().size() == player_count and main.match_manager.state == MatchManager.MatchState.ACTIVE
 
 
@@ -220,7 +220,7 @@ func _run_server(main: FixtureMain) -> void:
 		rematches_ok = rematches_ok and main.restart_network_match()
 		while manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 			await process_frame
-		(main.disaster_director as DisasterDirector).set_process(false)
+		(main.disaster_director as DisasterDirector).set_physics_process(false)
 		await _publish(main)
 		rematches_ok = rematches_ok and main.powerups.pickups.is_empty() and main.powerups.buffs.is_empty() and main.powerups.round_sequence == prior_round + cycle + 1
 		rematches_ok = rematches_ok and await _inspect(main, "rematch_%d" % cycle, 0, MatchPowerups.Kind.NONE, 0, deadline)
@@ -288,6 +288,6 @@ func _stop_producers(main: Node) -> void:
 	main.set_physics_process(false)
 	main.gameplay_audio.reset_for_match()
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	for player: PartyPlayer in main._player_nodes.values():
 		player.set_physics_process(false)

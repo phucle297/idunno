@@ -20,6 +20,7 @@ func _run() -> void:
 	main.set_physics_process(false)
 	main.match_manager.set_process(false)
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.disaster_director.cleanup()
 	main.match_manager.prepare_lobby()
 	main._add_gameplay_demo_player(2, "Survivor", Vector3(4, 1, -4))

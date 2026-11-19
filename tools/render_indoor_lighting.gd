@@ -39,7 +39,7 @@ func _run() -> void:
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	root.size = Vector2i(1280, 720)
 	camera = Camera3D.new()
 	camera.fov = 70

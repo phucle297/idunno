@@ -59,6 +59,7 @@ func _check_map(main: Node3D, player: PartyPlayer, flood: Flood, map_name: Strin
 	# Hazard systems must consume the map anchors, not hardcoded positions.
 	var tornado := main.get_node("Tornado") as Tornado
 	tornado.set_process(false)
+	tornado.set_physics_process(false)
 	var meteor := main.get_node("MeteorShower") as MeteorShower
 	var lightning := main.get_node("Lightning") as Lightning
 	var fire := main.get_node("Fire") as Fire

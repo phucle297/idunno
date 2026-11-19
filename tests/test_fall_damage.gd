@@ -61,7 +61,7 @@ func _check_drops() -> void:
 	main.set_process(false)
 	main.set_physics_process(false)
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	main.match_manager.set_process(false)
 	for hazard in [main.bee_swarm, main.ufo, main.volcano]:
 		hazard.set_physics_process(false)

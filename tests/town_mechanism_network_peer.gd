@@ -79,6 +79,7 @@ func _server(main: FixtureMain) -> void:
 	while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
 	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	var guest_id := main.get_network_player_ids()[1] if main.get_network_player_ids().size() == 2 else 0
 	var guest := main._player_nodes.get(guest_id) as PartyPlayer
 	var awning_control := main.town_mechanisms.get_control_position(Mechanisms.AWNING_ID)

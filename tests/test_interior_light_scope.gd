@@ -24,7 +24,7 @@ func _run() -> void:
 	root.add_child(main)
 	await physics_frame
 	main.disaster_director.cleanup()
-	main.disaster_director.set_process(false)
+	main.disaster_director.set_physics_process(false)
 	for map_id in ["toy_town", "toy_harbor"]:
 		main.match_manager.prepare_lobby()
 		main.set_map_id(map_id)

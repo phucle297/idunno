@@ -227,6 +227,7 @@ func _start(main: FixtureMain, deadline: int) -> bool:
 	while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 		await process_frame
 	(main.disaster_director as DisasterDirector).set_process(false)
+	(main.disaster_director as DisasterDirector).set_physics_process(false)
 	return main.match_manager.state == MatchManager.MatchState.ACTIVE
 
 
@@ -580,6 +581,7 @@ func _server(main: FixtureMain) -> void:
 		while main.match_manager.state != MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() < deadline:
 			await process_frame
 		(main.disaster_director as DisasterDirector).set_process(false)
+		(main.disaster_director as DisasterDirector).set_physics_process(false)
 		main.match_manager.elapsed_time = 3.1
 		passed = passed and await _give_remote(main, remote_id, "foam_blaster", 800 + cycle, pad, deadline, "rematch_pickup_%d" % cycle)
 		passed = passed and await _use_remote(main, remote_id, "foam_blaster", 2, deadline, "rematch_use_%d" % cycle)
