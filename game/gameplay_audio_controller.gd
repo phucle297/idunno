@@ -10,6 +10,8 @@ const COUNTDOWN_DB := -10.0
 const IMPACT_DB := -9.0
 const JUMP_DB := -11.0
 const PICKUP_DB := -10.0
+# T23: soft shove cue (generated low thump, Effects bus), pending Owner listen.
+const SHOVE_DB := -12.0
 const DEATH_DB := -11.0
 const RESULTS_DB := -14.0
 const UI_FOCUS_DB := -16.0
@@ -38,6 +40,8 @@ const VolcanoWarningSound = preload("res://assets/audio/generated/volcano_warnin
 var warning_play_count := 0
 var effect_play_count := 0
 var active_warning_name := ""
+var shove_play_count := 0
+var shove_sound: AudioStreamWAV = _make_shove_sound()
 
 var _warning_voice: AudioStreamPlayer
 var _effect_voices: Array[AudioStreamPlayer] = []
@@ -140,6 +144,32 @@ func play_warning(disaster_name: String) -> void:
 
 func play_jump() -> void:
 	play_effect(JumpSound, JUMP_DB)
+
+
+func play_shove() -> void:
+	shove_play_count += 1
+	play_effect(shove_sound, SHOVE_DB)
+
+
+# 22.05 kHz mono PCM16, 0.10 s, 240->150 Hz soft thump, peak 0.18 (same
+# generator family as ToySabotageAudio tones; no asset file).
+static func _make_shove_sound() -> AudioStreamWAV:
+	const RATE := 22050
+	var count := roundi(0.10 * RATE)
+	var data := PackedByteArray()
+	data.resize(count * 2)
+	var phase := 0.0
+	for index in count:
+		var progress := float(index) / float(count)
+		phase += TAU * lerpf(240.0, 150.0, progress) / RATE
+		var envelope := sin(PI * progress) * (1.0 - progress * 0.35)
+		var sample := (sin(phase) * 0.18 + sin(float(index) * 12.9898) * 0.012) * envelope
+		data.encode_s16(index * 2, clampi(roundi(sample * 32767.0), -32768, 32767))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = RATE
+	stream.data = data
+	return stream
 
 
 func play_pickup() -> void:

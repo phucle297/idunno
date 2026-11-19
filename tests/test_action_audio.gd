@@ -131,9 +131,8 @@ func _run() -> void:
 		_report("%s:jump" % map_id)
 		await _frames(90)
 		starts.clear()
-		# Shove (G): no target in solo, no cue is expected or allowed beyond one.
-		await _press_key(KEY_G)
-		_report("%s:shove_no_target" % map_id, 1, 0)
+		# T23 Shove (G): exactly one soft cue per press, miss and hit alike.
+		await _probe_shove(main, actor, map_id)
 		# Power-up pickup: the HUD card is the only pickup cue emitter.
 		await _settle()
 		main.gameplay_hud.powerup_card.present(MatchPowerups.Kind.SPEED, 8.0, 900 + checks, main.gameplay_hud.powerup_card._round, true)
@@ -194,6 +193,47 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 
+func _probe_shove(main: Node, actor: PartyPlayer, map_id: String) -> void:
+	var shove_manager: ShoveManager = main.get_node("ShoveManager")
+	var hits := [0]
+	var on_hit := func(_shover: int, _victim: int) -> void: hits[0] += 1
+	shove_manager.shove_effect_applied.connect(on_hit)
+	# Miss: no other player in range.
+	main.gameplay_audio.reset_for_match()
+	await _settle()
+	var shoves_before: int = main.gameplay_audio.shove_play_count
+	await _press_key(KEY_G)
+	_expect(hits[0] == 0, "%s: shove with no target is a miss" % map_id)
+	_expect(main.gameplay_audio.shove_play_count - shoves_before == 1, "%s: miss shove calls play_shove once" % map_id)
+	_report("%s:shove_miss" % map_id)
+	# Hit: a passive dummy player right in front of the shover.
+	await _frames(int(Engine.physics_ticks_per_second * 1.5))  # past shove cooldown
+	var dummy := (load("res://scenes/player.tscn") as PackedScene).instantiate() as PartyPlayer
+	dummy.local_input_blocked = true
+	main.add_child(dummy)
+	var forward := actor.get_forward_direction()
+	forward.y = 0.0
+	dummy.global_position = actor.global_position + forward.normalized() * 1.0
+	main.match_manager.players[2] = main.match_manager._new_player_state("T23 Dummy")
+	shove_manager.register_player(2, dummy)
+	main.gameplay_audio.reset_for_match()
+	await _settle()
+	shoves_before = main.gameplay_audio.shove_play_count
+	await _press_key(KEY_G)
+	_expect(hits[0] == 1, "%s: shove with a target in front is a hit (hits=%d)" % [map_id, hits[0]])
+	_expect(main.gameplay_audio.shove_play_count - shoves_before == 1, "%s: hit shove calls play_shove once" % map_id)
+	var hit_starts := _action_cues().duplicate()
+	_report("%s:shove_hit" % map_id)
+	for cue: Dictionary in hit_starts:
+		_expect(String(cue.stream).begins_with("generated:") and is_equal_approx(float(cue.db), GameplayAudioController.SHOVE_DB), "%s: hit cue is the same shove cue as a miss %s" % [map_id, JSON.stringify(cue)])
+	shove_manager.shove_effect_applied.disconnect(on_hit)
+	shove_manager.unregister_player(2)
+	main.match_manager.players.erase(2)
+	dummy.queue_free()
+	await _frames(30)
+	starts.clear()
+
+
 func _rms_dbfs(stream: AudioStreamWAV) -> float:
 	# Imported WAVs may be compressed; measure the source PCM16 (44-byte header
 	# from tools/audio_generation) or, for generated in-memory tones, raw data.
@@ -221,6 +261,7 @@ func _check_warning_distinct(main: Node) -> void:
 	var actions := {
 		"jump": GameplayAudioController.JUMP_DB + _rms_dbfs(GameplayAudioController.JumpSound),
 		"pickup": GameplayAudioController.PICKUP_DB + _rms_dbfs(GameplayAudioController.PickupSound),
+		"shove": GameplayAudioController.SHOVE_DB + _rms_dbfs(audio.shove_sound),
 		"ui_confirm": GameplayAudioController.UI_CONFIRM_DB + _rms_dbfs(GameplayAudioController.JumpSound),
 		"ui_focus": GameplayAudioController.UI_FOCUS_DB + _rms_dbfs(GameplayAudioController.PickupSound),
 	}
