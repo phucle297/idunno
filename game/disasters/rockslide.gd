@@ -23,6 +23,9 @@ const TARGET_RUN_UPS: Array[float] = [6.0, 4.5, 3.0]
 const TARGET_MAX_ROOF_RUN := 10.0
 const TARGET_RUN_PAST := 2.0
 const SAMPLE_STEP := 0.25
+# T22: rocks on the authored lane roll this far past `low` before they stop;
+# lane_extent_of() uses the same run-out so pickups never spawn in it.
+const AUTHORED_RUNOUT := 8.0
 
 @export var warning_duration := 5.0
 @export var active_duration := 10.0
@@ -151,7 +154,7 @@ func tick(delta: float) -> void:
 			if along > float(lane.length) or _lane_offset(rock.position) > CORRIDOR_HALF_WIDTH:
 				rock.set_meta("stopped", true)
 				rock.velocity = Vector3.ZERO
-		elif rock.position.z > (lane.low as Vector3).z + 8.0:
+		elif rock.position.z > (lane.low as Vector3).z + AUTHORED_RUNOUT:
 			rock.set_meta("stopped", true)
 	# Winner evaluation can synchronously clean up every hazard. Finish this
 	# iteration first; simultaneous impacts use the existing batch contract.
@@ -356,9 +359,49 @@ func _show_chosen_warning(high: Vector3, low: Vector3) -> void:
 
 
 func _lane_forward() -> Vector3:
-	var run := (lane.low as Vector3) - (lane.high as Vector3)
+	return _forward_of(lane)
+
+
+func _forward_of(l: Dictionary) -> Vector3:
+	var run := (l.low as Vector3) - (l.high as Vector3)
 	run.y = 0
 	return run.normalized() if run.length_squared() > 0.0001 else Vector3.BACK
+
+
+## T22: the flat ground rectangle a lane's rocks can cover, height ignored.
+## It runs from `high` along the lane for `length`: a chosen corridor uses its
+## published length; the authored lane uses the horizontal high->low run plus
+## the AUTHORED_RUNOUT stop line.
+func lane_extent_of(l: Dictionary) -> Dictionary:
+	if l.is_empty():
+		return {}
+	var high: Vector3 = l.high
+	var low: Vector3 = l.low
+	var length := float(l.length) if l.get("chosen", false) else Vector2(low.x - high.x, low.z - high.z).length() + AUTHORED_RUNOUT
+	return {"start": high, "forward": _forward_of(l), "length": length, "half_width": CORRIDOR_HALF_WIDTH}
+
+
+## T22: true when `point` (grown by `margin`) is inside the authored lane,
+## which is a static embankment so it is always checked, or inside the
+## current lane while a slide is warning or active. Toy Harbor's authored
+## lane at x=27 overlaps the east edge of the pickup zones (x 24.6-26); it is
+## kept there on purpose (Architect, T22) and this check rejects that strip.
+func lane_contains(point: Vector3, margin: float) -> bool:
+	if _extent_contains(lane_extent_of(authored_lane), point, margin):
+		return true
+	return is_active() and _extent_contains(lane_extent_of(lane), point, margin)
+
+
+func _extent_contains(extent: Dictionary, point: Vector3, margin: float) -> bool:
+	if extent.is_empty():
+		return false
+	var rel: Vector3 = point - (extent.start as Vector3)
+	rel.y = 0
+	var forward: Vector3 = extent.forward
+	var along := rel.dot(forward)
+	if along < -margin or along > float(extent.length) + margin:
+		return false
+	return (rel - forward * along).length() <= float(extent.half_width) + margin
 
 
 func _lane_offset(point: Vector3) -> float:
