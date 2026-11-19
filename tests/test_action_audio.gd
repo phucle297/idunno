@@ -11,6 +11,7 @@ var checks := 0
 var failures: Array[String] = []
 var _state := {}
 var starts: Array[Dictionary] = []
+var _max_frame_ms := 0.0
 
 
 func _initialize() -> void:
@@ -32,8 +33,17 @@ func _scan() -> void:
 
 func _frames(count: int) -> void:
 	for index in count:
+		var before := Time.get_ticks_usec()
 		await process_frame
+		_max_frame_ms = maxf(_max_frame_ms, float(Time.get_ticks_usec() - before) / 1000.0)
 		_scan()
+
+
+# T25: polled HotPotatoVoice starts vs the emitter counter, plus the longest
+# frame in the window (the 0.09 s bomb tone is shorter than a slow frame).
+func _bomb_diag(label: String, main: Node, before: int) -> void:
+	var polled := _action_cues().filter(func(s: Dictionary) -> bool: return String(s.node).begins_with("HotPotatoVoice")).size()
+	print("T25_BOMB %s polled=%d counter=%d max_frame_ms=%.1f warning_playing=%s" % [label, polled, main.bomb_visuals.cue_play_count - before, _max_frame_ms, main.gameplay_audio.is_warning_playing()])
 
 
 func _settle() -> void:
@@ -56,6 +66,19 @@ func _press_key(code: Key) -> void:
 	await _frames(WINDOW_FRAMES)
 
 
+func _press_lmb() -> void:
+	var center: Vector2 = root.get_visible_rect().size * 0.5
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.position = center
+		event.global_position = center
+		Input.parse_input_event(event)
+		await _frames(3)
+	await _frames(WINDOW_FRAMES)
+
+
 func _click(control: Control) -> void:
 	var center: Vector2 = root.get_final_transform() * control.get_global_rect().get_center()
 	for pressed in [true, false]:
@@ -73,14 +96,15 @@ func _action_cues() -> Array[Dictionary]:
 	return starts.filter(func(s: Dictionary) -> bool: return s.bus == "Effects")
 
 
-func _report(label: String, expected_max: int = 1, expected_min: int = 1, emitter_count: int = -1) -> void:
+func _report(label: String, expected_max: int = 1, expected_min: int = 1, emitter_count: int = -1, emitter_prefix: String = "ToyEffectVoice") -> void:
 	var cues := _action_cues()
 	if emitter_count >= 0:
 		# Very short generated clips (0.07-0.09 s) can finish between two polled
 		# frames on a loaded box; the emitter's own play counter is authoritative.
-		cues = cues.filter(func(s: Dictionary) -> bool: return not String(s.node).begins_with("ToyEffectVoice"))
+		# Other Effects-bus starts still count, so a double cue still fails.
+		cues = cues.filter(func(s: Dictionary) -> bool: return not String(s.node).begins_with(emitter_prefix))
 		for index in emitter_count:
-			cues.append({"node": "ToyEffectVoice(counter)"})
+			cues.append({"node": "%s(counter)" % emitter_prefix})
 	print("M23.3_CUES %s count=%d starts=%s" % [label, cues.size(), JSON.stringify(starts)])
 	_expect(cues.size() >= expected_min and cues.size() <= expected_max, "%s: one press must give %d..%d action cue(s), got %d %s" % [label, expected_min, expected_max, cues.size(), JSON.stringify(starts)])
 	starts.clear()
@@ -146,15 +170,18 @@ func _run() -> void:
 		await _press_key(KEY_F)
 		_expect(String(main.toy_sabotage.slots.get(1, {}).get("kind", "")) == "foam_blaster", "%s: F picks the toy up" % map_id)
 		_report("%s:toy_pickup" % map_id)
-		# Toy use (left click path -> local_request_use).
+		# Toy use: a real left-click event through main._unhandled_input (T25 AC1).
+		# Headless cannot grab the OS pointer, so the test seam stands in for capture.
 		await _settle()
 		main.match_manager.elapsed_time = maxf(main.match_manager.elapsed_time, ToySabotage.OPENING_PROTECTION + 0.5)
 		main.gameplay_audio.reset_for_match()
 		var muted_before: int = main.toy_audio.muted_warning_count
 		var effects_before: int = main.toy_sabotage.effects.size()
 		var toy_plays_before: int = main.toy_audio.sound_play_count
-		main.toy_sabotage.local_request_use(1, actor.get_forward_direction())
-		await _frames(WINDOW_FRAMES)
+		PartyPlayer.headless_pointer_captured = true
+		await _press_lmb()
+		PartyPlayer.headless_pointer_captured = false
+		_expect(main.toy_sabotage.effects.size() > effects_before, "%s: left click uses the held toy" % map_id)
 		print("M23.3_TOY %s effects %d->%d muted %d->%d far=%d debounce=%d warning_playing=%s" % [map_id, effects_before, main.toy_sabotage.effects.size(), muted_before, main.toy_audio.muted_warning_count, main.toy_audio.skipped_distance_count, main.toy_audio.skipped_debounce_count, main.gameplay_audio.is_warning_playing()])
 		_report("%s:toy_use" % map_id, 1, 1, main.toy_audio.sound_play_count - toy_plays_before)
 		await _frames(120)
@@ -169,14 +196,20 @@ func _run() -> void:
 		# Toy/bomb cues yield to a playing warning by design (collapse notices keep
 		# ticking in this fixture); silence warnings so the probe measures the action.
 		main.gameplay_audio.reset_for_match()
+		var bomb_before: int = main.bomb_visuals.cue_play_count
+		_max_frame_ms = 0.0
 		await _press_key(KEY_F)
 		_expect(main.hot_potato.is_carrier(1), "%s: F picks the bomb up" % map_id)
-		_report("%s:bomb_pickup" % map_id)
+		_bomb_diag("%s:bomb_pickup" % map_id, main, bomb_before)
+		_report("%s:bomb_pickup" % map_id, 1, 1, main.bomb_visuals.cue_play_count - bomb_before, "HotPotatoVoice")
 		await _settle()
 		main.gameplay_audio.reset_for_match()
+		bomb_before = main.bomb_visuals.cue_play_count
+		_max_frame_ms = 0.0
 		main.hot_potato.local_request(1, false, actor.get_forward_direction())
 		await _frames(WINDOW_FRAMES)
-		_report("%s:bomb_throw" % map_id)
+		_bomb_diag("%s:bomb_throw" % map_id, main, bomb_before)
+		_report("%s:bomb_throw" % map_id, 1, 1, main.bomb_visuals.cue_play_count - bomb_before, "HotPotatoVoice")
 		main.hot_potato.reset()
 		await _frames(30)
 	# AC2: warnings are on a separate bus and voice, louder than any action cue.

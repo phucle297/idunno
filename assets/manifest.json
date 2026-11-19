@@ -168,6 +168,7 @@
       "bit_depth": 16,
       "files": ["warning.wav", "impact.wav", "jump.wav", "death.wav", "victory.wav", "flood_warning.wav", "meteor_warning.wav", "tornado_warning.wav", "pickup.wav"],
       "provenance": "Deterministically synthesized PCM in Godot; no third-party audio",
+      "files_scope": "generate_audio.gd writes 15 wavs; this bundle owns these 9. rain/snow/rock_warning.wav are listed in AUD_WeatherRock_v001 and bee/ufo/volcano_warning.wav in AUD_BeeUfoVolcano_v001 (same generator and folder). tests/test_audio_manifest.py enforces that every shipped wav is listed once (T25).",
       "sha256_manifest": "0781fdfbf3581432b4c558d61ce271f52a08839ce3858672752581354f7d268c",
       "sha256_manifest_method": "sha256sum of the listed files in order, piped to sha256sum (v2, M23.3)",
       "m23_3_change": "jump.wav softened (300-560 Hz sweep, ~35 ms attack, exp tail, 0.2 s); new pickup.wav soft two-note chime; other files byte-identical",

@@ -22,18 +22,9 @@ listed here is skipped or deleted; contracts stay unchanged.
 
 test_multiplayer_profile.MultiplayerProfileContract.test_four_real_clients_moving_client_changes_authoritative_position
 
-# test_action_audio (Godot suite). Assertions unchanged, including
-# toy_harbor bomb_pickup and bomb_throw (one press -> exactly one cue).
-# Two fail-then-pass signatures (suite quarantined under T26 / RULES §7):
-# 1. toy_harbor:bomb_pickup got 0 cues (tests/test_action_audio.gd:191)
-#    https://github.com/phucle297/idunno/actions/runs/44372826235
-#    push M23.3 @6756d3c4; attempt 1 FAIL (Godot, 2026-11-19 01:48 ICT);
-#    attempt 3 PASS (no-code rerun, 2026-11-19 03:02 ICT)
-#    (toy_town bomb_pickup and toy_harbor bomb_throw were 1)
-# 2. toy_harbor:bomb_throw got 0 cues (tests/test_action_audio.gd:191)
-#    https://github.com/phucle297/idunno/actions/runs/44384131654
-#    PR #11 T16 @3e6eef87; attempt 1 FAIL (Godot, 2026-11-19 02:53 ICT);
-#    attempt 2 PASS (rerun of failed jobs, 2026-11-19 03:21 ICT)
-#    (toy_town pickup/throw and toy_harbor bomb_pickup were 1)
-
-test_action_audio
+# test_action_audio: removed from this list by T25 (blocking again).
+# Root cause of the 0-cue bomb_pickup/bomb_throw flake: the 0.09 s bomb
+# tone can start and finish between two polled frames on a loaded runner;
+# the test now reads the emitter's own play counter (one press -> exactly
+# one cue still asserted). History: runs 44372826235 (bomb_pickup) and
+# 44384131654 (bomb_throw), quarantined under T26.
