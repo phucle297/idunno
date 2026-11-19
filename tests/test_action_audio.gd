@@ -39,6 +39,19 @@ func _frames(count: int) -> void:
 		_scan()
 
 
+# Polls like _frames, but stops early (after the scan) once keep_going() is false.
+# process_frame fires before nodes' _process, so the frame that ends the window
+# is not presented yet.
+func _frames_while(keep_going: Callable, max_count: int) -> void:
+	for index in max_count:
+		var before := Time.get_ticks_usec()
+		await process_frame
+		_max_frame_ms = maxf(_max_frame_ms, float(Time.get_ticks_usec() - before) / 1000.0)
+		_scan()
+		if not keep_going.call():
+			return
+
+
 # T25: polled HotPotatoVoice starts vs the emitter counter, plus the longest
 # frame in the window (the 0.09 s bomb tone is shorter than a slow frame).
 func _bomb_diag(label: String, main: Node, before: int) -> void:
@@ -141,6 +154,14 @@ func _run() -> void:
 		await main.prepare_gameplay_map()
 		main.disaster_director.cleanup()
 		main.gameplay_audio.reset_for_match()
+		# T25: real play reaches a new map through a match-state change, which
+		# resets toy/bomb presentation (main._on_match_state_changed). This fixture
+		# swaps maps inside one ACTIVE match, and _reset_sandbox restarts toy effect
+		# ids at 0 in the same round, so Harbor's shot could reuse a Town id:kind
+		# key and be deduped as already heard. Mirror the state-change reset.
+		main.toy_audio.reset_for_match()
+		if is_instance_valid(main.bomb_visuals):
+			main.bomb_visuals.reset_for_match()
 		var actor := main.get_node("Player") as PartyPlayer
 		await _frames(40)
 		await _settle()
@@ -207,7 +228,11 @@ func _run() -> void:
 		bomb_before = main.bomb_visuals.cue_play_count
 		_max_frame_ms = 0.0
 		main.hot_potato.local_request(1, false, actor.get_forward_direction())
-		await _frames(WINDOW_FRAMES)
+		# T25: the window is the throw's flight. An unclaimed pass returns to the
+		# thrower after RANGE/SPEED (0.3 s game time) with its own catch cue; on a
+		# loaded box 24 frames can outlast that. Stop when the flight resolves,
+		# before main._process presents the catch.
+		await _frames_while(func() -> bool: return main.hot_potato.phase == HotPotato.Phase.FLIGHT, WINDOW_FRAMES)
 		_bomb_diag("%s:bomb_throw" % map_id, main, bomb_before)
 		_report("%s:bomb_throw" % map_id, 1, 1, main.bomb_visuals.cue_play_count - bomb_before, "HotPotatoVoice")
 		main.hot_potato.reset()

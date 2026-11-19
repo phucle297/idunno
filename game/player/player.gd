@@ -119,9 +119,9 @@ func _process(_delta: float) -> void:
 	character.set_locomotion_speed(horizontal_speed)
 
 
-## T25: headless has no OS pointer grab (mouse_mode always reads VISIBLE), so
-## tests set headless_pointer_captured to drive the real left-click toy/bomb
-## path. Ignored on any real display server.
+## test-only: headless has no OS pointer grab (mouse_mode always reads
+## VISIBLE), so tests set this to drive the real left-click toy/bomb path.
+## Ignored on any real display server; never set it in game code (T25).
 static var headless_pointer_captured := false
 
 
