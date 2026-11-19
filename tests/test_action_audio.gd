@@ -12,6 +12,10 @@ var failures: Array[String] = []
 var _state := {}
 var starts: Array[Dictionary] = []
 var _max_frame_ms := 0.0
+# T36: natural-end "finished" signals per voice. A counter alone passes even if
+# the real play() call is removed; a finished playback proves the cue was heard.
+var _finished: Array[Dictionary] = []
+var _watched := {}
 
 
 func _initialize() -> void:
@@ -21,6 +25,9 @@ func _initialize() -> void:
 func _scan() -> void:
 	for player: AudioStreamPlayer in root.find_children("*", "AudioStreamPlayer", true, false):
 		var key := player.get_instance_id()
+		if not _watched.has(key):
+			_watched[key] = true
+			player.finished.connect(_on_voice_finished.bind(player))
 		var prev: Dictionary = _state.get(key, {"playing": false, "stream": null, "pos": 0.0})
 		var pos: float = player.get_playback_position() if player.playing else 0.0
 		if player.playing and (not prev.playing or prev.stream != player.stream or pos + 0.001 < prev.pos):
@@ -29,6 +36,30 @@ func _scan() -> void:
 				path = player.stream.resource_path if player.stream.resource_path != "" else "generated:%s" % player.stream.get_instance_id()
 			starts.append({"node": String(player.get_path()).get_file(), "stream": path, "db": player.volume_db, "bus": String(player.bus)})
 		_state[key] = {"playing": player.playing, "stream": player.stream, "pos": pos}
+
+
+func _on_voice_finished(player: AudioStreamPlayer) -> void:
+	_finished.append({"node": String(player.name), "stream": player.stream})
+
+
+# T36 AC1: wait until the emitter's voices are idle, then require one finished
+# playback per counted cue (counter >= 1). Skipping the real play() while
+# keeping the counter leaves finished=0 and fails.
+func _verify_playback(label: String, prefix: String, counter: Callable, before: int, stream: AudioStream = null) -> void:
+	var idle := 0
+	for index in 180:
+		await _frames(1)
+		var busy := false
+		for player: AudioStreamPlayer in root.find_children(prefix + "*", "AudioStreamPlayer", true, false):
+			busy = busy or player.playing
+		idle = 0 if busy else idle + 1
+		if idle >= 3:
+			break
+	var heard := _finished.filter(func(f: Dictionary) -> bool: return String(f.node).begins_with(prefix) and (stream == null or f.stream == stream)).size()
+	var counted := int(counter.call()) - before
+	print("T36_PLAYBACK %s counter=%d finished=%d idle=%d" % [label, counted, heard, idle])
+	_expect(idle >= 3, "%s: %s voices go idle after the cue" % [label, prefix])
+	_expect(counted >= 1 and heard == counted, "%s: every counted cue really plays (counter %d, finished playbacks %d)" % [label, counted, heard])
 
 
 func _frames(count: int) -> void:
@@ -90,6 +121,20 @@ func _press_lmb() -> void:
 		Input.parse_input_event(event)
 		await _frames(3)
 	await _frames(WINDOW_FRAMES)
+
+
+# One left-button event at the viewport centre, then one frame so it is handled.
+# Headless cannot grab the OS pointer; the T25 seam stands in for capture.
+func _lmb_event(pressed: bool) -> void:
+	var center: Vector2 = root.get_visible_rect().size * 0.5
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	event.position = center
+	event.global_position = center
+	PartyPlayer.headless_pointer_captured = true
+	Input.parse_input_event(event)
+	await _frames(1)
 
 
 func _click(control: Control) -> void:
@@ -199,12 +244,14 @@ func _run() -> void:
 		var muted_before: int = main.toy_audio.muted_warning_count
 		var effects_before: int = main.toy_sabotage.effects.size()
 		var toy_plays_before: int = main.toy_audio.sound_play_count
+		_finished.clear()
 		PartyPlayer.headless_pointer_captured = true
 		await _press_lmb()
 		PartyPlayer.headless_pointer_captured = false
 		_expect(main.toy_sabotage.effects.size() > effects_before, "%s: left click uses the held toy" % map_id)
 		print("M23.3_TOY %s effects %d->%d muted %d->%d far=%d debounce=%d warning_playing=%s" % [map_id, effects_before, main.toy_sabotage.effects.size(), muted_before, main.toy_audio.muted_warning_count, main.toy_audio.skipped_distance_count, main.toy_audio.skipped_debounce_count, main.gameplay_audio.is_warning_playing()])
 		_report("%s:toy_use" % map_id, 1, 1, main.toy_audio.sound_play_count - toy_plays_before)
+		await _verify_playback("%s:toy_use" % map_id, "ToyEffectVoice", func() -> int: return main.toy_audio.sound_play_count, toy_plays_before)
 		await _frames(120)
 		starts.clear()
 		main.toy_sabotage.slots.erase(1)
@@ -218,23 +265,39 @@ func _run() -> void:
 		# ticking in this fixture); silence warnings so the probe measures the action.
 		main.gameplay_audio.reset_for_match()
 		var bomb_before: int = main.bomb_visuals.cue_play_count
+		var bomb_count := func() -> int: return main.bomb_visuals.cue_play_count
 		_max_frame_ms = 0.0
+		_finished.clear()
 		await _press_key(KEY_F)
 		_expect(main.hot_potato.is_carrier(1), "%s: F picks the bomb up" % map_id)
 		_bomb_diag("%s:bomb_pickup" % map_id, main, bomb_before)
 		_report("%s:bomb_pickup" % map_id, 1, 1, main.bomb_visuals.cue_play_count - bomb_before, "HotPotatoVoice")
+		await _verify_playback("%s:bomb_pickup" % map_id, "HotPotatoVoice", bomb_count, bomb_before)
 		await _settle()
 		main.gameplay_audio.reset_for_match()
 		bomb_before = main.bomb_visuals.cue_play_count
 		_max_frame_ms = 0.0
-		main.hot_potato.local_request(1, false, actor.get_forward_direction())
+		_finished.clear()
+		# T36 AC2: throw through a real left-click event (main._unhandled_input ->
+		# hot_potato.local_request), not by calling the throw directly.
+		await _lmb_event(true)
+		_expect(main.hot_potato.phase == HotPotato.Phase.FLIGHT, "%s: left click throws the carried bomb" % map_id)
 		# T25: the window is the throw's flight. An unclaimed pass returns to the
 		# thrower after RANGE/SPEED (0.3 s game time) with its own catch cue; on a
 		# loaded box 24 frames can outlast that. Stop when the flight resolves,
 		# before main._process presents the catch.
 		await _frames_while(func() -> bool: return main.hot_potato.phase == HotPotato.Phase.FLIGHT, WINDOW_FRAMES)
+		await _lmb_event(false)
 		_bomb_diag("%s:bomb_throw" % map_id, main, bomb_before)
 		_report("%s:bomb_throw" % map_id, 1, 1, main.bomb_visuals.cue_play_count - bomb_before, "HotPotatoVoice")
+		# T36 AC3: the unclaimed pass returns to the thrower: exactly one catch cue.
+		var catch_before: int = main.bomb_visuals.cue_play_count
+		await _frames(WINDOW_FRAMES)
+		_expect(main.hot_potato.is_carrier(1), "%s: unclaimed pass returns to the thrower" % map_id)
+		_bomb_diag("%s:bomb_catch" % map_id, main, catch_before)
+		_report("%s:bomb_catch" % map_id, 1, 1, main.bomb_visuals.cue_play_count - catch_before, "HotPotatoVoice")
+		await _verify_playback("%s:bomb_throw+catch" % map_id, "HotPotatoVoice", bomb_count, bomb_before)
+		PartyPlayer.headless_pointer_captured = false
 		main.hot_potato.reset()
 		await _frames(30)
 	# AC2: warnings are on a separate bus and voice, louder than any action cue.
@@ -260,10 +323,13 @@ func _probe_shove(main: Node, actor: PartyPlayer, map_id: String) -> void:
 	main.gameplay_audio.reset_for_match()
 	await _settle()
 	var shoves_before: int = main.gameplay_audio.shove_play_count
+	var shove_count := func() -> int: return main.gameplay_audio.shove_play_count
+	_finished.clear()
 	await _press_key(KEY_G)
 	_expect(hits[0] == 0, "%s: shove with no target is a miss" % map_id)
 	_expect(main.gameplay_audio.shove_play_count - shoves_before == 1, "%s: miss shove calls play_shove once" % map_id)
 	_report("%s:shove_miss" % map_id)
+	await _verify_playback("%s:shove_miss" % map_id, "EffectVoice", shove_count, shoves_before, main.gameplay_audio.shove_sound)
 	# Hit: a passive dummy player right in front of the shover.
 	await _frames(int(Engine.physics_ticks_per_second * 1.5))  # past shove cooldown
 	var dummy := (load("res://scenes/player.tscn") as PackedScene).instantiate() as PartyPlayer
@@ -277,6 +343,7 @@ func _probe_shove(main: Node, actor: PartyPlayer, map_id: String) -> void:
 	main.gameplay_audio.reset_for_match()
 	await _settle()
 	shoves_before = main.gameplay_audio.shove_play_count
+	_finished.clear()
 	await _press_key(KEY_G)
 	_expect(hits[0] == 1, "%s: shove with a target in front is a hit (hits=%d)" % [map_id, hits[0]])
 	_expect(main.gameplay_audio.shove_play_count - shoves_before == 1, "%s: hit shove calls play_shove once" % map_id)
@@ -284,6 +351,7 @@ func _probe_shove(main: Node, actor: PartyPlayer, map_id: String) -> void:
 	_report("%s:shove_hit" % map_id)
 	for cue: Dictionary in hit_starts:
 		_expect(String(cue.stream).begins_with("generated:") and is_equal_approx(float(cue.db), GameplayAudioController.SHOVE_DB), "%s: hit cue is the same shove cue as a miss %s" % [map_id, JSON.stringify(cue)])
+	await _verify_playback("%s:shove_hit" % map_id, "EffectVoice", shove_count, shoves_before, main.gameplay_audio.shove_sound)
 	shove_manager.shove_effect_applied.disconnect(on_hit)
 	shove_manager.unregister_player(2)
 	main.match_manager.players.erase(2)
