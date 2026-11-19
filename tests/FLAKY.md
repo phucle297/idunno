@@ -30,3 +30,12 @@ listed here is skipped or deleted; contracts stay unchanged.
 #   the fixture now does the match-state presentation reset.
 # History: runs 44372826235 (bomb_pickup) and 44384131654 (bomb_throw),
 # quarantined under T26.
+
+# test_room_service real-process timing flakes (T40, quarantined; CEI row
+# CI-room-service-flake, 2 hits: QA T21 #26 full run, QA T10 #27 full run).
+# Each failed once, then passed 3/3 on rerun with no code change.
+# test_profile_ui_discovery_ready_start_and_crash_retry shares the same body.
+test_room_service.RealProcesses.test_start_waits_for_held_real_http_admission
+test_room_service.RealProcesses.test_ui_discovery_ready_start_and_crash_retry
+test_room_service.RealProcesses.test_profile_ui_discovery_ready_start_and_crash_retry
+test_room_service.Rewards.test_godot_frozen_delivery_retries_after_commit
