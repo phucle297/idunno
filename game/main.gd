@@ -826,7 +826,9 @@ func _physics_process(delta: float) -> void:
 		var input_allowed: bool = match_manager.state != MatchManager.MatchState.RESULTS and not $Interface/LobbyPanel.visible and not pause_settings.visible and match_manager.is_player_alive(local_peer_id)
 		var input_2d := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_allowed else Vector2.ZERO
 		var sprinting := input_allowed and Input.is_action_pressed("sprint")
-		var jump_pressed := input_allowed and Input.is_action_just_pressed("jump")
+		# T24: Space is also ui_accept; a press a focused control consumes is not a
+		# jump (no jump, no cue), same focus rule as the offline jump cue.
+		var jump_pressed := input_allowed and Input.is_action_just_pressed("jump") and not _jump_press_taken_by_ui()
 		if jump_pressed:
 			gameplay_audio.play_jump()
 		if multiplayer.is_server():
@@ -2077,10 +2079,15 @@ func _offline_jump_cue_allowed() -> bool:
 		return false
 	if is_instance_valid(home_screen) and home_screen.visible:
 		return false
-	if get_viewport().gui_get_focus_owner() != null:
+	if _jump_press_taken_by_ui():
 		return false
 	var player := get_node_or_null("Player") as PartyPlayer
 	return is_instance_valid(player) and not player.local_input_blocked and match_manager.is_player_alive(1)
+
+
+# M23.3/T24: one focus rule for both jump paths (offline cue, online input + cue).
+func _jump_press_taken_by_ui() -> bool:
+	return get_viewport().gui_get_focus_owner() != null
 
 
 func _connect_ui_audio(node: Node) -> void:
