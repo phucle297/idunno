@@ -151,7 +151,7 @@ func tick(delta: float) -> void:
 			# A chosen corridor ends where its warning ends, and rocks never
 			# leave its published width.
 			var along := (rock.position - (lane.high as Vector3)).dot(_lane_forward())
-			if along > float(lane.length) or _lane_offset(rock.position) > CORRIDOR_HALF_WIDTH:
+			if along < 0.0 or along > float(lane.length) or _lane_offset(rock.position) > CORRIDOR_HALF_WIDTH:
 				rock.set_meta("stopped", true)
 				rock.velocity = Vector3.ZERO
 		elif rock.position.z > (lane.low as Vector3).z + AUTHORED_RUNOUT:
