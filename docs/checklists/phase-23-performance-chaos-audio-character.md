@@ -125,7 +125,7 @@ for the owner's explicit removal of Normal. Preserve prior acceptance waiver.
   escalating pressure curve. Avoid repeating one easy dodge pattern. Publish
   spatial warnings before locking attacks; verify at least one reachable response
   for each admitted overlap, including collapsed routes and reduced playable area.
-  Keep roofs excluding indoor Rain/Snow; do not solve camping with roof penetration.
+  Keep roofs excluding indoor Rain/Snowfall; do not solve camping with roof penetration.
 - [ ] Gate: passive and tiny-step rooftop controls no longer remain effectively
   immune across the agreed seed matrix; active route controls can survive through
   actual traversable counters. Before implementation, set quantitative relocation/
