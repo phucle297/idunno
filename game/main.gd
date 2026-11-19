@@ -122,6 +122,9 @@ var map_id := "toy_town"
 var _last_held_toy := ""
 var match_preset := "hard"
 var map_anchors: Dictionary = {}
+# M23.1: meteor route-safety reserved points, rebuilt when map_anchors is replaced.
+var _meteor_reserved_cache: Array[Vector3] = []
+var _meteor_reserved_source: Variant = null
 ## T17: shared seeded placement for every ground pickup (powerup/toy/potato).
 var pickup_placement := PickupPlacement.new()
 ## Report names for pickup_placement.zones (same order).
@@ -3304,20 +3307,33 @@ func _on_meteor_weather_impact(point: Vector3) -> void:
 func _meteor_routes_clear(points: Array[Vector3]) -> bool:
 	# Reserve the authored exits and elevation route landings even during
 	# another disaster. Meteors may pressure a refuge, never its escape pad.
-	var reserved: Array[Vector3] = []
-	for refuge: Dictionary in map_anchors.refuges:
-		for exit: Vector3 in refuge.exits:
-			reserved.append(exit)
-	for route: Dictionary in map_anchors.elevation_routes:
-		reserved.append(route.low)
-		reserved.append(route.high)
+	# M23.1: roof-sector planning asks this hundreds of times in one frame, so
+	# the reserved list is built once per prepared anchor set (same result).
+	var reserved := _meteor_reserved_points()
+	var reach := meteor_shower.impact_radius + 1.5
+	var exposure := meteor_shower.vertical_exposure
 	for point in points:
-		if not terrain_collapse.supports_point(point, meteor_shower.impact_radius + 1.5, true):
+		if not terrain_collapse.supports_point(point, reach, true):
 			return false
 		for exit in reserved:
-			if absf(exit.y - point.y) <= meteor_shower.vertical_exposure and Vector2(point.x - exit.x, point.z - exit.z).length() <= meteor_shower.impact_radius + 1.5:
+			if absf(exit.y - point.y) <= exposure and Vector2(point.x - exit.x, point.z - exit.z).length() <= reach:
 				return false
 	return true
+
+
+func _meteor_reserved_points() -> Array[Vector3]:
+	if is_same(_meteor_reserved_source, map_anchors):
+		return _meteor_reserved_cache
+	var reserved: Array[Vector3] = []
+	for refuge: Dictionary in map_anchors.get("refuges", []):
+		for exit: Vector3 in refuge.exits:
+			reserved.append(exit)
+	for route: Dictionary in map_anchors.get("elevation_routes", []):
+		reserved.append(route.low)
+		reserved.append(route.high)
+	_meteor_reserved_cache = reserved
+	_meteor_reserved_source = map_anchors
+	return reserved
 
 
 func _collapse_district_is_safe(bounds: Rect2) -> bool:

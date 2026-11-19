@@ -297,25 +297,34 @@ func _plan_roof_sector_pulses(rng: RandomNumberGenerator) -> void:
 	var placed: Array[Vector3] = []
 	for pulse in ROOF_SECTOR_PULSES:
 		var pulse_angle := base_angle + TAU * float(pulse) / float(ROOF_SECTOR_PULSES)
-		var tiers: Array = [[], [], []]
+		# M23.1: the tier depends only on the horizontal camper distance, which the
+		# clamped x/z already gives, so sort candidates into tiers first (in search
+		# order) and run the raycast/route checks only until one tier has a valid
+		# footprint. Same points, same order, same rng draw as the full search.
+		var tier_candidates: Array = [[], [], []]
 		var radius := ROOF_SECTOR_MIN_OFFSET
 		while radius <= ROOF_SECTOR_MAX_OFFSET + 0.001:
 			for attempt in ROOF_SECTOR_ANGLE_TRIES:
 				var angle := pulse_angle + TAU * float(attempt) / float(ROOF_SECTOR_ANGLE_TRIES)
-				var point := _bounded_point(anchor + Vector3(cos(angle), 0.0, sin(angle)) * radius)
-				var camper_distance := _horizontal_distance(point, frozen_camper)
-				if camper_distance < ROOF_SECTOR_MIN_OFFSET or not _is_roof_sector_point(point, sector_y, placed):
+				var raw := anchor + Vector3(cos(angle), 0.0, sin(angle)) * radius
+				var camper_distance := _horizontal_distance(_bounded_flat_point(raw), frozen_camper)
+				if camper_distance < ROOF_SECTOR_MIN_OFFSET:
 					continue
 				# Prefer footprints that still cover a frozen tiny-stepper, then any
 				# that reach the camper, then any valid footprint in the sector.
 				if camper_distance <= impact_radius - ROOF_SECTOR_TINY_STEP:
-					tiers[0].append(point)
+					tier_candidates[0].append(raw)
 				elif camper_distance <= impact_radius:
-					tiers[1].append(point)
+					tier_candidates[1].append(raw)
 				else:
-					tiers[2].append(point)
+					tier_candidates[2].append(raw)
 			radius += ROOF_SECTOR_OFFSET_STEP
-		for tier: Array in tiers:
+		for candidates: Array in tier_candidates:
+			var tier: Array[Vector3] = []
+			for raw: Vector3 in candidates:
+				var point := _bounded_point(raw)
+				if _is_roof_sector_point(point, sector_y, placed):
+					tier.append(point)
 			if not tier.is_empty():
 				var chosen: Vector3 = tier[rng.randi_range(0, tier.size() - 1)]
 				var pulse_points: Array[Vector3] = [chosen]
@@ -580,10 +589,13 @@ func _clear_effects() -> void:
 	_effects.clear()
 
 
+# Clamped x/z without the surface raycast (y is a placeholder).
+func _bounded_flat_point(point: Vector3) -> Vector3:
+	return Vector3(clampf(point.x, usable_area.position.x, usable_area.end.x), 0.06, clampf(point.z, usable_area.position.y, usable_area.end.y))
+
+
 func _bounded_point(point: Vector3) -> Vector3:
-	var x := clampf(point.x, usable_area.position.x, usable_area.end.x)
-	var z := clampf(point.z, usable_area.position.y, usable_area.end.y)
-	var target := Vector3(x, 0.06, z)
+	var target := _bounded_flat_point(point)
 	if surface_height.is_valid():
 		target.y = float(surface_height.call(target)) + 0.06
 	return target
