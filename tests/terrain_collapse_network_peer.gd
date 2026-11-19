@@ -213,7 +213,17 @@ func _run_client(main: FixtureMain) -> void:
 	client_authority_ok = client_authority_ok and terrain.pending == -1 and terrain.removed_mask == 0 and manager.is_player_alive(local_id)
 	var sequence := main._last_match_snapshot_sequence
 	var passed := client_authority_ok
-	var section := main.get_node("Sandbox/" + ("RoofPanelWarehouse" if map_id == "toy_harbor" else "RoofPanelShop")) as BreakableStructure
+	# Clients build map geometry only after the owner's Start (_load_gameplay_map),
+	# so wait for this peer's own map load and the ACTIVE match before touching
+	# map nodes. Bounded by the same deadline; a missing node fails the client.
+	while (main.map_anchors.get("map_id", "") != map_id or manager.state != MatchManager.MatchState.ACTIVE) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	var section := main.get_node_or_null("Sandbox/" + ("RoofPanelWarehouse" if map_id == "toy_harbor" else "RoofPanelShop")) as BreakableStructure
+	if section == null:
+		push_error("Terrain collapse ENet client map not loaded map=%s players=%d peer=%d anchors=%s state=%d" % [map_id, player_count, local_id, main.map_anchors.get("map_id", ""), manager.state])
+		main.rpc_id(1, "acknowledge_collapse", "broken_structure", false)
+		quit(1)
+		return
 	while section.structure_state != BreakableStructure.StructureState.BROKEN and Time.get_ticks_msec() < deadline:
 		await process_frame
 	passed = passed and section.structure_state == BreakableStructure.StructureState.BROKEN
