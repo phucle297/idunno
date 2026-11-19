@@ -74,6 +74,7 @@ jobs:
           PLAYER_COUNTS: "4 8 20"
         run: python3 .github/scripts/run_python_tests.py --mode=flaky
       - name: Godot suites in tests/FLAKY.md
+        if: always()
         shell: bash
         run: .github/scripts/run_godot_suites.sh --mode=flaky
       - uses: actions/upload-artifact@v4
