@@ -19,13 +19,13 @@ root [progress.json](progress.json) records current hashes, public smoke and
 [successful deployment](https://github.com/phucle297/idunno/actions/runs/39727391218).
 Hot Potato is an optional multiplayer mode with a server-private random fuse,
 no countdown/reset or recipient grace. F picks up; left click passes. Returning
-to solo switches this multiplayer-only mode back to Hard. The16 Phase20 toys and
+to solo switches this multiplayer-only mode back to Hard. The 16 Phase20 toys and
 earlier optimization/weather work are included; native heat/FPS is not claimed fixed.
 Outfit cards receive clicks correctly; offline Equip does not wait on profile
 HTTP. Chef, Firefighter, Sailor and Pilot are free starters. Original menu/gameplay
 music loops crossfade, duck under warnings and have persisted **Music Volume** in
 Settings (0% mutes music only). Twelve total outfits; cosmetics give no stat bonuses.
-This bundle uses the byte-exact deployed PCK. It includes144m Toy Town with19 enclosed
+This bundle uses the byte-exact deployed PCK. It includes 144m Toy Town with 19 enclosed
 buildings, furnished interiors, solid garage/furniture/curbs, connected service courts
 and elevated bridges, plus Phase12 Speed/Jump drops and earlier hazards.
 
@@ -59,7 +59,7 @@ Same-PC checks do not prove physical LAN or Internet play.
   map floor. Get to high ground (a roof, terrace, or dock); roofs and elevated
   pads stay safe. The outlined vent may still raise banks and broad crossing
   corridors. Orange and sand-colored vent ground damages on contact immediately;
-  slate ground is cooled and safe. Dry heat lasts60s; exposed Rain/Snowfall cool
+  slate ground is cooled and safe. Dry heat lasts 60s; exposed Rain/Snowfall cool
   faster, and actual Flood immersion cools only the reached shelves. Raised dry
   banks can remain hot. The changed collision stays for the round and resets on
   rematch/map change.
@@ -74,7 +74,7 @@ These rules are included in the matching public Phase11 release. Older Phase10
 and earlier clients cannot join the new server.
 
 - A heavy collapse meteor warns for 30 seconds before removal at normalized 120/270/390/510
-  seconds of a600-second match. Fixture durations scale this timing. A clock jump still
+  seconds of a 600-second match. Fixture durations scale this timing. A clock jump still
   warns first and postpones removal rather than collapsing unannounced terrain.
 - The warning rectangle and separate HUD row remain readable indoors; spectators see
   timing only. Ordinary disaster chips stay visible.
@@ -124,7 +124,7 @@ The public Phase13 package starts solo automatically. Phase14 source instead
 opens preparation: choose map, match mode and outfit, then **PLAY SOLO**; developers
 can pass `--solo` for explicit immediate play. Once started, solo continues until
 death or timeout; one player does not immediately declare a winner. The first
-warning can appear after about10 seconds. Use **L** to open the lobby for network play.
+warning can appear after about 10 seconds. Use **L** to open the lobby for network play.
 Developers can still run `godot --path .`; see `README.md` for build commands.
 
 ## Create or join a room
@@ -237,41 +237,41 @@ plaza, harbor ground and the ramp-reached roofs/decks are all in play; a spot
 that is already hazardous at spawn time is skipped. Toy types appear in a shuffled order each
 match (same seed, same order); every type appears once per 16 drops.
 
-Toy pickups appear after the opening protection window. Foam Blaster has3 slow
-pellets; Plunger Rocket has1 slow shot followed by a0.8s blast warning; Squeaky
-Hammer has2 swings with a0.35s windup. Spring Glove has2 narrow,3m punches after
-a0.65s charge; step sideways. Boomerang Disc has2 throws on an outward/return
-lane: dodge twice, use cover; it never homes on its owner. Water Soaker has6
-short squirts with a light push and a small supported wet strip drying over6s;
+Toy pickups appear after the opening protection window. Foam Blaster has 3 slow
+pellets; Plunger Rocket has 1 slow shot followed by a 0.8s blast warning; Squeaky
+Hammer has 2 swings with a 0.35s windup. Spring Glove has 2 narrow, 3m punches after
+a 0.65s charge; step sideways. Boomerang Disc has 2 throws on an outward/return
+lane: dodge twice, use cover; it never homes on its owner. Water Soaker has 6
+short squirts with a light push and a small supported wet strip drying over 6s;
 walk carefully or go around it. It does not create an electric hazard.
-Soap Slick has2 placements: a striped10s steering trap; jump or walk around it.
+Soap Slick has 2 placements: a striped 10s steering trap; jump or walk around it.
 Water strips wash away overlapping soap on the same floor when no solid divider
 separates them. Active rain washes exposed soap faster; intact roofs protect it.
-Spring Pad has2 placements, arms for0.8s then pops one player upward and expires;
-it can also launch its owner, but never stacks lift. Confetti Bomb has1 placement
-and a1.4s countdown before its marked2.4m shove; run or use cover.
-Foam Launcher has2 shots: a supported screen arms for0.7s and lasts at most6s.
+Spring Pad has 2 placements, arms for 0.8s then pops one player upward and expires;
+it can also launch its owner, but never stacks lift. Confetti Bomb has 1 placement
+and a 1.4s countdown before its marked 2.4m shove; run or use cover.
+Foam Launcher has 2 shots: a supported screen arms for 0.7s and lasts at most 6s.
 It blocks toy projectiles only: walk through freely, or shoot once to pop it.
 It cannot shelter you from disasters; rockets still warn before their blast.
-Toy Fan has1 placement:0.8s arming then4s of narrow3.5m gusts; use solid cover
+Toy Fan has 1 placement: 0.8s arming then 4s of narrow 3.5m gusts; use solid cover
 or go behind it. Gusts also bend nearby unreflected foam/water/balloon shots
 slightly toward the fan's lane; the original shooter keeps credit. Rockets and
 discs do not bend, and solid cover blocks the gust.
-Decoy Runner has1 harmless mechanical distraction, running
-on supported ground for6s; its label always identifies it as a toy.
-Remote Popper has1 charge: place, wait0.7s for arming, then click again to
-start a1s marked blast countdown. The controller works at zero ammo for that
+Decoy Runner has 1 harmless mechanical distraction, running
+on supported ground for 6s; its label always identifies it as a toy.
+Remote Popper has 1 charge: place, wait 0.7s for arming, then click again to
+start a 1s marked blast countdown. The controller works at zero ammo for that
 charge only. Shoot the visible charge to defuse it, or run/use solid cover.
-It expires harmlessly after8s armed; swapping away does not auto-detonate it.
-Reflector Umbrella has1 use:0.25s opening then0.9s front-only reflection.
+It expires harmlessly after 8s armed; swapping away does not auto-detonate it.
+Reflector Umbrella has 1 use: 0.25s opening then 0.9s front-only reflection.
 Flank, wait, use a melee toy or escape the blast; it is not general immunity.
 Linear shots bounce at most once and credit the reflector; a disc or a shot
 that would exceed the reflector's two-projectile limit is absorbed instead.
-Rocket Cart has1 placement:1s fixed-lane engine warning then at most2s straight
+Rocket Cart has 1 placement: 1s fixed-lane engine warning then at most 2s straight
 running. Step aside; it is a non-solid bumper, not a vehicle or door blocker.
 Solid walls/crates and missing ground stop it; one contact gives a light push.
-Party Balloon has1 slow dart: solid cover blocks attachment. A hit gives0.6s
-to jump,move1m or have someone shoot the balloon before one mild grounded lift.
+Party Balloon has 1 slow dart: solid cover blocks attachment. A hit gives 0.6s
+to jump, move 1m or have someone shoot the balloon before one mild grounded lift.
 Low ceilings cancel lift; no indefinite floating or stacked balloon chains.
 Umbrellas absorb balloon darts rather than reflecting them.
 Place floor toys on level supported ground in front of you, not through walls
@@ -613,7 +613,7 @@ original TTL is still valid. New authenticated Create/Join succeeds.
 Keep these two pieces together across local restarts:
 
 - **Service:** the operator-selected SQLite file outside temporary room and
-  release directories. Back up only after stopping the local service; retain mode0600
+  release directories. Back up only after stopping the local service; retain mode 0600
   and its private parent. Retain the complete database, not just a copied profile ID.
 - **Client:** its private `user://profile-<service-URL-SHA256>.json` file and the exact
   service URL (normalized by removing the trailing slash). A different endpoint/port
@@ -946,7 +946,7 @@ python3 tools/install_git_hooks.py
 Orb setup installs this automatically. The installer is idempotent, keeps other
 configured hook stages, and refuses to overwrite an unrelated pre-commit hook.
 Run it again after changing `.githooks/pre-commit` to refresh the installed copy.
-Godot4.7.2 must be on PATH, or set `GODOT_BIN` to its executable. Full/network
+Godot 4.7.2 must be on PATH, or set `GODOT_BIN` to its executable. Full/network
 fallbacks also require the existing bash/ripgrep test-tool prerequisites.
 
 Every `git commit` tests a temporary snapshot of **the index**, not unstaged edits:
@@ -1034,13 +1034,13 @@ inspect the SSM command first; it may still run. Do not blindly redeploy.
 On 2026-10-08 the operator completed deployment of revision `6fb1e8d`, and
 actual Godot clients on two separate Docker bridge networks received valid
 HTTPS Create/Join tickets for `server.permees.com:29810`. Initial ENet admission
-failed while the SG had UDP port0. After the operator corrected inbound UDP to
+failed while the SG had UDP port 0. After the operator corrected inbound UDP to
 29810–29811, the unchanged server passed real admission, roster/ready/start,
 authoritative movement, Flood/health and later Meteor observations, six natural
 results/five rematches, owner transfer and a new-owner rematch. Result-time RTT
-samples were124–137ms; mostly stationary clients ended rounds in43–51s, not a
+samples were 124–137ms; mostly stationary clients ended rounds in 43–51s, not a
 human balance/performance benchmark. No runtime errors. Default local DNS was
-intermittent; container DNS1.1.1.1 resolved the public address for the repeat.
+intermittent; container DNS 1.1.1.1 resolved the public address for the repeat.
 Clients use Linux editor/source and share a host/upstream NAT: this does not
 pass Windows release, physically separate networks, all hazards/props,
 server-loss retry or physical audio/settings gates. No redeploy was needed.
