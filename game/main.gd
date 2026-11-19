@@ -3001,10 +3001,10 @@ func _pickup_spawn_clear_of_hazards(point: Vector3) -> bool:
 		var closest := Geometry2D.get_closest_point_to_segment(flat, a, b)
 		if flat.distance_to(closest) <= tornado.core_radius + 1.1:
 			return false
-	if rockslide.is_active() and not rockslide.lane.is_empty():
-		var along := (point - (rockslide.lane.high as Vector3)).dot(rockslide._lane_forward())
-		if along >= -1.1 and along <= float(rockslide.lane.get("length", 0.0)) + 1.1 and rockslide._lane_offset(point) <= Rockslide.CORRIDOR_HALF_WIDTH + 1.1:
-			return false
+	# T22: the whole lane (authored embankment always, chosen corridor while
+	# the slide runs), start to end, not just its top.
+	if rockslide.lane_contains(point, 1.1):
+		return false
 	return true
 
 
