@@ -23,6 +23,14 @@ from urllib.request import Request, urlopen
 from tools.room_service import ProfileStore, RoomService, Server, Handler, Rejected, normalize_id
 
 ROOT = Path(__file__).resolve().parents[1]
+# Liveness bounds for harness waits on real Godot processes (T40). They only
+# cap how long a condition may take to appear; they assert no latency. Under
+# box load plus host stalls (issues.md BOX-host-stall), a cold Godot peer took
+# up to 10.6 s of the old fixed 15 s cap, so short caps failed while the
+# system was still progressing. Semantic windows (token TTL, startup and
+# heartbeat timeouts, holds) are unchanged.
+GODOT_PROCESS_TIMEOUT = 60
+CONDITION_TIMEOUT = 30
 
 
 def settings(**overrides):
@@ -400,7 +408,7 @@ class Rewards(unittest.TestCase):
         try:
             result = subprocess.run([settings().godot, "--headless", "--path", str(ROOT),
                 "--script", "res://tests/test_match_manager.gd", "--", "--reward-test", f"--room-config={config}"],
-                capture_output=True, text=True, timeout=14)
+                capture_output=True, text=True, timeout=GODOT_PROCESS_TIMEOUT)
             output = result.stdout + result.stderr
             self.assertEqual(result.returncode, 0, output)
             self.assertIn("ROUND_REWARD_DELIVERY_OK", output)
@@ -1101,7 +1109,7 @@ class RealProcesses(unittest.TestCase):
             path.write_text(json.dumps(options))
             result = subprocess.run([self.service.args.godot, "--headless", "--path", str(ROOT),
                                      "--script", "res://tests/room_admission_peer.gd", "--",
-                                     f"--admission-file={path}"], capture_output=True, text=True, timeout=15)
+                                     f"--admission-file={path}"], capture_output=True, text=True, timeout=GODOT_PROCESS_TIMEOUT)
         output = result.stdout + result.stderr
         self.assertEqual(result.returncode, 0, output)
         self.assertIn("ROOM_ADMISSION_PEER_OK", output)
@@ -1250,7 +1258,7 @@ class RealProcesses(unittest.TestCase):
         def delayed_internal(action, data):
             if action == "consume" and hold_consume.is_set():
                 consume_started.set()
-                if not release_consume.wait(10):
+                if not release_consume.wait(GODOT_PROCESS_TIMEOUT):
                     raise RuntimeError("admission-race consume release timed out")
             return original_internal(action, data)
 
@@ -1273,7 +1281,7 @@ class RealProcesses(unittest.TestCase):
                     f"--admission-file={ticket_path}"], stdout=log, stderr=subprocess.STDOUT))
 
             def wait_stage(name):
-                deadline = time.monotonic() + 12
+                deadline = time.monotonic() + CONDITION_TIMEOUT
                 marker = stage_dir / name
                 while not marker.exists() and time.monotonic() < deadline:
                     time.sleep(0.02)
@@ -1289,7 +1297,7 @@ class RealProcesses(unittest.TestCase):
                 hold_consume.set()
                 third = self.post("/v1/rooms/join", self.data)
                 launch("third", third)
-                self.assertTrue(consume_started.wait(8), "Third real HTTP /consume must reach the held service hook")
+                self.assertTrue(consume_started.wait(CONDITION_TIMEOUT), "Third real HTTP /consume must reach the held service hook")
                 (stage_dir / "consume-held").write_text("held")
                 wait_stage("owner-start-blocked")
                 self.assertEqual(room["round"], {}, "Held admission must not advance the service round")
@@ -1298,7 +1306,7 @@ class RealProcesses(unittest.TestCase):
                 for role in ("owner", "guest", "third"):
                     wait_stage(role + "-active")
                 for process in processes:
-                    self.assertEqual(process.wait(timeout=15), 0, {role: path.read_text() for role, (path, _) in logs.items()})
+                    self.assertEqual(process.wait(timeout=GODOT_PROCESS_TIMEOUT), 0, {role: path.read_text() for role, (path, _) in logs.items()})
                 for role, (path, log) in logs.items():
                     log.close()
                     output = path.read_text()
@@ -1342,14 +1350,14 @@ class RealProcesses(unittest.TestCase):
             self.peer(ticket, accepted=False, token="bad-token")
             with ThreadPoolExecutor(max_workers=1) as pool:
                 playing = pool.submit(self.peer, dict(ticket, private_profile_id=first["profile_id"], hold=3))
-                deadline = time.monotonic() + 5
+                deadline = time.monotonic() + CONDITION_TIMEOUT
                 while not any(value["deadline"] == 0 for value in room["peers"].values()) and time.monotonic() < deadline:
                     time.sleep(0.05)
                 self.assertTrue(any(value["deadline"] == 0 for value in room["peers"].values()), "Real client must finish admission")
                 self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
                 self.peer(ticket, accepted=False)
-                playing.result(timeout=12)
-            deadline = time.monotonic() + 4
+                playing.result(timeout=GODOT_PROCESS_TIMEOUT)
+            deadline = time.monotonic() + CONDITION_TIMEOUT
             while room["peers"] and time.monotonic() < deadline:
                 time.sleep(0.05)
             self.assertFalse(room["peers"])
@@ -1381,7 +1389,7 @@ class RealProcesses(unittest.TestCase):
             self.assertEqual(self.post("/v1/rooms/join", data, 409, first["credential"])["error"], "profile_in_use")
             self.peer(dict(other, token=retry["token"]), accepted=False)
             self.peer(retry)
-            deadline = time.monotonic() + 4
+            deadline = time.monotonic() + CONDITION_TIMEOUT
             while room["peers"] and time.monotonic() < deadline:
                 time.sleep(0.05)
             expired = self.post("/v1/rooms/join", data, credential=first["credential"])
@@ -1417,11 +1425,11 @@ class RealProcesses(unittest.TestCase):
                             f"--profile-path={Path(directory) / (role + '-profile.json')}",
                         ], stdout=output, stderr=subprocess.STDOUT))
                     if role == "owner":
-                        deadline = time.monotonic() + 12
+                        deadline = time.monotonic() + CONDITION_TIMEOUT
                         while "ROOM_UI_CONNECTED" not in log.read_text() and time.monotonic() < deadline:
                             time.sleep(0.05)
                         self.assertIn("ROOM_UI_CONNECTED", log.read_text())
-                deadline = time.monotonic() + 12
+                deadline = time.monotonic() + GODOT_PROCESS_TIMEOUT
                 while not all("ROOM_UI_ACTIVE" in log.read_text() for log in logs) and time.monotonic() < deadline:
                     time.sleep(0.05)
                 self.assertTrue(all("ROOM_UI_ACTIVE" in log.read_text() for log in logs), [log.read_text() for log in logs])
@@ -1432,7 +1440,7 @@ class RealProcesses(unittest.TestCase):
                     self.assertNotEqual(identities[0]["profile_id"], identities[1]["profile_id"])
                     self.assertEqual({value["profile_id"] for value in room["peers"].values()},
                                      {value["profile_id"] for value in identities})
-                    deadline = time.monotonic() + 4
+                    deadline = time.monotonic() + CONDITION_TIMEOUT
                     while not room["round"] and time.monotonic() < deadline:
                         time.sleep(0.05)
                     self.assertTrue(room["round"], "Real authoritative start must obtain a service round ID")
@@ -1442,13 +1450,13 @@ class RealProcesses(unittest.TestCase):
                 room["process"].kill()
                 room["process"].wait(timeout=3)
                 self.service.reap()
-                deadline = time.monotonic() + 12
+                deadline = time.monotonic() + GODOT_PROCESS_TIMEOUT
                 while "ROOM_UI_RETRY_ADMITTED role=owner" not in logs[0].read_text() and time.monotonic() < deadline:
                     time.sleep(0.05)
                 self.assertIn("ROOM_UI_RETRY_ADMITTED role=owner", logs[0].read_text())
                 retry_ready.touch()
                 for process, log in zip(processes, logs):
-                    self.assertEqual(process.wait(timeout=28), 0, {path.name: path.read_text() for path in logs})
+                    self.assertEqual(process.wait(timeout=2 * GODOT_PROCESS_TIMEOUT), 0, {path.name: path.read_text() for path in logs})
                     output = log.read_text()
                     self.assertIn("ROOM_UI_PEER_OK", output)
                     self.assertNotIn("SCRIPT ERROR", output)

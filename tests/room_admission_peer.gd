@@ -25,7 +25,7 @@ func _run() -> void:
 		quit(1)
 		return
 	var admitted := false
-	var deadline := Time.get_ticks_msec() + 7000
+	var deadline := Time.get_ticks_msec() + 20000 # Liveness caps only (T40: box load/host stalls).
 	while Time.get_ticks_msec() < deadline:
 		if main.get_room_owner_id() > 1 and main.match_manager.players.has(main.multiplayer.get_unique_id()):
 			admitted = true
@@ -47,7 +47,7 @@ func _run() -> void:
 		if main.join_game(options.address, int(options.port), options.retry_token) != OK:
 			quit(1)
 			return
-		deadline = Time.get_ticks_msec() + 7000
+		deadline = Time.get_ticks_msec() + 20000
 		while Time.get_ticks_msec() < deadline and main.get_room_owner_id() == 0:
 			await process_frame
 		if main.get_room_owner_id() <= 1 or not main.match_manager.players.has(main.multiplayer.get_unique_id()):
@@ -69,14 +69,14 @@ func _run() -> void:
 			quit(1)
 			return
 		if options.get("start", false):
-			deadline = Time.get_ticks_msec() + 6000
+			deadline = Time.get_ticks_msec() + 20000
 			while Time.get_ticks_msec() < deadline and (main.match_manager.players.size() < 2 or not main.match_manager.can_start_match()):
 				await process_frame
 			if not main.start_network_match():
 				push_error("Owner start request must be accepted after both clients ready")
 				quit(1)
 				return
-			deadline = Time.get_ticks_msec() + 3000
+			deadline = Time.get_ticks_msec() + 10000
 			while Time.get_ticks_msec() < deadline and main.match_manager.state != MatchManager.MatchState.ACTIVE:
 				await process_frame
 			if main.match_manager.state != MatchManager.MatchState.ACTIVE:
@@ -160,7 +160,7 @@ func _run_admission_race(options: Dictionary) -> void:
 
 
 func _wait_race(predicate: Callable, message: String) -> void:
-	var deadline := Time.get_ticks_msec() + 10000
+	var deadline := Time.get_ticks_msec() + 30000
 	while not predicate.call() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if not predicate.call():
