@@ -191,6 +191,13 @@ func request_pickup(peer_id: int, round: int, sequence: int) -> bool:
 		return _feedback(peer_id, "range")
 	var pickup := pickups[winner]
 	pickups.remove_at(winner)
+	# T20: swapping off the controller expires its armed charge through the
+	# ordinary expiry path (no blast). A triggered popper_warning still resolves.
+	if String(slots.get(peer_id, {}).get("kind", "")) == "remote_popper":
+		for effect in effects:
+			if int(effect.owner) == peer_id and effect.kind == "popper_armed" and float(effect.remaining) > 0.0:
+				effect.remaining = 0.0
+		_revision += 1
 	slots[peer_id] = {"kind": String(pickup.kind), "ammo": int(KINDS[pickup.kind]), "cooldown_until": 0.0, "feedback": "picked"}
 	_revision += 1
 	return true
