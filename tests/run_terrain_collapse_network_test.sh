@@ -25,8 +25,52 @@ for map_id in $MAP_IDS; do
       client_pids+=("$!")
     done
     status=0
-    for pid in "${client_pids[@]}"; do wait "$pid" || status=1; done
-    wait "$server_pid" || status=1
+    # T42 fast fail: poll every peer process. A client that exits nonzero (or
+    # is killed) before the server finishes means the server can only wait out
+    # its deadlines, so stop all peers now and name the cause instead of
+    # waiting for `timeout 180`. Likewise a server that exits nonzero stops the
+    # clients. Normal exits (exit 0) keep the original wait order.
+    started=$SECONDS
+    fast_fail=""
+    declare -A client_done=()
+    while kill -0 "$server_pid" 2>/dev/null; do
+      for ((client = 1; client < players; client++)); do
+        pid="${client_pids[client - 1]}"
+        [[ -n "${client_done[$client]:-}" ]] && continue
+        kill -0 "$pid" 2>/dev/null && continue
+        ec=0; wait "$pid" || ec=$?
+        client_done[$client]=$ec
+        if [[ "$ec" -ne 0 ]]; then
+          fast_fail="cause=client_exited client=$client exit=$ec log=$log_dir/client-$client.log"
+          break 2
+        fi
+      done
+      sleep 0.5
+    done
+    if [[ -z "$fast_fail" ]] && ! kill -0 "$server_pid" 2>/dev/null; then
+      server_ec=0; wait "$server_pid" || server_ec=$?
+      if [[ "$server_ec" -ne 0 ]]; then
+        status=1
+        if [[ "$server_ec" -ne 124 ]]; then
+          fast_fail="cause=server_exited exit=$server_ec log=$log_dir/server.log"
+        fi
+      fi
+    fi
+    if [[ -n "$fast_fail" ]]; then
+      kill "$server_pid" "${client_pids[@]}" 2>/dev/null || true
+      wait "$server_pid" "${client_pids[@]}" 2>/dev/null || true
+      printf 'TERRAIN_COLLAPSE_ENET_FAST_FAIL map=%s players=%d after=%ds %s\n' "$map_id" "$players" "$((SECONDS - started))" "$fast_fail" >&2
+      tail -n 20 "${fast_fail##*log=}" >&2 || true
+      exit 1
+    fi
+    for ((client = 1; client < players; client++)); do
+      if [[ -n "${client_done[$client]:-}" ]]; then
+        [[ "${client_done[$client]}" -eq 0 ]] || status=1
+      else
+        wait "${client_pids[client - 1]}" || status=1
+      fi
+    done
+    unset client_done
     cat "$log_dir/server.log"
     rg 'TERRAIN_COLLAPSE_ENET_CLIENT_OK|SCRIPT ERROR|ERROR:|WARNING:' "$log_dir"/client-*.log || true
     if rg '^(SCRIPT ERROR|ERROR):' "$log_dir"/*.log | rg -v 'ERROR: [0-9]+ resources still in use at exit'; then status=1; fi
