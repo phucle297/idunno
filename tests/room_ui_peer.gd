@@ -80,7 +80,7 @@ func _run() -> void:
 
 
 func _wait(predicate: Callable, message: String) -> void:
-	var deadline := Time.get_ticks_msec() + 12000
+	var deadline := Time.get_ticks_msec() + 30000 # Liveness cap only (T40: box load/host stalls).
 	while not predicate.call() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if not predicate.call():

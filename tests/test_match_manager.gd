@@ -208,7 +208,7 @@ func _test_reward_delivery() -> void:
 		main.match_manager.tick_match(duration)
 		main.match_manager.apply_damage(90, 100.0, "Meteor")
 	main.match_manager.prepare_lobby()
-	var deadline := Time.get_ticks_msec() + 7000
+	var deadline := Time.get_ticks_msec() + 30000 # Liveness cap only (T40: box load/host stalls).
 	while not admission.reward_delivery.is_empty() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	_expect(admission.reward_delivery.is_empty(), "Both frozen completions must acknowledge after the forced post-commit reply failure")

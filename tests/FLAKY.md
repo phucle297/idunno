@@ -30,3 +30,14 @@ listed here is skipped or deleted; contracts stay unchanged.
 #   the fixture now does the match-state presentation reset.
 # History: runs 44372826235 (bomb_pickup) and 44384131654 (bomb_throw),
 # quarantined under T26.
+
+# test_room_service real-process timing tests: removed from this list by T40
+# (blocking again): test_start_waits_for_held_real_http_admission,
+# test_ui_discovery_ready_start_and_crash_retry (+ profile_ variant),
+# Rewards.test_godot_frozen_delivery_retries_after_commit. Cause: harness
+# liveness caps on real Godot processes (8-15 s) sat near real cold-start
+# durations; under box load a peer used up to 10.6 s of 15 s and host stalls
+# pushed it over while the system still progressed. Caps are now 60 s per
+# Godot process and 30 s per condition; conditions, assertions and semantic
+# windows (token TTL, startup/heartbeat timeouts, holds) unchanged.
+# History: QA T21 #26 and QA T10 #27 full runs (2026-11-19).
