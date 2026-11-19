@@ -76,10 +76,38 @@ func _run() -> void:
 	start_tick[0] = clock.tick
 	var wall_start := Time.get_ticks_msec()
 	var frames := 0
+	# AC3: the HUD countdown is still presented on every rendered frame. Blank
+	# the label, and on the next frame it must be filled again (by
+	# Main._process -> present_match_status); the shown value never skips.
+	var hud: GameplayHud = main.gameplay_hud
+	var refreshed := 0
+	var checked := 0
+	var max_drop := 0
+	var last_shown := -1
+	# Align to a frame boundary first: start_match ran from a physics_frame
+	# resume, and process_frame of that same frame fires before Main._process.
+	await process_frame
+	frames += 1
 	while manager.state == MatchManager.MatchState.ACTIVE and Time.get_ticks_msec() - wall_start < TIMEOUT_MSEC:
+		hud.timer_label.text = ""
 		await process_frame
 		frames += 1
-	var ended := manager.state == MatchManager.MatchState.RESULTS
+		if manager.state != MatchManager.MatchState.ACTIVE:
+			break
+		checked += 1
+		var shown := hud.timer_label.text
+		if shown.is_empty():
+			print("CLOCK_HUD_MISS frame=%d tick=%d elapsed=%.4f" % [checked, clock.tick - start_tick[0], manager.elapsed_time])
+		else:
+			refreshed += 1
+			var parts := shown.split(":")
+			var seconds := int(parts[0]) * 60 + int(parts[1])
+			if last_shown >= 0:
+				max_drop = maxi(max_drop, last_shown - seconds)
+			last_shown = seconds
+	var hud_ok := checked > 0 and refreshed == checked and max_drop <= 1
+	print("CLOCK_HUD frames_checked=%d refreshed=%d max_countdown_drop_s=%d %s" % [checked, refreshed, max_drop, "OK" if hud_ok else "FAIL"])
+	var ended := manager.state == MatchManager.MatchState.RESULTS and hud_ok
 	print("CLOCK_EVENT kind=end name=match_end tick=%d elapsed=%.4f" % [end_stamp[0], end_stamp[1]])
 	var wall_s := (Time.get_ticks_msec() - wall_start) / 1000.0
 	print("CLOCK_FPS_RUN map=%s seed=%d duration=%.1f busy_ms=%d frames=%d wall_s=%.2f avg_fps=%.1f starts=%d ended=%s" % [map_id, seed, duration, busy_ms, frames, wall_s, frames / maxf(wall_s, 0.001), events, ended])
