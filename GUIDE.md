@@ -52,14 +52,14 @@ Same-PC checks do not prove physical LAN or Internet play.
   slower than normal walking and warns again before changing targets.
 - **UFO:** leave the marked ring during its five-second warning or take overhead
   shelter. If caught, move sideways; horizontal control remains. Lift is capped
-  at2.5m above the chosen support. Release adds no launch impulse. A UFO lift off
+  at 2.5m above the chosen support. Release adds no launch impulse. A UFO lift off
   a roof costs about 1/3 HP on landing (see Fall damage below); a lift from the
   street is under 4 m and safe.
 - **Volcano:** a twelve-second warning precedes a ground lava flow across the
   map floor. Get to high ground (a roof, terrace, or dock); roofs and elevated
   pads stay safe. The outlined vent may still raise banks and broad crossing
   corridors. Orange and sand-colored vent ground damages on contact immediately;
-  slate ground is cooled and safe. Dry heat lasts60s; exposed Rain/Snow cool
+  slate ground is cooled and safe. Dry heat lasts60s; exposed Rain/Snowfall cool
   faster, and actual Flood immersion cools only the reached shelves. Raised dry
   banks can remain hot. The changed collision stays for the round and resets on
   rematch/map change.
@@ -73,7 +73,7 @@ lack this refinement and must not be mixed with the current public server.
 These rules are included in the matching public Phase11 release. Older Phase10
 and earlier clients cannot join the new server.
 
-- A heavy collapse meteor warns for30 seconds before removal at normalized120/270/390/510
+- A heavy collapse meteor warns for 30 seconds before removal at normalized 120/270/390/510
   seconds of a600-second match. Fixture durations scale this timing. A clock jump still
   warns first and postpones removal rather than collapsing unannounced terrain.
 - The warning rectangle and separate HUD row remain readable indoors; spectators see

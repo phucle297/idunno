@@ -166,7 +166,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 - Work through phase → milestone → task; tasks are optional for small milestones.
 - Complete and validate required gates before closing a phase. Completed tasks within an active phase stay in that phase's checklist for context.
-- Keep exactly one executable `next_action` in root `progress.json`; do not maintain a competing next action here.
+- Keep exactly one executable `next_action` in root `progress.json` (the Active and planned phases section may restate that sequence). Do not maintain a competing next action here.
 - Record active decisions in `docs/decisions.md`. On phase completion, move its checklist, decisions and full progress to `docs/old-docs/{phase-slug}/`; never overwrite an archive.
 - Do not replace real-user acceptance with automated checks. Record the actual build, conditions and result in `NEED_REAL_CHECK.md`, then reconcile `progress.json` and the phase checklist.
 
@@ -174,7 +174,7 @@ Completed-phase checklists, decisions and progress are grouped in [old-docs](old
 
 Owner-requested temporary Speed/Jump pickups are scoped separately in Phase12,
 not persistent cosmetic loot boxes or an inventory/stat progression system.
-Unrequested disaster classes beyond the new scoped Snow/Rain/Rockslide/Bee/UFO/Volcano plan,
+Unrequested disaster classes beyond the new scoped Snowfall/Rain/Rockslide/Bee/UFO/Volcano plan,
 persistent non-cosmetic progression, currencies, shops, non-cosmetic inventories, paid loot boxes,
 ranked matchmaking, chat, voice, player-to-player grabbing, complex parkour, production
 bots, advanced destruction and a large cosmetic catalog. Crouch is removed by the

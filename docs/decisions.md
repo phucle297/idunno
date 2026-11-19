@@ -181,7 +181,7 @@ Quoted from `games/idunno/T3-plan.md:38–49` (Owner-accepted provisional set; m
 > | Dead time | Median time with **zero** active disasters during **2:00–8:00** drops **≥ 30%** vs current **Normal** | Hard-only after T3c should already cut gaps (`hard_pacing_scale = 0.6` in `disaster_director.gd`). Still measure. |
 > | Rooftop camp | Broken on **≥ 8 / 10** seeds **per map** by **6:00** | “Broken” = forced off the starting roof sector for **≥ 3 s** and/or **≥ 30 HP** lost. Elevation may still help versus **Flood**. |
 > | Active route | Survive to **≥ 8:00** (or timeout) in **≥ 6 / 10** seeds **per map** | Beatable floor, not a human-skill claim. |
-> | Fairness | Meteor warning stays **2.5 s**; no intensity-scaled damage/forces; max two overlaps; solo-first intro; at least one escape; rain/snow do not penetrate roofs | Director policy “faster, never meaner.” |
+> | Fairness | Meteor warning stays **2.5 s**; no intensity-scaled damage/forces; max two overlaps; solo-first intro; at least one escape; Rain/Snowfall do not penetrate roofs | Director policy “faster, never meaner.” |
 
 T3b/T3bQ produce the before-numbers only and do not have to meet the harder gates (`T3-plan.md:51`). Official after-numbers and pass/fail are **pending T3z**.
 
@@ -196,7 +196,7 @@ All of the following except T3c and the already-recorded T3bQ Earthquake finding
 - **Tornado carry (T3q, after T3k lane bend; `T3-plan.md:371–373`):** an exposed rooftop idle camper must leave the pad or take attributed fall damage. Knockdown or a landing on the same pad is not pressure.
 - **Rockslide lane (T3r, after T3m climb; `T3-plan.md:401–403`):** the warned corridor must actually cross an occupied, exposed real-map roof; cover still blocks; rocks travel only the published lane.
 - **Earthquake:** not a designed gap. T3bQ already measured rooftop pressure (`T3-plan.md:77`: “Earthquake is not a gap (47/39 HP and 3/1 kills on roofs)”). No T3 contract changes quake.
-- **Flood / Rain / Snow excluded by design (fairness, T3h, `T3-plan.md:173–175` and `:225–228`):** the roof is the authored Flood counter; Rain and Snow do not penetrate roofs. A 0 HP / 0 relocation roof cell for these is not a T3z fail. Fire stays unmeasured in the baseline (no Fire contract in this plan).
+- **Flood / Rain / Snowfall excluded by design (fairness, T3h, `T3-plan.md:173–175` and `:225–228`):** the roof is the authored Flood counter; Rain and Snowfall do not penetrate roofs. A 0 HP / 0 relocation roof cell for these is not a T3z fail. Fire stays unmeasured in the baseline (no Fire contract in this plan).
 
 ### T3z pressure definition
 
@@ -209,7 +209,7 @@ Quoted from `games/idunno/T3-plan.md:219–229`:
 > **Excluded by design** (a 0 HP / 0 reloc roof cell is not a fail):
 >
 > - **Flood** — the roof is the authored counter.
-> - **Rain / Snow** — no roof penetration.
+> - **Rain / Snowfall** — no roof penetration.
 > - **Volcano roof cells** — Owner 2026-11-15 19:10 UTC+7: “Only floor, but larger. Maybe can the whole map.” Roofs and elevated pads stay safe from Volcano. **Ground-idle / ground-camp** Volcano cells **should** show pressure after T3p (idle ground HP > 0; a ground bot that reaches high ground in time may survive).
 
 T3n attribution rules for official T3z fields are in `T3-plan.md:231–236`.
