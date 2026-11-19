@@ -202,6 +202,8 @@ func _ready() -> void:
 	terrain_collapse.configure(map_id, $Sandbox)
 	$Player.position = get_map_spawn_origin()
 	$Player.world_loaded = false
+	# T35: offline jump physics reuse the same focus gate as the jump cue.
+	$Player.jump_press_taken_by_ui = _jump_press_taken_by_ui
 	spectator_controller = SpectatorControllerScript.new()
 	add_child(spectator_controller)
 	spectator_controller.target_changed.connect(_on_spectator_target_changed)

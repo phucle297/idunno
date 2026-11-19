@@ -51,6 +51,9 @@ var _emote_id := 0
 var _emote_remaining := 0.0
 var _peer_id := 1
 var local_input_blocked := false
+# T35: main injects its shared focus gate (_jump_press_taken_by_ui) so an offline
+# Space press a focused control takes is a UI confirm only, never also a jump.
+var jump_press_taken_by_ui := Callable()
 var world_loaded := true
 var mouse_sensitivity := 1.0
 var invert_y := false
@@ -166,7 +169,7 @@ func _physics_process(delta: float) -> void:
 	apply_movement_input(
 		Vector2.ZERO if local_input_blocked else Input.get_vector("move_left", "move_right", "move_forward", "move_back"),
 		not local_input_blocked and Input.is_action_pressed("sprint"),
-		not local_input_blocked and Input.is_action_just_pressed("jump"),
+		not local_input_blocked and Input.is_action_just_pressed("jump") and not _jump_taken_by_ui(),
 		delta
 	)
 
@@ -390,6 +393,10 @@ func reset_for_match(spawn_position: Vector3) -> void:
 	_update_capsule()
 	if is_instance_valid(character):
 		character.play_clip("idle")
+
+
+func _jump_taken_by_ui() -> bool:
+	return jump_press_taken_by_ui.is_valid() and bool(jump_press_taken_by_ui.call())
 
 
 func configure_identity(peer_id: int) -> void:
