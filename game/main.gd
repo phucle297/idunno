@@ -49,6 +49,10 @@ const INTERIOR_LIGHT_COLOR := Color(1.0, 0.77, 0.52)
 const INTERIOR_LIGHT_ENERGY := 1.6
 const BROAD_SURFACE_LAYER := 2
 const INTERIOR_LIGHT_CULL_MASK := 0xFFFFF & ~BROAD_SURFACE_LAYER
+# T28: lit interior box (footprint x height) stored on each lamp root; static
+# meshes fully outside every box (plus margin) join BROAD_SURFACE_LAYER.
+const INTERIOR_LIGHT_BOX_META := &"interior_light_box"
+const INTERIOR_LIGHT_BOX_MARGIN := 0.5
 const MAP_KILL_Y := -8.0
 const MAP_IDS := ["toy_town", "toy_harbor"]
 const MAP_TITLES := {"toy_town": "Toy Town", "toy_harbor": "Toy Harbor"}
@@ -3134,6 +3138,7 @@ func prepare_gameplay_map(is_current := Callable()) -> bool:
 		work.finish()
 		return false
 	map_anchors = anchors
+	_scope_interior_lights_to_interiors()
 	$Sandbox.show()
 	_reseat_players_for_map()
 	for player: PartyPlayer in _player_nodes.values():
@@ -4026,7 +4031,44 @@ func _set_broad_surface_layer(node: Node) -> void:
 		_set_broad_surface_layer(child)
 
 
+func _scope_interior_lights_to_interiors() -> void:
+	# T28: shadow-less Compatibility spots add one draw pass for every mesh in
+	# their range AABB, walls or not. Static map meshes that lie fully outside
+	# every lit interior box (footprint x height + margin) move to the broad
+	# layer the lamps already exclude; they stay drawn and sun-lit. Dynamic
+	# bodies (props, mechanisms, breakables, players, later debris) keep layer 1.
+	var boxes: Array[AABB] = []
+	for root: Node in $Sandbox.find_children("*", "Node3D", true, false):
+		if root.has_meta(INTERIOR_LIGHT_BOX_META):
+			var local_box: AABB = root.get_meta(INTERIOR_LIGHT_BOX_META)
+			boxes.append(((root as Node3D).global_transform * local_box).grow(INTERIOR_LIGHT_BOX_MARGIN))
+	if boxes.is_empty():
+		return
+	for node: Node in $Sandbox.find_children("*", "GeometryInstance3D", true, false):
+		var geometry := node as GeometryInstance3D
+		if geometry.layers != 1 or _has_dynamic_ancestor(geometry):
+			continue
+		var world_box := geometry.global_transform * geometry.get_aabb()
+		var touches_interior := false
+		for box in boxes:
+			if box.intersects(world_box):
+				touches_interior = true
+				break
+		if not touches_interior:
+			geometry.layers = BROAD_SURFACE_LAYER
+
+
+func _has_dynamic_ancestor(node: Node) -> bool:
+	var ancestor := node
+	while ancestor != null:
+		if ancestor is RigidBody3D or ancestor is AnimatableBody3D or ancestor is CharacterBody3D or ancestor is BreakableStructure:
+			return true
+		ancestor = ancestor.get_parent()
+	return false
+
+
 func _add_interior_lighting(root: Node3D, footprint: Vector2, height: float) -> void:
+	root.set_meta(INTERIOR_LIGHT_BOX_META, AABB(Vector3(-footprint.x * 0.5, 0.0, -footprint.y * 0.5), Vector3(footprint.x, height, footprint.y)))
 	# Render-only warm toy lamps (T16): shadow-less spot pointing down from the
 	# ceiling, a small glowing bulb, and a thin floor visual the lamp can light
 	# (the shared ground is excluded via cull mask). No colliders, no gameplay.
