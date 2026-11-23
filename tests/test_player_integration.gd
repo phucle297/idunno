@@ -323,7 +323,7 @@ func _test_default_scene_offline_input() -> void:
 	flood.tick(0.5)
 	main._process(0.0)
 	_expect((main.get_node("MatchManager") as MatchManager).get_health(1) < 100.0, "Flood must reduce HP after the breathing grace expires")
-	_expect(main.gameplay_hud.personal_danger.visible and main.gameplay_hud.danger_status.text == "DROWNING — -12 HP/s", "Active Flood damage must replace breathing copy with the authoritative damage rate")
+	_expect(main.gameplay_hud.personal_danger.visible and main.gameplay_hud.danger_status.text == "DROWNING — -8 HP/s", "Active Flood damage must replace breathing copy with the authoritative damage rate")
 	for state: int in [MatchManager.MatchState.LOBBY, MatchManager.MatchState.RESULTS]:
 		main.match_manager.state = state
 		main._update_flood_feedback(1)
@@ -351,7 +351,7 @@ func _test_default_scene_offline_input() -> void:
 func _test_electrified_flood_feedback(main: Node, local_player: PartyPlayer, flood: Flood) -> void:
 	var hud := main.gameplay_hud as GameplayHud
 	# Shallow contact (only 2 cm above feet), breathing grace, and existing drowning.
-	for entry: Array in [[0.12, 0.0, 25, "IN FLOODWATER"], [2.0, 0.5, 25, "HOLD BREATH"], [2.0, 2.5, 37, "DROWNING"]]:
+	for entry: Array in [[0.12, 0.0, 25, "IN FLOODWATER"], [2.0, 0.5, 25, "HOLD BREATH"], [2.0, 2.5, 33, "DROWNING"]]:
 		flood.cleanup()
 		main.match_manager.prepare_lobby()
 		main.match_manager.set_player_ready(1, true)

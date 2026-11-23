@@ -36,7 +36,7 @@ enum CurrentPattern {
 @export var hold_duration := 5.0
 @export var drain_duration := 5.0
 @export var breathing_grace := 2.0
-@export var damage_per_second := 12.0
+@export var damage_per_second := 8.0
 @export var buoyancy_acceleration := 11.0
 @export var buoyancy_force_max := 180.0
 @export var drag_force_max := 90.0
