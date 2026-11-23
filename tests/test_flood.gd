@@ -62,7 +62,7 @@ func _run() -> void:
 	# rather than a removed crouch capsule.
 	flood._set_water_level(1.5)
 	flood._apply_water_effects(2.5, 1.5, 0.0)
-	_expect(is_equal_approx(manager.get_health(1), 94.0), "Water covering a standing player's head must deal damage after breathing grace")
+	_expect(is_equal_approx(manager.get_health(1), 96.0), "Water covering a standing player's head must deal damage after breathing grace")
 	var exposure_snapshot := flood.create_presentation_snapshot()
 	_expect(exposure_snapshot.submerged_peer_ids == PackedInt32Array([1, 2]) and is_equal_approx(exposure_snapshot.submerged_times[0], 2.5), "Flood snapshots must carry per-player breathing exposure for client feedback")
 	low_player.position.y = 4.5
@@ -81,7 +81,7 @@ func _run() -> void:
 	flood.tick(1.99)
 	_expect(is_equal_approx(manager.get_health(1), 100.0), "Damage must not begin before two submerged seconds")
 	flood.tick(0.51)
-	_expect(is_equal_approx(manager.get_health(1), 94.0), "Only time beyond breathing grace must deal 12 HP/s")
+	_expect(is_equal_approx(manager.get_health(1), 96.0), "Only time beyond breathing grace must deal 8 HP/s")
 	_expect(is_equal_approx(manager.get_health(2), 100.0), "High ground must remain safe at target water level")
 	_expect(prop.constant_force.length() <= flood.buoyancy_force_max + flood.drag_force_max * 2.0 + 0.001, "Combined water force must remain bounded")
 	_expect(flood.current_speed <= 1.5, "Flood current must respect the design speed cap")
@@ -91,7 +91,7 @@ func _run() -> void:
 	_expect(is_zero_approx(flood.get_submerged_time(1)), "Surfacing must reset breathing grace")
 	low_player.position.y = 0.0
 	flood.tick(1.0)
-	_expect(is_equal_approx(manager.get_health(1), 94.0), "Re-submersion must receive a fresh breathing grace period")
+	_expect(is_equal_approx(manager.get_health(1), 96.0), "Re-submersion must receive a fresh breathing grace period")
 
 	# 3.3.2 role boundaries (asymmetric two-player case): at refuge-height
 	# water the escape-aid elevation keeps its passenger dry while a grounded
@@ -101,8 +101,8 @@ func _run() -> void:
 	high_player.position.y = 0.0
 	flood._set_water_level(2.2)
 	flood._apply_water_effects(2.5, 2.2, 0.0)
-	_expect(is_equal_approx(manager.get_health(1), 94.0), "Escape-aid elevation must keep its passenger dry at refuge-height water")
-	_expect(is_equal_approx(manager.get_health(2), 94.0), "A grounded player at the same water level must drown")
+	_expect(is_equal_approx(manager.get_health(1), 96.0), "Escape-aid elevation must keep its passenger dry at refuge-height water")
+	_expect(is_equal_approx(manager.get_health(2), 96.0), "A grounded player at the same water level must drown")
 	# Wet/dry prop boundary: water forces apply only below the water line.
 	prop.position = Vector3(6.0, 2.4, 0.0)
 	prop.sleeping = true
@@ -113,9 +113,9 @@ func _run() -> void:
 	_expect(not prop.sleeping, "A submerged prop must be woken by water forces")
 	flood._set_water_level(flood.target_level)
 	flood._apply_water_effects(2.5, flood.target_level, 0.0)
-	_expect(is_equal_approx(manager.get_health(1), 88.0), "Peak flood must drown a player on the escape-aid elevation after breathing grace")
+	_expect(is_equal_approx(manager.get_health(1), 92.0), "Peak flood must drown a player on the escape-aid elevation after breathing grace")
 	flood._apply_water_effects(0.5, flood.target_level, 0.5)
-	_expect(is_equal_approx(manager.get_health(1), 69.5), "Electrified water must damage a flooded player even at escape-aid elevation")
+	_expect(is_equal_approx(manager.get_health(1), 75.5), "Electrified water must damage a flooded player even at escape-aid elevation")
 	_expect(flood.electrify_at(Vector3(0.0, flood.water_level, 0.0)), "Flood must activate the distinct electrified-water feedback")
 	_expect((surface.get_node("ElectricStrikeRipple0") as MeshInstance3D).visible and (surface.get_node("WaterCue0") as MeshInstance3D).mesh is PlaneMesh, "Electrified Flood preserves ordinary moving water cues and adds violet strike ripples")
 

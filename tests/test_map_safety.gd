@@ -283,7 +283,7 @@ func _check_roof_breakage(main: Node3D, player: PartyPlayer) -> void:
 		flood.tick(2.0)
 		_expect(main.match_manager.get_health(1) == landing_health, "Drop into Flood retains two-second breathing grace independently of fall damage")
 		flood.tick(0.5)
-		_expect(is_equal_approx(main.match_manager.get_health(1), landing_health - 6), "Dropped player takes independently calculated 6HP after 0.5s beyond grace")
+		_expect(is_equal_approx(main.match_manager.get_health(1), landing_health - 4), "Dropped player takes independently calculated 4HP after 0.5s beyond grace")
 		print("ROOF_BREAKAGE building=%s dropped_feet=%s hp=%s" % [building_name, player.position, main.match_manager.get_health(1)])
 		main._process(0.0)
 		await _capture(building_name + "RoofBroken")
