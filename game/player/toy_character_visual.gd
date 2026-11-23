@@ -11,6 +11,10 @@ const SUIT_COLORS := [
 	Color("31c5df"), Color("f28a3c"), Color("9b72e8"),
 	Color("8fcf4f"), Color("e66ba8"), Color("4f86e8"),
 ]
+const BACK_ACCESSORY_OUTFITS := [3, 4, 6, 7, 9]
+const HEAD_PARTS := ["Head", "FacePlate", "LeftEye", "RightEye", "Mouth"]
+
+static var _suit_material_cache: Dictionary = {}
 
 var cosmetic_variant := 0
 var current_clip := "idle"
@@ -40,6 +44,10 @@ func ensure_runtime_setup() -> void:
 	_build_accessories()
 	_build_animation_library()
 	set_cosmetic_variant(cosmetic_variant)
+
+
+func get_hand_anchor() -> Marker3D:
+	return get_node_or_null("RightArm/HandAnchor") as Marker3D
 
 
 func play_clip(clip_name: String) -> bool:
@@ -80,6 +88,9 @@ func set_cosmetic_variant(variant: int) -> void:
 	if has_node("Accessories/Cap"):
 		for accessory in $Accessories.get_children():
 			accessory.visible = accessory.get_meta("outfit", -1) == cosmetic_variant
+	var rear_cue := get_node_or_null("Torso/RearCue") as Node3D
+	if rear_cue != null:
+		rear_cue.visible = not (cosmetic_variant in BACK_ACCESSORY_OUTFITS)
 
 
 func set_outfit_id(outfit_id: String) -> bool:
@@ -96,13 +107,14 @@ func get_outfit_id() -> String:
 
 
 func set_player_color(color_index: int) -> void:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = SUIT_COLORS[posmod(color_index, SUIT_COLORS.size())]
-	material.metallic = 0.0
-	material.roughness = 0.8
-	# The bean head, lower body, arms and legs are one continuous suit color;
-	# only the cream face inset stays neutral so eyes/mouth remain readable.
-	for part_name in ["Head", "Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
+	var idx := posmod(color_index, SUIT_COLORS.size())
+	var material: StandardMaterial3D = _suit_material_cache.get(idx)
+	if material == null:
+		material = _material(SUIT_COLORS[idx])
+		_suit_material_cache[idx] = material
+	# Apply player colour to suit-blocked parts while keeping head, face,
+	# collar, belt, hands, and shoes cleanly colour-blocked for readability.
+	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
 		(get_node(part_name) as MeshInstance3D).material_override = material
 
 
@@ -144,94 +156,108 @@ func _build_accessories() -> void:
 	var slate := _material(Color("49566a"))
 	var amber := _material(Color("ffbf3f"))
 	var coral := _material(Color("d98d7d"))
-	var cap := MeshInstance3D.new()
-	cap.name = "Cap"
-	var cap_mesh := CylinderMesh.new()
-	cap_mesh.top_radius = 0.24
-	cap_mesh.bottom_radius = 0.30
-	cap_mesh.height = 0.12
-	cap_mesh.radial_segments = 12
-	cap_mesh.material = slate
-	cap.mesh = cap_mesh
-	cap.position = Vector3(0.0, 1.71, 0.0)
-	accessories.add_child(cap)
-	var hard_hat := MeshInstance3D.new()
-	hard_hat.name = "HardHat"
-	var hard_hat_mesh := SphereMesh.new()
-	hard_hat_mesh.radius = 0.28
-	hard_hat_mesh.height = 0.24
-	hard_hat_mesh.radial_segments = 12
-	hard_hat_mesh.rings = 4
-	hard_hat_mesh.material = amber
-	hard_hat.mesh = hard_hat_mesh
-	hard_hat.position = Vector3(0.0, 1.68, 0.0)
-	accessories.add_child(hard_hat)
-	var backpack := MeshInstance3D.new()
-	backpack.name = "Backpack"
-	var backpack_mesh := BoxMesh.new()
-	backpack_mesh.size = Vector3(0.34, 0.40, 0.18)
-	backpack_mesh.material = coral
-	backpack.mesh = backpack_mesh
-	backpack.position = Vector3(0.0, 1.05, 0.24)
-	accessories.add_child(backpack)
-	cap.set_meta("outfit", 1)
-	hard_hat.set_meta("outfit", 2)
-	backpack.set_meta("outfit", 3)
-	# Open-front silhouettes retain the face and player-identification suit.
-	_costume_box(accessories, "RainCape", 4, Vector3(0.50, 0.50, 0.08), Vector3(0, 0.95, 0.20), amber)
-	_costume_ring(accessories, "RainHood", 4, 0.24, 0.32, Vector3(0, 1.18, 0.10), amber, true)
-	_costume_box(accessories, "HoodBack", 4, Vector3(0.48, 0.42, 0.08), Vector3(0, 1.16, 0.26), amber)
-	_costume_box(accessories, "HoodTop", 4, Vector3(0.48, 0.08, 0.38), Vector3(0, 1.71, 0.10), amber)
-	_costume_box(accessories, "ToolBelt", 5, Vector3(0.48, 0.10, 0.34), Vector3(0, 0.78, 0), slate)
-	_costume_box(accessories, "ToolPouch", 5, Vector3(0.13, 0.18, 0.12), Vector3(0.24, 0.74, 0.02), coral)
-	_costume_box(accessories, "Goggles", 5, Vector3(0.30, 0.10, 0.06), Vector3(0, 1.26, -0.24), slate)
-	for side in [-1, 1]:
-		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.26, -0.278), _material(Color("73b7ad")))
-	_costume_ring(accessories, "RangerBrim", 6, 0.14, 0.36, Vector3(0, 1.69, 0), _material(Color("d9b77e")))
-	_costume_box(accessories, "RangerCrown", 6, Vector3(0.34, 0.14, 0.32), Vector3(0, 1.75, 0), _material(Color("d9b77e")))
-	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0, 1.0, 0.25), _material(Color("86a968")))
-	_costume_ring(accessories, "ObserverHelmet", 7, 0.24, 0.31, Vector3(0, 1.21, 0.08), _material(Color("f4e6c8")), true)
-	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0, 1.0, 0.26), slate)
-	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.24, 0.04), Vector3(0.13, 1.34, 0.26), amber)
 	var cream := _material(Color("f4e6c8"))
 	var teal := _material(Color("73b7ad"))
 	var sand := _material(Color("d9b77e"))
-	_costume_ring(accessories, "ChefBand", 8, 0.17, 0.25, Vector3(0, 1.73, 0), cream)
-	_costume_box(accessories, "ChefToque", 8, Vector3(0.31, 0.24, 0.28), Vector3(0, 1.84, 0), cream)
+	var grass := _material(Color("86a968"))
+
+	# Outfit 1: cap (keep Accessories/Cap sentinel)
+	var cap := MeshInstance3D.new()
+	cap.name = "Cap"
+	var cap_mesh := CylinderMesh.new()
+	cap_mesh.top_radius = 0.23
+	cap_mesh.bottom_radius = 0.30
+	cap_mesh.height = 0.13
+	cap_mesh.radial_segments = 14
+	cap_mesh.material = slate
+	cap.mesh = cap_mesh
+	cap.position = Vector3(0.0, 1.52, 0.0)
+	cap.set_meta("outfit", 1)
+	accessories.add_child(cap)
+	_costume_box(accessories, "CapBrim", 1, Vector3(0.32, 0.04, 0.22), Vector3(0.0, 1.47, -0.26), slate)
+
+	# Outfit 2: hard_hat
+	var hard_hat := MeshInstance3D.new()
+	hard_hat.name = "HardHat"
+	var hard_hat_mesh := SphereMesh.new()
+	hard_hat_mesh.radius = 0.32
+	hard_hat_mesh.height = 0.28
+	hard_hat_mesh.radial_segments = 14
+	hard_hat_mesh.rings = 5
+	hard_hat_mesh.material = amber
+	hard_hat.mesh = hard_hat_mesh
+	hard_hat.position = Vector3(0.0, 1.47, 0.0)
+	hard_hat.set_meta("outfit", 2)
+	accessories.add_child(hard_hat)
+	_costume_ring(accessories, "HardHatBrim", 2, 0.27, 0.35, Vector3(0.0, 1.44, 0.0), amber)
+
+	# Outfit 3: backpack
+	var backpack := MeshInstance3D.new()
+	backpack.name = "Backpack"
+	var backpack_mesh := BoxMesh.new()
+	backpack_mesh.size = Vector3(0.32, 0.36, 0.16)
+	backpack_mesh.material = coral
+	backpack.mesh = backpack_mesh
+	backpack.position = Vector3(0.0, 0.72, 0.28)
+	backpack.set_meta("outfit", 3)
+	accessories.add_child(backpack)
+
+	# Outfit 4: raincoat (open-front hood + cape)
+	_costume_box(accessories, "RainCape", 4, Vector3(0.46, 0.42, 0.08), Vector3(0.0, 0.68, 0.23), amber)
+	_costume_ring(accessories, "RainHood", 4, 0.29, 0.36, Vector3(0.0, 1.24, 0.06), amber, true)
+	_costume_box(accessories, "HoodBack", 4, Vector3(0.46, 0.44, 0.10), Vector3(0.0, 1.24, 0.28), amber)
+	_costume_box(accessories, "HoodTop", 4, Vector3(0.46, 0.08, 0.36), Vector3(0.0, 1.56, 0.08), amber)
+
+	# Outfit 5: mechanic
+	_costume_box(accessories, "ToolBelt", 5, Vector3(0.54, 0.10, 0.46), Vector3(0.0, 0.535, 0.0), slate)
+	_costume_box(accessories, "ToolPouch", 5, Vector3(0.12, 0.16, 0.12), Vector3(0.28, 0.50, 0.02), coral)
+	_costume_box(accessories, "Goggles", 5, Vector3(0.32, 0.10, 0.06), Vector3(0.0, 1.38, -0.28), slate)
+	for side in [-1, 1]:
+		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.38, -0.315), teal)
+
+	# Outfit 6: park_ranger
+	_costume_ring(accessories, "RangerBrim", 6, 0.22, 0.40, Vector3(0.0, 1.50, 0.0), sand)
+	_costume_box(accessories, "RangerCrown", 6, Vector3(0.36, 0.16, 0.34), Vector3(0.0, 1.57, 0.0), sand)
+	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0.0, 0.72, 0.27), grass)
+
+	# Outfit 7: meteor_observer
+	_costume_ring(accessories, "ObserverHelmet", 7, 0.29, 0.36, Vector3(0.0, 1.24, 0.04), cream, true)
+	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0.0, 0.72, 0.28), slate)
+	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.28, 0.04), Vector3(0.12, 1.02, 0.28), amber)
+
+	# Outfit 8: chef
+	_costume_ring(accessories, "ChefBand", 8, 0.22, 0.30, Vector3(0.0, 1.52, 0.0), cream)
+	_costume_box(accessories, "ChefToque", 8, Vector3(0.34, 0.22, 0.30), Vector3(0.0, 1.63, 0.0), cream)
 	for side in [-1, 0, 1]:
-		_costume_sphere(accessories, "ChefPuff%d" % side, 8, 0.13, 0.19, Vector3(side * 0.10, 1.96, 0), cream)
-	_costume_box(accessories, "ChefApron", 8, Vector3(0.37, 0.32, 0.05), Vector3(0, 0.85, -0.245), cream)
-	_costume_box(accessories, "ChefPocket", 8, Vector3(0.18, 0.09, 0.025), Vector3(0, 0.83, -0.28), coral)
-	_costume_ring(accessories, "RescueBrim", 9, 0.17, 0.32, Vector3(0, 1.69, 0.025), coral)
-	_costume_sphere(accessories, "RescueHelmet", 9, 0.25, 0.25, Vector3(0, 1.76, 0), coral)
-	_costume_box(accessories, "RescueBadge", 9, Vector3(0.09, 0.10, 0.04), Vector3(0, 1.74, -0.24), amber)
-	_costume_box(accessories, "RescuePack", 9, Vector3(0.32, 0.37, 0.13), Vector3(0, 1.02, 0.25), slate)
+		_costume_sphere(accessories, "ChefPuff%d" % side, 8, 0.13, 0.18, Vector3(side * 0.10, 1.74, 0.0), cream)
+	_costume_box(accessories, "ChefApron", 8, Vector3(0.38, 0.34, 0.05), Vector3(0.0, 0.62, -0.235), cream)
+	_costume_box(accessories, "ChefPocket", 8, Vector3(0.18, 0.09, 0.025), Vector3(0.0, 0.60, -0.265), coral)
+
+	# Outfit 9: firefighter
+	_costume_ring(accessories, "RescueBrim", 9, 0.22, 0.38, Vector3(0.0, 1.49, 0.02), coral)
+	_costume_sphere(accessories, "RescueHelmet", 9, 0.29, 0.28, Vector3(0.0, 1.55, 0.0), coral)
+	_costume_box(accessories, "RescueBadge", 9, Vector3(0.10, 0.11, 0.04), Vector3(0.0, 1.54, -0.28), amber)
+	_costume_box(accessories, "RescuePack", 9, Vector3(0.30, 0.34, 0.13), Vector3(0.0, 0.72, 0.27), slate)
 	for side in [-1, 1]:
-		_costume_sphere(accessories, "AirTank%d" % side, 9, 0.075, 0.30, Vector3(side * 0.085, 1.02, 0.33), amber)
-	_costume_ring(accessories, "SailorBand", 10, 0.17, 0.26, Vector3(0, 1.72, 0), slate)
-	_costume_sphere(accessories, "SailorCap", 10, 0.25, 0.16, Vector3(0, 1.80, 0), cream)
-	_costume_box(accessories, "SailorCollar", 10, Vector3(0.40, 0.09, 0.26), Vector3(0, 1.04, 0.06), teal)
-	_costume_box(accessories, "SailorKnot", 10, Vector3(0.09, 0.14, 0.06), Vector3(0, 0.87, -0.25), teal)
-	_costume_sphere(accessories, "FlightCap", 11, 0.25, 0.24, Vector3(0, 1.74, 0.015), sand)
+		_costume_sphere(accessories, "AirTank%d" % side, 9, 0.075, 0.30, Vector3(side * 0.085, 0.72, 0.34), amber)
+
+	# Outfit 10: sailor
+	_costume_ring(accessories, "SailorBand", 10, 0.22, 0.30, Vector3(0.0, 1.51, 0.0), slate)
+	_costume_sphere(accessories, "SailorCap", 10, 0.29, 0.17, Vector3(0.0, 1.58, 0.0), cream)
+	_costume_box(accessories, "SailorCollar", 10, Vector3(0.46, 0.08, 0.36), Vector3(0.0, 0.89, 0.04), teal)
+	_costume_box(accessories, "SailorKnot", 10, Vector3(0.09, 0.14, 0.05), Vector3(0.0, 0.78, -0.235), teal)
+
+	# Outfit 11: pilot
+	_costume_sphere(accessories, "FlightCap", 11, 0.31, 0.28, Vector3(0.0, 1.46, 0.01), sand)
 	for side in [-1, 1]:
-		_costume_sphere(accessories, "FlightEar%d" % side, 11, 0.085, 0.22, Vector3(side * 0.23, 1.47, 0.015), slate)
-	_costume_ring(accessories, "FlightScarf", 11, 0.21, 0.29, Vector3(0, 0.92, 0), amber)
-	_costume_box(accessories, "ScarfTail", 11, Vector3(0.10, 0.24, 0.04), Vector3(0.16, 0.79, -0.25), amber)
+		_costume_sphere(accessories, "FlightEar%d" % side, 11, 0.085, 0.22, Vector3(side * 0.30, 1.24, 0.01), slate)
+	_costume_ring(accessories, "FlightScarf", 11, 0.19, 0.27, Vector3(0.0, 0.90, 0.0), amber)
+	_costume_box(accessories, "ScarfTail", 11, Vector3(0.10, 0.24, 0.04), Vector3(0.15, 0.76, -0.235), amber)
+
 	for accessory in accessories.get_children():
-		# Fit the broader continuous creature without changing outfit IDs or
-		# attachment ownership. Face equipment stays in front of the oval inset.
-		accessory.scale.x *= 1.45
-		accessory.scale.z *= 1.45
-		accessory.position.x *= 1.45
-		accessory.position.z *= 1.5
-		if accessory.position.y > 1.6:
-			accessory.position.y -= 0.18
-		if accessory.name == "ToolBelt":
-			accessory.scale.x = 1.8
-			accessory.scale.z = 2.05
-		accessory.set_meta("body", "Head" if accessory.position.y > 1.45 else ("Pelvis" if accessory.position.y < 0.85 else "Chest"))
-		if accessory.name == "ScarfTail":
-			accessory.set_meta("body", "Chest") # One attachment for the whole scarf.
+		accessory.set_meta("body", "Head" if accessory.position.y > 1.05 else ("Pelvis" if accessory.position.y < 0.58 else "Chest"))
+		if accessory.name in ["ScarfTail", "Antenna"]:
+			accessory.set_meta("body", "Chest")
 
 
 func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:
@@ -321,25 +347,42 @@ func _create_clip(clip_name: String) -> Animation:
 				var reset := animation.add_track(Animation.TYPE_VALUE)
 				animation.track_set_path(reset, NodePath("%sLeg/%s" % [side, property]))
 				animation.track_insert_key(reset, 0.0, get_node("%sLeg/%s" % [side, parts[0]]).get(parts[1]))
+
 	var squash := animation.add_track(Animation.TYPE_VALUE)
 	animation.track_set_path(squash, NodePath("Torso:scale"))
 	var rest_scale: Vector3 = $Torso.scale
-	animation.track_insert_key(squash, 0.0, rest_scale * Vector3(1, 0.92 if clip_name == "landing" else 1.0, 1))
-	animation.track_insert_key(squash, 0.13 if clip_name == "landing" else animation.length, rest_scale)
+	if clip_name == "idle":
+		animation.track_insert_key(squash, 0.0, rest_scale)
+		animation.track_insert_key(squash, animation.length * 0.5, rest_scale * Vector3(1.015, 0.975, 1.015))
+		animation.track_insert_key(squash, animation.length, rest_scale)
+	elif clip_name == "jump_takeoff":
+		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(0.94, 1.07, 0.94))
+		animation.track_insert_key(squash, animation.length, rest_scale * Vector3(0.96, 1.04, 0.96))
+	elif clip_name == "landing":
+		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(1.06, 0.90, 1.06))
+		animation.track_insert_key(squash, 0.13, rest_scale)
+		animation.track_insert_key(squash, animation.length, rest_scale)
+	else:
+		animation.track_insert_key(squash, 0.0, rest_scale)
+		animation.track_insert_key(squash, animation.length, rest_scale)
+
 	if clip_name != "shove":
-		var recovery_lean := -0.5 if clip_name == "get_up" else 0.0
+		var start_lean := -0.5 if clip_name == "get_up" else (-0.10 if clip_name == "run" else (-0.04 if clip_name == "walk" else 0.0))
+		var end_lean := -0.10 if clip_name == "run" else (-0.04 if clip_name == "walk" else 0.0)
 		var torso_reset := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(torso_reset, NodePath("Torso:rotation"))
-		animation.track_insert_key(torso_reset, 0.0, Vector3(recovery_lean, 0, 0))
-		animation.track_insert_key(torso_reset, animation.length, Vector3.ZERO)
-		for part in ["FacePlate", "LeftEye", "RightEye", "Mouth"]:
-			var face_reset := animation.add_track(Animation.TYPE_VALUE)
-			animation.track_set_path(face_reset, NodePath("%s:transform" % part))
+		animation.track_insert_key(torso_reset, 0.0, Vector3(start_lean, 0.0, 0.0))
+		animation.track_insert_key(torso_reset, animation.length, Vector3(end_lean, 0.0, 0.0))
+
+		var recovery_lean := -0.5 if clip_name == "get_up" else 0.0
+		for part in HEAD_PARTS:
+			var part_reset := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(part_reset, NodePath("%s:transform" % part))
 			var rest: Transform3D = get_node(part).transform
 			var rotation := Basis(Vector3.RIGHT, recovery_lean)
 			var pivot: Vector3 = $Torso.position
-			animation.track_insert_key(face_reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
-			animation.track_insert_key(face_reset, animation.length, rest)
+			animation.track_insert_key(part_reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(part_reset, animation.length, rest)
 		for accessory: MeshInstance3D in $Accessories.get_children():
 			var reset := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(reset, NodePath("Accessories/%s:transform" % accessory.name))
@@ -348,37 +391,36 @@ func _create_clip(clip_name: String) -> Animation:
 			var rest := accessory.transform
 			animation.track_insert_key(reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
 			animation.track_insert_key(reset, animation.length, rest)
+
 	if clip_name == "shove":
-		# One bounded forward arm thrust with a short lunge stance; the clip is
-		# one-shot and returns to ordinary locomotion on the next frame pick.
-		# The arm spread and torso lean keep the cue readable from the rear
-		# gameplay camera, where a pure forward thrust hides behind the torso.
+		# Bounded forward arm thrust with a short lunge stance and wind-up/push;
+		# one-shot returning cleanly to rest for locomotion handoff.
 		var thrust := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(thrust, NodePath("LeftArm:rotation"))
-		animation.track_insert_key(thrust, 0.0, Vector3.ZERO)
+		animation.track_insert_key(thrust, 0.0, Vector3(-0.35, 0.0, 0.15))
 		animation.track_insert_key(thrust, 0.1, Vector3(1.35, 0.0, 0.55))
 		animation.track_insert_key(thrust, animation.length, Vector3.ZERO)
 		var thrust_mirror := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(thrust_mirror, NodePath("RightArm:rotation"))
-		animation.track_insert_key(thrust_mirror, 0.0, Vector3.ZERO)
+		animation.track_insert_key(thrust_mirror, 0.0, Vector3(-0.35, 0.0, -0.15))
 		animation.track_insert_key(thrust_mirror, 0.1, Vector3(1.35, 0.0, -0.55))
 		animation.track_insert_key(thrust_mirror, animation.length, Vector3.ZERO)
 		var lean := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(lean, NodePath("Torso:rotation"))
-		animation.track_insert_key(lean, 0.0, Vector3.ZERO)
+		animation.track_insert_key(lean, 0.0, Vector3(0.08, 0.0, 0.0))
 		animation.track_insert_key(lean, 0.1, Vector3(-0.28, 0.0, 0.0))
 		animation.track_insert_key(lean, animation.length, Vector3.ZERO)
-		for part in ["FacePlate", "LeftEye", "RightEye", "Mouth"]:
-			var face_track := animation.add_track(Animation.TYPE_VALUE)
-			animation.track_set_path(face_track, NodePath("%s:transform" % part))
+		for part in HEAD_PARTS:
+			var part_track := animation.add_track(Animation.TYPE_VALUE)
+			animation.track_set_path(part_track, NodePath("%s:transform" % part))
 			var rest: Transform3D = get_node(part).transform
 			var pivot: Vector3 = $Torso.position
 			var rotation := Basis(Vector3.RIGHT, -0.28)
-			animation.track_insert_key(face_track, 0.0, rest)
-			animation.track_insert_key(face_track, 0.1, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
-			animation.track_insert_key(face_track, animation.length, rest)
+			animation.track_insert_key(part_track, 0.0, rest)
+			animation.track_insert_key(part_track, 0.1, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
+			animation.track_insert_key(part_track, animation.length, rest)
 		for accessory: MeshInstance3D in $Accessories.get_children():
-			if accessory.get_meta("body") != "Chest":
+			if accessory.get_meta("body") == "Pelvis":
 				continue
 			var attachment := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(attachment, NodePath("Accessories/%s:transform" % accessory.name))
@@ -399,9 +441,8 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(lunge_mirror, 0.1, Vector3(-0.3, 0.0, 0.0))
 		animation.track_insert_key(lunge_mirror, animation.length, Vector3.ZERO)
 		return animation
+
 	if clip_name == "wave":
-		# One-shot social emote: right arm raised with a bounded side-to-side
-		# wave, returning to rest so locomotion resumes cleanly.
 		var wave_arm := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(wave_arm, NodePath("RightArm:rotation"))
 		animation.track_insert_key(wave_arm, 0.0, Vector3.ZERO)
@@ -412,14 +453,11 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(wave_arm, 1.05, Vector3(2.5, 0.0, -0.35))
 		animation.track_insert_key(wave_arm, animation.length, Vector3.ZERO)
 		return animation
+
 	if clip_name == "cheer":
-		# One-shot social emote: both arms bounce up in a V with a small
-		# counter-swing in the legs; ends at rest for locomotion handoff.
 		var cheer_left := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(cheer_left, NodePath("LeftArm:rotation"))
 		animation.track_insert_key(cheer_left, 0.0, Vector3.ZERO)
-		# Negative z splays the raised left arm outward; positive z would
-		# fold it across the face like the holding pose.
 		animation.track_insert_key(cheer_left, 0.12, Vector3(2.7, 0.0, -0.55))
 		animation.track_insert_key(cheer_left, 0.35, Vector3(2.35, 0.0, -0.45))
 		animation.track_insert_key(cheer_left, 0.6, Vector3(2.7, 0.0, -0.55))
@@ -448,17 +486,19 @@ func _create_clip(clip_name: String) -> Animation:
 		animation.track_insert_key(cheer_right_leg, 0.85, Vector3(-0.12, 0.0, 0.0))
 		animation.track_insert_key(cheer_right_leg, animation.length, Vector3.ZERO)
 		return animation
-	var arm_angle := 0.0
+
+	var arm_angle := 0.06 if clip_name == "idle" else 0.0
 	var leg_angle := 0.0
 	if clip_name == "walk":
 		arm_angle = 0.55
 	elif clip_name == "run":
-		arm_angle = 0.9
+		arm_angle = 0.95
 	elif clip_name == "jump_takeoff":
 		arm_angle = -0.8
-		leg_angle = 0.25
+		leg_angle = 0.35
 	elif clip_name == "falling":
 		arm_angle = -0.45
+		leg_angle = 0.20
 	elif clip_name == "landing":
 		arm_angle = 0.35
 		leg_angle = 0.4
@@ -528,5 +568,7 @@ func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.metallic = 0.0
-	material.roughness = 0.8
+	material.roughness = 0.48
+	material.clearcoat = 0.15
+	material.clearcoat_roughness = 0.35
 	return material

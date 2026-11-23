@@ -148,8 +148,12 @@ func _present_held(slots: Dictionary, players: Dictionary) -> void:
 		var kind := str(entry.slot.get("kind", "unknown"))
 		mesh.mesh = _mesh_for(kind)
 		mesh.material_override = _material_for(kind)
-		# The body visual is intentionally more stable than animated hands/ragdolls.
-		visual.global_transform = anchor.global_transform * Transform3D(Basis.IDENTITY, Vector3(0.34, 0.92, -0.16))
+		var character = player.get("character") if is_instance_valid(player) else null
+		var hand_anchor: Marker3D = character.get_hand_anchor() if is_instance_valid(character) and character.has_method("get_hand_anchor") else null
+		if is_instance_valid(hand_anchor):
+			visual.global_transform = hand_anchor.global_transform
+		else:
+			visual.global_transform = anchor.global_transform * Transform3D(Basis.IDENTITY, Vector3(0.34, 0.92, -0.16))
 		visual.scale = Vector3(0.48, 0.48, 0.48)
 
 
