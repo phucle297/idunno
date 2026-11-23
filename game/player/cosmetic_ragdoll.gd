@@ -24,21 +24,34 @@ func copy_appearance(character: ToyCharacterVisual) -> void:
 	for part in ["Pelvis", "Chest", "Head", "UpperArmLeft", "LowerArmLeft", "UpperArmRight", "LowerArmRight", "UpperLegLeft", "LowerLegLeft", "UpperLegRight", "LowerLegRight"]:
 		(_bodies[part].get_child(0) as MeshInstance3D).material_override = suit
 		(_bodies[part].get_child(0) as MeshInstance3D).visible = false
-	# Physics retains eleven bodies; presentation reuses the actual continuous
-	# creature surface rather than reconstructing it as stacked physics bulbs.
+	# Physics retains eleven bodies; presentation mirrors the figurine meshes.
+	var head := character.get_node_or_null("Head") as MeshInstance3D
+	if head != null and head.visible:
+		_copy_mesh_tree(head, _bodies.Head, head.transform)
 	var torso := character.get_node("Torso") as MeshInstance3D
 	_copy_mesh(torso, _bodies.Chest, torso.transform)
+	for detail_name in ["NeckCollar", "RearCue"]:
+		var detail := torso.get_node_or_null(detail_name) as MeshInstance3D
+		if detail != null and detail.visible:
+			_copy_mesh_tree(detail, _bodies.Chest, torso.transform * detail.transform)
+	var belt := torso.get_node_or_null("WaistBelt") as MeshInstance3D
+	if belt != null and belt.visible:
+		_copy_mesh_tree(belt, _bodies.Pelvis, torso.transform * belt.transform)
 	for side in ["Left", "Right"]:
 		for limb in ["Arm", "Leg"]:
 			var pivot := character.get_node(side + limb) as Node3D
 			var source := pivot.get_node("Mesh") as MeshInstance3D
 			_copy_mesh(source, _bodies["Upper" + limb + side], pivot.transform * source.transform)
+		var arm_pivot := character.get_node(side + "Arm") as Node3D
+		var hand := arm_pivot.get_node_or_null(side + "Hand") as MeshInstance3D
+		if hand != null:
+			_copy_mesh(hand, _bodies["LowerArm" + side], arm_pivot.transform * hand.transform)
 	var face := character.get_node_or_null("FacePlate") as MeshInstance3D
 	if face != null:
-		_copy_mesh(face, _bodies.Chest, face.transform)
+		_copy_mesh(face, _bodies.Head, face.transform)
 	for part in ["LeftEye", "RightEye", "Mouth"]:
 		var source := character.get_node(part) as MeshInstance3D
-		_copy_mesh(source, _bodies.Chest, source.transform)
+		_copy_mesh_tree(source, _bodies.Head, source.transform)
 	for side in ["Left", "Right"]:
 		var source := character.get_node("%sLeg/%sShoe" % [side, side]) as MeshInstance3D
 		var placement := source.transform
@@ -49,6 +62,13 @@ func copy_appearance(character: ToyCharacterVisual) -> void:
 			continue
 		var body: RigidBody3D = _bodies[source.get_meta("body", "Chest")]
 		_copy_mesh(source, body, source.transform)
+
+
+func _copy_mesh_tree(source: MeshInstance3D, body: RigidBody3D, placement: Transform3D) -> void:
+	_copy_mesh(source, body, placement)
+	for child in source.get_children():
+		if child is MeshInstance3D and child.visible:
+			_copy_mesh_tree(child as MeshInstance3D, body, placement * (child as Node3D).transform)
 
 
 func _copy_mesh(source: MeshInstance3D, body: RigidBody3D, placement: Transform3D) -> void:

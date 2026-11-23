@@ -81,11 +81,14 @@ func _check_assets() -> void:
 	for path in ["LeftArm", "LeftArm/Mesh", "RightArm", "RightArm/Mesh", "LeftLeg", "LeftLeg/Mesh", "LeftLeg/LeftShoe", "RightLeg", "RightLeg/Mesh", "RightLeg/RightShoe"]:
 		_expect(character.get_node(path).owner == character, "Nested pivots, meshes and shoes must be owned by the packed root")
 	var head := character.get_node("Head") as MeshInstance3D
-	var body := character.get_node("Torso") as MeshInstance3D
-	_expect(is_equal_approx((body.mesh as CapsuleMesh).radius * 2.0, 0.80), "Soft Creature must have the approved broad 0.80 m body silhouette")
-	var right_arm := character.get_node("RightArm/Mesh") as MeshInstance3D
-	_expect(is_equal_approx((character.to_local(right_arm.global_position).x + (right_arm.mesh as CapsuleMesh).radius) * 2.0, 1.08), "Soft Creature arm span must be 1.08 m without changing the gameplay capsule")
-	_expect(character.get_node("Head").position.y + (head.mesh as SphereMesh).height * 0.5 <= 1.71, "Soft Creature must stay within its 1.60 m capsule reach")
+	_expect(head.visible, "Chunky Figurine head must be visible")
+	var head_height := (head.mesh as SphereMesh).height * head.scale.y
+	var total_height := head.position.y + head_height * 0.5
+	_expect(total_height >= 1.45 and total_height <= 1.60, "Chunky Figurine total height must stay within 1.45..1.60 m")
+	var head_ratio := total_height / head_height
+	_expect(head_ratio >= 2.2 and head_ratio <= 2.5, "Chunky Figurine head-to-total-height ratio must stay in 1:2.2..1:2.5")
+	var hand_anchor := (character as ToyCharacterVisual).get_hand_anchor()
+	_expect(hand_anchor != null and hand_anchor.owner == character, "Chunky Figurine must expose RightArm/HandAnchor owned by root")
 	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
 	_expect((character as ToyCharacterVisual).get_animation_names().size() == 10, "Character must provide the 10 retained animation clips")
 	var catalog := ToyCharacterVisual.catalog()
@@ -146,7 +149,7 @@ func _check_assets() -> void:
 		for phase in [0.0, 0.1375, 0.275]:
 			animation.seek(phase, true)
 			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, capsule.height * 0.5, 0)))
-			_expect(top.distance_to(Vector3(leg.position.x, 0.43, 0)) < 0.001, "Leg must remain connected at the redesigned hip throughout running")
+			_expect(top.distance_to(Vector3(leg.position.x, leg.position.y, 0)) < 0.001, "Leg must remain connected at the redesigned hip throughout running")
 	character.free()
 	var meteor := (load("res://assets/generated/VFX_MeteorTelegraph_v001.tscn") as PackedScene).instantiate()
 	_expect(meteor.has_node("WarningFootprint"), "Packed meteor proxy must include its warning footprint")
