@@ -47,7 +47,9 @@ const MAP_HALF_EXTENT := 32.0
 # T16 warm interior lamps (~2900 K). Broad map surfaces sit on visual layer 2
 # and the lamps skip it, so no lamp is dropped by the per-object light limit.
 const INTERIOR_LIGHT_COLOR := Color(1.0, 0.77, 0.52)
-const INTERIOR_LIGHT_ENERGY := 1.6
+const INTERIOR_LIGHT_ENERGY := 2.0
+const INTERIOR_WALL_TOP_TINT := Color(0.80, 0.82, 0.84)
+const INTERIOR_CEILING_UNDERSIDE_TINT := Color(0.70, 0.73, 0.76)
 const BROAD_SURFACE_LAYER := 2
 const INTERIOR_LIGHT_CULL_MASK := 0xFFFFF & ~BROAD_SURFACE_LAYER
 # T28: lit interior box (footprint x height) stored on each lamp root; static
@@ -4178,9 +4180,10 @@ func _add_interior_lighting(root: Node3D, footprint: Vector2, height: float) -> 
 		lamp.light_energy = INTERIOR_LIGHT_ENERGY
 		# Reach the lower walls so they get a floor-up gradient while the
 		# ceiling underside and upper corners stay outside the cone (darker).
-		lamp.spot_angle = 70.0
+		lamp.spot_angle = 80.0
 		lamp.spot_range = Vector2(height, maxf(footprint.x / xs.size(), footprint.y) * 0.5).length() + 1.5
-		lamp.spot_attenuation = 1.0
+		lamp.spot_attenuation = 0.8
+		lamp.spot_angle_attenuation = 0.65
 		lamp.shadow_enabled = false
 		lamp.light_cull_mask = INTERIOR_LIGHT_CULL_MASK
 		lamp.distance_fade_enabled = true
@@ -4221,6 +4224,44 @@ func _surface_quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: 
 		surface.add_vertex(vertex)
 
 
+func _surface_quad_colored(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, ca: Color, cb: Color, cc: Color, cd: Color) -> void:
+	var normal := (c - a).cross(b - a).normalized()
+	var verts: Array[Vector3] = [a, b, c, a, c, d]
+	var colors: Array[Color] = [ca, cb, cc, ca, cc, cd]
+	for k in 6:
+		surface.set_normal(normal)
+		surface.set_color(colors[k])
+		surface.add_vertex(verts[k])
+
+
+func _interior_wall_tint(point: Vector3, half_inner: Vector2, height: float, y: float) -> Color:
+	var t := clampf(y / maxf(height, 0.1), 0.0, 1.0)
+	var vertical := Color.WHITE.lerp(INTERIOR_WALL_TOP_TINT, t)
+	var cx := clampf((absf(point.x) / maxf(half_inner.x, 0.1) - 0.65) / 0.35, 0.0, 1.0)
+	var cz := clampf((absf(point.z) / maxf(half_inner.y, 0.1) - 0.65) / 0.35, 0.0, 1.0)
+	var corner := cx * cz
+	var corner_scale := lerpf(1.0, lerpf(0.86, 0.84, t), corner)
+	return Color(vertical.r * corner_scale, vertical.g * corner_scale, vertical.b * corner_scale, 1.0)
+
+
+func _roof_slab_mesh(size: Vector3, color: Color) -> ArrayMesh:
+	# Planar roof slab with a shaded interior underside (-Y) and unchanged
+	# exterior top/side faces (T27). Zero extra nodes or light passes.
+	var h := size * 0.5
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var w := Color.WHITE
+	var u := INTERIOR_CEILING_UNDERSIDE_TINT
+	_surface_quad_colored(surface, Vector3(-h.x, h.y, -h.z), Vector3(h.x, h.y, -h.z), Vector3(h.x, h.y, h.z), Vector3(-h.x, h.y, h.z), w, w, w, w)
+	_surface_quad_colored(surface, Vector3(-h.x, -h.y, h.z), Vector3(h.x, -h.y, h.z), Vector3(h.x, -h.y, -h.z), Vector3(-h.x, -h.y, -h.z), u, u, u, u)
+	_surface_quad_colored(surface, Vector3(-h.x, -h.y, h.z), Vector3(-h.x, h.y, h.z), Vector3(h.x, h.y, h.z), Vector3(h.x, -h.y, h.z), w, w, w, w)
+	_surface_quad_colored(surface, Vector3(h.x, -h.y, -h.z), Vector3(h.x, h.y, -h.z), Vector3(-h.x, h.y, -h.z), Vector3(-h.x, -h.y, -h.z), w, w, w, w)
+	_surface_quad_colored(surface, Vector3(-h.x, -h.y, -h.z), Vector3(-h.x, h.y, -h.z), Vector3(-h.x, h.y, h.z), Vector3(-h.x, -h.y, h.z), w, w, w, w)
+	_surface_quad_colored(surface, Vector3(h.x, -h.y, h.z), Vector3(h.x, h.y, h.z), Vector3(h.x, h.y, -h.z), Vector3(h.x, -h.y, -h.z), w, w, w, w)
+	surface.set_material(_vertex_color_material(color))
+	return surface.commit()
+
+
 func _add_building_envelope(parent: Node3D, footprint: Vector2, height: float, wall_color: Color) -> void:
 	# One continuous shell around both doorways, instead of six individually
 	# rounded walls whose ends expose vertical seams and disconnected corners.
@@ -4228,21 +4269,28 @@ func _add_building_envelope(parent: Node3D, footprint: Vector2, height: float, w
 		(parent.get_node(wall).get_child(0) as MeshInstance3D).hide()
 	var outer := _rounded_wall_outline(footprint + Vector2.ONE * 0.3, 0.75)
 	var inner := _rounded_wall_outline(footprint - Vector2.ONE * 0.3, 0.45)
+	var half_inner := (footprint - Vector2.ONE * 0.3) * 0.5
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var w := Color.WHITE
 	for i in outer.size():
 		var j := (i + 1) % outer.size()
 		var doorway := absf(outer[i].x) <= 1.21 and absf(outer[j].x) <= 1.21
-		var bottom := Vector3.UP * (2.65 if doorway else 0.0)
+		var bottom_y := 2.65 if doorway else 0.0
+		var bottom := Vector3.UP * bottom_y
 		var top := Vector3.UP * height
-		_surface_quad(surface, outer[i] + bottom, outer[j] + bottom, outer[j] + top, outer[i] + top)
-		_surface_quad(surface, inner[j] + bottom, inner[i] + bottom, inner[i] + top, inner[j] + top)
-		_surface_quad(surface, inner[i] + bottom, inner[j] + bottom, outer[j] + bottom, outer[i] + bottom)
-		_surface_quad(surface, outer[i] + top, outer[j] + top, inner[j] + top, inner[i] + top)
+		_surface_quad_colored(surface, outer[i] + bottom, outer[j] + bottom, outer[j] + top, outer[i] + top, w, w, w, w)
+		var cj_bot := _interior_wall_tint(inner[j], half_inner, height, bottom_y)
+		var ci_bot := _interior_wall_tint(inner[i], half_inner, height, bottom_y)
+		var ci_top := _interior_wall_tint(inner[i], half_inner, height, height)
+		var cj_top := _interior_wall_tint(inner[j], half_inner, height, height)
+		_surface_quad_colored(surface, inner[j] + bottom, inner[i] + bottom, inner[i] + top, inner[j] + top, cj_bot, ci_bot, ci_top, cj_top)
+		_surface_quad_colored(surface, inner[i] + bottom, inner[j] + bottom, outer[j] + bottom, outer[i] + bottom, w, w, w, w)
+		_surface_quad_colored(surface, outer[i] + top, outer[j] + top, inner[j] + top, inner[i] + top, w, w, w, w)
 		if doorway:
-			_surface_quad(surface, inner[i], outer[i], outer[i] + bottom, inner[i] + bottom)
-			_surface_quad(surface, outer[j], inner[j], inner[j] + bottom, outer[j] + bottom)
-	surface.set_material(_material(wall_color))
+			_surface_quad_colored(surface, inner[i], outer[i], outer[i] + bottom, inner[i] + bottom, w, w, w, w)
+			_surface_quad_colored(surface, outer[j], inner[j], inner[j] + bottom, outer[j] + bottom, w, w, w, w)
+	surface.set_material(_vertex_color_material(wall_color))
 	var envelope := MeshInstance3D.new()
 	envelope.name = "ContinuousWalls"
 	envelope.mesh = surface.commit()
@@ -4250,12 +4298,10 @@ func _add_building_envelope(parent: Node3D, footprint: Vector2, height: float, w
 	# Roof patches share exact planar edges, rather than rounded separate slabs.
 	for part in ["RoofWest", "RoofEast", "RoofNorth", "RoofSouth"]:
 		var body := parent.get_node(part)
-		var mesh := BoxMesh.new()
-		mesh.size = (body.get_child(1).shape as BoxShape3D).size
-		mesh.material = _material(PALETTE.cream)
-		(body.get_child(0) as MeshInstance3D).mesh = mesh
+		(body.get_child(0) as MeshInstance3D).mesh = _roof_slab_mesh((body.get_child(1).shape as BoxShape3D).size, PALETTE.cream)
 	if parent.name not in ["Shop", "Hall", "Warehouse"]:
 		_add_box_to(parent, "RoofCenter", Vector3(2, 0.35, 2), Vector3(0, height + 0.18, 0), PALETTE.cream)
+		(parent.get_node("RoofCenter").get_child(0) as MeshInstance3D).mesh = _roof_slab_mesh(Vector3(2, 0.35, 2), PALETTE.cream)
 
 
 func _add_continuous_cornice(parent: Node3D, footprint: Vector2, height: float, color: Color) -> void:
@@ -4903,6 +4949,18 @@ func _material(color: Color) -> StandardMaterial3D:
 	material.albedo_color = color
 	material.metallic = 0.0
 	material.roughness = 0.78
+	cache[key] = material
+	$Sandbox.set_meta("toy_material_cache", cache)
+	return material
+
+
+func _vertex_color_material(color: Color) -> StandardMaterial3D:
+	var cache: Dictionary = $Sandbox.get_meta("toy_material_cache", {})
+	var key := color.to_html() + ":vc"
+	if cache.has(key):
+		return cache[key] as StandardMaterial3D
+	var material := _material(color).duplicate() as StandardMaterial3D
+	material.vertex_color_use_as_albedo = true
 	cache[key] = material
 	$Sandbox.set_meta("toy_material_cache", cache)
 	return material
