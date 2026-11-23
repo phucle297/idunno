@@ -13,11 +13,14 @@ extends Node
 # are suppressed).
 
 const Tuning = preload("res://game/player/player_tuning.gd")
+const SHOVE_CUE_COOLDOWN := 0.25
 
 signal shove_effect_applied(shover_id: int, victim_id: int)
+signal shove_attempted(shover_id: int, origin: Vector3)
 
 var _players: Dictionary = {}
 var _cooldown_until: Dictionary = {}
+var _cue_cooldown_until: Dictionary = {}
 var _protection_until: Dictionary = {}
 var _was_knocked_down: Dictionary = {}
 var _last_shove_sequence: Dictionary = {}
@@ -58,6 +61,7 @@ func unregister_player(peer_id: int) -> bool:
 		return false
 	_players.erase(peer_id)
 	_cooldown_until.erase(peer_id)
+	_cue_cooldown_until.erase(peer_id)
 	_protection_until.erase(peer_id)
 	_was_knocked_down.erase(peer_id)
 	_last_shove_sequence.erase(peer_id)
@@ -67,6 +71,7 @@ func unregister_player(peer_id: int) -> bool:
 
 func reset_state() -> void:
 	_cooldown_until.clear()
+	_cue_cooldown_until.clear()
 	_protection_until.clear()
 	# Item packets use a session-monotonic channel. Do not clear it between
 	# rounds: a delayed first packet from a previous round must not become a
@@ -81,6 +86,7 @@ func reset_state() -> void:
 @rpc("authority", "call_remote", "reliable")
 func _replicate_reset() -> void:
 	_cooldown_until.clear()
+	_cue_cooldown_until.clear()
 	_protection_until.clear()
 	for peer_id: int in _players:
 		var player := _valid_player(peer_id)
@@ -124,6 +130,11 @@ func request_shove(peer_id: int) -> bool:
 	var now := _now()
 	if now < float(_cooldown_until.get(peer_id, 0.0)):
 		return false
+	if now >= float(_cue_cooldown_until.get(peer_id, 0.0)):
+		_cue_cooldown_until[peer_id] = _until(SHOVE_CUE_COOLDOWN)
+		shove_attempted.emit(peer_id, shover.global_position)
+		if multiplayer.has_multiplayer_peer():
+			_replicate_shove_attempt.rpc(peer_id, shover.global_position)
 	var victim_peer := _pick_target(shover)
 	if victim_peer == 0:
 		return false
@@ -147,6 +158,15 @@ func request_shove(peer_id: int) -> bool:
 	if applied and multiplayer.has_multiplayer_peer():
 		_replicate_shove.rpc(peer_id, victim_peer, sequence, direction.x, direction.z)
 	return applied
+
+
+@rpc("authority", "call_remote", "reliable")
+func _replicate_shove_attempt(shover_id: int, origin: Vector3) -> void:
+	if not origin.is_finite():
+		return
+	if is_instance_valid(_match_manager) and _match_manager.state != MatchManager.MatchState.ACTIVE:
+		return
+	shove_attempted.emit(shover_id, origin)
 
 
 @rpc("authority", "call_remote", "reliable")

@@ -38,6 +38,7 @@ const MAX_NETWORK_PLAYERS := 20
 const MOVEMENT_INPUT_LIMIT := 1.0
 const MATCH_SNAPSHOT_INTERVAL := 0.1
 const PROP_SNAPSHOT_INTERVAL := 0.1
+const SHOVE_HEARING_RANGE := 12.0
 const MAX_UNRELIABLE_MATCH_SNAPSHOT_BYTES := 1200
 const ENET_THROTTLE_INTERVAL_MSEC := 1000
 const ENET_THROTTLE_ACCELERATION := 2
@@ -245,6 +246,7 @@ func _ready() -> void:
 	meteor_shower.impacted.connect(_on_meteor_weather_impact)
 	$ShoveManager.configure(match_manager, match_clock)
 	$ShoveManager.shove_effect_applied.connect(_on_shove_effect_applied)
+	$ShoveManager.shove_attempted.connect(_on_shove_attempted)
 	lightning.struck.connect(_on_lightning_struck)
 	tornado.activated.connect(_on_tornado_activated)
 	tornado.finished.connect(_on_tornado_finished)
@@ -1115,6 +1117,22 @@ func _on_shove_effect_applied(shover_id: int, victim_id: int) -> void:
 		victim.cancel_emote()
 	_cancel_emote_authoritatively(shover_id)
 	_cancel_emote_authoritatively(victim_id)
+
+
+func _on_shove_attempted(shover_id: int, origin: Vector3) -> void:
+	if match_manager.state != MatchManager.MatchState.ACTIVE or not is_instance_valid(gameplay_audio):
+		return
+	if not origin.is_finite():
+		return
+	var local_id := multiplayer.get_unique_id() if _network_mode else 1
+	if shover_id == local_id:
+		return
+	var listener := _player_nodes.get(local_id) as PartyPlayer
+	if not is_instance_valid(listener) or not match_manager.is_player_alive(local_id):
+		return
+	if listener.global_position.distance_squared_to(origin) > SHOVE_HEARING_RANGE * SHOVE_HEARING_RANGE:
+		return
+	gameplay_audio.play_shove()
 
 
 # Social emotes are cosmetic, server-validated and event-replicated. The
