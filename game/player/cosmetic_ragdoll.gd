@@ -57,11 +57,56 @@ func copy_appearance(character: ToyCharacterVisual) -> void:
 		var placement := source.transform
 		placement.origin += (character.get_node(side + "Leg") as Node3D).position
 		_copy_mesh(source, _bodies["LowerLeg" + side], placement)
+	_copy_critter(character)
 	for source: MeshInstance3D in character.get_node("Accessories").get_children():
 		if not source.visible:
 			continue
 		var body: RigidBody3D = _bodies[source.get_meta("body", "Chest")]
 		_copy_mesh(source, body, source.transform)
+		var copy := body.get_child(body.get_child_count() - 1) as Node3D
+		copy.position = _exact_local(source.position, body.position)
+
+
+## T44 A2: the visible KayKit critter (bind pose) split over the existing bodies.
+func _copy_critter(character: ToyCharacterVisual) -> void:
+	var rig := character.get_node_or_null("Model/Rig/Skeleton3D") as Skeleton3D
+	if rig == null:
+		return
+	var base := ToyCharacterVisual.MODEL_BASE
+	var bodies := {
+		"Rogue_Body": "Chest", "Rogue_Head_Hooded": "Head",
+		"Rogue_ArmLeft": "UpperArmLeft", "Rogue_ArmRight": "UpperArmRight",
+		"Rogue_LegLeft": "UpperLegLeft", "Rogue_LegRight": "UpperLegRight",
+	}
+	for mesh_name: String in bodies:
+		var source := rig.get_node_or_null(mesh_name) as MeshInstance3D
+		if source == null:
+			continue
+		var placement := base
+		if mesh_name.begins_with("Rogue_Arm"):
+			# Hang the T-pose arm down about its shoulder, as sync_rig does.
+			var left := mesh_name.ends_with("Left")
+			var shoulder := rig.get_bone_global_rest(rig.find_bone("upperarm.l" if left else "upperarm.r")).origin
+			var down := Basis(Vector3.BACK, -ToyCharacterVisual.ARM_DOWN_ANGLE if left else ToyCharacterVisual.ARM_DOWN_ANGLE)
+			placement = base * Transform3D(Basis.IDENTITY, shoulder) * Transform3D(down, Vector3.ZERO) * Transform3D(Basis.IDENTITY, -shoulder)
+		_copy_mesh(source, _bodies[bodies[mesh_name]], placement)
+	for attachment in rig.get_children():
+		if not attachment is BoneAttachment3D:
+			continue
+		var bone := rig.find_bone((attachment as BoneAttachment3D).bone_name)
+		var rest := rig.get_bone_global_rest(bone)
+		var target := "Head"
+		if (attachment as BoneAttachment3D).bone_name.begins_with("hand."):
+			var left := (attachment as BoneAttachment3D).bone_name.ends_with(".l")
+			var shoulder := rig.get_bone_global_rest(rig.find_bone("upperarm.l" if left else "upperarm.r")).origin
+			var down := Basis(Vector3.BACK, -ToyCharacterVisual.ARM_DOWN_ANGLE if left else ToyCharacterVisual.ARM_DOWN_ANGLE)
+			rest = Transform3D(Basis.IDENTITY, shoulder) * Transform3D(down, Vector3.ZERO) * Transform3D(Basis.IDENTITY, -shoulder) * rest
+			target = "LowerArmLeft" if left else "LowerArmRight"
+		elif (attachment as BoneAttachment3D).bone_name.begins_with("foot."):
+			target = "LowerLegLeft" if (attachment as BoneAttachment3D).bone_name.ends_with(".l") else "LowerLegRight"
+		for child in attachment.get_children():
+			if child is MeshInstance3D:
+				_copy_mesh(child as MeshInstance3D, _bodies[target], base * rest * (child as Node3D).transform)
 
 
 func _copy_mesh_tree(source: MeshInstance3D, body: RigidBody3D, placement: Transform3D) -> void:
@@ -76,9 +121,27 @@ func _copy_mesh(source: MeshInstance3D, body: RigidBody3D, placement: Transform3
 	accessory.name = source.name
 	accessory.mesh = source.mesh
 	accessory.material_override = source.material_override
+	for surface in source.get_surface_override_material_count():
+		accessory.set_surface_override_material(surface, source.get_surface_override_material(surface))
+	accessory.visible = source.visible
 	body.add_child(accessory)
 	placement.origin -= body.position
 	accessory.transform = placement
+
+
+## Body-local offset whose float32 sum with the body position reproduces the
+## accessory position exactly (critter ears/tail/belly lean about the torso).
+static func _exact_local(target: Vector3, body_position: Vector3) -> Vector3:
+	var result := target - body_position
+	for axis in 3:
+		var step := maxf(absf(result[axis]), 1e-6) * 1.1920929e-7
+		for k in [0, 1, -1, 2, -2, 3, -3, 4, -4]:
+			var candidate := result
+			candidate[axis] = result[axis] + k * step
+			if (candidate + body_position)[axis] == target[axis]:
+				result = candidate
+				break
+	return result
 
 
 func body_count() -> int:

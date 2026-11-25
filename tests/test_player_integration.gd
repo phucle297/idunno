@@ -167,20 +167,39 @@ func _test_gait_continuity() -> void:
 				var before := animation.current_animation_position / animation.current_animation_length
 				player.character.play_clip(clip)
 				_expect(is_equal_approx(animation.current_animation_position / animation.current_animation_length, before), "Rapid Shift reversals preserve gait phase for every outfit")
+		# T44 A2 plop-toddle: each visible KayKit foot touches the ground only
+		# briefly per cycle and clears it between contacts (no planted skating).
+		var critter := player.character as ToyCharacterVisual
+		critter.play_clip("idle")
+		critter.sync_rig(1.0)
+		var ground := {"l": critter.get_visible_foot_global("l").y, "r": critter.get_visible_foot_global("r").y}
 		for clip in ["walk", "run"]:
 			var speed := Tuning.WALK_SPEED if clip == "walk" else Tuning.SPRINT_SPEED
-			player.character.play_clip(clip)
-			player.character.set_locomotion_speed(speed)
-			animation.advance(1.0)
+			critter.play_clip(clip)
+			critter.set_locomotion_speed(speed)
+			critter.sync_rig(1.0)
 			animation.pause()
-			player.position = Vector3.ZERO
-			animation.seek(animation.current_animation_length * 0.15, true)
-			var shoe := player.character.get_node("LeftLeg/LeftShoe") as MeshInstance3D
-			var planted := shoe.global_position
-			player.position = player.visual.basis * Vector3.FORWARD * speed * DELTA
-			animation.seek(animation.current_animation_position + DELTA * animation.speed_scale, true)
-			_expect(shoe.global_position.distance_to(planted) < 0.002, "Planted shoes do not skate at ordinary walk/run speeds for any outfit")
-			player.position = Vector3.ZERO
+			var cycle_seconds := animation.current_animation_length / animation.speed_scale
+			const SAMPLES := 400
+			for side in ["l", "r"]:
+				var contact_samples := 0
+				var run_length := 0
+				var longest_run := 0
+				var max_clear := 0.0
+				for sample in SAMPLES:
+					animation.seek(sample / float(SAMPLES) * animation.current_animation_length, true)
+					critter.sync_rig()
+					var lift: float = critter.get_visible_foot_global(side).y - ground[side]
+					max_clear = maxf(max_clear, lift)
+					if lift < 0.005:
+						contact_samples += 1
+						run_length += 1
+						longest_run = maxi(longest_run, run_length)
+					else:
+						run_length = 0
+				_expect(contact_samples > 0 and contact_samples <= SAMPLES * 0.08, "Visible feet touch ground for at most 8% of the waddle cycle for every outfit")
+				_expect(longest_run * cycle_seconds / SAMPLES <= 0.025, "Each visible foot contact lasts at most 0.025 s for every outfit")
+				_expect(max_clear >= 0.02, "Visible feet clear the ground by at least 0.02 m between contacts for every outfit")
 	_expect(not InputMap.has_action("crouch") and not InputMap.has_action("grab"), "Removed C/F actions cannot change the capsule or locomotion")
 	player.reset_for_match(Vector3.ZERO)
 

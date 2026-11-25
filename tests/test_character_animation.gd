@@ -21,6 +21,7 @@ func _run() -> void:
 	_test_falling_pose()
 	_test_stop_face_attachment()
 	_test_interrupted_body_cues()
+	_test_plop_toddle()
 	character.free()
 	if failures.is_empty():
 		print("CHARACTER_ANIMATION_OK checks=%d" % checks)
@@ -83,6 +84,37 @@ func _test_interrupted_body_cues() -> void:
 	character.play_clip("idle")
 	animation_player.advance(0.2)
 	_expect(face.transform.is_equal_approx(rest), "Repeated runtime setup cannot capture an animated pose as rest")
+
+
+func _test_plop_toddle() -> void:
+	# T44 A2 / AC12: whole-body waddle, no arm or leg swing, eases to identity.
+	character.play_clip("idle")
+	character.sync_rig(1.0)
+	_expect(character.get_waddle_transform().is_equal_approx(Transform3D.IDENTITY), "Idle waddle transform must be identity")
+	var peaks := {}
+	for clip in ["walk", "run"]:
+		character.play_clip(clip)
+		character.set_locomotion_speed(4.5 if clip == "walk" else 6.5)
+		animation_player.advance(0.3)
+		character.sync_rig(1.0)
+		animation_player.pause()
+		var peak := 0.0
+		for sample in 24:
+			animation_player.seek(sample / 24.0 * animation_player.current_animation_length, true)
+			character.sync_rig()
+			for limb in ["LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
+				_expect(is_zero_approx((character.get_node(limb) as Node3D).rotation.x), "%s must not swing during %s" % [limb, clip])
+			peak = maxf(peak, absf(character.get_waddle_transform().basis.get_euler().z))
+		peaks[clip] = peak
+		animation_player.play()
+		# Leave locomotion: W must ease back to identity within 0.15 s.
+		animation_player.seek(0.25 * animation_player.current_animation_length, true)
+		character.sync_rig()
+		character.play_clip("idle")
+		for _frame in 9:
+			character.sync_rig(1.0 / 60.0)
+		_expect(character.get_waddle_transform().is_equal_approx(Transform3D.IDENTITY), "%s->idle must ease the waddle to identity within 0.15 s" % clip)
+	_expect(peaks.run > peaks.walk, "Run peak roll must exceed walk peak roll")
 
 
 func _expect(condition: bool, message: String) -> void:

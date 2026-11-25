@@ -13,6 +13,28 @@ const SUIT_COLORS := [
 ]
 const BACK_ACCESSORY_OUTFITS := [3, 4, 6, 7, 9]
 const HEAD_PARTS := ["Head", "FacePlate", "LeftEye", "RightEye", "Mouth"]
+const CritterPartsScript = preload("res://tools/asset_generation/critter_parts.gd")
+const Tuning = preload("res://game/player/player_tuning.gd")
+## KayKit Rogue_Hooded faces model +Z; yaw it to the game's -Z front and scale
+## the 2.25-unit hood figure to the ~1.4 m toy height.
+const MODEL_BASE := Transform3D(Vector3(-0.62, 0, 0), Vector3(0, 0.62, 0), Vector3(0, 0, -0.62), Vector3.ZERO)
+const BONE_MAP := {
+	"Torso": "chest", "Head": "head",
+	"LeftArm": "upperarm.l", "RightArm": "upperarm.r",
+	"LeftLeg": "upperleg.l", "RightLeg": "upperleg.r",
+}
+## Arms hang from the KayKit T-pose (model-space roll about Z per side).
+const ARM_DOWN_ANGLE := 1.2217305
+## Plop-toddle waddle (AC12): whole-body side roll about the planted foot plus a
+## small bob; arms and legs never swing.
+const WADDLE_CYCLE_M := 1.8
+const WADDLE_WALK_ROLL := 0.10471976
+const WADDLE_RUN_ROLL := 0.17453293
+const WADDLE_WALK_BOB := 0.030
+const WADDLE_RUN_BOB := 0.050
+const WADDLE_EASE_IN := 0.15
+const WADDLE_EASE_OUT := 0.12
+const SUIT_SOFTEN := Color("ece3d8")
 
 static var _suit_material_cache: Dictionary = {}
 
@@ -20,6 +42,16 @@ var cosmetic_variant := 0
 var current_clip := "idle"
 var _animation_player: AnimationPlayer
 var _clip_started := false
+var _speed := 0.0
+var _waddle_weight := 0.0
+var _waddle_phase := 0.0
+var _waddle := Transform3D.IDENTITY
+var _model: Node3D
+var _rig: Skeleton3D
+var _bone_ids := {}
+var _foot_ids := {}
+var _handslot := -1
+var _suit_current: Material
 
 
 static func catalog() -> Dictionary:
@@ -37,12 +69,19 @@ static func starter_ids() -> Array[String]:
 func _ready() -> void:
 	ensure_runtime_setup()
 	play_clip("idle")
+	# Run after the child AnimationPlayer so the rig follows this frame's pose.
+	process_priority = 1
+
+
+func _process(delta: float) -> void:
+	sync_rig(delta)
 
 
 func ensure_runtime_setup() -> void:
 	_build_skeleton_contract()
 	_build_accessories()
 	_build_animation_library()
+	_bind_rig()
 	set_cosmetic_variant(cosmetic_variant)
 
 
@@ -76,11 +115,80 @@ func play_clip(clip_name: String) -> bool:
 
 
 func set_locomotion_speed(speed: float) -> void:
+	_speed = speed
 	if not is_instance_valid(_animation_player):
 		return
-	# Each planted foot travels twice the reach over half a cycle. Match
-	# playback to distance, rather than dragging the sole at fixed clip speed.
-	_animation_player.speed_scale = speed * _clip_duration(current_clip) / (4.0 * GAIT_REACH) if current_clip in ["walk", "run"] else 1.0
+	# One full plop-toddle cycle (left + right contact) per WADDLE_CYCLE_M of travel.
+	_animation_player.speed_scale = speed * _clip_duration(current_clip) / WADDLE_CYCLE_M if current_clip in ["walk", "run"] else 1.0
+
+
+func _bind_rig() -> void:
+	_model = get_node_or_null("Model") as Node3D
+	_rig = get_node_or_null("Model/Rig/Skeleton3D") as Skeleton3D
+	if _rig == null:
+		return
+	for proxy: String in BONE_MAP:
+		_bone_ids[proxy] = _rig.find_bone(BONE_MAP[proxy])
+	_foot_ids = {"l": _rig.find_bone("foot.l"), "r": _rig.find_bone("foot.r")}
+	_handslot = _rig.find_bone("handslot.r")
+
+
+## Waddle transform W in character-root space (identity at rest / idle).
+func get_waddle_transform() -> Transform3D:
+	return _waddle
+
+
+## World position of the visible KayKit foot bone ("l"/"r" or "Left"/"Right").
+func get_visible_foot_global(side: String) -> Vector3:
+	if _rig == null:
+		return global_position
+	var key := "l" if side.to_lower().begins_with("l") else "r"
+	return _rig.global_transform * _rig.get_bone_global_pose(_foot_ids[key]).origin
+
+
+static func waddle_at(phase: float, speed: float, weight: float) -> Transform3D:
+	var blend := clampf(inverse_lerp(Tuning.WALK_SPEED, Tuning.SPRINT_SPEED, speed), 0.0, 1.0)
+	var roll := lerpf(WADDLE_WALK_ROLL, WADDLE_RUN_ROLL, blend) * sin(TAU * phase) * weight
+	var bob := lerpf(WADDLE_WALK_BOB, WADDLE_RUN_BOB, blend) * absf(cos(TAU * phase)) * weight
+	# Roll about the planted foot. Positive roll lifts +X, so the pivot is the
+	# -X foot (sign deviation from the A2 plan's sign(theta) noted in the PR).
+	var hip_x := 0.1709 * 0.62
+	var pivot := Vector3(-signf(roll) * hip_x, 0.0, 0.0)
+	var rolled := Transform3D(Basis(Vector3.BACK, roll), Vector3.ZERO)
+	return Transform3D(Basis.IDENTITY, Vector3(0.0, bob, 0.0)) * Transform3D(Basis.IDENTITY, pivot) * rolled * Transform3D(Basis.IDENTITY, -pivot)
+
+
+## Drive the KayKit rig from the contract proxies and apply the waddle.
+func sync_rig(delta := 0.0) -> void:
+	if _rig == null:
+		_bind_rig()
+	if _rig == null:
+		return
+	var moving := current_clip in ["walk", "run"]
+	if delta > 0.0:
+		_waddle_weight = move_toward(_waddle_weight, 1.0 if moving else 0.0, delta / (WADDLE_EASE_IN if moving else WADDLE_EASE_OUT))
+	if moving and is_instance_valid(_animation_player) and _animation_player.current_animation_length > 0.0:
+		_waddle_phase = _animation_player.current_animation_position / _animation_player.current_animation_length
+	_waddle = waddle_at(_waddle_phase, _speed, _waddle_weight) if _waddle_weight > 0.0 else Transform3D.IDENTITY
+	_model.transform = _waddle * MODEL_BASE
+	($Accessories as Node3D).transform = _waddle
+	var flip := Quaternion(Vector3.UP, PI)
+	for proxy: String in ["Torso", "Head", "LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
+		var bone: int = _bone_ids[proxy]
+		var root_q := (get_node(proxy) as Node3D).basis.get_rotation_quaternion()
+		var target := flip * root_q * flip
+		var rest_q := _rig.get_bone_global_rest(bone).basis.get_rotation_quaternion()
+		if proxy == "LeftArm":
+			rest_q = Quaternion(Vector3.BACK, -ARM_DOWN_ANGLE) * rest_q
+		elif proxy == "RightArm":
+			rest_q = Quaternion(Vector3.BACK, ARM_DOWN_ANGLE) * rest_q
+		var global_q := target * rest_q
+		var parent := _rig.get_bone_parent(bone)
+		var parent_q := _rig.get_bone_global_pose(parent).basis.get_rotation_quaternion() if parent >= 0 else Quaternion.IDENTITY
+		_rig.set_bone_pose_rotation(bone, (parent_q.inverse() * global_q).normalized())
+	var anchor := get_hand_anchor()
+	if anchor != null and _handslot >= 0:
+		anchor.global_transform = _rig.global_transform * _rig.get_bone_global_pose(_handslot)
 
 
 func set_cosmetic_variant(variant: int) -> void:
@@ -107,15 +215,24 @@ func get_outfit_id() -> String:
 
 
 func set_player_color(color_index: int) -> void:
+	if _rig == null:
+		_bind_rig()
 	var idx := posmod(color_index, SUIT_COLORS.size())
 	var material: StandardMaterial3D = _suit_material_cache.get(idx)
 	if material == null:
-		material = _material(SUIT_COLORS[idx])
+		material = _material((SUIT_COLORS[idx] as Color).lerp(SUIT_SOFTEN, 0.28))
 		_suit_material_cache[idx] = material
-	# Apply player colour to suit-blocked parts while keeping head, face,
-	# collar, belt, hands, and shoes cleanly colour-blocked for readability.
-	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
+	_suit_current = material
+	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh", "Head"]:
 		(get_node(part_name) as MeshInstance3D).material_override = material
+	if _rig != null:
+		for child in _rig.get_children():
+			if child is MeshInstance3D:
+				(child as MeshInstance3D).material_override = material
+	if has_node("Accessories"):
+		for accessory: MeshInstance3D in $Accessories.get_children():
+			if accessory.get_meta("body") == "Head":
+				accessory.set_surface_override_material(0, material)
 
 
 func get_animation_names() -> Array[String]:
@@ -153,155 +270,55 @@ func _build_accessories() -> void:
 	var accessories := Node3D.new()
 	accessories.name = "Accessories"
 	add_child(accessories)
-	var slate := _material(Color("49566a"))
-	var amber := _material(Color("ffbf3f"))
-	var coral := _material(Color("d98d7d"))
-	var cream := _material(Color("f4e6c8"))
-	var teal := _material(Color("73b7ad"))
-	var sand := _material(Color("d9b77e"))
-	var grass := _material(Color("86a968"))
-
-	# Outfit 1: cap (keep Accessories/Cap sentinel)
-	var cap := MeshInstance3D.new()
-	cap.name = "Cap"
-	var cap_mesh := CylinderMesh.new()
-	cap_mesh.top_radius = 0.23
-	cap_mesh.bottom_radius = 0.30
-	cap_mesh.height = 0.13
-	cap_mesh.radial_segments = 14
-	cap_mesh.material = slate
-	cap.mesh = cap_mesh
-	cap.position = Vector3(0.0, 1.52, 0.0)
-	cap.set_meta("outfit", 1)
-	accessories.add_child(cap)
-	_costume_box(accessories, "CapBrim", 1, Vector3(0.32, 0.04, 0.22), Vector3(0.0, 1.47, -0.26), slate)
-
-	# Outfit 2: hard_hat
-	var hard_hat := MeshInstance3D.new()
-	hard_hat.name = "HardHat"
-	var hard_hat_mesh := SphereMesh.new()
-	hard_hat_mesh.radius = 0.32
-	hard_hat_mesh.height = 0.28
-	hard_hat_mesh.radial_segments = 14
-	hard_hat_mesh.rings = 5
-	hard_hat_mesh.material = amber
-	hard_hat.mesh = hard_hat_mesh
-	hard_hat.position = Vector3(0.0, 1.47, 0.0)
-	hard_hat.set_meta("outfit", 2)
-	accessories.add_child(hard_hat)
-	_costume_ring(accessories, "HardHatBrim", 2, 0.27, 0.35, Vector3(0.0, 1.44, 0.0), amber)
-
-	# Outfit 3: backpack
-	var backpack := MeshInstance3D.new()
-	backpack.name = "Backpack"
-	var backpack_mesh := BoxMesh.new()
-	backpack_mesh.size = Vector3(0.32, 0.36, 0.16)
-	backpack_mesh.material = coral
-	backpack.mesh = backpack_mesh
-	backpack.position = Vector3(0.0, 0.72, 0.28)
-	backpack.set_meta("outfit", 3)
-	accessories.add_child(backpack)
-
-	# Outfit 4: raincoat (open-front hood + cape)
-	_costume_box(accessories, "RainCape", 4, Vector3(0.46, 0.42, 0.08), Vector3(0.0, 0.68, 0.23), amber)
-	_costume_ring(accessories, "RainHood", 4, 0.29, 0.36, Vector3(0.0, 1.24, 0.06), amber, true)
-	_costume_box(accessories, "HoodBack", 4, Vector3(0.46, 0.44, 0.10), Vector3(0.0, 1.24, 0.28), amber)
-	_costume_box(accessories, "HoodTop", 4, Vector3(0.46, 0.08, 0.36), Vector3(0.0, 1.56, 0.08), amber)
-
-	# Outfit 5: mechanic
-	_costume_box(accessories, "ToolBelt", 5, Vector3(0.54, 0.10, 0.46), Vector3(0.0, 0.535, 0.0), slate)
-	_costume_box(accessories, "ToolPouch", 5, Vector3(0.12, 0.16, 0.12), Vector3(0.28, 0.50, 0.02), coral)
-	_costume_box(accessories, "Goggles", 5, Vector3(0.32, 0.10, 0.06), Vector3(0.0, 1.38, -0.28), slate)
-	for side in [-1, 1]:
-		_costume_box(accessories, "GoggleLens%d" % side, 5, Vector3(0.10, 0.06, 0.025), Vector3(side * 0.085, 1.38, -0.315), teal)
-
-	# Outfit 6: park_ranger
-	_costume_ring(accessories, "RangerBrim", 6, 0.22, 0.40, Vector3(0.0, 1.50, 0.0), sand)
-	_costume_box(accessories, "RangerCrown", 6, Vector3(0.36, 0.16, 0.34), Vector3(0.0, 1.57, 0.0), sand)
-	_costume_box(accessories, "FieldPack", 6, Vector3(0.30, 0.32, 0.14), Vector3(0.0, 0.72, 0.27), grass)
-
-	# Outfit 7: meteor_observer
-	_costume_ring(accessories, "ObserverHelmet", 7, 0.29, 0.36, Vector3(0.0, 1.24, 0.04), cream, true)
-	_costume_box(accessories, "ObservationPack", 7, Vector3(0.32, 0.34, 0.16), Vector3(0.0, 0.72, 0.28), slate)
-	_costume_box(accessories, "Antenna", 7, Vector3(0.04, 0.28, 0.04), Vector3(0.12, 1.02, 0.28), amber)
-
-	# Outfit 8: chef
-	_costume_ring(accessories, "ChefBand", 8, 0.22, 0.30, Vector3(0.0, 1.52, 0.0), cream)
-	_costume_box(accessories, "ChefToque", 8, Vector3(0.34, 0.22, 0.30), Vector3(0.0, 1.63, 0.0), cream)
-	for side in [-1, 0, 1]:
-		_costume_sphere(accessories, "ChefPuff%d" % side, 8, 0.13, 0.18, Vector3(side * 0.10, 1.74, 0.0), cream)
-	_costume_box(accessories, "ChefApron", 8, Vector3(0.38, 0.34, 0.05), Vector3(0.0, 0.62, -0.235), cream)
-	_costume_box(accessories, "ChefPocket", 8, Vector3(0.18, 0.09, 0.025), Vector3(0.0, 0.60, -0.265), coral)
-
-	# Outfit 9: firefighter
-	_costume_ring(accessories, "RescueBrim", 9, 0.22, 0.38, Vector3(0.0, 1.49, 0.02), coral)
-	_costume_sphere(accessories, "RescueHelmet", 9, 0.29, 0.28, Vector3(0.0, 1.55, 0.0), coral)
-	_costume_box(accessories, "RescueBadge", 9, Vector3(0.10, 0.11, 0.04), Vector3(0.0, 1.54, -0.28), amber)
-	_costume_box(accessories, "RescuePack", 9, Vector3(0.30, 0.34, 0.13), Vector3(0.0, 0.72, 0.27), slate)
-	for side in [-1, 1]:
-		_costume_sphere(accessories, "AirTank%d" % side, 9, 0.075, 0.30, Vector3(side * 0.085, 0.72, 0.34), amber)
-
-	# Outfit 10: sailor
-	_costume_ring(accessories, "SailorBand", 10, 0.22, 0.30, Vector3(0.0, 1.51, 0.0), slate)
-	_costume_sphere(accessories, "SailorCap", 10, 0.29, 0.17, Vector3(0.0, 1.58, 0.0), cream)
-	_costume_box(accessories, "SailorCollar", 10, Vector3(0.46, 0.08, 0.36), Vector3(0.0, 0.89, 0.04), teal)
-	_costume_box(accessories, "SailorKnot", 10, Vector3(0.09, 0.14, 0.05), Vector3(0.0, 0.78, -0.235), teal)
-
-	# Outfit 11: pilot
-	_costume_sphere(accessories, "FlightCap", 11, 0.31, 0.28, Vector3(0.0, 1.46, 0.01), sand)
-	for side in [-1, 1]:
-		_costume_sphere(accessories, "FlightEar%d" % side, 11, 0.085, 0.22, Vector3(side * 0.30, 1.24, 0.01), slate)
-	_costume_ring(accessories, "FlightScarf", 11, 0.19, 0.27, Vector3(0.0, 0.90, 0.0), amber)
-	_costume_box(accessories, "ScarfTail", 11, Vector3(0.10, 0.24, 0.04), Vector3(0.15, 0.76, -0.235), amber)
-
-	for accessory in accessories.get_children():
-		accessory.set_meta("body", "Head" if accessory.position.y > 1.05 else ("Pelvis" if accessory.position.y < 0.58 else "Chest"))
-		if accessory.name in ["ScarfTail", "Antenna"]:
-			accessory.set_meta("body", "Chest")
+	var pattern := critter_material("pattern")
+	var suit := _suit_current if _suit_current != null else critter_material("suit")
+	for outfit in CritterPartsScript.OUTFITS.size():
+		for part: String in ["Ears", "Tail", "Belly"]:
+			var instance := MeshInstance3D.new()
+			# "Cap" stays the sentinel name the runtime contract looks up.
+			instance.name = "Cap" if outfit == 0 and part == "Ears" else "%s_%02d" % [part, outfit]
+			instance.mesh = load(CritterPartsScript.part_path("%s_%02d" % [part, outfit])) as Mesh
+			instance.set_meta("outfit", outfit)
+			instance.set_meta("body", {"Ears": "Head", "Tail": "Pelvis", "Belly": "Chest"}[part])
+			instance.set_meta("species", CritterPartsScript.OUTFITS[outfit][0])
+			instance.position = CritterPartsScript.ACCESSORY_ORIGIN
+			if part == "Ears":
+				instance.set_surface_override_material(0, suit)
+				instance.set_surface_override_material(1, pattern)
+			else:
+				instance.material_override = pattern
+			accessories.add_child(instance)
 
 
-func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	mesh.material = material
-	var instance := MeshInstance3D.new()
-	instance.name = part
-	instance.mesh = mesh
-	instance.position = at
-	instance.set_meta("outfit", outfit)
-	parent.add_child(instance)
-
-
-func _costume_sphere(parent: Node3D, part: String, outfit: int, radius: float, height: float, at: Vector3, material: Material) -> void:
-	var mesh := SphereMesh.new()
-	mesh.radius = radius
-	mesh.height = height
-	mesh.radial_segments = 12
-	mesh.rings = 4
-	mesh.material = material
-	var instance := MeshInstance3D.new()
-	instance.name = part
-	instance.mesh = mesh
-	instance.position = at
-	instance.set_meta("outfit", outfit)
-	parent.add_child(instance)
-
-
-func _costume_ring(parent: Node3D, part: String, outfit: int, inner: float, outer: float, at: Vector3, material: Material, vertical := false) -> void:
-	var mesh := TorusMesh.new()
-	mesh.inner_radius = inner
-	mesh.outer_radius = outer
-	mesh.rings = 12
-	mesh.ring_segments = 6
-	mesh.material = material
-	var instance := MeshInstance3D.new()
-	instance.name = part
-	instance.mesh = mesh
-	instance.position = at
-	if vertical:
-		instance.rotation.x = PI * 0.5
-	instance.set_meta("outfit", outfit)
-	parent.add_child(instance)
+## Shared flat plush materials (also written to assets/models/critter/materials).
+static func critter_material(kind: String) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.metallic = 0.0
+	material.roughness = 0.92
+	match kind:
+		"suit":
+			material.albedo_color = Color("cdb9a3")
+		"cream":
+			# Warm face/paw tint with a soft glow so the face reads at camera range.
+			material.albedo_color = Color("f4dcc2")
+			material.emission_enabled = true
+			material.emission = Color("f4dcc2")
+			material.emission_energy_multiplier = 0.32
+		"bead":
+			material.albedo_color = Color("20242c")
+			material.roughness = 0.25
+		"shine":
+			material.albedo_color = Color.WHITE
+			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		"blush":
+			material.albedo_color = Color("f2a49c")
+			material.emission_enabled = true
+			material.emission = Color("f2a49c")
+			material.emission_energy_multiplier = 0.25
+		"pattern":
+			material.albedo_color = Color.WHITE
+			material.vertex_color_use_as_albedo = true
+	return material
 
 
 func _build_animation_library() -> void:
@@ -489,10 +506,9 @@ func _create_clip(clip_name: String) -> Animation:
 
 	var arm_angle := 0.06 if clip_name == "idle" else 0.0
 	var leg_angle := 0.0
-	if clip_name == "walk":
-		arm_angle = 0.55
-	elif clip_name == "run":
-		arm_angle = 0.95
+	if clip_name in ["walk", "run"]:
+		# AC12 plop-toddle: limbs stay at rest; the waddle is whole-body.
+		arm_angle = 0.0
 	elif clip_name == "jump_takeoff":
 		arm_angle = -0.8
 		leg_angle = 0.35
@@ -524,18 +540,11 @@ func _add_gait_tracks(animation: Animation, side: String, offset: float) -> void
 		var track := animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(track, NodePath("%sLeg%s%s" % [side, ":" if path == "rotation" else "/", path]))
 		tracks.append(track)
-	for sample in 33:
-		var phase := fposmod(sample / 32.0 + offset, 1.0)
-		var planted := phase <= 0.5
-		var progress := phase * 2.0 if planted else (phase - 0.5) * 2.0
-		var z := lerpf(-GAIT_REACH, GAIT_REACH, progress) if planted else lerpf(GAIT_REACH, -GAIT_REACH, progress)
-		var lift := 0.0 if planted else sin(progress * PI) * 0.12
-		var foot := Vector3(0.0, -0.32 + lift, z - 0.045)
-		var length := foot.length()
-		var angle := atan2(-foot.z, -foot.y)
-		var values := [Vector3(angle, 0, 0), Vector3(1, length / 0.32, 1), Vector3(0, -length * 0.5, 0), Vector3(0, -length, 0), Vector3(-angle, 0, 0)]
-		for index in tracks.size():
-			animation.track_insert_key(tracks[index], sample / 32.0 * animation.length, values[index])
+	# Track paths are kept for blend/reset compatibility, keyed at rest (no leg swing).
+	var values := [Vector3.ZERO, Vector3.ONE, Vector3(0, -0.16, 0), Vector3(0, -0.32, -0.045), Vector3.ZERO]
+	for index in tracks.size():
+		animation.track_insert_key(tracks[index], 0.0, values[index])
+		animation.track_insert_key(tracks[index], animation.length, values[index])
 
 
 func _add_rotation_track(animation: Animation, node_name: String, angle: float, oscillates := true) -> void:
@@ -568,7 +577,5 @@ func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.metallic = 0.0
-	material.roughness = 0.48
-	material.clearcoat = 0.15
-	material.clearcoat_roughness = 0.35
+	material.roughness = 0.92
 	return material

@@ -82,11 +82,17 @@ func _check_assets() -> void:
 		_expect(character.get_node(path).owner == character, "Nested pivots, meshes and shoes must be owned by the packed root")
 	var head := character.get_node("Head") as MeshInstance3D
 	_expect(head.visible, "Chunky Figurine head must be visible")
-	var head_height := (head.mesh as SphereMesh).height * head.scale.y
-	var total_height := head.position.y + head_height * 0.5
-	_expect(total_height >= 1.45 and total_height <= 1.60, "Chunky Figurine total height must stay within 1.45..1.60 m")
-	var head_ratio := total_height / head_height
-	_expect(head_ratio >= 2.2 and head_ratio <= 2.5, "Chunky Figurine head-to-total-height ratio must stay in 1:2.2..1:2.5")
+	# T44 A2: KayKit hood measured from its mesh AABB (PR #38 meta/AABB check).
+	var head_height: float = character.get_meta("head_top_y") - character.get_meta("head_bottom_y")
+	var hood := character.get_node("Model/Rig/Skeleton3D/Rogue_Head_Hooded") as MeshInstance3D
+	var hood_aabb: AABB = ToyCharacterVisual.MODEL_BASE * hood.get_aabb()
+	_expect(absf(hood_aabb.end.y - float(character.get_meta("head_top_y"))) < 0.03, "Head top meta must match the KayKit hood AABB")
+	var totals: PackedFloat32Array = character.get_meta("total_height_by_outfit")
+	for outfit in totals.size():
+		_expect(totals[outfit] >= 1.45 and totals[outfit] <= 1.60, "Critter total height with ears must stay within 1.45..1.60 m")
+	# Ratio range 1:2.0..2.4 per the T44 PM ratio rule (chibi hoodie head; was 2.2..2.5 for the M23.4 figurine).
+	var head_ratio: float = float(character.get_meta("head_top_y")) / head_height
+	_expect(head_ratio >= 2.0 and head_ratio <= 2.4, "Critter head-to-total-height ratio must stay in 1:2.0..1:2.4")
 	var hand_anchor := (character as ToyCharacterVisual).get_hand_anchor()
 	_expect(hand_anchor != null and hand_anchor.owner == character, "Chunky Figurine must expose RightArm/HandAnchor owned by root")
 	_expect((character as ToyCharacterVisual).get_skeleton_bone_count() == 18, "Character must expose the canonical 18-bone skeleton")
@@ -133,22 +139,37 @@ func _check_assets() -> void:
 					_expect(copy.position + (copy.get_parent() as Node3D).position == accessory.position, "Ragdoll attachment must preserve local placement")
 			_expect((doll.get_node("Chest").get_child(0) as MeshInstance3D).material_override == (character.get_node("Torso") as MeshInstance3D).material_override, "Ragdoll must retain suit color")
 			doll.free()
-	# Shoes must travel with swinging legs rather than remain on the floor.
+	# T44 A2 plop-toddle: shoes stay fixed relative to the hips (no leg swing)
+	# while the visible KayKit foot lifts with the whole-body waddle.
 	var animation := character.get_node("AnimationPlayer") as AnimationPlayer
-	(character as ToyCharacterVisual).play_clip("run")
+	var critter := character as ToyCharacterVisual
+	critter.play_clip("idle")
+	critter.sync_rig()
+	var rest_foot_y := critter.get_visible_foot_global("l").y
+	critter.play_clip("run")
+	critter.set_locomotion_speed(6.5)
 	animation.pause()
-	animation.seek(0.0, true)
+	critter.sync_rig(1.0)
 	var left_shoe := character.find_child("LeftShoe", true, false) as Node3D
-	var first_shoe_position := left_shoe.global_position
-	animation.seek(0.275, true)
-	_expect(left_shoe.global_position.distance_to(first_shoe_position) > 0.2, "Running shoes must follow the leg swing")
+	var left_leg := character.get_node("LeftLeg") as Node3D
+	var shoe_z0 := left_shoe.position.z + left_leg.position.z
+	var max_shoe_dz := 0.0
+	var max_lift := 0.0
+	for sample in 12:
+		animation.seek(sample / 12.0 * animation.current_animation_length, true)
+		critter.sync_rig()
+		max_shoe_dz = maxf(max_shoe_dz, absf(left_shoe.position.z + left_leg.position.z - shoe_z0))
+		max_lift = maxf(max_lift, critter.get_visible_foot_global("l").y - rest_foot_y)
+	_expect(max_shoe_dz <= 0.01, "Running shoes must stay at the hips (no leg swing)")
+	_expect(max_lift >= 0.02, "Visible feet must lift with the waddle while running")
 	for leg_name in ["LeftLeg", "RightLeg"]:
 		var leg := character.get_node(leg_name) as Node3D
 		var mesh := leg.get_node("Mesh") as MeshInstance3D
-		var capsule := (mesh as MeshInstance3D).mesh as CapsuleMesh
+		var root_cap_y: float = mesh.get_meta("root_cap_y")
+		_expect(mesh.get_aabb().end.y > root_cap_y, "Leg root cap must extend above the hip pivot")
 		for phase in [0.0, 0.1375, 0.275]:
 			animation.seek(phase, true)
-			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, capsule.height * 0.5, 0)))
+			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, root_cap_y, 0)))
 			_expect(top.distance_to(Vector3(leg.position.x, leg.position.y, 0)) < 0.001, "Leg must remain connected at the redesigned hip throughout running")
 	character.free()
 	var meteor := (load("res://assets/generated/VFX_MeteorTelegraph_v001.tscn") as PackedScene).instantiate()
