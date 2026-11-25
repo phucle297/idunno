@@ -13,3 +13,9 @@ Candidate sources verified from their official product pages on 2026-10-05:
 The current Quaternius general license page displays a newer Quaternius Asset License. The specific animation pack page still displays CC0; preserve the license bundled with the downloaded archive and record its checksum before importing any files.
 
 `docs/animation-clip-inventory.md` records a 45-clip inspection from a third-party Standard FBX mirror. It is secondary evidence only and is not an imported project asset or a substitute for checking the official archive.
+
+## Project-generated assets (not third-party)
+
+| Asset | Provenance |
+| --- | --- |
+| `assets/models/critter/CHR_Critter_v001.glb`, `meshes/*.res`, `textures/T_Fabric_Normal_v001.png`, `materials/*.tres` | Generated in-repo by `tools/asset_generation/sculpt_critter.gd` (seed 297, SDF sculpt -> surface nets -> glTF) and `generate_assets.gd` v12. No third-party source files, no external tools. |

@@ -30,7 +30,7 @@ func copy_appearance(character: ToyCharacterVisual) -> void:
 		_copy_mesh_tree(head, _bodies.Head, head.transform)
 	var torso := character.get_node("Torso") as MeshInstance3D
 	_copy_mesh(torso, _bodies.Chest, torso.transform)
-	for detail_name in ["NeckCollar", "RearCue"]:
+	for detail_name in ["NeckCollar", "RearCue", "BellyPatch"]:
 		var detail := torso.get_node_or_null(detail_name) as MeshInstance3D
 		if detail != null and detail.visible:
 			_copy_mesh_tree(detail, _bodies.Chest, torso.transform * detail.transform)
@@ -76,6 +76,8 @@ func _copy_mesh(source: MeshInstance3D, body: RigidBody3D, placement: Transform3
 	accessory.name = source.name
 	accessory.mesh = source.mesh
 	accessory.material_override = source.material_override
+	for surface in source.get_surface_override_material_count():
+		accessory.set_surface_override_material(surface, source.get_surface_override_material(surface))
 	body.add_child(accessory)
 	placement.origin -= body.position
 	accessory.transform = placement

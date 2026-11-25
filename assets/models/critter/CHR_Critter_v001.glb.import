@@ -1,0 +1,471 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cgmmk36wdci14"
+path="res://.godot/imported/CHR_Critter_v001.glb-5e1ea728e64aa57aeddf78f09e2179e5.scn"
+
+[deps]
+
+source_file="res://assets/models/critter/CHR_Critter_v001.glb"
+dest_files=["res://.godot/imported/CHR_Critter_v001.glb-5e1ea728e64aa57aeddf78f09e2179e5.scn"]
+
+[params]
+
+nodes/root_type=""
+nodes/root_name=""
+nodes/root_script=null
+mesh_library/use_node_names_as_mesh_names=false
+array_mesh/deduplicate_surfaces=true
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+nodes/use_name_suffixes=true
+nodes/use_node_type_suffixes=true
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=false
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+materials/extract=0
+materials/extract_format=0
+materials/extract_path=""
+_subresources={
+"meshes": {
+"CHR_Critter_v001_ArmL2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/ArmL.res",
+"save_to_file/path": "uid://sruaqa70g13b"
+},
+"CHR_Critter_v001_ArmR2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/ArmR.res",
+"save_to_file/path": "uid://xu1fesvucujr"
+},
+"CHR_Critter_v001_Belly_002": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_00.res",
+"save_to_file/path": "uid://dp42cq73irb6j"
+},
+"CHR_Critter_v001_Belly_012": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_01.res",
+"save_to_file/path": "uid://cfnbyk00iauy6"
+},
+"CHR_Critter_v001_Belly_022": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_02.res",
+"save_to_file/path": "uid://kplrevjpv1xr"
+},
+"CHR_Critter_v001_Belly_032": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_03.res",
+"save_to_file/path": "uid://qqbbks3knf7n"
+},
+"CHR_Critter_v001_Belly_042": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_04.res",
+"save_to_file/path": "uid://dwl4nmnojviff"
+},
+"CHR_Critter_v001_Belly_052": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_05.res",
+"save_to_file/path": "uid://brevcppd0m5n2"
+},
+"CHR_Critter_v001_Belly_062": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_06.res",
+"save_to_file/path": "uid://bjwa48npf6cc4"
+},
+"CHR_Critter_v001_Belly_072": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_07.res",
+"save_to_file/path": "uid://b1brjadcibqx5"
+},
+"CHR_Critter_v001_Belly_082": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_08.res",
+"save_to_file/path": "uid://cg2a7u16sim75"
+},
+"CHR_Critter_v001_Belly_092": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_09.res",
+"save_to_file/path": "uid://115jp6syvaa3"
+},
+"CHR_Critter_v001_Belly_102": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_10.res",
+"save_to_file/path": "uid://bccm8fd77hmd8"
+},
+"CHR_Critter_v001_Belly_112": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Belly_11.res",
+"save_to_file/path": "uid://cgpr1le21bxcj"
+},
+"CHR_Critter_v001_Body2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Body.res",
+"save_to_file/path": "uid://coqmm56hbcxvh"
+},
+"CHR_Critter_v001_Ears_002": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_00.res",
+"save_to_file/path": "uid://blox8ejqmslwe"
+},
+"CHR_Critter_v001_Ears_012": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_01.res",
+"save_to_file/path": "uid://ckp6rht06j8h2"
+},
+"CHR_Critter_v001_Ears_022": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_02.res",
+"save_to_file/path": "uid://bp3mexn5710xh"
+},
+"CHR_Critter_v001_Ears_032": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_03.res",
+"save_to_file/path": "uid://42pbjgpcfkt4"
+},
+"CHR_Critter_v001_Ears_042": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_04.res",
+"save_to_file/path": "uid://c5yklu4lvq5y"
+},
+"CHR_Critter_v001_Ears_052": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_05.res",
+"save_to_file/path": "uid://digswuuqb8cku"
+},
+"CHR_Critter_v001_Ears_062": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_06.res",
+"save_to_file/path": "uid://y1u7v74wtqwo"
+},
+"CHR_Critter_v001_Ears_072": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_07.res",
+"save_to_file/path": "uid://v032w7gus0nx"
+},
+"CHR_Critter_v001_Ears_082": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_08.res",
+"save_to_file/path": "uid://b1edb0lky5x31"
+},
+"CHR_Critter_v001_Ears_092": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_09.res",
+"save_to_file/path": "uid://cfm25fubquwyt"
+},
+"CHR_Critter_v001_Ears_102": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_10.res",
+"save_to_file/path": "uid://c7ao05soll7f"
+},
+"CHR_Critter_v001_Ears_112": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Ears_11.res",
+"save_to_file/path": "uid://xkq0chli1w38"
+},
+"CHR_Critter_v001_Eye2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Eye.res",
+"save_to_file/path": "uid://5577ns3tr2nn"
+},
+"CHR_Critter_v001_Face2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Face.res",
+"save_to_file/path": "uid://d2ad1w8jamhht"
+},
+"CHR_Critter_v001_Foot2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Foot.res",
+"save_to_file/path": "uid://b445dtk0u5psh"
+},
+"CHR_Critter_v001_Leg2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Leg.res",
+"save_to_file/path": "uid://css88evokktun"
+},
+"CHR_Critter_v001_Mouth2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Mouth.res",
+"save_to_file/path": "uid://bs38d12qyik77"
+},
+"CHR_Critter_v001_Muzzle2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Muzzle.res",
+"save_to_file/path": "uid://bfct40xys41g"
+},
+"CHR_Critter_v001_PawL2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/PawL.res",
+"save_to_file/path": "uid://dkrwevd58kek8"
+},
+"CHR_Critter_v001_PawR2": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/PawR.res",
+"save_to_file/path": "uid://d0uay0vi8movn"
+},
+"CHR_Critter_v001_Tail_002": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_00.res",
+"save_to_file/path": "uid://b5b0ef22fekyy"
+},
+"CHR_Critter_v001_Tail_012": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_01.res",
+"save_to_file/path": "uid://ksn6em3p53gj"
+},
+"CHR_Critter_v001_Tail_022": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_02.res",
+"save_to_file/path": "uid://c37hkle8dfwdu"
+},
+"CHR_Critter_v001_Tail_032": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_03.res",
+"save_to_file/path": "uid://dt5ds8mnqvbhg"
+},
+"CHR_Critter_v001_Tail_042": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_04.res",
+"save_to_file/path": "uid://dj3t3lk3rdhv1"
+},
+"CHR_Critter_v001_Tail_052": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_05.res",
+"save_to_file/path": "uid://8t1tbarx8ekj"
+},
+"CHR_Critter_v001_Tail_062": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_06.res",
+"save_to_file/path": "uid://rdpqjvv23qmt"
+},
+"CHR_Critter_v001_Tail_072": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_07.res",
+"save_to_file/path": "uid://dd5rts7xcvn6d"
+},
+"CHR_Critter_v001_Tail_082": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_08.res",
+"save_to_file/path": "uid://c5jtrb6qr4pnx"
+},
+"CHR_Critter_v001_Tail_092": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_09.res",
+"save_to_file/path": "uid://dc8dnl07w6se7"
+},
+"CHR_Critter_v001_Tail_102": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_10.res",
+"save_to_file/path": "uid://cgq75kich72ue"
+},
+"CHR_Critter_v001_Tail_112": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/models/critter/meshes/Tail_11.res",
+"save_to_file/path": "uid://dr5vnstrxanjn"
+}
+}
+}
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
