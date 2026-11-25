@@ -31,6 +31,7 @@ func _run() -> void:
 	_check_ears_sink(character)
 	_check_rig_adapter(character)
 	_check_part_determinism()
+	_check_runtime_mirror()
 	character.free()
 	if failures.is_empty():
 		print("CRITTER_ASSET_OK checks=%d" % checks)
@@ -186,6 +187,14 @@ func _check_rig_adapter(character: ToyCharacterVisual) -> void:
 	_expect(worst_hand <= 0.03, "HandAnchor must stay within 0.03 m of handslot.r for every clip (got %.4f)" % worst_hand)
 	_expect(worst_angle <= 1.0, "Mapped KayKit bones must track their pivots within 1 degree (got %.3f)" % worst_angle)
 	print("CRITTER_RIG hand=%.4f angle=%.3f" % [worst_hand, worst_angle])
+
+
+func _check_runtime_mirror() -> void:
+	_expect(ToyCharacterVisual.ACCESSORY_ORIGIN == Parts.ACCESSORY_ORIGIN, "Runtime accessory origin must match critter_parts.gd")
+	_expect(ToyCharacterVisual.CRITTER_SPECIES.size() == Parts.OUTFITS.size(), "Runtime outfit count must match critter_parts.gd")
+	for index in Parts.OUTFITS.size():
+		_expect(ToyCharacterVisual.CRITTER_SPECIES[index] == Parts.OUTFITS[index][0], "Runtime species %d must match critter_parts.gd" % index)
+		_expect(Parts.part_path("Ears_%02d" % index) == "%s/Ears_%02d.res" % [ToyCharacterVisual.CRITTER_PARTS_DIR, index], "Runtime parts dir must match critter_parts.gd")
 
 
 func _check_part_determinism() -> void:

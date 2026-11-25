@@ -1,0 +1,44 @@
+# frozen-file diff vs ae933edd (expect empty)
+lines: 0
+
+# all changed files vs ae933edd
+ assets/models/critter/parts/Belly_09.res           |  Bin 0 -> 6097 bytes
+ assets/models/critter/parts/Belly_10.res           |  Bin 0 -> 6097 bytes
+ assets/models/critter/parts/Belly_11.res           |  Bin 0 -> 6097 bytes
+ assets/models/critter/parts/Ears_00.res            |  Bin 0 -> 18946 bytes
+ assets/models/critter/parts/Ears_01.res            |  Bin 0 -> 10290 bytes
+ assets/models/critter/parts/Ears_02.res            |  Bin 0 -> 14834 bytes
+ assets/models/critter/parts/Ears_03.res            |  Bin 0 -> 18946 bytes
+ assets/models/critter/parts/Ears_04.res            |  Bin 0 -> 10290 bytes
+ assets/models/critter/parts/Ears_05.res            |  Bin 0 -> 14834 bytes
+ assets/models/critter/parts/Ears_06.res            |  Bin 0 -> 18946 bytes
+ assets/models/critter/parts/Ears_07.res            |  Bin 0 -> 10290 bytes
+ assets/models/critter/parts/Ears_08.res            |  Bin 0 -> 14834 bytes
+ assets/models/critter/parts/Ears_09.res            |  Bin 0 -> 18946 bytes
+ assets/models/critter/parts/Ears_10.res            |  Bin 0 -> 10290 bytes
+ assets/models/critter/parts/Ears_11.res            |  Bin 0 -> 14834 bytes
+ assets/models/critter/parts/Ellipsoid.res          |  Bin 0 -> 8314 bytes
+ assets/models/critter/parts/Mitten.res             |  Bin 0 -> 5327 bytes
+ assets/models/critter/parts/Proxy.res              |  Bin 0 -> 1182 bytes
+ assets/models/critter/parts/Tail_00.res            |  Bin 0 -> 6096 bytes
+ assets/models/critter/parts/Tail_01.res            |  Bin 0 -> 12794 bytes
+ assets/models/critter/parts/Tail_02.res            |  Bin 0 -> 8312 bytes
+ assets/models/critter/parts/Tail_03.res            |  Bin 0 -> 6096 bytes
+ assets/models/critter/parts/Tail_04.res            |  Bin 0 -> 12794 bytes
+ assets/models/critter/parts/Tail_05.res            |  Bin 0 -> 8312 bytes
+ assets/models/critter/parts/Tail_06.res            |  Bin 0 -> 6096 bytes
+ assets/models/critter/parts/Tail_07.res            |  Bin 0 -> 12794 bytes
+ assets/models/critter/parts/Tail_08.res            |  Bin 0 -> 8312 bytes
+ assets/models/critter/parts/Tail_09.res            |  Bin 0 -> 6096 bytes
+ assets/models/critter/parts/Tail_10.res            |  Bin 0 -> 12794 bytes
+ assets/models/critter/parts/Tail_11.res            |  Bin 0 -> 8312 bytes
+ game/player/cosmetic_ragdoll.gd                    |   63 +
+ game/player/toy_character_visual.gd                |  357 +-
+ tests/test_character_animation.gd                  |   32 +
+ tests/test_critter_asset.gd                        |  206 +
+ tests/test_phase1.gd                               |   47 +-
+ tests/test_player_integration.gd                   |   41 +-
+ tools/asset_generation/critter_parts.gd            |  261 +
+ tools/asset_generation/critter_parts.gd.uid        |    1 +
+ tools/asset_generation/generate_assets.gd          |  309 +-
+ 66 files changed, 4191 insertions(+), 5690 deletions(-)

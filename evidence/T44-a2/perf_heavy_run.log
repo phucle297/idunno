@@ -1,0 +1,10 @@
+IMPORT_OK attempts=1
+/home/box/game-factory/repos/idunno-T44-a2/evidence/T44-a2/perf/import-A/godot-import.log:0
+/home/box/game-factory/repos/idunno-T44-a2/evidence/T44-a2/perf/import-A/import-attempt1.log:0
+PERF_4P label=B_ae933edd_run1 avg_ms=131.31 p95_ms=140.13 max_ms=159.19 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a2_run1 avg_ms=134.60 p95_ms=143.16 max_ms=149.43 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run2 avg_ms=138.31 p95_ms=147.71 max_ms=149.25 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a2_run2 avg_ms=148.18 p95_ms=167.35 max_ms=186.81 draw_calls=2399 primitives=756166
+B INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1570, "avg": 143.53, "p95": 272.54, "max": 401.91 } town_roof={ "frames": 180, "max_frame": 21, "avg": 184.36, "p95": 211.87, "max": 262.98 }
+A INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1848, "avg": 137.63, "p95": 264.76, "max": 343.78 } town_roof={ "frames": 180, "max_frame": 126, "avg": 178.12, "p95": 201.31, "max": 227.69 }
+HEAVY_DONE

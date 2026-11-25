@@ -13,7 +13,11 @@ const SUIT_COLORS := [
 ]
 const BACK_ACCESSORY_OUTFITS := [3, 4, 6, 7, 9]
 const HEAD_PARTS := ["Head", "FacePlate", "LeftEye", "RightEye", "Mouth"]
-const CritterPartsScript = preload("res://tools/asset_generation/critter_parts.gd")
+## Runtime mirror of tools/asset_generation/critter_parts.gd (tools/ is not exported;
+## test_critter_asset asserts these stay in sync).
+const CRITTER_PARTS_DIR := "res://assets/models/critter/parts"
+const CRITTER_SPECIES := ["bear", "cat", "bunny", "bear", "cat", "bunny", "bear", "cat", "bunny", "bear", "cat", "bunny"]
+const ACCESSORY_ORIGIN := Vector3(0.0, 0.603, 0.0)
 const Tuning = preload("res://game/player/player_tuning.gd")
 ## KayKit Rogue_Hooded faces model +Z; yaw it to the game's -Z front and scale
 ## the 2.25-unit hood figure to the ~1.4 m toy height.
@@ -51,6 +55,11 @@ var _rig: Skeleton3D
 var _bone_ids := {}
 var _foot_ids := {}
 var _handslot := -1
+var _proxies := {}
+var _rest_q := {}
+var _chain_q := {}
+var _chain_from_chest := {}
+var _accessories: Node3D
 var _suit_current: Material
 
 
@@ -127,8 +136,31 @@ func _bind_rig() -> void:
 	_rig = get_node_or_null("Model/Rig/Skeleton3D") as Skeleton3D
 	if _rig == null:
 		return
+	var chest := _rig.find_bone("chest")
 	for proxy: String in BONE_MAP:
-		_bone_ids[proxy] = _rig.find_bone(BONE_MAP[proxy])
+		var bone := _rig.find_bone(BONE_MAP[proxy])
+		_bone_ids[proxy] = bone
+		_proxies[proxy] = get_node(proxy)
+		var rest_q := _rig.get_bone_global_rest(bone).basis.get_rotation_quaternion()
+		if proxy == "LeftArm":
+			rest_q = Quaternion(Vector3.BACK, -ARM_DOWN_ANGLE) * rest_q
+		elif proxy == "RightArm":
+			rest_q = Quaternion(Vector3.BACK, ARM_DOWN_ANGLE) * rest_q
+		_rest_q[proxy] = rest_q
+		# Parent global rotation = (posed chest or model root) * fixed rest chain,
+		# so sync_rig never forces a skeleton update per bone.
+		var parent := _rig.get_bone_parent(bone)
+		var parent_q := _rig.get_bone_global_rest(parent).basis.get_rotation_quaternion() if parent >= 0 else Quaternion.IDENTITY
+		var ancestor := parent
+		var under_chest := false
+		while ancestor >= 0:
+			if ancestor == chest and bone != chest:
+				under_chest = true
+				break
+			ancestor = _rig.get_bone_parent(ancestor)
+		_chain_from_chest[proxy] = under_chest
+		_chain_q[proxy] = (_rig.get_bone_global_rest(chest).basis.get_rotation_quaternion().inverse() * parent_q) if under_chest else parent_q
+	_accessories = get_node_or_null("Accessories") as Node3D
 	_foot_ids = {"l": _rig.find_bone("foot.l"), "r": _rig.find_bone("foot.r")}
 	_handslot = _rig.find_bone("handslot.r")
 
@@ -171,21 +203,19 @@ func sync_rig(delta := 0.0) -> void:
 		_waddle_phase = _animation_player.current_animation_position / _animation_player.current_animation_length
 	_waddle = waddle_at(_waddle_phase, _speed, _waddle_weight) if _waddle_weight > 0.0 else Transform3D.IDENTITY
 	_model.transform = _waddle * MODEL_BASE
-	($Accessories as Node3D).transform = _waddle
+	if _accessories == null:
+		_accessories = get_node_or_null("Accessories") as Node3D
+	if _accessories != null:
+		_accessories.transform = _waddle
 	var flip := Quaternion(Vector3.UP, PI)
+	var chest_global := Quaternion.IDENTITY
 	for proxy: String in ["Torso", "Head", "LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
-		var bone: int = _bone_ids[proxy]
-		var root_q := (get_node(proxy) as Node3D).basis.get_rotation_quaternion()
-		var target := flip * root_q * flip
-		var rest_q := _rig.get_bone_global_rest(bone).basis.get_rotation_quaternion()
-		if proxy == "LeftArm":
-			rest_q = Quaternion(Vector3.BACK, -ARM_DOWN_ANGLE) * rest_q
-		elif proxy == "RightArm":
-			rest_q = Quaternion(Vector3.BACK, ARM_DOWN_ANGLE) * rest_q
-		var global_q := target * rest_q
-		var parent := _rig.get_bone_parent(bone)
-		var parent_q := _rig.get_bone_global_pose(parent).basis.get_rotation_quaternion() if parent >= 0 else Quaternion.IDENTITY
-		_rig.set_bone_pose_rotation(bone, (parent_q.inverse() * global_q).normalized())
+		var root_q := (_proxies[proxy] as Node3D).basis.get_rotation_quaternion()
+		var global_q: Quaternion = flip * root_q * flip * _rest_q[proxy]
+		var parent_q: Quaternion = (chest_global * _chain_q[proxy]) if _chain_from_chest[proxy] else _chain_q[proxy]
+		_rig.set_bone_pose_rotation(_bone_ids[proxy], (parent_q.inverse() * global_q).normalized())
+		if proxy == "Torso":
+			chest_global = global_q
 	var anchor := get_hand_anchor()
 	if anchor != null and _handslot >= 0:
 		anchor.global_transform = _rig.global_transform * _rig.get_bone_global_pose(_handslot)
@@ -272,16 +302,16 @@ func _build_accessories() -> void:
 	add_child(accessories)
 	var pattern := critter_material("pattern")
 	var suit := _suit_current if _suit_current != null else critter_material("suit")
-	for outfit in CritterPartsScript.OUTFITS.size():
+	for outfit in CRITTER_SPECIES.size():
 		for part: String in ["Ears", "Tail", "Belly"]:
 			var instance := MeshInstance3D.new()
 			# "Cap" stays the sentinel name the runtime contract looks up.
 			instance.name = "Cap" if outfit == 0 and part == "Ears" else "%s_%02d" % [part, outfit]
-			instance.mesh = load(CritterPartsScript.part_path("%s_%02d" % [part, outfit])) as Mesh
+			instance.mesh = load("%s/%s_%02d.res" % [CRITTER_PARTS_DIR, part, outfit]) as Mesh
 			instance.set_meta("outfit", outfit)
 			instance.set_meta("body", {"Ears": "Head", "Tail": "Pelvis", "Belly": "Chest"}[part])
-			instance.set_meta("species", CritterPartsScript.OUTFITS[outfit][0])
-			instance.position = CritterPartsScript.ACCESSORY_ORIGIN
+			instance.set_meta("species", CRITTER_SPECIES[outfit])
+			instance.position = ACCESSORY_ORIGIN
 			if part == "Ears":
 				instance.set_surface_override_material(0, suit)
 				instance.set_surface_override_material(1, pattern)

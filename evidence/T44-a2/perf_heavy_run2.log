@@ -1,0 +1,13 @@
+test_critter_asset exit=0 0 CRITTER_ASSET_OK checks=218
+test_phase1 exit=0 0 PHASE1_TESTS_OK checks=1270
+test_character_animation exit=0 0 CHARACTER_ANIMATION_OK checks=263
+test_player_integration exit=0 0 PLAYER_INTEGRATION_OK checks=586
+test_player_colliders exit=0 0 PLAYER_COLLIDERS_OK checks=83
+test_cosmetic_collection exit=0 0 COSMETIC_COLLECTION_OK checks=29
+PERF_4P label=B_ae933edd_run3 avg_ms=138.38 p95_ms=146.98 max_ms=160.44 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a2_sync_cached_run3 avg_ms=140.50 p95_ms=161.31 max_ms=172.77 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run4 avg_ms=134.35 p95_ms=149.07 max_ms=161.95 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a2_sync_cached_run4 avg_ms=138.50 p95_ms=149.59 max_ms=156.58 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run5 avg_ms=137.76 p95_ms=147.73 max_ms=154.62 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a2_sync_cached_run5 avg_ms=130.92 p95_ms=136.53 max_ms=146.66 draw_calls=2399 primitives=756166
+HEAVY2_DONE
