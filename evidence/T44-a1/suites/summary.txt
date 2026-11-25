@@ -1,0 +1,6 @@
+test_critter_asset exit=1
+test_player_colliders exit=0
+test_character_animation exit=0
+test_phase1 exit=0
+test_cosmetic_collection exit=0
+test_player_integration exit=0
