@@ -32,6 +32,7 @@ func _run() -> void:
 	_check_rig_adapter(character)
 	_check_part_determinism()
 	_check_runtime_mirror()
+	_check_leg_ik(character)
 	character.free()
 	if failures.is_empty():
 		print("CRITTER_ASSET_OK checks=%d" % checks)
@@ -174,6 +175,10 @@ func _check_rig_adapter(character: ToyCharacterVisual) -> void:
 			var slot := rig.global_transform * rig.get_bone_global_pose(handslot).origin
 			worst_hand = maxf(worst_hand, character.get_hand_anchor().global_position.distance_to(slot))
 			for proxy: String in ToyCharacterVisual.BONE_MAP:
+				# AC12 A3 amendment: while stepping, the legs follow the hop-step IK
+				# (checked in _check_leg_ik) instead of the rest-keyed leg pivots.
+				if proxy.ends_with("Leg") and character.get_waddle_transform() != Transform3D.IDENTITY:
+					continue
 				var bone := rig.find_bone(ToyCharacterVisual.BONE_MAP[proxy])
 				var rest_q := rig.get_bone_global_rest(bone).basis.get_rotation_quaternion()
 				if proxy == "LeftArm":
@@ -195,6 +200,48 @@ func _check_runtime_mirror() -> void:
 	for index in Parts.OUTFITS.size():
 		_expect(ToyCharacterVisual.CRITTER_SPECIES[index] == Parts.OUTFITS[index][0], "Runtime species %d must match critter_parts.gd" % index)
 		_expect(Parts.part_path("Ears_%02d" % index) == "%s/Ears_%02d.res" % [ToyCharacterVisual.CRITTER_PARTS_DIR, index], "Runtime parts dir must match critter_parts.gd")
+
+
+## AC12 A3 amendment: analytic leg IK is finite, never hyperextends and never
+## pushes the visible foot below the ground.
+func _check_leg_ik(character: ToyCharacterVisual) -> void:
+	var rig := character.get_node("Model/Rig/Skeleton3D") as Skeleton3D
+	var animation := character.get_node("AnimationPlayer") as AnimationPlayer
+	character.play_clip("idle")
+	character.sync_rig(1.0)
+	var ground := minf(character.get_visible_foot_global("l").y, character.get_visible_foot_global("r").y)
+	var finite := true
+	var min_knee := INF
+	var lowest := INF
+	for clip in ["walk", "run"]:
+		character.play_clip(clip)
+		character.set_locomotion_speed(4.5 if clip == "walk" else 6.5)
+		animation.seek(0.0, true)
+		character.sync_rig(1.0)
+		animation.pause()
+		for sample in 96:
+			animation.seek(sample / 96.0 * animation.current_animation_length, true)
+			character.sync_rig()
+			for side in ["l", "r"]:
+				var hip := rig.get_bone_global_pose(rig.find_bone("upperleg." + side)).origin
+				var knee := rig.get_bone_global_pose(rig.find_bone("lowerleg." + side)).origin
+				var ankle := rig.get_bone_global_pose(rig.find_bone("foot." + side)).origin
+				for value in [hip, knee, ankle]:
+					finite = finite and (value as Vector3).is_finite()
+				for bone_name in ["upperleg.", "lowerleg.", "foot."]:
+					finite = finite and rig.get_bone_pose_rotation(rig.find_bone(bone_name + side)).is_finite()
+				# Knee bend >= 0: knee on the model-front (+Z) side of the hip-ankle line.
+				var line := (ankle - hip).normalized()
+				var offset := (knee - hip) - line * (knee - hip).dot(line)
+				var bend := rad_to_deg((knee - hip).normalized().angle_to((ankle - knee).normalized())) * (1.0 if offset.z >= -0.0001 else -1.0)
+				min_knee = minf(min_knee, bend)
+				lowest = minf(lowest, character.get_visible_foot_global(side).y - ground)
+	_expect(finite, "AC12 A3 amendment: leg IK must never produce NaN/inf")
+	_expect(min_knee >= 0.0, "AC12 A3 amendment: knee angle must stay >= 0 (got %.2f deg)" % min_knee)
+	_expect(lowest >= -0.005, "AC12 A3 amendment: visible foot never more than 0.005 m below ground (got %.4f)" % lowest)
+	print("CRITTER_LEG_IK min_knee=%.2fdeg lowest=%.4f" % [min_knee, lowest])
+	character.play_clip("idle")
+	character.sync_rig(1.0)
 
 
 func _check_part_determinism() -> void:

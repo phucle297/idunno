@@ -1,0 +1,1 @@
+walk speed=4.5 cycle=0.400s step_half=0.100 duty=0.111 stance_s=0.0444 max_slide_l=0.00000 max_slide_r=0.00000 world_step_m=[1.79999986290932, 1.79999995231628]

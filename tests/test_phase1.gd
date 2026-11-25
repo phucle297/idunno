@@ -139,29 +139,43 @@ func _check_assets() -> void:
 					_expect(copy.position + (copy.get_parent() as Node3D).position == accessory.position, "Ragdoll attachment must preserve local placement")
 			_expect((doll.get_node("Chest").get_child(0) as MeshInstance3D).material_override == (character.get_node("Torso") as MeshInstance3D).material_override, "Ragdoll must retain suit color")
 			doll.free()
-	# T44 A2 plop-toddle: shoes stay fixed relative to the hips (no leg swing)
-	# while the visible KayKit foot lifts with the whole-body waddle.
+	# AC12 A3 amendment (hop-step): over a run cycle each visible foot swings
+	# >= 0.15 m fore/aft relative to the hips and lifts >= 0.03 m, half a cycle apart.
 	var animation := character.get_node("AnimationPlayer") as AnimationPlayer
 	var critter := character as ToyCharacterVisual
+	var rig := character.get_node("Model/Rig/Skeleton3D") as Skeleton3D
+	var hips_bone := rig.find_bone("hips")
 	critter.play_clip("idle")
-	critter.sync_rig()
-	var rest_foot_y := critter.get_visible_foot_global("l").y
+	critter.sync_rig(1.0)
+	var rest_foot_y := critter.to_local(critter.get_visible_foot_global("l")).y
 	critter.play_clip("run")
 	critter.set_locomotion_speed(6.5)
-	animation.pause()
+	animation.seek(0.0, true)
 	critter.sync_rig(1.0)
-	var left_shoe := character.find_child("LeftShoe", true, false) as Node3D
-	var left_leg := character.get_node("LeftLeg") as Node3D
-	var shoe_z0 := left_shoe.position.z + left_leg.position.z
-	var max_shoe_dz := 0.0
-	var max_lift := 0.0
-	for sample in 12:
-		animation.seek(sample / 12.0 * animation.current_animation_length, true)
+	animation.pause()
+	var spans := {"l": Vector2(INF, -INF), "r": Vector2(INF, -INF)}
+	var peak := {"l": -INF, "r": -INF}
+	var peak_phase := {"l": 0.0, "r": 0.0}
+	const RUN_SAMPLES := 48
+	for sample in RUN_SAMPLES:
+		animation.seek(sample / float(RUN_SAMPLES) * animation.current_animation_length, true)
 		critter.sync_rig()
-		max_shoe_dz = maxf(max_shoe_dz, absf(left_shoe.position.z + left_leg.position.z - shoe_z0))
-		max_lift = maxf(max_lift, critter.get_visible_foot_global("l").y - rest_foot_y)
-	_expect(max_shoe_dz <= 0.01, "Running shoes must stay at the hips (no leg swing)")
-	_expect(max_lift >= 0.02, "Visible feet must lift with the waddle while running")
+		var hips := critter.to_local(rig.global_transform * rig.get_bone_global_pose(hips_bone).origin)
+		for side in ["l", "r"]:
+			var foot := critter.to_local(critter.get_visible_foot_global(side))
+			var span: Vector2 = spans[side]
+			spans[side] = Vector2(minf(span.x, foot.z - hips.z), maxf(span.y, foot.z - hips.z))
+			if foot.y - rest_foot_y > peak[side]:
+				peak[side] = foot.y - rest_foot_y
+				peak_phase[side] = sample / float(RUN_SAMPLES)
+	for side in ["l", "r"]:
+		var span: Vector2 = spans[side]
+		_expect(span.y - span.x >= 0.15, "AC12 A3 amendment: running foot %s must step >= 0.15 m relative to the hips (got %.3f)" % [side, span.y - span.x])
+		_expect(peak[side] >= 0.03, "AC12 A3 amendment: running foot %s must lift >= 0.03 m (got %.3f)" % [side, peak[side]])
+	var apart := absf(fposmod(peak_phase["l"] - peak_phase["r"] + 0.5, 1.0) - 0.5)
+	_expect(absf(apart - 0.5) <= 0.05, "AC12 A3 amendment: left and right steps must be half a cycle apart (got %.3f)" % apart)
+	critter.play_clip("idle")
+	critter.sync_rig(1.0)
 	for leg_name in ["LeftLeg", "RightLeg"]:
 		var leg := character.get_node(leg_name) as Node3D
 		var mesh := leg.get_node("Mesh") as MeshInstance3D
