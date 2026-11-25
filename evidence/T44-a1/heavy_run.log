@@ -1,0 +1,13 @@
+IMPORT_OK attempts=1
+IMPORT_OK attempts=1
+T44_CAPTURE_OK out=/home/box/game-factory/evidence/T44-a1/before
+T44_CAPTURE_OK out=/home/box/game-factory/evidence/T44-a1/after
+PERF_4P label=B_ae933edd_run1 avg_ms=127.54 p95_ms=138.32 max_ms=147.67 draw_calls=2425 primitives=746862
+PERF_4P label=A_head_run1 avg_ms=128.04 p95_ms=132.88 max_ms=158.88 draw_calls=2391 primitives=736078
+PERF_4P label=B_ae933edd_run2 avg_ms=125.58 p95_ms=134.78 max_ms=150.45 draw_calls=2425 primitives=746862
+PERF_4P label=A_head_run2 avg_ms=126.29 p95_ms=132.68 max_ms=143.79 draw_calls=2391 primitives=736078
+INDOOR_TRACE overall={ "frames": 2700, "max_frame": 2130, "avg": 134.85, "p95": 255.07, "max": 335.58 } town_roof={ "frames": 180, "max_frame": 113, "avg": 178.07, "p95": 200.27, "max": 221.95 }
+INDOOR_LIGHTING_OK
+INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1861, "avg": 142.21, "p95": 283.65, "max": 399.47 } town_roof={ "frames": 180, "max_frame": 85, "avg": 185.08, "p95": 209.97, "max": 358.5 }
+INDOOR_LIGHTING_OK
+HEAVY_DONE

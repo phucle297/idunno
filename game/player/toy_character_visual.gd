@@ -13,6 +13,14 @@ const SUIT_COLORS := [
 ]
 const BACK_ACCESSORY_OUTFITS := [3, 4, 6, 7, 9]
 const HEAD_PARTS := ["Head", "FacePlate", "LeftEye", "RightEye", "Mouth"]
+# T44 plush critter: sculpted meshes extracted from assets/models/critter/CHR_Critter_v001.glb.
+const CRITTER_MESH_DIR := "res://assets/models/critter/meshes"
+const FABRIC_NORMAL_MAP := "res://assets/models/critter/textures/T_Fabric_Normal_v001.png"
+const PATTERN_MATERIAL := "res://assets/models/critter/materials/MAT_Critter_Pattern_v001.tres"
+const EARS_ORIGIN := Vector3(0.0, 1.15, 0.0)
+const TAIL_ORIGIN := Vector3(0.0, 0.45, 0.0)
+const OLD_HEAD_CENTER := Vector3(0.0, 1.24, 0.0)
+const SUIT_PARTS := ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]
 
 static var _suit_material_cache: Dictionary = {}
 
@@ -88,9 +96,9 @@ func set_cosmetic_variant(variant: int) -> void:
 	if has_node("Accessories/Cap"):
 		for accessory in $Accessories.get_children():
 			accessory.visible = accessory.get_meta("outfit", -1) == cosmetic_variant
-	var rear_cue := get_node_or_null("Torso/RearCue") as Node3D
-	if rear_cue != null:
-		rear_cue.visible = not (cosmetic_variant in BACK_ACCESSORY_OUTFITS)
+	var belly := get_node_or_null("Torso/BellyPatch") as MeshInstance3D
+	if belly != null:
+		belly.mesh = load("%s/Belly_%02d.res" % [CRITTER_MESH_DIR, cosmetic_variant]) as Mesh
 
 
 func set_outfit_id(outfit_id: String) -> bool:
@@ -112,10 +120,14 @@ func set_player_color(color_index: int) -> void:
 	if material == null:
 		material = _material(SUIT_COLORS[idx])
 		_suit_material_cache[idx] = material
-	# Apply player colour to suit-blocked parts while keeping head, face,
-	# collar, belt, hands, and shoes cleanly colour-blocked for readability.
-	for part_name in ["Torso", "LeftArm/Mesh", "RightArm/Mesh", "LeftLeg/Mesh", "RightLeg/Mesh"]:
+	# Player colour = the hoodie suit (hood + torso + arms + legs + outer ears
+	# and tail). Face, paws, feet and outfit pattern accents stay colour-blocked.
+	for part_name in SUIT_PARTS:
 		(get_node(part_name) as MeshInstance3D).material_override = material
+	if has_node("Accessories"):
+		for accessory in $Accessories.get_children():
+			if accessory.has_meta("critter_part"):
+				(accessory as MeshInstance3D).set_surface_override_material(0, material)
 
 
 func get_animation_names() -> Array[String]:
@@ -258,6 +270,33 @@ func _build_accessories() -> void:
 		accessory.set_meta("body", "Head" if accessory.position.y > 1.05 else ("Pelvis" if accessory.position.y < 0.58 else "Chest"))
 		if accessory.name in ["ScarfTail", "Antenna"]:
 			accessory.set_meta("body", "Chest")
+		# Refit the costume pieces onto the larger plush hood and rounder body.
+		var node := accessory as Node3D
+		if accessory.get_meta("body") == "Head":
+			node.position = EARS_ORIGIN + (node.position - OLD_HEAD_CENTER) * 1.1
+			node.scale *= 1.1
+		else:
+			node.position = Vector3(node.position.x * 1.06, node.position.y, node.position.z * 1.06)
+			node.scale *= Vector3(1.12, 1.0, 1.12)
+
+	# Every outfit: a distinct sculpted ear pair (sunk into the hood) and tail
+	# (sunk into the back). Surface 0 takes the suit colour, surface 1 is the
+	# outfit pattern (inner ears / tail tip). Plain keeps the default pair.
+	var pattern := load(PATTERN_MATERIAL) as Material
+	var suit := _material(SUIT_COLORS[0])
+	for outfit in catalog().items.size():
+		for piece in [["CritterEars%d", "Ears_%02d", EARS_ORIGIN, "Head"], ["CritterTail%d", "Tail_%02d", TAIL_ORIGIN, "Pelvis"]]:
+			var instance := MeshInstance3D.new()
+			instance.name = piece[0] % outfit
+			instance.mesh = load("%s/%s.res" % [CRITTER_MESH_DIR, piece[1] % outfit]) as Mesh
+			instance.position = piece[2]
+			instance.set_surface_override_material(0, suit)
+			if instance.mesh.get_surface_count() > 1:
+				instance.set_surface_override_material(1, pattern)
+			instance.set_meta("outfit", outfit)
+			instance.set_meta("body", piece[3])
+			instance.set_meta("critter_part", "ears" if piece[3] == "Head" else "tail")
+			accessories.add_child(instance)
 
 
 func _costume_box(parent: Node3D, part: String, outfit: int, size: Vector3, at: Vector3, material: Material) -> void:
@@ -353,13 +392,13 @@ func _create_clip(clip_name: String) -> Animation:
 	var rest_scale: Vector3 = $Torso.scale
 	if clip_name == "idle":
 		animation.track_insert_key(squash, 0.0, rest_scale)
-		animation.track_insert_key(squash, animation.length * 0.5, rest_scale * Vector3(1.015, 0.975, 1.015))
+		animation.track_insert_key(squash, animation.length * 0.5, rest_scale * Vector3(1.008, 0.985, 1.008))
 		animation.track_insert_key(squash, animation.length, rest_scale)
 	elif clip_name == "jump_takeoff":
-		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(0.94, 1.07, 0.94))
-		animation.track_insert_key(squash, animation.length, rest_scale * Vector3(0.96, 1.04, 0.96))
+		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(0.97, 1.04, 0.97))
+		animation.track_insert_key(squash, animation.length, rest_scale * Vector3(0.98, 1.02, 0.98))
 	elif clip_name == "landing":
-		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(1.06, 0.90, 1.06))
+		animation.track_insert_key(squash, 0.0, rest_scale * Vector3(1.03, 0.95, 1.03))
 		animation.track_insert_key(squash, 0.13, rest_scale)
 		animation.track_insert_key(squash, animation.length, rest_scale)
 	else:
@@ -386,7 +425,8 @@ func _create_clip(clip_name: String) -> Animation:
 		for accessory: MeshInstance3D in $Accessories.get_children():
 			var reset := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(reset, NodePath("Accessories/%s:transform" % accessory.name))
-			var rotation := Basis(Vector3.RIGHT, recovery_lean if accessory.get_meta("body") != "Pelvis" else 0.0)
+			# The plush body is one fused mesh: every attachment follows the torso lean.
+			var rotation := Basis(Vector3.RIGHT, recovery_lean)
 			var pivot: Vector3 = $Torso.position
 			var rest := accessory.transform
 			animation.track_insert_key(reset, 0.0, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
@@ -420,8 +460,6 @@ func _create_clip(clip_name: String) -> Animation:
 			animation.track_insert_key(part_track, 0.1, Transform3D(rotation * rest.basis, pivot + rotation * (rest.origin - pivot)))
 			animation.track_insert_key(part_track, animation.length, rest)
 		for accessory: MeshInstance3D in $Accessories.get_children():
-			if accessory.get_meta("body") == "Pelvis":
-				continue
 			var attachment := animation.add_track(Animation.TYPE_VALUE)
 			animation.track_set_path(attachment, NodePath("Accessories/%s:transform" % accessory.name))
 			var rest := accessory.transform
@@ -565,10 +603,21 @@ func _clip_duration(clip_name: String) -> float:
 
 
 func _material(color: Color) -> StandardMaterial3D:
+	return fabric_material(color)
+
+
+## Shared plush fabric look: matte, soft rim light, one tiling knit normal map.
+static func fabric_material(color: Color, roughness := 0.9, rim := 0.25, vertex_color := false) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.metallic = 0.0
-	material.roughness = 0.48
-	material.clearcoat = 0.15
-	material.clearcoat_roughness = 0.35
+	material.roughness = roughness
+	material.rim_enabled = true
+	material.rim = rim
+	material.rim_tint = 0.6
+	material.vertex_color_use_as_albedo = vertex_color
+	material.normal_enabled = true
+	material.normal_scale = 0.3
+	material.normal_texture = load(FABRIC_NORMAL_MAP) as Texture2D
+	material.uv1_scale = Vector3(4.0, 4.0, 1.0)
 	return material

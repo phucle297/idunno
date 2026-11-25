@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/critter/textures/T_Fabric_Normal_v001.png" id="1_u1vcs"]
+
+[resource]
+vertex_color_use_as_albedo = true
+roughness = 0.9
+normal_enabled = true
+normal_scale = 0.3
+normal_texture = ExtResource("1_u1vcs")
+rim_enabled = true
+rim = 0.25
+rim_tint = 0.6
+uv1_scale = Vector3(4, 4, 1)

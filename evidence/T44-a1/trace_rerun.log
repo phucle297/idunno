@@ -1,0 +1,2 @@
+B run2 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1651, "avg": 140.51, "p95": 265.85, "max": 1504.1 } town_roof={ "frames": 180, "max_frame": 7, "avg": 176.05, "p95": 195.69, "max": 234.18 }
+A run2 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 2315, "avg": 136.35, "p95": 276.12, "max": 364.39 } town_roof={ "frames": 180, "max_frame": 26, "avg": 169.84, "p95": 186.61, "max": 203.06 }

@@ -82,8 +82,9 @@ func _check_assets() -> void:
 		_expect(character.get_node(path).owner == character, "Nested pivots, meshes and shoes must be owned by the packed root")
 	var head := character.get_node("Head") as MeshInstance3D
 	_expect(head.visible, "Chunky Figurine head must be visible")
-	var head_height := (head.mesh as SphereMesh).height * head.scale.y
-	var total_height := head.position.y + head_height * 0.5
+	var head_height: float = character.get_meta("head_top_y") - character.get_meta("head_bottom_y")
+	var total_height: float = character.get_meta("head_top_y")
+	_expect(absf((character.get_node("Torso") as MeshInstance3D).get_aabb().end.y + (character.get_node("Torso") as Node3D).position.y - total_height) < 0.03, "Head top meta must match the sculpted hood AABB")
 	_expect(total_height >= 1.45 and total_height <= 1.60, "Chunky Figurine total height must stay within 1.45..1.60 m")
 	var head_ratio := total_height / head_height
 	_expect(head_ratio >= 2.2 and head_ratio <= 2.5, "Chunky Figurine head-to-total-height ratio must stay in 1:2.2..1:2.5")
@@ -145,10 +146,11 @@ func _check_assets() -> void:
 	for leg_name in ["LeftLeg", "RightLeg"]:
 		var leg := character.get_node(leg_name) as Node3D
 		var mesh := leg.get_node("Mesh") as MeshInstance3D
-		var capsule := (mesh as MeshInstance3D).mesh as CapsuleMesh
+		var root_cap_y: float = mesh.get_meta("root_cap_y")
+		_expect(mesh.get_aabb().end.y > root_cap_y, "Sculpted leg root cap must extend above the hip pivot")
 		for phase in [0.0, 0.1375, 0.275]:
 			animation.seek(phase, true)
-			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, capsule.height * 0.5, 0)))
+			var top: Vector3 = character.to_local(mesh.to_global(Vector3(0, root_cap_y, 0)))
 			_expect(top.distance_to(Vector3(leg.position.x, leg.position.y, 0)) < 0.001, "Leg must remain connected at the redesigned hip throughout running")
 	character.free()
 	var meteor := (load("res://assets/generated/VFX_MeteorTelegraph_v001.tscn") as PackedScene).instantiate()

@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CAPSULE_STATE order=[0, 1] shared=false heights=1.5/1.5 centers=0.75/0.75
+CAPSULE_STATE order=[1, 0] shared=false heights=1.5/1.5 centers=0.75/0.75
+PLAYER_COLLIDERS_OK checks=83

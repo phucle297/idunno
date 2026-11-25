@@ -611,5 +611,17 @@
       "provenance": "Exact owner attachment dated2026-10-14, retrieved using amp files get. No third-party geometry imported or CC0 claim.",
       "runtime_asset": false
     }
-  ]
+  ],
+  "plush_critter_character": {
+    "sources": [
+      "tools/asset_generation/sculpt_critter.gd",
+      "tools/asset_generation/generate_assets.gd",
+      "assets/models/critter/CHR_Critter_v001.glb",
+      "assets/models/critter/meshes/*.res",
+      "assets/models/critter/textures/T_Fabric_Normal_v001.png",
+      "assets/models/critter/materials/*.tres"
+    ],
+    "provenance": "Generated in-repo (T44). Deterministic Godot 4.7.2 headless sculpt, seed 297: signed-distance smooth-union ellipsoids/round cones, surface nets, Laplacian smoothing + SDF re-projection, meshoptimizer decimation via ImporterMesh LODs, per-region spherical/cylindrical UVs; exported with GLTFDocument. 128 px knit normal map generated from seeded noise. No third-party geometry, textures, Blender or paid assets.",
+    "contract": "CHR_Base_v001 (GENERATOR_VERSION 12) assembles every body part from extracted .res meshes (no primitive meshes on body parts); 4 shared fabric materials (Suit, Skin, Pattern, Bead); 12 outfit ear/tail/belly-pattern sets. Node paths, 18-bone skeleton, 10 clips, capsule and ragdoll unchanged."
+  }
 }
