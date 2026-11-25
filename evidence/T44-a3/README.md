@@ -14,3 +14,7 @@ Deviations from the Architect A3 delta (measured, see PR): the KayKit leg is nea
 stepping knee bend (`STANCE_CROUCH`, body lowers while stepping) lets STEP_HALF 0.10 pass the clamp. The
 opposite-thigh-pitch assert is checked at phases 0.0/0.5 (feet at opposite stride ends); at 0.25/0.75 one foot is
 planted under the hip and the other mid-swing, so both thighs pitch forward.
+
+Perf (4P toy_town bench, players idle so the IK path is not exercised; 9 interleaved pairs vs B, 3 batches):
+mean avg 139.93 vs 133.34 ms (+4.9%), mean p95 156.77 vs 144.38 ms (+8.6%), prims 756,166 vs 746,862 (+1.25%).
+Single pairs are noisy on llvmpipe: p95 ranged -9.7% to +25.6% (runs 3, 5, 6 above +10%). See perf/*.log.
