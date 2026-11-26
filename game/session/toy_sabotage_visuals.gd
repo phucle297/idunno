@@ -133,6 +133,17 @@ func _present_held(slots: Dictionary, players: Dictionary) -> void:
 		var slot = slots[owner]
 		if slot is Dictionary and not str(slot.get("kind", "")).is_empty():
 			held.append({"owner": owner, "slot": slot})
+	# T45: tell each character whether it holds an item (right arm keeps its legacy pose).
+	for player_owner in players:
+		var holder = players[player_owner]
+		var holder_character = holder.get("character") if is_instance_valid(holder) else null
+		if is_instance_valid(holder_character) and holder_character.has_method("set_item_held"):
+			var is_holding := false
+			for entry in held:
+				if players.get(entry.owner) == holder:
+					is_holding = true
+					break
+			holder_character.set_item_held(is_holding)
 	for index in _held_slots.size():
 		var visual := _held_slots[index]
 		visual.visible = index < held.size()

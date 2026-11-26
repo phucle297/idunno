@@ -179,6 +179,12 @@ func _check_rig_adapter(character: ToyCharacterVisual) -> void:
 				# (checked in _check_leg_ik) instead of the rest-keyed leg pivots.
 				if proxy.ends_with("Leg") and character.get_waddle_transform() != Transform3D.IDENTITY:
 					continue
+				# T45: in idle/walk/run the arms carry the relaxed pose + swing overlay
+				# (checked in test_character_animation) instead of the bare proxy pivots.
+				if proxy.ends_with("Arm"):
+					var arm: Dictionary = character.get_arm_overlay_debug()
+					if float(arm.weight_l if proxy == "LeftArm" else arm.weight_r) > 0.0:
+						continue
 				var bone := rig.find_bone(ToyCharacterVisual.BONE_MAP[proxy])
 				var rest_q := rig.get_bone_global_rest(bone).basis.get_rotation_quaternion()
 				if proxy == "LeftArm":
