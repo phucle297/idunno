@@ -1,0 +1,29 @@
+# T45 A1 frozen re-hash vs 77b7ae29 (HEAD 871dca9f98e956f3e7841c7c3f1cdaf4a8623b76)
+## Changed files (git diff --name-only 77b7ae29..HEAD, excluding evidence/T45-a1/**):
+game/player/toy_character_visual.gd
+game/session/toy_sabotage_visuals.gd
+tests/test_character_animation.gd
+tests/test_critter_asset.gd
+## numstat (added deleted):
+75	0	game/player/toy_character_visual.gd
+11	0	game/session/toy_sabotage_visuals.gd
+119	2	tests/test_character_animation.gd
+6	0	tests/test_critter_asset.gd
+## Every other tracked file: git ls-tree blob ids identical
+files_checked=884 mismatches=0
+## Named frozen files (sha256 base == head):
+project.godot base=3c445f16c5ee7fec head=3c445f16c5ee7fec SAME
+game/player/player.gd base=2e62a0f610ecf9b4 head=2e62a0f610ecf9b4 SAME
+game/player/player_tuning.gd base=8b7c1a7cf14141c4 head=8b7c1a7cf14141c4 SAME
+tools/asset_generation/generate_assets.gd base=a3fb845512db5227 head=a3fb845512db5227 SAME
+tools/asset_generation/critter_parts.gd base=7ae4aee149ee7519 head=7ae4aee149ee7519 SAME
+assets/generated/CHR_Base_v001.tscn base=48f404d9527ac0f7 head=48f404d9527ac0f7 SAME
+assets/models/critter/parts/Mitten.res base=9c7726f4335f30d6 head=9c7726f4335f30d6 SAME
+## toy_character_visual.gd: hunks are pure additions (0 deleted lines), base lines preserved in order:
+@@ -31,0 +32,13 @@ const ARM_DOWN_ANGLE := 1.2217305
+@@ -76,0 +90,9 @@ var _suit_current: Material
+@@ -178,0 +201,6 @@ func _bind_rig() -> void:
+@@ -323,0 +352,7 @@ func sync_rig(delta := 0.0) -> void:
+@@ -328,0 +364,4 @@ func sync_rig(delta := 0.0) -> void:
+@@ -332,0 +372,6 @@ func sync_rig(delta := 0.0) -> void:
+@@ -349,0 +395,30 @@ func sync_rig(delta := 0.0) -> void:
