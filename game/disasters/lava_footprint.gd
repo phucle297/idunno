@@ -16,7 +16,9 @@ const ELIGIBLE_BELOW := 1.2 # == Volcano.SAFE_SUPPORT
 const SUPPORT_RAY_START := 1.55 # SAFE_SUPPORT + 0.35
 const TOP_RAY_START := 40.0
 const RAY_END := -20.0
-const TILE_LIFT := 0.03
+# Authored paving is a render-only mesh up to ~0.03 m above the collision floor;
+# tiles ride 0.06 m above the floor so lava is never hidden under paving.
+const TILE_LIFT := 0.06
 const SITE_LATTICE := 2.0
 const SITE_RAMP := 1.5
 const SITE_MARGIN := 2.0
