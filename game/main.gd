@@ -4580,7 +4580,7 @@ func _add_parking_garage() -> void:
 			var brace := _add_box_to(root, "CanopyBrace_%s_%s" % [sx, sz], Vector3(2.5, 0.26, 0.38), (canopy_corner + pillar_top) * 0.5, PALETTE.slate)
 			brace.rotation.y = -atan2(pillar_top.z - canopy_corner.z, pillar_top.x - canopy_corner.x)
 	_add_box_to(root, "UpperShelter", Vector3(8.0, 0.3, 6.0), Vector3(0.0, 5.4, 0.0), PALETTE.coral)
-	_add_detail_box(root, "GarageSignboard", Vector3(5.0, 0.8, 0.18), Vector3(0, 3.65, 6.1), PALETTE.cream)
+	_add_detail_box(root, "GarageSignboard", Vector3(5.0, 0.8, 0.18), Vector3(0, 3.65, 6.1), PALETTE.cream, true)
 	_add_label_to(root, "GarageLabel", "GARAGE", Vector3(0.0, 3.65, 6.21), PALETTE.slate)
 	# Covered lower level: the warm lamp hangs under the deck slab (bottom 2.225 m).
 	_add_interior_lighting(root, Vector2(14.0, 12.0), 2.6)
@@ -4766,11 +4766,11 @@ func _add_warehouse_interior() -> void:
 	# crate stack in the north-east corner. Doors and roof panel stay clear.
 	for bay in 3:
 		var z := -3.0 + bay * 3.0
-		_add_detail_box(warehouse, "Rack%d" % bay, Vector3(1.4, 1.6, 0.8), Vector3(-6.6, 0.8, z), PALETTE.slate)
+		_add_detail_box(warehouse, "Rack%d" % bay, Vector3(1.4, 1.6, 0.8), Vector3(-6.6, 0.8, z), PALETTE.slate, true)
 		_add_detail_box(warehouse, "RackTop%d" % bay, Vector3(1.4, 0.1, 0.8), Vector3(-6.6, 1.62, z), PALETTE.cream)
-	_add_detail_box(warehouse, "Workbench", Vector3(3.0, 0.9, 0.8), Vector3(6.2, 0.45, 2.0), PALETTE.sand)
-	_add_detail_box(warehouse, "CrateStackA", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 0.35, -4.2), PALETTE.coral)
-	_add_detail_box(warehouse, "CrateStackB", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 1.05, -4.2), PALETTE.cream)
+	_add_detail_box(warehouse, "Workbench", Vector3(3.0, 0.9, 0.8), Vector3(6.2, 0.45, 2.0), PALETTE.sand, true)
+	_add_detail_box(warehouse, "CrateStackA", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 0.35, -4.2), PALETTE.coral, true)
+	_add_detail_box(warehouse, "CrateStackB", Vector3(0.7, 0.7, 0.7), Vector3(5.6, 1.05, -4.2), PALETTE.cream, true)
 
 
 func _add_harbor_kit() -> void:
