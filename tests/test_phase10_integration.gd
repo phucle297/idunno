@@ -42,13 +42,14 @@ func _run() -> void:
 		await physics_frame
 		await physics_frame
 		var volcano: Volcano = main.volcano
-		var center := volcano.district_center
 		main.match_manager.set_player_ready(1, true)
 		main.match_manager.start_match()
-		player.reset_for_match(center + Vector3.UP * 5)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 1010
 		volcano.start_disaster(rng)
+		# T47: the crater site is random per seed; snapshot carries the vent.
+		var center := volcano.district_center
+		player.reset_for_match(center + Vector3.UP * 5)
 		volcano.tick(12)
 		await physics_frame
 		await physics_frame

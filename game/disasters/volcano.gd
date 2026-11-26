@@ -2,6 +2,9 @@ class_name Volcano
 extends Node3D
 
 enum Phase { IDLE, WARNING, ACTIVE }
+# T47 (Owner 2026-11-26): before 8:00 a volcano drops only a few random lava
+# zones; the full-map flood (T3p) is the late-match event only.
+enum Stage { ZONES, FLOOD }
 const SURFACE_COUNT := 9
 const HOT_LIFETIME := 60.0
 const DAMAGE_PER_SECOND := 6.0
@@ -16,37 +19,82 @@ const SPREAD_RATE := 3.0
 const SAFE_SUPPORT := 1.2
 const DEFAULT_MAP_HALF_EXTENT := 72.0
 const FLOW_HEIGHT := 0.06
+# T47 C1: lava burns only while hot. The yellow/tan "cooled" look and zero
+# damage start at the same heat; every burn/colour/HUD/snapshot reader uses
+# is_burning().
+const COOLED_AT := 20.0
+const LATE_FLOOD_AT := 480.0
+const THIRD_ZONE_AT := 300.0
+const MAX_FLOW_HEAT := 120.0
+const MAX_ZONES := 4
+const ZONE_RADIUS_MIN := 4.0
+const ZONE_RADIUS_MAX := 16.0
 const FLOW_SHADER := """
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
 uniform vec3 center;
 uniform float radius = 0.0;
 uniform float preview = 0.0;
+uniform float flood = 1.0;
 uniform float vent_radius = 9.0;
+uniform vec2 crater_half = vec2(0.0);
 uniform float glow = 1.0;
+uniform int zone_count = 0;
+uniform vec4 zone0;
+uniform vec4 zone1;
+uniform vec4 zone2;
+uniform vec4 zone3;
 varying vec3 world_position;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 void fragment() {
-	float d = distance(world_position.xz, center.xz);
+	vec2 p = world_position.xz;
+	// The crater and its ramps are the shelves' own surface (T47 footprint).
+	vec2 q = abs(p - center.xz);
+	if (q.x <= crater_half.x && q.y <= crater_half.y) {
+		discard;
+	}
+	vec4 zones[4] = vec4[4](zone0, zone1, zone2, zone3);
 	if (preview > 0.5) {
-		// Warning: amber edges pulse outward from the vent, showing where
-		// and how the flow will spread. No lava is down yet.
-		float ring = vent_radius + mod(TIME * 3.0, 24.0);
-		float band = 1.0 - smoothstep(0.0, 0.45, abs(d - ring));
-		float rim = 1.0 - smoothstep(0.0, 0.3, abs(d - vent_radius));
-		float alpha = max(band * 0.8, rim * 0.95);
+		float alpha = 0.0;
+		if (flood > 0.5) {
+			// Warning: amber edges pulse outward from the vent, showing where
+			// and how the flow will spread. No lava is down yet.
+			float d = distance(p, center.xz);
+			float ring = vent_radius + mod(TIME * 3.0, 24.0);
+			float band = 1.0 - smoothstep(0.0, 0.45, abs(d - ring));
+			float rim = 1.0 - smoothstep(0.0, 0.3, abs(d - vent_radius));
+			alpha = max(band * 0.8, rim * 0.95);
+		} else {
+			for (int i = 0; i < zone_count; i++) {
+				float d = distance(p, zones[i].xy);
+				float ring = mod(TIME * 3.0, zones[i].z);
+				float band = 1.0 - smoothstep(0.0, 0.45, abs(d - ring));
+				float rim = 1.0 - smoothstep(0.0, 0.3, abs(d - zones[i].z));
+				alpha = max(alpha, max(band * 0.8, rim * 0.95));
+			}
+		}
 		if (alpha < 0.02) {
 			discard;
 		}
 		ALBEDO = vec3(1.0, 0.72, 0.22);
 		ALPHA = alpha;
 	} else {
-		if (d > radius) {
+		// Same disc test as Volcano.flow_covers().
+		float inside = -1.0e6;
+		if (flood > 0.5) {
+			inside = radius - distance(p, center.xz);
+		} else {
+			for (int i = 0; i < zone_count; i++) {
+				inside = max(inside, min(radius, zones[i].z) - distance(p, zones[i].xy));
+			}
+		}
+		if (inside < 0.0) {
 			discard;
 		}
-		float edge = 1.0 - smoothstep(0.0, 2.5, radius - d);
+		float d = distance(p, center.xz);
+		float edge = 1.0 - smoothstep(0.0, 2.5, inside);
 		float ripple = 0.5 + 0.5 * sin(d * 1.3 - TIME * 2.0);
 		vec3 crust = vec3(0.70, 0.20, 0.05);
 		vec3 molten = vec3(1.0, 0.60, 0.12);
@@ -73,7 +121,18 @@ var exposed: Callable
 var map_half_extent := DEFAULT_MAP_HALF_EXTENT
 var flow_elapsed := 0.0
 var flow_heat := 0.0
+var stage := Stage.FLOOD
+## (x, z, r_max) per zone, server-chosen, replicated in the snapshot.
+var zones := PackedFloat32Array()
+var zone_radius := 12.0
+var footprint := LavaFootprint.new()
+## Map-prep inputs for the random crater (main.gd volcano hunk).
+var spawn_points: Array = []
+var site_supported: Callable
+var default_center := Vector3.ZERO
+var crater_sites := PackedVector2Array()
 var _extent_set := false
+var _flow_layout := -1
 var _flow: MultiMeshInstance3D
 var _flow_material: ShaderMaterial
 var _manager: MatchManager
@@ -88,11 +147,13 @@ func configure(manager: MatchManager) -> void:
 	_manager = manager
 
 
-func set_district(id: String, center: Vector3, size: Vector2) -> void:
-	cleanup()
+func set_district(id: String, center: Vector3, size: Vector2, radius := 12.0) -> void:
 	district_id = id
+	default_center = center
 	district_center = center
 	district_size = size
+	zone_radius = radius
+	cleanup()
 	heat.resize(SURFACE_COUNT)
 	heat.fill(0)
 
@@ -101,6 +162,8 @@ func set_map_extent(half_extent: float) -> void:
 	# Same contract as Flood.set_map_extent: the square floor the flow covers.
 	map_half_extent = maxf(half_extent, 1.0)
 	_extent_set = true
+	if not footprint.baked:
+		footprint.setup(map_half_extent)
 	if is_instance_valid(_flow):
 		_flow.free()
 		_flow = null
@@ -119,9 +182,53 @@ func flow_radius() -> float:
 	return SPREAD_RATE * flow_elapsed
 
 
+static func is_burning(value: float) -> bool:
+	# T47 C1: the single hot/cooled predicate (damage, colour, HUD, label).
+	return value > COOLED_AT
+
+
+func zone_count() -> int:
+	return zones.size() / 3
+
+
+func crater_half() -> Vector2:
+	# Crater shelves plus their access ramps: the shelves' own surface, never
+	# drawn or burned as floor lava.
+	return district_size / 2 + Vector2.ONE * LavaFootprint.SITE_RAMP
+
+
 func flow_arrival_time(point: Vector3) -> float:
-	# Seconds after ACTIVE starts until the front reaches this XZ point.
-	return Vector2(point.x - district_center.x, point.z - district_center.z).length() / SPREAD_RATE
+	# Seconds after ACTIVE starts until the front reaches this XZ point
+	# (INF when no zone ever covers it).
+	if stage == Stage.FLOOD:
+		return Vector2(point.x - district_center.x, point.z - district_center.z).length() / SPREAD_RATE
+	var best := INF
+	for index in zone_count():
+		var d := Vector2(point.x - zones[index * 3], point.z - zones[index * 3 + 1]).length()
+		if d <= zones[index * 3 + 2]:
+			best = minf(best, d / SPREAD_RATE)
+	return best
+
+
+func in_footprint(point: Vector3) -> bool:
+	# T47 A1: the ONE footprint, shared by damage (tick) and the visual (tile
+	# set + shader disc). Stage discs at the current time ∩ map square ∩
+	# baked lava-eligible floor, minus the crater shelves/ramps.
+	var extent := get_map_extent()
+	if phase != Phase.ACTIVE or absf(point.x) > extent or absf(point.z) > extent:
+		return false
+	var half := crater_half()
+	if absf(point.x - district_center.x) <= half.x and absf(point.z - district_center.z) <= half.y:
+		return false
+	if not footprint.is_eligible(point):
+		return false
+	var reach := flow_radius()
+	if stage == Stage.FLOOD:
+		return Vector2(point.x - district_center.x, point.z - district_center.z).length() <= reach
+	for index in zone_count():
+		if Vector2(point.x - zones[index * 3], point.z - zones[index * 3 + 1]).length() <= minf(reach, zones[index * 3 + 2]):
+			return true
+	return false
 
 
 func full_coverage_time() -> float:
@@ -134,10 +241,15 @@ func full_coverage_time() -> float:
 
 func flow_covers(point: Vector3) -> bool:
 	# The molten floor has reached this XZ point and is still hot.
-	var extent := get_map_extent()
-	if phase != Phase.ACTIVE or flow_heat <= 0 or absf(point.x) > extent or absf(point.z) > extent:
-		return false
-	return Vector2(point.x - district_center.x, point.z - district_center.z).length() <= flow_radius()
+	return is_burning(flow_heat) and in_footprint(point)
+
+
+func _flow_heat_at_start() -> float:
+	# Far points of an off-centre flood must still be hot when the front
+	# arrives (Amendment 1): full coverage + 10 s of burn at least.
+	if stage == Stage.FLOOD:
+		return maxf(HOT_LIFETIME, COOLED_AT + full_coverage_time() + 10.0)
+	return HOT_LIFETIME
 
 
 func _on_lava_floor(feet: Vector3) -> bool:
@@ -170,14 +282,58 @@ func unregister_player(peer_id: int) -> bool:
 func start_disaster(rng: RandomNumberGenerator) -> bool:
 	if not _can_mutate() or is_active() or mutated or district_id.is_empty() or not is_instance_valid(_manager) or _manager.state != MatchManager.MatchState.ACTIVE:
 		return false
+	# T47: crater site and zones are seeded from the director RNG state read
+	# BEFORE the existing variant draw. Reading `state` does not advance the
+	# director stream, so selection history is unchanged for every seed.
+	var state := rng.state
+	_choose_crater(hash([state, district_id, "t47-crater"]))
+	var elapsed := _manager.elapsed_time
+	stage = Stage.FLOOD if elapsed >= LATE_FLOOD_AT else Stage.ZONES
+	zones = PackedFloat32Array()
+	if stage == Stage.ZONES:
+		_ensure_footprint()
+		zones = footprint.pick_zones(hash([state, district_id, "t47"]), 3 if elapsed >= THIRD_ZONE_AT else 2, zone_radius,
+			Vector2(district_center.x, district_center.z), district_size)
 	variant = rng.randi_range(0, 1)
 	phase = Phase.WARNING
 	warning_remaining = warning_duration
-	active_remaining = HOT_LIFETIME
 	flow_elapsed = 0.0
-	flow_heat = HOT_LIFETIME
+	flow_heat = _flow_heat_at_start()
+	active_remaining = flow_heat
+	_flow_layout = -1
 	_show_warning()
 	return true
+
+
+func _ensure_footprint() -> void:
+	if footprint.size == 0:
+		footprint.setup(get_map_extent())
+
+
+func bake_sites() -> void:
+	# Map prep, after footprint.finish_bake(): the statically valid sites.
+	crater_sites = footprint.valid_sites(district_size, spawn_points)
+
+
+func supported_sites() -> PackedVector2Array:
+	var sites := PackedVector2Array()
+	for site in crater_sites:
+		if not site_supported.is_valid() or bool(site_supported.call(Vector3(site.x, 0, site.y), district_size.length() / 2 + 1.8)):
+			sites.append(site)
+	return sites
+
+
+func _choose_crater(seed_value: int) -> void:
+	# Random crater (Amendment 1 V2): one valid site uniformly; no valid site
+	# -> today's authored vent (never block the disaster).
+	district_center = default_center
+	var sites := supported_sites()
+	if sites.is_empty():
+		return
+	var crater_rng := RandomNumberGenerator.new()
+	crater_rng.seed = seed_value
+	var site := sites[crater_rng.randi_range(0, sites.size() - 1)]
+	district_center = Vector3(site.x, footprint.site_ground(site, district_size, default_center.y), site.y)
 
 
 func is_active() -> bool:
@@ -384,17 +540,18 @@ func surface_at(feet: Vector3, require_contact := true) -> int:
 func get_escape_context(feet: Vector3) -> String:
 	if phase == Phase.WARNING and absf(feet.x - district_center.x) <= district_size.x / 2 and absf(feet.z - district_center.z) <= district_size.y / 2:
 		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
-	if phase == Phase.WARNING and feet.y < SAFE_SUPPORT:
+	if phase == Phase.WARNING and feet.y < SAFE_SUPPORT and is_finite(flow_arrival_time(feet)):
 		return "VOLCANO — lava floods the ground in %.0fs — climb a roof, terrace or dock" % ceilf(warning_remaining)
 	var index := surface_at(feet)
-	if index >= 0 and heat[index] > 0:
-		return "HOT GROUND — %.0fs heat left — move off this support" % ceilf(heat[index])
-	if phase == Phase.ACTIVE and flow_heat > 0 and feet.y < SAFE_SUPPORT:
+	if index >= 0 and is_burning(heat[index]):
+		return "HOT GROUND — %.0fs heat left — move off this support" % ceilf(heat[index] - COOLED_AT)
+	if phase == Phase.ACTIVE and is_burning(flow_heat) and feet.y < SAFE_SUPPORT:
 		if flow_covers(feet):
-			return "LAVA FLOW — %.0fs left — climb a roof, terrace or dock" % ceilf(flow_heat)
+			return "LAVA FLOW — %.0fs left — climb a roof, terrace or dock" % ceilf(flow_heat - COOLED_AT)
 		var extent := get_map_extent()
-		if absf(feet.x) <= extent and absf(feet.z) <= extent:
-			return "LAVA SPREADING — reaches you in %.0fs — climb high" % ceilf(maxf(flow_arrival_time(feet) - flow_elapsed, 0))
+		var arrival := flow_arrival_time(feet)
+		if absf(feet.x) <= extent and absf(feet.z) <= extent and is_finite(arrival) and footprint.is_eligible(feet):
+			return "LAVA SPREADING — reaches you in %.0fs — climb high" % ceilf(maxf(arrival - flow_elapsed, 0))
 	return ""
 
 
@@ -416,7 +573,8 @@ func tick(delta: float) -> void:
 	var conditions: Dictionary = environment.call() if environment.is_valid() else {}
 	# The open floor flow cools with weather like an exposed shelf.
 	var flow_rate := 4.0 if conditions.get("snow", false) else (3.0 if conditions.get("rain", false) else 1.0)
-	var flow_time := minf(remaining, flow_heat / flow_rate)
+	# C1: burn only while hot (heat > COOLED_AT); the event still ends at 0.
+	var flow_time := minf(remaining, maxf(flow_heat - COOLED_AT, 0) / flow_rate)
 	flow_heat = maxf(flow_heat - remaining * flow_rate, 0)
 	flow_elapsed += remaining
 	var water := float(conditions.get("water", -INF))
@@ -428,7 +586,7 @@ func tick(delta: float) -> void:
 			rate = 10.0
 		elif exposed.is_valid() and bool(exposed.call(point)):
 			rate = 4.0 if conditions.get("snow", false) else (3.0 if conditions.get("rain", false) else 1.0)
-		hot_times.append(minf(remaining, heat[index] / rate))
+		hot_times.append(minf(remaining, maxf(heat[index] - COOLED_AT, 0) / rate))
 		heat[index] = maxf(heat[index] - remaining * rate, 0)
 	var events: Array[Dictionary] = []
 	for id: int in _players:
@@ -440,7 +598,7 @@ func tick(delta: float) -> void:
 		if index < 0:
 			# Floor lava only: never roofs or pads at/above SAFE_SUPPORT, and
 			# a player standing in flood water is not touching the lava.
-			if flow_time > 0 and water < feet.y and flow_covers(feet) and _on_lava_floor(feet):
+			if flow_time > 0 and water < feet.y and in_footprint(feet) and _on_lava_floor(feet):
 				events.append({"peer_id": id, "amount": DAMAGE_PER_SECOND * flow_time, "cause": "Lava flow"})
 			continue
 		if hot_times[index] <= 0:
@@ -462,47 +620,124 @@ func tick(delta: float) -> void:
 func _update_materials() -> void:
 	for index in _materials.size():
 		var bank := index % 3 != 1 and index / 3 != 1
-		_materials[index].albedo_color = (Color("ad4935") if bank else Color("e35a32")) if heat[index] > 20 else (Color("d9b77e") if heat[index] > 0 else Color("49566a"))
+		_materials[index].albedo_color = (Color("ad4935") if bank else Color("e35a32")) if is_burning(heat[index]) else (Color("d9b77e") if heat[index] > 0 else Color("49566a"))
 	if is_instance_valid(_warning):
-		(_warning.get_child(_warning.get_child_count() - 1) as Label3D).text = "VOLCANO — LAVA FLOOD IN %.0fs — CLIMB HIGH" % ceilf(warning_remaining) if phase == Phase.WARNING else ("LAVA FLOW — CLIMB HIGH — %.0fs" % ceilf(active_remaining) if is_active() else "COOLED CRATER — SAFE TO CROSS")
+		var hottest := flow_heat
+		for value in heat:
+			hottest = maxf(hottest, value)
+		(_warning.get_child(_warning.get_child_count() - 1) as Label3D).text = "VOLCANO — LAVA FLOOD IN %.0fs — CLIMB HIGH" % ceilf(warning_remaining) if phase == Phase.WARNING else ("LAVA FLOW — CLIMB HIGH — %.0fs" % ceilf(hottest - COOLED_AT) if is_active() and is_burning(hottest) else "COOLED — SAFE TO CROSS")
 	_update_flow_visual()
 
 
 func _update_flow_visual() -> void:
-	# One map-sized quad; the shader draws the molten disc (or, during the
-	# warning, the outward-pulsing preview edge). MultiMeshInstance3D keeps it
-	# out of the weather overlay registration of volcano MeshInstance3Ds.
-	var show := phase == Phase.WARNING or (phase == Phase.ACTIVE and flow_heat > 0)
+	# T47 A1: 1 m tiles laid on the baked floor (only lava-eligible cells in
+	# the event's max footprint); the shader clips them with the same discs as
+	# in_footprint(). MultiMeshInstance3D keeps it out of the weather overlay
+	# registration of volcano MeshInstance3Ds.
+	var show := phase == Phase.WARNING or (phase == Phase.ACTIVE and is_burning(flow_heat))
 	if not show:
 		if is_instance_valid(_flow):
 			_flow.visible = false
 		return
-	if not is_instance_valid(_flow):
-		var extent := get_map_extent()
-		var plane := PlaneMesh.new()
-		plane.size = Vector2(extent * 2, extent * 2)
-		var multimesh := MultiMesh.new()
-		multimesh.transform_format = MultiMesh.TRANSFORM_3D
-		multimesh.mesh = plane
-		multimesh.instance_count = 1
-		multimesh.set_instance_transform(0, Transform3D(Basis(), Vector3(0, FLOW_HEIGHT, 0)))
-		if _flow_material == null:
-			var shader := Shader.new()
-			shader.code = FLOW_SHADER
-			_flow_material = ShaderMaterial.new()
-			_flow_material.shader = shader
-		_flow = MultiMeshInstance3D.new()
-		_flow.name = "LavaFlow"
-		_flow.multimesh = multimesh
-		_flow.material_override = _flow_material
-		_flow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_flow)
+	_ensure_footprint()
+	var layout := hash([footprint.revision, stage, zones, district_center, district_size])
+	if not is_instance_valid(_flow) or layout != _flow_layout:
+		_build_flow_tiles()
+		_flow_layout = layout
 	_flow.visible = true
 	_flow_material.set_shader_parameter("center", district_center)
 	_flow_material.set_shader_parameter("vent_radius", district_size.length() / 2)
+	_flow_material.set_shader_parameter("crater_half", crater_half())
+	_flow_material.set_shader_parameter("flood", 1.0 if stage == Stage.FLOOD else 0.0)
+	_flow_material.set_shader_parameter("zone_count", zone_count())
+	for index in MAX_ZONES:
+		var zone := Vector4.ZERO
+		if index < zone_count():
+			zone = Vector4(zones[index * 3], zones[index * 3 + 1], zones[index * 3 + 2], 0)
+		_flow_material.set_shader_parameter("zone%d" % index, zone)
 	_flow_material.set_shader_parameter("preview", 1.0 if phase == Phase.WARNING else 0.0)
 	_flow_material.set_shader_parameter("radius", flow_radius())
-	_flow_material.set_shader_parameter("glow", clampf(flow_heat / 20.0, 0.0, 1.0))
+	_flow_material.set_shader_parameter("glow", clampf((flow_heat - COOLED_AT) / 20.0, 0.0, 1.0))
+
+
+## Tile buffer for the current event: every eligible cell (flood) or the
+## eligible cells inside the zone discs (zones), never the crater/ramps.
+func flow_tile_buffer() -> PackedFloat32Array:
+	_ensure_footprint()
+	var half := crater_half()
+	if not footprint.baked:
+		var buffer := PackedFloat32Array()
+		for j in footprint.size:
+			for i in footprint.size:
+				var c := footprint.cell_center(i, j)
+				if _tile_wanted(c, half):
+					buffer.append_array([1, 0, 0, c.x, 0, 1, 0, FLOW_HEIGHT, 0, 0, 1, c.y])
+		return buffer
+	if stage == Stage.FLOOD:
+		return footprint.flood_buffer
+	var buffer := PackedFloat32Array()
+	for index in zone_count():
+		var r := zones[index * 3 + 2]
+		var cx := zones[index * 3]
+		var cz := zones[index * 3 + 1]
+		for z in range(int(floor(cz - r)), int(ceil(cz + r)) + 1):
+			for x in range(int(floor(cx - r)), int(ceil(cx + r)) + 1):
+				var cell := footprint.cell_index(x + 0.5, z + 0.5)
+				if cell < 0 or is_nan(footprint.floor_y[cell]):
+					continue
+				var c := Vector2(x + 0.5, z + 0.5)
+				# A tile belongs to the first zone that reaches it (no duplicates).
+				var first_zone := -1
+				for other in zone_count():
+					if c.distance_to(Vector2(zones[other * 3], zones[other * 3 + 1])) <= zones[other * 3 + 2] + 0.71:
+						first_zone = other
+						break
+				if first_zone != index or not _tile_wanted(c, half):
+					continue
+				buffer.append_array([1, 0, 0, c.x, 0, 1, 0, footprint.floor_y[cell] + LavaFootprint.TILE_LIFT, 0, 0, 1, c.y])
+	return buffer
+
+
+func _tile_wanted(c: Vector2, half: Vector2) -> bool:
+	# Tiles touching the crater rectangle are kept; the shader discards the
+	# covered part per fragment, so the edge matches in_footprint exactly.
+	if absf(c.x - district_center.x) <= half.x - 0.5 and absf(c.y - district_center.z) <= half.y - 0.5:
+		return false
+	if stage == Stage.FLOOD:
+		return true
+	for index in zone_count():
+		if c.distance_to(Vector2(zones[index * 3], zones[index * 3 + 1])) <= zones[index * 3 + 2] + 0.71:
+			return true
+	return false
+
+
+func _build_flow_tiles() -> void:
+	if is_instance_valid(_flow):
+		_flow.free()
+	var buffer := flow_tile_buffer()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(LavaFootprint.CELL, LavaFootprint.CELL)
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = plane
+	multimesh.instance_count = buffer.size() / 12
+	if buffer.size() > 0:
+		multimesh.buffer = buffer
+	if _flow_material == null:
+		var shader := Shader.new()
+		shader.code = FLOW_SHADER
+		_flow_material = ShaderMaterial.new()
+		_flow_material.shader = shader
+	_flow = MultiMeshInstance3D.new()
+	_flow.name = "LavaFlow"
+	_flow.multimesh = multimesh
+	_flow.material_override = _flow_material
+	_flow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_flow)
+
+
+func flow_tile_count() -> int:
+	return _flow.multimesh.instance_count if is_instance_valid(_flow) and _flow.visible else 0
 
 
 func _show_warning() -> void:
@@ -537,6 +772,10 @@ func cleanup() -> void:
 	variant = 0
 	flow_elapsed = 0.0
 	flow_heat = 0.0
+	stage = Stage.FLOOD
+	zones = PackedFloat32Array()
+	district_center = default_center
+	_flow_layout = -1
 	if is_instance_valid(_flow):
 		_flow.free()
 	_flow = null
@@ -556,7 +795,7 @@ func cleanup() -> void:
 func create_presentation_snapshot() -> Dictionary:
 	return {"phase": phase, "warning": warning_remaining, "active": active_remaining,
 		"district": district_id, "variant": variant, "mutated": mutated, "heat": heat.duplicate(),
-		"flow": flow_elapsed, "flow_heat": flow_heat}
+		"flow": flow_elapsed, "flow_heat": flow_heat, "stage": stage, "zones": zones.duplicate(), "vent": district_center}
 
 
 func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
@@ -575,12 +814,37 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 			return false
 	var flow := float(snapshot.get("flow", 0.0))
 	var flow_hot := float(snapshot.get("flow_heat", 0.0))
-	if not is_finite(flow) or flow < 0 or not is_finite(flow_hot) or flow_hot < 0 or flow_hot > HOT_LIFETIME:
+	if not is_finite(flow) or flow < 0 or not is_finite(flow_hot) or flow_hot < 0 or flow_hot > MAX_FLOW_HEAT:
+		return false
+	var new_stage := int(snapshot.get("stage", Stage.FLOOD))
+	if new_stage != Stage.ZONES and new_stage != Stage.FLOOD:
+		return false
+	if not snapshot.get("zones", PackedFloat32Array()) is PackedFloat32Array:
+		return false
+	var new_zones: PackedFloat32Array = snapshot.get("zones", PackedFloat32Array())
+	if new_zones.size() % 3 != 0 or new_zones.size() / 3 > MAX_ZONES:
+		return false
+	var extent := get_map_extent()
+	for index in new_zones.size() / 3:
+		var x := new_zones[index * 3]
+		var z := new_zones[index * 3 + 1]
+		var r := new_zones[index * 3 + 2]
+		if not is_finite(x) or not is_finite(z) or not is_finite(r) or absf(x) > extent or absf(z) > extent \
+				or r < ZONE_RADIUS_MIN or r > ZONE_RADIUS_MAX:
+			return false
+	if not snapshot.get("vent", default_center) is Vector3:
+		return false
+	var vent: Vector3 = snapshot.get("vent", default_center)
+	if not vent.is_finite() or absf(vent.x) > extent - district_size.x / 2 - 2 or absf(vent.z) > extent - district_size.y / 2 - 2 \
+			or vent.y < -0.1 or vent.y > 0.3:
 		return false
 	var changed := bool(snapshot.get("mutated", false))
 	var new_variant := clampi(int(snapshot.get("variant", 0)), 0, 1)
-	if mutated != changed or variant != new_variant:
+	if mutated != changed or variant != new_variant or vent != district_center or new_stage != stage or new_zones != zones:
 		cleanup()
+	district_center = vent
+	stage = new_stage as Stage
+	zones = new_zones.duplicate()
 	phase = clampi(int(snapshot.get("phase", 0)), 0, 2)
 	warning_remaining = maxf(float(snapshot.get("warning", 0)), 0)
 	active_remaining = maxf(float(snapshot.get("active", 0)), 0)
@@ -598,6 +862,8 @@ func apply_presentation_snapshot(snapshot: Dictionary) -> bool:
 
 
 func _physics_process(delta: float) -> void:
+	if footprint.rebake_step(get_world_3d().direct_space_state, 4):
+		_flow_layout = -1
 	tick(delta)
 	_update_materials()
 

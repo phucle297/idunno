@@ -69,6 +69,11 @@ func _run() -> void:
 					camera.look_at(center + Vector3.UP)
 					if state != "before":
 						assert(main.volcano.start_disaster(rng))
+						# T47: the crater site is random per seed; frame the chosen site.
+						center = main.volcano.district_center
+						player.reset_for_match(center + Vector3(0, 0.04, 0))
+						camera.position = center + (Vector3(13, 12, 17) if map_id == "toy_town" else Vector3(12, 12, -16))
+						camera.look_at(center + Vector3.UP)
 						if state != "volcano-warning":
 							main.volcano.tick(12)
 							# Advance thermal presentation without leaving the fixture
