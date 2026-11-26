@@ -21,10 +21,12 @@ A4 sheet framing (spot+(0,1.1,-2.3) look_at spot+(0,0.8,0), fov 65, yaw 0) and t
 
 All ≥20% (pass). Crops: sheet (440,130)-(840,550); gameplay (500,280)-(780,640).
 
-## Perf
-See `perf/PERF_SUMMARY.md` (filled after the heavy session) and `heavy.log`.
-Gate: A5 AA-off (`override.cfg`) vs B `ae933edd`, 4P moving ≥6 interleaved pairs (mean avg/p95 ≤ B+10%, prims ≤ B+5%) and interior overall p95 ≤ B+10%.
-Info: AA-on vs AA-off on the A5 tree, ceiling +50%. Prims should match. llvmpipe cost is not a real-GPU figure.
+## Perf (llvmpipe/xvfb, heavy lock; see `perf/PERF_SUMMARY.md`, `heavy.log`, `perf/*.log`)
+- 4P moving gate, A5 AA-off (uncommitted override.cfg msaa_3d=0) vs B ae933edd, 6 interleaved pairs: avg -0.8%, p95 -3.1%, prims +1.3% -> PASS (gates +10/+10/+5).
+- Info, AA-on vs AA-off on the A5 tree, 6 interleaved pairs: avg +50.8% (0.8 pp over the +50% sanity ceiling, informational), p95 +49.3%, prims -0.2%.
+- Interior trace gate, A5 AA-off vs B: only 3 complete interleaved pairs (plan asks >=6): p95 +16.0% / +2.4% / +7.4%, mean +8.4% (gate <=+10%) -> PASS on 3 pairs, NOT confirmed at 6 pairs
+  (each trace took ~8-16 min and the 90-min cap was hit; run 4 aborted and discarded). Pair 1 alone breaches +10%, so the margin is thin. Interior AA-on vs AA-off info traces not run.
+- Real-GPU cost is unmeasured (software rasteriser). A graphics-quality toggle is a follow-up if the Owner sees low-end GPU drops.
 
 ## Whitelist
-Only `project.godot` (that one key) and `evidence/T44-a5/**` differ from `817824b`. `frozen_proof.txt` after the final commit.
+Only `project.godot` (that one key) and `evidence/T44-a5/**` differ from `817824b`; see `frozen_proof.txt`. No override.cfg is tracked or left on disk.

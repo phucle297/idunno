@@ -1,0 +1,171 @@
+{
+  "adapter": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "overall": {
+    "avg": 149.59,
+    "frames": 2700,
+    "max": 6617.03,
+    "max_frame": 1571,
+    "p95": 277.96
+  },
+  "renderer": "gl_compatibility",
+  "size": [
+    1280,
+    720
+  ],
+  "stops": {
+    "town_roof": {
+      "avg": 226.52,
+      "frames": 180,
+      "max": 6592.24,
+      "max_frame": 89,
+      "p95": 226.27
+    },
+    "toy_harbor_Warehouse": {
+      "avg": 48.64,
+      "frames": 120,
+      "max": 83.05,
+      "max_frame": 75,
+      "p95": 63.27
+    },
+    "toy_town_Apartments": {
+      "avg": 187.73,
+      "frames": 120,
+      "max": 264.14,
+      "max_frame": 111,
+      "p95": 210.14
+    },
+    "toy_town_Bakery": {
+      "avg": 88.4,
+      "frames": 120,
+      "max": 106.19,
+      "max_frame": 59,
+      "p95": 96.36
+    },
+    "toy_town_Cafe": {
+      "avg": 158.37,
+      "frames": 120,
+      "max": 201.85,
+      "max_frame": 77,
+      "p95": 173.82
+    },
+    "toy_town_Clinic": {
+      "avg": 129.3,
+      "frames": 120,
+      "max": 153.87,
+      "max_frame": 30,
+      "p95": 144.39
+    },
+    "toy_town_CommunityRoom": {
+      "avg": 45.78,
+      "frames": 120,
+      "max": 63.19,
+      "max_frame": 18,
+      "p95": 54.57
+    },
+    "toy_town_GardenCafe": {
+      "avg": 290.65,
+      "frames": 120,
+      "max": 382.92,
+      "max_frame": 75,
+      "p95": 321.97
+    },
+    "toy_town_GardenPavilion": {
+      "avg": 260.06,
+      "frames": 120,
+      "max": 308.48,
+      "max_frame": 60,
+      "p95": 295.7
+    },
+    "toy_town_Hall": {
+      "avg": 136.36,
+      "frames": 120,
+      "max": 163.21,
+      "max_frame": 63,
+      "p95": 155.54
+    },
+    "toy_town_Homes": {
+      "avg": 118.19,
+      "frames": 120,
+      "max": 145.75,
+      "max_frame": 3,
+      "p95": 133.43
+    },
+    "toy_town_House": {
+      "avg": 244.98,
+      "frames": 120,
+      "max": 296.99,
+      "max_frame": 22,
+      "p95": 274.18
+    },
+    "toy_town_Library": {
+      "avg": 93.93,
+      "frames": 120,
+      "max": 106.17,
+      "max_frame": 10,
+      "p95": 100.17
+    },
+    "toy_town_Market": {
+      "avg": 285.22,
+      "frames": 120,
+      "max": 6617.03,
+      "max_frame": 11,
+      "p95": 326.64
+    },
+    "toy_town_MarketStore": {
+      "avg": 264.42,
+      "frames": 120,
+      "max": 336.62,
+      "max_frame": 70,
+      "p95": 297.07
+    },
+    "toy_town_NorthEast": {
+      "avg": 53.53,
+      "frames": 120,
+      "max": 409.06,
+      "max_frame": 100,
+      "p95": 68.59
+    },
+    "toy_town_NorthWest": {
+      "avg": 43.94,
+      "frames": 120,
+      "max": 63.09,
+      "max_frame": 0,
+      "p95": 56.81
+    },
+    "toy_town_ParkingGarage": {
+      "avg": 198.35,
+      "frames": 120,
+      "max": 299.8,
+      "max_frame": 17,
+      "p95": 224.14
+    },
+    "toy_town_PostOffice": {
+      "avg": 42.25,
+      "frames": 120,
+      "max": 51.07,
+      "max_frame": 33,
+      "p95": 49.27
+    },
+    "toy_town_Shop": {
+      "avg": 133.8,
+      "frames": 120,
+      "max": 158.42,
+      "max_frame": 79,
+      "p95": 148.53
+    },
+    "toy_town_TownHall": {
+      "avg": 45.73,
+      "frames": 120,
+      "max": 56.59,
+      "max_frame": 10,
+      "p95": 52.14
+    },
+    "toy_town_Workshop": {
+      "avg": 156.3,
+      "frames": 120,
+      "max": 183.4,
+      "max_frame": 51,
+      "p95": 172.89
+    }
+  }
+}
