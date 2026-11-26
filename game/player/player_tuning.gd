@@ -9,6 +9,7 @@ const WET_WALK_BRAKING := 0.9
 const DEEP_SNOW_TRACTION := 0.48
 const DEEP_SNOW_WALK_TRACTION := 0.72
 const DEEP_SNOW_SPEED := 0.72
+const DEEP_SNOW_JUMP_HEIGHT_MULTIPLIER := 0.72 # T49: jump height factor on deep snow (0.972 m vs 1.35 m dry).
 const ICE_BRAKING := 0.3
 const PUDDLE_SPEED := 0.82
 const AIR_ACCELERATION := 8.0

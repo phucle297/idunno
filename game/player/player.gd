@@ -206,6 +206,11 @@ func apply_movement_input(
 
 	if _jump_buffer_remaining > 0.0 and _coyote_remaining > 0.0:
 		var height_multiplier := Tuning.POWERUP_JUMP_HEIGHT_MULTIPLIER if int(movement_buff.x) == MatchPowerups.Kind.JUMP else 1.0
+		# T49: deep snow lowers the jump. Sampled here (not only when grounded) so a
+		# coyote jump within contact tolerance of the snow is lowered too. Stacks
+		# with the jump power-up; dry ground, light snow, and ice are unchanged.
+		if is_instance_valid(weather_surfaces) and bool(weather_surfaces.movement_surface(global_position).deep_snow):
+			height_multiplier *= Tuning.DEEP_SNOW_JUMP_HEIGHT_MULTIPLIER
 		velocity.y = sqrt(2.0 * Tuning.GRAVITY * Tuning.JUMP_HEIGHT * height_multiplier)
 		_jump_buffer_remaining = 0.0
 		_coyote_remaining = 0.0
