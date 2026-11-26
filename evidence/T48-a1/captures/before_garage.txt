@@ -1,0 +1,1 @@
+before end pos=(-15.0, 0.000242, 22.56907) on_floor=true (sign front z=21.01, deck edge z=21.0)

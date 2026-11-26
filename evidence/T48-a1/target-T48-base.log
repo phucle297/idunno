@@ -1,0 +1,325 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+MAP_DETAIL_COLLIDERS map=toy_town bodies=1453
+MAP_DETAIL_COLLIDERS map=toy_harbor bodies=55
+ERROR: T48 GarageSignboard has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-17.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-15.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-12.5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=false, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=true, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 GarageSignboard has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-17.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-15.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-12.5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=false, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=true, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 GarageSignboard has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-17.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-15.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-12.5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=false, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=true, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 GarageSignboard has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-17.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-15.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-12.5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=false, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=true, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 GarageSignboard has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-17.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-15.0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter the garage sign at x=-12.5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=false, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 walking into the garage sign stops on the deck (powered=true, z=22.57)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack0 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack2 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Workbench has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Workbench
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackA has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse CrateStackA
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack1 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackB has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack0 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack2 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Workbench has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Workbench
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackA has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse CrateStackA
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack1 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackB has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack0 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack2 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Workbench has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Workbench
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackA has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse CrateStackA
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack1 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackB has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack0 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack2 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Workbench has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Workbench
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackA has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse CrateStackA
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack1 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackB has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack0 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack2 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Rack2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Workbench has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse Workbench
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackA has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 capsule cannot enter warehouse CrateStackA
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 Rack1 has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)
+ERROR: T48 CrateStackB has a collider
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_map_detail_collision.gd:49)

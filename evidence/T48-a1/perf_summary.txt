@@ -1,0 +1,8 @@
+pairs: B=6 A=6
+avg_ms: B=219.0733 A=230.2467 delta=+5.10% abs=+11.1733
+p95_ms: B=238.1083 A=255.3550 delta=+7.24% abs=+17.2467
+primitives: B=754487.0000 A=754487.0000 delta=+0.00% abs=+0.0000
+phys_ms: B=0.3983 A=0.4002 delta=+0.48% abs=+0.0019
+nodes: B=12280.0000 A=12282.0000 delta=+0.02% abs=+2.0000
+active3d: B=0.0000 A=0.0000 delta=+0.00% abs=+0.0000
+draw_calls: B=2368.0000 A=2368.0000 delta=+0.00% abs=+0.0000

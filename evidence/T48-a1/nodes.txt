@@ -1,0 +1,4 @@
+NODES label=T48-base map=toy_town sandbox_nodes=9558 solid_detail=1453 active3d=4
+NODES label=T48-base map=toy_harbor sandbox_nodes=647 solid_detail=55 active3d=4
+NODES label=T48 map=toy_town sandbox_nodes=9560 solid_detail=1454 active3d=4
+NODES label=T48 map=toy_harbor sandbox_nodes=659 solid_detail=61 active3d=4

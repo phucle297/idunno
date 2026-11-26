@@ -1,0 +1,13 @@
+PERF_4P label=B1 avg_ms=210.21 p95_ms=225.35 max_ms=237.85 draw_calls=2368 primitives=754487 phys_ms=0.3655 nodes=12280 active3d=0
+PERF_4P label=A1 avg_ms=216.42 p95_ms=233.06 max_ms=243.05 draw_calls=2368 primitives=754487 phys_ms=0.3932 nodes=12282 active3d=0
+PERF_4P label=B2 avg_ms=219.17 p95_ms=238.59 max_ms=242.58 draw_calls=2368 primitives=754487 phys_ms=0.3978 nodes=12280 active3d=0
+PERF_4P label=A2 avg_ms=227.41 p95_ms=253.78 max_ms=270.47 draw_calls=2368 primitives=754487 phys_ms=0.4364 nodes=12282 active3d=0
+PERF_4P label=B3 avg_ms=213.05 p95_ms=226.15 max_ms=243.05 draw_calls=2368 primitives=754487 phys_ms=0.3854 nodes=12280 active3d=0
+PERF_4P label=A3 avg_ms=232.27 p95_ms=258.56 max_ms=284.16 draw_calls=2368 primitives=754487 phys_ms=0.4036 nodes=12282 active3d=0
+PERF_4P label=B4 avg_ms=221.52 p95_ms=240.79 max_ms=250.11 draw_calls=2368 primitives=754487 phys_ms=0.4076 nodes=12280 active3d=0
+PERF_4P label=A4 avg_ms=232.62 p95_ms=254.33 max_ms=293.33 draw_calls=2368 primitives=754487 phys_ms=0.3826 nodes=12282 active3d=0
+PERF_4P label=B5 avg_ms=223.65 p95_ms=250.42 max_ms=273.50 draw_calls=2368 primitives=754487 phys_ms=0.4331 nodes=12280 active3d=0
+PERF_4P label=A5 avg_ms=234.30 p95_ms=262.09 max_ms=272.43 draw_calls=2368 primitives=754487 phys_ms=0.3893 nodes=12282 active3d=0
+PERF_4P label=B6 avg_ms=226.84 p95_ms=247.35 max_ms=275.52 draw_calls=2368 primitives=754487 phys_ms=0.4004 nodes=12280 active3d=0
+PERF_4P label=A6 avg_ms=238.46 p95_ms=270.31 max_ms=306.46 draw_calls=2368 primitives=754487 phys_ms=0.3962 nodes=12282 active3d=0
+PERF_DONE
