@@ -1,0 +1,11 @@
+view side visible_px full_px fraction (Mitten unshaded magenta; 'full' = body/arm/head hidden), idle, outfit 0, camera 1.7 m fov 50, 1280x720
+CFG [-1.0, (0.0, 0.0, 0.0)]
+outfit=0 front visible=55 full=4890 fraction=0.01
+outfit=0 3q visible=149 full=4669 fraction=0.03
+outfit=0 rear visible=13 full=3842 fraction=0.00
+outfit=1 front visible=54 full=4894 fraction=0.01
+outfit=1 3q visible=145 full=4846 fraction=0.03
+outfit=1 rear visible=14 full=3835 fraction=0.00
+outfit=2 front visible=55 full=4891 fraction=0.01
+outfit=2 3q visible=146 full=4797 fraction=0.03
+outfit=2 rear visible=14 full=3834 fraction=0.00

@@ -1,0 +1,12 @@
+outfit=00 bear | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=01 cat | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=02 bunny | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=03 bear | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=04 cat | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=05 bunny | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=06 bear | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=07 cat | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=08 bunny | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=09 bear | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=10 cat | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2
+outfit=11 bunny | l paw=#618d95 boot=#2a6f86 maxdiff=55 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2 | r paw=#698084 boot=#2a6f86 maxdiff=63 albedo_paw=#f4dcc2 albedo_boot=#f4dcc2

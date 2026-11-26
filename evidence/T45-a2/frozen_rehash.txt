@@ -1,0 +1,28 @@
+# T45 A2 frozen re-hash vs f432e8a679880ff8ea2cc39abbfc2d596f8f07f8 (A1 head); HEAD=4a5a5cac39a493e94fb923acdf3c4d3aaf3c333a (+ evidence commit)
+## git diff --name-only f432e8a679880ff8ea2cc39abbfc2d596f8f07f8..HEAD excluding evidence/T45-a2/**:
+assets/generated/CHR_Base_v001.tscn
+tests/test_critter_asset.gd
+tools/asset_generation/generate_assets.gd
+## toy_character_visual.gd blob: base=ccf18113a4844d5883b73a5bf7863f547098f5a4 head=ccf18113a4844d5883b73a5bf7863f547098f5a4
+## toy_sabotage_visuals.gd blob: base=e55c528d722dcd464186051007d9619c06698fd3 head=e55c528d722dcd464186051007d9619c06698fd3
+## project.godot / critter_parts.gd / Mitten.res / player_tuning.gd identical:
+SAME project.godot
+SAME tools/asset_generation/critter_parts.gd
+SAME assets/models/critter/parts/Mitten.res
+SAME game/player/player_tuning.gd
+SAME game/player/player.gd
+SAME tests/test_character_animation.gd
+all other tracked files checked=990 mismatches=0
+## CHR_Base_v001.tscn diff (+/- lines only):
+--- a/assets/generated/CHR_Base_v001.tscn
++++ b/assets/generated/CHR_Base_v001.tscn
+-transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
++transform = Transform3D(0.26, 0, 0, 0, 0.26, 0, 0, 0, 0.26, 0.02, 0.05, 0.05)
+-transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
++transform = Transform3D(0.26, 0, 0, 0, 0.26, 0, 0, 0, 0.26, -0.02, 0.05, 0.05)
+## generate_assets.gd diff:
+--- a/tools/asset_generation/generate_assets.gd
++++ b/tools/asset_generation/generate_assets.gd
+-		_part(paw, root, "Mitten", "Mitten", Vector3.ZERO, Vector3(0.20, 0.20, 0.20), mat.Cream)
++		# T45 A2: 1.3x mitten pushed out of the KayKit hand (bone-local; x mirrored per side) so the cream paw shows.
++		_part(paw, root, "Mitten", "Mitten", Vector3(0.02 if side == "l" else -0.02, 0.05, 0.05), Vector3(0.26, 0.26, 0.26), mat.Cream)

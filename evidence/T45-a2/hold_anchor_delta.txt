@@ -1,0 +1,1 @@
+max HandAnchor delta vs golden_hold.json (77b7ae29) over 12 held idle/walk/run samples: 0.000000 m
