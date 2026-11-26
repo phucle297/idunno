@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+MAP_DETAIL_COLLIDERS map=toy_town bodies=1454
+MAP_DETAIL_COLLIDERS map=toy_harbor bodies=61
+MAP_DETAIL_COLLISION_OK checks=199
