@@ -32,7 +32,9 @@ Renderer: Godot 4.7.2 Compatibility, llvmpipe + xvfb, 1280x720. Scripts: `script
 
 - Frozen re-hash: `frozen_rehash.txt`. vs a42ff032 only the two whitelist files plus this evidence dir. Frozen list (`toy_character_visual.gd`, `home_screen.gd`, `home_town_stage.gd`, `project.godot`, `MAT_Critter_Cream_v002.tres`, `MAT_Critter_Face_v002.tres`) identical to both a42ff032 and f395fe84.
 - Suites (headless, this worktree): `test_critter_asset` CRITTER_ASSET_OK checks=226; `test_character_animation` CHARACTER_ANIMATION_OK checks=292; `test_phase1` PHASE1_TESTS_OK checks=1273. Logs in `suites/`.
-- 4P moving bench and interior-trace pairs: **not in this commit**; SWE runs them under the heavy lock after the PR opens and will append `perf/`.
+- 4P moving bench (6 interleaved pairs, B=a42ff032, llvmpipe): mean avg **-2.36%**, p95 **-5.14%**, prims **+0.000%** → PASS (gate +10/+10/+5). Table: `perf/PERF_SUMMARY.md`. override.cfg ABSENT on every run (`perf/proof_4P_*/`).
+- CI: run 45858881005 **success** on head ebc5a415 (lint, python, Godot fast suites, export smoke pass; full regression manual skipped; flaky non-blocking pass). https://github.com/phucle297/idunno/actions/runs/45858881005
+- Interior trace (3 pairs): **running** as of 23:41 ICT (UTC+7), TRACE B run1 started; not finished, not a pass.
 
 ## Limits
 

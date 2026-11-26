@@ -14,7 +14,8 @@ mkdir -p "$P"
 log(){ echo "$(TZ=Asia/Saigon date '+%F %T') ICT $*" | tee -a $P/heavy.log; }
 X(){ timeout "$1" xvfb-run -a -s "-screen 0 1920x1080x24" $G --path "$2" --script "$3" -- "${@:4}"; }
 proof(){ # $1=tree $2=label
-  local t=$1 L=$2 d=$P/proof_$L
+  local t=$1 lab=$2 d
+  d=$P/proof_$lab
   mkdir -p "$d"
   date -u +%FT%TZ > "$d/time_utc.txt"
   TZ=Asia/Saigon date '+%F %T ICT' > "$d/time_ict.txt"
