@@ -33,6 +33,7 @@ func _run() -> void:
 	_check_part_determinism()
 	_check_runtime_mirror()
 	_check_leg_ik(character)
+	_check_paw_visible(character)
 	character.free()
 	if failures.is_empty():
 		print("CRITTER_ASSET_OK checks=%d" % checks)
@@ -198,6 +199,20 @@ func _check_rig_adapter(character: ToyCharacterVisual) -> void:
 	_expect(worst_hand <= 0.03, "HandAnchor must stay within 0.03 m of handslot.r for every clip (got %.4f)" % worst_hand)
 	_expect(worst_angle <= 1.0, "Mapped KayKit bones must track their pivots within 1 degree (got %.3f)" % worst_angle)
 	print("CRITTER_RIG hand=%.4f angle=%.3f" % [worst_hand, worst_angle])
+
+
+## T45 A2: the cream mitten must stand proud of the KayKit hand (about 1.3x, pushed out).
+func _check_paw_visible(character: ToyCharacterVisual) -> void:
+	var rig := character.get_node("Model/Rig/Skeleton3D") as Skeleton3D
+	var cream := load("res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres") as StandardMaterial3D
+	for side in ["l", "r"]:
+		var mitten := rig.get_node("Paw_" + side + "/Mitten") as MeshInstance3D
+		_expect(mitten.scale.x >= 0.20 * 1.2 and mitten.scale.x <= 0.20 * 1.4, "T45 A2: %s mitten scale must be 1.2x-1.4x of 0.20 (got %.3f)" % [side, mitten.scale.x])
+		_expect(mitten.position.length() >= 0.02, "T45 A2: %s mitten must be offset out of the hand (got %s)" % [side, mitten.position])
+		_expect((mitten.material_override as StandardMaterial3D).albedo_color == cream.albedo_color, "T45 A2: %s mitten stays the shared cream" % side)
+	var left := (rig.get_node("Paw_l/Mitten") as MeshInstance3D).position
+	var right := (rig.get_node("Paw_r/Mitten") as MeshInstance3D).position
+	_expect(is_equal_approx(left.x, -right.x) and is_equal_approx(left.y, right.y) and is_equal_approx(left.z, right.z), "T45 A2: mitten offsets are mirrored per side")
 
 
 func _check_runtime_mirror() -> void:

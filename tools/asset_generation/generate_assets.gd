@@ -142,7 +142,8 @@ func _generate_character(_materials: Dictionary) -> void:
 	_part(face, root, "MouthDot", "Bead", _spike_to_bone(Vector3(0, 1.52, -0.705), head_origin), Vector3(0.05, 0.035, 0.03), mat.Bead)
 	for side in ["l", "r"]:
 		var paw := _bone_attachment(skeleton, root, "Paw_" + side, "hand." + side)
-		_part(paw, root, "Mitten", "Mitten", Vector3.ZERO, Vector3(0.20, 0.20, 0.20), mat.Cream)
+		# T45 A2: 1.3x mitten pushed out of the KayKit hand (bone-local; x mirrored per side) so the cream paw shows.
+		_part(paw, root, "Mitten", "Mitten", Vector3(0.02 if side == "l" else -0.02, 0.05, 0.05), Vector3(0.26, 0.26, 0.26), mat.Cream)
 		var foot := _bone_attachment(skeleton, root, "Foot_" + side, "foot." + side)
 		_part(foot, root, "Bootie", "Bead", Vector3(0, -0.07, -0.07), Vector3(0.24, 0.16, 0.34), mat.Cream)
 
