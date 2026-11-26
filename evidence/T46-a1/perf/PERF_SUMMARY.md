@@ -12,4 +12,31 @@ override.cfg: ABSENT on every run (proof in proof_4P_*/override.cfg.status). pro
 
 Mean of per-pair deltas: avg -2.36%, p95 -5.14%, prims +0.000% (gate avg/p95 <= +10%, prims <= +5%): **PASS**
 
-Interior trace: 3 pairs started after 4P (B run1 in flight at 16:41:30 UTC / 23:41:30 ICT UTC+7). Not finished; do not treat as passing.
+## Interior trace (render_indoor_lighting --mode=trace, 3 interleaved pairs)
+
+Order: pair 1 B,A / pair 2 A,B / pair 3 B,A. B=`a42ff032`, A=`61c09bc` (evidence follow-up; same gameplay code as `ebc5a415`). llvmpipe/xvfb. Gate: mean overall p95 <= B+10% (near-miss <= +12%).
+
+**Time stamps:** `heavy.log` and `lock.txt` labels that say "ICT" are actually UTC (box clock is UTC). ICT = UTC+7 is used below.
+
+Lock acquired 16:27:34 UTC = 23:27:34 ICT (UTC+7) 26 Nov; released 22:58:58 UTC = 05:58:58 ICT (UTC+7) 27 Nov.
+
+override.cfg: ABSENT on every trace (`perf/proof_trace_{A,B}{1,2,3}/override.cfg.status`; copies also in `perf/trace-*-run*/override_proof/`). project.godot msaa_3d=1.
+
+Numbers verified from the per-run `INDOOR_TRACE overall={...}` lines in `perf/trace_{A,B}_run{1,2,3}.log` (not only heavy.log).
+
+| pair | order | B p95 | A p95 | d | B avg | A avg | notes |
+|--|--|--|--|--|--|--|--|
+| 1 | B,A | 358.77 | 368.53 | +2.72% | 392.42 | 723.64 | first try both; A1 avg outlier |
+| 2 | A,B | 363.52 | 361.98 | -0.42% | 508.27 | 370.50 | B2: 1 retry (see below) |
+| 3 | B,A | 356.03 | 350.19 | -1.64% | 346.63 | 327.29 | A3: 1 retry (see below) |
+
+Mean overall **p95**: B 359.44 ms, A 360.23 ms = **+0.22%** → **PASS** (gate <= +10%).
+Mean overall **avg** (informational, not the gate): B 415.77 ms, A 473.81 ms = **+13.96%** (~+14%), driven by A1 outlier avg 723.64 (A1 p95 was still 368.53).
+
+### Retries
+The heavy script overwrites the per-run log on retry (`>`), so the failed first tries are recorded in `perf/heavy.log` (and `perf/nohup.out`), not in the final `trace_*_run*.log`.
+
+- **B2 first try:** 18:55:07–19:14:06 UTC (01:55–02:14 ICT 27 Nov, UTC+7) — no `INDOOR_TRACE`. Retry 19:14:06–20:15:28 UTC (02:14–03:15 ICT): p95 363.52, avg 508.27. Confirmed in `trace_B_run2.log`.
+- **A3 first try:** 21:04:55–21:58:14 UTC (04:04–04:58 ICT) — no `INDOOR_TRACE`. Retry 21:58:14–22:58:58 UTC (04:58–05:58 ICT): p95 350.19, avg 327.29. Confirmed in `trace_A_run3.log`.
+
+B1, A1, A2, B3 produced `INDOOR_TRACE` on the first try. Proof dirs: `perf/proof_trace_B1`, `proof_trace_A1`, `proof_trace_A2`, `proof_trace_B2`, `proof_trace_B3`, `proof_trace_A3`.
