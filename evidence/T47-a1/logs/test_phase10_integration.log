@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+FALL_HEIGHT height=2.5 damage=0.00
+FALL_HEIGHT height=3.5 damage=0.00
+FALL_HEIGHT height=6.0 damage=33.86
+FALL_HEIGHT height=10.0 damage=71.56
+DISASTER_REPLAY seed=1010 history=["Volcano"] fuse_salt=2428447324268725508
+FALL_HEIGHT height=16.0 damage=100.00
+PHASE10_INTEGRATION_OK checks=58 maps=2 cover_cooling_snapshot_crossing_audio_fall=passed

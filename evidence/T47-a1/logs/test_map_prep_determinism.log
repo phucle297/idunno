@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+MAP_PREP_YIELDS prep=1 map=toy_town checkpoints=25410 yields=158 per_slice=160
+MAP_PREP_YIELDS prep=2 map=toy_harbor checkpoints=1097 yields=5 per_slice=160
+MAP_PREP_YIELDS prep=3 map=toy_town checkpoints=25485 yields=158 per_slice=160
+MAP_PREP_YIELDS prep=4 map=toy_harbor checkpoints=1097 yields=5 per_slice=160
+MAP_PREP_YIELDS prep=5 map=toy_town checkpoints=25485 yields=158 per_slice=160
+MAP_PREP_DETERMINISM_OK checks=9

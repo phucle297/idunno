@@ -1,0 +1,84 @@
+rooftop_camp baseline {"toy_town|rooftop_idle": 10, "toy_town|rooftop_tiny_step": 10, "toy_harbor|rooftop_idle": 10, "toy_harbor|rooftop_tiny_step": 10} | T6 {"toy_town|rooftop_idle": 10, "toy_town|rooftop_tiny_step": 10, "toy_harbor|rooftop_idle": 10, "toy_harbor|rooftop_tiny_step": 10} | pass True
+active_route baseline {"toy_town": 6, "toy_harbor": 10} | T6 {"toy_town": 6, "toy_harbor": 10} | pass True
+dead_time T6 {"pass": true, "drop_pct": {"toy_town|rooftop_idle": 39.2, "toy_town|rooftop_tiny_step": 32.8, "toy_town|ground_idle": 42.8, "toy_town|active_route": 35.4, "toy_harbor|rooftop_idle": 45.8, "toy_harbor|rooftop_tiny_step": 46.9, "toy_harbor|ground_idle": 40.2, "toy_harbor|active_route": 45.9}}
+     toy_harbor active_route      101  base=alive                                         t6=alive
+     toy_harbor active_route      102  base=alive                                         t6=alive
+     toy_harbor active_route      103  base=alive                                         t6=alive
+     toy_harbor active_route      104  base=alive                                         t6=alive
+     toy_harbor active_route      105  base=alive                                         t6=alive
+     toy_harbor active_route      106  base=alive                                         t6=alive
+     toy_harbor active_route      107  base=alive                                         t6=alive
+     toy_harbor active_route      108  base=alive                                         t6=alive
+     toy_harbor active_route      109  base=alive                                         t6=alive
+     toy_harbor active_route      110  base=alive                                         t6=alive
+     toy_harbor ground_idle       101  base=dead 73.2s Flood/Flood                        t6=dead 75.5s Flood/Flood
+     toy_harbor ground_idle       102  base=dead 71.3s Flood/Flood                        t6=dead 75.4s Flood/Flood
+     toy_harbor ground_idle       103  base=dead 74.4s Flood/Flood                        t6=dead 78.5s Flood/Flood
+     toy_harbor ground_idle       104  base=dead 43.0s Flood/Flood                        t6=dead 47.1s Flood/Flood
+     toy_harbor ground_idle       105  base=dead 48.5s Flood/Flood                        t6=dead 52.7s Flood/Flood
+     toy_harbor ground_idle       106  base=dead 135.8s Flood/Flood                       t6=dead 135.9s Flood/Flood
+     toy_harbor ground_idle       107  base=dead 37.9s Flood/Flood                        t6=dead 42.0s Flood/Flood
+     toy_harbor ground_idle       108  base=dead 126.2s Flood/Flood                       t6=dead 126.4s Flood/Flood
+     toy_harbor ground_idle       109  base=dead 124.2s Flood/Flood                       t6=dead 124.4s Flood/Flood
+     toy_harbor ground_idle       110  base=dead 37.9s Flood/Flood                        t6=dead 42.0s Flood/Flood
+     toy_harbor rooftop_idle      101  base=dead 52.2s Meteor/Meteor Shower               t6=dead 52.2s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      102  base=dead 99.4s Meteor/Meteor Shower               t6=dead 99.4s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      103  base=dead 172.8s Bee Swarm/Bee Swarm               t6=dead 172.9s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      104  base=dead 66.0s Meteor/Meteor Shower               t6=dead 66.0s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      105  base=dead 116.5s Meteor/Meteor Shower              t6=dead 116.5s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      106  base=dead 124.8s Bee Swarm/Bee Swarm               t6=dead 124.8s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      107  base=dead 133.7s Rockslide/Rockslide               t6=dead 133.8s Rockslide/Rockslide  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      108  base=dead 254.5s Tornado/Tornado                   t6=dead 254.5s Tornado/Tornado  camp_broken base=True t6=True
+CHG  toy_harbor rooftop_idle      109  base=dead 253.4s Bee Swarm/Bee Swarm               t6=dead 178.1s Tornado/Tornado  camp_broken base=True t6=True
+     toy_harbor rooftop_idle      110  base=dead 102.5s Meteor/Meteor Shower              t6=dead 102.5s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 101  base=dead 52.2s Meteor/Meteor Shower               t6=dead 52.2s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 102  base=dead 102.5s Meteor/Meteor Shower              t6=dead 102.5s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 103  base=dead 221.1s Tornado/Tornado                   t6=dead 221.1s Tornado/Tornado  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 104  base=dead 66.0s Meteor/Meteor Shower               t6=dead 66.0s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 105  base=dead 15.7s Meteor/Meteor Shower               t6=dead 15.7s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 106  base=dead 52.2s Meteor/Meteor Shower               t6=dead 52.2s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 107  base=dead 133.8s Rockslide/Rockslide               t6=dead 133.8s Rockslide/Rockslide  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 108  base=dead 254.3s Tornado/Tornado                   t6=dead 254.4s Tornado/Tornado  camp_broken base=True t6=True
+CHG  toy_harbor rooftop_tiny_step 109  base=dead 203.6s Earthquake/Earthquake             t6=dead 178.3s Tornado/Tornado  camp_broken base=True t6=True
+     toy_harbor rooftop_tiny_step 110  base=dead 105.7s Meteor/Meteor Shower              t6=dead 105.7s Meteor/Meteor Shower  camp_broken base=True t6=True
+FLIP toy_town active_route      101  base=dead 447.8s Flood/Flood                       t6=alive
+     toy_town active_route      102  base=alive                                         t6=alive
+     toy_town active_route      103  base=dead 401.9s Flood/Flood                       t6=dead 406.1s Flood/Flood
+     toy_town active_route      104  base=alive                                         t6=alive
+     toy_town active_route      105  base=alive                                         t6=alive
+FLIP toy_town active_route      106  base=alive                                         t6=dead 449.3s Flood/Flood
+     toy_town active_route      107  base=dead 413.8s Flood/Flood                       t6=dead 417.6s Flood/Flood
+     toy_town active_route      108  base=alive                                         t6=alive
+     toy_town active_route      109  base=alive                                         t6=alive
+     toy_town active_route      110  base=dead 144.3s Flood/Flood                       t6=dead 148.5s Flood/Flood
+     toy_town ground_idle       101  base=dead 71.9s Flood/Flood                        t6=dead 73.4s Flood/Flood
+     toy_town ground_idle       102  base=dead 71.7s Flood/Flood                        t6=dead 75.8s Flood/Flood
+     toy_town ground_idle       103  base=dead 74.5s Flood/Flood                        t6=dead 78.7s Flood/Flood
+     toy_town ground_idle       104  base=dead 43.6s Flood/Flood                        t6=dead 47.8s Flood/Flood
+     toy_town ground_idle       105  base=dead 43.9s Flood/Flood                        t6=dead 48.0s Flood/Flood
+     toy_town ground_idle       106  base=dead 136.4s Flood/Flood                       t6=dead 136.6s Flood/Flood
+     toy_town ground_idle       107  base=dead 38.3s Flood/Flood                        t6=dead 42.4s Flood/Flood
+     toy_town ground_idle       108  base=dead 126.8s Flood/Flood                       t6=dead 127.0s Flood/Flood
+     toy_town ground_idle       109  base=dead 124.8s Flood/Flood                       t6=dead 125.0s Flood/Flood
+     toy_town ground_idle       110  base=dead 38.3s Flood/Flood                        t6=dead 42.5s Flood/Flood
+     toy_town rooftop_idle      101  base=dead 124.8s Bee Swarm/Bee Swarm               t6=dead 124.8s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_idle      102  base=dead 125.8s Bee Swarm/Bee Swarm               t6=dead 125.8s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_idle      103  base=dead 175.6s Bee Swarm/Bee Swarm               t6=dead 175.6s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_idle      104  base=dead 90.4s Bee Swarm/Bee Swarm                t6=dead 90.4s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_idle      105  base=dead 112.9s Meteor/Meteor Shower              t6=dead 112.9s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_town rooftop_idle      106  base=dead 72.3s Bee Swarm/Bee Swarm                t6=dead 72.3s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_idle      107  base=dead 133.7s Rockslide/Rockslide               t6=dead 133.8s Rockslide/Rockslide  camp_broken base=True t6=True
+     toy_town rooftop_idle      108  base=dead 158.7s Earthquake/Earthquake             t6=dead 158.7s Earthquake/Earthquake  camp_broken base=True t6=True
+     toy_town rooftop_idle      109  base=dead 181.2s Tornado/Tornado                   t6=dead 181.2s Tornado/Tornado  camp_broken base=True t6=True
+     toy_town rooftop_idle      110  base=dead 150.8s Fell into collapsed ground/Terrain Collapse t6=dead 150.8s Fell into collapsed ground/Terrain Collapse  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 101  base=dead 117.8s Bee Swarm/Bee Swarm               t6=dead 117.8s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 102  base=dead 149.7s Rockslide/Rockslide               t6=dead 149.7s Rockslide/Rockslide  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 103  base=dead 175.6s Bee Swarm/Bee Swarm               t6=dead 175.6s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 104  base=dead 81.3s Bee Swarm/Bee Swarm                t6=dead 81.4s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 105  base=dead 112.9s Meteor/Meteor Shower              t6=dead 112.9s Meteor/Meteor Shower  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 106  base=dead 65.3s Bee Swarm/Bee Swarm                t6=dead 65.3s Bee Swarm/Bee Swarm  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 107  base=dead 132.4s Rockslide/Rockslide               t6=dead 132.4s Rockslide/Rockslide  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 108  base=dead 158.7s Earthquake/Earthquake             t6=dead 158.7s Earthquake/Earthquake  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 109  base=dead 181.3s Tornado/Tornado                   t6=dead 181.3s Tornado/Tornado  camp_broken base=True t6=True
+     toy_town rooftop_tiny_step 110  base=dead 150.8s Fell into collapsed ground/Terrain Collapse t6=dead 150.8s Fell into collapsed ground/Terrain Collapse  camp_broken base=True t6=True
+survival/camp flips: 2

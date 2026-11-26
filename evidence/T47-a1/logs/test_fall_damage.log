@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FALL_CURVE h=2.90 damage=0.00 expected=0.0
+FALL_CURVE h=3.00 damage=0.00 expected=0.0
+FALL_CURVE h=3.40 damage=0.00 expected=0.0
+FALL_CURVE h=3.93 damage=0.00 expected=0.0
+FALL_CURVE h=3.99 damage=0.00 expected=0.0
+FALL_CURVE h=4.00 damage=0.00 expected=0.0
+FALL_CURVE h=4.40 damage=18.29 expected=18.3
+FALL_CURVE h=4.70 damage=32.00 expected=32.0
+FALL_CURVE h=4.86 damage=32.23 expected=32.2
+FALL_CURVE h=5.00 damage=32.43 expected=32.4
+FALL_CURVE h=5.66 damage=33.37 expected=33.4
+FALL_CURVE h=6.29 damage=34.27 expected=34.3
+FALL_CURVE h=7.36 damage=35.80 expected=35.8
+FALL_CURVE h=7.86 damage=41.12 expected=41.0
+FALL_CURVE h=9.21 damage=60.32 expected=60.2
+FALL_CURVE h=10.00 damage=71.56 expected=71.6
+FALL_CURVE h=11.90 damage=98.58 expected=98.6
+FALL_CURVE h=12.00 damage=100.00 expected=100.0
+FALL_CURVE h=15.00 damage=100.00 expected=100.0
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+FALL_DROP nominal=2.90 measured=2.899 damage=0.00 hp_left=100.00 cause=
+FALL_DROP nominal=3.00 measured=2.999 damage=0.00 hp_left=100.00 cause=
+FALL_DROP nominal=3.40 measured=3.400 damage=0.00 hp_left=100.00 cause=
+FALL_DROP nominal=3.90 measured=3.899 damage=0.00 hp_left=100.00 cause=
+FALL_DROP nominal=4.86 measured=4.859 damage=32.23 hp_left=67.77 cause=
+FALL_DROP nominal=5.00 measured=4.999 damage=32.43 hp_left=67.57 cause=
+FALL_DROP nominal=5.66 measured=5.659 damage=33.37 hp_left=66.63 cause=
+FALL_DROP nominal=6.29 measured=6.290 damage=34.27 hp_left=65.73 cause=
+FALL_DROP nominal=7.36 measured=7.360 damage=35.80 hp_left=64.20 cause=
+FALL_DROP nominal=9.21 measured=9.209 damage=60.31 hp_left=39.69 cause=
+FALL_DROP nominal=11.90 measured=11.899 damage=98.57 hp_left=1.43 cause=
+FALL_DROP nominal=12.05 measured=12.048 damage=100.00 hp_left=0.00 cause=Fall
+FALL_DROP nominal=15.00 measured=14.999 damage=100.00 hp_left=0.00 cause=Fall
+FALL_CREDIT credit=Tornado event={ "peer_id": 1, "amount": 35.8000000136239, "cause": "Tornado", "via": "Fall" }
+FALL_CREDIT credit=UFO event={ "peer_id": 1, "amount": 35.8000000136239, "cause": "UFO", "via": "Fall" }
+FALL_CREDIT credit= event={ "peer_id": 1, "amount": 35.8000000136239, "cause": "Fall" }
+FALL_CREDIT_DROP credit=UFO h=7.36 damage=35.80
+FALL_CREDIT_DROP credit=Tornado h=15 damage=100.00 cause=Tornado
+FALL_DAMAGE_OK checks=2161

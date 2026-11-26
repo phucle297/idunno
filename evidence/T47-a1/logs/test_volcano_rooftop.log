@@ -1,0 +1,68 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+VOLCANO_ROOFTOP toy_town vent=(0.0, 0.12, 0.0) extent=72 full=33.94s
+VOLCANO_ROOFTOP pad toy_town/ShopRoof@500 support=4.86 lost=0.0 event_s=97.5
+VOLCANO_ROOFTOP coverage toy_town vent=(32.0, 0.026667, 58.0) ground_samples=350 covered_at_55.5s=350 still_uncovered_at_half=149
+VOLCANO_ROOFTOP pad toy_town/HallRoof@500 support=4.86 lost=0.0 event_s=99.4
+VOLCANO_ROOFTOP pad toy_town/GarageDeck@500 support=2.58 lost=0.0 event_s=94.2
+VOLCANO_ROOFTOP pad toy_town/PocketPark@500 support=2.20 lost=0.0 event_s=80.3
+VOLCANO_ROOFTOP pad toy_town/WestRoofWalk@500 support=5.41 lost=0.0 event_s=94.0
+VOLCANO_ROOFTOP pad toy_town/EastRoofWalk@500 support=5.91 lost=0.0 event_s=96.8
+VOLCANO_ROOFTOP pad toy_town/PostOfficeRoof@500 support=4.93 lost=0.0 event_s=97.7
+VOLCANO_ROOFTOP pad toy_town/GardenPavilionRoof@500 support=4.93 lost=0.0 event_s=92.9
+VOLCANO_ROOFTOP pad toy_town/CommunityRoomRoof@500 support=4.93 lost=0.0 event_s=87.3
+VOLCANO_ROOFTOP pad toy_town/MarketStoreRoof@500 support=4.93 lost=0.0 event_s=94.5
+VOLCANO_ROOFTOP pad toy_town/TownHallIndoor@500 support=2.02 lost=0.0 event_s=92.8
+VOLCANO_ROOFTOP pad toy_town/WestTerrace@500 support=1.25 lost=0.0 event_s=97.3
+VOLCANO_ROOFTOP pad toy_town/EastTerrace@500 support=1.75 lost=0.0 event_s=97.9
+VOLCANO_ROOFTOP pad toy_town/CivicTerrace@500 support=2.00 lost=0.0 event_s=95.1
+VOLCANO_ROOFTOP pad toy_town/ShopRoof@150 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/HallRoof@150 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/GarageDeck@150 support=2.58 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/PocketPark@150 support=2.20 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/WestRoofWalk@150 support=5.41 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/EastRoofWalk@150 support=5.91 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/PostOfficeRoof@150 support=4.93 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/GardenPavilionRoof@150 support=4.93 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/CommunityRoomRoof@150 support=4.93 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/MarketStoreRoof@150 support=4.93 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/TownHallIndoor@150 support=2.02 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/WestTerrace@150 support=1.25 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/EastTerrace@150 support=1.75 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_town/CivicTerrace@150 support=2.00 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_origin start=(0.0, 0.05, 7.0) t_safe=5.35s walked=30.0m min_margin=26.40s hops=0 lost=0.0 end_support=2.20
+VOLCANO_ROOFTOP runner toy_town/runner/indoor_Shop start=(-16.0, 0.05, -13.0) t_safe=3.65s walked=26.0m min_margin=33.23s hops=0 lost=0.0 end_support=2.58
+VOLCANO_ROOFTOP runner toy_town/runner/indoor_GardenCafe start=(-18.0, 0.05, 44.0) t_safe=6.15s walked=30.9m min_margin=28.00s hops=0 lost=0.0 end_support=1.25
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_plaza_west start=(-2.0, 0.05, 7.0) t_safe=5.52s walked=31.6m min_margin=27.50s hops=0 lost=0.0 end_support=2.58
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_plaza_east start=(2.0, 0.05, 7.0) t_safe=5.00s walked=27.4m min_margin=14.14s hops=0 lost=0.0 end_support=2.20
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_WestGarden start=(-42.0, 0.05, 39.0) t_safe=3.27s walked=33.6m min_margin=45.95s hops=0 lost=0.0 end_support=5.41
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_EastGarden start=(42.0, 0.05, 39.0) t_safe=2.92s walked=33.6m min_margin=32.00s hops=0 lost=0.0 end_support=5.91
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_PostOfficeCourt start=(-48.0, 0.08, -39.0) t_safe=1.22s walked=18.8m min_margin=16.86s hops=0 lost=0.0 end_support=4.93
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_GardenPavilionCourt start=(-48.0, 0.08, 39.0) t_safe=1.22s walked=18.8m min_margin=54.38s hops=0 lost=0.0 end_support=4.93
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_CommunityRoomCourt start=(48.0, 0.08, -39.0) t_safe=1.22s walked=18.8m min_margin=50.87s hops=0 lost=0.0 end_support=4.93
+VOLCANO_ROOFTOP runner toy_town/runner/spawn_group_MarketStoreCourt start=(48.0, 0.08, 39.0) t_safe=1.22s walked=18.8m min_margin=35.32s hops=0 lost=0.0 end_support=4.93
+VOLCANO_ROOFTOP idle toy_town/idle/spawn_origin feet=(0.0, 0.120598, 7.0) support=0.12 front_at=37.15s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_town/idle/indoor_Shop feet=(-16.0, 0.019727, -13.0) support=0.02 front_at=32.67s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_town/idle/indoor_Hall feet=(16.0, 0.019727, -13.0) support=0.02 front_at=37.96s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_town/idle/indoor_GardenCafe feet=(-18.0, 0.020313, 44.0) support=0.02 front_at=47.39s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_town/idle/street_far_south feet=(0.0, 0.080273, 60.0) support=0.08 front_at=22.00s warning_hp=100.0 hp_at_front=100.0 lost=12.2 in_vent=false
+VOLCANO_ROOFTOP idle toy_town/idle/outer_walk_corner feet=(-66.0, 0.080469, -66.0) support=0.08 front_at=60.05s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP toy_harbor vent=(0.0, 0.05, 22.0) extent=32 full=20.92s
+VOLCANO_ROOFTOP pad toy_harbor/WarehouseRoof@500 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP coverage toy_harbor vent=(18.0, 0.0, -24.0) ground_samples=156 covered_at_25.0s=156 still_uncovered_at_half=88
+VOLCANO_ROOFTOP pad toy_harbor/CraneDeck@500 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/DockWest@500 support=3.75 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/DockEast@500 support=3.75 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/WarehouseRoof@150 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/CraneDeck@150 support=4.86 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/DockWest@150 support=3.75 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP pad toy_harbor/DockEast@150 support=3.75 lost=0.0 event_s=72.0
+VOLCANO_ROOFTOP runner toy_harbor/runner/spawn_origin start=(0.0, 0.05, 22.0) t_safe=3.63s walked=22.8m min_margin=20.33s hops=0 lost=0.0 end_support=4.86
+VOLCANO_ROOFTOP runner toy_harbor/runner/indoor_Warehouse start=(0.0, 0.05, -18.0) t_safe=4.60s walked=26.4m min_margin=17.87s hops=0 lost=0.0 end_support=4.86
+VOLCANO_ROOFTOP runner toy_harbor/runner/spawn_group_boardwalk_west start=(-4.0, 0.05, 22.0) t_safe=3.85s walked=22.0m min_margin=15.57s hops=0 lost=0.0 end_support=3.75
+VOLCANO_ROOFTOP runner toy_harbor/runner/spawn_group_boardwalk_east start=(4.0, 0.05, 22.0) t_safe=3.75s walked=22.4m min_margin=20.20s hops=0 lost=0.0 end_support=4.86
+VOLCANO_ROOFTOP idle toy_harbor/idle/spawn_origin feet=(0.0, 0.050391, 22.0) support=0.05 front_at=22.93s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_harbor/idle/indoor_Warehouse feet=(0.0, 0.000098, -18.0) support=-0.00 front_at=20.03s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP idle toy_harbor/idle/yard_far_corner feet=(28.0, -0.0, -28.0) support=-0.00 front_at=29.29s warning_hp=100.0 hp_at_front=100.0 lost=12.1 in_vent=false
+VOLCANO_ROOFTOP_OK checks=664 events=60 maps=2 warning=12.0 dps=6.0 spread=3.0 safe_support=1.2

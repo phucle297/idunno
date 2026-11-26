@@ -1,0 +1,6 @@
+B toy_town a-flood flow_elapsed=28.0 vent=(0.0, 0.12, 0.0) heat=32.0
+shot B-toy_town-a-flood-street
+shot B-toy_town-a-flood-top
+B toy_harbor a-flood flow_elapsed=14.0 vent=(0.0, 0.05, 22.0) heat=46.0
+shot B-toy_harbor-a-flood-street
+shot B-toy_harbor-a-flood-top

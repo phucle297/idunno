@@ -1,0 +1,50 @@
+A toy_town a-flood flow_elapsed=28.0 vent=(32.0, 0.026667, 58.0) heat=57.5
+shot A-toy_town-a-flood-street
+shot A-toy_town-a-flood-top
+A toy_town zones seed=3000 elapsed=150 vent=(32.0, 0.026667, 58.0) zones=[58.5, -58.5, 12.0, -0.5, -38.5, 12.0] tiles=1000
+shot A-toy_town-zones-seed3000-at150-top
+shot A-toy_town-zones-seed3000-gameplay
+shot A-toy_town-crater-seed3000
+A toy_town zones seed=3001 elapsed=150 vent=(62.0, 0.026667, -36.0) zones=[-12.5, -34.5, 12.0, 9.5, 31.5, 12.0] tiles=1001
+shot A-toy_town-zones-seed3001-at150-top
+A toy_town zones seed=3002 elapsed=150 vent=(-12.0, 0.04, 60.0) zones=[-36.5, -57.5, 12.0, -6.5, 32.5, 12.0] tiles=1010
+shot A-toy_town-zones-seed3002-at150-top
+A toy_town zones seed=3000 elapsed=350 vent=(32.0, 0.026667, 58.0) zones=[58.5, -58.5, 12.0, -0.5, -38.5, 12.0, -56.5, 12.5, 12.0] tiles=1361
+shot A-toy_town-zones-seed3000-at350-top
+shot A-toy_town-flood-1-warning
+shot A-toy_town-flood-2-10s
+shot A-toy_town-flood-3-34s
+A toy_town flood cooled flow_heat=19.95 burning=false tiles=0
+shot A-toy_town-flood-4-cooled
+A toy_town cooled-trace heat=21.00 burning=true hp_during_step=100.00->100.00 tiles=1000 escape='LAVA FLOW — 1s left — climb a roof, terrace or dock'
+shot A-toy_town-f-cooled-heat21-flow
+A toy_town cooled-trace heat=20.00 burning=true hp_during_step=100.00->94.00 tiles=1000 escape='LAVA FLOW — 1s left — climb a roof, terrace or dock'
+shot A-toy_town-f-cooled-heat20-flow
+A toy_town cooled-trace heat=19.00 burning=false hp_during_step=94.00->94.00 tiles=0 escape=''
+shot A-toy_town-f-cooled-heat19-flow
+shot A-toy_town-f-cooled-heat19-crater
+A toy_harbor a-flood flow_elapsed=14.0 vent=(-20.0, 0.0, -6.0) heat=46.0
+shot A-toy_harbor-a-flood-street
+shot A-toy_harbor-a-flood-top
+A toy_harbor zones seed=3000 elapsed=150 vent=(-20.0, 0.0, -6.0) zones=[-22.5, 19.5, 8.0, -11.5, -22.5, 8.0] tiles=475
+shot A-toy_harbor-zones-seed3000-at150-top
+shot A-toy_harbor-zones-seed3000-gameplay
+shot A-toy_harbor-crater-seed3000
+A toy_harbor zones seed=3001 elapsed=150 vent=(-18.0, 0.00625, -2.0) zones=[-15.5, 15.5, 8.0, 8.5, -10.5, 8.0] tiles=475
+shot A-toy_harbor-zones-seed3001-at150-top
+A toy_harbor zones seed=3002 elapsed=150 vent=(18.0, 0.0, -24.0) zones=[12.5, 13.5, 8.0, -10.5, 10.5, 8.0] tiles=480
+shot A-toy_harbor-zones-seed3002-at150-top
+A toy_harbor zones seed=3000 elapsed=350 vent=(-20.0, 0.0, -6.0) zones=[-22.5, 19.5, 8.0, -11.5, -22.5, 8.0, 23.5, 1.5, 8.0] tiles=707
+shot A-toy_harbor-zones-seed3000-at350-top
+shot A-toy_harbor-flood-1-warning
+shot A-toy_harbor-flood-2-10s
+shot A-toy_harbor-flood-3-34s
+A toy_harbor flood cooled flow_heat=19.95 burning=false tiles=0
+shot A-toy_harbor-flood-4-cooled
+A toy_harbor cooled-trace heat=21.00 burning=true hp_during_step=100.00->100.00 tiles=475 escape='LAVA FLOW — 1s left — climb a roof, terrace or dock'
+shot A-toy_harbor-f-cooled-heat21-flow
+A toy_harbor cooled-trace heat=20.00 burning=true hp_during_step=100.00->94.00 tiles=475 escape='LAVA FLOW — 1s left — climb a roof, terrace or dock'
+shot A-toy_harbor-f-cooled-heat20-flow
+A toy_harbor cooled-trace heat=19.00 burning=false hp_during_step=94.00->94.00 tiles=0 escape=''
+shot A-toy_harbor-f-cooled-heat19-flow
+shot A-toy_harbor-f-cooled-heat19-crater
