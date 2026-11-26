@@ -1,0 +1,6 @@
+rep0 w1=0.00958 ms/call objects_delta=0 weight=1.00 | w0=0.00475 ms/call objects_delta=0 weight=0.00
+rep1 w1=0.01027 ms/call objects_delta=0 weight=1.00 | w0=0.00501 ms/call objects_delta=0 weight=0.00
+rep2 w1=0.01009 ms/call objects_delta=0 weight=1.00 | w0=0.00474 ms/call objects_delta=0 weight=0.00
+rep3 w1=0.00948 ms/call objects_delta=0 weight=1.00 | w0=0.00483 ms/call objects_delta=0 weight=0.00
+rep4 w1=0.00958 ms/call objects_delta=0 weight=1.00 | w0=0.00465 ms/call objects_delta=0 weight=0.00
+MICRO_SYNC_RIG median_w1=0.00958 median_w0=0.00475 extra_ms_per_call=0.00483 gate<=0.05 object_count_delta_max=0 gate=0 calls=10000

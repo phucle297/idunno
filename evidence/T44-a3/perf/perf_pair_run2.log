@@ -1,0 +1,7 @@
+PERF_4P label=A_T44a3_run4 avg_ms=133.93 p95_ms=141.47 max_ms=151.32 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run4 avg_ms=139.95 p95_ms=156.66 max_ms=166.43 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a3_run5 avg_ms=143.31 p95_ms=159.17 max_ms=183.46 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run5 avg_ms=133.74 p95_ms=143.80 max_ms=164.22 draw_calls=2425 primitives=746862
+PERF_4P label=A_T44a3_run6 avg_ms=152.48 p95_ms=174.53 max_ms=193.67 draw_calls=2399 primitives=756166
+PERF_4P label=B_ae933edd_run6 avg_ms=140.89 p95_ms=150.16 max_ms=165.18 draw_calls=2425 primitives=746862
+HEAVY_A3_2_DONE

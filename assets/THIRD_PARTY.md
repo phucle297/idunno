@@ -1,6 +1,10 @@
 # Third-Party Asset Sources
 
-No third-party asset files have been imported yet.
+## Imported
+
+| Asset | Source (pinned) | License | Files in repo | Notes |
+| --- | --- | --- | --- | --- |
+| KayKit Character Pack: Adventures 1.0 — Rogue_Hooded (Kay Lousberg) | https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 @ 672074b73ba276876a19e8816ecdc5241817ab47 | CC0 1.0 (`assets/characters/kaykit_adventurers/LICENSE.txt`, verbatim) | `assets/characters/kaykit_adventurers/` (Rogue_Hooded.glb, rogue_texture.png, LICENSE.txt, SOURCE.md) | T44 critter hoodie base mesh + 41-bone rig; cape/weapons and the 76 upstream clips are not imported. SHA-256 in SOURCE.md. |
 
 Candidate sources verified from their official product pages on 2026-10-05:
 

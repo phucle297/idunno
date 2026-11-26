@@ -1,0 +1,7 @@
+tag,crop,aaoff,aaon,drop_pct
+town_sheet,440x130x840x550,6453,3873,40.0
+town_game,500x280x780x640,4316,1347,68.8
+interior_sheet,440x130x840x550,5073,2291,54.8
+interior_game,500x280x780x640,1921,1304,32.1
+ALL_CROPS_SUM,sum,17763,8815,50.4
+SHEET_CROPS_SUM,sum,11526,6164,46.5

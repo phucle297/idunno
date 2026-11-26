@@ -1,0 +1,1 @@
+run speed=6.5 cycle=0.277s step_half=0.100 duty=0.111 stance_s=0.0308 max_slide_l=0.00060 max_slide_r=0.00043 world_step_m=[1.80000007152557, 1.79999995231628]

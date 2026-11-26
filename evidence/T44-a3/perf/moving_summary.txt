@@ -1,0 +1,10 @@
+n_pairs=6,6
+MOVING_MEAN avg A=134.59 B=130.38 (+3.2%) gate<=+10
+MOVING_MEAN p95 A=145.75 B=140.18 (+4.0%) gate<=+10
+MOVING_MEAN prims A=756666 B=744945 (+1.6%) gate<=+5
+pair1 avg -0.26ms (-0.2%) p95 +0.3%
+pair2 avg +1.02ms (+0.8%) p95 -0.3%
+pair3 avg +2.42ms (+1.9%) p95 +0.6%
+pair4 avg +10.19ms (+8.0%) p95 +10.7%
+pair5 avg +6.44ms (+4.9%) p95 +10.2%
+pair6 avg +5.43ms (+4.3%) p95 +2.9%

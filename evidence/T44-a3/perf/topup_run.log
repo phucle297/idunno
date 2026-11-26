@@ -1,0 +1,28 @@
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run1 avg_ms=133.21 p95_ms=146.45 max_ms=170.14 draw_calls=2404 primitives=745222
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=74
+PERF_4P label=A_T44a3_moving_run1 avg_ms=132.95 p95_ms=146.96 max_ms=152.17 draw_calls=2379 primitives=754627
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=67
+PERF_4P label=A_T44a3_moving_run2 avg_ms=135.14 p95_ms=143.34 max_ms=159.95 draw_calls=2384 primitives=756367
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run2 avg_ms=134.12 p95_ms=143.83 max_ms=171.69 draw_calls=2402 primitives=744454
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run3 avg_ms=130.79 p95_ms=140.34 max_ms=161.99 draw_calls=2404 primitives=745222
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=94
+PERF_4P label=A_T44a3_moving_run3 avg_ms=133.21 p95_ms=141.22 max_ms=157.00 draw_calls=2389 primitives=757154
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=98
+PERF_4P label=A_T44a3_moving_run4 avg_ms=136.85 p95_ms=148.08 max_ms=181.12 draw_calls=2392 primitives=758127
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run4 avg_ms=126.66 p95_ms=133.81 max_ms=138.74 draw_calls=2404 primitives=745222
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run5 avg_ms=130.65 p95_ms=140.56 max_ms=168.50 draw_calls=2402 primitives=744774
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=90
+PERF_4P label=A_T44a3_moving_run5 avg_ms=137.09 p95_ms=154.93 max_ms=178.08 draw_calls=2392 primitives=758127
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=88
+PERF_4P label=A_T44a3_moving_run6 avg_ms=132.28 p95_ms=139.99 max_ms=149.56 draw_calls=2383 primitives=755594
+MOVING players=4 walk_clip=walk run_clip=run planted_toggles=0
+PERF_4P label=B_ae933edd_moving_run6 avg_ms=126.85 p95_ms=136.11 max_ms=154.23 draw_calls=2402 primitives=744774
+MOVING_PAIRS_DONE
+B INDOOR_TRACE overall={ "frames": 2700, "max_frame": 2150, "avg": 144.88, "p95": 271.33, "max": 18801.85 } town_roof={ "frames": 180, "max_frame": 44, "avg": 172.62, "p95": 192.97, "max": 276.52 }
+A INDOOR_TRACE overall={ "frames": 2700, "max_frame": 241, "avg": 175.58, "p95": 276.53, "max": 69874.57 } town_roof={ "frames": 180, "max_frame": 158, "avg": 171.22, "p95": 191.52, "max": 312.2 }
+TOPUP_DONE

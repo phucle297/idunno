@@ -1,0 +1,29 @@
+# T44 A5 whitelist proof: 817824b..HEAD
+non-evidence tracked files at 817824b: 666
+blob-hash identical to 817824b: 665
+changed outside evidence/ (must be only project.godot): ['project.godot']
+added outside evidence/: []
+removed: []
+existing evidence/ files modified (A4/A3 evidence must be untouched): []
+whitelist ok: True
+frozen spot checks (0 = identical): 
+  game/ui/home_screen.gd: 0 diff lines
+  game/player/toy_character_visual.gd: 0 diff lines
+  assets/generated/CHR_Base_v001.tscn: 0 diff lines
+  tools/asset_generation/generate_assets.gd: 0 diff lines
+  assets/models/critter/materials/MAT_Critter_Face_v002.tres: 0 diff lines
+
+## project.godot diff
+diff --git a/project.godot b/project.godot
+index 3ba84fd..753d98b 100644
+--- a/project.godot
++++ b/project.godot
+@@ -121,3 +121,4 @@ room_service_url="https://server.permees.com"
+ 
+ renderer/rendering_method="gl_compatibility"
+ renderer/rendering_method.mobile="gl_compatibility"
++anti_aliasing/quality/msaa_3d=1
+
+## diff --stat outside evidence/
+ project.godot | 1 +
+ 1 file changed, 1 insertion(+)

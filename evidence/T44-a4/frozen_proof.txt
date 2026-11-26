@@ -1,0 +1,13 @@
+# diff stat fa6b038..HEAD (after commit), whitelist proof
+non-evidence tracked files at fa6b038: 665
+blob-hash identical to fa6b038: 662
+changed (must be whitelist): ['assets/generated/CHR_Base_v001.tscn', 'game/player/toy_character_visual.gd', 'tools/asset_generation/generate_assets.gd']
+added: ['assets/models/critter/materials/MAT_Critter_Face_v002.tres']
+removed: []
+whitelist ok: True
+
+ assets/generated/CHR_Base_v001.tscn                | 44 +++++++++-------------
+ .../critter/materials/MAT_Critter_Face_v002.tres   |  5 +++
+ game/player/toy_character_visual.gd                |  5 +++
+ tools/asset_generation/generate_assets.gd          | 17 +++++----
+ 4 files changed, 36 insertions(+), 35 deletions(-)

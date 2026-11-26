@@ -167,19 +167,59 @@ func _test_gait_continuity() -> void:
 				var before := animation.current_animation_position / animation.current_animation_length
 				player.character.play_clip(clip)
 				_expect(is_equal_approx(animation.current_animation_position / animation.current_animation_length, before), "Rapid Shift reversals preserve gait phase for every outfit")
+		# AC12 A3 amendment (hop-step): while the player moves speed*dt per sample,
+		# each visible foot plants exactly once per cycle for >= 0.025 s, stays
+		# world-fixed (<= 0.004 m horizontal drift) and on the ground (<= 0.005 m).
+		var critter := player.character as ToyCharacterVisual
+		player.position = Vector3.ZERO
+		critter.play_clip("idle")
+		critter.sync_rig(1.0)
+		var ground := {"l": critter.get_visible_foot_global("l").y, "r": critter.get_visible_foot_global("r").y}
 		for clip in ["walk", "run"]:
 			var speed := Tuning.WALK_SPEED if clip == "walk" else Tuning.SPRINT_SPEED
-			player.character.play_clip(clip)
-			player.character.set_locomotion_speed(speed)
-			animation.advance(1.0)
+			critter.play_clip(clip)
+			critter.set_locomotion_speed(speed)
+			animation.seek(0.0, true)
+			critter.sync_rig(1.0)
 			animation.pause()
+			var length := animation.current_animation_length
+			var cycle_seconds := length / animation.speed_scale
+			var dt := DELTA / 8.0
+			var steps := int(ceil(cycle_seconds / dt))
+			var forward := player.visual.global_transform.basis * Vector3.FORWARD
 			player.position = Vector3.ZERO
-			animation.seek(animation.current_animation_length * 0.15, true)
-			var shoe := player.character.get_node("LeftLeg/LeftShoe") as MeshInstance3D
-			var planted := shoe.global_position
-			player.position = player.visual.basis * Vector3.FORWARD * speed * DELTA
-			animation.seek(animation.current_animation_position + DELTA * animation.speed_scale, true)
-			_expect(shoe.global_position.distance_to(planted) < 0.002, "Planted shoes do not skate at ordinary walk/run speeds for any outfit")
+			var stances := {"l": 0, "r": 0}
+			var shortest := {"l": INF, "r": INF}
+			var worst_drift := 0.0
+			var worst_height := 0.0
+			var planted_at := {}
+			var planted_for := {"l": 0, "r": 0}
+			for step in steps + 1:
+				var t := step * dt
+				player.position = forward * speed * t
+				animation.seek(fposmod(t * animation.speed_scale, length), true)
+				critter.sync_rig()
+				for side in ["l", "r"]:
+					var foot := critter.get_visible_foot_global(side)
+					if critter.is_foot_planted(side):
+						if planted_for[side] == 0:
+							planted_at[side] = foot
+							stances[side] += 1
+						planted_for[side] += 1
+						var start: Vector3 = planted_at[side]
+						var drift := Vector2(foot.x - start.x, foot.z - start.z).length()
+						worst_drift = maxf(worst_drift, drift)
+						worst_height = maxf(worst_height, absf(foot.y - ground[side]))
+					elif planted_for[side] > 0:
+						shortest[side] = minf(shortest[side], planted_for[side] * dt)
+						planted_for[side] = 0
+			for side in ["l", "r"]:
+				_expect(stances[side] == 1, "AC12 A3 amendment: each foot plants exactly once per %s cycle for every outfit (got %d)" % [clip, stances[side]])
+				_expect(shortest[side] >= 0.025 - dt, "AC12 A3 amendment: each %s stance lasts >= 0.025 s for every outfit (got %.4f)" % [clip, shortest[side]])
+			_expect(worst_drift <= 0.004, "AC12 A3 amendment: planted feet stay world-fixed (<= 0.004 m) at %s for every outfit (got %.4f)" % [clip, worst_drift])
+			_expect(worst_height <= 0.005, "AC12 A3 amendment: planted feet stay on the ground (<= 0.005 m) at %s for every outfit (got %.4f)" % [clip, worst_height])
+			if outfit == 0:
+				print("T44_A3_STANCE %s drift=%.5f height=%.5f stance_s=%.4f step_half=%.3f" % [clip, worst_drift, worst_height, minf(shortest["l"], shortest["r"]), critter.get_step_half()])
 			player.position = Vector3.ZERO
 	_expect(not InputMap.has_action("crouch") and not InputMap.has_action("grab"), "Removed C/F actions cannot change the capsule or locomotion")
 	player.reset_for_match(Vector3.ZERO)

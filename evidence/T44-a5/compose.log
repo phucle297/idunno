@@ -1,0 +1,7 @@
+EDGES town_sheet: off=6453 on=3873 drop=40.0% crop=(440, 130, 840, 550)
+EDGES town_game: off=4316 on=1347 drop=68.8% crop=(500, 280, 780, 640)
+EDGES interior_sheet: off=5073 on=2291 drop=54.8% crop=(440, 130, 840, 550)
+EDGES interior_game: off=1921 on=1304 drop=32.1% crop=(500, 280, 780, 640)
+EDGES ALL_CROPS_SUM: off=17763 on=8815 drop=50.4%
+EDGES SHEET_CROPS_SUM: off=11526 on=6164 drop=46.5%
+COMPOSE_OK

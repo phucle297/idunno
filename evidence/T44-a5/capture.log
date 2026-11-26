@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+MSAA_DEFAULT project_setting=1 root.msaa_3d=1 expect=1
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+MSAA_AFTER_SCENE root.msaa_3d=1
+SNAP town_sheet_aaoff size=1280x720 msaa_3d=0
+SNAP town_game_aaoff size=1280x720 msaa_3d=0
+SNAP town_sheet_aaon size=1280x720 msaa_3d=1
+SNAP town_game_aaon size=1280x720 msaa_3d=1
+SNAP town_sheet_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP town_game_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP town_sheet_2560_aaon size=2560x1440 msaa_3d=1
+SNAP town_game_2560_aaon size=2560x1440 msaa_3d=1
+INTERIOR shelter=House pos=(-18.0, 0.0, 27.0)
+SNAP interior_sheet_aaoff size=1280x720 msaa_3d=0
+SNAP interior_game_aaoff size=1280x720 msaa_3d=0
+SNAP interior_sheet_aaon size=1280x720 msaa_3d=1
+SNAP interior_game_aaon size=1280x720 msaa_3d=1
+SNAP interior_sheet_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP interior_game_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP interior_sheet_2560_aaon size=2560x1440 msaa_3d=1
+SNAP interior_game_2560_aaon size=2560x1440 msaa_3d=1
+MSAA_RESTORE root.msaa_3d=1
+A5_CAPTURE_OK

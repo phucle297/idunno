@@ -21,6 +21,7 @@ func _run() -> void:
 	_test_falling_pose()
 	_test_stop_face_attachment()
 	_test_interrupted_body_cues()
+	_test_plop_toddle()
 	character.free()
 	if failures.is_empty():
 		print("CHARACTER_ANIMATION_OK checks=%d" % checks)
@@ -83,6 +84,70 @@ func _test_interrupted_body_cues() -> void:
 	character.play_clip("idle")
 	animation_player.advance(0.2)
 	_expect(face.transform.is_equal_approx(rest), "Repeated runtime setup cannot capture an animated pose as rest")
+
+
+func _test_plop_toddle() -> void:
+	# T44 A2 / AC12: whole-body waddle, no arm or leg swing, eases to identity.
+	character.play_clip("idle")
+	character.sync_rig(1.0)
+	_expect(character.get_waddle_transform().is_equal_approx(Transform3D.IDENTITY), "Idle waddle transform must be identity")
+	var peaks := {}
+	for clip in ["walk", "run"]:
+		character.play_clip(clip)
+		character.set_locomotion_speed(4.5 if clip == "walk" else 6.5)
+		animation_player.advance(0.3)
+		character.sync_rig(1.0)
+		animation_player.pause()
+		var peak := 0.0
+		for sample in 24:
+			animation_player.seek(sample / 24.0 * animation_player.current_animation_length, true)
+			character.sync_rig()
+			for limb in ["LeftArm", "RightArm"]:
+				_expect(is_zero_approx((character.get_node(limb) as Node3D).rotation.x), "%s must not swing during %s" % [limb, clip])
+			peak = maxf(peak, absf(character.get_waddle_transform().basis.get_euler().z))
+		peaks[clip] = peak
+		# AC12 A3 amendment: legs step (replaces "legs rotation.x = 0 in walk/run").
+		# Phases 0.0 / 0.5 are a quarter cycle from the stance centres (0.25 / 0.75),
+		# where the feet are at opposite stride ends. At 0.25 / 0.75 one foot is
+		# planted under the hip and the other mid-swing, so both thighs pitch forward
+		# (measured +0.40 / +0.54 rad); the plan's phases cannot show opposite signs.
+		var pitch := {}
+		for phase in [0.0, 0.5]:
+			animation_player.seek(phase * animation_player.current_animation_length, true)
+			character.sync_rig()
+			pitch[phase] = [_thigh_pitch("l"), _thigh_pitch("r")]
+		print("T44_A3_PITCH %s %s" % [clip, pitch])
+		for phase in [0.0, 0.5]:
+			_expect(signf(pitch[phase][0]) == -signf(pitch[phase][1]) and pitch[phase][0] != 0.0, "AC12 A3 amendment: left/right upperleg pitch must have opposite signs at phase %.2f during %s" % [phase, clip])
+		animation_player.play()
+		# Leave locomotion: W must ease back to identity within 0.15 s.
+		animation_player.seek(0.25 * animation_player.current_animation_length, true)
+		character.sync_rig()
+		character.play_clip("idle")
+		for _frame in 9:
+			character.sync_rig(1.0 / 60.0)
+		_expect(character.get_waddle_transform().is_equal_approx(Transform3D.IDENTITY), "%s->idle must ease the waddle to identity within 0.15 s" % clip)
+		var rig := character.get_node("Model/Rig/Skeleton3D") as Skeleton3D
+		for bone_name in ["upperleg.l", "upperleg.r", "lowerleg.l", "lowerleg.r", "foot.l", "foot.r"]:
+			var bone := rig.find_bone(bone_name)
+			var angle := rig.get_bone_pose_rotation(bone).angle_to(rig.get_bone_rest(bone).basis.get_rotation_quaternion())
+			_expect(angle < 0.002, "AC12 A3 amendment: %s must be back at rest within 0.15 s of idle after %s (off %.4f rad)" % [bone_name, clip, angle])
+	_expect(peaks.run > peaks.walk, "Run peak roll must exceed walk peak roll")
+
+
+## Upperleg pitch in the character root (radians, + = thigh forward) relative to rest.
+func _thigh_pitch(side: String) -> float:
+	var rig := character.get_node("Model/Rig/Skeleton3D") as Skeleton3D
+	var upper := rig.find_bone("upperleg." + side)
+	var lower := rig.find_bone("lowerleg." + side)
+	var root_xform := character.global_transform.affine_inverse() * rig.global_transform
+	var hip := root_xform * rig.get_bone_global_pose(upper).origin
+	var knee := root_xform * rig.get_bone_global_pose(lower).origin
+	var rest_hip := ToyCharacterVisual.MODEL_BASE * rig.get_bone_global_rest(upper).origin
+	var rest_knee := ToyCharacterVisual.MODEL_BASE * rig.get_bone_global_rest(lower).origin
+	var now := atan2(-(knee - hip).z, -(knee - hip).y)
+	var rest := atan2(-(rest_knee - rest_hip).z, -(rest_knee - rest_hip).y)
+	return now - rest
 
 
 func _expect(condition: bool, message: String) -> void:

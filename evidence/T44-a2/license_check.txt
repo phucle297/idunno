@@ -1,0 +1,10 @@
+# KayKit license check
+ae322141814056dda0deea7540d74c41d87aee1da319977cd1bd84ee5a923629  assets/characters/kaykit_adventurers/LICENSE.txt
+ae322141814056dda0deea7540d74c41d87aee1da319977cd1bd84ee5a923629  /home/box/game-factory/scratch/kaykit-adv/LICENSE.txt
+ae322141814056dda0deea7540d74c41d87aee1da319977cd1bd84ee5a923629  /home/box/game-factory/scratch/kaykit-adv/addons/kaykit_character_pack_adventures/LICENSE.txt
+LICENSE identical to upstream @672074b73ba276876a19e8816ecdc5241817ab47
+
+	KayKit : Adventurers Character Pack (1.0)
+
+	Created/distributed by Kay Lousberg (www.kaylousberg.com)
+	Creation date: 13/03/2023 09:00

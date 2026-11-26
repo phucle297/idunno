@@ -1,0 +1,9 @@
+# frozen-file diff vs ae933edd (expect 0 lines)
+lines: 0
+# A3 diff vs PR #39 head 5960a6e
+ game/player/toy_character_visual.gd | 130 +++++++++++++++++++++++++++++++++++-
+ tests/test_character_animation.gd   |  35 +++++++++-
+ tests/test_critter_asset.gd         |  47 +++++++++++++
+ tests/test_phase1.gd                |  46 ++++++++-----
+ tests/test_player_integration.gd    |  65 ++++++++++++------
+ 5 files changed, 282 insertions(+), 41 deletions(-)
