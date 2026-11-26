@@ -9,3 +9,8 @@ Times in logs labelled "ICT" are really UTC (box has no Asia/Saigon tzdata for t
   (d) client == server: test_lava_zones snapshot checks (client tile set == server tile set, same crater/zones/stage) in logs/test_lava_zones.log; no networked screenshot.
 - perf.txt / perf_summary.txt: 4P moving bench (T44 A3 bench + lava), 6 interleaved B/A pairs, lava visible (B full flow plane, A FLOOD tiles). Az1-3 (ZONES info) ran with the flow already cooled (tiles=0): not informative.
 - matrix.sh, matrix1.log/time, score-t47m1.log, gate_table_vs_T14.log: T3z Hard matrix (10 seeds x 2 maps x 4 controls) on A. Column labels in gate_table are the tool's: "baseline" = T14 main 27a35bf3, "T6" = this T47 run.
+
+- T3z Hard matrix + T9 same-seed replay: `matrix/T3b-t47m{1,2}.json`, `score-t47m1.log`, `gate_table_vs_T14.log`, `replay_determinism.log`, `matrix-progress.txt`, `survival_notes.md`. Samples stay on the box at factory `evidence/T47-a1/matrix/*-samples.jsonl` (41 MB, not committed).
+  T9: 80/80 identical, 0 time/HP/position delta. Gates: camp 10/10 x4, route town 6/10 harbor 10/10.
+  Two Flood outcome flips vs T14 (main 27a35bf3, not f395fe84) on toy_town active_route 101 (T14 dead / T47 alive) and 106 (T14 alive / T47 dead) — see survival_notes.md. No re-baseline.
+- Interior trace: NOT RUN (hours at T45 rates, over the 10 min cap).
