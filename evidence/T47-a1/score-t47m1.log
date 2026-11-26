@@ -1,0 +1,93 @@
+== Groups ==
+toy_town|rooftop_idle {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 1, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 129.775, "zero_disaster_median": 18.0165, "t3bq_normal_median": 29.6415, "dead_time_drop_vs_normal_pct": 39.2, "t3bq_survived_480": 1, "t3bq_camp_broken": 9} {'Bee Swarm': 5, 'Meteor Shower': 1, 'Rockslide': 1, 'Earthquake': 1, 'Tornado': 1, 'Terrain Collapse': 1}
+toy_town|rooftop_tiny_step {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 1, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 141.0665, "zero_disaster_median": 19.9335, "t3bq_normal_median": 29.6415, "dead_time_drop_vs_normal_pct": 32.8, "t3bq_survived_480": 1, "t3bq_camp_broken": 9} {'Bee Swarm': 4, 'Rockslide': 2, 'Meteor Shower': 1, 'Earthquake': 1, 'Tornado': 1, 'Terrain Collapse': 1}
+toy_town|ground_idle {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 0, "camp_broken_by_reloc3s": 0, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 74.6165, "zero_disaster_median": 16.6085, "t3bq_normal_median": 29.058500000000002, "dead_time_drop_vs_normal_pct": 42.8, "t3bq_survived_480": 0, "t3bq_camp_broken": 0} {'Flood': 10}
+toy_town|active_route {"survived_480": 6, "survived_seeds": [101, 102, 104, 105, 108, 109], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 10, "camp_broken_by_30hp": 1, "alive_at_360": 9, "death_time_median": 411.8665, "zero_disaster_median": 20.425, "t3bq_normal_median": 31.625, "dead_time_drop_vs_normal_pct": 35.4, "t3bq_survived_480": 7, "t3bq_camp_broken": 10} {'Flood': 4}
+toy_harbor|rooftop_idle {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 1, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 120.625, "zero_disaster_median": 19.5165, "t3bq_normal_median": 36.025, "dead_time_drop_vs_normal_pct": 45.8, "t3bq_survived_480": 0, "t3bq_camp_broken": 10} {'Meteor Shower': 5, 'Bee Swarm': 2, 'Rockslide': 1, 'Tornado': 2}
+toy_harbor|rooftop_tiny_step {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 0, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 104.1335, "zero_disaster_median": 18.6, "t3bq_normal_median": 35.058499999999995, "dead_time_drop_vs_normal_pct": 46.9, "t3bq_survived_480": 0, "t3bq_camp_broken": 10} {'Meteor Shower': 6, 'Tornado': 3, 'Rockslide': 1}
+toy_harbor|ground_idle {"survived_480": 0, "survived_seeds": [], "camp_broken_by_360": 0, "camp_broken_by_reloc3s": 0, "camp_broken_by_30hp": 10, "alive_at_360": 0, "death_time_median": 75.4665, "zero_disaster_median": 20.1, "t3bq_normal_median": 33.591499999999996, "dead_time_drop_vs_normal_pct": 40.2, "t3bq_survived_480": 0, "t3bq_camp_broken": 0} {'Flood': 10}
+toy_harbor|active_route {"survived_480": 10, "survived_seeds": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110], "camp_broken_by_360": 10, "camp_broken_by_reloc3s": 10, "camp_broken_by_30hp": 0, "alive_at_360": 10, "death_time_median": null, "zero_disaster_median": 20.125, "t3bq_normal_median": 37.216499999999996, "dead_time_drop_vs_normal_pct": 45.9, "t3bq_survived_480": 1, "t3bq_camp_broken": 10} {}
+== Gates ==
+dead_time {"pass": true, "drop_pct": {"toy_town|rooftop_idle": 39.2, "toy_town|rooftop_tiny_step": 32.8, "toy_town|ground_idle": 42.8, "toy_town|active_route": 35.4, "toy_harbor|rooftop_idle": 45.8, "toy_harbor|rooftop_tiny_step": 46.9, "toy_harbor|ground_idle": 40.2, "toy_harbor|active_route": 45.9}}
+rooftop_camp {"pass": true, "broken_of_10": {"toy_town|rooftop_idle": 10, "toy_town|rooftop_tiny_step": 10, "toy_harbor|rooftop_idle": 10, "toy_harbor|rooftop_tiny_step": 10}, "seeds": {"toy_town|rooftop_idle": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110], "toy_town|rooftop_tiny_step": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110], "toy_harbor|rooftop_idle": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110], "toy_harbor|rooftop_tiny_step": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]}}
+active_route {"pass": true, "survived_of_10": {"toy_town": 6, "toy_harbor": 10}, "seeds": {"toy_town": [101, 102, 104, 105, 108, 109], "toy_harbor": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]}}
+== Overlap == {"max_concurrent_active": 2, "worst_at": ["toy_harbor", 101, "active_route", 351.617], "overlap_starts_without_prior_solo_start": 0, "examples": []}
+== Cells (alive starts / runs exposed / runs HP>0 / HP / runs off-pad lower / runs pressured) ==
+-- toy_town rooftop_idle
+   Bee Swarm        8 /  8 /  8 /   628.9 /  0 /  8  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 104, 105, 106, 107, 108, 109]
+   Earthquake       1 /  1 /  1 /     4.0 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[108]
+   Meteor Shower    6 /  6 /  6 /   193.5 /  0 /  6  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 104, 105, 106, 110]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          2 /  2 /  2 /    37.3 /  2 /  2  tornadoFallHP=0.0  -> pressured  pressured_seeds=[103, 109]
+   Volcano          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rockslide        2 /  2 /  1 /     4.0 /  1 /  2  tornadoFallHP=0.0  -> pressured  pressured_seeds=[107, 110]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood            8 /  8 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rain             8 /  8 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Snowfall         6 /  6 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+-- toy_town rooftop_tiny_step
+   Bee Swarm        7 /  7 /  7 /   447.2 /  0 /  7  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 104, 105, 106, 107, 108, 109]
+   Earthquake       1 /  1 /  1 /     4.0 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[108]
+   Meteor Shower    6 /  6 /  6 /   399.0 /  0 /  6  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 104, 105, 106, 110]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          2 /  2 /  2 /    37.2 /  2 /  2  tornadoFallHP=0.0  -> pressured  pressured_seeds=[103, 109]
+   Volcano          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rockslide        3 /  3 /  2 /    36.1 /  1 /  3  tornadoFallHP=0.0  -> pressured  pressured_seeds=[102, 107, 110]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood            8 /  8 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rain             9 /  8 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Snowfall         6 /  6 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+-- toy_town ground_idle
+   Bee Swarm        3 /  3 /  3 /   288.0 /  0 /  3  tornadoFallHP=0.0  -> pressured  pressured_seeds=[106, 108, 109]
+   Earthquake       0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Meteor Shower    3 /  3 /  1 /    64.3 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Volcano          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Rockslide        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood           10 / 10 / 10 /   647.7 /  0 / 10  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+   Rain             6 /  5 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> NOT pressured  pressured_seeds=[]
+   Snowfall         3 /  3 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> NOT pressured  pressured_seeds=[]
+-- toy_harbor rooftop_idle
+   Bee Swarm        4 /  4 /  4 /   348.0 /  0 /  4  tornadoFallHP=0.0  -> pressured  pressured_seeds=[106, 107, 108, 109]
+   Earthquake       0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Meteor Shower    7 /  6 /  6 /   540.0 /  0 /  6  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 104, 105, 106, 110]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          3 /  3 /  3 /    41.3 /  3 /  3  tornadoFallHP=0.0  -> pressured  pressured_seeds=[103, 108, 109]
+   Volcano          1 /  1 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rockslide        1 /  1 /  1 /     4.0 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[107]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood            9 /  9 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rain             8 /  8 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Snowfall         4 /  4 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+-- toy_harbor rooftop_tiny_step
+   Bee Swarm        4 /  4 /  4 /   384.0 /  0 /  4  tornadoFallHP=0.0  -> pressured  pressured_seeds=[103, 107, 108, 109]
+   Earthquake       0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Meteor Shower    6 /  6 /  6 /   600.0 /  0 /  6  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 104, 105, 106, 110]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          4 /  3 /  3 /    12.0 /  3 /  3  tornadoFallHP=0.0  -> pressured  pressured_seeds=[103, 108, 109]
+   Volcano          1 /  1 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rockslide        1 /  1 /  1 /     4.0 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[107]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood            7 /  7 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Rain             8 /  7 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+   Snowfall         4 /  4 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> by design  pressured_seeds=[]
+-- toy_harbor ground_idle
+   Bee Swarm        3 /  3 /  3 /   288.0 /  0 /  3  tornadoFallHP=0.0  -> pressured  pressured_seeds=[106, 108, 109]
+   Earthquake       0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Meteor Shower    3 /  3 /  1 /    44.1 /  0 /  1  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101]
+   Lightning        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   UFO              0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Tornado          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Volcano          0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Rockslide        0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Fire             0 /  0 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> unmeasured (0 alive exposures)  pressured_seeds=[]
+   Flood           10 / 10 / 10 /   667.9 /  0 / 10  tornadoFallHP=0.0  -> pressured  pressured_seeds=[101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+   Rain             6 /  5 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> NOT pressured  pressured_seeds=[]
+   Snowfall         3 /  3 /  0 /     0.0 /  0 /  0  tornadoFallHP=0.0  -> NOT pressured  pressured_seeds=[]

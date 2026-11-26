@@ -1,0 +1,60 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+LAVA_ZONES toy_town grid=144 eligible_tiles=18803 crater_sites=176 crater=(12.0, 12.0) zone_r=12
+LAVA_ZONES toy_town seed=3000 crater=(32, 0.03, 58) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3001 crater=(62, 0.03, -36) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3002 crater=(-12, 0.04, 60) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3003 crater=(-2, 0.03, -16) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3004 crater=(8, 0.03, -62) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3005 crater=(26, 0.04, 60) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3006 crater=(-28, 0.03, -62) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3007 crater=(8, 0.03, 58) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3008 crater=(22, 0.01, 26) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town seed=3009 crater=(14, 0.04, 60) default=(0.0, 0.12, 0.0)
+LAVA_ZONES toy_town distinct_crater_sites=10 of valid=176
+LAVA_ZONES toy_town seed=3000 elapsed=150 crater=(32, 58) zones=(58.5, -58.5, r12), (-0.5, -38.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3001 elapsed=150 crater=(62, -36) zones=(-12.5, -34.5, r12), (9.5, 31.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3002 elapsed=150 crater=(-12, 60) zones=(-36.5, -57.5, r12), (-6.5, 32.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3003 elapsed=150 crater=(-2, -16) zones=(7.5, 38.5, r12), (41.5, 3.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3004 elapsed=150 crater=(8, -62) zones=(26.5, 59.5, r12), (29.5, 13.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3005 elapsed=150 crater=(26, 60) zones=(-2.5, 49.5, r12), (42.5, -42.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3006 elapsed=150 crater=(-28, -62) zones=(12.5, 48.5, r12), (48.5, -4.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3007 elapsed=150 crater=(8, 58) zones=(41.5, 58.5, r12), (18.5, -29.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3008 elapsed=150 crater=(22, 26) zones=(48.5, 35.5, r12), (-49.5, -32.5, r12) off_centre=2
+LAVA_ZONES toy_town seed=3009 elapsed=150 crater=(14, 60) zones=(-3.5, 17.5, r12), (-17.5, 43.5, r12) off_centre=1
+LAVA_ZONES toy_town footprint zones tiles=1000 covered_cells=872 missing=0 bad_tiles=0
+LAVA_ZONES toy_town cooled_trace flow last_damage_tick=300 flip_tick=300 heat_at_flip=19.983
+LAVA_ZONES toy_town cooled_trace shelf last_damage_tick=300 flip_tick=300 heat_at_flip=19.983
+LAVA_ZONES toy_town snapshot elapsed=150 stage=0 vent=(62.0, 0.026667, -36.0) zones=[-12.5, -34.5, 12.0, 9.5, 31.5, 12.0] tiles=1001 client_tiles=1001
+LAVA_ZONES toy_town snapshot elapsed=500 stage=1 vent=(62.0, 0.026667, -36.0) zones=[] tiles=18803 client_tiles=18803
+LAVA_ZONES toy_town flood worst_full_coverage=57.4s
+LAVA_ZONES toy_harbor grid=64 eligible_tiles=3802 crater_sites=15 crater=(16.0, 6.0) zone_r=8
+LAVA_ZONES toy_harbor seed=3000 crater=(-20, 0.00, -6) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3001 crater=(-18, 0.01, -2) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3002 crater=(18, 0.00, -24) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3003 crater=(-20, 0.00, -8) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3004 crater=(18, 0.00, -24) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3005 crater=(18, 0.00, -24) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3006 crater=(-18, 0.00, -24) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3007 crater=(-20, 0.00, -2) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3008 crater=(-20, 0.00, -4) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor seed=3009 crater=(18, 0.00, -24) default=(0.0, 0.05, 22.0)
+LAVA_ZONES toy_harbor distinct_crater_sites=7 of valid=15
+LAVA_ZONES toy_harbor seed=3000 elapsed=150 crater=(-20, -6) zones=(-22.5, 19.5, r8), (-11.5, -22.5, r8) off_centre=2
+LAVA_ZONES toy_harbor seed=3001 elapsed=150 crater=(-18, -2) zones=(-15.5, 15.5, r8), (8.5, -10.5, r8) off_centre=1
+LAVA_ZONES toy_harbor seed=3002 elapsed=150 crater=(18, -24) zones=(12.5, 13.5, r8), (-10.5, 10.5, r8) off_centre=0
+LAVA_ZONES toy_harbor seed=3003 elapsed=150 crater=(-20, -8) zones=(1.5, 23.5, r8), (23.5, -16.5, r8) off_centre=2
+LAVA_ZONES toy_harbor seed=3004 elapsed=150 crater=(18, -24) zones=(-2.5, -19.5, r8), (3.5, 23.5, r8) off_centre=1
+LAVA_ZONES toy_harbor seed=3005 elapsed=150 crater=(18, -24) zones=(21.5, 9.5, r8), (2.5, 0.5, r8) off_centre=1
+LAVA_ZONES toy_harbor seed=3006 elapsed=150 crater=(-18, -24) zones=(-10.5, 13.5, r8), (12.5, 5.5, r8) off_centre=0
+LAVA_ZONES toy_harbor seed=3007 elapsed=150 crater=(-20, -2) zones=(18.5, -6.5, r8), (-14.5, 22.5, r8) off_centre=1
+LAVA_ZONES toy_harbor seed=3008 elapsed=150 crater=(-20, -4) zones=(20.5, -10.5, r8), (4.5, 10.5, r8) off_centre=1
+LAVA_ZONES toy_harbor seed=3009 elapsed=150 crater=(18, -24) zones=(19.5, 18.5, r8), (20.5, -7.5, r8) off_centre=2
+LAVA_ZONES toy_harbor footprint zones tiles=475 covered_cells=388 missing=0 bad_tiles=0
+LAVA_ZONES toy_harbor cooled_trace flow last_damage_tick=300 flip_tick=300 heat_at_flip=19.983
+LAVA_ZONES toy_harbor cooled_trace shelf last_damage_tick=300 flip_tick=300 heat_at_flip=19.983
+LAVA_ZONES toy_harbor snapshot elapsed=150 stage=0 vent=(-18.0, 0.00625, -2.0) zones=[-15.5, 15.5, 8.0, 8.5, -10.5, 8.0] tiles=475 client_tiles=475
+LAVA_ZONES toy_harbor snapshot elapsed=500 stage=1 vent=(-18.0, 0.00625, -2.0) zones=[] tiles=3802 client_tiles=3802
+LAVA_ZONES toy_harbor flood worst_full_coverage=25.0s
+LAVA_ZONES_OK checks=449 maps=2 seeds=10

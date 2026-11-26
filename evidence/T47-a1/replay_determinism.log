@@ -1,0 +1,15 @@
+{
+ "runs": 80,
+ "selection_history_equal": 80,
+ "survived_equal": 80,
+ "death_cause_equal": 80,
+ "death_disaster_equal": 80,
+ "camp_broken_equal": 80,
+ "max_death_time_delta_s": 0.0,
+ "max_hp_lost_by_360_delta": 0.0,
+ "outcome_diff_runs": [],
+ "max_alive_position_delta_m": 0.0,
+ "max_at": null,
+ "runs_with_alive_sample_over_1cm": 0,
+ "alive_samples_over_1cm": 0
+}

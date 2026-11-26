@@ -14,6 +14,10 @@ extends SceneTree
 #      arrives, and none before it;
 #  (5) warning_remaining is 12.0 at every start, no damage during warning,
 #      DPS 6.0, HOT_LIFETIME 60, SPREAD_RATE 3.0, SAFE_SUPPORT 1.2.
+# T47 (2026-11-26): the whole-map flow is now the late-match FLOOD stage only
+# (elapsed >= 8:00) from a random crater site; every event here forces
+# elapsed 500 s. Coverage times are computed from the actual vent. Early
+# ZONES stage is covered by test_lava_zones.gd (and pads below).
 # The sim is stepped manually (volcano.tick + player.apply_movement_input at
 # 60 Hz) so a full 72 s event costs ~1 s of wall time.
 
@@ -33,6 +37,7 @@ var player: PartyPlayer
 var manager: MatchManager
 var summary: Array[String] = []
 var event_count := 0
+var heat0 := Volcano.HOT_LIFETIME
 
 
 func _initialize() -> void:
@@ -69,7 +74,7 @@ func _run() -> void:
 		await physics_frame
 		var extent: float = MAPS[map_id].extent
 		volcano.set_map_extent(extent)
-		_expect(absf(volcano.full_coverage_time() - float(MAPS[map_id].full)) < 0.05, "%s full coverage %.2f s ~= contract %.1f s" % [map_id, volcano.full_coverage_time(), MAPS[map_id].full])
+		_expect(absf(volcano.full_coverage_time() - float(MAPS[map_id].full)) < 0.05, "%s full coverage from the authored vent %.2f s ~= contract %.1f s" % [map_id, volcano.full_coverage_time(), MAPS[map_id].full])
 		summary.append("%s vent=%s extent=%.0f full=%.2fs" % [map_id, volcano.district_center, extent, volcano.full_coverage_time()])
 		await _pads(map_id)
 		await _runners(map_id)
@@ -92,10 +97,11 @@ func _run() -> void:
 
 # ---------------------------------------------------------------- events
 
-func _begin(at: Vector3, label: String) -> bool:
+func _begin(at: Vector3, label: String, elapsed := 500.0) -> bool:
 	manager.prepare_lobby()
 	manager.set_player_ready(1, true)
 	manager.start_match()
+	manager.elapsed_time = elapsed
 	player.reset_for_match(at + Vector3.UP * 0.05)
 	player.set_camera_yaw(0.0)
 	for step in 20:
@@ -106,6 +112,8 @@ func _begin(at: Vector3, label: String) -> bool:
 	event_count += 1
 	var started := volcano.start_disaster(rng)
 	_expect(started, "%s: volcano starts" % label)
+	_expect(not started or volcano.stage == (Volcano.Stage.FLOOD if elapsed >= Volcano.LATE_FLOOD_AT else Volcano.Stage.ZONES), "%s: stage follows elapsed %.0f s" % [label, elapsed])
+	heat0 = volcano.flow_heat
 	_expect(volcano.warning_remaining == 12.0, "%s: warning_remaining is 12.0 at start (got %f)" % [label, volcano.warning_remaining])
 	return started
 
@@ -154,45 +162,53 @@ func _pad_points(map_id: String) -> Array:
 func _pads(map_id: String) -> void:
 	var first := true
 	for pad: Array in _pad_points(map_id):
-		var label := "%s/%s" % [map_id, pad[0]]
-		var at: Vector3 = pad[1]
-		if not await _begin(at, label):
-			await _end()
-			continue
-		var feet := player.global_position
-		var support := _support(feet)
-		_expect(player.is_on_floor() and support >= Volcano.SAFE_SUPPORT, "%s: standee grounded on pad >= 1.2 m (feet=%s support=%.2f)" % [label, feet, support])
-		var ground: Array = _ground_samples(map_id) if first else []
-		var t := 0.0
-		var early_uncovered := 0
-		var early_checked := false
-		var covered_at_full := -1
-		while volcano.is_active() and t < WARNING + Volcano.HOT_LIFETIME + 1.0:
-			_frame(t, Vector2.ZERO)
-			t += STEP
-			if int(round(t / STEP)) % 60 == 0:
-				await physics_frame
-			if first and not early_checked and t >= WARNING + volcano.full_coverage_time() * 0.5:
-				early_checked = true
-				for point: Vector3 in ground:
-					if volcano.flow_arrival_time(point) > volcano.flow_elapsed + 0.5:
-						_expect(not volcano.flow_covers(point), "%s: point %s not covered before front arrives" % [label, point])
-						early_uncovered += 1
-			if first and covered_at_full < 0 and t >= WARNING + float(MAPS[map_id].full):
-				covered_at_full = 0
-				for point: Vector3 in ground:
-					if volcano.flow_covers(point):
-						covered_at_full += 1
-				_expect(covered_at_full == ground.size(), "%s: all %d sampled ground points covered at %.1f s (got %d)" % [label, ground.size(), MAPS[map_id].full, covered_at_full])
-		var lost := 100.0 - _hp()
-		_expect(lost == 0.0, "%s: elevated pad takes 0 volcano damage (lost %.2f)" % [label, lost])
-		_expect(not volcano.is_active(), "%s: event ran its full course (t=%.1f)" % [label, t])
-		summary.append("pad %s support=%.2f lost=%.1f event_s=%.1f" % [label, support, lost, t])
-		if first:
-			summary.append("coverage %s ground_samples=%d covered_at_%.1fs=%d still_uncovered_at_half=%d" % [map_id, ground.size(), MAPS[map_id].full, covered_at_full, early_uncovered])
-			_expect(ground.size() >= 50 and early_uncovered > 0, "%s: coverage sample is meaningful (samples=%d, uncovered at half=%d)" % [map_id, ground.size(), early_uncovered])
+		await _pad(map_id, pad, first, 500.0)
 		first = false
+	# (2) in the early ZONES stage as well.
+	for pad: Array in _pad_points(map_id):
+		await _pad(map_id, pad, false, 150.0)
+
+
+func _pad(map_id: String, pad: Array, first: bool, elapsed: float) -> void:
+	var label := "%s/%s@%.0f" % [map_id, pad[0], elapsed]
+	var at: Vector3 = pad[1]
+	if not await _begin(at, label, elapsed):
 		await _end()
+		return
+	var feet := player.global_position
+	var support := _support(feet)
+	_expect(player.is_on_floor() and support >= Volcano.SAFE_SUPPORT, "%s: standee grounded on pad >= 1.2 m (feet=%s support=%.2f)" % [label, feet, support])
+	var ground: Array = _ground_samples(map_id) if first else []
+	var full := volcano.full_coverage_time()
+	var t := 0.0
+	var early_uncovered := 0
+	var early_checked := false
+	var covered_at_full := -1
+	while volcano.is_active() and t < WARNING + heat0 + 1.0:
+		_frame(t, Vector2.ZERO)
+		t += STEP
+		if int(round(t / STEP)) % 60 == 0:
+			await physics_frame
+		if first and not early_checked and t >= WARNING + full * 0.5:
+			early_checked = true
+			for point: Vector3 in ground:
+				if volcano.flow_arrival_time(point) > volcano.flow_elapsed + 0.5:
+					_expect(not volcano.flow_covers(point), "%s: point %s not covered before front arrives" % [label, point])
+					early_uncovered += 1
+		if first and covered_at_full < 0 and t >= WARNING + full:
+			covered_at_full = 0
+			for point: Vector3 in ground:
+				if volcano.flow_covers(point):
+					covered_at_full += 1
+			_expect(covered_at_full == ground.size(), "%s: all %d sampled ground points covered at %.1f s (got %d)" % [label, ground.size(), full, covered_at_full])
+	var lost := 100.0 - _hp()
+	_expect(lost == 0.0, "%s: elevated pad takes 0 volcano damage (lost %.2f)" % [label, lost])
+	_expect(not volcano.is_active(), "%s: event ran its full course (t=%.1f)" % [label, t])
+	summary.append("pad %s support=%.2f lost=%.1f event_s=%.1f" % [label, support, lost, t])
+	if first:
+		summary.append("coverage %s vent=%s ground_samples=%d covered_at_%.1fs=%d still_uncovered_at_half=%d" % [map_id, volcano.district_center, ground.size(), full, covered_at_full, early_uncovered])
+		_expect(ground.size() >= 50 and early_uncovered > 0, "%s: coverage sample is meaningful (samples=%d, uncovered at half=%d)" % [map_id, ground.size(), early_uncovered])
+	await _end()
 
 
 func _ground_samples(map_id: String) -> Array:
@@ -206,7 +222,7 @@ func _ground_samples(map_id: String) -> Array:
 		var z := -extent + 0.5
 		while z <= extent:
 			var top := _top_surface(x, z)
-			if top > -1.0 and top < Volcano.SAFE_SUPPORT:
+			if top > -1.0 and top < Volcano.SAFE_SUPPORT and not _in_crater(x, z):
 				points.append(Vector3(x, top, z))
 			z += spacing
 		x += spacing
@@ -214,9 +230,15 @@ func _ground_samples(map_id: String) -> Array:
 		var cx: float = corner.x * (extent - 0.5)
 		var cz: float = corner.y * (extent - 0.5)
 		var top := _top_surface(cx, cz)
-		if top > -1.0 and top < Volcano.SAFE_SUPPORT:
+		if top > -1.0 and top < Volcano.SAFE_SUPPORT and not _in_crater(cx, cz):
 			points.append(Vector3(cx, top, cz))
 	return points
+
+
+func _in_crater(x: float, z: float) -> bool:
+	# T47: the crater shelves + ramps are their own (hot shelf) surface.
+	var half := volcano.crater_half()
+	return absf(x - volcano.district_center.x) <= half.x and absf(z - volcano.district_center.z) <= half.y
 
 
 # ------------------------------------------------------------- (3) runners
@@ -275,7 +297,7 @@ func _runners(map_id: String) -> void:
 		var check := player.global_position
 		var previous := player.global_position
 		var frame := 0
-		while volcano.is_active() and t < WARNING + Volcano.HOT_LIFETIME + 1.0 and manager.is_player_alive(1):
+		while volcano.is_active() and t < WARNING + heat0 + 1.0 and manager.is_player_alive(1):
 			var feet := player.global_position
 			var input := Vector2.ZERO
 			if index < path.size():

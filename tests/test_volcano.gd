@@ -32,10 +32,12 @@ func _run() -> void:
 		for cycle in 5:
 			main.match_manager.set_player_ready(1, true)
 			main.match_manager.start_match()
-			player.reset_for_match(center + Vector3.UP * 0.03)
 			var rng := RandomNumberGenerator.new()
 			rng.seed = 1003
 			_expect(volcano.start_disaster(rng), "Authored district warning starts")
+			# T47: the crater site is random per seed; test the chosen site.
+			center = volcano.district_center
+			player.reset_for_match(center + Vector3.UP * 0.03)
 			var first := volcano.create_presentation_snapshot()
 			volcano.tick(11.9)
 			_expect(not volcano.mutated and main.match_manager.get_health(1) == 100, "No collision mutation or damage before warning expires")
@@ -91,10 +93,11 @@ func _run() -> void:
 			for partitions in [1, 60]:
 				main.match_manager.set_player_ready(1, true)
 				main.match_manager.start_match()
-				player.reset_for_match(center + Vector3(0, 5, 0))
 				var rng := RandomNumberGenerator.new()
 				rng.seed = 1003
 				volcano.start_disaster(rng)
+				center = volcano.district_center
+				player.reset_for_match(center + Vector3(0, 5, 0))
 				volcano.tick(12)
 				await physics_frame
 				await physics_frame

@@ -3250,9 +3250,24 @@ func _build_sandbox(work: MapPreparation) -> Dictionary:
 		return {}
 	# Publish only after collision and all weather registrations are usable.
 	await get_tree().physics_frame
-	if not work.is_current() or not await _configure_weather_patches(work):
+	if not work.is_current() or not await _bake_lava_footprint(work) or not await _configure_weather_patches(work):
 		return {}
 	return anchors
+
+
+func _bake_lava_footprint(work: MapPreparation) -> bool:
+	# T47 A1: lava-eligible 1 m floor grid + crater sites, once per map prep
+	# (never at erupt). Clients bake the same grid from identical geometry.
+	var footprint: LavaFootprint = volcano.footprint
+	footprint.setup(get_map_half_extent())
+	var space := get_world_3d().direct_space_state
+	for row in range(0, footprint.size, 8):
+		footprint.bake_rows(space, row, row + 8)
+		if not await work.checkpoint():
+			return false
+	footprint.finish_bake()
+	volcano.bake_sites()
+	return work.is_current()
 
 
 func _build_rockslide_lane() -> Dictionary:
@@ -3312,10 +3327,17 @@ func _apply_map_anchors(anchors: Dictionary) -> void:
 	fire.support_height = get_map_support_height
 	earthquake.support_height = get_map_support_height
 	rockslide.set_lane(anchors.rockslide_lane)
+	# T47 V2: smaller crater so it can sit anywhere on the map; the authored
+	# vent is only the fallback when no random site is valid. Zone radius
+	# 12 m Town / 8 m Harbor.
 	if map_id == "toy_town":
-		volcano.set_district("town_plaza", Vector3(0, 0.12, 0), Vector2(18, 18))
+		volcano.set_district("town_plaza", Vector3(0, 0.12, 0), Vector2(12, 12), 12.0)
 	else:
-		volcano.set_district("harbor_boardwalk", Vector3(0, 0.05, 22), Vector2(24, 6))
+		volcano.set_district("harbor_boardwalk", Vector3(0, 0.05, 22), Vector2(16, 6), 8.0)
+	volcano.spawn_points = [anchors.spawn_origin]
+	for group: Dictionary in anchors.get("spawn_groups", []):
+		volcano.spawn_points.append(group.spawn)
+	volcano.site_supported = func(point: Vector3, margin: float) -> bool: return terrain_collapse.supports_point(point, margin, true)
 
 
 func _configure_weather_patches(work: MapPreparation) -> bool:
@@ -3338,6 +3360,10 @@ func tick_weather(delta: float) -> void:
 	if geometry_state != _weather_geometry_state:
 		_weather_geometry_state = geometry_state
 		weather_surfaces.invalidate_cover()
+		# T47: re-bake the lava floor lazily (chunked in Volcano) after a real
+		# map geometry change, not for the crater's own eruption.
+		if volcano.mutated == _weather_volcano_registered:
+			volcano.footprint.invalidate()
 		if volcano.mutated and not _weather_volcano_registered:
 			for mesh: MeshInstance3D in volcano.find_children("*", "MeshInstance3D", true, false):
 				weather_surfaces.register_surface_mesh(mesh)
@@ -3439,7 +3465,11 @@ func _new_disaster_fits_terrain(disaster_name: String) -> bool:
 	if disaster_name == "Rockslide":
 		return terrain_collapse.supports_path(rockslide.lane.high, rockslide.lane.low, 3.5) and terrain_collapse.supports_point(rockslide.lane.cover, 3.5, true)
 	if disaster_name == "Volcano":
-		var center := volcano.district_center
+		# T47: the crater is random; viable while any valid site stands (or,
+		# with no baked sites, the authored vent as before).
+		if not volcano.crater_sites.is_empty():
+			return not volcano.supported_sites().is_empty()
+		var center := volcano.default_center
 		return terrain_collapse.supports_point(center, volcano.district_size.length() / 2 + 1.8, true)
 	return true
 

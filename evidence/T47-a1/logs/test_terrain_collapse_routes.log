@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+MAP_ESCAPE_TIMING map=toy_town case=Center_plaza seconds=6.90
+MAP_ESCAPE_TIMING map=toy_town case=Homes_refuge seconds=4.13
+MAP_ESCAPE_TIMING map=toy_town case=Clinic_refuge seconds=4.13
+MAP_ESCAPE_TIMING map=toy_town case=NorthWest_room seconds=3.58
+MAP_ESCAPE_TIMING map=toy_town case=NorthEast_room seconds=2.68
+MAP_ESCAPE_TIMING map=toy_town case=GardenCafe_room seconds=4.50
+MAP_ESCAPE_TIMING map=toy_town case=WestGarden_spawn seconds=3.35
+MAP_ESCAPE_TIMING map=toy_town case=EastGarden_spawn seconds=3.35
+MAP_ESCAPE_TIMING map=toy_town case=PostOffice_room seconds=4.57
+MAP_ESCAPE_TIMING map=toy_town case=CommunityRoom_room seconds=4.57
+MAP_ESCAPE_TIMING map=toy_town case=GardenPavilion_room seconds=5.57
+MAP_ESCAPE_TIMING map=toy_town case=MarketStore_room seconds=5.57
+MAP_ESCAPE_TIMING map=toy_town case=PostOffice_roof seconds=6.87
+MAP_ESCAPE_TIMING map=toy_town case=CommunityRoom_roof seconds=6.87
+MAP_ESCAPE_TIMING map=toy_town case=GardenPavilion_roof seconds=9.65
+MAP_ESCAPE_TIMING map=toy_town case=MarketStore_roof seconds=9.65
+MAP_ESCAPE_TIMING map=toy_harbor case=Center_basin seconds=2.90
+MAP_ESCAPE_TIMING map=toy_harbor case=Warehouse_room seconds=2.02
+MAP_ESCAPE_TIMING map=toy_harbor case=boardwalk_west_spawn seconds=2.02
+MAP_ESCAPE_TIMING map=toy_harbor case=boardwalk_east_spawn seconds=2.02
+MAP_ESCAPE_TIMING map=toy_harbor case=DockWest_refuge seconds=1.35
+MAP_ESCAPE_TIMING map=toy_harbor case=DockEast_refuge seconds=1.35
+TERRAIN_COLLAPSE_ROUTES_OK checks=18124 walks=26 legal_masks=278 maps=2 escape_before_30s_and_remaining_support=passed

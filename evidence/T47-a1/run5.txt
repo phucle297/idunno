@@ -1,0 +1,10 @@
+START 2026-11-26 11:28:28 head=f395fe8 dirty=123
+IMPORT_OK attempts=1
+test_lava_zones exit=0 errors=0 wall=6s marker=LAVA_ZONES_OK 
+test_volcano_rooftop exit=0 errors=0 wall=99s marker=VOLCANO_ROOFTOP_OK 
+test_gameplay_hud exit=0 errors=0 wall=4s marker=GAMEPLAY_HUD_OK 
+test_map_prep_determinism exit=0 errors=0 wall=6s marker=MAP_PREP_DETERMINISM_OK 
+test_fall_damage exit=0 errors=0 wall=61s marker=FALL_DAMAGE_OK 
+test_disaster_combinations exit=0 errors=0 wall=13s marker=DISASTER_COMBINATIONS_OK 
+test_terrain_collapse_routes exit=0 errors=0 wall=124s marker=TERRAIN_COLLAPSE_ROUTES_OK 
+END 2026-11-26 11:33:45

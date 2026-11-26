@@ -1,0 +1,12 @@
+2026-11-26 11:34:09 ICT START A=e4d6173 B=f395fe8
+IMPORT_OK attempts=1
+IMPORT_OK attempts=1
+2026-11-26 11:35:53 ICT capture A exit=0 32 shots
+2026-11-26 11:36:43 ICT capture B exit=0 4 shots
+2026-11-26 11:38:04 ICT START A=e521cb3 B=f395fe8
+IMPORT_OK attempts=1
+IMPORT_OK attempts=1
+2026-11-26 11:39:35 ICT capture A exit=0 32 shots
+2026-11-26 11:40:22 ICT capture B exit=0 4 shots
+2026-11-26 11:57:12 ICT PERF_DONE
+2026-11-26 11:57:12 ICT END

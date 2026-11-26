@@ -1,0 +1,30 @@
+T47_LAVA label=B1 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B1 avg_ms=215.21 p95_ms=229.81 max_ms=247.81 draw_calls=2409 primitives=755421
+T47_LAVA label=A1 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A1 avg_ms=214.71 p95_ms=232.33 max_ms=238.43 draw_calls=2425 primitives=792587
+T47_LAVA label=B2 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B2 avg_ms=222.33 p95_ms=237.29 max_ms=248.19 draw_calls=2407 primitives=754845
+T47_LAVA label=A2 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A2 avg_ms=225.86 p95_ms=249.06 max_ms=259.81 draw_calls=2425 primitives=792587
+T47_LAVA label=B3 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B3 avg_ms=233.02 p95_ms=254.93 max_ms=259.49 draw_calls=2407 primitives=754845
+T47_LAVA label=A3 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A3 avg_ms=242.12 p95_ms=266.25 max_ms=291.91 draw_calls=2425 primitives=792587
+T47_LAVA label=B4 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B4 avg_ms=230.86 p95_ms=240.94 max_ms=253.13 draw_calls=2407 primitives=754845
+T47_LAVA label=A4 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A4 avg_ms=237.76 p95_ms=266.16 max_ms=319.51 draw_calls=2425 primitives=792587
+T47_LAVA label=B5 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B5 avg_ms=219.48 p95_ms=237.54 max_ms=254.29 draw_calls=2407 primitives=754845
+T47_LAVA label=A5 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A5 avg_ms=216.28 p95_ms=231.45 max_ms=257.67 draw_calls=2425 primitives=792587
+T47_LAVA label=B6 started=true flow_heat=20.0 vent=(0.0, 0.12, 0.0) tiles=plane
+PERF_4P label=B6 avg_ms=234.98 p95_ms=253.78 max_ms=271.43 draw_calls=2407 primitives=754845
+T47_LAVA label=A6 started=true flow_heat=45.5 vent=(32.0, 0.026667, 58.0) tiles=18803
+PERF_4P label=A6 avg_ms=225.09 p95_ms=238.88 max_ms=260.29 draw_calls=2425 primitives=792587
+T47_LAVA label=Az1 started=true flow_heat=20.0 vent=(32.0, 0.026667, 58.0) tiles=0
+PERF_4P label=Az1 avg_ms=219.35 p95_ms=234.62 max_ms=246.09 draw_calls=2426 primitives=755541
+T47_LAVA label=Az2 started=true flow_heat=20.0 vent=(32.0, 0.026667, 58.0) tiles=0
+PERF_4P label=Az2 avg_ms=220.18 p95_ms=236.15 max_ms=252.11 draw_calls=2424 primitives=754965
+T47_LAVA label=Az3 started=true flow_heat=20.0 vent=(32.0, 0.026667, 58.0) tiles=0
+PERF_4P label=Az3 avg_ms=222.62 p95_ms=238.15 max_ms=280.07 draw_calls=2424 primitives=754965

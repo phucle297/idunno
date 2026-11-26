@@ -1,0 +1,5 @@
+START 2026-11-26 10:55:07 head=f395fe8 dirty=7
+IMPORT_OK attempts=1
+test_lava_zones exit=1 errors=3 wall=6s marker=NONE
+test_volcano exit=0 errors=0 wall=76s marker=VOLCANO_OK 
+END 2026-11-26 10:56:38
