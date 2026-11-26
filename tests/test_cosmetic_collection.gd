@@ -64,6 +64,7 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 		await _capture(outfit)
+	await _check_suit_colours(ui)
 	ui.select_outfit("plain")
 	ui.equip_button.pressed.emit() # Leave ordinary tests/users on default starter.
 	ui.dismiss()
@@ -114,6 +115,9 @@ func _run() -> void:
 	main._receive_reward_notice(1, {"reason": "earned"})
 	_expect(main.collection.reward_text.contains("120 seconds"), "Repeated same-round notice cannot replace saved reason")
 	await _capture("results-no-drop")
+	var lobby_only_colour: int = main.get_suit_colour()
+	main.request_suit_colour((lobby_only_colour + 1) % ToyCharacterVisual.SUIT_COLORS.size())
+	_expect(main.get_suit_colour() == lobby_only_colour, "T51: colour cannot change outside the lobby")
 	main.gameplay_audio.reset_for_match()
 	main.free()
 	await process_frame
@@ -124,6 +128,95 @@ func _run() -> void:
 		for failure: String in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _suit_material(visual: ToyCharacterVisual) -> Material:
+	return (visual.get_node("Torso") as MeshInstance3D).material_override
+
+
+func _face_untouched(visual: ToyCharacterVisual) -> bool:
+	var face := visual.find_child("FaceCream", true, false) as MeshInstance3D
+	if face == null:
+		return false
+	var suit := _suit_material(visual)
+	if face.material_override == suit:
+		return false
+	for surface: int in face.get_surface_override_material_count():
+		if face.get_surface_override_material(surface) == suit:
+			return false
+	return true
+
+
+func _head_accessories_carry_suit(visual: ToyCharacterVisual) -> bool:
+	var suit := _suit_material(visual)
+	for accessory: MeshInstance3D in visual.get_node("Accessories").get_children():
+		if accessory.get_meta("body") == "Head" and accessory.get_surface_override_material(0) != suit:
+			return false
+	return true
+
+
+func _check_suit_colours(ui: Control) -> void:
+	# T51 AC1-AC3: swatches, local pick, preview + avatar colour, face untouched, 4P rule.
+	var avatar: ToyCharacterVisual = main.get_node("Player").character
+	_expect(ui.colour_buttons.size() == ToyCharacterVisual.SUIT_COLORS.size(), "T51: one swatch per existing suit colour")
+	var colours_match := true
+	for index: int in ui.colour_buttons.size():
+		var box := ui.colour_buttons[index].get_theme_stylebox("normal") as StyleBoxFlat
+		colours_match = colours_match and box != null and box.bg_color == ToyCharacterVisual.SUIT_COLORS[index]
+	_expect(colours_match, "T51: swatch colours equal SUIT_COLORS")
+	_expect(main.get_suit_colour() == 0 and ui.colour_current == 0, "T51: solo default stays colour 0")
+	for pick: int in [3, 1]:
+		ui.colour_buttons[pick].pressed.emit()
+		await process_frame
+		_expect(main.get_suit_colour() == pick and ui.colour_current == pick and ui.colour_buttons[pick].text == "✓", "T51: swatch pick %d acknowledged" % pick)
+		var expected: Color = (ToyCharacterVisual.SUIT_COLORS[pick] as Color).lerp(ToyCharacterVisual.SUIT_SOFTEN, 0.28)
+		_expect((_suit_material(avatar) as StandardMaterial3D).albedo_color == expected and _suit_material(ui.preview) == _suit_material(avatar), "T51: preview and avatar show colour %d" % pick)
+		_expect(_face_untouched(avatar) and _face_untouched(ui.preview), "T51: suit colour %d does not paint FaceCream" % pick)
+		main.home_screen.refresh()
+		_expect(_suit_material(main.home_screen.preview) == _suit_material(avatar), "T51: home preview follows colour %d" % pick)
+		await _capture("colour-c%d" % pick)
+	var colour_a := _suit_material(avatar)
+	main.request_outfit("cap")
+	_expect(_suit_material(avatar) == colour_a and _head_accessories_carry_suit(avatar), "T51: colour then outfit keeps colour on head accessories")
+	main.request_suit_colour(4)
+	_expect(main.get_suit_colour() == 4 and _head_accessories_carry_suit(avatar) and main.get_outfit_id() == "cap", "T51: outfit then colour keeps outfit, accessories recoloured")
+	# 4P: ids that collide under peer_id - 1 (mod 6) still get distinct defaults.
+	var ids: Array[int] = [2, 3141592, 987654321]
+	for index: int in ids.size():
+		main._add_gameplay_demo_player(ids[index], "Demo %d" % index, Vector3(3 * index + 3, 0, 3))
+	var four: Array[int] = []
+	for peer: int in [1] + ids:
+		if not main.get_suit_colour(peer) in four:
+			four.append(main.get_suit_colour(peer))
+	_expect(four.size() == 4, "T51: four players get four distinct colours (%s)" % str(four))
+	var replies: Array[String] = []
+	var on_reply := func(_colour: int, error: String) -> void: replies.append(error)
+	main.suit_colour_replied.connect(on_reply)
+	var held: int = main.get_suit_colour(ids[0])
+	var before: int = main.get_suit_colour()
+	main.request_suit_colour(held)
+	_expect(replies.back() == "colour_taken" and main.get_suit_colour() == before, "T51: taken colour rejected, nothing changes")
+	_expect(ui.colour_buttons[held].disabled, "T51: taken swatch is disabled")
+	var free_colour := 0
+	while free_colour in four:
+		free_colour += 1
+	main.request_suit_colour(free_colour)
+	_expect(replies.back() == "" and main.get_suit_colour() == free_colour, "T51: free colour accepted")
+	var extra: Array[int] = [11, 12, 13]
+	for index: int in extra.size():
+		main._add_gameplay_demo_player(extra[index], "Extra %d" % index, Vector3(3 * index + 3, 0, 6))
+	main.request_suit_colour(main.get_suit_colour(ids[1]))
+	_expect(replies.back() == "" and main.get_suit_colour() == main.get_suit_colour(ids[1]), "T51: with 7 players sharing is allowed")
+	var freed: int = main.get_suit_colour(ids[2])
+	for peer: int in ids + extra:
+		main._remove_network_player(peer)
+		main.match_manager.unregister_player(peer)
+	main.request_suit_colour(freed)
+	_expect(replies.back() == "" and main.get_suit_colour() == freed, "T51: colour freed on disconnect is reusable")
+	main.suit_colour_replied.disconnect(on_reply)
+	main.request_suit_colour(0)
+	main.request_outfit("plain")
+	_expect(main.get_suit_colour() == 0, "T51: restored default colour")
 
 
 func _capture(state: String) -> void:
