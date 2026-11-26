@@ -1,0 +1,25 @@
+# Frozen re-hash T46 A1
+HEAD=a42ff032f6994362122979781542155d4a618d6f (uncommitted); base a42ff032; freeze-ref f395fe84
+
+## vs a42ff032 (PR base) — all files
+ assets/generated/CHR_Base_v001.tscn       | 3 +--
+ tools/asset_generation/generate_assets.gd | 7 ++++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+## vs f395fe84 — Architect frozen list
+IDENTICAL f395fe84  game/player/toy_character_visual.gd
+IDENTICAL a42ff032  game/player/toy_character_visual.gd
+IDENTICAL f395fe84  game/ui/home_screen.gd
+IDENTICAL a42ff032  game/ui/home_screen.gd
+IDENTICAL f395fe84  game/ui/home_town_stage.gd
+IDENTICAL a42ff032  game/ui/home_town_stage.gd
+IDENTICAL f395fe84  project.godot
+IDENTICAL a42ff032  project.godot
+IDENTICAL f395fe84  assets/models/critter/materials/MAT_Critter_Cream_v002.tres
+IDENTICAL a42ff032  assets/models/critter/materials/MAT_Critter_Cream_v002.tres
+IDENTICAL f395fe84  assets/models/critter/materials/MAT_Critter_Face_v002.tres
+IDENTICAL a42ff032  assets/models/critter/materials/MAT_Critter_Face_v002.tres
+
+## vs a42ff032 — should only be whitelist
+assets/generated/CHR_Base_v001.tscn
+tools/asset_generation/generate_assets.gd

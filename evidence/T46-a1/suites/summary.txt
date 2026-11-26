@@ -1,0 +1,3 @@
+test_critter_asset        exit=0  CRITTER_ASSET_OK checks=226
+test_character_animation  exit=0  CHARACTER_ANIMATION_OK checks=292
+test_phase1               exit=0  PHASE1_TESTS_OK checks=1273

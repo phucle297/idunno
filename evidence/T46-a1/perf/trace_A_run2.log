@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+INDOOR_LIGHTING mode=trace renderer=gl_compatibility adapter=llvmpipe (LLVM 19.1.7, 256 bits)
+INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1295, "avg": 370.5, "p95": 361.98, "max": 179281.03 } town_roof={ "frames": 180, "max_frame": 125, "avg": 267.23, "p95": 307.91, "max": 356.55 }
+INDOOR_LIGHTING_OK

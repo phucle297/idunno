@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" path="res://assets/characters/kaykit_adventurers/Rogue_Hooded.glb" id="2_hptll"]
 [ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Suit_v002.tres" id="3_snyyb"]
 [ext_resource type="Texture2D" path="res://assets/characters/kaykit_adventurers/Rogue_Hooded_rogue_texture.png" id="4_nhp6g"]
-[ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Face_v002.tres" id="5_qkd2v"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Ellipsoid.res" id="6_5rirf"]
 [ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Bead_v002.tres" id="7_0oxxo"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Bead.res" id="8_brqdr"]
@@ -16670,7 +16669,7 @@ bone_name = "head"
 
 [node name="FaceCream" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
 transform = Transform3D(0.62, 0, 0, 0, 0.52, 0, 0, 0, 0.34, 0, 0.3785746, 0.54)
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("6_5rirf")
 
 [node name="EyeBeadL" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]

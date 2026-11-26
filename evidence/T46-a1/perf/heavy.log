@@ -1,0 +1,42 @@
+2026-11-26 16:27:34 ICT HEAVY start A=ebc5a415a9c1f7376a6078fe85ff7dff594a8a4c B=a42ff032f6994362122979781542155d4a618d6f
+2026-11-26 16:27:34 ICT 4P start B run1
+2026-11-26 16:28:43 ICT 4P B run1 ec=1 PERF_4P label=B1 avg_ms=239.14 p95_ms=265.56 max_ms=307.58 draw_calls=2368 primitives=754487
+2026-11-26 16:28:43 ICT 4P start A run1
+2026-11-26 16:29:52 ICT 4P A run1 ec=1 PERF_4P label=A1 avg_ms=240.88 p95_ms=275.21 max_ms=370.33 draw_calls=2368 primitives=754487
+2026-11-26 16:29:52 ICT 4P start A run2
+2026-11-26 16:31:03 ICT 4P A run2 ec=1 PERF_4P label=A2 avg_ms=240.32 p95_ms=264.02 max_ms=304.81 draw_calls=2368 primitives=754487
+2026-11-26 16:31:03 ICT 4P start B run2
+2026-11-26 16:32:13 ICT 4P B run2 ec=1 PERF_4P label=B2 avg_ms=251.78 p95_ms=311.30 max_ms=324.24 draw_calls=2368 primitives=754487
+2026-11-26 16:32:13 ICT 4P start B run3
+2026-11-26 16:33:23 ICT 4P B run3 ec=1 PERF_4P label=B3 avg_ms=253.54 p95_ms=292.48 max_ms=339.43 draw_calls=2368 primitives=754487
+2026-11-26 16:33:23 ICT 4P start A run3
+2026-11-26 16:34:33 ICT 4P A run3 ec=1 PERF_4P label=A3 avg_ms=245.05 p95_ms=262.10 max_ms=305.52 draw_calls=2368 primitives=754487
+2026-11-26 16:34:33 ICT 4P start A run4
+2026-11-26 16:35:40 ICT 4P A run4 ec=1 PERF_4P label=A4 avg_ms=234.39 p95_ms=260.21 max_ms=297.68 draw_calls=2368 primitives=754487
+2026-11-26 16:35:40 ICT 4P start B run4
+2026-11-26 16:36:50 ICT 4P B run4 ec=1 PERF_4P label=B4 avg_ms=242.11 p95_ms=272.94 max_ms=296.11 draw_calls=2368 primitives=754487
+2026-11-26 16:36:50 ICT 4P start B run5
+2026-11-26 16:37:58 ICT 4P B run5 ec=1 PERF_4P label=B5 avg_ms=240.97 p95_ms=261.17 max_ms=318.91 draw_calls=2368 primitives=754487
+2026-11-26 16:37:58 ICT 4P start A run5
+2026-11-26 16:39:11 ICT 4P A run5 ec=1 PERF_4P label=A5 avg_ms=256.94 p95_ms=285.07 max_ms=329.45 draw_calls=2368 primitives=754487
+2026-11-26 16:39:11 ICT 4P start A run6
+2026-11-26 16:40:18 ICT 4P A run6 ec=1 PERF_4P label=A6 avg_ms=236.34 p95_ms=260.98 max_ms=340.62 draw_calls=2370 primitives=755063
+2026-11-26 16:40:18 ICT 4P start B run6
+2026-11-26 16:41:30 ICT 4P B run6 ec=1 PERF_4P label=B6 avg_ms=263.80 p95_ms=301.36 max_ms=367.52 draw_calls=2370 primitives=755063
+2026-11-26 16:41:30 ICT 4P_DONE
+2026-11-26 16:41:30 ICT TRACE start B run1
+2026-11-26 17:00:19 ICT TRACE B run1 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 2339, "avg": 392.42, "p95": 358.77, "max": 431120.93 }
+2026-11-26 17:00:19 ICT TRACE start A run1
+2026-11-26 18:07:42 ICT TRACE A run1 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 676, "avg": 723.64, "p95": 368.53, "max": 467341.51 }
+2026-11-26 18:07:42 ICT TRACE start A run2
+2026-11-26 18:55:07 ICT TRACE A run2 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 1295, "avg": 370.5, "p95": 361.98, "max": 179281.03 }
+2026-11-26 18:55:07 ICT TRACE start B run2
+2026-11-26 19:14:06 ICT TRACE B run2 no INDOOR_TRACE, retry once
+2026-11-26 20:15:28 ICT TRACE B run2 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 842, "avg": 508.27, "p95": 363.52, "max": 225578.58 }
+2026-11-26 20:15:28 ICT TRACE start B run3
+2026-11-26 21:04:55 ICT TRACE B run3 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 717, "avg": 346.63, "p95": 356.03, "max": 140927.97 }
+2026-11-26 21:04:55 ICT TRACE start A run3
+2026-11-26 21:58:14 ICT TRACE A run3 no INDOOR_TRACE, retry once
+2026-11-26 22:58:58 ICT TRACE A run3 INDOOR_TRACE overall={ "frames": 2700, "max_frame": 250, "avg": 327.29, "p95": 350.19, "max": 145310.15 }
+2026-11-26 22:58:58 ICT TRACE_DONE
+2026-11-26 22:58:58 ICT HEAVY done

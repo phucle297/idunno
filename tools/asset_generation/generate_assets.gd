@@ -128,13 +128,14 @@ func _generate_character(_materials: Dictionary) -> void:
 	root.set_meta("head_bottom_y", hood_aabb.position.y)
 	root.set_meta("source_glb", KAYKIT_GLB)
 
-	# A4 concept-sheet face on the head bone: flat unshaded grey plate (the sheet's lit
-	# look), big bead eyes with one highlight each and a tiny mouth dot; no blush.
+	# T46 F1: FaceCream uses the existing shaded cream (MAT_Critter_Cream_v002, same as
+	# paws/feet) so the plate reads as a lit face, not a flat unshaded grey mask.
+	# Big bead eyes with one highlight each and a tiny mouth dot; no blush.
 	# All face parts sit +0.08 outward (spike z -0.46/-0.61/-0.665/-0.625 -> -0.54/-0.69/-0.745/-0.705)
 	# so the plate clears the open hood rim.
 	var head_origin := skeleton.get_bone_global_rest(skeleton.find_bone("head")).origin
 	var face := _bone_attachment(skeleton, root, "FaceAnchor", "head")
-	_part(face, root, "FaceCream", "Ellipsoid", _spike_to_bone(Vector3(0, 1.62, -0.54), head_origin), Vector3(0.62, 0.52, 0.34), mat.Face)
+	_part(face, root, "FaceCream", "Ellipsoid", _spike_to_bone(Vector3(0, 1.62, -0.54), head_origin), Vector3(0.62, 0.52, 0.34), mat.Cream)
 	for sx in [-1.0, 1.0]:
 		var tag := "L" if sx < 0.0 else "R"
 		_part(face, root, "EyeBead" + tag, "Bead", _spike_to_bone(Vector3(sx * 0.165, 1.66, -0.69), head_origin), Vector3(0.15, 0.17, 0.09), mat.Bead)

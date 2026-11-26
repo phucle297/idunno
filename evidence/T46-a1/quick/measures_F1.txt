@@ -1,0 +1,2 @@
+MAT path_or_albedo=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres emission=(244,220,194) e=0.320 shading=1
+GAME F1 close_frontlit bear o0 c0 face=(132,136,128) L=134.6 hood=(54,134,156) L=118.4 ratio=1.14 grad=136.5 eyes=true mouth=true paw=(255,253,224) L=251.4 dPaw=123.0 belly=(217,213,189) L=212.0 dBelly=85.1 albedo_eq=true face_px=640,307
