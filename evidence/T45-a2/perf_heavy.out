@@ -1,0 +1,12 @@
+HEAVY start 08:35:21 UTC A=f432e8a+wt B=f432e8a679880ff8ea2cc39abbfc2d596f8f07f8
+capture A ec=0
+capture B ec=0
+vis A ec=0
+vis B ec=0
+moving B run1 ec=0 PERF_4P label=B1 avg_ms=202.11 p95_ms=213.82 max_ms=221.31 draw_calls=2370 primitives=755063
+moving A run1 ec=0 PERF_4P label=A1 avg_ms=209.00 p95_ms=228.04 max_ms=247.46 draw_calls=2368 primitives=754487
+moving A run2 ec=0 PERF_4P label=A2 avg_ms=200.06 p95_ms=213.37 max_ms=236.55 draw_calls=2368 primitives=754487
+moving B run2 ec=0 PERF_4P label=B2 avg_ms=198.63 p95_ms=216.62 max_ms=224.30 draw_calls=2368 primitives=754487
+moving B run3 ec=0 PERF_4P label=B3 avg_ms=199.34 p95_ms=222.11 max_ms=241.74 draw_calls=2368 primitives=754487
+moving A run3 ec=0 PERF_4P label=A3 avg_ms=206.41 p95_ms=224.16 max_ms=231.84 draw_calls=2368 primitives=754487
+HEAVY done 08:46:49 UTC

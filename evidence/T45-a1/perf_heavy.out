@@ -1,0 +1,18 @@
+HEAVY start 2026-11-26 06:09:11 ICT A=871dca9f98e956f3e7841c7c3f1cdaf4a8623b76 B=77b7ae296e7634108352d79d06fcf5cacf4152f9
+capture A ec=0
+capture B ec=0
+micro A ec=0
+micro B ec=0
+moving B run1 ec=0 PERF_4P label=B1 avg_ms=199.83 p95_ms=213.23 max_ms=234.84 draw_calls=2366 primitives=753327
+moving A run1 ec=0 PERF_4P label=A1 avg_ms=208.14 p95_ms=233.00 max_ms=260.06 draw_calls=2368 primitives=754487
+moving A run2 ec=0 PERF_4P label=A2 avg_ms=224.73 p95_ms=247.49 max_ms=419.38 draw_calls=2368 primitives=754487
+moving B run2 ec=0 PERF_4P label=B2 avg_ms=204.34 p95_ms=216.21 max_ms=233.38 draw_calls=2366 primitives=753327
+moving B run3 ec=0 PERF_4P label=B3 avg_ms=197.04 p95_ms=212.85 max_ms=216.94 draw_calls=2368 primitives=753903
+moving A run3 ec=0 PERF_4P label=A3 avg_ms=194.20 p95_ms=207.68 max_ms=226.52 draw_calls=2368 primitives=754487
+moving A run4 ec=0 PERF_4P label=A4 avg_ms=198.61 p95_ms=212.22 max_ms=218.41 draw_calls=2368 primitives=754487
+moving B run4 ec=0 PERF_4P label=B4 avg_ms=222.39 p95_ms=242.75 max_ms=357.99 draw_calls=2366 primitives=753327
+moving B run5 ec=0 PERF_4P label=B5 avg_ms=307.86 p95_ms=237.22 max_ms=8051.80 draw_calls=2366 primitives=753327
+moving A run5 ec=0 PERF_4P label=A5 avg_ms=215.38 p95_ms=242.47 max_ms=356.16 draw_calls=2368 primitives=754487
+moving A run6 ec=0 PERF_4P label=A6 avg_ms=201.33 p95_ms=214.29 max_ms=234.05 draw_calls=2368 primitives=754487
+moving B run6 ec=0 PERF_4P label=B6 avg_ms=201.07 p95_ms=219.03 max_ms=232.68 draw_calls=2368 primitives=753903
+HEAVY done 2026-11-26 06:27:56 ICT

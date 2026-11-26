@@ -29,6 +29,19 @@ const BONE_MAP := {
 }
 ## Arms hang from the KayKit T-pose (model-space roll about Z per side).
 const ARM_DOWN_ANGLE := 1.2217305
+## T45 arm overlay (code only, idle/walk/run): relaxed rest pose (A) plus counter-phase
+## swing vs the A3 gait (B). Other clips, and the right arm while an item is held,
+## ease back to the legacy proxy pose exactly.
+const ARM_RELAX_ABDUCTION := 0.21
+const ARM_RELAX_ELBOW := 0.38
+const ARM_RELAX_PITCH := 0.10
+const ARM_SWING_WALK := 0.30
+const ARM_SWING_RUN := 0.52
+const ARM_RELAX_EASE := 0.12
+const ARM_RELAX_CLIPS := ["idle", "walk", "run"]
+const ARM_ELBOW_AXIS := Vector3.BACK
+const ARM_ELBOW_SIGN_L := -1.0
+const ARM_ELBOW_SIGN_R := 1.0
 ## Plop-toddle waddle (AC12): whole-body side roll about the planted foot plus a
 ## small bob; arms and legs never swing.
 const WADDLE_CYCLE_M := 1.8
@@ -74,6 +87,15 @@ var _hips_q := Quaternion.IDENTITY
 var _step_half := STEP_HALF
 var _legs_posed := false
 var _suit_current: Material
+var _item_held := false
+var _arm_weight_l := 0.0
+var _arm_weight_r := 0.0
+var _arm_swing := 0.0
+var _lowerarm_l := -1
+var _lowerarm_r := -1
+var _lowerarm_rest_l := Quaternion.IDENTITY
+var _lowerarm_rest_r := Quaternion.IDENTITY
+var _elbow_posed := false
 
 
 static func catalog() -> Dictionary:
@@ -176,6 +198,12 @@ func _bind_rig() -> void:
 		_chain_from_chest[proxy] = under_chest
 		_chain_q[proxy] = (_rig.get_bone_global_rest(chest).basis.get_rotation_quaternion().inverse() * parent_q) if under_chest else parent_q
 	_accessories = get_node_or_null("Accessories") as Node3D
+	_lowerarm_l = _rig.find_bone("lowerarm.l")
+	_lowerarm_r = _rig.find_bone("lowerarm.r")
+	if _lowerarm_l >= 0:
+		_lowerarm_rest_l = _rig.get_bone_rest(_lowerarm_l).basis.get_rotation_quaternion()
+	if _lowerarm_r >= 0:
+		_lowerarm_rest_r = _rig.get_bone_rest(_lowerarm_r).basis.get_rotation_quaternion()
 	_bind_legs()
 
 
@@ -321,15 +349,32 @@ func sync_rig(delta := 0.0) -> void:
 	var flip := Quaternion(Vector3.UP, PI)
 	var chest_global := Quaternion.IDENTITY
 	var stepping := _waddle_weight > 0.0 and not _legs.is_empty()
+	# T45 arm overlay weights (0.12 s ease) and the signed counter-phase swing.
+	var relax_clip := current_clip in ARM_RELAX_CLIPS
+	if delta > 0.0:
+		_arm_weight_l = move_toward(_arm_weight_l, 1.0 if relax_clip else 0.0, delta / ARM_RELAX_EASE)
+		_arm_weight_r = move_toward(_arm_weight_r, 1.0 if relax_clip and not _item_held else 0.0, delta / ARM_RELAX_EASE)
+	var swing_blend := clampf(inverse_lerp(Tuning.WALK_SPEED, Tuning.SPRINT_SPEED, _speed), 0.0, 1.0)
+	_arm_swing = lerpf(ARM_SWING_WALK, ARM_SWING_RUN, swing_blend) * clampf(_speed / Tuning.WALK_SPEED, 0.0, 1.0) * _waddle_weight * cos(TAU * _waddle_phase) if _waddle_weight > 0.0 else 0.0
 	for proxy: String in ["Torso", "Head", "LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
 		if stepping and proxy.ends_with("Leg"):
 			continue
 		var root_q := (_proxies[proxy] as Node3D).basis.get_rotation_quaternion()
 		var global_q: Quaternion = flip * root_q * flip * _rest_q[proxy]
+		if proxy == "LeftArm" and _arm_weight_l > 0.0:
+			global_q = _arm_overlay_q(-1.0, _arm_weight_l, root_q, flip, _rest_q[proxy])
+		elif proxy == "RightArm" and _arm_weight_r > 0.0:
+			global_q = _arm_overlay_q(1.0, _arm_weight_r, root_q, flip, _rest_q[proxy])
 		var parent_q: Quaternion = (chest_global * _chain_q[proxy]) if _chain_from_chest[proxy] else _chain_q[proxy]
 		_rig.set_bone_pose_rotation(_bone_ids[proxy], (parent_q.inverse() * global_q).normalized())
 		if proxy == "Torso":
 			chest_global = global_q
+	if _arm_weight_l > 0.0 or _arm_weight_r > 0.0 or _elbow_posed:
+		if _lowerarm_l >= 0:
+			_rig.set_bone_pose_rotation(_lowerarm_l, _lowerarm_rest_l * Quaternion(ARM_ELBOW_AXIS, ARM_ELBOW_SIGN_L * ARM_RELAX_ELBOW * _arm_weight_l))
+		if _lowerarm_r >= 0:
+			_rig.set_bone_pose_rotation(_lowerarm_r, _lowerarm_rest_r * Quaternion(ARM_ELBOW_AXIS, ARM_ELBOW_SIGN_R * ARM_RELAX_ELBOW * _arm_weight_r))
+		_elbow_posed = _arm_weight_l > 0.0 or _arm_weight_r > 0.0
 	if stepping:
 		var model_roll := flip * _waddle.basis.get_rotation_quaternion() * flip
 		var model_inverse := (_waddle * MODEL_BASE).affine_inverse()
@@ -345,6 +390,36 @@ func sync_rig(delta := 0.0) -> void:
 	var anchor := get_hand_anchor()
 	if anchor != null and _handslot >= 0:
 		anchor.global_transform = _rig.global_transform * _rig.get_bone_global_pose(_handslot)
+
+
+## Relaxed + swinging upper-arm global rotation (model space). side +1 = right arm.
+## The right arm swings with sin(TAU * phase) (forward as the LEFT foot lands at 0.25),
+## the left arm opposite. Pitch is a root-space proxy rotation.x (+ = hand toward -Z).
+func _arm_overlay_q(side: float, weight: float, root_q: Quaternion, flip: Quaternion, rest_q: Quaternion) -> Quaternion:
+	var pitch := (ARM_RELAX_PITCH + side * _arm_swing) * weight
+	var abduct := Quaternion(Vector3.BACK, -side * ARM_RELAX_ABDUCTION * weight)
+	return flip * Quaternion(Vector3.RIGHT, pitch) * root_q * flip * abduct * rest_q
+
+
+## T45: true while this character holds an item (right arm keeps the legacy pose so the
+## HandAnchor / held item stays where it was before T45).
+func set_item_held(held: bool) -> void:
+	_item_held = held
+
+
+func is_item_held() -> bool:
+	return _item_held
+
+
+## Read-only arm overlay state for tests/evidence (radians and weights).
+func get_arm_overlay_debug() -> Dictionary:
+	return {
+		"weight_l": _arm_weight_l, "weight_r": _arm_weight_r, "swing": _arm_swing,
+		"pitch_l": (ARM_RELAX_PITCH - _arm_swing) * _arm_weight_l, "pitch_r": (ARM_RELAX_PITCH + _arm_swing) * _arm_weight_r,
+		"swing_l": -_arm_swing * _arm_weight_l, "swing_r": _arm_swing * _arm_weight_r,
+		"elbow_l": ARM_RELAX_ELBOW * _arm_weight_l, "elbow_r": ARM_RELAX_ELBOW * _arm_weight_r,
+		"abduction_l": ARM_RELAX_ABDUCTION * _arm_weight_l, "abduction_r": ARM_RELAX_ABDUCTION * _arm_weight_r,
+	}
 
 
 func set_cosmetic_variant(variant: int) -> void:

@@ -1,0 +1,63 @@
+outdoor_spot=(0.0, 0.0, 2.0)
+lineup_o00_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o00_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o01_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o01_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o02_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o02_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o03_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o03_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o04_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o04_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o05_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o05_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o06_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o06_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o07_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o07_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o08_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o08_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o09_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o09_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o10_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o10_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+lineup_o11_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+lineup_o11_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+4p_colours_idle_front 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+4p_colours_idle_3q 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.310149, 0.337555, -0.112219)
+4p_colours_idle_side 1280x720 spring_hit=6.00 fov=65 clip=idle anchor_local=(0.31015, 0.337555, -0.112219)
+closeup_bear_idle_front 1280x720
+closeup_bear_idle_3q 1280x720
+closeup_bear_idle_rear 1280x720
+closeup_bear_run_front 1280x720
+closeup_bear_run_3q 1280x720
+closeup_bear_run_rear 1280x720
+closeup_bear_hold_front 1280x720
+closeup_bear_hold_3q 1280x720
+closeup_bear_hold_rear 1280x720
+closeup_cat_idle_front 1280x720
+closeup_cat_idle_3q 1280x720
+closeup_bunny_idle_front 1280x720
+closeup_bunny_idle_3q 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+tmp_patch 1280x720
+strip_run frame=0 phase=0.00 anchor_local=(0.31015, 0.460653, -0.293231)
+strip_run frame=1 phase=0.10 anchor_local=(0.264076, 0.464348, -0.269011)
+strip_run frame=2 phase=0.20 anchor_local=(0.243269, 0.404276, -0.194117)
+strip_run frame=3 phase=0.30 anchor_local=(0.250297, 0.362326, -0.084909)
+strip_run frame=4 phase=0.40 anchor_local=(0.275195, 0.35635, 0.00974)
+strip_run frame=5 phase=0.50 anchor_local=(0.31015, 0.32856, 0.04592)
+strip_run frame=6 phase=0.60 anchor_local=(0.341843, 0.292826, 0.00974)
+strip_run frame=7 phase=0.70 anchor_local=(0.361476, 0.259834, -0.084909)
+strip_run frame=8 phase=0.80 anchor_local=(0.368504, 0.301785, -0.194117)
+strip_run frame=9 phase=0.90 anchor_local=(0.352962, 0.400824, -0.269011)

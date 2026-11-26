@@ -1,0 +1,14 @@
+T45 A2 cream match: mean lit colour over the paw (Mitten) and bootie (Bootie) visible-pixel masks, front view, idle, 1280x720, camera 1.7 m fov 50; albedo = material_override albedo
+outfit=00 bear | Mitten px=6070 mean=(151,152,144) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=17.3
+outfit=01 cat | Mitten px=6074 mean=(150,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=15.9
+outfit=02 bunny | Mitten px=6075 mean=(149,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=14.7
+outfit=03 bear | Mitten px=6071 mean=(151,152,144) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=17.3
+outfit=04 cat | Mitten px=6073 mean=(150,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=15.9
+outfit=05 bunny | Mitten px=6075 mean=(149,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=14.7
+outfit=06 bear | Mitten px=6072 mean=(151,152,144) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=17.3
+outfit=07 cat | Mitten px=6070 mean=(150,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=15.9
+outfit=08 bunny | Mitten px=6074 mean=(149,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=14.7
+outfit=09 bear | Mitten px=6072 mean=(151,152,144) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=17.3
+outfit=10 cat | Mitten px=6072 mean=(150,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=15.9
+outfit=11 bunny | Mitten px=6073 mean=(149,150,142) albedo=#f4dcc2 | Bootie px=1149 mean=(134,136,131) albedo=#f4dcc2 | max_channel_diff=14.7
+WORST max_channel_diff=17.3 (gate <= 25)
