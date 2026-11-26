@@ -4,12 +4,12 @@
 [ext_resource type="PackedScene" path="res://assets/characters/kaykit_adventurers/Rogue_Hooded.glb" id="2_hptll"]
 [ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Suit_v002.tres" id="3_snyyb"]
 [ext_resource type="Texture2D" path="res://assets/characters/kaykit_adventurers/Rogue_Hooded_rogue_texture.png" id="4_nhp6g"]
-[ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres" id="5_qkd2v"]
+[ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Face_v002.tres" id="5_qkd2v"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Ellipsoid.res" id="6_5rirf"]
 [ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Bead_v002.tres" id="7_0oxxo"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Bead.res" id="8_brqdr"]
 [ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Shine_v002.tres" id="9_fpc6q"]
-[ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Blush_v002.tres" id="10_uq7u7"]
+[ext_resource type="Material" path="res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres" id="10_uq7u7"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Mitten.res" id="11_rnau3"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Proxy.res" id="12_s0dfa"]
 [ext_resource type="ArrayMesh" path="res://assets/models/critter/parts/Ears_00.res" id="13_ihvav"]
@@ -16669,42 +16669,32 @@ skeleton = NodePath("..")
 bone_name = "head"
 
 [node name="FaceCream" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.62, 0, 0, 0, 0.52, 0, 0, 0, 0.34, 0, 0.3785746, 0.46)
+transform = Transform3D(0.62, 0, 0, 0, 0.52, 0, 0, 0, 0.34, 0, 0.3785746, 0.54)
 material_override = ExtResource("5_qkd2v")
 mesh = ExtResource("6_5rirf")
 
 [node name="EyeBeadL" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.15, 0, 0, 0, 0.17, 0, 0, 0, 0.09, 0.165, 0.41857457, 0.61)
+transform = Transform3D(0.15, 0, 0, 0, 0.17, 0, 0, 0, 0.09, 0.165, 0.41857457, 0.69)
 material_override = ExtResource("7_0oxxo")
 mesh = ExtResource("8_brqdr")
 
 [node name="EyeShineL" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.045, 0, 0, 0, 0.045, 0, 0, 0, 0.03, 0.13, 0.46357465, 0.665)
+transform = Transform3D(0.045, 0, 0, 0, 0.045, 0, 0, 0, 0.03, 0.13, 0.46357465, 0.745)
 material_override = ExtResource("9_fpc6q")
 mesh = ExtResource("8_brqdr")
 
-[node name="BlushL" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.11, 0, 0, 0, 0.06, 0, 0, 0, 0.04, 0.255, 0.31357455, 0.575)
-material_override = ExtResource("10_uq7u7")
-mesh = ExtResource("8_brqdr")
-
 [node name="EyeBeadR" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.15, 0, 0, 0, 0.17, 0, 0, 0, 0.09, -0.165, 0.41857457, 0.61)
+transform = Transform3D(0.15, 0, 0, 0, 0.17, 0, 0, 0, 0.09, -0.165, 0.41857457, 0.69)
 material_override = ExtResource("7_0oxxo")
 mesh = ExtResource("8_brqdr")
 
 [node name="EyeShineR" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.045, 0, 0, 0, 0.045, 0, 0, 0, 0.03, -0.2, 0.46357465, 0.665)
+transform = Transform3D(0.045, 0, 0, 0, 0.045, 0, 0, 0, 0.03, -0.2, 0.46357465, 0.745)
 material_override = ExtResource("9_fpc6q")
 mesh = ExtResource("8_brqdr")
 
-[node name="BlushR" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.11, 0, 0, 0, 0.06, 0, 0, 0, 0.04, -0.255, 0.31357455, 0.575)
-material_override = ExtResource("10_uq7u7")
-mesh = ExtResource("8_brqdr")
-
 [node name="MouthDot" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/FaceAnchor"]
-transform = Transform3D(0.05, 0, 0, 0, 0.035, 0, 0, 0, 0.03, 0, 0.2785746, 0.625)
+transform = Transform3D(0.05, 0, 0, 0, 0.035, 0, 0, 0, 0.03, 0, 0.2785746, 0.705)
 material_override = ExtResource("7_0oxxo")
 mesh = ExtResource("8_brqdr")
 
@@ -16713,7 +16703,7 @@ bone_name = "hand.l"
 
 [node name="Mitten" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/Paw_l"]
 transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("11_rnau3")
 
 [node name="Foot_l" type="BoneAttachment3D" parent="Model/Rig/Skeleton3D" index="8"]
@@ -16721,7 +16711,7 @@ bone_name = "foot.l"
 
 [node name="Bootie" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/Foot_l"]
 transform = Transform3D(0.24, 0, 0, 0, 0.16, 0, 0, 0, 0.34, 0, -0.07, -0.07)
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("8_brqdr")
 
 [node name="Paw_r" type="BoneAttachment3D" parent="Model/Rig/Skeleton3D" index="9"]
@@ -16729,7 +16719,7 @@ bone_name = "hand.r"
 
 [node name="Mitten" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/Paw_r"]
 transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0)
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("11_rnau3")
 
 [node name="Foot_r" type="BoneAttachment3D" parent="Model/Rig/Skeleton3D" index="10"]
@@ -16737,7 +16727,7 @@ bone_name = "foot.r"
 
 [node name="Bootie" type="MeshInstance3D" parent="Model/Rig/Skeleton3D/Foot_r"]
 transform = Transform3D(0.24, 0, 0, 0, 0.16, 0, 0, 0, 0.34, 0, -0.07, -0.07)
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("8_brqdr")
 
 [node name="Torso" type="MeshInstance3D" parent="."]
@@ -16755,7 +16745,7 @@ mesh = ExtResource("12_s0dfa")
 [node name="FacePlate" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 1.004, -0.285)
 visible = false
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("12_s0dfa")
 
 [node name="LeftEye" type="MeshInstance3D" parent="."]
@@ -16788,7 +16778,7 @@ mesh = ExtResource("12_s0dfa")
 [node name="LeftHand" type="MeshInstance3D" parent="LeftArm"]
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, -0.33, 0)
 visible = false
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("12_s0dfa")
 
 [node name="LeftLeg" type="Node3D" parent="."]
@@ -16804,7 +16794,7 @@ metadata/root_cap_y = 0.16
 [node name="LeftShoe" type="MeshInstance3D" parent="LeftLeg"]
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, -0.32, -0.045)
 visible = false
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("12_s0dfa")
 
 [node name="RightArm" type="Node3D" parent="."]
@@ -16819,7 +16809,7 @@ mesh = ExtResource("12_s0dfa")
 [node name="RightHand" type="MeshInstance3D" parent="RightArm"]
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, -0.33, 0)
 visible = false
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("12_s0dfa")
 
 [node name="HandAnchor" type="Marker3D" parent="RightArm"]
@@ -16838,7 +16828,7 @@ metadata/root_cap_y = 0.16
 [node name="RightShoe" type="MeshInstance3D" parent="RightLeg"]
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, -0.32, -0.045)
 visible = false
-material_override = ExtResource("5_qkd2v")
+material_override = ExtResource("10_uq7u7")
 mesh = ExtResource("12_s0dfa")
 
 [node name="Skeleton3D" type="Skeleton3D" parent="."]

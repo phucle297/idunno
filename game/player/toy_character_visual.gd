@@ -460,6 +460,11 @@ static func critter_material(kind: String) -> StandardMaterial3D:
 			material.emission_enabled = true
 			material.emission = Color("f4dcc2")
 			material.emission_energy_multiplier = 0.32
+		"face":
+			# A4: the concept sheet's flat grey plate (130,135,129), unshaded so it reads
+			# the same in any light and under any player colour.
+			material.albedo_color = Color(0.51, 0.53, 0.506)
+			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		"bead":
 			material.albedo_color = Color("20242c")
 			material.roughness = 0.25

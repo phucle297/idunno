@@ -1,0 +1,1 @@
+# diff stat fa6b038..HEAD (after commit), whitelist proof
