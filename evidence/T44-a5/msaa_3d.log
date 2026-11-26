@@ -1,0 +1,20 @@
+MSAA_DEFAULT project_setting=1 root.msaa_3d=1 expect=1
+MSAA_AFTER_SCENE root.msaa_3d=1
+SNAP town_sheet_aaoff size=1280x720 msaa_3d=0
+SNAP town_game_aaoff size=1280x720 msaa_3d=0
+SNAP town_sheet_aaon size=1280x720 msaa_3d=1
+SNAP town_game_aaon size=1280x720 msaa_3d=1
+SNAP town_sheet_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP town_game_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP town_sheet_2560_aaon size=2560x1440 msaa_3d=1
+SNAP town_game_2560_aaon size=2560x1440 msaa_3d=1
+INTERIOR shelter=House pos=(-18.0, 0.0, 27.0)
+SNAP interior_sheet_aaoff size=1280x720 msaa_3d=0
+SNAP interior_game_aaoff size=1280x720 msaa_3d=0
+SNAP interior_sheet_aaon size=1280x720 msaa_3d=1
+SNAP interior_game_aaon size=1280x720 msaa_3d=1
+SNAP interior_sheet_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP interior_game_2560_aaoff size=2560x1440 msaa_3d=0
+SNAP interior_sheet_2560_aaon size=2560x1440 msaa_3d=1
+SNAP interior_game_2560_aaon size=2560x1440 msaa_3d=1
+MSAA_RESTORE root.msaa_3d=1
