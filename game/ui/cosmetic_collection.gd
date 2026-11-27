@@ -247,6 +247,8 @@ func present_colours(current: int, taken: Array[int], in_lobby: bool) -> void:
 	colour_current = current
 	colour_taken = taken.duplicate()
 	colour_lobby = in_lobby
+	if is_instance_valid(status) and status.text.begins_with("Saving suit colour"):
+		status.text = "Suit colour %d saved for this session" % (current + 1)
 	if is_instance_valid(preview):
 		preview.set_player_color(current)
 	_render()
