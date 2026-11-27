@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+T44_A3_PITCH walk { 0.0: [0.75009809243542, -0.07548196944196], 0.5: [-0.07548196944196, 0.75009809243542] }
+T44_A3_PITCH run { 0.0: [0.69612040195159, -0.10845640861942], 0.5: [-0.10845640861942, 0.69612040195159] }
+T45_ARM_SWING walk speed=4.50 peak=0.300 corr_l=0.3176 corr_r=-0.3176
+T45_ARM_SWING walk speed=2.25 peak=0.150 corr_l=0.1588 corr_r=-0.1588
+T45_ARM_SWING run speed=6.50 peak=0.520 corr_l=0.5504 corr_r=-0.5504
+T45_HELD idle legacy_off=0.00000 elbow_off=0.00098
+T45_HELD walk legacy_off=0.00000 elbow_off=0.00098
+T45_HELD run legacy_off=0.00000 elbow_off=0.00098
+CHARACTER_ANIMATION_OK checks=292

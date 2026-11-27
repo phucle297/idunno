@@ -1,0 +1,6 @@
+# T51 A1 face check (FaceCream must stay res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres, never the suit material)
+FACE title-c3 colour=c3 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(245,233,197) suit_albedo=(169,213,117) face_lum=232.8 face_sat=0.19 max_channel_delta_vs_suit=79.9 -> CREAM_UNPAINTED
+FACE game-c3-close colour=c3 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(215,204,183) suit_albedo=(169,213,117) face_lum=204.6 face_sat=0.13 max_channel_delta_vs_suit=65.7 -> CREAM_UNPAINTED
+FACE title-c1 colour=c1 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(245,233,197) suit_albedo=(240,163,104) face_lum=232.8 face_sat=0.19 max_channel_delta_vs_suit=93.5 -> CREAM_UNPAINTED
+FACE game-c1-close colour=c1 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(215,204,183) suit_albedo=(240,163,104) face_lum=204.6 face_sat=0.13 max_channel_delta_vs_suit=79.4 -> CREAM_UNPAINTED
+OUTFIT_ORDER match1 chef-then-c3, match2 c1-then-cap head_accessories_carry_suit=true

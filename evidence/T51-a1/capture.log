@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+PICK c3 via Outfits swatch -> get_suit_colour=3 OK
+SHOT ui-outfits-c3.png err=0
+SHOT title-c3.png err=0
+FACE title-c3 colour=c3 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(245,233,197) suit_albedo=(169,213,117) face_lum=232.8 face_sat=0.19 max_channel_delta_vs_suit=79.9 -> CREAM_UNPAINTED
+MATCH1 started=true
+MATCH state=1 elapsed=12.0s colour=c3
+SHOT game-c3.png err=0
+SHOT game-c3-close.png err=0
+FACE game-c3-close colour=c3 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(215,204,183) suit_albedo=(169,213,117) face_lum=204.6 face_sat=0.13 max_channel_delta_vs_suit=65.7 -> CREAM_UNPAINTED
+LOBBY back=true state=0 colour=c3
+PICK c1 via Outfits swatch -> get_suit_colour=1 OK
+SHOT ui-outfits-c1.png err=0
+SHOT title-c1.png err=0
+FACE title-c1 colour=c1 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(245,233,197) suit_albedo=(240,163,104) face_lum=232.8 face_sat=0.19 max_channel_delta_vs_suit=93.5 -> CREAM_UNPAINTED
+MATCH2 started=true
+MATCH state=1 elapsed=12.0s colour=c1
+SHOT game-c1.png err=0
+SHOT game-c1-close.png err=0
+FACE game-c1-close colour=c1 face_material=res://assets/models/critter/materials/MAT_Critter_Cream_v002.tres face_is_suit_material=false suit_albedo_ok=true face_px_rgb=(215,204,183) suit_albedo=(240,163,104) face_lum=204.6 face_sat=0.13 max_channel_delta_vs_suit=79.4 -> CREAM_UNPAINTED
+OUTFIT_ORDER outfit=cap colour=c1 head_accessories_carry_suit=true
+SHOT four-p.png err=0
+SHOT outfit-order.png err=0
+peer=1 colour=c1 legacy_peer_id-1_mod6=c0 outfit=cap
+peer=2 colour=c0 legacy_peer_id-1_mod6=c1 outfit=sailor
+peer=3141592 colour=c2 legacy_peer_id-1_mod6=c3 outfit=pilot
+peer=987654321 colour=c3 legacy_peer_id-1_mod6=c2 outfit=firefighter
+distinct=4 of 4 -> PASS
+T51_CAPTURE_OK
+capture_exit=0 head=f935875
