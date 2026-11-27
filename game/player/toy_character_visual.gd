@@ -45,8 +45,8 @@ const ARM_ELBOW_SIGN_R := 1.0
 ## Plop-toddle waddle (AC12): whole-body side roll about the planted foot plus a
 ## small bob; arms and legs never swing.
 const WADDLE_CYCLE_M := 1.8
-const WADDLE_WALK_ROLL := 0.10471976
-const WADDLE_RUN_ROLL := 0.17453293
+const WADDLE_WALK_ROLL := 0.05235988
+const WADDLE_RUN_ROLL := 0.08726646
 const WADDLE_WALK_BOB := 0.030
 const WADDLE_RUN_BOB := 0.050
 const WADDLE_EASE_IN := 0.15
