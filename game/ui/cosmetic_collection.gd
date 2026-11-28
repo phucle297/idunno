@@ -5,6 +5,7 @@ signal closed
 signal equip_requested(outfit_id: String)
 signal open_requested(box_id: String)
 signal refresh_requested
+signal colour_requested(index: int)
 
 var profile: Dictionary = {"owned": ToyCharacterVisual.starter_ids(), "pending": [], "equipped": "plain"}
 var managed := false
@@ -28,6 +29,10 @@ var box_select: OptionButton
 var close_button: Button
 var skip_button: Button
 var outfit_buttons: Array[Button] = []
+var colour_buttons: Array[Button] = [] # T51: one swatch per ToyCharacterVisual.SUIT_COLORS entry.
+var colour_current := 0
+var colour_taken: Array[int] = []
+var colour_lobby := true
 var preview: ToyCharacterVisual
 var viewport: SubViewport
 var _return_focus: Control
@@ -124,6 +129,36 @@ func _ready() -> void:
 		rotate.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rotate.pressed.connect(func() -> void: preview.rotate_y(direction * PI / 4.0))
 		rotation_row.add_child(rotate)
+	var colour_row := HBoxContainer.new()
+	colour_row.name = "ColourRow"
+	colour_row.add_theme_constant_override("separation", 8)
+	right.add_child(colour_row)
+	var colour_label := Label.new()
+	colour_label.text = "SUIT COLOUR"
+	colour_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	colour_row.add_child(colour_label)
+	for index: int in ToyCharacterVisual.SUIT_COLORS.size():
+		var swatch := Button.new()
+		swatch.name = "Colour%d" % index
+		swatch.custom_minimum_size = Vector2(44, 44)
+		swatch.focus_mode = Control.FOCUS_ALL
+		swatch.tooltip_text = "Suit colour %d" % (index + 1)
+		swatch.add_theme_font_size_override("font_size", 22)
+		for state: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+			var box := StyleBoxFlat.new()
+			box.bg_color = ToyCharacterVisual.SUIT_COLORS[index]
+			box.set_corner_radius_all(8)
+			if state == "disabled":
+				box.bg_color = Color(box.bg_color, 0.3)
+			elif state in ["hover", "focus"]:
+				box.border_color = DisasterPartyUI.INK
+				box.set_border_width_all(3)
+			swatch.add_theme_stylebox_override(state, box)
+		swatch.pressed.connect(func() -> void:
+			status.text = "Saving suit colour…"
+			colour_requested.emit(index))
+		colour_row.add_child(swatch)
+		colour_buttons.append(swatch)
 	description = Label.new()
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.custom_minimum_size.y = 48
@@ -205,6 +240,17 @@ func present_profile(value: Dictionary, is_managed: bool, in_lobby: bool) -> voi
 	lobby = in_lobby
 	busy = false
 	status.text = "Saved service inventory" if managed else "Starter equipment only outside a profile-enabled room"
+	_render()
+
+
+func present_colours(current: int, taken: Array[int], in_lobby: bool) -> void:
+	colour_current = current
+	colour_taken = taken.duplicate()
+	colour_lobby = in_lobby
+	if is_instance_valid(status) and status.text.begins_with("Saving suit colour"):
+		status.text = "Suit colour %d saved for this session" % (current + 1)
+	if is_instance_valid(preview):
+		preview.set_player_color(current)
 	_render()
 
 
@@ -294,6 +340,12 @@ func _render() -> void:
 		box_select.select(clampi(previous, 0, profile.pending.size() - 1))
 	box_select.disabled = busy or profile.pending.is_empty()
 	open_button.disabled = busy or profile.pending.is_empty()
+	for index: int in colour_buttons.size():
+		var swatch := colour_buttons[index]
+		var taken := index in colour_taken and index != colour_current
+		swatch.text = "✓" if index == colour_current else ""
+		swatch.disabled = busy or not colour_lobby or taken
+		swatch.tooltip_text = "Suit colour %d%s" % [index + 1, " (taken)" if taken else ""]
 	_render_box()
 	_refresh_focus()
 

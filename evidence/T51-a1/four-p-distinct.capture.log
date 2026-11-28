@@ -1,0 +1,6 @@
+# T51 A1 4P mid-match colours (capture run)
+peer=1 colour=c1 legacy_peer_id-1_mod6=c0 outfit=cap
+peer=2 colour=c0 legacy_peer_id-1_mod6=c1 outfit=sailor
+peer=3141592 colour=c2 legacy_peer_id-1_mod6=c3 outfit=pilot
+peer=987654321 colour=c3 legacy_peer_id-1_mod6=c2 outfit=firefighter
+distinct=4 of 4 -> PASS

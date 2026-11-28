@@ -1,0 +1,20 @@
+# T51 A1 mp replication 2026-11-27 07:35:01 ICT head=f935875 server_exit=0 client_exit=0
+## server
+SERVER PASS client joined
+SERVER PASS host keeps home pick c2 when hosting
+SERVER client_peer=1876727691 client_default=0 (peer_id-1 mod 6 would be 2)
+SERVER PASS client default = lowest free colour c0
+SERVER PASS client pick c5 accepted on server
+SERVER PASS server renders client avatar in c5
+SERVER PASS host colour unchanged after client's rejected c2 request
+T51_MP_SERVER_OK
+## client
+CLIENT PASS client sees host + self
+CLIENT me=1876727691
+CLIENT PASS client sees host in c2 (spawn param)
+CLIENT PASS client self colour c0 from server
+CLIENT PASS reply to taken request
+CLIENT PASS c2 rejected as colour_taken, colour unchanged
+CLIENT PASS reply to free request
+CLIENT PASS c5 accepted, own avatar c5
+T51_MP_CLIENT_OK

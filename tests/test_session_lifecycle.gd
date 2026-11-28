@@ -70,6 +70,12 @@ func _run() -> void:
 	# Spawns and roster snapshots travel on different channels: a snapshot
 	# created before a spawn must never prune that player when it arrives late.
 	main._spawn_network_player(3, "Late Player", Vector3(6, 0, 4), 10)
+	# T51: late joiners receive the server-held suit colour via the trailing spawn param.
+	main._spawn_network_player(2, "Remote Player", Vector3(4, 0, 4), 0, "plain", 4)
+	var remote_visual: ToyCharacterVisual = (main._player_nodes[2] as PartyPlayer).character
+	_expect(main.get_suit_colour(2) == 4 and (remote_visual.get_node("Torso").material_override as StandardMaterial3D).albedo_color == (ToyCharacterVisual.SUIT_COLORS[4] as Color).lerp(ToyCharacterVisual.SUIT_SOFTEN, 0.28), "T51: spawn rpc carries the suit colour to clients")
+	main._apply_suit_colour(2, 5)
+	_expect(main.get_suit_colour(2) == 5 and (remote_visual.get_node("Torso").material_override as StandardMaterial3D).albedo_color == (ToyCharacterVisual.SUIT_COLORS[5] as Color).lerp(ToyCharacterVisual.SUIT_SOFTEN, 0.28), "T51: remote colour change replicates to the remote avatar")
 	var roster_arrays := {
 		"state": MatchManager.MatchState.LOBBY,
 		"elapsed_time": 0.0,

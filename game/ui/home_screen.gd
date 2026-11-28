@@ -21,6 +21,7 @@ var preview: ToyCharacterVisual
 var preview_viewport: SubViewport
 var town_stage: Node3D
 var _outfit := ""
+var _colour := -1
 var _selection := ""
 
 
@@ -204,6 +205,10 @@ func refresh() -> void:
 	if outfit != _outfit:
 		_outfit = outfit
 		preview.set_outfit_id(outfit)
+	var colour: int = _main.get_suit_colour()
+	if colour != _colour:
+		_colour = colour
+		preview.set_player_color(colour)
 	var loading: bool = _main._map_loading
 	start.disabled = loading or not _main._outfit_pending.is_empty()
 	start.text = "LOADING MAP…" if loading else "START SOLO   →"

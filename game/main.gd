@@ -2,12 +2,14 @@ extends Node3D
 
 signal outfit_acknowledged(outfit_id: String, request_sequence: int)
 signal outfit_failed(message: String, request_sequence: int)
+signal suit_colour_replied(colour: int, error: String)
 
 static var STARTER_OUTFITS: Array[String] = ToyCharacterVisual.starter_ids()
 var _outfits: Dictionary = {}
 var _outfit_requests: Dictionary = {}
 var _outfit_pending: Dictionary = {}
 var _outfit_sequence := 0
+var _suit_colours: Dictionary = {} # T51: peer_id -> SUIT_COLORS index, session only, server-assigned.
 var collection: Control
 var music: PartyMusicController
 var _profile_state: Dictionary = {}
@@ -624,7 +626,8 @@ func _on_network_peer_connected(peer_id: int) -> void:
 			String(match_manager.players[existing_peer_id].name),
 			existing_player.position,
 			_match_snapshot_sequence,
-			_outfits.get(existing_peer_id, "plain")
+			_outfits.get(existing_peer_id, "plain"),
+			int(_suit_colours.get(existing_peer_id, -1))
 		)
 	var spawn_position := _network_spawn_position(_player_nodes.size())
 	var player_name := "Player %d" % peer_id
@@ -638,7 +641,7 @@ func _on_network_peer_connected(peer_id: int) -> void:
 	if _dedicated_server and _room_owner_id == 0:
 		_room_owner_id = peer_id
 		_session_revision += 1
-	_spawn_network_player.rpc(peer_id, player_name, spawn_position, _match_snapshot_sequence, _outfits.get(peer_id, "plain"))
+	_spawn_network_player.rpc(peer_id, player_name, spawn_position, _match_snapshot_sequence, _outfits.get(peer_id, "plain"), int(_suit_colours.get(peer_id, -1)))
 
 
 func _on_network_peer_disconnected(peer_id: int) -> void:
@@ -714,6 +717,7 @@ func _on_server_disconnected() -> void:
 	_outfits.clear()
 	_outfit_requests.clear()
 	_outfit_pending.clear()
+	_suit_colours.clear()
 	_profiles_enabled = false
 	_reward_notice.clear()
 	_reward_sequence = 0
@@ -760,9 +764,11 @@ func _spawn_server_network_player(peer_id: int, player_name: String, spawn_posit
 
 
 @rpc("authority", "call_remote", "reliable")
-func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3, spawn_sequence: int = 0, outfit_id: String = "plain") -> void:
+func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: Vector3, spawn_sequence: int = 0, outfit_id: String = "plain", suit_colour: int = -1) -> void:
 	_roster_snapshot_floor = maxi(_roster_snapshot_floor, spawn_sequence)
 	_outfits[peer_id] = outfit_id
+	if suit_colour >= 0:
+		_suit_colours[peer_id] = suit_colour
 	if _player_nodes.has(peer_id):
 		_configure_network_player(_player_nodes[peer_id] as PartyPlayer, peer_id, spawn_position)
 		return
@@ -783,6 +789,7 @@ func _remove_network_player(peer_id: int) -> void:
 	_outfits.erase(peer_id)
 	_outfit_requests.erase(peer_id)
 	_outfit_pending.erase(peer_id)
+	_suit_colours.erase(peer_id)
 	_server_emote_states.erase(peer_id)
 	_server_emote_cooldown_until.erase(peer_id)
 	_local_emote_cooldown_until.erase(peer_id)
@@ -799,7 +806,7 @@ func _configure_network_player(player: PartyPlayer, peer_id: int, spawn_position
 	player.world_loaded = not map_anchors.is_empty()
 	player.weather_surfaces = weather_surfaces
 	player.configure_emotes(self)
-	player.configure_identity(peer_id)
+	_apply_identity(player, peer_id)
 	player.configure_shoving($ShoveManager)
 	player.character.set_outfit_id(_outfits.get(peer_id, "plain"))
 	$ShoveManager.register_player(peer_id, player)
@@ -1282,7 +1289,7 @@ func _emote_now() -> float:
 
 func _register_server_gameplay_player(peer_id: int, player: PartyPlayer, player_name: String) -> bool:
 	player.configure_emotes(self)
-	player.configure_identity(peer_id)
+	_apply_identity(player, peer_id)
 	player.weather_surfaces = weather_surfaces
 	if not player.landed.is_connected(_on_player_landed.bind(peer_id)):
 		player.landed.connect(_on_player_landed.bind(peer_id))
@@ -2173,6 +2180,7 @@ func _configure_collection() -> void:
 	collection.equip_requested.connect(func(outfit_id: String) -> void:
 		_equip_ui_sequence = _outfit_sequence + 1
 		request_outfit(outfit_id))
+	collection.colour_requested.connect(request_suit_colour)
 	collection.open_requested.connect(func(box_id: String) -> void:
 		room_client.profile_client.open_box(box_id))
 	room_client.profile_client.profile_received.connect(func(profile: Dictionary) -> void:
@@ -2262,6 +2270,7 @@ func _present_collection_profile() -> void:
 		state.equipped = get_outfit_id()
 	collection.present_profile(state, _profiles_enabled, match_manager.state == MatchManager.MatchState.LOBBY)
 	collection.busy = _equip_ui_sequence > 0 or room_client.profile_client.busy
+	_present_suit_colours()
 
 
 func _refresh_profile() -> void:
@@ -2695,6 +2704,111 @@ func _apply_outfit(peer_id: int, outfit_id: String) -> void:
 		(_player_nodes[peer_id] as PartyPlayer).character.set_outfit_id(outfit_id)
 
 
+# T51: suit colour choice. Mirrors the outfit flow: server-authoritative,
+# lobby-only, session-only (memory), no RNG.
+func get_suit_colour(peer_id: int = 0) -> int:
+	var id := multiplayer.get_unique_id() if peer_id == 0 else peer_id
+	return int(_suit_colours.get(id, posmod(id - 1, ToyCharacterVisual.SUIT_COLORS.size())))
+
+
+func get_taken_suit_colours(peer_id: int = 0) -> Array[int]:
+	var id := multiplayer.get_unique_id() if peer_id == 0 else peer_id
+	var taken: Array[int] = []
+	for other: int in _suit_colours:
+		if other != id and _player_nodes.has(other) and not int(_suit_colours[other]) in taken:
+			taken.append(int(_suit_colours[other]))
+	return taken
+
+
+func _identity_colour(peer_id: int) -> int:
+	if _suit_colours.has(peer_id):
+		return int(_suit_colours[peer_id])
+	if not multiplayer.is_server():
+		return peer_id - 1 # Client not yet told: pre-T51 behaviour, not stored.
+	var counts: Array[int] = []
+	counts.resize(ToyCharacterVisual.SUIT_COLORS.size())
+	counts.fill(0)
+	for other: int in _suit_colours:
+		if other != peer_id:
+			counts[int(_suit_colours[other])] += 1
+	# Lowest free index; if all are used, the least-used index (lowest on ties).
+	var best := 0
+	for index: int in counts.size():
+		if counts[index] < counts[best]:
+			best = index
+	_suit_colours[peer_id] = best
+	return best
+
+
+func _suit_colours_shared() -> bool:
+	# With 6 or fewer players every requester always has a free colour; from the 7th player on sharing is allowed.
+	return _player_nodes.size() > ToyCharacterVisual.SUIT_COLORS.size()
+
+
+func _apply_identity(player: PartyPlayer, peer_id: int) -> void:
+	player.configure_identity(peer_id)
+	player.character.set_player_color(_identity_colour(peer_id))
+
+
+func request_suit_colour(colour: int) -> void:
+	if _network_mode and not multiplayer.is_server():
+		_request_suit_colour.rpc_id(1, colour)
+	else:
+		_accept_suit_colour(multiplayer.get_unique_id(), colour)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _request_suit_colour(colour: int) -> void:
+	_accept_suit_colour(multiplayer.get_remote_sender_id(), colour)
+
+
+func _accept_suit_colour(peer_id: int, colour: int) -> void:
+	if not multiplayer.is_server() or not _player_nodes.has(peer_id):
+		return
+	var error := ""
+	if colour < 0 or colour >= ToyCharacterVisual.SUIT_COLORS.size():
+		error = "unknown_colour"
+	elif _map_loading or match_manager.state != MatchManager.MatchState.LOBBY:
+		error = "colour_lobby_only"
+	elif colour in get_taken_suit_colours(peer_id) and not _suit_colours_shared():
+		error = "colour_taken" # 4P rule: no sharing while a free colour exists (up to 6 players).
+	if error.is_empty():
+		_apply_suit_colour(peer_id, colour)
+		if _network_mode:
+			_apply_suit_colour.rpc(peer_id, colour)
+	if peer_id == multiplayer.get_unique_id():
+		_receive_suit_colour_reply(get_suit_colour(peer_id), error)
+	else:
+		_receive_suit_colour_reply.rpc_id(peer_id, get_suit_colour(peer_id), error)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _apply_suit_colour(peer_id: int, colour: int) -> void:
+	_suit_colours[peer_id] = colour
+	if _player_nodes.has(peer_id):
+		(_player_nodes[peer_id] as PartyPlayer).character.set_player_color(colour)
+	_present_suit_colours()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_suit_colour_reply(colour: int, error: String) -> void:
+	_suit_colours[multiplayer.get_unique_id()] = colour
+	_present_suit_colours()
+	if is_instance_valid(home_screen):
+		home_screen.refresh()
+	if not error.is_empty() and is_instance_valid(collection):
+		collection.present_error("Colour unchanged: " + error.replace("_", " "))
+	suit_colour_replied.emit(colour, error)
+
+
+func _present_suit_colours() -> void:
+	if is_instance_valid(collection) and collection.is_inside_tree():
+		var taken: Array[int] = []
+		if not _suit_colours_shared():
+			taken = get_taken_suit_colours()
+		collection.present_colours(get_suit_colour(), taken, not _map_loading and match_manager.state == MatchManager.MatchState.LOBBY)
+
+
 func _outfit_reply(peer_id: int, sequence: int, error: String) -> void:
 	if peer_id == multiplayer.get_unique_id():
 		_receive_outfit_reply(sequence, get_outfit_id(peer_id), error)
@@ -2921,7 +3035,7 @@ func _add_gameplay_demo_player(peer_id: int, player_name: String, spawn_position
 	$Player/CameraPivot/SpringArm3D/Camera3D.current = true
 	_player_nodes[peer_id] = player
 	match_manager.register_player(peer_id, player_name)
-	player.configure_identity(peer_id)
+	_apply_identity(player, peer_id)
 	meteor_shower.register_player(peer_id, player)
 	flood.register_player(peer_id, player)
 	tornado.register_player(peer_id, player)

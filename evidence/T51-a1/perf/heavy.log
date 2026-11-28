@@ -1,0 +1,16 @@
+2026-11-27 07:12:37 ICT HEAVY start A=f9358753a638c37de17157ea9d658a3ea7241076 B=d2e1e0f324927c942f111a39e03b50715b21a6ca override_A=ABSENT override_B=ABSENT
+2026-11-27 07:13:41 ICT 4P B run1 exit=0 PERF_4P label=B1 avg_ms=229.14 p95_ms=259.80 max_ms=273.49 draw_calls=2370 primitives=754391
+2026-11-27 07:14:48 ICT 4P A run1 exit=0 PERF_4P label=A1 avg_ms=236.32 p95_ms=322.76 max_ms=389.95 draw_calls=2370 primitives=754391
+2026-11-27 07:15:52 ICT 4P A run2 exit=0 PERF_4P label=A2 avg_ms=226.96 p95_ms=250.12 max_ms=264.72 draw_calls=2370 primitives=754391
+2026-11-27 07:16:59 ICT 4P B run2 exit=0 PERF_4P label=B2 avg_ms=238.77 p95_ms=268.10 max_ms=400.72 draw_calls=2370 primitives=754391
+2026-11-27 07:18:05 ICT 4P B run3 exit=0 PERF_4P label=B3 avg_ms=233.81 p95_ms=263.84 max_ms=285.31 draw_calls=2370 primitives=754391
+2026-11-27 07:19:09 ICT 4P A run3 exit=0 PERF_4P label=A3 avg_ms=219.64 p95_ms=238.30 max_ms=270.32 draw_calls=2370 primitives=754391
+2026-11-27 07:26:53 ICT box restarted ~07:20 during A run4; pairs 1-3 kept, resuming at pair 4
+2026-11-27 07:26:53 ICT HEAVY start A=f9358753a638c37de17157ea9d658a3ea7241076 B=d2e1e0f324927c942f111a39e03b50715b21a6ca override_A=ABSENT override_B=ABSENT
+2026-11-27 07:28:01 ICT 4P A run4 exit=0 PERF_4P label=A4 avg_ms=216.60 p95_ms=231.63 max_ms=243.04 draw_calls=2370 primitives=754391
+2026-11-27 07:29:03 ICT 4P B run4 exit=0 PERF_4P label=B4 avg_ms=216.06 p95_ms=232.10 max_ms=248.85 draw_calls=2370 primitives=754391
+2026-11-27 07:30:09 ICT 4P B run5 exit=0 PERF_4P label=B5 avg_ms=224.70 p95_ms=240.53 max_ms=260.35 draw_calls=2370 primitives=754391
+2026-11-27 07:31:12 ICT 4P A run5 exit=0 PERF_4P label=A5 avg_ms=216.01 p95_ms=230.86 max_ms=244.62 draw_calls=2372 primitives=754967
+2026-11-27 07:32:17 ICT 4P A run6 exit=0 PERF_4P label=A6 avg_ms=237.36 p95_ms=260.05 max_ms=304.38 draw_calls=2370 primitives=754391
+2026-11-27 07:33:21 ICT 4P B run6 exit=0 PERF_4P label=B6 avg_ms=224.81 p95_ms=240.42 max_ms=253.88 draw_calls=2370 primitives=754391
+2026-11-27 07:33:21 ICT HEAVY done
