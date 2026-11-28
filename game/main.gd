@@ -9,7 +9,7 @@ var _outfits: Dictionary = {}
 var _outfit_requests: Dictionary = {}
 var _outfit_pending: Dictionary = {}
 var _outfit_sequence := 0
-var _suit_colours: Dictionary = {} # T51: peer_id -> SUIT_COLORS index, session only, server-assigned.
+var _suit_colours: Dictionary = {} # T51: peer_id -> SUIT_COLORS index, server-assigned. T52: local pick is persisted as a request only.
 var collection: Control
 var music: PartyMusicController
 var _profile_state: Dictionary = {}
@@ -316,6 +316,7 @@ func _ready() -> void:
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
 	_load_starter_outfit()
+	_load_starter_suit_colour()
 	# Normal startup is a preparation screen, never an already-running round.
 	# Explicit solo/demo entry points remain available for automation and captures.
 	var immediate_play := (
@@ -734,6 +735,7 @@ func _on_server_disconnected() -> void:
 	_player_nodes[1] = $Player
 	_register_server_gameplay_player(1, $Player, "Local Player")
 	_load_starter_outfit()
+	_load_starter_suit_colour()
 	$Interface/ResultsPanel.visible = false
 	if is_instance_valid(home_screen):
 		home_screen.page = "room" # Preserve direct retry controls after a failed connection.
@@ -771,13 +773,22 @@ func _spawn_network_player(peer_id: int, _player_name: String, spawn_position: V
 		_suit_colours[peer_id] = suit_colour
 	if _player_nodes.has(peer_id):
 		_configure_network_player(_player_nodes[peer_id] as PartyPlayer, peer_id, spawn_position)
-		return
-	var player := PlayerScene.instantiate() as PartyPlayer
-	player.name = "NetworkPlayer%d" % peer_id
-	player.set_multiplayer_authority(peer_id)
-	add_child(player)
-	_configure_network_player(player, peer_id, spawn_position)
-	_player_nodes[peer_id] = player
+	else:
+		var player := PlayerScene.instantiate() as PartyPlayer
+		player.name = "NetworkPlayer%d" % peer_id
+		player.set_multiplayer_authority(peer_id)
+		add_child(player)
+		_configure_network_player(player, peer_id, spawn_position)
+		_player_nodes[peer_id] = player
+	if (
+		peer_id == multiplayer.get_unique_id()
+		and not multiplayer.is_server()
+		and not _map_loading
+		and match_manager.state == MatchManager.MatchState.LOBBY
+	):
+		var saved := _read_starter_suit_colour()
+		if saved >= 0:
+			request_suit_colour(saved)
 
 
 func _remove_network_player(peer_id: int) -> void:
@@ -2643,6 +2654,32 @@ func _load_starter_outfit() -> void:
 	_apply_outfit(1, saved if saved in STARTER_OUTFITS else "plain")
 
 
+func _read_starter_suit_colour() -> int:
+	if not FileAccess.file_exists("user://starter-suit-colour.txt"):
+		return -1
+	var raw := FileAccess.get_file_as_string("user://starter-suit-colour.txt").strip_edges()
+	if not raw.is_valid_int():
+		return -1
+	var colour := int(raw)
+	if colour < 0 or colour >= ToyCharacterVisual.SUIT_COLORS.size():
+		return -1
+	return colour
+
+
+func _load_starter_suit_colour() -> void:
+	var colour := _read_starter_suit_colour()
+	if colour >= 0:
+		_apply_suit_colour(1, colour)
+
+
+func _save_starter_suit_colour(colour: int) -> void:
+	var file := FileAccess.open("user://starter-suit-colour.txt", FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_string(str(colour))
+	file.close()
+
+
 func request_outfit(outfit_id: String) -> int:
 	_outfit_sequence += 1
 	if _network_mode and not multiplayer.is_server():
@@ -2705,7 +2742,7 @@ func _apply_outfit(peer_id: int, outfit_id: String) -> void:
 
 
 # T51: suit colour choice. Mirrors the outfit flow: server-authoritative,
-# lobby-only, session-only (memory), no RNG.
+# lobby-only, no RNG. T52 persists the local pick as a request only.
 func get_suit_colour(peer_id: int = 0) -> int:
 	var id := multiplayer.get_unique_id() if peer_id == 0 else peer_id
 	return int(_suit_colours.get(id, posmod(id - 1, ToyCharacterVisual.SUIT_COLORS.size())))
@@ -2798,6 +2835,8 @@ func _receive_suit_colour_reply(colour: int, error: String) -> void:
 		home_screen.refresh()
 	if not error.is_empty() and is_instance_valid(collection):
 		collection.present_error("Colour unchanged: " + error.replace("_", " "))
+	elif error.is_empty():
+		_save_starter_suit_colour(colour)
 	suit_colour_replied.emit(colour, error)
 
 

@@ -1,0 +1,25 @@
+# T52 A1 restart  2026-11-28 09:32:11 ICT
+# head=a2de4972c1f5accdf79255109df17c74da74e89a
+# userdata=/tmp/t52-userdata-6Hcj/xdg
+# phase=pick exit=0
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+PICK start userdata=/tmp/t52-userdata-6Hcj/xdg/godot/app_userdata/Disaster Party colour_before=0 file=<missing>
+PICK after request colour=4 file=4 user://=/tmp/t52-userdata-6Hcj/xdg/godot/app_userdata/Disaster Party
+SHOT title-before.png err=0
+PHASE pick -> PASS
+# phase=restore exit=0
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+RESTORE colour=4 file=4 userdata=/tmp/t52-userdata-6Hcj/xdg/godot/app_userdata/Disaster Party
+RESTORE home_preview_matches_avatar=true
+SHOT title-after.png err=0
+PHASE restore -> PASS

@@ -1,0 +1,11 @@
+# T52 A1 colour_taken does not overwrite save  2026-11-28 09:33:15 ICT
+# head=a2de4972c1f5accdf79255109df17c74da74e89a exit see restart.log
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+DISASTER_PARTY_BUILD revision=development engine=4.7.2-stable (official) renderer=gl_compatibility
+TAKEN loaded colour=4 file=4
+TAKEN request_4 error=colour_taken session=0 file=4 holder=4
+PHASE taken -> PASS
