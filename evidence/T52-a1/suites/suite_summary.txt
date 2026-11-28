@@ -1,0 +1,7 @@
+# head=a2de497  2026-11-28 09:31:43 ICT
+2026-11-28 09:31:43 ICT test_cosmetic_collection exit=0 marker=COSMETIC_COLLECTION_OK checks=79 errors=0 wall=prior
+2026-11-28 09:31:45 ICT test_session_lifecycle exit=0 marker=SESSION_LIFECYCLE_OK checks=53 errors=1 wall=2s
+2026-11-28 09:31:49 ICT test_room_ui exit=0 marker=ROOM_UI_OK checks=86 resolution=64x64 errors=0 wall=4s
+2026-11-28 09:31:49 ICT test_critter_asset exit=0 marker=CRITTER_ASSET_OK checks=226 errors=0 wall=0s
+2026-11-28 09:31:49 ICT test_character_animation exit=0 marker=CHARACTER_ANIMATION_OK checks=292 errors=0 wall=0s
+2026-11-28 09:31:51 ICT test_phase1 exit=0 marker=PHASE1_TESTS_OK checks=1273 errors=0 wall=2s

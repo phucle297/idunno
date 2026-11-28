@@ -17,6 +17,7 @@ func _run() -> void:
 			capture_dir = argument.trim_prefix("--capture-dir=")
 		if argument == "--1080p":
 			review_size = Vector2i(1920, 1080)
+	_clear_starter_suit_colour()
 	main = preload("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await process_frame
@@ -121,6 +122,8 @@ func _run() -> void:
 	main.gameplay_audio.reset_for_match()
 	main.free()
 	await process_frame
+	await _check_suit_colour_persistence()
+	_clear_starter_suit_colour()
 	if failures.is_empty():
 		print("COSMETIC_COLLECTION_OK checks=%d" % checks)
 		quit(0)
@@ -246,3 +249,86 @@ func _key(key: Key) -> void:
 	event.pressed = false
 	Input.parse_input_event(event)
 	await process_frame
+
+
+func _starter_suit_colour_path() -> String:
+	return "user://starter-suit-colour.txt"
+
+
+func _clear_starter_suit_colour() -> void:
+	var path := _starter_suit_colour_path()
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func _write_starter_suit_colour(raw: String) -> void:
+	var file := FileAccess.open(_starter_suit_colour_path(), FileAccess.WRITE)
+	_expect(file != null, "T52: can write fixture (%s)" % raw)
+	if file != null:
+		file.store_string(raw)
+		file.close()
+
+
+func _saved_suit_colour_raw() -> String:
+	var path := _starter_suit_colour_path()
+	if not FileAccess.file_exists(path):
+		return ""
+	return FileAccess.get_file_as_string(path)
+
+
+func _make_main() -> Node:
+	var node := preload("res://scenes/main.tscn").instantiate()
+	root.add_child(node)
+	return node
+
+
+func _check_suit_colour_persistence() -> void:
+	# AC3: missing / corrupt / out-of-range saves fall back to the T51 default and do not crash.
+	_clear_starter_suit_colour()
+	var node := _make_main()
+	await process_frame
+	_expect(node.get_suit_colour() == 0, "T52: missing file falls back to T51 default 0")
+	_expect(not FileAccess.file_exists(_starter_suit_colour_path()), "T52: default assignment does not write a file")
+	node.home_screen.refresh()
+	_expect(_suit_material(node.home_screen.preview) == _suit_material(node.get_node("Player").character), "T52: home preview matches default colour 0")
+	node.free()
+	await process_frame
+	for raw: String in ["abc", "", "3.0", "-1", "99", "6"]:
+		_write_starter_suit_colour(raw)
+		node = _make_main()
+		await process_frame
+		_expect(node.get_suit_colour() == 0, "T52: corrupt/out-of-range '%s' falls back to default 0" % raw)
+		_expect(_saved_suit_colour_raw() == raw, "T52: fallback does not overwrite bad save '%s'" % raw)
+		node.free()
+		await process_frame
+	# AC1: a valid save is restored as the requested colour on a fresh Main (home preview + lobby).
+	_write_starter_suit_colour("4")
+	node = _make_main()
+	await process_frame
+	_expect(node.get_suit_colour() == 4, "T52: saved colour 4 is restored on launch")
+	node.home_screen.refresh()
+	var avatar: ToyCharacterVisual = node.get_node("Player").character
+	_expect(_suit_material(node.home_screen.preview) == _suit_material(avatar), "T52: home preview matches restored colour 4")
+	node._set_lobby_visible(true)
+	await process_frame
+	_expect(node.get_suit_colour() == 4, "T52: lobby still holds restored colour 4 as the request")
+	# An accepted pick is written to the file.
+	node.request_suit_colour(3)
+	_expect(node.get_suit_colour() == 3 and _saved_suit_colour_raw().strip_edges() == "3", "T52: accepted pick is saved")
+	# AC2: colour_taken does not overwrite the saved pick. Session stays on the current colour.
+	_write_starter_suit_colour("4")
+	node._apply_suit_colour(1, 0)
+	node._add_gameplay_demo_player(2, "Holder", Vector3(3, 0, 3))
+	node._apply_suit_colour(2, 4)
+	var replies: Array[String] = []
+	var on_reply := func(_colour: int, error: String) -> void: replies.append(error)
+	node.suit_colour_replied.connect(on_reply)
+	node.request_suit_colour(4)
+	_expect(replies.back() == "colour_taken" and node.get_suit_colour() == 0, "T52: taken restore-request is rejected, session stays current")
+	_expect(_saved_suit_colour_raw().strip_edges() == "4", "T52: colour_taken does not overwrite the saved pick")
+	node.suit_colour_replied.disconnect(on_reply)
+	node._remove_network_player(2)
+	node.free()
+	await process_frame
+	# Leave the file absent for later suites sharing user://.
+	_clear_starter_suit_colour()
